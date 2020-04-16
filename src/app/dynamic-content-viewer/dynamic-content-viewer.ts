@@ -1,9 +1,10 @@
 import {Component, NgModule, VERSION, ComponentFactoryResolver, InjectionToken,Injector, ElementRef, Output, Input, EventEmitter, ComponentFactory, ComponentRef} from '@angular/core'
 import {FormControl, ReactiveFormsModule} from '@angular/forms'
-import {EmbeddableComponent} from '../embeddable.component'
+import {ExampleComponent} from '../embeddable-components/example.component'
+import {Example2Component} from '../embeddable-components/example2.component'
 
 export const embeddedComponents = [
-  EmbeddableComponent
+  ExampleComponent, Example2Component
 ]
 
 export class EmbeddedComponents {

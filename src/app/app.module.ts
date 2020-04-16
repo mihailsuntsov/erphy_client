@@ -5,20 +5,19 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { SharedModule } from './shared/shared.module';
 
-import { ContentViewer, EmbeddedComponents, embeddedComponents } from './dynamic-content-viewer/dynamic-content-viewer';
 
 
 @NgModule({
   declarations: [
-    AppComponent,  ContentViewer, embeddedComponents 
+    AppComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     SharedModule
   ],
-  providers: [EmbeddedComponents],
+  providers: [],
   bootstrap: [AppComponent],
-  entryComponents: [embeddedComponents],
+  entryComponents: [],
 })
 export class AppModule { }
