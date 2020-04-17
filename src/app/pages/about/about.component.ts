@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { WindowService } from '../../services/window.service';
 
 @Component({
   selector: 'app-about',
@@ -8,11 +9,14 @@ import { Component, OnInit } from '@angular/core';
 export class AboutComponent implements OnInit {
 
   content:string;
+  hostName: string;
 
-  constructor() { }
+  constructor(private windowService: WindowService) { }
 
   ngOnInit(): void {
+    this.hostName = this.windowService.getHostname();
     this.loadContent();
+
   }
 
   loadContent(){

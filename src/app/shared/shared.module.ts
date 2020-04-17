@@ -5,6 +5,8 @@ import { ContactsComponent } from '../pages/contacts/contacts.component';
 import { HomeComponent } from '../pages/home/home.component';
 // import { EmbeddableComponent } from '../embeddable-components/example.component'
 import { ContentViewer, EmbeddedComponents, embeddedComponents } from '../dynamic-content-viewer/dynamic-content-viewer';
+import { WINDOW_PROVIDERS } from '../window.providers';
+
 
 @NgModule({
   declarations: [
@@ -21,7 +23,7 @@ import { ContentViewer, EmbeddedComponents, embeddedComponents } from '../dynami
   exports: [
     AboutComponent
   ],
-  providers: [EmbeddedComponents],
+  providers: [EmbeddedComponents, WINDOW_PROVIDERS],
   entryComponents: [embeddedComponents],
 })
 export class SharedModule { }
