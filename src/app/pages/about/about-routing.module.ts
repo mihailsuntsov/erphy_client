@@ -1,3 +1,4 @@
+// ng g m pages/about --route about --module app.module
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 
