@@ -4,11 +4,11 @@ import { HomeComponent } from '../home/home.component';
 import { CategoryComponent } from './category.component';
 
 const routes: Routes = [
-  // { path: '', redirectTo: '../', pathMatch: 'full',},
-  { path: ''   , component: CategoryComponent},
-  // { path: ':id', component: CategoryComponent},
-  // { path: '**' , redirectTo: '../', pathMatch: 'full'},
-  // { path: '../', component: HomeComponent},
+  { path: '', redirectTo: '../', pathMatch: 'full',},
+  // { path: ''   , component: CategoryComponent},
+  { path: ':id', component: CategoryComponent},
+  { path: '**' , redirectTo: '../', pathMatch: 'full'},
+  { path: '../', component: HomeComponent},
 ];
 
 @NgModule({

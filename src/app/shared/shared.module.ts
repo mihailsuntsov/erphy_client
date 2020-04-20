@@ -5,7 +5,7 @@ import { ContactsComponent } from '../pages/contacts/contacts.component';
 import { HomeComponent } from '../pages/home/home.component';
 import { ContentViewer, EmbeddedComponents, embeddedComponents } from '../dynamic-content-viewer/dynamic-content-viewer';
 import { WINDOW_PROVIDERS } from '../window.providers';
-
+import { CategoryComponent } from '../pages/category/category.component';
 
 @NgModule({
   declarations: [
@@ -13,13 +13,14 @@ import { WINDOW_PROVIDERS } from '../window.providers';
     ContactsComponent,
     HomeComponent,
     ContentViewer,  
+    CategoryComponent
   ],
   imports: [
     CommonModule,
     
   ],
   exports: [
-    AboutComponent
+    ContentViewer, 
   ],
   providers: [EmbeddedComponents, WINDOW_PROVIDERS],
   entryComponents: [embeddedComponents],
