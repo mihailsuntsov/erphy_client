@@ -2,6 +2,8 @@ import {Component, NgModule, VERSION, ComponentFactoryResolver, InjectionToken,I
 import {FormControl, ReactiveFormsModule} from '@angular/forms'
 import {ExampleComponent} from '../embeddable-components/example.component'
 import {Example2Component} from '../embeddable-components/example2.component'
+import { SharedModule } from '../shared/shared.module';
+
 
 export const embeddedComponents = [
   ExampleComponent, Example2Component

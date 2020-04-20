@@ -3,7 +3,7 @@ import { Component } from '@angular/core'
 @Component({
   selector: 'example2-component',
   template: `
-[Начало example2-компонента<br><ng-content></ng-content><br>Конец example2-компонента]
+[Начало example2-компонента<br>Параметр, переданный в компонент: name={{name}}<br>Конец example2-компонента]
   `,
 })
 export class Example2Component {
