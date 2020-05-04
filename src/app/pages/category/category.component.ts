@@ -28,7 +28,6 @@ export class CategoryComponent implements OnInit
   ngOnInit() {
       this.showId();
       this.getHtmlPage();
-      // this.loadContent();
     };
 
   showId():void{
