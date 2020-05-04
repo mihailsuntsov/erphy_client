@@ -8,7 +8,7 @@ import { WINDOW_PROVIDERS } from '../window.providers';
 import { CategoryComponent } from '../pages/category/category.component';
 import {ExampleComponent} from '../embeddable-components/example.component'
 import {Example2Component} from '../embeddable-components/example2.component'
-
+import { RouterModule } from '@angular/router';
 
 @NgModule({
   declarations: [
@@ -18,11 +18,12 @@ import {Example2Component} from '../embeddable-components/example2.component'
     ContentViewer,  
     CategoryComponent,
     ExampleComponent,
-    Example2Component
+    Example2Component,
+
   ],
   imports: [
     CommonModule,
-    
+    RouterModule,
   ],
   exports: [
     ContentViewer,
