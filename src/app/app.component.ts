@@ -10,7 +10,7 @@ export class AppComponent implements OnInit{
 
 
   ngOnInit(): void {
-    this.content = '<example-component name="hello">Контент компонента в верхнем меню</example-component>';
+    this.content = '<example-component name="hello"></example-component>';
 
   }
 
