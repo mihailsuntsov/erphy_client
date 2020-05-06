@@ -2,22 +2,26 @@ import { Component } from '@angular/core'
 
 @Component({
   selector: 'root-component',
-  template: `<br><br><br><br><br><br>
-[Начало root-компонента
-  <menu-component name="simple"></menu-component>
-  <div>
-    <p>в каком-то диве вызывается роутер-аутлет:</p>
-    <content-viewer [content]="insidecontent" ></content-viewer><br />
-  </div>
-  Конец root-компонента
-]
-  `,
+  template: `<content-viewer [content]="insidecontent" ></content-viewer>`,
 })
+
 export class RootComponent {
+
   name: string;
   insidecontent: string;
+
   ngOnInit(){
-    console.log(`RootComponent.OnInit name=`, this.name)
-    this.insidecontent='<example2-component></example2-component></a>';
+
+    console.log(`RootComponent.OnInit name=`, this.name);
+
+    this.insidecontent='<br><br><br><br><br><br>';
+    this.insidecontent+='[Начало root-компонента';
+    this.insidecontent+='<menu-component name="simple"></menu-component>';
+    this.insidecontent+='<div>';
+    this.insidecontent+='<p>в каком-то диве вызывается роутер-аутлет:</p>';
+    this.insidecontent+='<router-outlet></router-outlet>';
+    this.insidecontent+='</div>';
+    this.insidecontent+='Конец root-компонента]';
+    
   }
 }
