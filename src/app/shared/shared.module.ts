@@ -9,6 +9,8 @@ import { CategoryComponent } from '../pages/category/category.component';
 import {ExampleComponent} from '../embeddable-components/example.component'
 import {Example2Component} from '../embeddable-components/example2.component'
 import { RouterModule } from '@angular/router';
+import {RootComponent} from '../embeddable-components/root.component'
+import {MenuComponent} from '../embeddable-components/menu.component'
 
 @NgModule({
   declarations: [
@@ -19,7 +21,8 @@ import { RouterModule } from '@angular/router';
     CategoryComponent,
     ExampleComponent,
     Example2Component,
-
+    RootComponent,
+    MenuComponent
   ],
   imports: [
     CommonModule,

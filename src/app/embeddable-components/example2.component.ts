@@ -2,13 +2,13 @@ import { Component } from '@angular/core'
 
 @Component({
   selector: 'example2-component',
-  template: `
-[Начало example2-компонента<br>Параметр, переданный в компонент: name={{name}}<br><ng-content></ng-content><br>Конец example2-компонента]
-  `,
+  template: `<router-outlet></router-outlet>`,
 })
 export class Example2Component {
   name: string;
+  insidecontent: string='';
   ngOnInit(){
-    console.log(`Example2Component.OnInit name=`, this.name)
+    this.name='';
+
   }
 }
