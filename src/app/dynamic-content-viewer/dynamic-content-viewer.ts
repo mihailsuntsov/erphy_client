@@ -1,14 +1,17 @@
-import {Component, NgModule, VERSION, ComponentFactoryResolver, InjectionToken,Injector, ElementRef, Output, Input, EventEmitter, ComponentFactory, ComponentRef} from '@angular/core'
-import {FormControl, ReactiveFormsModule} from '@angular/forms'
-import {ExampleComponent} from '../embeddable-components/example.component'
-import {Example2Component} from '../embeddable-components/example2.component'
-import {RootComponent} from '../embeddable-components/root.component'
+import { Component, NgModule, VERSION, ComponentFactoryResolver, InjectionToken,Injector, ElementRef, Output, Input, EventEmitter, ComponentFactory, ComponentRef} from '@angular/core'
+import { FormControl, ReactiveFormsModule} from '@angular/forms'
+import { ExampleComponent } from '../embeddable-components/example.component'
+import { RouterOutletComponent } from '../embeddable-components/router-outlet.component'
+import { RootPageComponent } from '../embeddable-components/root-page.component'
 import { MenuComponent } from '../embeddable-components/menu.component'
 import { SharedModule } from '../shared/shared.module';
 
 
 export const embeddedComponents = [
-  ExampleComponent, Example2Component,RootComponent,MenuComponent
+  ExampleComponent, 
+  RouterOutletComponent,
+  RootPageComponent,
+  MenuComponent
 ]
 
 export class EmbeddedComponents {

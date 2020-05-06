@@ -6,11 +6,11 @@ import { HomeComponent } from '../pages/home/home.component';
 import { ContentViewer, EmbeddedComponents, embeddedComponents } from '../dynamic-content-viewer/dynamic-content-viewer';
 import { WINDOW_PROVIDERS } from '../window.providers';
 import { CategoryComponent } from '../pages/category/category.component';
-import {ExampleComponent} from '../embeddable-components/example.component'
-import {Example2Component} from '../embeddable-components/example2.component'
+import { ExampleComponent } from '../embeddable-components/example.component'
+import { RouterOutletComponent } from '../embeddable-components/router-outlet.component'
 import { RouterModule } from '@angular/router';
-import {RootComponent} from '../embeddable-components/root.component'
-import {MenuComponent} from '../embeddable-components/menu.component'
+import { RootPageComponent } from '../embeddable-components/root-page.component'
+import { MenuComponent } from '../embeddable-components/menu.component'
 
 @NgModule({
   declarations: [
@@ -20,8 +20,8 @@ import {MenuComponent} from '../embeddable-components/menu.component'
     ContentViewer,  
     CategoryComponent,
     ExampleComponent,
-    Example2Component,
-    RootComponent,
+    RouterOutletComponent,
+    RootPageComponent,
     MenuComponent
   ],
   imports: [

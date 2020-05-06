@@ -1,10 +1,10 @@
 import { Component } from '@angular/core'
 
 @Component({
-  selector: 'example2-component',
+  selector: 'router-outlet-component',
   template: `<router-outlet></router-outlet>`,
 })
-export class Example2Component {
+export class RouterOutletComponent {
   name: string;
   insidecontent: string='';
   ngOnInit(){
