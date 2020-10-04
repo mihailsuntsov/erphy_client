@@ -17,7 +17,6 @@ export class HomeComponent implements OnInit
   content: string;
   id1:any;
   id2:any;
-
   
   constructor(
     private activateRoute: ActivatedRoute,
@@ -30,30 +29,9 @@ export class HomeComponent implements OnInit
 
   ngOnInit() {
 
-      this.getHtmlPage();
-      this.id1 = this.activateRoute.snapshot.params['a'];
-      console.log("id1 - "+this.id1);
-      this.id2 = this.activateRoute.snapshot.params['b'];
-      console.log("id2 - "+this.id2);
 
     };
 
-  getHtmlPage(){
-
-    this.getPageForm.domain="printani.ru";
-    this.getPageForm.uid="a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
-    this.getPageForm.parameter="";
-    this.getPageForm.route_id=1;
-
-    this.pagesService.getHtmlPage(this.getPageForm)
-            .subscribe(
-                (data) => {
-                  this.receivedHtmlPage=data as string ; 
-                  console.log("receivedHtmlPage - "+this.receivedHtmlPage);
-                },
-                error => console.log(error) 
-            );
-  }
-
+  
 
 }

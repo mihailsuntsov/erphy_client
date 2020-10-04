@@ -14,15 +14,15 @@ import { MenuComponent } from '../embeddable-components/menu.component'
 
 @NgModule({
   declarations: [
-    AboutComponent,
-    ContactsComponent,
+    // AboutComponent,
+    // ContactsComponent,
     HomeComponent,
     ContentViewer,  
-    CategoryComponent,
+    // CategoryComponent,
     ExampleComponent,
     RouterOutletComponent,
     RootPageComponent,
-    MenuComponent
+    // MenuComponent
   ],
   imports: [
     CommonModule,
