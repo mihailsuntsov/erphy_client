@@ -11,10 +11,13 @@ import { GetPageForm } from '../../services/query-forms/get-page.form';
 })
 export class HomeComponent implements OnInit 
 {
-  title = 'dokiosite';
+  title = 'dokio';
   getPageForm: GetPageForm=new GetPageForm();
   receivedHtmlPage: string;
   content: string;
+  id1:any;
+  id2:any;
+
   
   constructor(
     private activateRoute: ActivatedRoute,
@@ -28,6 +31,11 @@ export class HomeComponent implements OnInit
   ngOnInit() {
 
       this.getHtmlPage();
+      this.id1 = this.activateRoute.snapshot.params['a'];
+      console.log("id1 - "+this.id1);
+      this.id2 = this.activateRoute.snapshot.params['b'];
+      console.log("id2 - "+this.id2);
+
     };
 
   getHtmlPage(){
