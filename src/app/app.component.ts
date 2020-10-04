@@ -10,7 +10,7 @@ export class AppComponent implements OnInit{
 
 
   ngOnInit(): void {
-    this.content = '<root-page-component></root-page-component>';
+
   }
 
 

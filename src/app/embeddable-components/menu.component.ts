@@ -18,10 +18,10 @@ export class MenuComponent {
   name: string;
   upperMenu:menu[]=[
     {name:" Главная ", link:"/"},
-    {name:" О нас ", link:"about"},
-    {name:" Контакты ", link:"contacts"},
-    {name:" Категория ", link:"category/110"},
-    {name:" Товары ", link:"product"}
+    // {name:" О нас ", link:"about"},
+    // {name:" Контакты ", link:"contacts"},
+    // {name:" Категория ", link:"category/110"},
+    // {name:" Товары ", link:"product"}
   ];
 
 
