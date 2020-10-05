@@ -1,0 +1,75 @@
+
+<div *ngIf="isLoggedIn; else loggedOut">
+    Logged in as {{roles}}.
+  </div>
+  
+  
+  <mat-card *ngIf="!isLoggedIn;" class="login-mat-card">
+    
+    <mat-card-title class="text-center">
+      Авторизация
+    </mat-card-title>
+    <mat-card-content>
+  
+            <form [formGroup]="loginform" class="login-form">
+  
+              <mat-form-field>
+                  <input matInput 
+                  placeholder="Логин" 
+                  formControlName="username" 
+                  type="text"    
+                  [ngClass]="{'is-invalid':loginform.get('username').touched && loginform.get('username').invalid}"
+                  />
+                  <mat-hint *ngIf="loginform.get('username').touched && loginform.get('username').invalid">
+                      <i *ngIf="loginform.get('username').errors.required" class="form-invalid">Введите логин</i>
+                      <i *ngIf="loginform.get('username').errors.minlength" class="form-invalid">Логин должно содержать хотя бы 6 символов</i>
+                  </mat-hint>
+                  <mat-hint *ngIf="emptyLogin && !loginform.get('username').touched">
+                      <i *ngIf="loginform.get('username').errors.required" class="form-invalid">Введите логин</i>
+                  </mat-hint>
+              </mat-form-field>
+              
+              <mat-form-field>
+                  <input matInput 
+                  placeholder="Пароль" 
+                  formControlName="password"
+                  [type]="'password'"   
+                  [ngClass]="{'is-invalid':loginform.get('password').touched && loginform.get('password').invalid}" 
+                  />
+                  <mat-hint *ngIf="loginform.get('password').touched && loginform.get('password').invalid ">
+                      <i *ngIf="loginform.get('password').errors.required" class="form-invalid">Введите пароль</i>
+                  </mat-hint>
+                  <mat-hint *ngIf="emptyPassword && !loginform.get('password').touched">
+                      <i *ngIf="loginform.get('password').errors.required" class="form-invalid">Введите пароль</i>
+                  </mat-hint>
+              </mat-form-field>
+  
+  
+  
+  
+  
+  
+  
+              <button mat-button mat-raised-button color="primary" style="margin-top: 20px;" (click)="onSubmit()">Войти</button>
+              <div *ngIf="isLoginFailed" class="form-invalid">
+                  Вход не выполнен: {{errorMessage?errorMessage:"Нет связи с сервером базы данных. Пожалуйста, обратитесь в поддержку."}}
+              </div>
+            </form>
+        
+            <!-- <hr />
+            <div class="text-center">
+            <p>Ещё нет аккаунта?</p>
+            <button mat-button mat-raised-button color="accent">
+              <a routerLink="../../signup">Регистрация</a>
+            </button>
+            </div> -->
+  
+  
+    </mat-card-content>
+  </mat-card>
+  
+  
+  
+  <ng-template #loggedOut>
+  
+  </ng-template>

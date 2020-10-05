@@ -1,0 +1,24 @@
+:host{
+    flex-grow: 1;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+}
+
+.login-form{
+    display: flex;
+    flex-direction: column;
+
+}
+
+.login-mat-card{
+    
+    width:100%;
+    max-width: 500px;
+    margin-top: 200px;
+}
+
+.form-invalid{
+    color: red;
+}
+
