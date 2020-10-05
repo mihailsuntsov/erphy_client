@@ -1,0 +1,241 @@
+.logo {       
+    font-size: 2.5rem;     
+    color: rgb(58, 0, 134);     
+    margin: 5px;     
+    padding: 15px; }
+  a:link { text-decoration: none } 
+  a:visited { text-decoration: none } 
+  a:active { text-decoration: none }
+  
+  .itm {        
+    font-size: 1rem;         
+    margin: 5px;     
+    padding: 5px; }
+  .itm1{ flex-grow: 1; }
+  .ui-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;}
+  .ui-container {
+    position: absolute;
+    top: 60px;
+    bottom: 0px;
+    left: 0;
+    right: 0;}
+  
+  .ui-sidenav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 200px;
+    background: #2f353a;
+  }
+  .flex{ display: flex; 
+         justify-content: center;
+  }
+  
+  .ui-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+  
+  
+  
+  .nav-icon {
+    display: inline-block;
+    width: 1.09375rem;
+    margin: -5px .3rem -5px 0;
+    font-size: 1.1rem;
+    color: #20a8d8;
+    text-align: center;
+    position: relative;
+    top: 2px;
+  }
+  
+  
+  
+  .sidebar-fixed .sidebar {
+    position: fixed;
+    z-index: 1019;
+    width: 200px;
+    height: 100vh;
+  }
+  
+  
+  
+  .ps {
+    overflow: hidden!important;
+    -ms-touch-action: auto;
+    touch-action: auto;
+    -ms-overflow-style: none;
+    overflow-anchor: none;
+  }
+  
+  .sidebar .nav {
+    width: 199px;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    min-height: 100%;
+    padding: 0;
+  }
+  
+  .nav {
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    padding-left: 0;
+    margin-bottom: 0;
+    list-style: none;
+  }
+  
+  ol, ul, dl {
+    margin-top: 0;
+    /* margin-bottom: 1rem; */
+  }
+  
+  ol, ul {
+    list-style: none;
+    margin: 0;
+      padding: 0;
+      border: 0;
+      font-size: 100%;
+      font: inherit;
+      vertical-align: baseline;
+  }
+  /* -------------------------------- 
+  
+  Accordeon - menu 
+  
+  -------------------------------- */
+  *, *::after {
+    box-sizing: border-box;
+  }
+  
+  html {
+    font-size: 62.5%;
+  }
+  
+  body {
+    font-size: 0.8rem;
+    font-family: "Jaldi", sans-serif;
+    color: #ffffff;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  .mat-icon {
+    height: 25px;
+    top: 4px;
+  }
+  .cd-accordion-menu {
+    width: 100%;
+    max-width: 200px;
+    background: #4d5158;
+  }
+  .cd-accordion-menu ul {
+    /* by default hide all sub menus */
+    display: none;
+  }
+  .cd-accordion-menu li {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  .cd-accordion-menu input[type=checkbox] {
+    /* hide native checkbox */
+    position: absolute;
+    opacity: 0;
+  }
+  .cd-accordion-menu label, .cd-accordion-menu a {
+    position: relative;
+    display: block;
+    padding: 10px 10px 10px 5px; /*5px - расстояние стрелки от края*/
+    background: #4d5158;
+    box-shadow: inset 0 -1px #555960;
+    color: #ffffff;
+    font-size: 0.8rem;
+  }
+  .cd-accordion-menu label::after, .cd-accordion-menu a::after {
+    /* icons */
+    content: '';
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    position: absolute;
+    top: 50%;
+    -webkit-transform: scale(0.5,0.5) translate(50%,-100%);
+    -moz-transform: scale(0.5,0.5) translate(50%,-100%);
+    -ms-transform: scale(0.5,0.5) translate(50%,-100%);
+    -o-transform: scale(0.5,0.5) translate(50%,-100%);
+    transform: scale(0.5,0.5) translate(50%,-100%);
+  }
+  .cd-accordion-menu label {
+    cursor: pointer;
+  }
+  .cd-accordion-menu label::after {
+    /* background-image: url(src/assets/images/arrow.png); */
+    background-image: url(/../../../assets/images/arrow.png);
+    background-repeat: no-repeat;
+  }
+  .cd-accordion-menu label::after {
+    /* arrow icon */
+    
+    right: 5px;
+    background-position: 0 0;
+    -webkit-transform: scale(0.5,0.5) translate(50%,-100%) rotate(-90deg);
+    -moz-transform: scale(0.5,0.5) translate(50%,-100%) rotate(-90deg);
+    -ms-transform: scale(0.5,0.5) translate(50%,-100%) rotate(-90deg);
+    -o-transform: scale(0.5,0.5) translate(50%,-100%) rotate(-90deg);
+    transform: scale(0.5,0.5) translate(50%,-100%) rotate(-90deg);
+  }
+  
+  
+  .cd-accordion-menu input[type=checkbox]:checked + label::after {
+    /* rotate arrow */
+    -webkit-transform: scale(0.5,0.5) translate(50%,-100%);
+    -moz-transform: scale(0.5,0.5) translate(50%,-100%);
+    -ms-transform: scale(0.5,0.5) translate(50%,-100%);
+    -o-transform: scale(0.5,0.5) translate(50%,-100%);
+    transform: scale(0.5,0.5) translate(50%,-100%);
+  }
+  
+  .cd-accordion-menu input[type=checkbox]:checked + label + ul,
+  .cd-accordion-menu input[type=checkbox]:checked + label:nth-of-type(n) + ul {
+    display: block;
+  }
+  
+  .cd-accordion-menu ul label,
+  .cd-accordion-menu ul a {
+    background: #35383d;
+    box-shadow: inset 0 -1px #41444a;
+    padding-left: 15px;
+  
+  }
+  .cd-accordion-menu ul label::after {
+    right: 5px;
+  }
+  .cd-accordion-menu ul ul label,
+  .cd-accordion-menu ul ul a {
+    padding-left: 30px;
+  }
+  .cd-accordion-menu ul ul label::after,
+  .cd-accordion-menu ul ul a::after {
+    right: 5px;
+  }
+  .cd-accordion-menu ul ul ul label,
+  .cd-accordion-menu ul ul ul a {
+    padding-left: 45px;
+  }
+  .cd-accordion-menu ul ul ul label::after,
+  .cd-accordion-menu ul ul ul a::after {
+    right: 5px;
+  }
+  
+  .docname{
+      position: relative; /* Относительное позиционирование */ 
+  }

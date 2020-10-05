@@ -6,6 +6,9 @@ import { Routes, RouterModule } from '@angular/router';
 const routes: Routes = [
   { path: '', loadChildren: () => import('./login/login.module').then(m => m.LoginModule) },
   { path: 'auth/login', loadChildren: () => import('./login/login.module').then(m => m.LoginModule) },
+  { path: 'ui', loadChildren: () => import('./ui/ui.module').then(m => m.UiModule) },
+  // { path: 'dashboard', redirectTo: 'ui/dashboard'},
+  { path: 'dashboard', redirectTo: 'ui'},
   { path: '**', redirectTo: '', pathMatch: 'full' }
 ];
 
