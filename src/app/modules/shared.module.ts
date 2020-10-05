@@ -5,6 +5,7 @@ import { HomeComponent } from '../home/home.component';
 import { WINDOW_PROVIDERS } from '../window.providers';
 import { RouterModule } from '@angular/router';
 
+
 @NgModule({
   declarations: [
     HomeComponent,
@@ -12,6 +13,7 @@ import { RouterModule } from '@angular/router';
   imports: [
     CommonModule,
     RouterModule,
+    // BrowserAnimationsModule,
   ],
   exports: [
   ],
