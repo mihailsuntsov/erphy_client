@@ -1,3 +1,4 @@
+// Модуль для хранения переиспользуемых компонент, директив и пайпов
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HomeComponent } from '../pages/home/home.component';
@@ -15,6 +16,5 @@ import { RouterModule } from '@angular/router';
   exports: [
   ],
   providers: [WINDOW_PROVIDERS],
-  entryComponents: [],
 })
 export class SharedModule { }
