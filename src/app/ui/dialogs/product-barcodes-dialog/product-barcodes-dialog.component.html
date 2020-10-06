@@ -1,0 +1,89 @@
+<mat-card *ngIf="data.mode=='create' || data.mode=='update'" class="card">
+        <mat-card-title class="flex">
+            <div class="card-name">{{data.dockName}}</div>
+            <button 
+                mat-raised-button 
+                matTooltip="Создать штрих-код"
+                [style.display]="data.mode=='create'?'block':'none'"
+                (click)="createProductBarcode()" 
+                [disabled]="!formBaseInformation.valid" 
+                color="primary"
+                class="button">
+                <i class="material-icons">add_circle_outline</i> Создать
+            </button>
+            <button 
+                mat-raised-button 
+                matTooltip="Сохранить штрих-код"
+                [style.display]="data.mode=='update'?'block':'none'"
+                (click)="updateProductBarcode()"
+                [disabled]="!formBaseInformation.valid" 
+                color="primary"
+                class="button">
+                <i class="material-icons">done</i> Сохранить
+            </button>
+            <button 
+                (click)="onNoClick()"
+                matTooltip="Закрыть диалоговое окно"
+                mat-raised-button 
+                color="accent"
+                class="button">
+                <i class="material-icons">close</i> Отмена
+            </button>
+        </mat-card-title>
+        <mat-card-content > 
+            <form [formGroup]="formBaseInformation">   
+                <div class="flex" style="margin: 15px 0 15px;">
+                    <mat-form-field  [ngClass]="{invisible: data.mode=='update'}" style="width:65%; margin-right:5px;">
+                        <input matInput
+                                matTooltip="Отсканируйте штрих-код производителя товара на упаковке, или генерируйте внутренний штрих-код на основе кода товара"
+                                #barcodeValue maxlength="100"
+                                placeholder="Штрих-код"
+                                formControlName="value"
+                                (input)="checkSuitableBarcode()"/>
+                        <mat-hint align="start">
+                            <strong (click)="generateEAN13barcode()" class="cursor-pointer" matTooltip="Генерировать внутренний штрих-код формата EAN13 на основе поля «Код»">Внутренний EAN-13</strong> &nbsp;
+                            <!-- <strong (click)="generateEAN8barcode()"  class="cursor-pointer" matTooltip="Генерировать внутренний штрих-код формата EAN-8 на основе кода">Внутренний EAN-8</strong> -->
+                        </mat-hint>
+                        <mat-hint align="end">{{barcodeValue.value.length}} / 100</mat-hint>
+                    </mat-form-field>   
+                    
+                    <mat-form-field [ngClass]="{invisible: data.mode=='create'}" style="width:65%; margin-right:5px;">
+                        <input  matInput
+                                placeholder="Штрих-код"
+                                formControlName="value" 
+                                [readonly]=true
+                                matTooltip='Cозданный штрих-код нельзя изменить'/>
+                    </mat-form-field>
+
+                    <mat-form-field  [ngClass]="{invisible: data.mode=='update'}" style="width:35%;">
+                        <mat-label>Вид штрих-кода</mat-label>
+                        <mat-select  formControlName="barcode_id">        
+                            <mat-option  *ngFor="let rt of barcodesSpravList" [value]="rt.id" matTooltip={{rt.description}}>
+                                    {{rt.name}} 
+                            </mat-option>
+                        </mat-select>  
+                    </mat-form-field>
+                    
+                    <mat-form-field [ngClass]="{invisible: data.mode=='create'}" style="width:35%;">
+                        <input  matInput
+                                placeholder="Вид штрих-кода"
+                                formControlName="barcodeName" 
+                                [readonly]=true
+                                matTooltip='Вид уже созданного штрих-кода нельзя изменить'/>
+                    </mat-form-field>
+                </div>
+                <mat-form-field  [style.display]="'block'">
+                    <input matInput
+                            #message2 maxlength="250"
+                            placeholder="Описание"
+                            formControlName="description"/>
+                    <mat-hint align="start">
+                        <strong (click)="formBaseInformation.get('description').setValue('Штрих-код производителя')" class="cursor-pointer">Производителя </strong> &nbsp;
+                        <strong (click)="formBaseInformation.get('description').setValue('Внутренний штрих-код')" class="cursor-pointer">Внутренний</strong>
+                    </mat-hint>
+                    <mat-hint align="end">{{message2.value.length}} / 250</mat-hint>
+                </mat-form-field>
+            </form>
+        </mat-card-content> 
+    </mat-card>
+        

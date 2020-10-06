@@ -1,0 +1,96 @@
+<mat-card class="card">
+  
+    <mat-card-title class="flex">
+        <div class="card-name">{{data.dockName}}</div>
+                <button 
+                    mat-raised-button 
+                    [style.display]="+data.id>0?'none':'block'"
+                    (click)="clickBtnCreateNewField()" 
+                    [disabled]="!formBaseInformation.valid" 
+                    color="primary"
+                    class="button">
+                    <i class="material-icons">add_circle_outline</i> Создать
+                </button>
+                <button 
+                    mat-raised-button 
+                    [style.display]="+data.id>0?'block':'none'"
+                    (click)="clickBtnUpdateField()"
+                    [disabled]="!formBaseInformation.valid" 
+                    color="primary"
+                    class="button">
+                    <i class="material-icons">done</i> Сохранить
+                </button>
+                <button 
+                    (click)="onNoClick()"
+                    mat-raised-button 
+                    color="accent"
+                    class="button">
+                    <i class="material-icons">close</i> Отмена
+                </button>
+                
+    </mat-card-title>
+
+    <mat-card-content> 
+
+        <form [formGroup]="formBaseInformation">   
+
+                                            <mat-form-field [style.display]="'none'">
+                                                <input  matInput
+                                                        placeholder="id поля"
+                                                        formControlName="id"/>
+                                            </mat-form-field>
+                                            <mat-form-field [style.display]="'none'">
+                                                <input  matInput
+                                                        placeholder="group_id"
+                                                        formControlName="group_id"/>
+                                            </mat-form-field>
+                                            <mat-form-field [style.display]="'none'">
+                                                <input  matInput
+                                                        placeholder="Предприятие"
+                                                        formControlName="company_id"/>
+                                            </mat-form-field>
+
+                                            <mat-form-field  [style.display]="'none'">
+                                                <mat-label>Тип</mat-label>
+                                                <input matInput
+                                                        placeholder="Тип"
+                                                        formControlName="field_type"/>
+                                             </mat-form-field>
+                                             <mat-form-field [ngClass]="{invisible: data.field_type==1}" style="width: 100%">
+                                                <mat-label>Группа полей</mat-label>
+                                                <mat-select  formControlName="parent_set_id">        
+                                                    <option value="" selected></option>
+                                                  <mat-option  *ngFor="let rt of data.sets" [value]="rt.id">
+                                                          {{rt.name}}
+                                                  </mat-option>
+                                                </mat-select>  
+                                            </mat-form-field>
+                                            <mat-form-field  [style.display]="'block'">
+                                                <input matInput
+                                                        placeholder="Наименование"
+                                                        formControlName="name"/>
+                                            </mat-form-field>
+                                            
+                                            <mat-form-field [style.display]="'block'">
+                                                <input  matInput 
+                                                        placeholder="Описание"
+                                                        formControlName="description"/>
+                                            </mat-form-field>
+
+                                           <!-- <mat-form-field>
+                                                <mat-label>Роль цены</mat-label>
+                                                <mat-select  formControlName="pricerole_id">                          
+                                                    <mat-option  *ngFor="let rt of receivedSpravSysPriceRole" [value]="rt.id">
+                                                            {{rt.name}}
+                                                    </mat-option> 
+                                                </mat-select>
+                                            </mat-form-field> -->
+
+
+
+        </form>
+
+
+    </mat-card-content> 
+</mat-card>
+

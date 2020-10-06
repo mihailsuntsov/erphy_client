@@ -1,0 +1,82 @@
+<mat-card *ngIf="data.actionType=='create' || data.actionType=='update'" class="card">
+    <mat-card-title class="flex">
+        <div class="card-name">{{data.dockName}}</div>
+        <button 
+            mat-raised-button 
+            [style.display]="data.actionType=='create'?'block':'none'"
+            (click)="clickBtnCreateProductCategory()" 
+            [disabled]="!formBaseInformation.valid" 
+            color="primary"
+            class="button">
+            <i class="material-icons">add_circle_outline</i> Создать
+        </button>
+        <button 
+            mat-raised-button 
+            [style.display]="data.actionType=='update'?'block':'none'"
+            (click)="updateProductCategory()"
+            [disabled]="!formBaseInformation.valid" 
+            color="primary"
+            class="button">
+            <i class="material-icons">done</i> Сохранить
+        </button>
+        <button 
+            (click)="onNoClick()"
+            mat-raised-button 
+            color="accent"
+            class="button">
+            <i class="material-icons">close</i> Отмена
+        </button>
+    </mat-card-title>
+    <mat-card-content > 
+        <form [formGroup]="formBaseInformation">   
+            <mat-form-field style="width: 100%"  *ngIf="data.actionType=='create'">
+                <mat-label>Родительская категория</mat-label>
+                <mat-select  formControlName="parentCategoryId">        
+                    <mat-option [value]="0" selected>Нет (будет создана корневая категория)</mat-option>
+                    <mat-option [value]="data.parentCategoryId" *ngIf="+data.parentCategoryId>0">{{data.parentCategoryName}}</mat-option>
+                    <!-- <mat-option [value]="rt.id">{{rt.name}}</mat-option> -->
+                </mat-select>  
+            </mat-form-field>
+            <mat-form-field  [style.display]="'block'">
+                <input matInput
+                        placeholder="Наименование"
+                        formControlName="name"/>
+            </mat-form-field>
+        </form>
+    </mat-card-content> 
+</mat-card>
+
+<mat-card *ngIf="data.actionType=='changeOrder'" class="card">
+    <mat-card-title class="flex">
+        <div class="card-name">{{data.dockName}}</div>
+        <button 
+            mat-raised-button 
+            (click)="saveChangeCategoriesOrder()"
+            color="primary"
+            class="button">
+            <i class="material-icons">done</i> Сохранить
+        </button>
+        <button 
+            (click)="onNoClick()"
+            mat-raised-button 
+            color="accent"
+            class="button">
+            <i class="material-icons">close</i> Отмена
+        </button>
+    </mat-card-title>
+    <mat-card-content > 
+        
+        <div class="box-list" >
+            <div cdkDropList class="box-list" (cdkDropListDropped)="dropSet($event)">
+                <div *ngFor="let set of receivedSetsOfCategories" class="field-box-drag" cdkDrag>
+                            {{set.name}}
+                            <p *cdkDragPreview></p>
+                </div>
+            </div>
+     </div>
+
+    </mat-card-content> 
+</mat-card>
+    
+    
+    

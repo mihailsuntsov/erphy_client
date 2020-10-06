@@ -1,0 +1,41 @@
+<mat-card class="card">
+    <mat-card-title class="flex">
+        <div class="card-name">{{data.dockName}}</div>
+        <button 
+            mat-raised-button 
+            [disabled]="(!formBaseInformation.valid)"
+            (click)="saveRemains()"
+            color="primary"
+            class="button">
+            <i class="material-icons">done</i> Сохранить
+        </button>
+        <button 
+            (click)="onNoClick()"
+            mat-raised-button 
+            color="accent"
+            class="button">
+            <i class="material-icons">close</i> Отмена
+        </button>
+    </mat-card-title>
+    <mat-card-content > 
+        
+        <form [formGroup]="formBaseInformation">   
+            <mat-form-field  [style.display]="'block'">
+                <input matInput matTooltip='Количество товара, соответствующее его минимальному остатку в отделении'
+                        placeholder="Минимальный остаток "
+                        (keypress)="numberOnlyPlusDotAndComma($event)"
+                        formControlName="min_quantity"/>
+                <mat-hint align="start" *ngIf="formBaseInformation.get('min_quantity').touched">
+                    <i *ngIf="formBaseInformation.get('min_quantity').invalid && formBaseInformation.get('min_quantity').errors.pattern" class="form-invalid">Неправильный формат. Допускается до 7 цифр в целой и до 2 цифр в дробной части</i>
+                    <i *ngIf="formBaseInformation.get('min_quantity').value==''" class="form-invalid">Поле не заполнено</i>
+                </mat-hint>
+            </mat-form-field>
+            <!-- <mat-form-field  [style.display]="'block'">
+                <input matInput matTooltip='Количество товара для предупреждения о приближении к минимальному остатку'
+                        placeholder="Предупреждение"
+                        formControlName="warning_quantity"/>
+            </mat-form-field> -->
+        </form>
+
+    </mat-card-content> 
+</mat-card>

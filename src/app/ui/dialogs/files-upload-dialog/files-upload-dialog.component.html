@@ -1,0 +1,67 @@
+<mat-card class="card">
+    <mat-card-title class="flex">
+        <div class="card-name">{{data.title}}</div>
+        
+        <button 
+            onclick="document.getElementById('fileToUpload').click()" matTooltip="Выбрать файл для загрузки."
+            mat-raised-button 
+            color="primary"
+            class="button">
+            <i class="material-icons">add_circle_outline</i> Открыть
+        </button>
+        <button 
+            (click)="onNoClick()"
+            mat-raised-button 
+            color="accent"
+            class="button">
+            <i class="material-icons">close</i> Отмена
+        </button>
+    </mat-card-title>
+    <mat-card-content > 
+        <form [formGroup]="formBaseInformation">   
+            <mat-form-field style="width: 100%">
+                <mat-label>Категория файла</mat-label>
+                <mat-select  formControlName="categoryId">        
+                    <mat-option [value]="0" selected>Без категории</mat-option>
+                    <mat-option [value]="data.categoryId" *ngIf="+data.categoryId>0">{{data.categoryName}}</mat-option>
+                </mat-select>  
+            </mat-form-field>
+            <mat-form-field  style="width: 100%">
+                <input   matInput
+                        placeholder="Описание"
+                        formControlName="description"/>
+                    <button mat-button matSuffix mat-icon-button aria-label="search" style="font-size: 150%;color: gray;" (click)="aboutDescription()">
+                        <mat-icon>contact_support</mat-icon>
+                    </button>
+            </mat-form-field>
+            <mat-form-field style="width: 100%">
+                <mat-slide-toggle matInput 
+                    formControlName="sharedFile"
+                    class="example-margin"
+                    [checked]="checked">
+                    Файл для общего доступа
+                </mat-slide-toggle>
+                <textarea matInput hidden></textarea>
+                <button mat-button matSuffix mat-icon-button aria-label="search" style="font-size: 150%;color: gray;" (click)="aboutSharedFiles()">
+                    <mat-icon>contact_support</mat-icon>
+                </button>
+            </mat-form-field>
+            <div class="div-100"> 
+                <div *ngIf="currentFileUpload" class="progress">
+                        <div class="progress-bar progress-bar-info progress-bar-striped" role="progressbar" attr.aria-valuenow="{{progress.percentage}}"
+                        aria-valuemin="0" aria-valuemax="100" [ngStyle]="{width:progress.percentage+'%'}">
+                         - {{progress.percentage}}%</div>
+                </div>
+                <div *ngIf="currentFileUpload" class="div-100">
+                    Загружается: {{uploadingFileName}}
+                </div>
+                <div class="center" style="width:100%; height: 38px;">
+                    <input id="fileToUpload" type="file" style="display:none;"  (change)="selectFile($event)" multiple> 
+                </div>
+            </div> 
+        </form>
+    </mat-card-content> 
+</mat-card>
+    
+    
+    

@@ -1,0 +1,31 @@
+:host{
+    flex-grow: 1;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+}
+table {width: 100%;}
+li {list-style: none;}
+.flex{ display: flex; }
+
+.card{
+    width:100%;
+    max-width: 1000px;
+    margin-top: 10px;
+}
+.invisible{display:none;}
+.card-name{ flex-grow: 1; }
+.button{
+    margin-left: 10px;
+}
+.input-form{
+    display: flex;
+    flex-direction: column;
+}
+.field-box{
+    padding: 3px;
+    margin: 5px;
+    width:100%; 
+    height:30px;
+    display: flex;
+    }
