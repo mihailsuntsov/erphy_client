@@ -34,7 +34,8 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTreeModule } from '@angular/material/tree';
-
+import { MatDialogRef } from '@angular/material/dialog';
+import { UploadFileService } from '../upload/upload-file.service';
 @NgModule({
     imports: [
         MatAutocompleteModule,
@@ -109,6 +110,11 @@ import { MatTreeModule } from '@angular/material/tree';
         MatNativeDateModule
     ],
     providers: [     
+        UploadFileService,// !!! Возможно это надо провайдить из app.module.ts
+        {
+          provide: MatDialogRef,
+          useValue: {}
+        }
     ]
 })
 export class MaterialModule {

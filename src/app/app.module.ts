@@ -8,7 +8,7 @@ import { SharedModule } from './modules/shared.module';
 import { MaterialModule } from './modules/material.module';
 import { httpInterceptorProviders } from './auth/auth-interceptor';
 import { ValidationService } from './services/validation.service';
-// import { UploadFileService } from './upload/upload-file.service';
+
 
 @NgModule({
   declarations: [
@@ -28,11 +28,7 @@ import { ValidationService } from './services/validation.service';
   providers: [
     httpInterceptorProviders,
     ValidationService,
-    // UploadFileService,
-    // {
-      // provide: MatDialogRef,
-      // useValue: {}
-    // }
+
   ],
   bootstrap: [AppComponent],
 })

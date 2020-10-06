@@ -1,0 +1,14 @@
+<div *ngIf="currentFileUpload" class="progress" >
+        <div class="progress-bar progress-bar-info progress-bar-striped" role="progressbar" attr.aria-valuenow="{{progress.percentage}}"
+          aria-valuemin="0" aria-valuemax="100" [ngStyle]="{width:progress.percentage+'%'}">
+          {{progress.percentage}}%</div>
+</div>
+<div class="center" style="width:100%; height: 38px;">
+    <button mat-mini-fab color="primary" onclick="document.getElementById('fileToUpload').click()" matTooltip="Выбрать картинку для загрузки. (До 1 Мб, JPG)">
+        <mat-icon>add</mat-icon>
+    </button>
+    <input id="fileToUpload" type="file" style="display:none;"  (change)="selectFile($event)"> 
+</div>
+
+
+
