@@ -23,6 +23,7 @@ export class AuthInterceptor implements HttpInterceptor {
         //console.log("TOKEN - "+token);
         //console.log("TOKEN_COOKIE - "+Cookie.get('dokio_token'));
         if (token != null) {//если есть токен в запросе, он добавляется в заголовок
+            // alert(token);
             // вызывается метод req.clone() для клонирования оригинального HTTP запроса. В методе мы меняем поле заголовка с помощью метода req.headers.set().
             authReq = req.clone({ 
                 headers: req.headers.set(TOKEN_HEADER_KEY, 'Bearer ' + token)

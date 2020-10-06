@@ -51,6 +51,11 @@ export class LoginComponent implements OnInit {
     if (this.tokenStorage.getToken()) {
       this.isLoggedIn = true;
       this.roles = this.tokenStorage.getAuthorities();
+      this.roles.forEach(m=>{
+        // console.log("role ="+m.toString());
+      });
+      // console.log("Token="+this.tokenStorage.getToken);
+      // console.log("Username="+this.tokenStorage.getUsername);
       this.goToHomePage();
     }
     this.loginform = new FormGroup({
@@ -66,6 +71,7 @@ export class LoginComponent implements OnInit {
     if((this.loginform.get("username").value!="") && (this.loginform.get("password").value!="")){
       this.authService.attemptAuth(this.loginform.value).subscribe(//отправляем в authService форму целиком
         data => {
+          console.log("data.accessToken ="+data.accessToken);
           this.tokenStorage.saveToken(data.accessToken);
           this.tokenStorage.saveUsername(data.username);
           this.tokenStorage.saveAuthorities(data.authorities);
@@ -74,7 +80,7 @@ export class LoginComponent implements OnInit {
           this.isLoginFailed = false;
           this.isLoggedIn = true;
           this.roles = this.tokenStorage.getAuthorities();
-          this.reloadPage();
+           this.reloadPage();
         },
         error => {
           console.log(error);
@@ -100,6 +106,6 @@ export class LoginComponent implements OnInit {
     
   }
   goToHomePage() {
-    this._router.navigate(['dashboard'])
+    this._router.navigate(['ui/dashboard'])
   }
 }
