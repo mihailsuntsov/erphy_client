@@ -27,7 +27,6 @@ import { AuthService } from '../auth/auth.service';
 import { TokenStorageService } from '../auth/token-storage.service';// TokenStorageService используется для управления токеном в sessionStorage браузера
 import { Router } from '@angular/router';
 import {  Validators, FormGroup, FormControl } from '@angular/forms';
-// import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 
 @Component({
