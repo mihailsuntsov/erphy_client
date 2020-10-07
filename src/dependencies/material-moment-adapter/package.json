@@ -1,0 +1,63 @@
+{
+  "_from": "@angular/material-moment-adapter",
+  "_id": "@angular/material-moment-adapter@8.1.3",
+  "_inBundle": false,
+  "_integrity": "sha512-sjszvpyAfmEHnoC4YCTU/50Kk9ZVaVcRP4cMBiB3jJfa36HVLtI43ObE81pA9FcRLeJCjgPLtyeJxEvfpgrHtQ==",
+  "_location": "/@angular/material-moment-adapter",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "tag",
+    "registry": true,
+    "raw": "@angular/material-moment-adapter",
+    "name": "@angular/material-moment-adapter",
+    "escapedName": "@angular%2fmaterial-moment-adapter",
+    "scope": "@angular",
+    "rawSpec": "",
+    "saveSpec": null,
+    "fetchSpec": "latest"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/@angular/material-moment-adapter/-/material-moment-adapter-8.1.3.tgz",
+  "_shasum": "89a24b0b9c7e837acb3ef20a5d07d9d67bddf7b9",
+  "_spec": "@angular/material-moment-adapter",
+  "_where": "C:\\angular\\laniakea",
+  "bugs": {
+    "url": "https://github.com/angular/components/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "tslib": "^1.7.1"
+  },
+  "deprecated": false,
+  "description": "Angular Material Moment Adapter",
+  "es2015": "./esm2015/material-moment-adapter.js",
+  "homepage": "https://github.com/angular/components#readme",
+  "license": "MIT",
+  "main": "./bundles/material-moment-adapter.umd.js",
+  "module": "./esm5/material-moment-adapter.es5.js",
+  "name": "@angular/material-moment-adapter",
+  "ng-update": {
+    "packageGroup": [
+      "@angular/material",
+      "@angular/cdk",
+      "@angular/material-moment-adapter"
+    ]
+  },
+  "peerDependencies": {
+    "@angular/material": "8.1.3",
+    "@angular/core": "^8.0.0 || ^9.0.0-0",
+    "moment": "^2.18.1"
+  },
+  "releaseGitBranch": "8.1.x",
+  "releaseGitCommitSha": "5af6a8e1f1d50944ecd1e1f52e342ba6dcf6169c",
+  "releaseGitUser": "Miles Malerba <mmalerba@google.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/angular/components.git"
+  },
+  "typings": "./material-moment-adapter.d.ts",
+  "version": "8.1.3"
+}

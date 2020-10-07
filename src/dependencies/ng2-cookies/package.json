@@ -1,0 +1,67 @@
+{
+  "_from": "ng2-cookies",
+  "_id": "ng2-cookies@1.0.12",
+  "_inBundle": false,
+  "_integrity": "sha1-Pz5hPgE3sGSbcFxngHS0vQgUnMw=",
+  "_location": "/ng2-cookies",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "tag",
+    "registry": true,
+    "raw": "ng2-cookies",
+    "name": "ng2-cookies",
+    "escapedName": "ng2-cookies",
+    "rawSpec": "",
+    "saveSpec": null,
+    "fetchSpec": "latest"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/ng2-cookies/-/ng2-cookies-1.0.12.tgz",
+  "_shasum": "3f3e613e0137b0649b705c678074b4bd08149ccc",
+  "_spec": "ng2-cookies",
+  "_where": "C:\\angular\\dokio",
+  "author": {
+    "name": "Felipe Rebelo Lopes",
+    "email": "carcamano@users.noreply.github.com"
+  },
+  "bugs": {
+    "url": "https://github.com/BCJTI/ng2-cookies/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {},
+  "deprecated": false,
+  "description": "Simple library to deal with cookies in Angular2.",
+  "devDependencies": {
+    "typescript": "^1.7.3"
+  },
+  "engines": {
+    "node": ">=4.1.0"
+  },
+  "homepage": "https://github.com/BCJTI/ng2-cookies#readme",
+  "keywords": [
+    "angular",
+    "angular2",
+    "cookie",
+    "cookies"
+  ],
+  "license": {
+    "type": "MIT",
+    "url": "https://opensource.org/licenses/MIT"
+  },
+  "main": "index.js",
+  "name": "ng2-cookies",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BCJTI/ng2-cookies.git"
+  },
+  "scripts": {
+    "prepublish": "tsc --outDir .",
+    "test": "tsc && karma start",
+    "tsc": "tsc"
+  },
+  "typings": "./index.d.ts",
+  "version": "1.0.12"
+}
