@@ -10,7 +10,7 @@ const routes: Routes = [
       { path: 'companies', loadChildren: () => import('./pages/documents/companies/companies.module').then(m => m.CompaniesModule) },
       { path: 'companiesdock', loadChildren: () => import('./pages/documents/companies-dock/companies-dock.module').then(m => m.CompaniesDockModule) },
       { path: 'files', loadChildren: () => import('./pages/documents/files/files.module').then(m => m.FilesModule) },
-      { path: 'filesdock', loadChildren: () => import('./pages/documents/filesdock/filesdock.module').then(m => m.FilesdockModule) },
+      { path: 'filesdock', loadChildren: () => import('./pages/documents/files-dock/files-dock.module').then(m => m.FilesDockModule) },
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
     ]  
   },

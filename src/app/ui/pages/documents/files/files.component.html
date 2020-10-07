@@ -47,7 +47,7 @@
                             (click)="clickBtnEditCategory()" 
                             matTooltip="Редактировать директорию" 
                             color="primary" 
-                            [disabled]="!+sendingQueryForm.selectedNodeId>0">
+                            [disabled]="!(+sendingQueryForm.selectedNodeId>0)">
                                 <mat-icon>edit</mat-icon>
                             </button>
 <!-- недействительна если: (кол-во корневых директорий<2 И нет выбранной директории) ИЛИ 
@@ -68,7 +68,7 @@
                             *ngIf="allowCategoryDelete" 
                             matTooltip="Удалить категорию" 
                             color="primary"
-                            [disabled]="!+sendingQueryForm.selectedNodeId>0">
+                            [disabled]="!(+sendingQueryForm.selectedNodeId>0)">
                                 <mat-icon>delete_forever</mat-icon>
                             </button>
                     </div>
