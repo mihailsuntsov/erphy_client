@@ -115,9 +115,9 @@ export class FilesComponent implements OnInit {
   showOpenDocIcon:boolean=false;
 
   numRows: NumRow[] = [
-    {value: '5', viewValue: '5'},
-    {value: '10', viewValue: '10'},
-    {value: '25', viewValue: '25'}
+    {value: '8', viewValue: '8'},
+    {value: '16', viewValue: '16'},
+    {value: '24', viewValue: '24'}
   ];
   
   //переменные пагинации

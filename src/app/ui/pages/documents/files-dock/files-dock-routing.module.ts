@@ -3,7 +3,10 @@ import { Routes, RouterModule } from '@angular/router';
 
 import { FilesDockComponent } from './files-dock.component';
 
-const routes: Routes = [{ path: '', component: FilesDockComponent }];
+const routes: Routes = [
+  { path: '', component: FilesDockComponent },
+  { path: ':id', component: FilesDockComponent },
+];
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],

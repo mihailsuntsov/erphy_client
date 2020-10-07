@@ -1,1 +1,251 @@
-<p>files-dock works!</p>
+<mat-drawer-container [ngClass]="{doc_container: mode=='standart',doc_container_window_mode: mode=='window'}" style="width:100%; min-height: 750px;">
+    <mat-drawer #drawer class="categories-sidenav" mode="side" opened>
+        <div class="category-toolbar-search flex">
+            <span style="flex-grow: 1;"></span>
+                <div>
+                    <!-- <mat-form-field>
+                            <input matInput 
+                            placeholder="Поиск..." 
+                            [(ngModel)]="selectedFileCategory.searchCategoryString" 
+                            type="text"  
+                            id="search_input" 
+                            name="search_input" 
+                            style="width:100%"  
+                            />
+                    </mat-form-field>
+                    <button mat-button (click)="searchCategory()"  type="submit" id="btn" style="min-width: 20px; padding: 0px;"><mat-icon>search</mat-icon></button> -->
+                </div>
+            <span style="flex-grow: 1;"></span>
+        </div>
+        
+        <div class="category-toolbar-icons flex">
+            <span style="flex-grow: 1;"></span>
+                <div>
+                        <button mat-icon-button (click)="expandAllCheckedNodes(); categoriesExpanded=true;"  
+                        matTooltip="Развернуть категории, содержащие документ" color="primary">
+                            <mat-icon>visibility</mat-icon>
+                        </button>
+                        <button mat-icon-button (click)="collapseAllNodes(); categoriesExpanded=false;" 
+                            matTooltip="Свернуть все категории" color="primary">
+                                <mat-icon>visibility_off</mat-icon>
+                        </button>
+                </div>
+            <span style="flex-grow: 1;"></span>
+        </div>
+        <mat-divider></mat-divider>
+
+
+
+
+        <mat-tree [dataSource]="treeDataSource" [treeControl]="treeControl">
+            <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+                <button mat-icon-button disabled></button>
+                <mat-checkbox style="margin-right:8px;"
+                    (click)="$event.stopPropagation()"
+                    (change)="$event ? clickTableCheckbox(node.id) : null"
+                    [checked]="isSelectedCheckbox(node.id)"
+                    >
+                </mat-checkbox>
+                <span class="node" [ngClass]="{selected_node:node.id==selectedFileCategory.selectedNodeId}" (click)="selectNode(node)">{{node.name}}</span>
+                <!-- <button mat-icon-button (click)="addNewItem(node)"><mat-icon>add</mat-icon></button> -->
+            </mat-tree-node>
+            <mat-tree-node *matTreeNodeDef="let node;when: hasChild" matTreeNodePadding>
+                <button mat-icon-button matTreeNodeToggle
+                        [attr.aria-label]="'toggle ' + node.name">
+                <mat-icon class="mat-icon-rtl-mirror">
+                    {{treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
+                </mat-icon>
+                </button>
+                <mat-checkbox style="margin-right:8px;"
+                    (click)="$event.stopPropagation()"
+                    (change)="$event ? clickTableCheckbox(node.id) : null"
+                    [checked]="isSelectedCheckbox(node.id)"
+                    >
+                </mat-checkbox>
+                <span class="node" [ngClass]="{selected_node:node.id==selectedFileCategory.selectedNodeId}" (click)="selectNode(node)">{{node.name}}</span>
+                
+                <!-- <button mat-icon-button (click)="addNewItem(node)"><mat-icon>add</mat-icon></button> -->
+            </mat-tree-node>
+        </mat-tree>
+        <!-- <button mat-icon-button (click)="expandWayToNodeAndItsChildrensByIndex(5)"><mat-icon>reply</mat-icon></button> -->
+
+
+    </mat-drawer>
+    <div class="categories-sidenav-content">
+        <mat-card class="card">
+        
+            <mat-card-title class="flex">
+                <div class="card-name">Файл</div>
+                    <button 
+                        mat-raised-button 
+                        (click)="downloadFile(formBaseInformation.get('name').value,formBaseInformation.get('original_name').value)"
+                        color="primary"
+                        class="button">
+                        <i class="material-icons">cloud_download</i> Скачать
+                    </button>
+                    <button 
+                        mat-raised-button 
+                        [style.display]="visBtnUpdate==true?'block':'none'"
+                        (click)="clickBtnUpdate()"
+                        [disabled]="!formBaseInformation.valid" 
+                        [style.display]="visBtnUpdate==true?'block':'none'"
+                        color="primary"
+                        class="button">
+                        <i class="material-icons">done</i> Сохранить
+                    </button>
+                    <a routerLink="../../files" style="text-decoration: none;" [style.display]="(mode=='standart')?'block':'none'"> 
+                        <button 
+                            mat-raised-button 
+                            
+                            color="accent"
+                            class="button">
+                            <i class="material-icons">close</i> {{id>0?'Выйти':'Отмена'}}
+                        </button>
+                    </a>
+                    <!-- <div style="margin:0px 0px 10px 10px"> -->
+                    <button [style.display]="(mode=='window')?'block':'none'"
+                            mat-raised-button
+                            style="margin-left:10px"
+                            matDialogClose 
+                            color="accent">
+                            <i class="material-icons">close</i>
+                                <span> Отмена</span>
+                    </button>
+            </mat-card-title>
+            <mat-card-subtitle [ngClass]="{invisible: visBeforeCreatingBlocks}">Предприятие: {{formBaseInformation.get('company').value}}</mat-card-subtitle>
+            <mat-card-content> 
+
+                <form  class="form-horizontal" id="formControl" method="post" action="" style="margin-bottom: 0px;">
+                        <div class="form-group" style="display: none;">
+                            <label class="control-label col-sm-2" for="SortColumn">SelectedNodeId</label>
+                            <input [(ngModel)]="selectedFileCategory.selectedNodeId" type="text" class="form-control" id="SelectedNodeId" name="SelectedNodeId" value="">
+                        </div>
+                        <div class="form-group" style="display: none;">
+                            <label class="control-label col-sm-2" for="SortColumn">SelectedNodeName</label>
+                            <input [(ngModel)]="selectedFileCategory.selectedNodeName" type="text" class="form-control" id="SelectedNodeName" name="SelectedNodeName" value="">
+                        </div>
+                </form>
+
+                  
+
+                        <mat-tab-group>
+
+                                <mat-tab label="Информация">
+                                    <form [formGroup]="formBaseInformation"> 
+                                        <div class="container">
+                                            <div class="row" style="padding: 10px">
+                                                <div class="col-12 col-lg-4">
+                                                    <mat-card class="carg-foto"> 
+                                                         <div class="div-foto" *ngIf="
+                                                            formBaseInformation.get('extention').value.toUpperCase() != '.PNG' && 
+                                                            formBaseInformation.get('extention').value.toUpperCase() != '.JPG' && 
+                                                            formBaseInformation.get('extention').value.toUpperCase() != '.JPEG'; else other_content">
+                                                                        <img class="file_preview" src="../../../../../../assets/images/ext_icons/{{getIcon(formBaseInformation.get('extention').value)}}.png" width=200>
+                                                        </div>
+                                                        <ng-template #other_content>
+                                                            <div class="div-foto">
+                                                                        <img (click)="showImage()" class="file_preview" [src]="imageToShow" width=200>
+                                                            </div>
+                                                        </ng-template>
+                                                    </mat-card>
+                                                </div>
+                                                <div class="col-12 col-lg-8">    
+                                                    <mat-card>
+
+                                                        <mat-card-content class="input-form">
+
+                                                                <mat-form-field style="display: none">
+                                                                    <input  matInput
+                                                                            placeholder="id"
+                                                                            formControlName="id"/>
+                                                                </mat-form-field>
+                                                                
+                                                                <mat-form-field [ngClass]="{invisible: visAfterCreatingBlocks}">
+                                                                    <mat-label>Предприятие</mat-label>
+                                                                    <mat-select  formControlName="company_id">                          
+                                                                        <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
+                                                                                {{rt.name}}
+                                                                        </mat-option> 
+                                                                    </mat-select>
+                                                                </mat-form-field>
+                                                                <!-- <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                                                    <input  matInput
+                                                                            placeholder="Предприятие"
+                                                                            formControlName="company" [readonly]=true/>
+                                                                </mat-form-field> -->
+                                                                <mat-form-field>
+                                                                    <input   matInput
+                                                                            placeholder="Наименование"
+                                                                            formControlName="original_name"/>
+                                                                </mat-form-field>
+                                                                <mat-form-field>
+                                                                    <input   matInput
+                                                                            placeholder="Описание"
+                                                                            formControlName="description"/>
+                                                                </mat-form-field>
+                                                                <mat-form-field style="margin-top: -8px;">
+                                                                            <mat-slide-toggle formControlName="anonyme_access"> Файл для общего доступа</mat-slide-toggle>
+                                                                            <button mat-button 
+                                                                            matSuffix 
+                                                                            *ngIf="formBaseInformation.get('anonyme_access').value"
+                                                                            mat-icon-button 
+                                                                            matTooltip="Скопировать адрес файла"
+                                                                            aria-label="search" 
+                                                                            style="font-size: 150%;color: gray;" 
+                                                                            (click)="copyFileAddress()">
+                                                                                <mat-icon>content_copy</mat-icon>
+                                                                            </button>
+                                                                            <textarea matInput hidden></textarea>
+                                                                </mat-form-field>
+                                                                <!-- <mat-form-field>
+                                                                        <span>{{getDomain()}}/api/public/getFile/{{formBaseInformation.get('name').value}}</span>
+                                                                    <textarea matInput hidden></textarea>
+                                                                </mat-form-field> -->
+                                                        </mat-card-content>
+                                                    </mat-card>
+                                                </div> 
+                                            </div>
+                                        </div> 
+                                    </form>  
+                                </mat-tab>
+
+                                <mat-tab  *ngIf="visAfterCreatingBlocks"  label="О документе">
+                                    <form [formGroup]="formAboutDocument">
+                                        <mat-card style="margin:10px;">
+                                            <mat-card-content class="input-form">
+                                                    <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                                        <input  matInput
+                                                                placeholder="Предприятие"
+                                                                formControlName="company" [readonly]=true/>
+                                                    </mat-form-field>
+                                                    <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                                        <input  matInput
+                                                                placeholder="Создатель"
+                                                                formControlName="creator" [readonly]=true/>
+                                                    </mat-form-field>
+                                                    <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                                        <input  matInput
+                                                                placeholder="Дата создания"
+                                                                formControlName="date_time_created" [readonly]=true/>
+                                                    </mat-form-field>
+                                                    <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                                        <input  matInput
+                                                                placeholder="Изменение"
+                                                                formControlName="changer" [readonly]=true/>
+                                                    </mat-form-field>
+                                                    <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                                        <input  matInput
+                                                                placeholder="Дата изменения"
+                                                                formControlName="date_time_changed" [readonly]=true/>
+                                                    </mat-form-field>
+                                            </mat-card-content>
+                                        </mat-card>  
+                                    </form>  
+                                </mat-tab>
+                        </mat-tab-group>
+
+                
+            </mat-card-content> 
+        </mat-card>
+    </div>
+</mat-drawer-container>

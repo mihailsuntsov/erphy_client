@@ -2,9 +2,9 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FilesDockRoutingModule } from './files-dock-routing.module';
 import { FilesDockComponent } from './files-dock.component';
-import { FormsModule } from '@angular/forms';
 import { MaterialModule } from '../../../../modules/material.module';
 import { SharedModule } from '../../../../modules/shared.module';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [FilesDockComponent],
@@ -13,7 +13,9 @@ import { SharedModule } from '../../../../modules/shared.module';
     FilesDockRoutingModule,
     MaterialModule,
     FormsModule,
-    SharedModule
+    ReactiveFormsModule,
+    SharedModule,
+    
   ]
 })
 export class FilesDockModule { }

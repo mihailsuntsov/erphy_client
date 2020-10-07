@@ -6,7 +6,9 @@ import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MaterialModule } from '../modules/material.module';
 import { MatButtonModule } from '@angular/material/button';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 // import {  } from ''
+//Диалоги
 import { MatDialogModule } from '@angular/material/dialog';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component'
 import { UniversalCategoriesDialogComponent } from 'src/app/ui/dialogs/universal-categories-dialog/universal-categories-dialog.component'
@@ -48,7 +50,8 @@ import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component'
     MatButtonModule,
     FormsModule,
     ReactiveFormsModule,
-
+    DragDropModule,
+    
   ],
   exports: [
     DeleteDialog,
