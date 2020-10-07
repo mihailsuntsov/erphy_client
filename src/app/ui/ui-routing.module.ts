@@ -8,9 +8,11 @@ const routes: Routes = [
     children:[
       { path: 'dashboard', loadChildren: () => import('src/app/ui/dashboard/dashboard.module').then(m => m.DashboardModule) },
       { path: 'companies', loadChildren: () => import('./pages/documents/companies/companies.module').then(m => m.CompaniesModule) },
+      { path: 'companiesdock', loadChildren: () => import('./pages/documents/companies-dock/companies-dock.module').then(m => m.CompaniesDockModule) },
       {path: '', redirectTo: 'dashboard',pathMatch: 'full'},
     ]  
   },
+  
   
   
 ]

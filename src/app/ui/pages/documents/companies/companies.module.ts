@@ -4,7 +4,7 @@ import { MaterialModule } from '../../../../modules/material.module';
 import { SharedModule } from '../../../../modules/shared.module';
 import { CompaniesRoutingModule } from './companies-routing.module';
 import { CompaniesComponent } from './companies.component';
-import { FormsModule } from '@angular/forms';  //<<<< import it here
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [CompaniesComponent],
