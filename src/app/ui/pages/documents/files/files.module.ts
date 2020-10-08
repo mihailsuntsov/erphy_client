@@ -5,7 +5,7 @@ import { FilesComponent } from './files.component';
 import { FormsModule } from '@angular/forms';
 import { MaterialModule } from '../../../../modules/material.module';
 import { SharedModule } from '../../../../modules/shared.module';
-
+import { UploadsModule } from '../../../../modules/uploads.module';
 @NgModule({
   declarations: [FilesComponent],
   imports: [
@@ -13,7 +13,8 @@ import { SharedModule } from '../../../../modules/shared.module';
     FilesRoutingModule,
     MaterialModule,
     FormsModule,
-    SharedModule
+    SharedModule,
+    UploadsModule
   ]
 })
 export class FilesModule { }

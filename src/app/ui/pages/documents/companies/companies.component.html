@@ -5,7 +5,7 @@
         <div *ngIf="displayingDeletedDocks" class="card-name">Удалённые предприятия</div>
         <!-- {{!displayingDeletedDocks}} -->
         <div [style.display]="(visBtnAdd && !displayingDeletedDocks)?'block':'none' " class="col-sm-auto justify-content-center" style="margin-bottom:10px">
-            <a [routerLink]="['../companiesdock', '']">
+            <a [routerLink]="['../../companiesdock', '']">
                 <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> Создать</button>
             </a>   
         </div>

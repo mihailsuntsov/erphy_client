@@ -7,7 +7,6 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MaterialModule } from '../modules/material.module';
 import { MatButtonModule } from '@angular/material/button';
 import { DragDropModule } from '@angular/cdk/drag-drop';
-// import {  } from ''
 //Диалоги
 import { MatDialogModule } from '@angular/material/dialog';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component'
@@ -23,7 +22,6 @@ import { ProductBarcodesDialogComponent } from 'src/app/ui/dialogs/product-barco
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component'
 import { ProductDuplicateDialog } from 'src/app/ui/dialogs/product-duplicate-dialog.component'
 import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component'
-// import {  } from 'src/app/ui/dialogs/.component'
 
 @NgModule({
   declarations: [
