@@ -11,6 +11,8 @@ const routes: Routes = [
       { path: 'companiesdock', loadChildren: () => import('./pages/documents/companies-dock/companies-dock.module').then(m => m.CompaniesDockModule) },
       { path: 'files', loadChildren: () => import('./pages/documents/files/files.module').then(m => m.FilesModule) },
       { path: 'filesdock', loadChildren: () => import('./pages/documents/files-dock/files-dock.module').then(m => m.FilesDockModule) },
+      { path: 'departments', loadChildren: () => import('./pages/documents/departments/departments.module').then(m => m.DepartmentsModule) },
+      { path: 'departmentsdock', loadChildren: () => import('./pages/documents/departments-dock/departments-dock.module').then(m => m.DepartmentsDockModule) },
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
     ]  
   },
