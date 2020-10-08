@@ -28,10 +28,13 @@ const routes: Routes = [
       { path: 'pricetypes', loadChildren: () => import('./pages/documents/pricetypes/pricetypes.module').then(m => m.PricetypesModule) },
       { path: 'statusesdock', loadChildren: () => import('./pages/documents/statuses-dock/statuses-dock.module').then(m => m.StatusesDockModule) },
       { path: 'statuses', loadChildren: () => import('./pages/documents/statuses/statuses.module').then(m => m.StatusesModule) },
+      { path: 'productsdock', loadChildren: () => import('./pages/documents/products-dock/products-dock.module').then(m => m.ProductsDockModule) },
+      { path: 'products', loadChildren: () => import('./pages/documents/products/products.module').then(m => m.ProductsModule) },
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
       { path: '**', redirectTo: 'dashboard',pathMatch: 'full' },
     ]  
   },
+
 
   
 

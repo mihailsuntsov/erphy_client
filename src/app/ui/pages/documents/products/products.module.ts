@@ -1,21 +1,22 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CagentsRoutingModule } from './cagents-routing.module';
-import { CagentsComponent } from './cagents.component';
 
-import { FormsModule } from '@angular/forms';
+import { ProductsRoutingModule } from './products-routing.module';
+import { ProductsComponent } from './products.component';
+
 import { MaterialModule } from '../../../../modules/material.module';
+import { FormsModule, } from '@angular/forms';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 
 @NgModule({
-  declarations: [CagentsComponent],
+  declarations: [ProductsComponent],
   imports: [
     CommonModule,
-    CagentsRoutingModule,
-    
+    ProductsRoutingModule,
+
     MaterialModule,
     FormsModule,
     DragDropModule
   ]
 })
-export class CagentsModule { }
+export class ProductsModule { }
