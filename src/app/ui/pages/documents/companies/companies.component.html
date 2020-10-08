@@ -130,7 +130,7 @@
                                                     [aria-label]="checkboxLabel()">
                                     </mat-checkbox>
                                 </th>
-                                <td mat-cell *matCellDef="let row">
+                                <td mat-cell *matCellDef="let row" class="table-checkbox">
                                         <!-- id:{{row.id}}<br>
                                         {{selection.isSelected(row)}}<br> -->
                                     <mat-checkbox (click)="$event.stopPropagation()"
@@ -143,7 +143,7 @@
 
                         <ng-container matColumnDef="opendoc">
                             <th mat-header-cell *matHeaderCellDef></th>
-                            <td mat-cell *matCellDef="let row" style="text-align: center; padding: 10px 10px 6px;">
+                            <td mat-cell *matCellDef="let row" class="table-launch-icon">
                                 <a class="inactive" [routerLink]="['../../companiesdock', row.id ]">
                                     <mat-icon>launch</mat-icon>
                                 </a>

@@ -16,6 +16,16 @@ body {
     float: right;
   }
   
-.text-center{
-    text-align: center;
-}
+  .text-center{
+      text-align: center;
+  }
+
+  .table-checkbox{
+    padding: 15px 15px 15px 24px !important;
+    width:30px;
+  }
+
+  .table-launch-icon{
+    text-align: center; 
+    padding: 5px 0 0 !important;
+  }

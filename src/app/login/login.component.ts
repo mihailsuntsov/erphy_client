@@ -51,22 +51,21 @@ export class LoginComponent implements OnInit {
       this.isLoggedIn = true;
       this.roles = this.tokenStorage.getAuthorities();
       this.roles.forEach(m=>{
-        // console.log("role ="+m.toString());
       });
       // console.log("Token="+this.tokenStorage.getToken);
       // console.log("Username="+this.tokenStorage.getUsername);
       this.goToHomePage();
+    } else {
+      this.loginform = new FormGroup({
+        username: new FormControl ('',[Validators.required,Validators.minLength(6)]),
+        password: new FormControl ('',[Validators.required]),
+      });
+      Cookie.deleteAll();
     }
-    this.loginform = new FormGroup({
-      username: new FormControl ('',[Validators.required,Validators.minLength(6)]),
-      password: new FormControl ('',[Validators.required]),
-    });
-    Cookie.deleteAll();
+
   }
 
   onSubmit() {
-    //console.log("Submitting!!!"+this.loginform.get("username").value);
-     
     if((this.loginform.get("username").value!="") && (this.loginform.get("password").value!="")){
       this.authService.attemptAuth(this.loginform.value).subscribe(//отправляем в authService форму целиком
         data => {
@@ -75,7 +74,7 @@ export class LoginComponent implements OnInit {
           this.tokenStorage.saveUsername(data.username);
           this.tokenStorage.saveAuthorities(data.authorities);
           Cookie.set('dokio_token',data.accessToken);
-          //console.log("TOKEN_COOKIE_AFTER_SET - "+Cookie.get('dokio_token'));
+          // console.log("TOKEN_COOKIE_AFTER_SET - "+Cookie.get('dokio_token'));
           this.isLoginFailed = false;
           this.isLoggedIn = true;
           this.roles = this.tokenStorage.getAuthorities();

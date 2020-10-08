@@ -3,7 +3,6 @@ import { Component, OnInit , Inject, Optional} from '@angular/core';
 import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
 import { QueryForm } from './query-form';
 import { SelectionModel } from '@angular/cdk/collections';
-import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog,  MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { LoadSpravService } from './loadsprav';
