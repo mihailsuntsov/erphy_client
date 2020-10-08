@@ -1,0 +1,72 @@
+:host{
+    flex-grow: 1;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+}
+table {width: 100%;}
+.flex{ display: flex; }
+.card{
+    width:100%;
+    /* max-width: 1000px; */
+    /* margin-top: 10px; */
+}
+.emptyspace{ flex-grow: 1;}
+.company-select{   
+    -webkit-box-flex: 1;
+    flex-grow: 1;
+    max-width: 400px;
+}
+.depatrment-select{flex-grow: 1;}
+.pagination {
+    display: flex;
+    padding-left: 10px;
+    list-style: none;
+    border-radius: .25rem;
+}
+/******* опции *******/
+.emptyspace{ flex-grow: 1;}
+li {list-style: none;}
+.div-100{
+    width:100%;
+    text-align: center;
+}
+.card-name{ flex-grow: 1; }
+.options-button{
+ margin: 5px 15px 0
+}
+/**********************/
+.active{
+    color:rgb(27, 27, 27);
+}
+.inactive{
+    color:gray;
+}
+.pagearrow{
+    font-size: 40px;
+    margin: 0px 15px 0px 0px;
+    cursor: default;
+}
+.sortarrow{
+    font-size: 14px;
+    cursor: default;
+}
+.sortheader{
+    cursor: default;
+}
+.doc-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width:100%;
+    border: 0px solid black;
+  }
+  
+.doc_container_select_mode {
+  left: 0;
+  top: 0;
+  height: 100%;
+  width:100%;
+  border: 0px solid black;
+}

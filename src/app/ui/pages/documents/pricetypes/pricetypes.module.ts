@@ -11,6 +11,7 @@ import { MaterialModule } from '../../../../modules/material.module';
   imports: [
     CommonModule,
     PricetypesRoutingModule,
+    
     MaterialModule,
     FormsModule,
   ]

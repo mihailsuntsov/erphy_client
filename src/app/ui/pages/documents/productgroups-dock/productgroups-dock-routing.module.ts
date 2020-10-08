@@ -3,7 +3,10 @@ import { Routes, RouterModule } from '@angular/router';
 
 import { ProductgroupsDockComponent } from './productgroups-dock.component';
 
-const routes: Routes = [{ path: '', component: ProductgroupsDockComponent }];
+const routes: Routes = [
+  { path: '', component: ProductgroupsDockComponent },
+  { path: ':id', component: ProductgroupsDockComponent },
+];
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],

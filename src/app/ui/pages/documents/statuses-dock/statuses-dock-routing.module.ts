@@ -3,7 +3,10 @@ import { Routes, RouterModule } from '@angular/router';
 
 import { StatusesDockComponent } from './statuses-dock.component';
 
-const routes: Routes = [{ path: '', component: StatusesDockComponent }];
+const routes: Routes = [
+  { path: '', component: StatusesDockComponent },
+  { path: ':id', component: StatusesDockComponent },
+];
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],

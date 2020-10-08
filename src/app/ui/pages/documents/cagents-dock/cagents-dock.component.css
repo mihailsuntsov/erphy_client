@@ -1,0 +1,155 @@
+:host{
+    flex-grow: 1;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+}
+
+table {width: 100%;}
+li {list-style: none;}
+.flex{ display: flex; }
+
+.card{
+    width:100%;
+}
+.internal-card{
+    padding: 15px 0 15px;
+    margin: 10px 0 10px 0;
+}
+.card-title{
+    margin:0px -15px 15px !important;
+}
+.input-form{
+    display: flex;
+    flex-direction: column;
+}
+
+.invisible{display:none;}
+
+.card-name{ flex-grow: 1; }
+.container-fluid mat-card{/*отступы у карточки сверху и снизу*/
+    margin: 0 0 15px !important;
+}
+.form-invalid{
+    color: red;
+}
+.button{
+    margin-left: 10px;
+}
+.doc-container {
+position: absolute;
+left: 0;
+top: 0;
+height: 100%;
+width:100%;
+border: 0px solid black;
+}
+/*--------------категории-------------------*/
+.showchilds{
+font-size: 18px;
+cursor: default;
+}
+.categories-sidenav-content {
+display: flex;
+justify-content: center;
+}
+.categories-sidenav {
+padding: 0px;
+min-width:150px;
+}
+.category-toolbar-icon {
+    padding: 0 0;
+
+  }
+.category-toolbar-search {
+    flex: 1 0 1;
+  }
+.category-toolbar-icons {
+    margin-top: 0px;
+    flex: 1 0 1;
+  }
+.node  {
+    cursor: pointer;
+    margin-top: 3px;
+    margin-right: 10px;
+}
+.selected_node  {
+ background-color:rgb(220,220,220)
+}
+.category-toolbar-spacer {
+flex: 1 1 auto;
+}
+.mat-form-field-100{
+    width:100%
+}
+.hand
+{
+    cursor: pointer;
+}
+.center {
+    display: flex;
+    justify-content: center;
+}
+/*--------------- стили для статуса------------------*/
+/*для цветного круга в статусах*/
+.circle-wrapper {
+    width: 30px;
+    height: 100%;
+    vertical-align: middle;
+    text-align: center;
+    display: inline-block;
+}
+.circle-in-list {
+    width: 20px;
+    height: 20px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+} 
+.circle-in-selected{
+    width: 20px;
+    height: 20px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    position: relative;
+    top: 15px;
+}
+/*название статуса*/
+.status-name {
+    display: inline-block;
+    line-height: 20px;
+} 
+/*---------- DRAG n DROP -------------*/
+
+.handler {
+    cursor: move;
+    position: absolute;
+    top: 6px;
+    right: 40px;
+    width: 20px;
+    height: 20px;
+    color: #585858;
+    z-index: 1000;
+  }
+  .del-icon {
+    cursor: default;
+    position: absolute;
+    top: 6px;
+    right: 10px;
+    width: 20px;
+    height: 20px;
+    color: #585858;
+    z-index: 1000;
+}
+.cdk-drag-placeholder {
+    background: white;
+    transition: transform 500ms ease;
+    padding: 20px;
+    border: 3px solid rgb(43, 43, 43);
+    z-index: 999;
+  }
+
+.cdk-drag-animating {
+transition: transform 500ms cubic-bezier(0, 0, 0.2, 1);
+}

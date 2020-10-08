@@ -3,7 +3,10 @@ import { Routes, RouterModule } from '@angular/router';
 
 import { EdizmDockComponent } from './edizm-dock.component';
 
-const routes: Routes = [{ path: '', component: EdizmDockComponent }];
+const routes: Routes = [
+  { path: '', component: EdizmDockComponent },
+  { path: ':id', component: EdizmDockComponent },
+];
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],

@@ -3,7 +3,10 @@ import { Routes, RouterModule } from '@angular/router';
 
 import { CagentsDockComponent } from './cagents-dock.component';
 
-const routes: Routes = [{ path: '', component: CagentsDockComponent }];
+const routes: Routes = [
+  { path: '', component: CagentsDockComponent },
+  { path: ':id', component: CagentsDockComponent },
+];
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],

@@ -1,1 +1,921 @@
-<p>cagents-dock works!</p>
+<mat-drawer-container [ngClass]="{doc_container: mode=='standart',doc_container_window_mode: mode=='window'}" style="width:100%; min-height: 750px;">
+    <mat-drawer #drawer class="categories-sidenav" mode="side" opened>
+        <div class="category-toolbar-icons flex">
+            <span style="flex-grow: 1;"></span>
+                <div>
+                        <button mat-icon-button (click)="expandAllCheckedNodes(); categoriesExpanded=true;"  
+                        matTooltip="Развернуть категории, содержащие документ" color="primary">
+                            <mat-icon>visibility</mat-icon>
+                        </button>
+                        <button mat-icon-button (click)="collapseAllNodes(); categoriesExpanded=false;" 
+                            matTooltip="Свернуть все категории" color="primary">
+                                <mat-icon>visibility_off</mat-icon>
+                        </button>
+                </div>
+            <span style="flex-grow: 1;"></span>
+        </div>
+        <mat-divider></mat-divider>
+        <mat-tree [dataSource]="treeDataSource" [treeControl]="treeControl">
+            <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+                <button mat-icon-button disabled></button>
+                <mat-checkbox style="margin-right:8px;"
+                    (click)="$event.stopPropagation()"
+                    (change)="$event ? clickTableCheckbox(node.id) : null"
+                    [checked]="isSelectedCheckbox(node.id)"
+                    [disabled]=!editability
+                    >
+                </mat-checkbox>
+                <span class="node" [ngClass]="{selected_node:node.id==selectedCagentCategory.selectedNodeId}" (click)="selectNode(node)">{{node.name}}</span>
+            </mat-tree-node>
+            <mat-tree-node *matTreeNodeDef="let node;when: hasChild" matTreeNodePadding>
+                <button mat-icon-button matTreeNodeToggle
+                        [attr.aria-label]="'toggle ' + node.name">
+                <mat-icon class="mat-icon-rtl-mirror">
+                    {{treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
+                </mat-icon>
+                </button>
+                <mat-checkbox style="margin-right:8px;"
+                    (click)="$event.stopPropagation()"
+                    (change)="$event ? clickTableCheckbox(node.id) : null"
+                    [checked]="isSelectedCheckbox(node.id)"
+                    [disabled]=!editability
+                    >
+                </mat-checkbox>
+                <span class="node" [ngClass]="{selected_node:node.id==selectedCagentCategory.selectedNodeId}" (click)="selectNode(node)">{{node.name}}</span>
+            </mat-tree-node>
+        </mat-tree>
+    </mat-drawer>
+
+    <div class="categories-sidenav-content">
+        <mat-card class="card">
+            <mat-card-title class="flex">
+                <div class="card-name">Контрагенты</div>
+                        <button 
+                            mat-raised-button 
+                            [style.display]="visAfterCreatingBlocks==true?'none':'block'"
+                            (click)="clickBtnCreateNewDocument()" 
+                            [disabled]="!formBaseInformation.valid" 
+                            *ngIf="allowToCreate"
+                            color="primary"
+                            class="button">
+                            <i class="material-icons">add_circle_outline</i> Создать
+                        </button>
+                        <!-- (click)="clickBtnUpdate()" -->
+                        <button 
+                            mat-raised-button 
+                            [style.display]="visBtnUpdate==true?'block':'none'"
+                            (click)="clickBtnUpdate()"
+                            [disabled]="!formBaseInformation.valid" 
+                            color="primary"
+                            class="button">
+                            <i class="material-icons">done</i> Сохранить
+                        </button>
+                        <a routerLink="../../cagents" style="text-decoration: none;" [style.display]="(mode=='standart')?'block':'none'" >
+                            <button 
+                                mat-raised-button 
+                                color="accent"
+                                class="button">
+                                <i class="material-icons">close</i> {{id>0?'Выйти':'Отмена'}}
+                            </button>
+                        </a>
+                        <button [style.display]="(mode=='window')?'block':'none'"
+                        mat-raised-button
+                        style="margin-left:10px"
+                        matDialogClose 
+                        color="accent">
+                        <i class="material-icons">close</i>
+                            <span> Отмена</span>
+                        </button>
+            </mat-card-title>
+            <mat-card-subtitle [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                Предприятие: {{formBaseInformation.get('company').value}}
+            </mat-card-subtitle>
+            <mat-card-content> 
+                <form  class="form-horizontal" id="formControl" method="post" action="" style="margin-bottom: 0px;">
+                        <div class="form-group" style="display: none;">
+                            <label class="control-label col-sm-2" for="SortColumn">SelectedNodeId</label>
+                            <input [(ngModel)]="selectedCagentCategory.selectedNodeId" type="text" class="form-control" id="SelectedNodeId" name="SelectedNodeId" value="">
+                        </div>
+                        <div class="form-group" style="display: none;">
+                            <label class="control-label col-sm-2" for="SortColumn">SelectedNodeName</label>
+                            <input [(ngModel)]="selectedCagentCategory.selectedNodeName" type="text" class="form-control" id="SelectedNodeName" name="SelectedNodeName" value="">
+                        </div>
+                </form>
+                <form [formGroup]="formBaseInformation">   
+                    <mat-tab-group>
+                        <mat-tab label="Информация">
+                            <div class="container-fluid">
+                                <div class="row" style="padding: 10px">
+                                    <div class="col-lg-4 col-xl-4 col-md-12">    
+                                        <mat-card>
+                                            <mat-card-header>
+                                                <mat-card-title class="card-title">Основная информация</mat-card-title>
+                                            </mat-card-header>
+                                            <mat-card-content class="input-form">
+                                                <mat-form-field style="display: none">
+                                                    <input  matInput
+                                                            placeholder="id"
+                                                            formControlName="id"/>
+                                                </mat-form-field>
+                                                
+                                                <mat-form-field [ngClass]="{invisible: visAfterCreatingBlocks}">
+                                                    <mat-label>Предприятие</mat-label>
+                                                    <mat-select 
+                                                     formControlName="company_id"
+                                                     (selectionChange)="loadTrees();refreshPermissions()">
+                                                        <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
+                                                                {{rt.name}}
+                                                        </mat-option> 
+                                                    </mat-select>
+                                                </mat-form-field>
+                                               
+                                                <mat-form-field>
+                                                    <mat-label>Наименование{{formBaseInformation.get('name').value==''?'*':''}}</mat-label>
+                                                    <input   matInput
+                                                            [readonly]=!editability
+                                                            maxlength="500"
+                                                            formControlName="name"/>
+                                                    <mat-hint align="start" *ngIf="formBaseInformation.get('name').touched">
+                                                        <i *ngIf="formBaseInformation.get('name').value==''" class="form-invalid">Поле не заполнено</i>
+                                                    </mat-hint>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('name').value.length>450">{{formBaseInformation.get('name').value.length}} / 500</mat-hint>
+                                                </mat-form-field>
+                                                <mat-form-field>
+                                                    <mat-label>Организационно-правовая форма{{+formBaseInformation.get('opf_id').value==0?'*':''}}</mat-label>
+                                                    <mat-select [disabled]=!editability
+                                                                formControlName="opf_id" 
+                                                                (selectionChange)="setJurElementsVisible()">                          
+                                                        <!-- <mat-option value=0 selected></mat-option> -->
+                                                        <mat-option *ngFor="let rt of receivedSpravSysOPF" [value]="rt.id" matTooltip={{rt.description}} >
+                                                                {{rt.name}}
+                                                        </mat-option> 
+                                                    </mat-select>
+                                                    <mat-hint align="start" *ngIf="formBaseInformation.get('opf_id').touched">
+                                                        <i *ngIf="+formBaseInformation.get('opf_id').value==0" class="form-invalid">Форма предприятия не выбрана</i>
+                                                    </mat-hint>
+                                                </mat-form-field>
+                                                <mat-form-field>
+                                                    <textarea   matInput
+                                                                placeholder="Описание"
+                                                                [readonly]=!editability
+                                                                maxlength="1000"
+                                                                formControlName="description">
+                                                    </textarea>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('description').value.length>500">{{formBaseInformation.get('description').value.length}} / 1000</mat-hint>
+                                                </mat-form-field>
+                                                <!-- Код -->
+                                                <mat-form-field>
+                                                    <input   matInput
+                                                            placeholder="Код"
+                                                            [readonly]=!editability
+                                                            maxlength="30"
+                                                            formControlName="code"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('code').value.length>20">{{formBaseInformation.get('code').value.length}} / 30</mat-hint>
+                                                </mat-form-field>
+                                                <div class = "circle-in-selected" [style.background-color]="status_color"></div>
+                                                <mat-form-field  class="mat-form-field-100" style="margin-top: -25px;">
+                                                    <mat-label>Статус контрагента</mat-label>
+                                                    <mat-select     style="padding: 5px 0 5px 25px;" 
+                                                                    [disabled]=!editability
+                                                                    formControlName="status_id"
+                                                                    (selectionChange)="setStatusColor();">
+                                                        <mat-option *ngFor="let status of receivedStatusesList" 
+                                                                    [value]="status.id"
+                                                                    matTooltip={{status.description}}>
+                                                                    <div style="display: inline;line-height: 20px;">
+                                                                        <div class = "circle-wrapper">
+                                                                            <div class = "circle-in-list" [style.background-color]="status.color"></div>
+                                                                        </div>
+                                                                        <div class = "status-name">{{status.name}}</div>
+                                                                    </div>
+                                                        </mat-option>
+                                                    </mat-select>
+                                                </mat-form-field>
+                                                <!-- Тип цены -->
+                                                <mat-form-field>
+                                                    <mat-label>Тип цены</mat-label>
+                                                    <mat-select formControlName="price_type_id" 
+                                                                [disabled]=!editability>
+                                                        <mat-option  *ngFor="let rdl of receivedPriceTypesList" 
+                                                        [value]="rdl.id"
+                                                        matTooltip='{{rdl.description}}'>
+                                                                {{rdl.name}}
+                                                        </mat-option>
+                                                    </mat-select>
+                                                </mat-form-field>
+                                                <!-- Дисконтная карта -->
+                                                <mat-form-field>
+                                                    <input   matInput
+                                                            [readonly]=!editability
+                                                            placeholder="Дисконтная карта"
+                                                            maxlength="30"
+                                                            formControlName="discount_card"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('discount_card').value.length>25">{{formBaseInformation.get('discount_card').value.length}} / 30</mat-hint>
+                                                </mat-form-field>
+                                            </mat-card-content>
+                                        </mat-card>
+                                    </div> 
+                                    <div class="col-lg-4 col-xl-4 col-md-12">   
+                                        <mat-card>
+                                            <div class="del-icon"  [style.display]="editability?'block':'none'">
+                                                <mat-icon   (click)="copyfromJurAddressToAddress()" 
+                                                            matTooltip='Скопировать из Юридического адреса'    
+                                                            class="nav-icon">content_copy
+                                                </mat-icon>
+                                            </div>
+                                            <mat-card-header>
+                                                <mat-card-title class="card-title">Адрес</mat-card-title>
+                                            </mat-card-header>
+                                            <mat-card-content class="input-form">
+                                                <!-- <pre>
+                                                    {{formBaseInformation.get('cagentsContactsTable').value | json}}
+                                                    </pre> -->
+                                                <!-- Индекс -->
+                                                <mat-form-field>
+                                                    <input   matInput
+                                                            placeholder="Индекс"
+                                                            [readonly]=!editability
+                                                            maxlength="40"
+                                                            formControlName="zip_code"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('zip_code').value.length>30">{{formBaseInformation.get('zip_code').value.length}} / 40</mat-hint>
+                                                </mat-form-field>
+                                                <!-- Страна -->
+                                                <mat-form-field  style="display: none;" >
+                                                    <input   matInput
+                                                            placeholder="Страна"
+                                                            formControlName="country_id"/>
+                                                </mat-form-field>
+                                                <mat-form-field  class="mat-form-field-100">
+                                                    <mat-label>Страна</mat-label>
+                                                    <input matInput
+                                                    type="text"
+                                                    formControlName="country" 
+                                                    [readonly]=!editability
+                                                    [matAutocomplete]="auto1" 
+                                                    (input)="checkEmptyCountryField();"
+                                                    (change)="checkEmptyCountryField();">
+                                                    <mat-autocomplete #auto1="matAutocomplete">
+                                                        <mat-option *ngFor="let option of filteredSpravSysCountries | async" [value]="option.name_ru">
+                                                            <div (click)="formBaseInformation.get('country_id').setValue(option.id)">
+                                                                <span style="margin:10px;">{{option.name_ru}}</span>
+                                                            </div>
+                                                        </mat-option>
+                                                    </mat-autocomplete>
+                                                </mat-form-field>
+                                                <!-- Регион -->
+                                                <mat-form-field style="display: none">
+                                                    <input  matInput
+                                                            placeholder="region_id"
+                                                            formControlName="region_id"/>
+                                                </mat-form-field>
+                                                <mat-form-field class="mat-form-field-100" > 
+                                                    <input  matInput 
+                                                    placeholder="Регион"
+                                                    [matAutocomplete]="auto4" 
+                                                    [readonly]=!editability
+                                                    [formControl]="searchRegionCtrl"
+                                                    (input)="canRegionAutocompleteQuery=true; checkEmptyRegionField();"
+                                                    (change)="canRegionAutocompleteQuery=false; checkEmptyRegionField();">
+                                                    <mat-autocomplete #auto4="matAutocomplete">
+                                                    <ng-container *ngIf="!isRegionListLoading" style="width:320px;">
+                                                        <mat-option style="padding:0px" *ngFor="let value of filteredRegions" [value]="value.name_ru">
+                                                        <div (click)="onSelectRegion(value.id,value.country_id,value.country_name_ru)">
+                                                            <span style="margin:10px;"><b>{{value.name_ru}}</b></span>
+                                                        </div>
+                                                        </mat-option>
+                                                    </ng-container>
+                                                    </mat-autocomplete>
+                                                </mat-form-field>
+                                                <mat-progress-bar *ngIf="isRegionListLoading" mode="indeterminate"></mat-progress-bar>
+                                                <!-- Город -->
+                                                <mat-form-field style="display: none">
+                                                    <input  matInput
+                                                            placeholder="city_id"
+                                                            formControlName="city_id"/>
+                                                </mat-form-field>
+                                                <mat-form-field class="mat-form-field-100" > 
+                                                    <mat-label>{{(+formBaseInformation.get('city_id').value==0)?'Город или населённый пункт':(area!=''?'Населённый пункт':'Город')}}</mat-label>
+                                                    <input  matInput 
+                                                    [matAutocomplete]="auto6" 
+                                                    [formControl]="searchCityCtrl"
+                                                    [readonly]=!editability
+                                                    (input)="canCityAutocompleteQuery=true; checkEmptyCityField();"
+                                                    (change)="canCityAutocompleteQuery=false; checkEmptyCityField();">
+                                                    <mat-autocomplete #auto6="matAutocomplete">
+                                                    <ng-container *ngIf="!isCityListLoading" style="width:320px;">
+                                                        <mat-option style="padding:0px" *ngFor="let value of filteredCities" [value]="value.name_ru">
+                                                        <div (click)="onSelectCity(value.id,value.area_ru,value.region_id,value.region_name_ru,value.country_id,value.country_name_ru)">
+                                                            <span style="margin:10px;"><b>{{value.name_ru}}</b> <i> {{value.area_ru}}</i></span>
+                                                        </div>
+                                                        </mat-option>
+                                                    </ng-container>
+                                                    </mat-autocomplete>
+                                                </mat-form-field>
+                                                <mat-progress-bar *ngIf="isCityListLoading" mode="indeterminate"></mat-progress-bar>
+                                                <!-- Улица -->
+                                                <mat-form-field>
+                                                    <input   matInput
+                                                            placeholder="Улица"
+                                                            [readonly]=!editability
+                                                            maxlength="120"
+                                                            formControlName="street"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('street').value.length>100">{{formBaseInformation.get('street').value.length}} / 120</mat-hint>
+                                                </mat-form-field>
+                                                <!-- Дом -->
+                                                <mat-form-field>
+                                                    <input   matInput
+                                                            placeholder="Дом"
+                                                            [readonly]=!editability
+                                                            maxlength="16"
+                                                            formControlName="home"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('home').value.length>12">{{formBaseInformation.get('home').value.length}} / 16</mat-hint>
+                                                </mat-form-field>
+                                                <!-- Квартира -->
+                                                <mat-form-field>
+                                                    <input   matInput
+                                                            placeholder="Квартира"
+                                                            maxlength="8"
+                                                            [readonly]=!editability
+                                                            formControlName="flat"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('flat').value.length>6">{{formBaseInformation.get('flat').value.length}} / 8</mat-hint>
+                                                </mat-form-field>
+                                                <!-- Дополнение к адресу -->
+                                                <mat-form-field>
+                                                    <textarea   matInput
+                                                            placeholder="Дополнение к адресу"
+                                                            [readonly]=!editability
+                                                            maxlength="240"
+                                                            formControlName="additional_address">
+                                                    </textarea>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('additional_address').value.length>200">{{formBaseInformation.get('additional_address').value.length}} / 240</mat-hint>
+                                                </mat-form-field>
+                                            </mat-card-content>
+                                        </mat-card>
+                                    </div>
+                                    <div class="col-lg-4 col-xl-4 col-md-12"> 
+                                        <mat-card>
+                                            <mat-card-header>
+                                                <mat-card-title class="card-title">Контакты</mat-card-title>
+                                            </mat-card-header>
+                                            <mat-card-content class="input-form">
+                                                <!-- Телефон -->
+                                                <mat-form-field>
+                                                    <input   matInput
+                                                            [readonly]=!editability
+                                                            placeholder="Телефон"
+                                                            maxlength="60"
+                                                            formControlName="telephone"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('telephone').value.length>50">{{formBaseInformation.get('telephone').value.length}} / 60</mat-hint>
+                                                </mat-form-field>
+                                                <!-- e-mail -->
+                                                <mat-form-field>
+                                                    <input   matInput
+                                                            [readonly]=!editability
+                                                            placeholder="e-mail"
+                                                            maxlength="254"
+                                                            formControlName="email"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('email').value.length>200">{{formBaseInformation.get('email').value.length}} / 254</mat-hint>
+                                                </mat-form-field>
+                                                <!-- Сайт -->
+                                                <mat-form-field>
+                                                    <input   matInput
+                                                            [readonly]=!editability
+                                                            placeholder="Сайт"
+                                                            maxlength="120"
+                                                            formControlName="site"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('site').value.length>100">{{formBaseInformation.get('site').value.length}} / 120</mat-hint>
+                                                </mat-form-field>
+                                            </mat-card-content>
+                                        </mat-card>  
+                                        <mat-card>
+                                            <mat-card-header>
+                                                <mat-card-title class="card-title">Контактные лица</mat-card-title>
+                                            </mat-card-header>
+                                            <mat-card-content class="input-form">
+                                                <div cdkDropList (cdkDropListDropped)="dropContact($event)">
+                                                    <mat-card   *ngFor="let contact of formBaseInformation.get('cagentsContactsTable').controls;let i = index" 
+                                                                [formGroup]="contact"
+                                                                cdkDrag
+                                                                style="background-color: #f7f7f7">
+                                                        <div cdkDragHandle class="handler"  [style.display]="editability?'block':'none'">
+                                                            <mat-icon   matTooltip='Переместить' 
+                                                                        class="nav-icon"
+                                                                        *ngIf="formBaseInformation.get('cagentsContactsTable').controls.length>1">
+                                                                        swap_vertical_circle
+                                                            </mat-icon>
+                                                        </div>
+                                                        <div class="del-icon"  [style.display]="editability?'block':'none'">
+                                                            <mat-icon   (click)="deleteContact(i)" 
+                                                                        matTooltip='Удалить'    
+                                                                        class="nav-icon">cancel
+                                                            </mat-icon>
+                                                        </div>
+                                                        <mat-card-content class="input-form" >
+                                                            <mat-form-field>
+                                                                <input   matInput
+                                                                        placeholder="ФИО"
+                                                                        [readonly]=!editability
+                                                                        #fio
+                                                                        maxlength="200"
+                                                                        formControlName="fio"/>
+                                                                <mat-hint align="end" *ngIf="fio.value.length>150">{{fio.value.length}} / 200</mat-hint>
+                                                            </mat-form-field>
+                                                            <mat-form-field>
+                                                                <input   matInput
+                                                                        placeholder="Должность"
+                                                                        [readonly]=!editability
+                                                                        #position
+                                                                        maxlength="200"
+                                                                        formControlName="position"/>
+                                                                <mat-hint align="end" *ngIf="position.value.length>150">{{position.value.length}} / 200</mat-hint>
+                                                            </mat-form-field>
+                                                            <mat-form-field>
+                                                                <input   matInput
+                                                                        placeholder="Телефон"
+                                                                        [readonly]=!editability
+                                                                        #telephone
+                                                                        maxlength="60"
+                                                                        formControlName="telephone"/>
+                                                                <mat-hint align="end" *ngIf="telephone.value.length>50">{{telephone.value.length}} / 60</mat-hint>
+                                                            </mat-form-field>
+                                                            <mat-form-field>
+                                                                <input   matInput
+                                                                        placeholder="E-mail"
+                                                                        [readonly]=!editability
+                                                                        #email
+                                                                        maxlength="254"
+                                                                        formControlName="email"/>
+                                                                <mat-hint align="end" *ngIf="email.value.length>200">{{email.value.length}} / 254</mat-hint>
+                                                            </mat-form-field>
+                                                            <mat-form-field>
+                                                                <textarea   matInput
+                                                                        placeholder="Дополнительно"
+                                                                        [readonly]=!editability
+                                                                        #additional
+                                                                        maxlength="500"
+                                                                        formControlName="additional">
+                                                                </textarea>
+                                                                <mat-hint align="end" *ngIf="additional.value.length>450">{{additional.value.length}} / 500</mat-hint>
+                                                            </mat-form-field>
+                                                            <mat-form-field style="display: none">
+                                                                <input matInput placeholder="id" formControlName="id"/>
+                                                            </mat-form-field>
+                                                            
+                                                            <mat-form-field style="display: none">
+                                                                <input   matInput
+                                                                        placeholder="output_order"
+                                                                        formControlName="output_order"/>
+                                                            </mat-form-field>
+                                                            <p *cdkDragPreview></p>
+                                                        </mat-card-content>
+                                                    </mat-card>
+                                                </div>
+                                                <div class="div-100" [style.display]="((allowToCreate && +id==0)||(allowToUpdate && id>0)) ?'block':'none'"> 
+                                                    <div class="center hand" style="width:100%; height: 38px;">
+                                                        <button matTooltip="Добавить контактное лицо" mat-mini-fab color="primary" (click)="addNewContact()">
+                                                            <mat-icon>add</mat-icon>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                               
+
+                                                
+                                            </mat-card-content>
+                                        </mat-card>
+                                    </div>
+                                </div>
+                            </div>   
+                        </mat-tab>
+                        <mat-tab label="Юридические реквизиты" *ngIf="+formBaseInformation.get('opf_id').value>0">
+                            <div class="container-fluid">
+                                <div class="row" style="padding: 10px">
+                                    <div class="col-lg-6 col-md-12">   
+                                        <mat-card>
+                                            <mat-card-header>
+                                                <mat-card-title class="card-title">Основные</mat-card-title>
+                                            </mat-card-header>
+                                            <mat-card-content class="input-form">
+                                                <!-- Полное наименование -->
+                                                <mat-form-field *ngIf="viz_jr_jur">
+                                                    <textarea   matInput
+                                                            placeholder="Полное наименование"
+                                                            [readonly]=!editability
+                                                            maxlength="500"
+                                                            formControlName="jr_jur_full_name">
+                                                    </textarea>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('jr_jur_full_name').value.length>400">{{formBaseInformation.get('jr_jur_full_name').value.length}} / 500</mat-hint>
+                                                </mat-form-field>
+                                                <!-- Фамилия -->
+                                                <mat-form-field *ngIf="!viz_jr_jur">
+                                                    <input   matInput
+                                                            placeholder="Фамилия"
+                                                            [readonly]=!editability
+                                                            maxlength="120"
+                                                            formControlName="jr_fio_family"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('jr_fio_family').value.length>100">{{formBaseInformation.get('jr_fio_family').value.length}} / 120</mat-hint>
+                                                </mat-form-field>
+                                                <!-- Имя -->
+                                                <mat-form-field *ngIf="!viz_jr_jur">
+                                                    <input   matInput
+                                                            placeholder="Имя"
+                                                            [readonly]=!editability
+                                                            maxlength="120"
+                                                            formControlName="jr_fio_name"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('jr_fio_name').value.length>100">{{formBaseInformation.get('jr_fio_name').value.length}} / 120</mat-hint>
+                                                </mat-form-field>
+                                                <!-- Отчество -->
+                                                <mat-form-field *ngIf="!viz_jr_jur">
+                                                    <input   matInput
+                                                            placeholder="Отчество"
+                                                            maxlength="120"
+                                                            [readonly]=!editability
+                                                            formControlName="jr_fio_otchestvo"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('jr_fio_otchestvo').value.length>100">{{formBaseInformation.get('jr_fio_otchestvo').value.length}} / 120</mat-hint>
+                                                </mat-form-field>
+                                                <!-- ИНН -->
+                                                <mat-form-field>
+                                                    <input  matInput
+                                                            maxlength="12"
+                                                            placeholder="ИНН"
+                                                            [readonly]=!editability
+                                                            (keypress)="numberOnly($event)"
+                                                            formControlName="jr_inn"/>
+                                                    <mat-hint  align="start" *ngIf="formBaseInformation.get('jr_inn').touched && formBaseInformation.get('jr_inn').invalid">
+                                                        <i *ngIf="formBaseInformation.get('jr_inn').errors.pattern" class="form-invalid">ИНН должен состоять из 10 или 12 цифр</i>
+                                                    </mat-hint>
+                                                </mat-form-field>
+                                                <!-- КПП -->
+                                                <mat-form-field *ngIf="viz_jr_jur">
+                                                    <input  matInput
+                                                            maxlength="9"
+                                                            [readonly]=!editability
+                                                            placeholder="КПП"
+                                                            (keypress)="numberOnly($event)"
+                                                            formControlName="jr_jur_kpp"/>
+                                                    <mat-hint  align="start" *ngIf="formBaseInformation.get('jr_jur_kpp').touched && formBaseInformation.get('jr_jur_kpp').invalid">
+                                                        <i *ngIf="formBaseInformation.get('jr_jur_kpp').errors.pattern" class="form-invalid">КПП должен состоять из 9 цифр</i>
+                                                    </mat-hint>
+                                                </mat-form-field>
+                                                <!-- ОГРН -->
+                                                <mat-form-field *ngIf="viz_jr_jur">
+                                                    <input  matInput
+                                                            maxlength="13"
+                                                            [readonly]=!editability
+                                                            placeholder="ОГРН"
+                                                            (keypress)="numberOnly($event)"
+                                                            formControlName="jr_jur_ogrn"/>
+                                                    <mat-hint  align="start" *ngIf="formBaseInformation.get('jr_jur_ogrn').touched && formBaseInformation.get('jr_jur_ogrn').invalid">
+                                                        <i *ngIf="formBaseInformation.get('jr_jur_ogrn').errors.pattern" class="form-invalid">ОГРН должен состоять из 13 цифр</i>
+                                                    </mat-hint>
+                                                </mat-form-field>
+                                                <!-- ОГРНИП -->
+                                                <mat-form-field *ngIf="viz_jr_ip">
+                                                    <input  matInput
+                                                            maxlength="15"
+                                                            [readonly]=!editability
+                                                            placeholder="ОГРНИП"
+                                                            (keypress)="numberOnly($event)"
+                                                            formControlName="jr_ip_ogrnip"/>
+                                                    <mat-hint  align="start" *ngIf="formBaseInformation.get('jr_ip_ogrnip').touched && formBaseInformation.get('jr_ip_ogrnip').invalid">
+                                                        <i *ngIf="formBaseInformation.get('jr_ip_ogrnip').errors.pattern" class="form-invalid">ОГРНИП должен состоять из 15 цифр</i>
+                                                    </mat-hint>
+                                                </mat-form-field>
+                                                <!-- ОКПО -->
+                                                <mat-form-field *ngIf="viz_jr_ip || viz_jr_jur">
+                                                    <input  matInput
+                                                            maxlength="10"
+                                                            [readonly]=!editability
+                                                            placeholder="ОКПО"
+                                                            (keypress)="numberOnly($event)"
+                                                            formControlName="jr_okpo"/>
+                                                    <mat-hint  align="start" *ngIf="formBaseInformation.get('jr_okpo').touched && formBaseInformation.get('jr_okpo').invalid">
+                                                        <i *ngIf="formBaseInformation.get('jr_okpo').errors.pattern" class="form-invalid">ОКПО должен состоять из 8 или 10 цифр</i>
+                                                    </mat-hint>
+                                                </mat-form-field>
+                                                <!-- Номер свидетельства -->
+                                                <mat-form-field *ngIf="viz_jr_ip">
+                                                    <input   matInput
+                                                            placeholder="Номер свидетельства"
+                                                            [readonly]=!editability
+                                                            maxlength="30"
+                                                            formControlName="jr_ip_svid_num"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('jr_ip_svid_num').value.length>25">{{formBaseInformation.get('jr_ip_svid_num').value.length}} / 30</mat-hint>
+                                                </mat-form-field>
+                                                <!-- Дата регистрации -->
+                                                <mat-form-field *ngIf="viz_jr_ip">
+                                                    <input  matInput 
+                                                            placeholder="Дата регистрации"
+                                                            [readonly]=!editability
+                                                            formControlName="jr_ip_reg_date"
+                                                            [ngClass]="{'is-invalid':formBaseInformation.get('jr_ip_reg_date').touched && formBaseInformation.get('jr_ip_reg_date').invalid}"
+                                                            [matDatepicker]="dp"/>
+                                                            <mat-datepicker-toggle *ngIf="editability" matSuffix [for]="dp"></mat-datepicker-toggle>
+                                                    <mat-datepicker #dp></mat-datepicker>
+                                                    <mat-hint *ngIf="formBaseInformation.get('jr_ip_reg_date').touched && formBaseInformation.get('jr_ip_reg_date').invalid" class="invalid-feedback">
+                                                        <i>Формат даты не верный</i>
+                                                    </mat-hint>
+                                                </mat-form-field>
+                                            </mat-card-content>
+                                        </mat-card>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12"> 
+                                        <mat-card>
+                                            <div class="del-icon"  [style.display]="editability?'block':'none'">
+                                                <mat-icon   (click)="copyfromAddressToJurAddress()" 
+                                                            matTooltip='Скопировать из адреса'    
+                                                            class="nav-icon">content_copy
+                                                </mat-icon>
+                                            </div>
+                                            <mat-card-header>
+                                                <mat-card-title class="card-title">Юридический адрес</mat-card-title>
+                                            </mat-card-header>
+                                            
+                                            <mat-card-content class="input-form">
+                                                <!-- Индекс -->
+                                                <mat-form-field>
+                                                    <input   matInput
+                                                            placeholder="Индекс"
+                                                            [readonly]=!editability
+                                                            maxlength="40"
+                                                            formControlName="jr_zip_code"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('jr_zip_code').value.length>30">{{formBaseInformation.get('jr_zip_code').value.length}} / 40</mat-hint>
+                                                </mat-form-field>
+                                                <mat-form-field  style="display: none;" >
+                                                    <input   matInput
+                                                            placeholder="Страна"
+                                                            [readonly]=!editability
+                                                            formControlName="jr_country_id"/>
+                                                </mat-form-field>
+                                                <mat-form-field style="width:100%">
+                                                    <mat-label>Страна</mat-label>
+                                                    <input matInput
+                                                    type="text"
+                                                    [readonly]=!editability
+                                                    formControlName="jr_country" 
+                                                    [matAutocomplete]="auto2" 
+                                                    (input)="checkEmptyJrCountryField();"
+                                                    (change)="checkEmptyJrCountryField();">
+                                                    <mat-autocomplete #auto2="matAutocomplete">
+                                                        <mat-option *ngFor="let option of filteredSpravSysJrCountries | async" [value]="option.name_ru">
+                                                            <div (click)="formBaseInformation.get('jr_country_id').setValue(option.id)">
+                                                                <span style="margin:10px;">{{option.name_ru}}</span>
+                                                            </div>
+                                                        </mat-option>
+                                                    </mat-autocomplete>
+                                                </mat-form-field>
+                                                <!-- Регион -->
+                                                <mat-form-field style="display: none">
+                                                    <input  matInput
+                                                            placeholder="jr_region_id"
+                                                            [readonly]=!editability
+                                                            formControlName="jr_region_id"/>
+                                                </mat-form-field>
+                                                <mat-form-field class="mat-form-field-100" > 
+                                                    <input  matInput 
+                                                    placeholder="Регион"
+                                                    [matAutocomplete]="auto5" 
+                                                    [formControl]="searchJrRegionCtrl"
+                                                    [readonly]=!editability
+                                                    (input)="canJrRegionAutocompleteQuery=true; checkEmptyJrRegionField();"
+                                                    (change)="canJrRegionAutocompleteQuery=false; checkEmptyJrRegionField();">
+                                                    <mat-autocomplete #auto5="matAutocomplete">
+                                                    <ng-container *ngIf="!isJrRegionListLoading" style="width:320px;">
+                                                        <mat-option style="padding:0px" *ngFor="let value of filteredJrRegions" [value]="value.name_ru">
+                                                        <div (click)="onSelectJrRegion(value.id,value.country_id,value.country_name_ru)">
+                                                            <span style="margin:10px;"><b>{{value.name_ru}}</b></span>
+                                                        </div>
+                                                        </mat-option>
+                                                    </ng-container>
+                                                    </mat-autocomplete>
+                                                </mat-form-field>
+                                                <mat-progress-bar *ngIf="isJrRegionListLoading" mode="indeterminate"></mat-progress-bar>
+                                                <!-- Город -->
+                                                <mat-form-field style="display: none">
+                                                    <input  matInput
+                                                            placeholder="jr_city_id"
+                                                            [readonly]=!editability
+                                                            formControlName="jr_city_id"/>
+                                                </mat-form-field>
+                                                <mat-form-field class="mat-form-field-100" > 
+                                                    <mat-label>{{(+formBaseInformation.get('jr_city_id').value==0)?'Город или населённый пункт':(jr_area!=''?'Населённый пункт':'Город')}}</mat-label>
+                                                    <input  matInput 
+                                                    [matAutocomplete]="auto7" 
+                                                    [formControl]="searchJrCityCtrl"
+                                                    [readonly]=!editability
+                                                    (input)="canJrCityAutocompleteQuery=true; checkEmptyJrCityField();"
+                                                    (change)="canJrCityAutocompleteQuery=false; checkEmptyJrCityField();">
+                                                    <mat-autocomplete #auto7="matAutocomplete">
+                                                    <ng-container *ngIf="!isJrCityListLoading" style="width:320px;">
+                                                        <mat-option style="padding:0px" *ngFor="let value of filteredJrCities" [value]="value.name_ru">
+                                                        <div (click)="onSelectJrCity(value.id,value.area_ru,value.region_id,value.region_name_ru,value.country_id,value.country_name_ru)">
+                                                            <span style="margin:10px;"><b>{{value.name_ru}}</b> <i> {{value.area_ru}}</i></span>
+                                                        </div>
+                                                        </mat-option>
+                                                    </ng-container>
+                                                    </mat-autocomplete>
+                                                </mat-form-field>
+                                                <mat-progress-bar *ngIf="isJrCityListLoading" mode="indeterminate"></mat-progress-bar>
+                                                <!-- Улица -->
+                                                <mat-form-field>
+                                                    <input   matInput
+                                                            placeholder="Улица"
+                                                            [readonly]=!editability
+                                                            maxlength="120"
+                                                            formControlName="jr_street"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('jr_street').value.length>100">{{formBaseInformation.get('jr_street').value.length}} / 120</mat-hint>
+                                                </mat-form-field>
+                                                <!-- Дом -->
+                                                <mat-form-field>
+                                                    <input   matInput
+                                                            placeholder="Дом"
+                                                            [readonly]=!editability
+                                                            maxlength="16"
+                                                            formControlName="jr_home"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('jr_home').value.length>12">{{formBaseInformation.get('jr_home').value.length}} / 16</mat-hint>
+                                                </mat-form-field>
+                                                <!-- Квартира -->
+                                                <mat-form-field>
+                                                    <input   matInput
+                                                            placeholder="Квартира"
+                                                            [readonly]=!editability
+                                                            maxlength="8"
+                                                            formControlName="jr_flat"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('jr_flat').value.length>6">{{formBaseInformation.get('jr_flat').value.length}} / 8</mat-hint>
+                                                </mat-form-field>
+                                                <!-- Дополнение к адресу -->
+                                                <mat-form-field>
+                                                    <textarea   matInput
+                                                            placeholder="Дополнение к адресу"
+                                                            [readonly]=!editability
+                                                            maxlength="240"
+                                                            formControlName="jr_additional_address">
+                                                    </textarea>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('jr_additional_address').value.length>200">{{formBaseInformation.get('jr_additional_address').value.length}} / 240</mat-hint>
+                                                </mat-form-field>
+                                            </mat-card-content>
+                                        </mat-card>    
+                                    </div>  
+                                </div>
+                            </div>   
+                        </mat-tab>
+                        <mat-tab label="Банковские реквизиты">
+                            <div class="container-fluid">
+                                <div class="row" style="padding: 10px">
+                                    <div class="col-xl-5 col-lg-9 col-md-12">
+                                        <mat-card>
+                                            <mat-card-header>
+                                                <mat-card-title class="card-title">Банковские реквизиты</mat-card-title>
+                                            </mat-card-header>
+                                            <mat-card-content class="input-form">
+                                                <div cdkDropList (cdkDropListDropped)="dropPaymentAccount($event)">
+                                                    <mat-card   *ngFor="let req of formBaseInformation.get('cagentsPaymentAccountsTable').controls;let i = index" 
+                                                                [formGroup]="req"
+                                                                cdkDrag
+                                                                style="background-color: #f7f7f7">
+                                                        <div cdkDragHandle class="handler"  [style.display]="editability ?'block':'none'">
+                                                            <mat-icon   matTooltip='Переместить' 
+                                                                        class="nav-icon"
+                                                                        *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls.length>1">
+                                                                        swap_vertical_circle
+                                                            </mat-icon>
+                                                        </div>
+                                                        <div class="del-icon"  [style.display]="editability ?'block':'none'">
+                                                            <mat-icon   (click)="deletePaymentAccount(i)" 
+                                                                        matTooltip='Удалить'    
+                                                                        class="nav-icon">cancel
+                                                            </mat-icon>
+                                                        </div>
+                                                        <mat-card-content class="input-form" >
+                                                            <mat-form-field>
+                                                                <mat-label>Наименование{{formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('name').value==''?'*':''}}</mat-label>
+                                                                <input  matInput
+                                                                        maxlength="300"
+                                                                        [readonly]=!editability
+                                                                        #name
+                                                                        formControlName="name"/>
+                                                                <mat-hint align="end" *ngIf="name.value.length>250">{{name.value.length}} / 300</mat-hint>
+                                                                <mat-hint align="start" *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('name').touched && formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('name').invalid">
+                                                                    <i *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('name').value==''" class="form-invalid">Поле не заполнено</i>
+                                                                </mat-hint>
+                                                            </mat-form-field>
+                                                            <mat-form-field>
+                                                                <mat-label>БИК{{formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('bik').value.length!='9'?'*':''}}</mat-label>
+                                                                <input  matInput
+                                                                        #bik
+                                                                        (keypress)="numberOnly($event)"
+                                                                        [readonly]=!editability
+                                                                        maxlength="9"
+                                                                        formControlName="bik"/>
+                                                                <mat-hint align="start" *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('bik').touched && formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('bik').invalid">
+                                                                    <i *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('bik').errors.pattern" class="form-invalid">БИК должен состоять из 9 цифр</i>
+                                                                    <i *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('bik').value==''" class="form-invalid">Поле не заполнено</i>
+                                                                </mat-hint>
+                                                            </mat-form-field>
+                                                            <mat-form-field>
+                                                                <mat-label>Адрес{{formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('address').value==''?'*':''}}</mat-label>
+                                                                <input  matInput
+                                                                        #address
+                                                                        [readonly]=!editability
+                                                                        maxlength="300"
+                                                                        formControlName="address"/>
+                                                                <mat-hint align="end" *ngIf="address.value.length>250">{{address.value.length}} / 300</mat-hint>
+                                                                <mat-hint align="start" *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('address').touched && formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('address').invalid">
+                                                                    <i *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('address').value==''" class="form-invalid">Поле не заполнено</i>
+                                                                </mat-hint>
+                                                            </mat-form-field>
+                                                            <mat-form-field>
+                                                                <mat-label>Кор. счёт{{formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('corr_account').value==''?'*':''}}</mat-label>
+                                                                <input  matInput
+                                                                        #corr_account
+                                                                        [readonly]=!editability
+                                                                        maxlength="100"
+                                                                        formControlName="corr_account"/>
+                                                                <mat-hint align="end" *ngIf="corr_account.value.length>80">{{corr_account.value.length}} / 100</mat-hint>
+                                                                <mat-hint align="start" *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('corr_account').touched && formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('corr_account').invalid">
+                                                                    <i *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('corr_account').value==''" class="form-invalid">Поле не заполнено</i>
+                                                                </mat-hint>
+                                                            </mat-form-field>
+                                                            <mat-form-field>
+                                                                <mat-label>Расчётный счёт{{formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('payment_account').value==''?'*':''}}</mat-label>
+                                                                <input  matInput
+                                                                        #payment_account
+                                                                        [readonly]=!editability
+                                                                        maxlength="100"
+                                                                        formControlName="payment_account"/>
+                                                                <mat-hint align="end" *ngIf="payment_account.value.length>80">{{payment_account.value.length}} / 100</mat-hint>
+                                                                <mat-hint align="start" *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('payment_account').touched && formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('payment_account').invalid">
+                                                                    <i *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('payment_account').value==''" class="form-invalid">Поле не заполнено</i>
+                                                                </mat-hint>
+                                                            </mat-form-field>
+                                                            <mat-form-field style="display: none">
+                                                                <input matInput placeholder="id" formControlName="id"/>
+                                                            </mat-form-field>
+                                                            
+                                                            <mat-form-field style="display: none">
+                                                                <input   matInput
+                                                                        placeholder="output_order"
+                                                                        formControlName="output_order"/>
+                                                            </mat-form-field>
+                                                            <p *cdkDragPreview></p>
+                                                        </mat-card-content>
+                                                    </mat-card>
+                                                </div>
+                                                <div class="div-100" [style.display]="editability?'block':'none'"> 
+                                                    <div class="center hand" style="width:100%; height: 38px;">
+                                                        <button matTooltip="Добавить банковские реквизиты" mat-mini-fab color="primary" (click)="addNewPaymentAccount()">
+                                                            <mat-icon>add</mat-icon>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </mat-card-content>
+                                        </mat-card>
+                                    </div>
+                                </div>
+                            </div>
+                        </mat-tab>
+                        <mat-tab  *ngIf="visAfterCreatingBlocks"  label="О документе">
+                            <div class="container-fluid">
+                                <div class="row" style="padding: 10px">
+                                    <div class="col-xl-5 col-lg-9 col-md-12">
+                                        <form [formGroup]="formAboutDocument">
+                                            <mat-card>
+                                                <mat-card-content class="input-form">
+                            
+                                                    <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                                        <input  matInput
+                                                                placeholder="Предприятие"
+                                                                formControlName="company" [readonly]=true/>
+                                                    </mat-form-field>
+                                                    <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                                        <input  matInput
+                                                                placeholder="Создатель"
+                                                                formControlName="creator" [readonly]=true/>
+                                                    </mat-form-field>
+                                                    <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                                        <input  matInput
+                                                                placeholder="Дата создания"
+                                                                formControlName="date_time_created" [readonly]=true/>
+                                                    </mat-form-field>
+                                                    <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                                        <input  matInput
+                                                                placeholder="Изменение"
+                                                                formControlName="changer" [readonly]=true/>
+                                                    </mat-form-field>
+                                                    <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                                        <input  matInput
+                                                                placeholder="Дата изменения"
+                                                                formControlName="date_time_changed" [readonly]=true/>
+                                                    </mat-form-field>
+                                                </mat-card-content>
+                                            </mat-card>  
+                                        </form>  
+                                    </div>
+                                </div>
+                            </div>
+                        </mat-tab>
+                    </mat-tab-group>
+                </form>
+            </mat-card-content> 
+        </mat-card>
+    </div>
+</mat-drawer-container>
