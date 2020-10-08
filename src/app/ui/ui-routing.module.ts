@@ -15,9 +15,12 @@ const routes: Routes = [
       { path: 'departmentsdock', loadChildren: () => import('./pages/documents/departments-dock/departments-dock.module').then(m => m.DepartmentsDockModule) },
       { path: 'usersdock', loadChildren: () => import('./pages/documents/users-dock/users-dock.module').then(m => m.UsersDockModule) },
       { path: 'users', loadChildren: () => import('./pages/documents/users/users.module').then(m => m.UsersModule) },
+      { path: 'usergroupdock', loadChildren: () => import('./pages/documents/usergroup-dock/usergroup-dock.module').then(m => m.UsergroupDockModule) },
+      { path: 'usergroup', loadChildren: () => import('./pages/documents/usergroup/usergroup.module').then(m => m.UsergroupModule) },
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
     ]  
   },
+
   
 ]
 

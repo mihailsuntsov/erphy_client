@@ -134,7 +134,6 @@ isAllowToViewAll  (e){return(e==14);}
 
 getTableHeaderTitles(){
   if(this.allowToDelete) this.displayedColumns.push('select');
-  this.displayedColumns.push('show_childrens');
   if(this.allowToUpdateMy||this.allowToUpdateAll||this.allowToViewMy||this.allowToViewAll) this.displayedColumns.push('opendoc');
   this.displayedColumns.push('name');
   this.displayedColumns.push('address');

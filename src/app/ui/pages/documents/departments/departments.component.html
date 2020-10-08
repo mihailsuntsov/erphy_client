@@ -86,12 +86,6 @@
                                 <!-- Position Column -->
                                 <ng-container matColumnDef="select">
                                         <th mat-header-cell *matHeaderCellDef style="width: 40px;">
-                                            <!-- --{{selection.selected.length}}<br> -->
-                                            <!-- --{{this.dataSource.data.length}}<br> -->
-                                            <!-- --{{this.isAllSelected()}} -->
-                                            <!-- при изменении запускается masterToggle() -->
-                                            <!-- [checked] [V] - когда есть выбранные и выбраны все -->
-                                            <!-- [indeterminate] [-] - когда есть выбранные но не все -->
         
                                             <mat-checkbox (change)="$event ? masterToggle() : null"
                                                             id="headCheckbox"
@@ -100,7 +94,7 @@
                                                             [aria-label]="checkboxLabel()">
                                             </mat-checkbox>
                                         </th>
-                                        <td mat-cell *matCellDef="let row" [ngClass]="row.parent_id >0?'darkcell':''">
+                                        <td mat-cell *matCellDef="let row" style="padding: 15px 15px 15px 24px">
                                                 <!-- id:{{row.id}}<br>
                                                 {{selection.isSelected(row)}}<br> -->
                                             <mat-checkbox (click)="$event.stopPropagation()"
@@ -110,17 +104,9 @@
                                             </mat-checkbox>
                                         </td>
                                 </ng-container>
-                                <ng-container matColumnDef="show_childrens">
-                                    <th mat-header-cell *matHeaderCellDef style="width: 40px;" ></th>
-                                    <td mat-cell *matCellDef="let row" [ngClass]="row.parent_id >0?'darkcell':''"> 
-                                        <i  *ngIf="row.row_status=='close'" (click)="showChildrens(row.id)" mat-raised-button  color="primary" class="material-icons showchilds active">add</i>
-                                        <i  *ngIf="row.row_status=='open'" (click)="hideChildrens(row.id)" mat-raised-button  color="primary" class="material-icons showchilds active">remove</i>
-                                        
-                                    </td>
-                                </ng-container>
                                 <ng-container matColumnDef="opendoc">
                                     <th mat-header-cell *matHeaderCellDef></th>
-                                    <td mat-cell *matCellDef="let row" [ngClass]="row.parent_id >0?'darkcell':''">
+                                    <td mat-cell *matCellDef="let row" style="text-align: center; padding: 10px 10px 6px;">
                                         <a class="inactive" [routerLink]="['../../departmentsdock', row.id ]">
                                             <mat-icon>launch</mat-icon>
                                         </a>
@@ -129,7 +115,7 @@
         
                                 <ng-container matColumnDef="id">
                                     <th mat-header-cell *matHeaderCellDef> id </th>
-                                    <td mat-cell *matCellDef="let row" [ngClass]="row.parent_id >0?'darkcell':''"> {{row.id}} </td>
+                                    <td mat-cell *matCellDef="let row"> {{row.id}} </td>
                                 </ng-container>
                                 
                                 <!-- Name Column -->
@@ -140,25 +126,25 @@
                                             <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='name'" class="material-icons sortarrow">arrow_downward</i>
                                         </span>
                                     </th>
-                                    <td mat-cell *matCellDef="let row" [ngClass]="row.parent_id >0?'darkcell':''"> {{row.name}} </td>
+                                    <td mat-cell *matCellDef="let row"> {{row.name}} </td>
                                 </ng-container>
                                 
                                 <!-- Weight Column -->
                                 <ng-container matColumnDef="address">
                                         <th mat-header-cell *matHeaderCellDef> Адрес </th>
-                                        <td mat-cell *matCellDef="let row" [ngClass]="row.parent_id >0?'darkcell':''"> {{row.address}} </td>
+                                        <td mat-cell *matCellDef="let row"> {{row.address}} </td>
                                 </ng-container>
 
                                 <!-- Weight Column -->
                                 <ng-container matColumnDef="creator">
                                     <th mat-header-cell *matHeaderCellDef> Создатель </th>
-                                    <td mat-cell *matCellDef="let row" [ngClass]="row.parent_id >0?'darkcell':''"> {{row.creator}} </td>
+                                    <td mat-cell *matCellDef="let row"> {{row.creator}} </td>
                                 </ng-container>
                                 
                                 <!-- Symbol Column -->
                                 <ng-container matColumnDef="date_time_created">
                                     <th mat-header-cell *matHeaderCellDef> Дата создания </th>
-                                    <td mat-cell *matCellDef="let row" [ngClass]="row.parent_id >0?'darkcell':''"> {{row.date_time_created}} </td>
+                                    <td mat-cell *matCellDef="let row"> {{row.date_time_created}} </td>
                                 </ng-container>
                                 <!-- Symbol Column -->
                                 

@@ -1,0 +1,149 @@
+<mat-card class="card">
+  
+    <mat-card-title class="flex">
+        <div class="card-name">Группы пользователей</div>
+                <button 
+                    mat-raised-button 
+                    [style.display]="visAfterCreatingBlocks==true?'none':'block'"
+                    (click)="clickBtnCreateNewDocument()" 
+                    [disabled]="!formBaseInformation.valid" 
+                    color="primary"
+                    class="button">
+                    <i class="material-icons">add_circle_outline</i> Создать
+                </button>
+                <button 
+                    mat-raised-button 
+                    [style.display]="visBtnUpdate==true?'block':'none'"
+                    (click)="clickBtnUpdate()"
+                    [disabled]="!formBaseInformation.valid" 
+                    color="primary"
+                    class="button">
+                    <i class="material-icons">done</i> Сохранить
+                </button>
+                <a routerLink="../../usergroup">
+                    <button 
+                        mat-raised-button 
+                        color="accent"
+                        class="button">
+                        <i class="material-icons">close</i> {{id>0?'Выйти':'Отмена'}}
+                    </button>
+                </a>
+    </mat-card-title>
+
+    <mat-card-content> 
+
+           
+
+                <mat-tab-group>
+
+                        <mat-tab label="Информация">
+        
+                                <mat-card slyle="margin:10px;">
+
+                                    <form [formGroup]="formBaseInformation">
+                                        <mat-card-content class="input-form">
+    
+                                                <mat-form-field style="display: none">
+                                                    <input  matInput
+                                                            placeholder="id"
+                                                            formControlName="id"/>
+                                                </mat-form-field>
+
+                                                <mat-form-field>
+                                                    <mat-label>Предприятие</mat-label>
+                                                    <!-- formBaseInformation.get('company_id').value--{{formBaseInformation.get('company_id').value}} -->
+                                                    <mat-select  formControlName="company_id" (selectionChange)="getData()" [disabled]="+formBaseInformation.get('id').value>0">                          
+                                                        <mat-option value=0 selected></mat-option>
+                                                        <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
+                                                                {{rt.name}}
+                                                        </mat-option> 
+                                                    </mat-select>
+                                                </mat-form-field>
+                                                <mat-form-field>
+                                                    <input matInput
+                                                            placeholder="Наименование"
+                                                            formControlName="name"/>
+                                                </mat-form-field>
+                                                <mat-form-field>
+                                                    <textarea matInput
+                                                            placeholder="Описание"
+                                                            formControlName="description"></textarea>
+                                                </mat-form-field>
+                                            
+                                        </mat-card-content>
+                                    
+                                    </form>
+
+
+                                </mat-card>
+
+                        </mat-tab>
+                        <mat-tab *ngIf="visAfterCreatingBlocks" label="Права">
+
+                            <mat-card slyle="margin:10px;">
+
+                                <mat-expansion-panel *ngFor="let rt of receivedDocumentsWithPermissions">
+                                    <mat-expansion-panel-header>
+                                        <mat-panel-title>
+                                                {{rt.name}}
+                                        </mat-panel-title>
+                                    </mat-expansion-panel-header>
+                                    <ul>
+                                        <li *ngFor="let row of rt.permissions">
+                                                <mat-checkbox
+                                                (click)="$event.stopPropagation()"
+                                                (change)="$event ? clickTableCheckbox(row) : null"
+                                                [checked]="selection.isSelected(row)"
+                                                >{{row.name}}</mat-checkbox>
+                                        </li>
+                                    </ul>
+                                </mat-expansion-panel>
+
+                            </mat-card>
+
+                        </mat-tab>
+                        <mat-tab  *ngIf="visAfterCreatingBlocks"  label="О документе">
+                            <form [formGroup]="formAboutDocument">
+                                <mat-card style="margin:10px;">
+                                    <mat-card-content class="input-form">
+                                            <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                                <input  matInput
+                                                        placeholder="Предприятие"
+                                                        formControlName="company" [readonly]=true/>
+                                            </mat-form-field>
+                                            <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                                <input  matInput
+                                                        placeholder="Создатель"
+                                                        formControlName="creator" [readonly]=true/>
+                                            </mat-form-field>
+                                            <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                                <input  matInput
+                                                        placeholder="Дата создания"
+                                                        formControlName="date_time_created" [readonly]=true/>
+                                            </mat-form-field>
+                                            <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                                <input  matInput
+                                                        placeholder="Изменение"
+                                                        formControlName="changer" [readonly]=true/>
+                                            </mat-form-field>
+                                            <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                                <input  matInput
+                                                        placeholder="Дата изменения"
+                                                        formControlName="date_time_changed" [readonly]=true/>
+                                            </mat-form-field>
+                                    </mat-card-content>
+                                </mat-card>  
+                            </form>  
+                        </mat-tab>
+                </mat-tab-group>
+    
+        
+
+
+
+
+
+    
+    </mat-card-content> 
+</mat-card>
+    
