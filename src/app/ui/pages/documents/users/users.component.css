@@ -17,13 +17,6 @@ table {width: 100%;}
 
 .num-of-rows{flex-grow: 0;}
 
-.company-select{   
-    -webkit-box-flex: 1;
-    flex-grow: 1;
-    max-width: 400px;
-}
-
-
 .pagination {
     display: flex;
     padding-left: 10px;
@@ -38,7 +31,11 @@ table {width: 100%;}
 .inactive{
     color:gray;
 }
-
+.company-select {
+    -webkit-box-flex: 1;
+    flex-grow: 1;
+    max-width: 400px;
+}
 .pagearrow{
     font-size: 40px;
     margin: 0px 15px 0px 0px;

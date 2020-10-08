@@ -13,9 +13,12 @@ const routes: Routes = [
       { path: 'filesdock', loadChildren: () => import('./pages/documents/files-dock/files-dock.module').then(m => m.FilesDockModule) },
       { path: 'departments', loadChildren: () => import('./pages/documents/departments/departments.module').then(m => m.DepartmentsModule) },
       { path: 'departmentsdock', loadChildren: () => import('./pages/documents/departments-dock/departments-dock.module').then(m => m.DepartmentsDockModule) },
+      { path: 'usersdock', loadChildren: () => import('./pages/documents/users-dock/users-dock.module').then(m => m.UsersDockModule) },
+      { path: 'users', loadChildren: () => import('./pages/documents/users/users.module').then(m => m.UsersModule) },
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
     ]  
   },
+  
 ]
 
 @NgModule({

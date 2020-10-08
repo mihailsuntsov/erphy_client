@@ -1,0 +1,31 @@
+:host{
+    flex-grow: 1;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+}
+
+table {width: 100%;}
+
+.flex{ display: flex; }
+
+.card{
+    width:100%;
+    max-width: 1000px;
+    margin-top: 10px;
+}
+
+.card-name{ flex-grow: 1; }
+
+.button{
+    margin-left: 10px;
+}
+
+.input-form{
+    display: flex;
+    flex-direction: column;
+}
+
+.form-invalid{
+    color: red;
+}
