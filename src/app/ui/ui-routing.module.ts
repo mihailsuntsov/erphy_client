@@ -18,9 +18,21 @@ const routes: Routes = [
       { path: 'usergroupdock', loadChildren: () => import('./pages/documents/usergroup-dock/usergroup-dock.module').then(m => m.UsergroupDockModule) },
       { path: 'usergroup', loadChildren: () => import('./pages/documents/usergroup/usergroup.module').then(m => m.UsergroupModule) },
       { path: 'traderesults-report', loadChildren: () => import('./pages/documents/traderesults-report/traderesults-report.module').then(m => m.TraderesultsReportModule) },
+      { path: 'productgroupsdock', loadChildren: () => import('./pages/documents/productgroups-dock/productgroups-dock.module').then(m => m.ProductgroupsDockModule) },
+      { path: 'productgroups', loadChildren: () => import('./pages/documents/productgroups/productgroups.module').then(m => m.ProductgroupsModule) },
+      { path: 'edizmdock', loadChildren: () => import('./pages/documents/edizm-dock/edizm-dock.module').then(m => m.EdizmDockModule) },
+      { path: 'edizm', loadChildren: () => import('./pages/documents/edizm/edizm.module').then(m => m.EdizmModule) },
+      { path: 'cagentsdock', loadChildren: () => import('./pages/documents/cagents-dock/cagents-dock.module').then(m => m.CagentsDockModule) },
+      { path: 'cagents', loadChildren: () => import('./pages/documents/cagents/cagents.module').then(m => m.CagentsModule) },
+      { path: 'pricetypesdock', loadChildren: () => import('./pages/documents/pricetypes-dock/pricetypes-dock.module').then(m => m.PricetypesDockModule) },
+      { path: 'pricetypes', loadChildren: () => import('./pages/documents/pricetypes/pricetypes.module').then(m => m.PricetypesModule) },
+      { path: 'statusesdock', loadChildren: () => import('./pages/documents/statuses-dock/statuses-dock.module').then(m => m.StatusesDockModule) },
+      { path: 'statuses', loadChildren: () => import('./pages/documents/statuses/statuses.module').then(m => m.StatusesModule) },
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
+      { path: '**', redirectTo: 'dashboard',pathMatch: 'full' },
     ]  
   },
+
   
 
   
