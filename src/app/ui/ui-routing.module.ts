@@ -34,10 +34,13 @@ const routes: Routes = [
       { path: 'traderesults', loadChildren: () => import('./pages/documents/traderesults/traderesults.module').then(m => m.TraderesultsModule) },
       { path: 'remains', loadChildren: () => import('./pages/documents/remains/remains.module').then(m => m.RemainsModule) },
       { path: 'prices', loadChildren: () => import('./pages/documents/prices/prices.module').then(m => m.PricesModule) },
+      { path: 'customersordersdock', loadChildren: () => import('./pages/documents/customersorders-dock/customersorders-dock.module').then(m => m.CustomersordersDockModule) },
+      { path: 'customersorders', loadChildren: () => import('./pages/documents/customersorders/customersorders.module').then(m => m.CustomersordersModule) },
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
       { path: '**', redirectTo: 'dashboard',pathMatch: 'full' },
     ]  
   },
+
 
 
 
