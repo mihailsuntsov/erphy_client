@@ -1,0 +1,115 @@
+:host{
+    flex-grow: 1;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+}
+
+table {width: 100%;}
+
+.flex{ display: flex; }
+
+.card{
+    width:100%;
+}
+
+li {list-style: none;}
+
+.div-100{
+    width:100%;
+    text-align: center;
+}
+
+.emptyspace{ flex-grow: 1;}
+
+.searchcategory{
+    width:170px;
+    margin-top: 5px;
+    margin-left: 5px;}
+.num-of-rows{flex-grow: 0;}
+
+.company-select{flex-grow: 1;}
+
+.depatrment-select{flex-grow: 1;}
+
+.pagination {
+    display: flex;
+    padding-left: 10px;
+    list-style: none;
+    border-radius: .25rem;
+}
+
+.active{
+    color:rgb(27, 27, 27);
+}
+
+.inactive{
+    color:gray;
+}
+
+.pagearrow{
+    font-size: 40px;
+    margin: 0px 15px 0px 0px;
+    cursor: default;
+}
+
+.showchilds{
+    font-size: 18px;
+    cursor: default;
+}
+
+.darkcell{
+    background: rgb(206, 206, 206);
+}
+
+.sortarrow{
+    font-size: 14px;
+    cursor: default;
+}
+
+.sortheader{
+    cursor: default;
+}
+.doc-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width:100%;
+    border: 0px solid black;
+  }
+  
+.categories-sidenav-content {
+display: flex;
+justify-content: center;
+}
+
+.categories-sidenav {
+padding: 0px;
+min-width:150px;
+}
+.category-toolbar-icon {
+    padding: 0 0;
+
+  }
+.category-toolbar-search {
+    flex: 1 0 1;
+  }
+.category-toolbar-icons {
+    margin-top: -20px;
+    flex: 1 0 1;
+  }
+
+  .node  {
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.selected_node  {
+    background-color:rgb(220,220,220)
+}
+.category-toolbar-spacer {
+flex: 1 1 auto;
+
+}
+
