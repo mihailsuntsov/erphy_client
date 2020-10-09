@@ -36,10 +36,19 @@ const routes: Routes = [
       { path: 'prices', loadChildren: () => import('./pages/documents/prices/prices.module').then(m => m.PricesModule) },
       { path: 'customersordersdock', loadChildren: () => import('./pages/documents/customersorders-dock/customersorders-dock.module').then(m => m.CustomersordersDockModule) },
       { path: 'customersorders', loadChildren: () => import('./pages/documents/customersorders/customersorders.module').then(m => m.CustomersordersModule) },
+      { path: 'shipmentdock', loadChildren: () => import('./pages/documents/shipment-dock/shipment-dock.module').then(m => m.ShipmentDockModule) },
+      { path: 'acceptancedock', loadChildren: () => import('./pages/documents/acceptance-dock/acceptance-dock.module').then(m => m.AcceptanceDockModule) },
+      { path: 'postingdock', loadChildren: () => import('./pages/documents/posting-dock/posting-dock.module').then(m => m.PostingDockModule) },
+      { path: 'writeoffdock', loadChildren: () => import('./pages/documents/writeoff-dock/writeoff-dock.module').then(m => m.WriteoffDockModule) },
+      { path: 'shipment', loadChildren: () => import('./pages/documents/shipment/shipment.module').then(m => m.ShipmentModule) },
+      { path: 'acceptance', loadChildren: () => import('./pages/documents/acceptance/acceptance.module').then(m => m.AcceptanceModule) },
+      { path: 'posting', loadChildren: () => import('./pages/documents/posting/posting.module').then(m => m.PostingModule) },
+      { path: 'writeoff', loadChildren: () => import('./pages/documents/writeoff/writeoff.module').then(m => m.WriteoffModule) },
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
       { path: '**', redirectTo: 'dashboard',pathMatch: 'full' },
     ]  
   },
+
 
 
 

@@ -68,7 +68,6 @@
                                     name="search_input" 
                                     style="width:150px"  
                                     />
-                                    <!-- <input   [(ngModel)]="sendingQueryForm.searchString" type="text"  placeholder="Поиск..." class="form-control" id="search_input" name="search_input" style="width:150px"> -->
                             </mat-form-field>
                             <button mat-button (click)="getData()"  type="submit" id="btn" style="min-width: 20px; padding: 0px;"><mat-icon>search</mat-icon></button>
                                 
@@ -80,11 +79,6 @@
 
 
                         <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
-    
-                                <!--- Note that these columns can be defined in any order.
-                                        The actual rendered columns are set as a property on the row definition" -->
-                                
-                                <!-- Position Column -->
                                 <ng-container matColumnDef="select">
                                         <th mat-header-cell *matHeaderCellDef style="width: 40px;">
                                             <mat-checkbox (change)="$event ? masterToggle() : null"

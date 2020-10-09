@@ -7,6 +7,9 @@
 # Only exists if Bazel was run
 /bazel-out
 
+#Icons archive with a license
+Icons File Types.zip
+
 # dependencies
 /node_modules
 

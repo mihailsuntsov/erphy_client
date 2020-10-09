@@ -1,0 +1,617 @@
+<mat-card class="card">
+  
+    <mat-card-title class="flex">
+        <div class="card-name">Отгрузка <span [ngClass]="{invisible: visBeforeCreatingBlocks}">№{{formBaseInformation.get('doc_number').value}}</span></div>
+                
+                <button 
+                    mat-raised-button 
+                    *ngIf="!is_completed"
+                    [style.display]="visBtnUpdate==true?'block':'none'"
+                    (click)="updateDocument(false)"
+                    [disabled]="!formBaseInformation.valid" 
+                    color="primary"
+                    class="button">
+                    <i class="material-icons">done</i> Сохранить
+                </button>
+                <a routerLink="../../shipment">
+                    <button 
+                        mat-raised-button 
+                        color="accent"
+                        class="button">
+                        <i class="material-icons">close</i> {{id>0?'Выйти':'Отмена'}}
+                    </button>
+                </a>
+    </mat-card-title>
+    <mat-card-subtitle [ngClass]="{invisible: visBeforeCreatingBlocks}">Предприятие: {{formAboutDocument.get('company').value}}</mat-card-subtitle>
+    <mat-card-content> 
+        <mat-tab-group>
+                <mat-tab label="Информация">
+
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-lg-5  col-xl-4   col-md-12">  
+
+                                <mat-card class="internal-card">
+                                    <mat-card-header>
+                                        <mat-card-title class="card-title">Основная информация</mat-card-title>
+                                    </mat-card-header>
+                                    <mat-card-content class="input-form">
+                                        <form [formGroup]="formBaseInformation">
+                                            <div class="container-fluid">
+                                                <div class="row">
+                                                    <div class="col-12">    
+                                                        <mat-form-field style="display: none">
+                                                            <input  matInput
+                                                                    placeholder="id"
+                                                                    formControlName="id"/>
+                                                        </mat-form-field>
+                                                        <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: visAfterCreatingBlocks}">
+                                                            <mat-label>Предприятие</mat-label>
+                                                            <mat-select  formControlName="company_id" (selectionChange)="getDepartmentsList()">                          
+                                                                <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
+                                                                        {{rt.name}}
+                                                                </mat-option> 
+                                                            </mat-select>
+                                                        </mat-form-field>
+                                                    </div>
+
+                                                    <div class="col-12"> 
+                                                        <mat-form-field  class="mat-form-field-100" [ngClass]="{invisible: visAfterCreatingBlocks}">
+                                                            <mat-label>Отделение{{formBaseInformation.get('department_id').value==''?'*':''}}</mat-label>
+                                                            <mat-select formControlName="department_id">
+                                                                <mat-option *ngFor="let department of receivedDepartmentsList" 
+                                                                            [value]="department.id">
+                                                                            {{department.name}}
+                                                                </mat-option>
+                                                            </mat-select>
+                                                            <mat-hint  align="start" *ngIf="formBaseInformation.get('department_id').touched && formBaseInformation.get('department_id').invalid">
+                                                                <i class="form-invalid">Отделение не выбрано.</i>
+                                                            </mat-hint>
+                                                        </mat-form-field>
+
+                                                        <mat-form-field  class="mat-form-field-100" [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                                            <input  matInput
+                                                                    placeholder="Отделение"
+                                                                    formControlName="department" [readonly]=true/>
+                                                        </mat-form-field>
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <mat-form-field style="display: none">
+                                                            <input  matInput
+                                                                    placeholder="cagent_id"
+                                                                    formControlName="cagent_id"/>
+                                                        </mat-form-field>
+                                                        <mat-form-field  class="mat-form-field-100" [ngClass]="{invisible: visAfterCreatingBlocks}"> 
+                                                            <input  matInput 
+                                                            placeholder="{{formBaseInformation.get('cagent_id').value==''?'Поиск получателя*':'Получатель'}}"
+                                                            [matAutocomplete]="auto4" 
+                                                            [formControl]="searchCagentCtrl"
+                                                            (input)="canCagentAutocompleteQuery=true; checkEmptyCagentField();"
+                                                            (change)="canCagentAutocompleteQuery=false; checkEmptyCagentField();">
+                                                            <mat-autocomplete #auto4="matAutocomplete">
+                                                            <ng-container *ngIf="!isCagentListLoading" style="width:320px;">
+                                                                <mat-option style="padding:0px" *ngFor="let value of filteredCagents" [value]="value.name">
+                                                                <div (click)="onSelectCagent(value.id,value.name)">
+                                                                    <span style="margin:10px;"><b>{{value.name}}</b></span>
+                                                                </div>
+                                                                </mat-option>
+                                                            </ng-container>
+                                                            </mat-autocomplete>
+                                                            <mat-hint  align="start" *ngIf="searchCagentCtrl.touched && formBaseInformation.get('cagent_id').invalid">
+                                                                <i class="form-invalid">Получатель не выбран. Введите часть наименования получателя и выберите его из списка.</i>
+                                                            </mat-hint>
+                                                        </mat-form-field>
+                                                        <mat-progress-bar *ngIf="isCagentListLoading" mode="indeterminate"></mat-progress-bar>
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <mat-form-field  class="mat-form-field-100" [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                                            <input  matInput
+                                                                    placeholder="Получатель"
+                                                                    formControlName="cagent" [readonly]=true/>
+                                                        </mat-form-field>
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <div class="row">
+                                                            <div class="col-lg-6  col-md-12"> 
+                                                                <mat-form-field  class="mat-form-field-100">
+                                                                    <input  matInput 
+                                                                            placeholder="Дата отгрузки"
+                                                                            [readonly]=is_completed
+                                                                            formControlName="shipment_date"
+                                                                            [ngClass]="{'is-invalid':formBaseInformation.get('shipment_date').touched && formBaseInformation.get('shipment_date').invalid}"
+                                                                            [matDatepicker]="dp"/>
+                                                                            <mat-datepicker-toggle matSuffix [for]="dp" *ngIf="!is_completed"></mat-datepicker-toggle>
+                                                                    <mat-datepicker #dp></mat-datepicker>
+                                                                    <mat-hint *ngIf="formBaseInformation.get('shipment_date').touched && formBaseInformation.get('shipment_date').invalid" class="invalid-feedback">
+                                                                        <i>Формат даты не верный</i>
+                                                                    </mat-hint>
+                                                                </mat-form-field>
+                                                            </div>
+                                                            <div class="col-lg-6  col-md-12"> 
+                                                                <mat-form-field class="mat-form-field-100" *ngIf="doc_number_isReadOnly && (+formBaseInformation.get('company_id').value>0)">                                                               <input  matInput
+                                                                            (click)="EditDocNumber()"
+                                                                            placeholder="Номер документа"
+                                                                            formControlName="doc_number"
+                                                                            [readonly]=true/>
+                                                                </mat-form-field>
+                                                                <mat-form-field class="mat-form-field-100" *ngIf="!doc_number_isReadOnly && (+formBaseInformation.get('company_id').value>0)">
+                                                                    <input  matInput
+                                                                            #doc_number 
+                                                                            maxlength="10"
+                                                                            placeholder="Номер документа"
+                                                                            (keypress)="numberOnly($event)"
+                                                                            (change)="checkDocNumberUnical()"
+                                                                            formControlName="doc_number"/>
+                                                                    <mat-hint  align="start" *ngIf="formBaseInformation.get('doc_number').touched && formBaseInformation.get('doc_number').invalid">
+                                                                        <i *ngIf="formBaseInformation.get('doc_number').errors.pattern" class="form-invalid">Номер должен состоять из цифр</i>
+                                                                    </mat-hint>
+                                                                    <mat-hint align="end">{{doc_number.value.length}} / 10</mat-hint>
+                                                                    <mat-progress-bar *ngIf="isDocNumberUnicalChecking" mode="indeterminate"></mat-progress-bar>
+                                                                </mat-form-field>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>  
+                                                <div class="flex">
+                                                    <mat-form-field 
+                                                    [ngClass]="{slideWidth100: !formBaseInformation.get('nds').value,
+                                                                slideWidth50margin8: formBaseInformation.get('nds').value}">
+                                                        <mat-slide-toggle 
+                                                        formControlName="nds"
+                                                        [disabled]="is_completed"
+                                                        (change)="productTableRecount(); hideOrShowNdsColumn();"
+                                                        matTooltip='Включите, если вы работаете с НДС. Если в накладной присутствует НДС, но вы не плательщик НДС, то включать не нужно.'
+                                                        >НДС</mat-slide-toggle>
+                                                        <input matInput hidden/>
+                                                    </mat-form-field>
+                                                    <mat-form-field class="slideWidth50margin8" [ngClass]="{invisible: !formBaseInformation.get('nds').value}">
+                                                        <mat-slide-toggle 
+                                                            formControlName="nds_included"
+                                                            [disabled]="is_completed"
+                                                            (change)="productTableRecount()"
+                                                            matTooltip='Включите, если цена уже содержит НДС. В противном случае НДС прибавится сверху цены'
+                                                        >НДС включена</mat-slide-toggle>
+                                                        <input matInput hidden/>
+                                                    </mat-form-field>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-12">
+                                                        <mat-form-field  class="mat-form-field-100">
+                                                            <textarea   matInput
+                                                                        [readonly]=is_completed
+                                                                        maxlength="2000"
+                                                                        #description
+                                                                        placeholder="Дополнительная информация"
+                                                                        formControlName="description">
+                                                            </textarea>
+                                                            <mat-hint align="end" *ngIf="description.value.length>500">{{description.value.length}} / 2000</mat-hint>
+                                                        </mat-form-field>
+                                                    </div>  
+                                                </div> 
+                                                <div class="row"  [ngClass]="{invisible: !visBeforeCreatingBlocks}">
+                                                    <div class="col-12 center-align">
+                                                        <button 
+                                                            mat-raised-button 
+                                                            [style.display]="visAfterCreatingBlocks==true?'none':'block'"
+                                                            (click)="createNewDocument()" 
+                                                            *ngIf="allowToCreate"
+                                                            [disabled]="!formBaseInformation.valid" 
+                                                            color="primary"
+                                                            type="submit"
+                                                            class="button">
+                                                            <i class="material-icons">play_circle_outline</i> Начать отгрузку
+                                                        </button>
+                                                    </div>  
+                                                </div> 
+                                            </div>  
+                                        </form>
+                                    </mat-card-content>
+                                </mat-card>
+
+                                <mat-card class="internal-card"  [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                    <mat-card-header>
+                                        <mat-card-title class="card-title">Файлы</mat-card-title>
+                                    </mat-card-header>
+                                    <mat-card-content class="input-form">
+                                        <div class="box-list">
+                                            <ng-container *ngFor="let i of filesInfo">
+                                                <div class="filename-row">
+                                                    <div class="file-wrapper">
+                                                        <span> {{ i.original_name }}</span>
+                                                    </div>
+                                                    
+                                                    
+                                                    <div style="min-width:70px;">
+                                                        <!-- <a class="inactive" [routerLink]="['../../filesdock', i.id ]">
+                                                            <mat-icon matTooltip="Открыть файл" class="initial" style="padding-right: 10px;">launch</mat-icon>
+                                                        </a> -->
+                                                        
+                                                        
+                                                        <button mat-button 
+                                                        class="min-heigth"
+                                                                type="button"
+                                                                (click)="openFileCard(i.id)"
+                                                                matTooltip='Открыть карточку файла'
+                                                                matSuffix>
+                                                            <mat-icon>launch</mat-icon>
+                                                        </button>
+                                                        
+                                                        
+                                                        <button mat-button 
+                                                                *ngIf="!is_completed"
+                                                                class="min-heigth"
+                                                                type="button"
+                                                                (click)="clickBtnDeleteFile(i.id)"
+                                                                matTooltip='Удалить файл'
+                                                                matSuffix>
+                                                            <mat-icon>delete_forever</mat-icon>
+                                                        </button>
+                                                        
+                                                        
+                                                        <!-- <mat-icon matTooltip="Удалить файл"  class="initial hand" (click)="clickBtnDeleteFile(i.id)">delete_forever</mat-icon> -->
+                                                    </div>
+
+
+                                                </div>
+                                            </ng-container>
+                                        </div>
+                                        <div class="div-100" [style.display]="(visBtnUpdate==true && !is_completed) ?'block':'none'"> 
+                                            <div class="center hand" style="width:100%; height: 38px;">
+                                                <button matTooltip="Добавить файл" mat-mini-fab color="primary" (click)="openDialogAddFiles()" matTooltip="Загрузить файл">
+                                                    <mat-icon>add</mat-icon>
+                                                </button>
+                                            </div>
+                                        </div> 
+                                    </mat-card-content>
+                                </mat-card> 
+
+
+                            </div>  
+
+
+
+
+
+                                
+
+
+
+                            <div class="col-lg-7  col-xl-8 col-md-12"  [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                <mat-card class="internal-card">
+                                    <mat-card-header *ngIf="!is_completed">
+                                        <mat-card-title class="card-title">Добавление товара</mat-card-title>
+                                    </mat-card-header>
+                                    <mat-card-content class="input-form">
+                                        <form #form="ngForm" [formGroup]="formSearch">
+                                            <div class="container-fluid"  *ngIf="!is_completed">
+                                                <div class="row">
+                                                    <div class="col-lg-2  col-md-12 small-padding center-align">
+
+
+                                                        <div class="div-foto hand"> 
+                                                            <img *ngIf="productImageName" matTooltip="Посмотреть изображение" (click)="showImage(productImageName)" [src]="imageToShow" width=100%>
+                                                            <img *ngIf="!productImageName" src="{{thumbImageAddress}}" width=100% style="cursor:default">
+                                                        </div>       
+
+
+                                                    </div>
+                                                    <div class="col-lg-10  col-md-12 small-padding">
+                                                        <div class="col-12 ">    
+                                                            <div class="container-fluid" style="padding-right: 0px; padding-left: 0px;">
+                                                                <div class="row">
+                                                                    <div class="col-lg-6  col-md-12">    
+                                                                        <mat-form-field  style="display: none">
+                                                                            <input  matInput
+                                                                            placeholder="product_id"
+                                                                            formControlName="product_id" [readonly]=true/>
+                                                                        </mat-form-field>
+                                                                        <mat-form-field  class="mat-form-field-100">
+                                                                            <input  matInput 
+                                                                            #nameInput
+                                                                            placeholder="Поиск товара" 
+                                                                            [matAutocomplete]="auto3" 
+                                                                            [formControl]="searchProductCtrl"
+                                                                            [readonly]="formSearchReadOnly"
+                                                                            (input)="canAutocompleteQuery=true; checkEmptyProductField();"
+                                                                            (change)="canAutocompleteQuery=false; checkEmptyProductField();">
+                                                                            <button mat-button 
+                                                                            [matMenuTriggerFor]="productInfo"
+                                                                            type="button"
+                                                                            *ngIf="formSearchReadOnly && shortInfoAboutProductArray[2]!=null" 
+                                                                            matTooltip='Показать информацию о товаре'
+                                                                            matSuffix mat-icon-button>
+                                                                            <mat-icon>contact_support</mat-icon>
+                                                                            </button>
+                                                                            <mat-menu #productInfo="matMenu" xPosition="before">
+                                                                                <button mat-menu-item>Кол-во на складе: {{shortInfoAboutProductArray[0]}} {{edizmName}}</button>
+                                                                                <button mat-menu-item>Последнее изменение кол-ва: {{shortInfoAboutProductArray[1]}} {{edizmName}}</button>
+                                                                                <button mat-menu-item>Дата последнего изменения кол-ва: {{shortInfoAboutProductArray[2]}}</button>
+                                                                                <button mat-menu-item (click)="setPrice(shortInfoAboutProductArray[5])">Последняя закупочная цена: {{shortInfoAboutProductArray[5]}} руб.</button>
+                                                                                <button mat-menu-item (click)="setPrice(shortInfoAboutProductArray[3])">Средняя закупочная цена: {{shortInfoAboutProductArray[3]}} руб.</button>
+                                                                                <button mat-menu-item (click)="setPrice(shortInfoAboutProductArray[4])">Средняя себестоимость: {{shortInfoAboutProductArray[4]}} руб.</button>
+                                                                                <button mat-menu-item>Тип цены: {{shortInfoAboutProductArray[6]}}.</button>
+                                                                                <button mat-menu-item (click)="setPrice(shortInfoAboutProductArray[7])">Отпускная цена: {{shortInfoAboutProductArray[7]}} руб.</button>
+                                                                            </mat-menu>
+                                                                            <button mat-button 
+                                                                            type="button"
+                                                                            (click)="openProductCard(formSearch.get('product_id').value)"
+                                                                            *ngIf="formSearchReadOnly" 
+                                                                            matTooltip='Открыть карточку товара'
+                                                                            matSuffix mat-icon-button >
+                                                                                <mat-icon>launch</mat-icon>
+                                                                            </button>
+                                                                            <!-- <button mat-button 
+                                                                            type="button"
+                                                                            *ngIf="!formSearchReadOnly" 
+                                                                            matTooltip='Создать новый товар, и выбрать его для данной отгрузки'
+                                                                            matSuffix mat-icon-button 
+                                                                            (click)="openDialogCreateProduct();">
+                                                                                <mat-icon>note_add</mat-icon>
+                                                                            </button> -->
+                                                                            <button mat-button 
+                                                                            type="button"
+                                                                            *ngIf="formSearchReadOnly" 
+                                                                            matTooltip='Очистить форму поиска'
+                                                                            matSuffix mat-icon-button 
+                                                                            (click)="formSearchReadOnly=false;resetFormSearch();">
+                                                                                <mat-icon>close</mat-icon>
+                                                                            </button>
+                                                                            <mat-autocomplete #auto3="matAutocomplete">
+                                                                            <ng-container *ngIf="!isProductListLoading && filteredProducts.length>1" style="width:320px;">
+                                                                                <mat-option style="padding:0px" *ngFor="let value of filteredProducts" [value]="value.name">
+                                                                                <div (click)="onSelectProguct(value)">
+                                                                                    <span class="internal-card"><b>{{value.name}}</b> ({{value.product_id}})</span>
+                                                                                </div>
+                                                                                </mat-option>
+                                                                            </ng-container>
+                                                                            </mat-autocomplete>
+                                                                        </mat-form-field>
+                                                                        <mat-progress-bar *ngIf="isProductListLoading" mode="indeterminate"></mat-progress-bar>
+                                                                    </div>
+                                                                    <div class="col-lg-3  col-md-12"> 
+                                                                        <mat-form-field  class="mat-form-field-100">
+                                                                            <input  matInput 
+                                                                                    #countInput
+                                                                                    placeholder="Количество{{edizmName==''?'':', '}}{{edizmName}}"
+                                                                                    formControlName="product_count"
+                                                                                    (input)="calcSumPriceOfProduct()"
+                                                                                    (change)="calcSumPriceOfProduct()"
+                                                                                    (keypress)="numberOnlyPlusDotAndComma($event)"
+                                                                                    [readonly]="+formSearch.get('product_id').value==0?true:false"/>
+                                                                            <mat-hint  align="start" *ngIf="formSearch.get('product_count').touched">
+                                                                                <i *ngIf="formSearch.get('product_count').invalid && formSearch.get('product_count').errors.pattern" class="form-invalid">Неправильный формат. Допускается до 6 цифр в целой и до 3 цифр в дробной части. </i>
+                                                                                <i *ngIf="(+formSearch.get('product_count').value==0) && formSearch.get('product_count').value!=''" class="form-invalid">Значение должно быть больше 0</i>
+                                                                                <i *ngIf="formSearch.get('product_count').value==''" class="form-invalid">Поле не заполнено</i>
+                                                                                <i *ngIf="+formSearch.get('product_count').value>0 && +formSearch.get('product_count').value>+shortInfoAboutProductArray[0]" class="form-invalid">На складе нет такого количества товара (всего {{+shortInfoAboutProductArray[0]}} {{edizmName}})</i>
+                                                                            </mat-hint>
+                                                                        </mat-form-field>
+                                                                    </div>
+                                                                    <div class="col-lg-3  col-md-12"> 
+                                                                        <mat-form-field  class="mat-form-field-100">
+                                                                            <mat-label>Ед. изм.</mat-label>
+                                                                            <mat-select  formControlName="edizm_id" [disabled]=true>               
+                                                                                <mat-option [value]="0" selected>-</mat-option>     
+                                                                                <mat-option  *ngFor="let rt of spravSysEdizmOfProductAll" [value]="rt.id">
+                                                                                        {{rt.short_name}}
+                                                                                </mat-option> 
+                                                                            </mat-select>
+                                                                        </mat-form-field>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <div class="container-fluid" style="padding-right: 0px; padding-left: 0px;">
+                                                                <div class="row">
+                                                                    <div class="col-lg-3  col-md-12">
+                                                                        <mat-form-field class="mat-form-field-100">
+                                                                            <input  matInput 
+                                                                                    placeholder="Цена{{edizmName==''?'':' за 1 '}}{{edizmName}}"
+                                                                                    formControlName="product_price"
+                                                                                    (input)="calcSumPriceOfProduct()"
+                                                                                    (change)="calcSumPriceOfProduct()"
+                                                                                    (keypress)="numberOnlyPlusDotAndComma($event)"
+                                                                                    [readonly]="+formSearch.get('product_id').value==0?true:false"/>
+                                                                            <mat-hint align="start" *ngIf="formSearch.get('product_price').touched">
+                                                                                <i *ngIf=" formSearch.get('product_price').invalid && formSearch.get('product_price').errors.pattern" class="form-invalid">Неправильный формат. Допускается до 7 цифр в целой и до 2 цифр в дробной части</i>
+                                                                                <i *ngIf="formSearch.get('product_price').value==''" class="form-invalid">Поле не заполнено</i>
+                                                                            </mat-hint>
+                                                                        </mat-form-field>
+                                                                    </div>
+                                                                    <div class="col-lg-3  col-md-12">
+                                                                        <mat-form-field class="mat-form-field-100">
+                                                                            <input  matInput 
+                                                                                    placeholder="Сумма, руб."
+                                                                                    formControlName="product_sumprice"
+                                                                                    [readonly]=true
+                                                                                    />
+                                                                        </mat-form-field>
+                                                                    </div>
+                                                                    <div class="col-lg-3  col-md-12">
+                                                                        <mat-form-field class="mat-form-field-100">
+                                                                            <mat-label>Тип цены</mat-label>
+                                                                            <mat-select  [(value)]="formSearch.get('price_type_id').value" (selectionChange)="onPriceTypeSelection()">
+                                                                                <!-- <mat-option *ngIf="receivedPriceTypesList && receivedPriceTypesList.length>1" value="0" selected>Все типы цен</mat-option>                           -->
+                                                                                <mat-option  *ngFor="let rdl of receivedPriceTypesList" 
+                                                                                [value]="rdl.id"
+                                                                                matTooltip='{{rdl.description}}'>
+                                                                                        {{rdl.name}}
+                                                                                </mat-option>
+                                                                            </mat-select>
+                                                                        </mat-form-field>
+                                                                    </div>
+                                                                    <div class="col-lg-3  col-md-12">
+                                                                        <mat-form-field  class="mat-form-field-100" *ngIf="formBaseInformation.get('nds').value">
+                                                                            <mat-label>НДС</mat-label>
+                                                                            <mat-select  formControlName="nds_id"  (selectionChange)="productTableRecount()" [disabled]=false>                          
+                                                                                <mat-option  *ngFor="let rt of spravSysNdsSet" [value]="rt.id">
+                                                                                        {{rt.name}}
+                                                                                </mat-option> 
+                                                                            </mat-select>
+                                                                        </mat-form-field>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="col-12">
+                                                            <div class="container-fluid" style="padding-right: 0px; padding-left: 0px;">
+
+                                                                <div class="row">
+                                                                    <div class="col-12">
+                                                                        <mat-form-field  class="mat-form-field-100">
+                                                                            <textarea   matInput
+                                                                                        maxlength="500"
+                                                                                        #additional
+                                                                                        placeholder="Дополнительная информация"
+                                                                                        formControlName="additional"></textarea>
+                                                                        </mat-form-field>
+                                                                        <mat-hint align="end" *ngIf="additional.value.length>400">{{additional.value.length}} / 500</mat-hint>
+                                                                    </div>  
+                                                                </div> 
+
+
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div> 
+                                            <div class="container-fluid">
+                                                <div class="row" *ngIf="!is_completed && visBtnUpdate==true">
+                                                    <div class="col-12 center-align" style="margin-top: 20px;">
+                                                        <button 
+                                                            mat-raised-button 
+                                                            (click)="addProductRow()" 
+                                                            type="submit"
+                                                            [disabled]="(!formSearch.valid) ||
+                                                            ((+formSearch.get('product_count').value==0) && formSearch.get('product_count').value!='') ||
+                                                            (formSearch.get('product_count').value=='') ||
+                                                            (+formSearch.get('product_count').value>0 && +formSearch.get('product_count').value>+shortInfoAboutProductArray[0])||
+                                                            (formSearch.get('product_price').value=='')"
+                                                            color="primary"
+                                                            class="button">
+                                                            <i class="material-icons">playlist_add</i> Добавить в список отгрузки
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row" *ngIf="myForm.controls.tableFields.value.length>0">
+                                                    <div class="col-12">
+                    
+                                                        <table mat-table [dataSource]="myForm.controls.tableFields.value" style="margin-top: 20px;" class="mat-elevation-z8">
+                                                            <ng-container matColumnDef="name">
+                                                                <th mat-header-cell *matHeaderCellDef> Название </th>
+                                                                <td mat-cell *matCellDef="let row"> 
+                                                                    <span matTooltip='Открыть карточку товара' class="hand" (click)="openProductCard(row.product_id)">{{row.name}}</span>
+                                                                </td>
+                                                                <td mat-footer-cell *matFooterCellDef> Итого ({{myForm.controls.tableFields.value.length}} наим.):</td>
+                                                            </ng-container>
+                                                            <ng-container matColumnDef="product_count">
+                                                                <th mat-header-cell *matHeaderCellDef>Кол-во</th>
+                                                                <td mat-cell *matCellDef="let row"> {{row.product_count}} </td>
+                                                                <td mat-footer-cell *matFooterCellDef> {{getTotalProductCount()}} </td>
+                                                            </ng-container>
+                                                            <ng-container matColumnDef="edizm">
+                                                                <th mat-header-cell *matHeaderCellDef>Ед. изм.</th>
+                                                                <td mat-cell *matCellDef="let row"> {{row.edizm}} </td>
+                                                                <td mat-footer-cell *matFooterCellDef></td>
+                                                            </ng-container>
+                                                            <ng-container matColumnDef="product_price">
+                                                                <th mat-header-cell *matHeaderCellDef>Цена</th>
+                                                                <td mat-cell *matCellDef="let row"> {{row.product_price}} </td>
+                                                                <td mat-footer-cell *matFooterCellDef></td>
+                                                            </ng-container>
+                                                            <ng-container matColumnDef="product_sumprice">
+                                                                <th mat-header-cell *matHeaderCellDef>Сумма, руб.</th>
+                                                                <td mat-cell *matCellDef="let row"> {{row.product_sumprice}} </td>
+                                                                <td mat-footer-cell *matFooterCellDef> {{getTotalSumPrice()}}</td>
+                                                            </ng-container>
+                                                            <ng-container matColumnDef="price_type">
+                                                                <th mat-header-cell *matHeaderCellDef>Тип цены</th>
+                                                                <td mat-cell *matCellDef="let row"> {{row.price_type}} </td>
+                                                                <td mat-footer-cell *matFooterCellDef></td>
+                                                            </ng-container>
+                                                            <ng-container matColumnDef="nds">
+                                                                <th mat-header-cell *matHeaderCellDef>НДС</th>
+                                                                <td mat-cell *matCellDef="let row"> {{row.nds}} </td>
+                                                                <td mat-footer-cell *matFooterCellDef></td>
+                                                            </ng-container>
+                                                            <ng-container matColumnDef="additional">
+                                                                <th mat-header-cell *matHeaderCellDef>Доп. инфо.</th>
+                                                                <td mat-cell *matCellDef="let row"> {{row.additional}} </td>
+                                                                <td mat-footer-cell *matFooterCellDef></td>
+                                                            </ng-container>
+                                                            <ng-container matColumnDef="delete">
+                                                                <th mat-header-cell *matHeaderCellDef style="width: 30px;"><mat-icon  *ngIf="!is_completed" style="cursor: default" (click)="clearTable()">close</mat-icon></th>
+                                                                <td mat-cell *matCellDef="let row">
+                                                                    <mat-icon style="cursor: default"  *ngIf="!is_completed" (click)="deleteProductRow(row.product_id)">delete_forever</mat-icon>
+                                                                </td>
+                                                                <td mat-footer-cell *matFooterCellDef></td>
+                                                            </ng-container>
+                                                            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                                                            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                                                            <tr mat-footer-row *matFooterRowDef="displayedColumns"></tr>
+                                                        </table>
+                                                    </div>  
+                                                </div>  
+                                                <div  *ngIf="myForm.controls.tableFields.value.length>0" class="col-12 center-align" style="margin-top: 20px;">
+                                                    <button 
+                                                        mat-raised-button 
+                                                        *ngIf="!is_completed"
+                                                        (click)="completeDocument()" 
+                                                        type="button"
+                                                        color="primary"
+                                                        class="button">
+                                                        <i class="material-icons">playlist_add_check</i> Завершить отгрузку
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </mat-card-content>
+                                </mat-card>
+                            </div>  
+                        </div>  
+                    </div>  
+                </mat-tab>
+                
+                <mat-tab  *ngIf="visAfterCreatingBlocks"  label="О документе">
+                    <form [formGroup]="formAboutDocument">
+                        <mat-card class="internal-card">
+                            <mat-card-content class="input-form">
+                                    <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                        <input  matInput
+                                                placeholder="Предприятие"
+                                                formControlName="company" [readonly]=true/>
+                                    </mat-form-field>
+                                    <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                        <input  matInput
+                                                placeholder="Создатель"
+                                                formControlName="creator" [readonly]=true/>
+                                    </mat-form-field>
+                                    <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                        <input  matInput
+                                                placeholder="Дата создания"
+                                                formControlName="date_time_created" [readonly]=true/>
+                                    </mat-form-field>
+                                    <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                        <input  matInput
+                                                placeholder="Изменение"
+                                                formControlName="changer" [readonly]=true/>
+                                    </mat-form-field>
+                                    <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                        <input  matInput
+                                                placeholder="Дата изменения"
+                                                formControlName="date_time_changed" [readonly]=true/>
+                                    </mat-form-field>
+                            </mat-card-content>
+                        </mat-card>  
+                    </form>  
+                </mat-tab>
+        </mat-tab-group>
+
+        
+
+
+    </mat-card-content> 
+</mat-card>
+
