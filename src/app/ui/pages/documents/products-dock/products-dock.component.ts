@@ -558,7 +558,7 @@ refreshPermissions():boolean{
             );
   }
 
-  getControls() {
+  getFieldsFormControls() {
     console.log("controls length - "+(this.fieldsForm.get('fields') as FormArray).controls.length);
     return (this.fieldsForm.get('fields') as FormArray).controls;
   }

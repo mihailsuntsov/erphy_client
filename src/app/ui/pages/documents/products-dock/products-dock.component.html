@@ -439,7 +439,7 @@
                                                                         <div class="box-list">
                                                                             <form [formGroup]="fieldsForm">
                                                                                 <div formArrayName="fields">
-                                                                                    <div *ngFor="let child of getControls(); let i = index">
+                                                                                    <div *ngFor="let child of getFieldsFormControls(); let i = index">
                                                                                         <div [formGroupName]="i">
                                                                                             <ng-container *ngIf="dataFields[i]"> 
                                                                                                 <div *ngIf="dataFields[i].parent_set_id==set.id">
