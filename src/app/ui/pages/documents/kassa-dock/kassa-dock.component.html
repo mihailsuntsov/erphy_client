@@ -1,0 +1,282 @@
+<mat-card class="card">
+  
+    <mat-card-title class="flex">
+        <div class="card-name">Касса <span [ngClass]="{invisible: visBeforeCreatingBlocks}">"{{formBaseInformation.get('name').value}}"</span></div>
+                <button 
+                    mat-raised-button 
+                    [style.display]="(visBeforeCreatingBlocks==true && allowToCreate)?'block':'none'"
+                    (click)="createNewDocument()" 
+                    [disabled]="!formBaseInformation.valid" 
+                    color="primary"
+                    class="button">
+                    <i class="material-icons">add_circle_outline</i> Создать
+                </button>
+                <button 
+                    mat-raised-button 
+                    *ngIf="allowToUpdate"
+                    [style.display]="visBtnUpdate==true?'block':'none'"
+                    (click)="updateDocument()"
+                    [disabled]="!formBaseInformation.valid" 
+                    color="primary"
+                    class="button">
+                    <i class="material-icons">done</i> Сохранить
+                </button>
+                <a routerLink="../../kassa">
+                    <button 
+                        mat-raised-button 
+                        color="accent"
+                        class="button">
+                        <i class="material-icons">close</i> {{id>0?'Выйти':'Отмена'}}
+                    </button>
+                </a>
+    </mat-card-title>
+    <mat-card-subtitle [ngClass]="{invisible: visBeforeCreatingBlocks}">Предприятие: {{formAboutDocument.get('company').value}}</mat-card-subtitle>
+    <mat-card-content> 
+        <mat-tab-group>
+            <form [formGroup]="formBaseInformation">
+                <mat-tab label="Информация">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-lg-5 col-xl-4 col-md-6 col-12">  
+                                <mat-card class="internal-card">
+                                    <mat-card-header>
+                                        <mat-card-title class="card-title">Общая информация</mat-card-title>
+                                    </mat-card-header>
+                                    <mat-card-content class="input-form">
+                                        <div class="container-fluid">
+                                            <div class="row">
+                                                <div class="col-12">    
+                                                    <mat-form-field style="display: none">
+                                                        <input  matInput
+                                                                placeholder="id"
+                                                                formControlName="id"/>
+                                                    </mat-form-field>
+                                                    <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: visAfterCreatingBlocks}">
+                                                        <mat-label>Предприятие</mat-label>
+                                                        <mat-select  formControlName="company_id" (selectionChange)="getDepartmentsList(true)">                          
+                                                            <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
+                                                                    {{rt.name}}
+                                                            </mat-option> 
+                                                        </mat-select>
+                                                    </mat-form-field>
+                                                </div>
+                                                <div class="col-12"> 
+                                                    <mat-form-field  class="mat-form-field-100">
+                                                        <mat-label>Отделение{{formBaseInformation.get('department_id').value==''?'*':''}}</mat-label>
+                                                        <mat-select formControlName="department_id">
+                                                            <mat-option *ngFor="let department of receivedDepartmentsList" 
+                                                                        [value]="department.id">
+                                                                        {{department.name}}
+                                                            </mat-option>
+                                                        </mat-select>
+                                                        <mat-hint  align="start" *ngIf="formBaseInformation.get('department_id').touched && formBaseInformation.get('department_id').invalid">
+                                                            <i class="form-invalid">Отделение не выбрано</i>
+                                                        </mat-hint>
+                                                    </mat-form-field>
+                                                </div>
+                                                <div class="col-12">
+                                                    <mat-form-field  class="mat-form-field-100">
+                                                        <mat-label>Наименование{{formBaseInformation.get('name').value==''?'*':''}}</mat-label>
+                                                        <input  matInput
+                                                                maxlength="60"
+                                                                formControlName="name" [readonly]=!allowToUpdate/>
+                                                        <mat-hint align="end" *ngIf="formBaseInformation.get('name').value.length>40">{{formBaseInformation.get('name').value.length}} / 60</mat-hint>
+                                                        <mat-hint  align="start" *ngIf="formBaseInformation.get('name').touched && formBaseInformation.get('name').invalid">
+                                                            <i class="form-invalid">Наименование не выбрано</i>
+                                                        </mat-hint>
+                                                    </mat-form-field>
+                                                </div>
+                                                <div class="col-12"> 
+                                                    <mat-form-field  class="mat-form-field-100">
+                                                        <mat-label>Налогообложение{{formBaseInformation.get('sno1_id').value==''?'*':''}}</mat-label>
+                                                        <mat-select formControlName="sno1_id">
+                                                            <mat-option *ngFor="let sno of spravSysTaxationTypes" 
+                                                                        [value]="sno.id">
+                                                                        {{sno.name}}
+                                                            </mat-option>
+                                                        </mat-select>
+                                                        <mat-hint  align="start" *ngIf="formBaseInformation.get('sno1_id').touched && formBaseInformation.get('sno1_id').invalid">
+                                                            <i class="form-invalid">Система налогообложения не выбрана</i>
+                                                        </mat-hint>
+                                                    </mat-form-field>
+                                                </div>
+                                                <div class="col-12"> 
+                                                    <mat-form-field  class="mat-form-field-100">
+                                                        <mat-label>Место расчётов{{formBaseInformation.get('billing_address').value==''?'*':''}}</mat-label>
+                                                        <input  matInput
+                                                                maxlength="300"
+                                                                formControlName="billing_address" [readonly]=!allowToUpdate/>
+                                                        <mat-hint align="end" *ngIf="formBaseInformation.get('billing_address').value.length>100">{{formBaseInformation.get('billing_address').value.length}} / 300</mat-hint>
+                                                        <mat-hint  align="start" *ngIf="formBaseInformation.get('billing_address').touched && formBaseInformation.get('billing_address').invalid">
+                                                            <i class="form-invalid">Место расчётов не выбрано</i>
+                                                        </mat-hint>
+                                                    </mat-form-field>
+                                                </div>
+                                                <div class="col-12"> 
+                                                    <mat-form-field 
+                                                        class="slideWidth100">
+                                                        <mat-slide-toggle formControlName="allow_to_use">Разрешено использовать</mat-slide-toggle>
+                                                        <input matInput hidden/>
+                                                    </mat-form-field>
+                                                </div>
+
+                                            </div>
+                                        </div>  
+                                    </mat-card-content>
+                                </mat-card>
+                                <mat-card class="internal-card"  [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                    <mat-card-header>
+                                        <mat-card-title class="card-title">Файлы</mat-card-title>
+                                    </mat-card-header>
+                                    <mat-card-content class="input-form">
+                                        <div class="box-list">
+                                            <ng-container *ngFor="let i of filesInfo">
+                                                <div class="filename-row">
+                                                    <div class="file-wrapper">
+                                                        <span> {{ i.original_name }}</span>
+                                                    </div>
+                                                    <div style="min-width:70px;">
+                                                        <button mat-button 
+                                                        class="min-heigth"
+                                                                type="button"
+                                                                (click)="openFileCard(i.id)"
+                                                                matTooltip='Открыть карточку файла'
+                                                                matSuffix>
+                                                            <mat-icon>launch</mat-icon>
+                                                        </button>
+                                                        <button mat-button 
+                                                                *ngIf="allowToUpdate"
+                                                                class="min-heigth"
+                                                                type="button"
+                                                                (click)="clickBtnDeleteFile(i.id)"
+                                                                matTooltip='Удалить файл'
+                                                                matSuffix>
+                                                            <mat-icon>delete_forever</mat-icon>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </ng-container>
+                                        </div>
+                                        <div class="div-100" [style.display]="(visBtnUpdate==true) ?'block':'none'"> 
+                                            <div class="center hand" style="width:100%; height: 38px;">
+                                                <button matTooltip="Добавить файл" mat-mini-fab color="primary" (click)="openDialogAddFiles()">
+                                                    <mat-icon>add</mat-icon>
+                                                </button>
+                                            </div>
+                                        </div> 
+                                    </mat-card-content>
+                                </mat-card> 
+                            </div>  
+                            <div class="col-lg-5 col-xl-4 col-md-6 col-12">
+                                <mat-card class="internal-card">
+                                    <mat-card-header>
+                                        <mat-card-title class="card-title">Подключение</mat-card-title>
+                                    </mat-card-header>
+                                    <mat-card-content class="input-form">
+                                        <div class="container-fluid">
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <mat-form-field class="mat-form-field-100">
+                                                        <mat-label>Тип сервера</mat-label>
+                                                        <mat-select  formControlName="server_type">                          
+                                                            <mat-option value="atol">
+                                                                Атол web-сервер
+                                                            </mat-option> 
+                                                            <mat-option value="kkmserver" disabled><!--Пока не реализована-->
+                                                                ККMserver
+                                                            </mat-option> 
+                                                        </mat-select>
+                                                    </mat-form-field>
+                                                </div>
+                                                <div class="col-12">
+                                                    <mat-form-field  class="mat-form-field-100">
+                                                        <mat-label>Идентификатор на сервере{{formBaseInformation.get('device_server_uid').value==''?'*':''}}</mat-label>
+                                                        <input  matInput
+                                                                maxlength="20"
+                                                                formControlName="device_server_uid" [readonly]=!allowToUpdate/>
+                                                        <mat-hint align="end" *ngIf="formBaseInformation.get('device_server_uid').value.length>10">{{formBaseInformation.get('device_server_uid').value.length}} / 20</mat-hint>
+                                                        <mat-hint  align="start" *ngIf="formBaseInformation.get('device_server_uid').touched && formBaseInformation.get('device_server_uid').invalid">
+                                                            <i class="form-invalid">Идентификатор не выбран</i>
+                                                        </mat-hint>
+                                                    </mat-form-field>
+                                                </div>
+                                                <div class="col-12">
+                                                    <mat-form-field  class="mat-form-field-100">
+                                                        <mat-label>Адрес и порт сервера{{formBaseInformation.get('server_address').value==''?'*':''}}</mat-label>
+                                                        <input  matInput
+                                                                placeholder="Например http://127.0.0.1:16732"
+                                                                maxlength="300"
+                                                                formControlName="server_address" [readonly]=!allowToUpdate/>
+                                                        <mat-hint align="end" *ngIf="formBaseInformation.get('server_address').value.length>100">{{formBaseInformation.get('server_address').value.length}} / 300</mat-hint>
+                                                        <mat-hint  align="start" *ngIf="formBaseInformation.get('server_address').touched && formBaseInformation.get('server_address').invalid">
+                                                            <i class="form-invalid">Адрес и порт сервера не выбраны</i>
+                                                        </mat-hint>
+                                                    </mat-form-field>
+                                                </div>
+                                                <div class="div-100" style="margin-bottom: 5px;"> 
+                                                    <div class="center hand" style="width:100%; height: 38px;">
+                                                        <button matTooltip="Проверить настройки подключения к кассе" mat-raised-button color="primary" (click)="queryDeviceInfo()">
+                                                            <mat-icon>settings_ethernet</mat-icon> Тест соединения
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <mat-progress-bar mode="indeterminate" *ngIf="wasConnectionTest && requestToServer"></mat-progress-bar>
+                                                <div class="div-100" *ngIf="wasConnectionTest" style="padding: 18px 0;"> 
+                                                    <mat-divider></mat-divider> 
+                                                </div>
+                                                <div  *ngIf="wasConnectionTest" class="div-100" style="text-align: center;"> 
+                                                    <span class="test-result-header">{{test_status}}</span>
+                                                </div>
+                                                <div  *ngIf="wasConnectionTest && modelName!=''" class="div-100 test-result-block"> 
+                                                    <span class="test-result-row">Модель:     {{modelName}}</span>
+                                                    <span class="test-result-row">Прошивка:   {{firmwareVersion}}</span>
+                                                    <span class="test-result-row">Сер. номер: {{serial}}</span>
+                                                    <span class="test-result-row">ФФД:        {{ffdVersion}}</span>
+                                                    <span class="test-result-row">ФФД ФН:     {{fnFfdVersion}}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </mat-card-content>
+                                </mat-card>
+                            </div>  
+                        </div>  
+                    </div>  
+                </mat-tab>
+            </form>
+            <mat-tab  *ngIf="visAfterCreatingBlocks"  label="О документе">
+                <form [formGroup]="formAboutDocument">
+                    <mat-card class="internal-card">
+                        <mat-card-content class="input-form">
+                                <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                    <input  matInput
+                                            placeholder="Предприятие"
+                                            formControlName="company" [readonly]=true/>
+                                </mat-form-field>
+                                <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                    <input  matInput
+                                            placeholder="Создатель"
+                                            formControlName="creator" [readonly]=true/>
+                                </mat-form-field>
+                                <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                    <input  matInput
+                                            placeholder="Дата создания"
+                                            formControlName="date_time_created" [readonly]=true/>
+                                </mat-form-field>
+                                <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                    <input  matInput
+                                            placeholder="Изменение"
+                                            formControlName="changer" [readonly]=true/>
+                                </mat-form-field>
+                                <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                    <input  matInput
+                                            placeholder="Дата изменения"
+                                            formControlName="date_time_changed" [readonly]=true/>
+                                </mat-form-field>
+                        </mat-card-content>
+                    </mat-card>  
+                </form>  
+            </mat-tab>
+        </mat-tab-group>
+    </mat-card-content> 
+</mat-card>
+

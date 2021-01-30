@@ -188,25 +188,34 @@ viewMode:string = "grid"; // способ отображения файлов - 
         this.sendingQueryForm.companyId="0";
         this.sendingQueryForm.showOnlyAnonymeAccessFiles = false; //показывать все файлы. Нужно для mode = select
       }
-      this.sendingQueryForm.sortAsc="asc";
-      this.sendingQueryForm.sortColumn="p.name";
+      this.sendingQueryForm.sortAsc="desc";
+      this.sendingQueryForm.sortColumn="date_time_created_sort";
       this.sendingQueryForm.offset=0;
-      this.sendingQueryForm.result="10";
+      this.sendingQueryForm.result="16";
       
       this.sendingQueryForm.selectedNodeId="0";
       this.sendingQueryForm.searchCategoryString="";
       this.sendingQueryForm.trash=false;
-      
+      console.log("Cookie.get('files_result') - "+Cookie.get('files_result'));
         this.getCompaniesList();// -> getSetOfPermissions() -> getMyCompanyId() -> setDefaultCompany() -> getCRUD_rights() -> getData() 
       //API: getCompaniesList         giveMeMyPermissions      getMyCompanyId
 
       //сохраненные в куках параметры
       try{
-      this.viewMode=(Cookie.get('files_viewMode').length>0?Cookie.get('files_viewMode'):this.viewMode);
-      this.sendingQueryForm.result=Cookie.get('files_result').length>0?Cookie.get('files_result'):'10';
-      this.sendingQueryForm.sortColumn=Cookie.get('files_sortColumn').length>0?Cookie.get('files_sortColumn'):'p.name';
-      this.sendingQueryForm.sortAsc=Cookie.get('files_sortAsc').length>0?Cookie.get('files_sortAsc'):'asc';
       this.sendingQueryForm.trash=Cookie.get('files_trash')=="true"?true:false;
+      if(Cookie.get('files_sortAsc')=='undefined' || Cookie.get('files_sortAsc')==null)       
+      Cookie.set('files_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('files_sortAsc');
+      if(Cookie.get('files_sortColumn')=='undefined' || Cookie.get('files_sortColumn')==null)    
+      Cookie.set('files_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('files_sortColumn');
+      if(Cookie.get('files_offset')=='undefined' || Cookie.get('files_offset')==null)        
+      Cookie.set('files_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('files_offset');
+      if(Cookie.get('files_result')=='undefined' || Cookie.get('files_result')==null)        
+      Cookie.set('files_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('files_result');
+      if(Cookie.get('files_viewMode')=='undefined' || Cookie.get('files_viewMode')==null)        
+      Cookie.set('files_viewMode',this.viewMode); else this.viewMode=Cookie.get('files_viewMode');
+
+
+
       } catch (e){
         console.log(e);
       }
@@ -445,6 +454,7 @@ viewMode:string = "grid"; // способ отображения файлов - 
     {
       this.clearCheckboxSelection();
       this.sendingQueryForm.offset=value;
+      Cookie.set('files_offset',value);
       this.getData();
     }
     

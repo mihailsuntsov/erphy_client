@@ -71,4 +71,12 @@ export class ValidationService {
     }
   }
 
+  static moreThanZero(control) {
+    if (control.value>0) {
+        return null;
+    }
+    else {
+        return { 'InvalidPassword': true };
+    }
+  }
 }

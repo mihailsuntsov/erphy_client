@@ -22,6 +22,8 @@ import { ProductBarcodesDialogComponent } from 'src/app/ui/dialogs/product-barco
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component'
 import { ProductDuplicateDialog } from 'src/app/ui/dialogs/product-duplicate-dialog.component'
 import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component'
+import { ProductReservesDialogComponent } from 'src/app/ui/dialogs/product-reserves-dialog/product-reserves-dialog.component';
+import { PricingDialogComponent } from 'src/app/ui/dialogs/pricing-dialog/pricing-dialog.component';
 
 @NgModule({
   declarations: [
@@ -38,7 +40,8 @@ import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component'
     MessageDialog,
     ProductDuplicateDialog,
     ShowImageDialog,
-
+    ProductReservesDialogComponent,
+    PricingDialogComponent
   ],
   imports: [
     CommonModule,
@@ -65,6 +68,8 @@ import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component'
     MessageDialog,
     ProductDuplicateDialog,
     ShowImageDialog,
+    ProductReservesDialogComponent,
+    PricingDialogComponent
 
   ],
   providers: [WINDOW_PROVIDERS],

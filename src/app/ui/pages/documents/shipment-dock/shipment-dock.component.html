@@ -359,7 +359,7 @@
                                                                             <mat-autocomplete #auto3="matAutocomplete">
                                                                             <ng-container *ngIf="!isProductListLoading && filteredProducts.length>1" style="width:320px;">
                                                                                 <mat-option style="padding:0px" *ngFor="let value of filteredProducts" [value]="value.name">
-                                                                                <div (click)="onSelectProguct(value)">
+                                                                                <div (click)="onSelectProduct(value)">
                                                                                     <span class="internal-card"><b>{{value.name}}</b> ({{value.product_id}})</span>
                                                                                 </div>
                                                                                 </mat-option>

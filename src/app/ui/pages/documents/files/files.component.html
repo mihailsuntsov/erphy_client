@@ -80,7 +80,6 @@
                 <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
                     <button mat-icon-button disabled></button>
                     <span class="node" [ngClass]="{selected_node:node.id==sendingQueryForm.selectedNodeId}" (click)="selectNode(node)">{{node.name}}</span>
-                    <!-- <button mat-icon-button (click)="addNewItem(node)"><mat-icon>add</mat-icon></button> -->
                 </mat-tree-node>
                 <mat-tree-node *matTreeNodeDef="let node;when: hasChild" matTreeNodePadding>
                     <button mat-icon-button matTreeNodeToggle
@@ -100,9 +99,7 @@
                             <span [style.display]="sendingQueryForm.trash?'block':'none'">&nbsp;в корзине</span>
                         </div>
                         <div [style.display]="visBtnAdd==true?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
-                            <!-- <a [routerLink]="['../filesdock', '']"> -->
                             <button mat-raised-button (click)="clickBtnFileUplioad()" matTooltip="Загрузить файлы на сервер" color="primary"><i class="material-icons">cloud_upload</i> Загрузить</button>
-                            <!-- </a>    -->
                         </div>
                         <div [style.display]="(visBtnRecover==true && selection.selected.length)?'block':'none'" class="col-sm-auto justify-content-center" style="margin:0px 10px 10px 0px">
                             <button mat-raised-button (click)="clickBtnRecover()" color="accent"><i class="material-icons">restore_from_trash</i> Восстановить</button>
@@ -144,7 +141,6 @@
                                     </div>
                                     
                                     <div id="hidden" style="display: none;" class="row">
-                                        <!-- <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/> -->
                                         <div class="form-group">
                                             <label class="control-label col-sm-2" for="offset">offset</label>
                                             <input [(ngModel)]="sendingQueryForm.offset" value="" type="text" class="form-control" id="offset" name="offSet">
@@ -160,17 +156,17 @@
                                     </div>
                                     <div class="flex">
                                         <mat-form-field style="width:70px;" class="num-of-rows">
-                                            <mat-label>Показыать по</mat-label>
+                                            <mat-label>Показывать по</mat-label>
                                             <mat-select [(value)]="sendingQueryForm.result" (selectionChange)="setNumOfPages()" class="form-control" id="selectRowsPerPage" name="result">                           
                                                 <mat-option  *ngFor="let num of numRows" [value]="num.value">
                                                         {{num.viewValue}}
                                                 </mat-option>
                                             </mat-select>
                                         </mat-form-field>
+                                        
                                         <mat-form-field [ngClass]="{invisible: mode=='select'}" style="margin-left: 10px; width: 150px;">
                                             <mat-label>Предприятие</mat-label>
                                             <mat-select  [(value)]="sendingQueryForm.companyId" (selectionChange)="getData()">                          
-                                                <!-- <mat-option value="0" selected>Все предприятия</mat-option> -->
                                                 <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
                                                         {{rt.name}}
                                                 </mat-option>

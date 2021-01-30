@@ -8,13 +8,17 @@
 table {width: 100%;}
 
 .flex{ display: flex; }
-
+.invisible{display:none;}
 .card{
     width:100%;
-    max-width: 1000px;
-    margin-top: 10px;
 }
-
+.internal-card{
+    padding: 10px 0 10px;
+    margin: 10px 0 10px 0;
+}
+.subtitle{
+    margin-top: -10px;
+}
 .card-name{ flex-grow: 1; }
 
 .button{

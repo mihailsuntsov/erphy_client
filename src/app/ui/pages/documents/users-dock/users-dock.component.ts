@@ -55,6 +55,7 @@ fio_name: string;
 fio_otchestvo: string;
 sex: string;
 time_zone_id: string;
+vatin:string;
 date_birthday: string;
 status_account: string;
 status_account_name: string;
@@ -150,6 +151,7 @@ export class UsersDockComponent implements OnInit {
       status_employee: new FormControl      ('',[]),
       time_zone_name: new FormControl      ('',[]),
       time_zone_id: new FormControl      (30,[Validators.required]),
+      vatin: new FormControl      ('',[Validators.maxLength(12), Validators.minLength(12),Validators.pattern('^[0-9]{12}$')]),
       selectedUserDepartments: new FormControl([],[]),
       userGroupList: new FormControl      ([],[]),
     });
@@ -341,6 +343,7 @@ isAllowToViewAll  (e){return(e==25);}
                 this.formBaseInformation.get('additional').setValue(documentResponse.additional);
                 this.formBaseInformation.get('userGroupList').setValue(documentResponse.userGroupsId);
                 this.formBaseInformation.get('time_zone_id').setValue(documentResponse.time_zone_id);
+                this.formBaseInformation.get('vatin').setValue(documentResponse.vatin);
 
                 this.getDepartmentsList(this.formBaseInformation.get('company_id').value);  
                 this.getUserGroupListByCompanyId(this.formBaseInformation.get('company_id').value);// если это сделать не здесь, а в месте где вызывался текущий метод,
@@ -430,6 +433,9 @@ isAllowToViewAll  (e){return(e==25);}
       this.formBaseInformation.get('time_zone_id').setValue('');
     }
   }
+  numberOnly(event): boolean {
+    const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
+    if (charCode > 31 && (charCode < 48 || charCode > 57)) { return false; } return true;}
 }
 
 

@@ -257,7 +257,7 @@
                                                                         <mat-autocomplete #auto3="matAutocomplete">
                                                                         <ng-container *ngIf="!isProductGroupLoading" style="width:320px;">
                                                                             <mat-option style="padding:0px" *ngFor="let group of filteredProductGroups" [value]="group.name">
-                                                                            <div (click)="onSelectProguctGroup(group.id,group.name)">
+                                                                            <div (click)="onSelectProductGroup(group.id,group.name)">
                                                                                 <span style="margin:10px;"><b>{{group.name}}</b> ({{group.description}})</span>
                                                                             </div>
                                                                             </mat-option>
@@ -477,6 +477,159 @@
                                                             </div>
                                                         </mat-card-content>
                                                     </mat-card>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                    <mat-card class="card-block">
+                                                        <mat-card-header>
+                                                            <mat-card-title class="card-title">Цены</mat-card-title>
+                                                        </mat-card-header>
+                                                        <mat-card-content class="input-form">
+
+
+
+
+                                                            <div class="container-fluid" style="padding-right: 0; padding-left: 0;">
+                                                                <div class="row" *ngIf="getControlPriceTable().value.length>0" style="margin-right: 0px; margin-left: 0px;">
+                                                                    <div class="col-12" style="padding:0px">
+                                                                        <!-- <mat-spinner 
+                                                                        strokeWidth="3" 
+                                                                        class="spinner"
+                                                                        [diameter]="44"
+                                                                        *ngIf="gettingTableData"
+                                                                        ></mat-spinner> -->
+                                                                        <table mat-table #_table  [dataSource]="getControlPriceTable().value" 
+                                                                        [formGroup]="formBaseInformation" 
+                                                                        [trackBy]="trackByIndex" 
+                                                                        class="mat-elevation-z8">
+
+                                                                            <ng-container matColumnDef="price_type_id" [formArrayName]="'productPricesTable'">
+                                                                                <th mat-header-cell *matHeaderCellDef> price_type_id </th>
+                                                                                <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> 
+                                                                                    <span>{{row.price_type_id}}</span>
+                                                                                </td>
+                                                                                <td mat-footer-cell *matFooterCellDef></td>
+                                                                            </ng-container>
+                                                                            <ng-container matColumnDef="price_name" [formArrayName]="'productPricesTable'">
+                                                                                <th mat-header-cell *matHeaderCellDef>Тип цены</th>
+                                                                                <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> {{row.price_name}} </td>
+                                                                                <td mat-footer-cell *matFooterCellDef></td>
+                                                                            </ng-container>
+                                                                            <ng-container matColumnDef="indx" [formArrayName]="'productPricesTable'">
+                                                                                <th mat-header-cell *matHeaderCellDef>indx</th>
+                                                                                <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> {{i}} </td>
+                                                                                <td mat-footer-cell *matFooterCellDef></td>
+                                                                            </ng-container>
+                                                                            <ng-container matColumnDef="row_id" [formArrayName]="'productPricesTable'">
+                                                                                <th mat-header-cell *matHeaderCellDef> row_id </th>
+                                                                                <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> 
+                                                                                    <span>{{row.row_id}}</span>
+                                                                                </td>
+                                                                                <td mat-footer-cell *matFooterCellDef></td>
+                                                                            </ng-container>
+                                                                            <ng-container matColumnDef="price_value" [formArrayName]="'productPricesTable'">
+                                                                                <th mat-header-cell *matHeaderCellDef style="width: 70px;">
+                                                                                    <span 
+                                                                                        style="cursor: default;"
+                                                                                        matTooltip="Цена за единицу товара или услуги">
+                                                                                        Цена
+                                                                                    </span>
+                                                                                </th>
+                                                                                <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i" style="min-width: 100px;">
+                                                                                    <div style="width:100%;position: relative">
+                                                                                        <input  matInput 
+                                                                                                class="table-field-editable"
+                                                                                                formControlName="price_value"
+                                                                                                placeholder=""
+                                                                                                (keypress)="numberOnlyPlusDot($event)"
+                                                                                                />
+                                                                                                <button mat-button 
+                                                                                                        type="button"
+                                                                                                        (click)="copyPrice(row.price_value);"
+                                                                                                        matTooltip='Копировать данное значение цены во все остальные типы цен'
+                                                                                                        matSuffix mat-icon-button 
+                                                                                                        *ngIf="getControlPriceTable().value.length>0"
+                                                                                                        style="padding: 0px;
+                                                                                                        min-width: 0px;
+                                                                                                        width: 17px;
+                                                                                                        height: 17px;
+                                                                                                        flex-shrink: 0;
+                                                                                                        line-height: 17px;
+                                                                                                        border-radius: 50%;
+                                                                                                        position: absolute;
+                                                                                                        top: -1px;
+                                                                                                        right: -18px;
+                                                                                                        color: #585858;
+                                                                                                        z-index: 1000;">
+                                                                                            <mat-icon style="    background-repeat: no-repeat;
+                                                                                            display: inline-block;
+                                                                                            fill: currentColor;
+                                                                                            /* height: 6px; */
+                                                                                            margin: -3.5px 0px 0-2px;
+                                                                                            width: 14px;
+                                                                                            font-size: 16px;">content_copy</mat-icon>
+                                                                                        </button>
+                                                                                        <mat-hint align="start" >
+                                                                                            <i *ngIf="getControlPriceTable().controls[i].get('price_value').invalid && getControlPriceTable().controls[i].get('price_value').errors.pattern" class="table-form-invalid">Неправильный формат. Допускается до 7 цифр в целой и до 2 цифр в дробной части</i>
+                                                                                        </mat-hint>
+                                                                                    </div>
+                                                                                </td>
+                                                                                <td mat-footer-cell *matFooterCellDef></td>
+                                                                            </ng-container>
+                                                                            
+                                                                            <tr mat-header-row *matHeaderRowDef="pricesDisplayedColumns"></tr>
+                                                                            <tr mat-row *matRowDef="let row; columns: pricesDisplayedColumns;"></tr>
+                                                                            <!-- <tr mat-footer-row *matFooterRowDef="pricesDisplayedColumns"></tr> -->
+                                                                        </table>
+                                                                    </div>  
+                                                                </div>  
+                                                                <div  *ngIf="getControlPriceTable().value.length>0" class="col-12 center-align" style="margin-top: 20px;">
+                                                                    
+                                                                </div>
+                                                            </div>
+
+
+
+
+
+                                                        </mat-card-content>
+                                                    </mat-card>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                                                     <mat-card class="card-block"> 
                                                         <mat-card-header>

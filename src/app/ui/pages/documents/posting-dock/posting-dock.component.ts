@@ -449,7 +449,7 @@ getSetOfPermissions(){
     this.afterSelectProduct();
   }
 
-  onSelectProguct(product:productSearchResponse){
+  onSelectProduct(product:productSearchResponse){
     this.formSearch.get('product_id').setValue(+product.id);
     this.formSearch.get('edizm_id').setValue(+product.edizm_id);
     this.productImageName = product.filename;
@@ -462,18 +462,31 @@ getSetOfPermissions(){
     this.getShortInfoAboutProduct();
     setTimeout(() => { this.countInput.nativeElement.focus(); }, 500);
   }
+  getProductsList(){ //заполнение Autocomplete для поля Товар
+    try 
+    {
+      if(this.canAutocompleteQuery && this.searchProductCtrl.value.length>1)
+      {
+        this.isProductListLoading  = true;
+        return this.http.get(
+          '/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.formBaseInformation.get('company_id').value+'&departmentId='+this.formBaseInformation.get('department_id').value+'&document_id='+this.id
+          );
+      }else return [];
+    } catch (e) {
+      return [];
+    }
+  }
   getShortInfoAboutProduct(){
-    const dockId = {"id1": this.formBaseInformation.get('department_id').value,"id2": this.formSearch.get('product_id').value};
-    this.http.post('/api/auth/getShortInfoAboutProduct', dockId)
+    this.http.get('/api/auth/getShortInfoAboutProduct?department_id='+this.formBaseInformation.get('department_id').value+'&product_id='+this.formSearch.get('product_id').value)
       .subscribe(
           data => { 
-              this.shortInfoAboutProduct=data as any;
-              this.shortInfoAboutProductArray[0]=this.shortInfoAboutProduct.quantity;
-              this.shortInfoAboutProductArray[1]=this.shortInfoAboutProduct.change;
-              this.shortInfoAboutProductArray[2]=this.shortInfoAboutProduct.date_time_created;
-              this.shortInfoAboutProductArray[3]=this.shortInfoAboutProduct.avg_purchase_price;
-              this.shortInfoAboutProductArray[4]=this.shortInfoAboutProduct.avg_netcost_price;
-              this.shortInfoAboutProductArray[5]=this.shortInfoAboutProduct.last_purchase_price;
+            this.shortInfoAboutProduct=data as any;
+            this.shortInfoAboutProductArray[0]=this.shortInfoAboutProduct.quantity;
+            this.shortInfoAboutProductArray[1]=this.shortInfoAboutProduct.change;
+            this.shortInfoAboutProductArray[2]=this.shortInfoAboutProduct.date_time_created;
+            this.shortInfoAboutProductArray[3]=this.shortInfoAboutProduct.avg_purchase_price;
+            this.shortInfoAboutProductArray[4]=this.shortInfoAboutProduct.avg_netcost_price;
+            this.shortInfoAboutProductArray[5]=this.shortInfoAboutProduct.last_purchase_price;
           },
           error => console.log(error)
       );
@@ -504,23 +517,6 @@ getSetOfPermissions(){
     this.spravSysEdizmOfProductAll.forEach(a=>{
       if(+a.id == srchId) {name=a.short_name}
     }); return name;}
-
-  getProductsList(){ //заполнение Autocomplete для поля Товар
-    try 
-    {
-      if(this.canAutocompleteQuery && this.searchProductCtrl.value.length>1)
-      {
-        const body = {
-          "searchString":this.searchProductCtrl.value,
-          "companyId":this.formBaseInformation.get('company_id').value,
-          "departmentId":this.formBaseInformation.get('department_id').value};
-        this.isProductListLoading  = true;
-        return this.http.post('/api/auth/getProductsList', body);
-      }else return [];
-    } catch (e) {
-      return [];
-    }
-  }
 
   loadMainImage(){
     if(this.productImageName!=null){

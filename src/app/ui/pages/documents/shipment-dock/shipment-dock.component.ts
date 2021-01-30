@@ -81,7 +81,14 @@ interface filesInfo {
   original_name: string;
   date_time_created: string;
 }
-
+interface SpravSysNdsSet{
+  id: number;
+  name: string;
+  description: string;
+  name_api_atol: string;
+  is_active: string;
+  calculated: string;
+}
 interface productSearchResponse{//интерфейс получения данных из бд 
   id:number;
   name: string;
@@ -145,7 +152,7 @@ export class ShipmentDockComponent implements OnInit {
   receivedPriceTypesList: idNameDescription [] = [];//массив для получения списка типов цен
   department_type_price_id: number; //тип цены в отделении Отгрузки. Нужен для определения дефолтного типа цены
   selected_type_price_id: number; //тип цены, выбранный в форме поиска. Нужен для восстановления выбранного типа цены при сбросе формы поиска товара
-  spravSysNdsSet: idAndName[] = []; //массив имен и id для ндс 
+  spravSysNdsSet: SpravSysNdsSet[] = []; //массив имен и id для ндс 
   imageToShow:any; // переменная в которую будет подгружаться картинка товара (если он jpg или png)
 
   //Формы
@@ -528,7 +535,7 @@ getSetOfPermissions(){
     this.afterSelectProduct();
   }
 
-  onSelectProguct(product:productSearchResponse){
+  onSelectProduct(product:productSearchResponse){
     this.formSearch.get('product_count').setValue('1');
     this.formSearch.get('product_id').setValue(+product.id);
     this.formSearch.get('edizm_id').setValue(+product.edizm_id);
@@ -739,7 +746,7 @@ getSetOfPermissions(){
   }
 
   getSpravSysNds(){
-            return this.http.post('/api/auth/getSpravSysNds', {}) 
+        this.loadSpravService.getSpravSysNds()
         .subscribe((data) => {this.spravSysNdsSet=data as any[];},
         error => console.log(error));}
 

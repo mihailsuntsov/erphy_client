@@ -1,29 +1,18 @@
-// В добавление к использованию AuthService для работы 
-// с Observable -объектами, также вызываются методы 
-// TokenStorageService для сохранения токена, имени 
-// пользователя и прав
-
+// В добавление к использованию AuthService для работы с Observable -объектами, также вызываются методы 
+// TokenStorageService для сохранения токена, имени пользователя и прав
 /*
 В ngOnInit() при загрузке проверяется, есть ли токен в tokenStorage, если есть,
 то редиректимся в dashboard, если нет - остаемся на странице логина.
-
 По onSubmit() данные формы с логином и паролем отправляются в AuthService, и сабскрайбимся на результат, в котором
 при успешной авторизации прийдет:
 accessToken - JWT-ключ. 
 username - логин пользователя в системе 
 authorities - набор прав 
 Затем вызывается метод  reloadPage(), который перезагружает страницу
-
-В ngOnInit() при загрузке проверяется, есть ли токен в tokenStorage, если есть,
-то редиректимся в dashboard, если нет - остаемся на странице логина
-
-
 */
-
-
 import { Component, OnInit } from '@angular/core';
-
 import { AuthService } from '../auth/auth.service';
+import { DelCookiesService } from '../services/del-cookies.service';
 import { TokenStorageService } from '../auth/token-storage.service';// TokenStorageService используется для управления токеном в sessionStorage браузера
 import { Router } from '@angular/router';
 import {  Validators, FormGroup, FormControl } from '@angular/forms';
@@ -33,7 +22,7 @@ import { Cookie } from 'ng2-cookies/ng2-cookies';
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
-  providers: [Cookie]
+  providers: [DelCookiesService]
 })
 export class LoginComponent implements OnInit {
   loginform: any ;
@@ -44,7 +33,12 @@ export class LoginComponent implements OnInit {
   emptyLogin=false;
   emptyPassword=false;
 
-  constructor(private authService: AuthService, private tokenStorage: TokenStorageService,private _router:Router,private Cookie: Cookie,) { }
+  constructor(
+    private authService: AuthService, 
+    private tokenStorage: TokenStorageService,
+    private _router:Router,
+    // private Cookie: Cookie,
+    private delCookiesService: DelCookiesService,) { }
 
   ngOnInit() {
     if (this.tokenStorage.getToken()) {
@@ -56,10 +50,12 @@ export class LoginComponent implements OnInit {
       // console.log("Username="+this.tokenStorage.getUsername);
       this.goToHomePage();
     } else {
+      
       this.loginform = new FormGroup({
         username: new FormControl ('',[Validators.required,Validators.minLength(6)]),
         password: new FormControl ('',[Validators.required]),
       });
+      this.delCookiesService.delCookiesOnLogin();
       Cookie.deleteAll();
     }
 
@@ -73,8 +69,7 @@ export class LoginComponent implements OnInit {
           this.tokenStorage.saveToken(data.accessToken);
           this.tokenStorage.saveUsername(data.username);
           this.tokenStorage.saveAuthorities(data.authorities);
-          Cookie.set('dokio_token',data.accessToken);
-          // console.log("TOKEN_COOKIE_AFTER_SET - "+Cookie.get('dokio_token'));
+           Cookie.set('dokio_token',data.accessToken, 1000 * 60 * 60 * 24,'/');
           this.isLoginFailed = false;
           this.isLoggedIn = true;
           this.roles = this.tokenStorage.getAuthorities();

@@ -4,11 +4,14 @@ import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpClient } from '@angular/common/http';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { QueryFormService } from './get-customersorders-table.service';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
+import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl } from '@angular/forms';
+import { SettingsCustomersordersDialogComponent } from 'src/app/ui/dialogs/settings-customersorders-dialog/settings-customersorders-dialog.component';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import {MessageDialog} from 'src/app/ui/dialogs/messagedialog.component';
 
 export interface CheckBox {
   id: number;
@@ -25,7 +28,11 @@ export interface NumRow {//интерфейс для списка количес
   value: string;
   viewValue: string;
 }
-
+interface idNameDescription{
+  id: number;
+  name: string;
+  description: string;
+}
 @Component({
   selector: 'app-customersorders',
   templateUrl: './customersorders.component.html',
@@ -33,17 +40,31 @@ export interface NumRow {//интерфейс для списка количес
   providers: [QueryFormService,LoadSpravService,Cookie]
 })
 export class CustomersordersComponent implements OnInit {
+
+  constructor(private queryFormService:   QueryFormService,
+    private loadSpravService:   LoadSpravService,
+    private _snackBar: MatSnackBar,
+    public universalCategoriesDialog: MatDialog,
+    public ConfirmDialog: MatDialog,
+    private http: HttpClient,
+    public deleteDialog: MatDialog,
+    public MessageDialog: MatDialog,
+    public SettingsCustomersordersDialogComponent: MatDialog,
+    public dialogRef1: MatDialogRef<CustomersordersComponent>,) { }
+
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
   receivedPagesList: string [] ;//массив для получения данных пагинации
   dataSource = new MatTableDataSource<CheckBox>(); //массив данных для таблицы и чекбоксов (чекбоксы берут из него id, таблица -всё)
   displayedColumns: string[] = [];//массив отображаемых столбцов таблицы
-  selection = new SelectionModel<CheckBox>(true, []);//Class to be used to power selecting one or more options from a list.
+  selection = new SelectionModel<CheckBox>(true, []);// специальный класс для удобной работы с чекбоксами
   receivedCompaniesList: idAndName [] = [];//массив для получения списка предприятий
   receivedDepartmentsList: idAndName [] = [];//массив для получения списка отделений
   receivedMyDepartmentsList: idAndName [] = [];//массив для получения списка СВОИХ отделений
   myCompanyId:number=0;//
   myId:number=0;
   checkedList:number[]=[]; //строка для накапливания id чекбоксов вида [2,5,27...]
+  settingsForm: any; // форма с настройками
+  receivedPriceTypesList: idNameDescription [] = [];//массив для получения списка типов цен
 
   //переменные прав
   permissionsSet: any[];//сет прав на документ
@@ -87,38 +108,70 @@ export class CustomersordersComponent implements OnInit {
   visBtnCopy = false;
   visBtnDelete = false;
 
-  constructor(private queryFormService:   QueryFormService,
-    private loadSpravService:   LoadSpravService,
-    private _snackBar: MatSnackBar,
-    public universalCategoriesDialog: MatDialog,
-    public ConfirmDialog: MatDialog,
-    private http: HttpClient,
-    private Cookie: Cookie,
-    public deleteDialog: MatDialog,
-    public dialogRef1: MatDialogRef<CustomersordersComponent>,) { }
 
-    ngOnInit() {
-      this.sendingQueryForm.companyId='0';
-      this.sendingQueryForm.departmentId='0';
-      this.sendingQueryForm.sortAsc='desc';
-      this.sendingQueryForm.sortColumn='date_time_created_sort';
-      this.sendingQueryForm.offset='0';
-      this.sendingQueryForm.result='10';
-      this.sendingQueryForm.searchCategoryString="";
 
-      if(Cookie.get('customersorders_companyId')=='undefined' || Cookie.get('customersorders_companyId')==null)     
-      Cookie.set('customersorders_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('customersorders_companyId')=="0"?"0":+Cookie.get('customersorders_companyId'));
-      if(Cookie.get('customersorders_departmentId')=='undefined' || Cookie.get('customersorders_departmentId')==null)  
-      Cookie.set('customersorders_departmentId',this.sendingQueryForm.departmentId); else this.sendingQueryForm.departmentId=(Cookie.get('customersorders_departmentId')=="0"?"0":+Cookie.get('customersorders_departmentId'));
-      if(Cookie.get('customersorders_sortAsc')=='undefined' || Cookie.get('customersorders_sortAsc')==null)       
-      Cookie.set('customersorders_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('customersorders_sortAsc');
-      if(Cookie.get('customersorders_sortColumn')=='undefined' || Cookie.get('customersorders_sortColumn')==null)    
-      Cookie.set('customersorders_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('customersorders_sortColumn');
-      if(Cookie.get('customersorders_offset')=='undefined' || Cookie.get('customersorders_offset')==null)        
-      Cookie.set('customersorders_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('customersorders_offset');
-      if(Cookie.get('customersorders_result')=='undefined' || Cookie.get('customersorders_result')==null)        
-      Cookie.set('customersorders_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('customersorders_result');
+  ngOnInit() {
+    this.sendingQueryForm.companyId='0';
+    this.sendingQueryForm.departmentId='0';
+    this.sendingQueryForm.sortAsc='desc';
+    this.sendingQueryForm.sortColumn='date_time_created_sort';
+    this.sendingQueryForm.offset='0';
+    this.sendingQueryForm.result='10';
+    this.sendingQueryForm.searchCategoryString="";
 
+    if(Cookie.get('customersorders_companyId')=='undefined' || Cookie.get('customersorders_companyId')==null)     
+    Cookie.set('customersorders_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('customersorders_companyId')=="0"?"0":+Cookie.get('customersorders_companyId'));
+    if(Cookie.get('customersorders_departmentId')=='undefined' || Cookie.get('customersorders_departmentId')==null)  
+    Cookie.set('customersorders_departmentId',this.sendingQueryForm.departmentId); else this.sendingQueryForm.departmentId=(Cookie.get('customersorders_departmentId')=="0"?"0":+Cookie.get('customersorders_departmentId'));
+    if(Cookie.get('customersorders_sortAsc')=='undefined' || Cookie.get('customersorders_sortAsc')==null)       
+    Cookie.set('customersorders_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('customersorders_sortAsc');
+    if(Cookie.get('customersorders_sortColumn')=='undefined' || Cookie.get('customersorders_sortColumn')==null)    
+    Cookie.set('customersorders_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('customersorders_sortColumn');
+    if(Cookie.get('customersorders_offset')=='undefined' || Cookie.get('customersorders_offset')==null)        
+    Cookie.set('customersorders_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('customersorders_offset');
+    if(Cookie.get('customersorders_result')=='undefined' || Cookie.get('customersorders_result')==null)        
+    Cookie.set('customersorders_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('customersorders_result');
+
+  // Форма настроек
+  this.settingsForm = new FormGroup({
+    // id отделения
+    departmentId: new FormControl             (null,[]),
+    //покупатель по умолчанию
+    customerId: new FormControl               (null,[]),
+    //наименование покупателя
+    customer: new FormControl                 ('',[]),
+    //наименование заказа по умолчанию
+    orderName:  new FormControl               ('',[]),
+    // тип расценки. priceType - по типу цены, costPrice - себестоимость, manual - вручную
+    pricingType: new FormControl              ('priceType',[]),
+    //тип цены
+    priceTypeId: new FormControl              (null,[]),
+    //наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType
+    changePrice: new FormControl              (50,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+    // Наценка (plus) или скидка (minus)
+    plusMinus: new FormControl                ('plus',[]),
+    // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
+    changePriceType: new FormControl          ('procents',[]),
+    //убрать десятые (копейки)
+    hideTenths: new FormControl               (true,[]),
+    //сохранить настройки
+    saveSettings: new FormControl             (true,[]),
+    //предприятие, для которого создаются настройки
+    companyId: new FormControl                (null,[]),
+    //наименование заказа
+    name:  new FormControl                    ('',[]),
+    //приоритет типа цены : Склад (sklad) Покупатель (cagent) Цена по-умолчанию (defprice)
+    priorityTypePriceSide: new FormControl    ('defprice',[]),
+    //настройки операций с ККМ
+    //Оплата чека прихода (наличными - nal безналичными - electronically смешанная - mixed)
+    selectedPaymentType:   new FormControl    ('cash',[]),
+    //автосоздание на старте документа, если автозаполнились все поля
+    autocreateOnStart: new FormControl        (false,[]),
+    //автосоздание нового документа, если в текущем успешно напечатан чек
+    autocreateOnCheque: new FormControl       (false,[]),
+    //статус после успешного отбития чека, перед созданием нового документа
+    statusIdOnAutocreateOnCheque: new FormControl('',[]),
+  });
       this.getCompaniesList();// 
       // -> getSetOfPermissions() 
       // -> getMyId()
@@ -134,7 +187,7 @@ export class CustomersordersComponent implements OnInit {
 
     // -------------------------------------- *** ПРАВА *** ------------------------------------
    getSetOfPermissions(){
-    const body = {"documentId": 23};//23= "Заказы клиентов"
+    const body = {"documentId": 23};//23= "Заказы покупателей"
           return this.http.post('/api/auth/giveMeMyPermissions', body) 
             .subscribe(
                 (data) => {   
@@ -195,6 +248,7 @@ export class CustomersordersComponent implements OnInit {
       this.getTableHeaderTitles();
       this.getPagesList();
       this.getTable();
+      this.getPriceTypesList();
     }
   }
 
@@ -236,17 +290,9 @@ export class CustomersordersComponent implements OnInit {
             );
   }
 
-  isAllSelected() {//все выбраны
-    const numSelected = this.selection.selected.length;
-    const numRows = this.dataSource.data.length;
-    return  numSelected === numRows;//true если все строки выбраны
-  }  
+ 
 
-  isThereSelected() {//есть выбранные
-    return this.selection.selected.length>0;
-  }  
-
-  /** Selects all rows if they are not all selected; otherwise clear selection. */
+  /**                               ЧЕКБОКСЫ                                  */
   masterToggle() {
     this.isThereSelected() ?
     this.resetSelecion() :
@@ -258,18 +304,15 @@ export class CustomersordersComponent implements OnInit {
     this.isAllSelected();
     this.isThereSelected();
   }
-
   resetSelecion(){
     this.selection.clear(); 
   }
-
   clickTableCheckbox(row){
     this.selection.toggle(row); 
     this.createCheckedList();
     this.isAllSelected();
     this.isThereSelected();
   }
-
   createCheckedList(){
     this.checkedList = [];
     // console.log("1");
@@ -286,6 +329,23 @@ export class CustomersordersComponent implements OnInit {
     }else{console.log("");this.showOnlyVisBtnAdd()}
     // console.log("checkedList - "+this.checkedList);
   }
+  isAllSelected() {//все выбраны
+    const numSelected = this.selection.selected.length;
+    const numRows = this.dataSource.data.length;
+    return  numSelected === numRows;//true если все строки выбраны
+  }  
+  isThereSelected() {//есть выбранные
+    return this.selection.selected.length>0;
+  } 
+  showCheckbox(row:CheckBox):boolean{
+    if(!row.is_completed && (
+      (this.allowToDeleteAllCompanies)||
+      (this.allowToDeleteMyCompany && row.company_id==this.myCompanyId)||
+      (this.allowToDeleteMyDepartments && row.company_id==this.myCompanyId && this.inMyDepthsId(row.department_id))||
+      (this.allowToDeleteMyDocs && row.company_id==this.myCompanyId && this.inMyDepthsId(row.department_id) && row.creator_id==this.myId))
+      )return true; else return false;
+  }
+  /**                              КОНЕЦ ЧЕКБОКСОВ                                  */
 
   hideAllBtns(){
     this.visBtnAdd = false;
@@ -370,7 +430,7 @@ export class CustomersordersComponent implements OnInit {
                           },
                 error => console.log(error),
             );
-    }
+  }
     
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
@@ -445,20 +505,13 @@ export class CustomersordersComponent implements OnInit {
 
   inMyDepthsId(id:number):boolean{//проверяет, состоит ли присланный id в группе id отделений пользователя
     let inMyDepthsId:boolean = false;
-    this.receivedMyDepartmentsList.forEach(myDepth =>{
-      myDepth.id==id?inMyDepthsId=true:null;
-    });
+    if(this.receivedMyDepartmentsList){//проверяем, т.к. может быть ".forEach of null", если выбираем не свое предприятие
+      this.receivedMyDepartmentsList.forEach(myDepth =>{
+        myDepth.id==id?inMyDepthsId=true:null;
+      });
+    }
   return inMyDepthsId;
   }
-
-  showCheckbox(row:CheckBox):boolean{
-    if(!row.is_completed && (
-      (this.allowToDeleteAllCompanies)||
-      (this.allowToDeleteMyCompany && row.company_id==this.myCompanyId)||
-      (this.allowToDeleteMyDepartments && row.company_id==this.myCompanyId && this.inMyDepthsId(row.department_id))||
-      (this.allowToDeleteMyDocs && row.company_id==this.myCompanyId && this.inMyDepthsId(row.department_id) && row.creator_id==this.myId))
-      )return true; else return false;
-    }
 
   doFilterCompaniesList(){
     let myCompany:idAndName;
@@ -475,5 +528,67 @@ export class CustomersordersComponent implements OnInit {
         (!this.allowToViewAllCompanies && !this.allowToViewMyCompany && !this.allowToViewMyDepartments && this.allowToViewMyDocs)){
       this.receivedDepartmentsList=this.receivedMyDepartmentsList;}
   }
+
+    //открывает диалог настроек
+    openDialogSettings() { 
+      const dialogSettings = this.SettingsCustomersordersDialogComponent.open(SettingsCustomersordersDialogComponent, {
+        maxWidth: '95vw',
+        maxHeight: '95vh',
+        height: '680px',
+        width: '400px', 
+        minHeight: '650px',
+        data:
+        { //отправляем в диалог:
+          priceTypesList:   this.receivedPriceTypesList, //список типов цен
+          receivedDepartmentsList: this.receivedDepartmentsList,//список отделений
+          company_id: +this.sendingQueryForm.companyId, //предприятие (нужно для поиска покупателя)
+          department_type_price_id: null,
+          cagent_type_price_id: null,
+          default_type_price_id: null,
+          id: 0, //чтобы понять, новый док или уже созданный
+        },
+      });
+      dialogSettings.afterClosed().subscribe(result => {
+        if(result){
+          //если нажата кнопка Сохранить настройки - вставляем настройки в форму настроек и сохраняем
+          if(result.get('companyId')) this.settingsForm.get('companyId').setValue(result.get('companyId').value);
+          if(result.get('departmentId')) this.settingsForm.get('departmentId').setValue(result.get('departmentId').value);
+          if(result.get('customerId')) this.settingsForm.get('customerId').setValue(result.get('customerId').value);
+          if(result.get('customer')) this.settingsForm.get('customer').setValue(result.get('customer').value);
+          if(result.get('pricingType')) this.settingsForm.get('pricingType').setValue(result.get('pricingType').value);
+          // if(result.get('priceTypeId')) this.settingsForm.get('priceTypeId').setValue(result.get('priceTypeId').value);
+          if(result.get('plusMinus')) this.settingsForm.get('plusMinus').setValue(result.get('plusMinus').value);
+          if(result.get('changePrice')) this.settingsForm.get('changePrice').setValue(result.get('changePrice').value);
+          if(result.get('changePriceType')) this.settingsForm.get('changePriceType').setValue(result.get('changePriceType').value);
+          if(result.get('name')) this.settingsForm.get('name').setValue(result.get('name').value);
+          if(result.get('priorityTypePriceSide')) this.settingsForm.get('priorityTypePriceSide').setValue(result.get('priorityTypePriceSide').value);
+          this.settingsForm.get('hideTenths').setValue(result.get('hideTenths').value);
+          this.settingsForm.get('saveSettings').setValue(result.get('saveSettings').value);
+          this.settingsForm.get('autocreateOnStart').setValue(result.get('autocreateOnStart').value);
+          this.settingsForm.get('autocreateOnCheque').setValue(result.get('autocreateOnCheque').value);
+          this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.get('statusIdOnAutocreateOnCheque').value);
+          this.saveSettingsCustomersOrders();
+        }
+      });
+    }
+    saveSettingsCustomersOrders(){
+      return this.http.post('/api/auth/saveSettingsCustomersOrders', this.settingsForm.value)
+              .subscribe(
+                  (data) => {   
+                            this.openSnackBar("Настройки успешно сохранены", "Закрыть");
+                            
+                          },
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+              );
+    }
+
+    getPriceTypesList(){
+      this.receivedPriceTypesList=null;
+      this.loadSpravService.getPriceTypesList(+this.sendingQueryForm.companyId)
+      .subscribe(
+        (data) => {this.receivedPriceTypesList=data as any [];},
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+      );
+    }
 
 }

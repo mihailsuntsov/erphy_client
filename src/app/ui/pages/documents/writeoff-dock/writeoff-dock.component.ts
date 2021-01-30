@@ -475,7 +475,7 @@ getSetOfPermissions(){
     this.afterSelectProduct();
   }
 
-  onSelectProguct(product:productSearchResponse){
+  onSelectProduct(product:productSearchResponse){
     this.formSearch.get('product_id').setValue(+product.id);
     this.formSearch.get('edizm_id').setValue(+product.edizm_id);
     this.productImageName = product.filename;
@@ -489,9 +489,22 @@ getSetOfPermissions(){
     this.getShortInfoAboutProduct();
     setTimeout(() => { this.countInput.nativeElement.focus(); }, 500);
   }
+  getProductsList(){ //заполнение Autocomplete для поля Товар
+    try 
+    {
+      if(this.canAutocompleteQuery && this.searchProductCtrl.value.length>1)
+      {
+        this.isProductListLoading  = true;
+        return this.http.get(
+          '/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.formBaseInformation.get('company_id').value+'&departmentId='+this.formBaseInformation.get('department_id').value+'&document_id='+this.id
+          );
+      }else return [];
+    } catch (e) {
+      return [];
+    }
+  }
   getShortInfoAboutProduct(){
-    const dockId = {"id1": this.formBaseInformation.get('department_id').value,"id2": this.formSearch.get('product_id').value};
-    this.http.post('/api/auth/getShortInfoAboutProduct', dockId)
+    this.http.get('/api/auth/getShortInfoAboutProduct?department_id='+this.formBaseInformation.get('department_id').value+'&product_id='+this.formSearch.get('product_id').value)
       .subscribe(
           data => { 
             this.shortInfoAboutProduct=data as any;
@@ -532,28 +545,13 @@ getSetOfPermissions(){
     this.spravSysEdizmOfProductAll.forEach(a=>{
       if(+a.id == srchId) {name=a.short_name}
     }); return name;}
+  
   getReasonNameBySelectedId(srchId:number):string {
     let name='';
     this.spravSysWriteoff.forEach(a=>{
       if(+a.id == srchId) {console.log("***!!! FIND !!!*** - "+a.name); name=a.name}
-    }); return name;}
-  getProductsList(){ //заполнение Autocomplete для поля Товар
-    try 
-    {
-      if(this.canAutocompleteQuery && this.searchProductCtrl.value.length>1)
-      {
-        const body = {
-          "searchString":this.searchProductCtrl.value,
-          "companyId":this.formBaseInformation.get('company_id').value,
-          "departmentId":this.formBaseInformation.get('department_id').value};
-        this.isProductListLoading  = true;
-        return this.http.post('/api/auth/getProductsList', body);
-      }else return [];
-    } catch (e) {
-      return [];
-    }
-  }
-
+  }); return name;}
+  
   loadMainImage(){
     if(this.productImageName!=null){
       this.getImageService('/api/auth/getFileImageThumb/' + this.productImageName).subscribe(blob => {
@@ -561,7 +559,7 @@ getSetOfPermissions(){
       });
     } 
   }
-
+  
   getImageService(imageUrl: string): Observable<Blob> {
     return this.http.get(imageUrl, {responseType: 'blob'});
   }
@@ -575,7 +573,6 @@ getSetOfPermissions(){
         reader.readAsDataURL(image);
     }
   }
-
 
   showImage(name:string){
     if(this.productImageName!=null){

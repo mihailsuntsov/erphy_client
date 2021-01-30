@@ -44,19 +44,13 @@ const routes: Routes = [
       { path: 'acceptance', loadChildren: () => import('./pages/documents/acceptance/acceptance.module').then(m => m.AcceptanceModule) },
       { path: 'posting', loadChildren: () => import('./pages/documents/posting/posting.module').then(m => m.PostingModule) },
       { path: 'writeoff', loadChildren: () => import('./pages/documents/writeoff/writeoff.module').then(m => m.WriteoffModule) },
+      { path: 'kassa', loadChildren: () => import('./pages/documents/kassa/kassa.module').then(m => m.KassaModule) },
+      { path: 'kassadock', loadChildren: () => import('./pages/documents/kassa-dock/kassa-dock.module').then(m => m.KassaDockModule) },
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
       { path: '**', redirectTo: 'dashboard',pathMatch: 'full' },
     ]  
   },
-
-
-
-
-
-
-  
-
-  
+ 
 ]
 
 @NgModule({

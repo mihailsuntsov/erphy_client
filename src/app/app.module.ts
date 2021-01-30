@@ -5,7 +5,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { httpInterceptorProviders } from './auth/auth-interceptor';
-import { ValidationService } from './services/validation.service';
+// import { ValidationService } from './services/validation.service';
 import { MatDialogRef } from '@angular/material/dialog';
 
 @NgModule({
@@ -22,7 +22,7 @@ import { MatDialogRef } from '@angular/material/dialog';
   ],
   providers: [
     httpInterceptorProviders,
-    ValidationService,
+    // ValidationService,
     {
       provide: MatDialogRef,
       useValue: {}

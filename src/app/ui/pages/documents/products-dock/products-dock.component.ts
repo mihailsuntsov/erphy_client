@@ -4,7 +4,7 @@ import { ProductHistoryService } from './get-producthistory-table.service';
 import { MatTableDataSource } from '@angular/material/table';
 import { SelectionModel } from '@angular/cdk/collections';
 import { ActivatedRoute } from '@angular/router';
-import { LoadSpravService } from './loadsprav';
+import { LoadSpravService } from '../../../../services/loadsprav';
 import { Validators, FormGroup, FormControl, FormArray, FormBuilder} from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog,  MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
@@ -80,6 +80,14 @@ interface dockResponse {//интерфейс для получения отве�
   not_buy: boolean;
   not_sell: boolean;
   }
+  interface SpravSysNdsSet{
+    id: number;
+    name: string;
+    description: string;
+    name_api_atol: string;
+    is_active: string;
+    calculated: string;
+  }
   interface ImagesInfo {
     id: string;
     name: string;
@@ -120,6 +128,11 @@ interface dockResponse {//интерфейс для получения отве�
     value: string;
     viewValue: string;
   }
+  interface idNameDescription{
+    id: number;
+    name: string;
+    description: string;
+  }
   export interface ProductHistoryTable {//для получения данных по отчету о истории изменений товара
     id: number;
     department: string;
@@ -134,7 +147,12 @@ interface dockResponse {//интерфейс для получения отве�
     avg_netcost_price: number;
     last_operation_price: number;
   }
-
+  interface ProductPricesTable { //интерфейс для формы, массив из которых будет содержать форма ProductPricesTable, входящая в formBaseInformation, которая будет включаться в formBaseInformation
+    price_type_id: number;
+    price_name: number;
+    price_value: number;
+    price_description: string;
+  }
 @Component({
   selector: 'app-products-dock',
   templateUrl: './products-dock.component.html',
@@ -151,11 +169,14 @@ export class ProductsDockComponent implements OnInit {
   receivedCompaniesList: any [];//массив для получения списка предприятий
   myCompanyId:number=0;
   imageToShow:any; // переменная в которую будет подгружаться главная картинка товара
+  receivedPriceTypesList: ProductPricesTable [] = [];//массив для получения списка типов цен
+  row_id:number=0;// уникальность строки в табл. товаров только id товара обеспечить не может, т.к. в таблице может быть > 1 одинакового товара (уникальность обеспечивается id товара и id склада)
 
 //Формы
 formBaseInformation:any;//форма для основной информации, содержащейся в документе
 formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
 selectedProductCategory:any;//форма, содержащая информацию о выбранной категории товара (id, name)
+productPricesTable: ProductPricesTable; //массив форм с ценами
 
 //переменные для управления динамическим отображением элементов
 visBeforeCreatingBlocks = true; //блоки, отображаемые ДО создания документа (до получения id)
@@ -182,7 +203,8 @@ receivedCompaniesListForHistoryReport: any [];//массив для получе
 receivedPagesList: string [];//массив для получения данных пагинации
 receivedMatTable: DockTable []=[] ;//массив для получения данных для материал таблицы
 dataSource = new MatTableDataSource<DockTable>(this.receivedMatTable); //источник данных для материал таблицы
-displayedColumns: string[]=[];//массив отображаемых столбцов таблицы
+displayedColumns: string[]=[];//массив отображаемых столбцов таблицы с действиями с товаром
+pricesDisplayedColumns: string[]=[];//массив отображаемых столбцов таблицы с ценами на товар
 selection = new SelectionModel<idAndName>(true, []);//Class to be used to power selecting one or more options from a list.
 receivedDepartmentsList: idAndName [] = [];//массив для получения списка отделений
 receivedMyDepartmentsList: idAndName [] = [];//массив для получения списка СВОИХ отделений
@@ -251,7 +273,7 @@ cagentsInfo : cagentsInfo [] = []; //массив для получения ин
 barcodesInfo : barcodesInfo [] = []; //массив для получения информации 
 // ******  справочники  ******************
 spravSysPPRSet: any[];//сет признаков предмета расчета 
-spravSysNdsSet: any[];//сет НДС 
+spravSysNdsSet: SpravSysNdsSet[];//сет НДС 
 spravSysMarkableGroupSet: idAndName[] = [];//сет маркированных товаров
 filteredSpravSysMarkableGroupSet: Observable<idAndName[]>;//сет маркированных товаров
 spravSysEdizmOfProductAll: idAndName[] = [];// массив, куда будут грузиться все единицы измерения товара
@@ -266,6 +288,7 @@ constructor(private activateRoute: ActivatedRoute,
   private _snackBar: MatSnackBar,
   private fb: FormBuilder,
   public ConfirmDialog: MatDialog,
+  private _fb: FormBuilder, //чтобы билдить группу форм productPricesTable
   public productHistoryService: ProductHistoryService,
   public MessageDialog: MatDialog,
   public dialogAddImages: MatDialog,
@@ -319,6 +342,7 @@ constructor(private activateRoute: ActivatedRoute,
       excizable: new FormControl      ('',[]),
       not_buy: new FormControl      ('',[]),
       not_sell: new FormControl      ('',[]),
+      productPricesTable: new FormArray([]),//массив с формами цен
     });
     this.formAboutDocument = new FormGroup({
       id: new FormControl      ('',[]),
@@ -346,6 +370,7 @@ constructor(private activateRoute: ActivatedRoute,
     this.getSpravSysNds();//загрузка справочника НДС
     this.getSpravSysPPR();//загрузка справочника признаков предмета расчёта
     this.getTableHeaderTitles();//столбцы таблицы с историей изменений товара
+    this.getPricesTableHeaderTitles();//столбцы таблицы с ценами товара
     //слушалка на изменение поля маркированных товаров
     this.filteredSpravSysMarkableGroupSet = this.formBaseInformation.get('markable_group_name').valueChanges
     .pipe(
@@ -529,6 +554,7 @@ refreshPermissions():boolean{
                 this.getSpravSysMarkableGroup(); //загрузка справочника маркированных групп товаров
                 this.getSpravSysEdizm(); //загрузка единиц измерения
                 this.getProductBarcodesPrefixes(); //загрузка префиксов штрих-кодов
+                this.getProductPrices(); // загрузка типов цен
                 this.refreshPermissions();
 
             },
@@ -559,7 +585,6 @@ refreshPermissions():boolean{
   }
 
   getFieldsFormControls() {
-    console.log("controls length - "+(this.fieldsForm.get('fields') as FormArray).controls.length);
     return (this.fieldsForm.get('fields') as FormArray).controls;
   }
 
@@ -668,7 +693,7 @@ refreshPermissions():boolean{
       }
     });
   }
-  onSelectProguctGroup(id:any,name:string){
+  onSelectProductGroup(id:any,name:string){
     console.log("selected id - "+id)
     this.formBaseInformation.get('productgroup_id').setValue(+id);
   }
@@ -729,13 +754,13 @@ refreshPermissions():boolean{
   }
 
   getSpravSysPPR(){
-          return this.http.post('/api/auth/getSpravSysPPR', {}) 
+          return this.loadSpravService.getSpravSysPPR()
           .subscribe((data) => {this.spravSysPPRSet=data as any[];},
           error => console.log(error));}
   getSpravSysNds(){
-          return this.http.post('/api/auth/getSpravSysNds', {}) 
-          .subscribe((data) => {this.spravSysNdsSet=data as any[];},
-          error => console.log(error));}
+        this.loadSpravService.getSpravSysNds()
+        .subscribe((data) => {this.spravSysNdsSet=data as any[];},
+        error => console.log(error));}
   getSpravSysMarkableGroup(){
           return this.http.post('/api/auth/getSpravSysMarkableGroup', {}) 
           .subscribe((data) => {
@@ -1386,6 +1411,10 @@ checkProductCodeFreeUnical() {
     this.displayedColumns.push('avg_purchase_price');
     this.displayedColumns.push('avg_netcost_price');
   }
+  getPricesTableHeaderTitles(){
+    this.pricesDisplayedColumns=['price_name', 'price_value'];
+  }
+
   setSort(valueSortColumn:any) // set sorting column
   {
       if(valueSortColumn==this.formProductHistory.sortColumn){// если колонка, на которую ткнули, та же, по которой уже сейчас идет сортировка
@@ -1425,6 +1454,63 @@ checkProductCodeFreeUnical() {
 
     // console.log("****checkedChangesList - "+JSON.stringify(this.checkedChangesList));
   }
+  getProductPrices(){
+    this.receivedPriceTypesList=null;
+    const control = <FormArray>this.formBaseInformation.get('productPricesTable');
+    control.clear();
+    this.loadSpravService.getProductPrices(+this.id)
+    .subscribe(
+      (data) => {this.receivedPriceTypesList=data as ProductPricesTable [];
+        //получили список цен товара с их значениями (или с 0 если такая цена для товара не установлена)
+        //теперь нужно создать FormArray для редактирования цен:
+        if(this.receivedPriceTypesList.length>0){
+          this.receivedPriceTypesList.forEach(row=>{
+            control.push(this.formingProductPricesRow(row));
+          });
+        }
 
 
+
+      },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+    );
+  }
+
+  //формирование строки для FormArray
+  formingProductPricesRow(row: ProductPricesTable) {
+    return this._fb.group({
+      row_id: [this.getRowId()],// row_id нужен для идентифицирования строк у которых нет id (например из только что создали и не сохранили)
+      price_type_id: new FormControl (row.price_type_id,[]),
+      price_name: new FormControl (row.price_name,[]),
+      price_value: new FormControl (row.price_value,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      price_description: new FormControl (row.price_description,[]),
+    });
+  }
+
+  getControlPriceTable(){
+    const control = <FormArray>this.formBaseInformation.get('productPricesTable');
+    return control;
+  }
+
+  numberOnlyPlusDot(event): boolean {
+    const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
+    if (charCode > 31 && ((charCode < 48 || charCode > 57) && charCode!=46)) { return false; } return true;}
+
+  getRowId():number{
+    let current_row_id:number=this.row_id;
+    this.row_id++;
+    return current_row_id;
+  }
+
+  trackByIndex(i) { return i; }
+
+  copyPrice(price_value:number){
+    const control = this.getControlPriceTable();
+     let row_index:number=0;
+      this.formBaseInformation.value.productPricesTable.map(() => 
+        {
+          control.controls[row_index].get('price_value').setValue(+price_value);
+          row_index++;
+        });
+  }
 }

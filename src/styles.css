@@ -29,3 +29,23 @@ body {
     text-align: center; 
     padding: 5px 0 0 !important;
   }
+
+  .checkbox-col{/*узкая колонка чекбоксов в mat-table*/
+    padding-right: 15px !important;
+    padding-left: 15px !important;
+  }
+
+  .top-bar {/*закреплённый при перемотке бар с названием документа и кнопками (например Сохранить Выйти)*/
+    position: sticky;
+    top: 16px;
+    z-index: 1000;
+    background: white;
+  }
+  .top-bar-plug{
+    position: sticky;
+    top: 0px;
+    margin-top: -12px;
+    height: 16px;
+    z-index: 1000;
+    background: white;
+  }

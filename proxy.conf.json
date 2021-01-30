@@ -1,5 +1,11 @@
 {
-    "/api/*": {
+    "/api/auth/*": {
+      "target": "http://localhost:8080",
+      "secure": false,
+      "logLevel": "debug",
+      "changeOrigin": true
+    },
+    "/api/public/*": {
       "target": "http://localhost:8080",
       "secure": false,
       "logLevel": "debug",

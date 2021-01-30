@@ -29,7 +29,10 @@
                     </button>
                 </a>
     </mat-card-title>
-
+    <mat-card-subtitle [ngClass]="{invisible: visBeforeCreatingBlocks}">
+        <p class="subtitle">Предприятие: {{formAboutDocument.get('company').value}}</p>
+        <p class="subtitle">Логин: {{formBaseInformation.get('username').value}}</p>
+    </mat-card-subtitle>
     <mat-card-content> 
 
         <form [formGroup]="formBaseInformation">   
@@ -38,270 +41,277 @@
 
                         <mat-tab label="Информация">
         
-                                <mat-card slyle="margin:10px;">
-
-                                    <mat-card-content class="input-form">
-
-                                            <mat-form-field style="display: none">
-                                                <input  matInput
-                                                        placeholder="id"
-                                                        formControlName="id"/>
-                                            </mat-form-field>
-                                            <mat-form-field>
-                                                <mat-label>Предприятие, которому принадлежит сотрудник</mat-label>
-                                                <!-- formBaseInformation.get('company_id').value--{{formBaseInformation.get('company_id').value}} -->
-                                                <mat-select  formControlName="company_id" (selectionChange)="getData()" [disabled]="+formBaseInformation.get('id').value>0">                          
-                                                    <mat-option value=0 selected></mat-option>
-                                                    <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
-                                                            {{rt.name}}
-                                                    </mat-option> 
-                                                </mat-select>
-                                            </mat-form-field>
-                                            <!-- <mat-form-field *ngIf="formBaseInformation.get('company_id').value!=0 && formBaseInformation.get('company_id').value!=null" class="company-select"> -->
-                                            <!-- <mat-form-field class="company-select">                                                    -->
-                                            
 
 
-                                            <mat-form-field>
-                                                <mat-label>Отделения сотрудника</mat-label>
-                                                <mat-select formControlName="selectedUserDepartments" multiple>
-                                                    <mat-option *ngFor="let department of receivedDepartmentsList" 
-                                                                [value]="department.id">
-                                                                {{department.name}}
-                                                    </mat-option>
-                                                </mat-select>
-                                            </mat-form-field>
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <div class="col-lg-4 col-xl-4 col-md-6 col-12">  
+                                        <mat-card class="internal-card">
+                                            <mat-card-header>
+                                                <mat-card-title class="card-title">Основная информация</mat-card-title>
+                                            </mat-card-header>
+                                            <mat-card-content class="input-form" style="padding: 10px;">
 
-                                            <mat-form-field>
-                                                <input matInput 
-                                                placeholder="Логин" 
-                                                formControlName="username" 
-                                                type="text"    
-                                                [ngClass]="{'is-invalid':formBaseInformation.get('username').touched && formBaseInformation.get('username').invalid}"
-                                                [disabled]="+formBaseInformation.get('id').value>0"
-                                                />
-                                                <mat-hint *ngIf="formBaseInformation.get('username').touched && formBaseInformation.get('username').invalid">
-                                                    <i *ngIf="formBaseInformation.get('username').errors.required" class="form-invalid">Введите логин<br></i>
-                                                    <i *ngIf="formBaseInformation.get('username').errors.minlength" class="form-invalid">Логин должен быть минимум 4 символа<br></i>
-                                                    <i *ngIf="formBaseInformation.get('username').errors.maxlength" class="form-invalid">Логин должен быть максимум 20 символов<br></i>
-                                                    <i *ngIf="formBaseInformation.get('username').errors.pattern &&
-                                                                !formBaseInformation.get('username').errors.maxlength" class="form-invalid">Логин должен состоять из латинских букв и цифр, и начинаться с букв<br></i>
-                                                </mat-hint>
-                                                <mat-hint *ngIf="emptyusername && !formBaseInformation.get('username').touched">
-                                                    <i *ngIf="formBaseInformation.get('username').errors.required" class="form-invalid">Введите логин<br></i>
-                                                </mat-hint>
-                                            </mat-form-field>
-                                            
-                                            <mat-form-field>
-                                                <input matInput 
-                                                placeholder="E-mail" 
-                                                formControlName="email" 
-                                                type="text"    
-                                                [ngClass]="{'is-invalid':formBaseInformation.get('email').touched && formBaseInformation.get('email').invalid}"
-                                                />
-                                                <mat-hint *ngIf="formBaseInformation.get('email').touched && formBaseInformation.get('email').invalid">
-                                                    <i *ngIf="formBaseInformation.get('email').errors.required" class="form-invalid">Введите E-mail</i>
-                                                    <i *ngIf="formBaseInformation.get('email').errors.email" class="form-invalid">Неверный формат E-mail</i>
-                                                </mat-hint>
-                                                <mat-hint *ngIf="emptyEmail && !formBaseInformation.get('email').touched">
-                                                    <i *ngIf="formBaseInformation.get('email').errors.required" class="form-invalid">Введите E-mail</i>
-                                                </mat-hint>
-                                            </mat-form-field>
-                                            <mat-form-field *ngIf="+formBaseInformation.get('id').value == 0">
-                                                <input type="password" 
-                                                matInput         
-                                                placeholder="Пароль" 
-                                                formControlName="password"  
-                                                [ngClass]="{'is-invalid':formBaseInformation.get('password').touched && formBaseInformation.get('password').invalid}"
-                                                />
-                                                <mat-hint *ngIf="formBaseInformation.get('password').touched && formBaseInformation.get('password').invalid">
-                                                    <i *ngIf="formBaseInformation.get('password').errors.required" class="form-invalid">Введите пароль<br></i>
-                                                    <i *ngIf="formBaseInformation.get('password').errors.minlength" class="form-invalid">Пароль должен быть минимум 6 символов<br></i>
-                                                    <i *ngIf="formBaseInformation.get('password').errors.maxlength" class="form-invalid">Пароль должен быть максимум 20 символов<br></i>
-                                                    <i *ngIf="formBaseInformation.get('password').errors.pattern &&
-                                                                !formBaseInformation.get('password').errors.maxlength" class="form-invalid">Пароль должен состоять из латинских букв и цифр, и начинаться с букв<br></i>
-                                                </mat-hint>
-                                                <mat-hint *ngIf="emptyPassword && !formBaseInformation.get('password').touched">
-                                                    <i *ngIf="formBaseInformation.get('password').errors.required" class="form-invalid">Введите пароль<br></i>
-                                                </mat-hint>
-                                            </mat-form-field>
-
-                                            <!-- <span *ngIf="formBaseInformation.controls['selectedUserDepartments'].value!=''" style="margin-bottom: -21px; font-size: 75%;color: gray;">Отделения сотрудника</span>
-                                            <mat-select-autocomplete  *ngIf="(formBaseInformation.get('company_id').value!=0 && formBaseInformation.get('company_id').value!=null)"
-                                                [placeholder]="'Отделения сотрудника'"
-                                                [selectPlaceholder]="'Поиск...'"
-                                                [labelCount]="5"
-                                                [options]="receivedDepartmentsList"
-                                                [disabled]='false'
-                                                [multiple]='true'
-                                                name="optionsSelector"
-                                                style="width:100%;"
-                                                ngDefaultControl
-                                                [formControl]="formBaseInformation.controls['selectedUserDepartments']">
-                                            </mat-select-autocomplete>
-                                            <mat-hint *ngIf="formBaseInformation.get('selectedUserDepartments').touched && formBaseInformation.get('selectedUserDepartments').invalid" class="invalid-feedback" style="margin-top: -14px;font-size: 75%;">
-                                                    <i *ngIf="formBaseInformation.get('selectedUserDepartments').errors.required">Выберите отделения, к которым принадлежит сотрудник</i>
-                                            </mat-hint> -->
-
-
-                                    <!-- <button mat-button (click)="openDialog()">+</button> -->
-
-
-                                            <mat-form-field>
+                                                <mat-form-field style="display: none">
                                                     <input  matInput
-                                                            placeholder="Фамилия"
-                                                            formControlName="fio_family"
-                                                            [ngClass]="{'is-invalid':formBaseInformation.get('fio_family').touched && formBaseInformation.get('fio_family').invalid}"/>
-                                                    <mat-hint *ngIf="formBaseInformation.get('fio_family').touched && formBaseInformation.get('fio_family').invalid" class="invalid-feedback">
-                                                        <i *ngIf="formBaseInformation.get('fio_family').errors.required">Введите Фамилию</i>
-                                                    </mat-hint>
-                                            </mat-form-field>
-                                            <mat-form-field>
-                                                    <input  matInput
-                                                            placeholder="Имя"
-                                                            formControlName="fio_name"
-                                                            [ngClass]="{'is-invalid':formBaseInformation.get('fio_name').touched && formBaseInformation.get('fio_name').invalid}"/>
-                                                    <mat-hint *ngIf="formBaseInformation.get('fio_name').touched && formBaseInformation.get('fio_name').invalid" class="invalid-feedback">
-                                                        <i *ngIf="formBaseInformation.get('fio_name').errors.required">Введите Имя</i>
-                                                    </mat-hint>
-                                            </mat-form-field>
-                                            <mat-form-field>
-                                                    <input  matInput
-                                                            placeholder="Отчество"
-                                                            formControlName="fio_otchestvo"
-                                                            [ngClass]="{'is-invalid':formBaseInformation.get('fio_otchestvo').touched && formBaseInformation.get('fio_otchestvo').invalid}"/>
-                                                    <mat-hint *ngIf="formBaseInformation.get('fio_otchestvo').touched && formBaseInformation.get('fio_otchestvo').invalid" class="invalid-feedback">
-                                                    </mat-hint>
-                                            </mat-form-field>
-                                            <mat-form-field>
-                                            <!-- name-{{this.formBaseInformation.get('name').value}} -->
-                                                    <input  matInput
-                                                            placeholder="Отображаемое имя"
-                                                            formControlName="name"
-                                                            [ngClass]="{'is-invalid':formBaseInformation.get('name').touched && formBaseInformation.get('name').invalid}"/>
-                                                    <mat-hint *ngIf="formBaseInformation.get('name').touched && formBaseInformation.get('name').invalid" class="invalid-feedback">
-                                                        <i *ngIf="formBaseInformation.get('name').errors.required">Введите Отображаемое имя</i>
-                                                    </mat-hint>
-                                            </mat-form-field>
-                                            <mat-form-field>
-                                                    <input  matInput 
-                                                            placeholder="Дата рождения"
-                                                            formControlName="date_birthday"
-                                                            [ngClass]="{'is-invalid':formBaseInformation.get('date_birthday').touched && formBaseInformation.get('date_birthday').invalid}"
-                                                            [matDatepicker]="dp"/>
-                                                            <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
-                                                    <mat-datepicker #dp></mat-datepicker>
-                                                    <mat-hint *ngIf="formBaseInformation.get('date_birthday').touched && formBaseInformation.get('date_birthday').invalid" class="invalid-feedback">
-                                                        <i>Формат даты не верный</i>
-                                                    </mat-hint>
-                                            </mat-form-field>
-                                            <mat-form-field>
-                                                <mat-label>Статус аккаунта</mat-label>
-                                                <mat-select formControlName="status_account">
-                                                    
-                                                    <mat-option value="1">E-mail не верифицирован</mat-option>
-                                                    <mat-option value="2">Активный</mat-option>
-                                                    <mat-option value="3">Заблокирован</mat-option>
-                                                    <mat-option value="4">Удалён в архив</mat-option>
-                                                </mat-select>
+                                                            placeholder="id"
+                                                            formControlName="id"/>
                                                 </mat-form-field>
-                                            <mat-form-field>
-                                                <mat-label>Пол</mat-label>
-                                                <mat-select formControlName="sex">
-                                                    <option value="" selected></option>
-                                                    <mat-option value="male">Мужской</mat-option>
-                                                    <mat-option value="female">Женский</mat-option>  
-                                                </mat-select>                                              
-                                            </mat-form-field>
+                                                <mat-form-field [ngClass]="{invisible: +id>0}">
+                                                    <mat-label>Предприятие, которому принадлежит сотрудник</mat-label>
+                                                    <!-- formBaseInformation.get('company_id').value--{{formBaseInformation.get('company_id').value}} -->
+                                                    <mat-select  formControlName="company_id" (selectionChange)="getData()" [disabled]="+formBaseInformation.get('id').value>0">                          
+                                                        <mat-option value=0 selected></mat-option>
+                                                        <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
+                                                                {{rt.name}}
+                                                        </mat-option> 
+                                                    </mat-select>
+                                                </mat-form-field>
+                                                <!-- <mat-form-field *ngIf="formBaseInformation.get('company_id').value!=0 && formBaseInformation.get('company_id').value!=null" class="company-select"> -->
+                                                <!-- <mat-form-field class="company-select">                                                    -->
+                                                
+    
+    
+                                                <mat-form-field>
+                                                    <mat-label>Отделения сотрудника</mat-label>
+                                                    <mat-select formControlName="selectedUserDepartments" multiple>
+                                                        <mat-option *ngFor="let department of receivedDepartmentsList" 
+                                                                    [value]="department.id">
+                                                                    {{department.name}}
+                                                        </mat-option>
+                                                    </mat-select>
+                                                </mat-form-field>
+    
+                                                <mat-form-field  [ngClass]="{invisible: +id>0}">
+                                                    <input matInput 
+                                                    placeholder="Логин" 
+                                                    formControlName="username" 
+                                                    type="text"    
+                                                    [ngClass]="{'is-invalid':formBaseInformation.get('username').touched && formBaseInformation.get('username').invalid}"
+                                                    [disabled]="+formBaseInformation.get('id').value>0"
+                                                    />
+                                                    <mat-hint *ngIf="formBaseInformation.get('username').touched && formBaseInformation.get('username').invalid">
+                                                        <i *ngIf="formBaseInformation.get('username').errors.required" class="form-invalid">Введите логин<br></i>
+                                                        <i *ngIf="formBaseInformation.get('username').errors.minlength" class="form-invalid">Логин должен быть минимум 4 символа<br></i>
+                                                        <i *ngIf="formBaseInformation.get('username').errors.maxlength" class="form-invalid">Логин должен быть максимум 20 символов<br></i>
+                                                        <i *ngIf="formBaseInformation.get('username').errors.pattern &&
+                                                                    !formBaseInformation.get('username').errors.maxlength" class="form-invalid">Логин должен состоять из латинских букв и цифр, и начинаться с букв<br></i>
+                                                    </mat-hint>
+                                                    <mat-hint *ngIf="emptyusername && !formBaseInformation.get('username').touched">
+                                                        <i *ngIf="formBaseInformation.get('username').errors.required" class="form-invalid">Введите логин<br></i>
+                                                    </mat-hint>
+                                                </mat-form-field>
+                                                
+                                                <mat-form-field>
+                                                    <input matInput 
+                                                    placeholder="E-mail" 
+                                                    formControlName="email" 
+                                                    type="text"    
+                                                    [ngClass]="{'is-invalid':formBaseInformation.get('email').touched && formBaseInformation.get('email').invalid}"
+                                                    />
+                                                    <mat-hint *ngIf="formBaseInformation.get('email').touched && formBaseInformation.get('email').invalid">
+                                                        <i *ngIf="formBaseInformation.get('email').errors.required" class="form-invalid">Введите E-mail</i>
+                                                        <i *ngIf="formBaseInformation.get('email').errors.email" class="form-invalid">Неверный формат E-mail</i>
+                                                    </mat-hint>
+                                                    <mat-hint *ngIf="emptyEmail && !formBaseInformation.get('email').touched">
+                                                        <i *ngIf="formBaseInformation.get('email').errors.required" class="form-invalid">Введите E-mail</i>
+                                                    </mat-hint>
+                                                </mat-form-field>
+                                                <mat-form-field *ngIf="+formBaseInformation.get('id').value == 0">
+                                                    <input type="password" 
+                                                    matInput         
+                                                    placeholder="Пароль" 
+                                                    formControlName="password"  
+                                                    [ngClass]="{'is-invalid':formBaseInformation.get('password').touched && formBaseInformation.get('password').invalid}"
+                                                    />
+                                                    <mat-hint *ngIf="formBaseInformation.get('password').touched && formBaseInformation.get('password').invalid">
+                                                        <i *ngIf="formBaseInformation.get('password').errors.required" class="form-invalid">Введите пароль<br></i>
+                                                        <i *ngIf="formBaseInformation.get('password').errors.minlength" class="form-invalid">Пароль должен быть минимум 6 символов<br></i>
+                                                        <i *ngIf="formBaseInformation.get('password').errors.maxlength" class="form-invalid">Пароль должен быть максимум 20 символов<br></i>
+                                                        <i *ngIf="formBaseInformation.get('password').errors.pattern &&
+                                                                    !formBaseInformation.get('password').errors.maxlength" class="form-invalid">Пароль должен состоять из латинских букв и цифр, и начинаться с букв<br></i>
+                                                    </mat-hint>
+                                                    <mat-hint *ngIf="emptyPassword && !formBaseInformation.get('password').touched">
+                                                        <i *ngIf="formBaseInformation.get('password').errors.required" class="form-invalid">Введите пароль<br></i>
+                                                    </mat-hint>
+                                                </mat-form-field>
+                                                <mat-form-field>
+                                                        <input  matInput
+                                                                placeholder="Фамилия"
+                                                                formControlName="fio_family"
+                                                                [ngClass]="{'is-invalid':formBaseInformation.get('fio_family').touched && formBaseInformation.get('fio_family').invalid}"/>
+                                                        <mat-hint *ngIf="formBaseInformation.get('fio_family').touched && formBaseInformation.get('fio_family').invalid" class="invalid-feedback">
+                                                            <i *ngIf="formBaseInformation.get('fio_family').errors.required">Введите Фамилию</i>
+                                                        </mat-hint>
+                                                </mat-form-field>
+                                                <mat-form-field>
+                                                        <input  matInput
+                                                                placeholder="Имя"
+                                                                formControlName="fio_name"
+                                                                [ngClass]="{'is-invalid':formBaseInformation.get('fio_name').touched && formBaseInformation.get('fio_name').invalid}"/>
+                                                        <mat-hint *ngIf="formBaseInformation.get('fio_name').touched && formBaseInformation.get('fio_name').invalid" class="invalid-feedback">
+                                                            <i *ngIf="formBaseInformation.get('fio_name').errors.required">Введите Имя</i>
+                                                        </mat-hint>
+                                                </mat-form-field>
+                                                <mat-form-field>
+                                                        <input  matInput
+                                                                placeholder="Отчество"
+                                                                formControlName="fio_otchestvo"
+                                                                [ngClass]="{'is-invalid':formBaseInformation.get('fio_otchestvo').touched && formBaseInformation.get('fio_otchestvo').invalid}"/>
+                                                        <mat-hint *ngIf="formBaseInformation.get('fio_otchestvo').touched && formBaseInformation.get('fio_otchestvo').invalid" class="invalid-feedback">
+                                                        </mat-hint>
+                                                </mat-form-field>
+                                                <mat-form-field>
+                                                        <input  matInput
+                                                                placeholder="Отображаемое имя"
+                                                                formControlName="name"
+                                                                [ngClass]="{'is-invalid':formBaseInformation.get('name').touched && formBaseInformation.get('name').invalid}"/>
+                                                        <mat-hint *ngIf="formBaseInformation.get('name').touched && formBaseInformation.get('name').invalid" class="invalid-feedback">
+                                                            <i *ngIf="formBaseInformation.get('name').errors.required">Введите Отображаемое имя</i>
+                                                        </mat-hint>
+                                                </mat-form-field>
+                                                <mat-form-field>
+                                                        <input  matInput 
+                                                                placeholder="Дата рождения"
+                                                                formControlName="date_birthday"
+                                                                [ngClass]="{'is-invalid':formBaseInformation.get('date_birthday').touched && formBaseInformation.get('date_birthday').invalid}"
+                                                                [matDatepicker]="dp"/>
+                                                                <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
+                                                        <mat-datepicker #dp></mat-datepicker>
+                                                        <mat-hint *ngIf="formBaseInformation.get('date_birthday').touched && formBaseInformation.get('date_birthday').invalid" class="invalid-feedback">
+                                                            <i>Формат даты не верный</i>
+                                                        </mat-hint>
+                                                </mat-form-field>
+                                                <mat-form-field>
+                                                    <input  matInput
+                                                            placeholder="ИНН"
+                                                            maxlength="12"
+                                                            (keypress)="numberOnly($event)"
+                                                            formControlName="vatin"
+                                                            [ngClass]="{'is-invalid':formBaseInformation.get('vatin').touched && formBaseInformation.get('vatin').invalid}"/>
+                                                            <mat-hint  align="start" *ngIf="formBaseInformation.get('vatin').touched && formBaseInformation.get('vatin').invalid">
+                                                                <i class="form-invalid">Номер должен состоять из 12 цифр</i>
+                                                            </mat-hint>
+                                                            <mat-hint align="end">{{this.formBaseInformation.get('vatin').value.length}} / 12</mat-hint>
+                                                </mat-form-field>
+                                                <mat-form-field>
+                                                    <mat-label>Статус аккаунта</mat-label>
+                                                    <mat-select formControlName="status_account">
+                                                        
+                                                        <mat-option value="1">E-mail не верифицирован</mat-option>
+                                                        <mat-option value="2">Активный</mat-option>
+                                                        <mat-option value="3">Заблокирован</mat-option>
+                                                        <mat-option value="4">Удалён в архив</mat-option>
+                                                    </mat-select>
+                                                    </mat-form-field>
+                                                <mat-form-field>
+                                                    <mat-label>Пол</mat-label>
+                                                    <mat-select formControlName="sex">
+                                                        <option value="" selected></option>
+                                                        <mat-option value="male">Мужской</mat-option>
+                                                        <mat-option value="female">Женский</mat-option>  
+                                                    </mat-select>                                              
+                                                </mat-form-field>
+    
+                                                <mat-form-field  style="display: none;" ><!--после проверки что все работает, установить display:none-->
+                                                    <input   matInput
+                                                            placeholder="Часовой пояс"
+                                                            formControlName="time_zone_id"/>
+                                                </mat-form-field>
+                                                <mat-form-field>
+                                                    <mat-label>Часовой пояс</mat-label>
+                                                    <input matInput
+                                                    type="text"
+                                                    formControlName="time_zone_name" 
+                                                    [matAutocomplete]="auto" 
+                                                    (input)="checkEmptyTimeZoneField();"
+                                                    (change)="checkEmptyTimeZoneField();">
+                                                    <mat-autocomplete #auto="matAutocomplete">
+                                                    <mat-option *ngFor="let option of filteredSpravSysTimeZones | async" [value]="option.name_rus">
+                                                        <div (click)="formBaseInformation.get('time_zone_id').setValue(option.id)">
+                                                            <span style="margin:10px;">{{option.name_rus}}</span>
+                                                        </div>
+                                                    </mat-option>
+                                                    </mat-autocomplete>
+                                                    <mat-hint  align="start" *ngIf="formBaseInformation.get('time_zone_name').touched && formBaseInformation.get('time_zone_id').invalid">
+                                                        <i class="form-invalid">Часовой пояс не выбран.</i>
+                                                    </mat-hint>
+                                                </mat-form-field>
+                                                
+                                                <mat-form-field>
+                                                    <textarea   matInput
+                                                            placeholder="Дополнительная информация"
+                                                            formControlName="additional"></textarea>
+                                                </mat-form-field>
+    
+                                                <div *ngIf="isSignUpFailed" class="form-invalid">
+                                                    Регистрация не выполнена: {{errorMessage}}
+                                                </div>
 
-                                            <mat-form-field  style="display: none;" ><!--после проверки что все работает, установить display:none-->
-                                                <input   matInput
-                                                        placeholder="Часовой пояс"
-                                                        formControlName="time_zone_id"/>
-                                            </mat-form-field>
-                                            <mat-form-field>
-                                                <mat-label>Часовой пояс</mat-label>
-                                                <input matInput
-                                                type="text"
-                                                formControlName="time_zone_name" 
-                                                [matAutocomplete]="auto" 
-                                                (input)="checkEmptyTimeZoneField();"
-                                                (change)="checkEmptyTimeZoneField();">
-                                                <mat-autocomplete #auto="matAutocomplete">
-                                                <mat-option *ngFor="let option of filteredSpravSysTimeZones | async" [value]="option.name_rus">
-                                                    <div (click)="formBaseInformation.get('time_zone_id').setValue(option.id)">
-                                                        <span style="margin:10px;">{{option.name_rus}}</span>
-                                                    </div>
-                                                </mat-option>
-                                                </mat-autocomplete>
-                                                <mat-hint  align="start" *ngIf="formBaseInformation.get('time_zone_name').touched && formBaseInformation.get('time_zone_id').invalid">
-                                                    <i class="form-invalid">Часовой пояс не выбран.</i>
-                                                </mat-hint>
-                                            </mat-form-field>
-                                            
-                                            <mat-form-field>
-                                                <textarea   matInput
-                                                        placeholder="Дополнительная информация"
-                                                        formControlName="additional"></textarea>
-                                            </mat-form-field>
+                                            </mat-card-content>
+                                        </mat-card>
 
-                                            <div *ngIf="isSignUpFailed" class="form-invalid">
-                                                Регистрация не выполнена: {{errorMessage}}
-                                            </div>
-
-                                    </mat-card-content>
-
-                                </mat-card>
+                                    </div>
+                                    <div class="col-lg-4 col-xl-4 col-md-6 col-12">
+                                        <mat-card  class="internal-card">
+                                            <mat-card-header>
+                                                <mat-card-title class="card-title">Права</mat-card-title>
+                                            </mat-card-header>
+                                            <mat-card-content class="input-form"  style="padding: 10px;" >
+                                                <mat-form-field>
+                                                    <mat-label>Группы пользователей</mat-label>
+                                                    <mat-select formControlName="userGroupList" multiple>
+                                                        <mat-option *ngFor="let permissions of receivedUserGroupList" 
+                                                                    [value]="permissions.id">
+                                                                    {{permissions.name}}
+                                                        </mat-option>
+                                                    </mat-select>
+                                                </mat-form-field>
+                                            </mat-card-content>
+                                        </mat-card>
+                                    </div>
+                                </div>
+                            </div>
 
                         </mat-tab>
 
-                        
-                        <mat-tab label="Права">
-                                <mat-card slyle="margin:10px;">
-                                <mat-card-content class="input-form">
-                                    <mat-form-field>
-                                        <mat-label>Группы пользователей</mat-label>
-                                        <mat-select formControlName="userGroupList" multiple>
-                                            <mat-option *ngFor="let permissions of receivedUserGroupList" 
-                                                        [value]="permissions.id">
-                                                        {{permissions.name}}
-                                            </mat-option>
-                                        </mat-select>
-                                    </mat-form-field>
-                                </mat-card-content>
-                            </mat-card>
-                        </mat-tab>
                         <mat-tab  *ngIf="visAfterCreatingBlocks"  label="О документе">
                             <form [formGroup]="formAboutDocument">
-                                <mat-card style="margin:10px;">
-                                    <mat-card-content class="input-form">
-                                            <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
-                                                <input  matInput
-                                                        placeholder="Предприятие"
-                                                        formControlName="company" [readonly]=true/>
-                                            </mat-form-field>
-                                            <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
-                                                <input  matInput
-                                                        placeholder="Создатель"
-                                                        formControlName="creator" [readonly]=true/>
-                                            </mat-form-field>
-                                            <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
-                                                <input  matInput
-                                                        placeholder="Дата создания"
-                                                        formControlName="date_time_created" [readonly]=true/>
-                                            </mat-form-field>
-                                            <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
-                                                <input  matInput
-                                                        placeholder="Изменение"
-                                                        formControlName="changer" [readonly]=true/>
-                                            </mat-form-field>
-                                            <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
-                                                <input  matInput
-                                                        placeholder="Дата изменения"
-                                                        formControlName="date_time_changed" [readonly]=true/>
-                                            </mat-form-field>
-                                    </mat-card-content>
-                                </mat-card>  
+                                <div class="container-fluid">
+                                    <div class="row">
+                                        <div class="col-lg-4 col-xl-4 col-md-6 col-12">
+                                            <mat-card  class="internal-card">
+                                                <mat-card-content class="input-form"  style="padding: 10px;">
+                                                        <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                                            <input  matInput
+                                                                    placeholder="Предприятие"
+                                                                    formControlName="company" [readonly]=true/>
+                                                        </mat-form-field>
+                                                        <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                                            <input  matInput
+                                                                    placeholder="Создатель"
+                                                                    formControlName="creator" [readonly]=true/>
+                                                        </mat-form-field>
+                                                        <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                                            <input  matInput
+                                                                    placeholder="Дата создания"
+                                                                    formControlName="date_time_created" [readonly]=true/>
+                                                        </mat-form-field>
+                                                        <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                                            <input  matInput
+                                                                    placeholder="Изменение"
+                                                                    formControlName="changer" [readonly]=true/>
+                                                        </mat-form-field>
+                                                        <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                                            <input  matInput
+                                                                    placeholder="Дата изменения"
+                                                                    formControlName="date_time_changed" [readonly]=true/>
+                                                        </mat-form-field>
+                                                </mat-card-content>
+                                            </mat-card>
+                                        </div>
+                                    </div>
+                                </div>
                             </form>  
                         </mat-tab>
 

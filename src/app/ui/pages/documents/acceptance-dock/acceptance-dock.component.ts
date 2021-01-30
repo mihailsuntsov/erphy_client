@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
-import { LoadSpravService } from './loadsprav-acceptance';
+import { LoadSpravService } from '../../../../services/loadsprav';
 import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl, AbstractControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -58,7 +58,14 @@ interface dockResponse {//интерфейс для получения отве�
   is_archive: boolean;
   overhead_netcost_method: number;
 }
-
+interface SpravSysNdsSet{
+  id: number;
+  name: string;
+  description: string;
+  name_api_atol: string;
+  is_active: string;
+  calculated: string;
+}
 // interface BaseInformation {//интерфейс для основной информации в документе
 //   id: number;
 //   company_id: string;
@@ -140,7 +147,7 @@ export class AcceptanceDockComponent implements OnInit {
   receivedCompaniesList: any [];//массив для получения списка предприятий
   receivedDepartmentsList: idAndName [] = [];//массив для получения списка отделений
   receivedMyDepartmentsList: idAndName [] = [];//массив для получения списка отделений
-  receivedUsersList  : any [];//массив для получения списка пользователей
+  // receivedUsersList  : any [];//массив для получения списка пользователей
   myCompanyId:number=0;
   spravSysEdizmOfProductAll: idAndNameAndShorname[] = [];// массив, куда будут грузиться все единицы измерения товара
   // allFields: any[][] = [];//[номер строки начиная с 0][объект - вся инфо о товаре (id,кол-во, цена... )] - массив товаров
@@ -190,11 +197,11 @@ export class AcceptanceDockComponent implements OnInit {
   allowToView:boolean = false;
   allowToUpdate:boolean = false;
   allowToCreate:boolean = false;
-  showOpenDocIcon:boolean=false;
+  // showOpenDocIcon:boolean=false;
 
   // ******  справочники  ******************
   // spravSysPPRSet: any[];//сет признаков предмета расчета 
-  spravSysNdsSet: idAndName[] = []; //массив имен и id для ндс 
+  spravSysNdsSet: SpravSysNdsSet[] = []; //массив имен и id для ндс 
 
   displayedColumns = ['name','product_count','edizm','product_price','product_sumprice','product_netcost','nds','delete'];
   @ViewChild("countInput", {static: false}) countInput;
@@ -361,20 +368,20 @@ getSetOfPermissions(){
       this.setDefaultDate();
     }
   }
-  refreshShowAllTabs(){
-    if(this.id>0){//если в документе есть id
-      this.visAfterCreatingBlocks = true;
-      this.visBeforeCreatingBlocks = false;
-      this.visBtnUpdate = this.allowToUpdate;
-    }else{
-      this.visAfterCreatingBlocks = false;
-      this.visBeforeCreatingBlocks = true;
-    }
-  }
+  // refreshShowAllTabs(){
+  //   if(this.id>0){//если в документе есть id
+  //     this.visAfterCreatingBlocks = true;
+  //     this.visBeforeCreatingBlocks = false;
+  //     this.visBtnUpdate = this.allowToUpdate;
+  //   }else{
+  //     this.visAfterCreatingBlocks = false;
+  //     this.visBeforeCreatingBlocks = true;
+  //   }
+  // }
   getSpravSysNds(){
-        return this.http.post('/api/auth/getSpravSysNds', {}) 
-    .subscribe((data) => {this.spravSysNdsSet=data as any[];},
-    error => console.log(error));}
+        this.loadSpravService.getSpravSysNds()
+        .subscribe((data) => {this.spravSysNdsSet=data as any[];},
+        error => console.log(error));}
   getMyId(){
     this.receivedMyDepartmentsList=null;
     this.loadSpravService.getMyId()
@@ -507,7 +514,7 @@ getSetOfPermissions(){
     this.afterSelectProduct();
   }
 
-  onSelectProguct(product:productSearchResponse){
+  onSelectProduct(product:productSearchResponse){
     this.formSearch.get('product_id').setValue(+product.id);
     this.formSearch.get('nds_id').setValue(+product.nds_id);
     this.formSearch.get('edizm_id').setValue(+product.edizm_id);
@@ -597,23 +604,6 @@ getSetOfPermissions(){
       this.spravSysNdsSet.forEach(a=>{
         if(+a.id == srchId) {value=(a.name.includes('%')?(+a.name.replace('%','')):0)/100+1}
       }); return value;}  
-
-  getProductsList(){ //заполнение Autocomplete для поля Товар
-    try 
-    {
-      if(this.canAutocompleteQuery && this.searchProductCtrl.value.length>1)
-      {
-        const body = {
-          "searchString":this.searchProductCtrl.value,
-          "companyId":this.formBaseInformation.get('company_id').value,
-          "departmentId":this.formBaseInformation.get('department_id').value};
-        this.isProductListLoading  = true;
-        return this.http.post('/api/auth/getProductsList', body);
-      }else return [];
-    } catch (e) {
-      return [];
-    }
-  }
 
   loadMainImage(){
     if(this.productImageName!=null){
@@ -866,24 +856,36 @@ getSetOfPermissions(){
         });
     }
   }
-
-  getShortInfoAboutProduct(){
-      const dockId = {"id1": this.formBaseInformation.get('department_id').value,"id2": this.formSearch.get('product_id').value};
-      this.http.post('/api/auth/getShortInfoAboutProduct', dockId)
-        .subscribe(
-            data => { 
-                this.shortInfoAboutProduct=data as any;
-                this.shortInfoAboutProductArray[0]=this.shortInfoAboutProduct.quantity;
-                this.shortInfoAboutProductArray[1]=this.shortInfoAboutProduct.change;
-                this.shortInfoAboutProductArray[2]=this.shortInfoAboutProduct.date_time_created;
-                this.shortInfoAboutProductArray[3]=this.shortInfoAboutProduct.avg_purchase_price;
-                this.shortInfoAboutProductArray[4]=this.shortInfoAboutProduct.avg_netcost_price;
-                this.shortInfoAboutProductArray[5]=this.shortInfoAboutProduct.last_purchase_price;
-            },
-            error => console.log(error)
-        );
+  
+  getProductsList(){ //заполнение Autocomplete для поля Товар
+    try 
+    {
+      if(this.canAutocompleteQuery && this.searchProductCtrl.value.length>1)
+      {
+        this.isProductListLoading  = true;
+        return this.http.get(
+          '/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.formBaseInformation.get('company_id').value+'&departmentId='+this.formBaseInformation.get('department_id').value+'&document_id='+this.id
+          );
+      }else return [];
+    } catch (e) {
+      return [];
+    }
   }
-
+  getShortInfoAboutProduct(){
+    this.http.get('/api/auth/getShortInfoAboutProduct?department_id='+this.formBaseInformation.get('department_id').value+'&product_id='+this.formSearch.get('product_id').value)
+      .subscribe(
+          data => { 
+            this.shortInfoAboutProduct=data as any;
+            this.shortInfoAboutProductArray[0]=this.shortInfoAboutProduct.quantity;
+            this.shortInfoAboutProductArray[1]=this.shortInfoAboutProduct.change;
+            this.shortInfoAboutProductArray[2]=this.shortInfoAboutProduct.date_time_created;
+            this.shortInfoAboutProductArray[3]=this.shortInfoAboutProduct.avg_purchase_price;
+            this.shortInfoAboutProductArray[4]=this.shortInfoAboutProduct.avg_netcost_price;
+            this.shortInfoAboutProductArray[5]=this.shortInfoAboutProduct.last_purchase_price;
+          },
+          error => console.log(error)
+      );
+  }
   EditDocNumber(): void {
     if(this.allowToUpdate && !this.is_completed){
       const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
@@ -1082,7 +1084,7 @@ openDialogCreateProduct() {
             return this.http.post('/api/auth/addFilesToAcceptance', body) 
               .subscribe(
                   (data) => {  
-                    this.openSnackBar("Изображения добавлены", "Закрыть");
+                    this.openSnackBar("Файлы добавлены", "Закрыть");
                     this.loadFilesInfo();
                             },
                   error => console.log(error),

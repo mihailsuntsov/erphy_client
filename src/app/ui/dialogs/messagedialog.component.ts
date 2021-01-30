@@ -7,7 +7,7 @@ import { Component , Inject} from '@angular/core';
     <div style="text-align:  center;">
     <h1 mat-dialog-title >{{data.head}}</h1>
     <div mat-dialog-content>
-      <p>{{data.message}}</p>
+      <div [innerHTML]="data.message"></div>
     </div>
     <div mat-dialog-actions>
       <button mat-raised-button color="primary" (click)="onNoClick()" style="flex-grow: 1;">Ok</button>

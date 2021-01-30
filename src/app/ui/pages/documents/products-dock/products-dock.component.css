@@ -16,9 +16,17 @@ li {list-style: none;}
     /* margin-top: 10px; */
 }
 .invisible{display:none;}
-
+.table-field-editable{
+    border-bottom: 1px lightgray dotted;
+}
 .card-name{ flex-grow: 1; }
-
+.table-form-invalid{
+    color: red;
+    font-size: 11px;
+    line-height: 0.9em;
+    display: block;
+    font-style: italic;
+}
 .button{
     margin-left: 10px;
 }
