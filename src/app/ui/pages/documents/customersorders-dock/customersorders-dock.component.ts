@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ViewChild,  OnChanges,  SimpleChanges } from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { KkmAtolService } from '../../../../services/kkm_atol';
@@ -18,6 +18,7 @@ import { ValidationService } from './validation.service';
 import { ProductReservesDialogComponent } from 'src/app/ui/dialogs/product-reserves-dialog/product-reserves-dialog.component';
 import { PricingDialogComponent } from 'src/app/ui/dialogs/pricing-dialog/pricing-dialog.component';
 import { SettingsCustomersordersDialogComponent } from 'src/app/ui/dialogs/settings-customersorders-dialog/settings-customersorders-dialog.component';
+import { ProductSearchAndTableComponent } from 'src/app/modules/trade-modules/product-search-and-table/product-search-and-table.component';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatAccordion } from '@angular/material/expansion';
@@ -41,6 +42,34 @@ export const MY_FORMATS = {
     monthYearA11yLabel: 'MMMM YYYY',
   },
 };
+interface CustomersOrdersProductTable { //интерфейс для формы, массив из которых будет содержать форма customersOrdersProductTable, входящая в formBaseInformation, которая будет включаться в formBaseInformation
+  id: number;
+  row_id: number;
+  product_id: number;
+  customers_orders_id:number;
+  name: string;
+  product_count: number;
+  edizm: string;
+  edizm_id: number;
+  product_price: number;
+  product_price_of_type_price: number;//цена товара по типу цены. Т.к. цену можно редактировать в таблице товаров, при несовпадении новой цены с ценой типа цены нужно будет сбросить тип цены в 0 (не выбран), т.к. это уже будет не цена типа цены
+  product_sumprice: number;
+  price_type: string;
+  price_type_id: number;
+  available: number; 
+  nds: string;
+  nds_id: number;
+  reserve: boolean;// зарезервировано                                                                                (formSearch.reserve)
+  priority_type_price: string;// приоритет типа цены: Склад (sklad) Покупатель (cagent) Цена по-умолчанию (defprice)  (formSearch.priorityTypePriceSide)
+  department_id: number; // склад с которого будет производиться отгрузка товара.     
+  department: string; // склад с которого будет производиться отгрузка товара.                                   (secondaryDepartmentId)
+  shipped:number; //отгружено        
+  total: number; //всего на складе
+  reserved: number; // сколько зарезервировано в других Заказах покупателя
+  reserved_current: number; // сколько зарезервировано в данном заказе покупателя  
+  ppr_name_api_atol: string; //Признак предмета расчета в системе Атол. Невидимое поле. Нужно для передачи в таблицу товаров в качестве тега для чека на ккм Атол
+  is_material: boolean; //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)            
+}
 interface IdAndName_ru{
   id: number;
   name_ru: string;
@@ -52,18 +81,6 @@ interface SpravSysNdsSet{
   name_api_atol: string;
   is_active: string;
   calculated: string;
-}
-interface SpravSysTaxationTypes{
-  id: number;
-  name: string;
-  name_api_atol: string;
-  is_active: string;
-}
-interface SpravSysPaymentMethods{
-  id: number;
-  name: string;
-  id_api_atol: number; 
-  name_api_atol: string;
 }
 interface Region{
   id: number;
@@ -130,57 +147,12 @@ interface dockResponse {//интерфейс для получения отве�
   flat: string;
 }
 
-interface CustomersOrdersProductTable { //интерфейс для формы, массив из которых будет содержать форма customersOrdersProductTable, входящая в formBaseInformation, которая будет включаться в formBaseInformation
-  id: number;
-  row_id: number;
-  product_id: number;
-  customers_orders_id:number;
-  name: string;
-  product_count: number;
-  edizm: string;
-  edizm_id: number;
-  product_price: number;
-  product_price_of_type_price: number;//цена товара по типу цены. Т.к. цену можно редактировать в таблице товаров, при несовпадении новой цены с ценой типа цены нужно будет сбросить тип цены в 0 (не выбран), т.к. это уже будет не цена типа цены
-  product_sumprice: number;
-  price_type: string;
-  price_type_id: number;
-  available: number; 
-  nds: string;
-  nds_id: number;
-  reserve: boolean;// зарезервировано                                                                                (formSearch.reserve)
-  priority_type_price: string;// приоритет типа цены: Склад (sklad) Покупатель (cagent) Цена по-умолчанию (defprice)  (formSearch.priorityTypePriceSide)
-  department_id: number; // склад с которого будет производиться отгрузка товара.     
-  department: string; // склад с которого будет производиться отгрузка товара.                                   (secondaryDepartmentId)
-  shipped:number; //отгружено        
-  total: number; //всего на складе
-  reserved: number; // сколько зарезервировано в других Заказах покупателя
-  reserved_current: number; // сколько зарезервировано в данном заказе покупателя  
-  ppr_name_api_atol: string; //Признак предмета расчета в системе Атол. Невидимое поле. Нужно для передачи в таблицу товаров в качестве тега для чека на ккм Атол
-  is_material: boolean; //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)            
-}
-
 interface filesInfo {
   id: string;
   name: string;
   original_name: string;
   date_time_created: string;
 }
-
-interface productSearchResponse{//интерфейс получения данных из бд 
-  id:number;
-  name: string;
-  edizm_id:number;
-  filename:string;
-  nds_id:number;
-  reserved:number;// сколько зарезервировано в других Заказах покупателя
-  total:number; // всего единиц товара в отделении (складе):
-  reserved_in_all_my_depths:number; //зарезервировано в моих отделениях
-  total_in_all_my_depths:number; //всего в моих отделениях
-  ppr_name_api_atol:string; //Признак предмета расчета в системе Атол. Невидимое поле. Нужно для передачи в таблицу товаров в качестве тега для чека на ккм Атол
-  is_material:boolean; //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
-  reserved_current:number;// зарезервировано единиц товара в отделении (складе) в ЭТОМ (текущем) Заказе покупателя:
-}
-
 interface idAndName{ //универсалный интерфейс для выбора из справочников
   id: number;
   name: string;
@@ -253,13 +225,13 @@ interface KassaSettings{
   selector: 'app-customersorders-dock',
   templateUrl: './customersorders-dock.component.html',
   styleUrls: ['./customersorders-dock.component.css'],
-  providers: [LoadSpravService,KkmAtolService,KkmAtolChequesService,Cookie,DelCookiesService,
+  providers: [LoadSpravService,KkmAtolService,KkmAtolChequesService,Cookie,DelCookiesService,ProductSearchAndTableComponent,
     {provide: MAT_DATE_LOCALE, useValue: 'ru'},
     {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},]
 })
 
-export class CustomersordersDockComponent implements OnInit {
+export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
 
   id: number = 0;// id документа
   createdDockId: string[];//массив для получение id созданного документа
@@ -269,9 +241,8 @@ export class CustomersordersDockComponent implements OnInit {
   receivedMyDepartmentsList: SecondaryDepartment [] = [];//массив для получения списка отделений
   receivedUsersList  : any [];//массив для получения списка пользователей
   myCompanyId:number=0;
-  spravSysEdizmOfProductAll: idAndNameAndShorname[] = [];// массив, куда будут грузиться все единицы измерения товара
+  
   allFields: any[][] = [];//[номер строки начиная с 0][объект - вся инфо о товаре (id,кол-во, цена... )] - массив товаров
-  productSearchResponse: productSearchResponse[] = [];// массив для найденных через форму поиска formSearch товаров
   filesInfo : filesInfo [] = []; //массив для получения информации по прикрепленным к документу файлам 
   myId:number=0;
   creatorId:number=0;
@@ -281,59 +252,25 @@ export class CustomersordersDockComponent implements OnInit {
   addressString: string = ''; // строка для свёрнутого блока Адрес
   gettingTableData:boolean=false;//идет загрузка данных - нужно для спиннера
   canCreateNewDock: boolean=false;// можно ли создавать новый документ (true если выполнились все необходимые для создания действия)
+  canGetChilds: boolean=false; //можно ли грузить дочерние модули
   actionsBeforeCreateNewDock:number=0;// количество выполненных действий, необходимых чтобы создать новый документ
-
+  аctionsBeforeGetChilds:number=0;// количество выполненных действий, необходимых чтобы загрузить дочерние модули (кассу и форму товаров)
+  // productsTableIsValid=false;
   // Расценка (все настройки здесь - по умолчанию. После первого же сохранения настроек данные настройки будут заменяться в методе getSettings() )
   productPrice:number=0; //Цена найденного и выбранного в форме поиска товара.
-  // pricingType: string = 'priceType'; // тип расценки. priceType - по типу цены, costPrice - себестоимость, manual - вручную
-  // changePrice: number = 50; //наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType
-  // changePriceType:  string = 'procents'; // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
-  // hideTenths: boolean = true; //убирать десятые и сотые доли цены (копейки вобщем)
-  // plusMinus:string = 'plus'; // Наценка (plus) или скидка (minus)
   netCostPrice:number = 0; // себестоимость найденного и выбранного в форме поиска товара.
   priceUpDownFieldName:string = 'Наценка'; // Наименование поля с наценкой-скидкой
   priceTypeId_temp:number; // id типа цены. Нужна для временного хранения типа цены на время сброса формы поиска товара
   companyId_temp:number; // id предприятия. Нужна для временного хранения предприятия на время сброса формы formBaseInformation
 
-
-  //чекбоксы
-  selection = new SelectionModel<CustomersOrdersProductTable>(true, []);// специальный класс для удобной работы с чекбоксами
-  checkedList:number[]=[]; //строка для накапливания id чекбоксов вида [2,5,27...]
-  row_id:number=0;// уникальность строки в табл. товаров только id товара обеспечить не может, т.к. в таблице может быть > 1 одинакового товара (уникальность обеспечивается id товара и id склада)
-  //Для уникальности используем виртуальный row_id
-
-  //для Autocomplete по поиску товаров
-  
-  searchProductCtrl = new FormControl();//поле для поиска товаров
-  isProductListLoading  = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
-  canAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
-  filteredProducts: productSearchResponse[] = [];
-  productImageName:string = null;
-  mainImageAddress:string = '../../../../../../assets/images/no_foto.jpg';
-  thumbImageAddress:string = '../../../../../../assets/images/no_foto.jpg';
-  imageToShow:any; // переменная в которую будет подгружаться картинка товара (если он jpg или png)
-
-  //форма поиска товара
-  shortInfoAboutProduct: ShortInfoAboutProduct = null; //получение краткого инфо по товару
-  shortInfoAboutProductArray: any[] = []; //получение краткого инфо по товару
-  receivedPriceTypesList: idNameDescription [] = [];//массив для получения списка типов цен
-  spravSysNdsSet: SpravSysNdsSet[] = []; //массив имен и id для ндс 
   department_type_price_id: number; //id тип цены в отделении (Складе), для которого создавался данный документ. Нужен для изменения поля Тип цены
   cagent_type_price_id: number; //id типа цены покупателя, для которого создавался данный документ.  Нужен для изменения поля Тип цены
   default_type_price_id: number; //id типа цены, установленный по умолчанию.  Нужен для изменения поля Тип цены
-  selected_type_price_id: number; //тип цены, выбранный в форме поиска. Нужен для восстановления выбранного типа цены при сбросе формы поиска товара
-  selected_price: number = 0; //цена, выбранная через поле Тип цены. Нужна для сравнения с полем Цена для выявления факта изменения его значения, и оставления значения столбце Тип цены пустым
-  selected_sklad_id: number; //id склада, выбранный в форме поиска. Нужен для восстановления при сбросе формы поиска товара
-  selected_reserve: boolean; //резервирование, выбранное в форме поиска. Нужно для восстановления при сбросе формы поиска товара
-  priorityTypePriceId:number=0;// id типа цены, выбранный через поле "Приоритет типа цены"
-  secondaryDepartment:SecondaryDepartment; //склад, выбранный в форме поиска товара
+  spravSysNdsSet: SpravSysNdsSet[] = []; //массив имен и id для ндс 
   secondaryDepartments:SecondaryDepartment[]=[];// склады в выпадающем списке складов формы поиска товара
-  productCountByDepartments:idAndCount[]=[];
-  gettingProductCount=false;//прогресс-спиннер у кол-ва товаров
-  gotProductCount=false;// чтобы не запрашивать каждый раз при нажатии на поле Склад количество товара, после первого запроса ставим эту переменную в true, и сброс в false только при сбросе формы поиска
-  //old_price_type_id:number;// для временного хранения id типа цены при редактировании цены в таблице, чтобы если цена после редактирования не изменится, тип цены вернулся в доредактируемое состояние
-  
-  
+  spravSysEdizmOfProductAll: idAndNameAndShorname[] = [];// массив, куда будут грузиться все единицы измерения товара
+  receivedPriceTypesList: idNameDescription [] = [];//массив для получения списка типов цен
+
   //поиск адреса и юр. адреса (Страна, Район, Город):
   // Страны 
   spravSysCountries: IdAndName_ru[] = [];// массив, куда будут грузиться все страны 
@@ -354,13 +291,9 @@ export class CustomersordersDockComponent implements OnInit {
   area:string = '';
 
   // Формы
-  // formBaseInformation:any;//форма для основной информации, содержащейся в документе
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
-  formSearch:any;// форма для поиска товара, ввода необходимых данных и отправки всего этого в formBaseInformation в качестве элемента массива
-  public formBaseInformation: FormGroup; //массив форм для накопления информации о товаре
-  customersOrdersProductTable: CustomersOrdersProductTable; //форма, из которой будет состоять массив formBaseInformation
+  formBaseInformation: FormGroup; //массив форм для накопления информации о Заказе покупателя
   settingsForm: any; // форма с настройками
-  // dataSource: MatTableDataSource<any>;
 
   //переменные для управления динамическим отображением элементов
   visBeforeCreatingBlocks = true; //блоки, отображаемые ДО создания документа (до получения id)
@@ -449,11 +382,9 @@ export class CustomersordersDockComponent implements OnInit {
   @ViewChild("formCashierLogin", {static: false}) formCashierLogin; 
   @ViewChild("formBI", {static: false}) formBI; 
   @ViewChild(MatAccordion) accordion: MatAccordion;
+  @ViewChild(ProductSearchAndTableComponent, {static: false}) public productSearchAndTableComponent:ProductSearchAndTableComponent;
   @Input() authorized: boolean;
-  // @ViewChild(MatTable) _table:MatTable<any>;
-  // @ViewChild(MatTable, {static: false}) table : MatTable<CustomersOrdersProductTable>;
-  edizmName:string='';//наименование единицы измерения
-  formSearchReadOnly=false;
+
   isDocNumberUnicalChecking = false;//идёт ли проверка на уникальность номера
   doc_number_isReadOnly=true;
   is_completed=false;
@@ -484,7 +415,7 @@ export class CustomersordersDockComponent implements OnInit {
     private _router:Router) 
     { 
       if(activateRoute.snapshot.params['id'])
-      this.id = +activateRoute.snapshot.params['id'];
+        this.id = +activateRoute.snapshot.params['id'];
     }
 
   ngOnInit() {
@@ -535,35 +466,6 @@ export class CustomersordersDockComponent implements OnInit {
       company: new FormControl                  ('',[]),
       date_time_created: new FormControl        ('',[]),
       date_time_changed: new FormControl        ('',[]),
-    });
-    
-    this.formSearch = new FormGroup({
-      row_id: new FormControl                   ('',[]),
-      product_id: new FormControl               ('',[Validators.required]),
-      customers_orders_id: new FormControl      ('',[]),
-      product_count: new FormControl            ('',[Validators.pattern('^[0-9]{1,6}(?:[.,][0-9]{0,3})?\r?$')]),
-      product_price: new FormControl            ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
-      product_sumprice: new FormControl         (0 ,[]),
-      // тип расценки. priceType - по типу цены, costPrice - себестоимость, manual - вручную
-      pricingType: new FormControl              ('priceType' ,[]),
-      //наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType
-      changePrice: new FormControl              (50,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
-      // Наценка (plus) или скидка (minus)
-      plusMinus: new FormControl                ('plus',[]),
-      // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
-      changePriceType: new FormControl          ('procents',[]),
-      price_type_id: new FormControl            (0 ,[]),
-      edizm_id: new FormControl                 (0 ,[]),
-      additional: new FormControl               ('',[]),
-      nds_id: new FormControl                   ('',[Validators.required]),
-      secondaryDepartmentId: new FormControl    (0 ,[Validators.required]),// id склада, выбранного в форме поиска товара
-      available: new FormControl                ('',[]),//доступно
-      reserved: new FormControl                 ('',[]),//зарезервировано в этом отделении в других Заказах покупателя
-      total: new FormControl                    ('',[]),//остатки
-      reserve: new FormControl                  (false,[]),//резервировать (да-нет)
-      ppr_name_api_atol: new FormControl        ('',[]), //Признак предмета расчета в системе Атол. Невидимое поле. Нужно для передачи в таблицу товаров в качестве тега для чека на ккм Атол
-      is_material: new FormControl              ('',[]), //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
-      reserved_current: new FormControl         ('',[]),
     });
 
     // Форма настроек
@@ -623,18 +525,18 @@ export class CustomersordersDockComponent implements OnInit {
       password: new FormControl ('',[Validators.required]),
     });
     if(Cookie.get('anotherCashierVatin')=='undefined' || Cookie.get('anotherCashierVatin')==null)    
-    Cookie.set('anotherCashierVatin',''); else this.anotherCashierVatin=Cookie.get('anotherCashierVatin');
+      Cookie.set('anotherCashierVatin',''); else this.anotherCashierVatin=Cookie.get('anotherCashierVatin');
+
     if(Cookie.get('anotherCashierFio')=='undefined' || Cookie.get('anotherCashierFio')==null)    
-    Cookie.set('anotherCashierFio',''); else this.anotherCashierFio=Cookie.get('anotherCashierFio');
+      Cookie.set('anotherCashierFio',''); else this.anotherCashierFio=Cookie.get('anotherCashierFio');
+
     this.kassaSettingsForm.get("customCashierFio").disable();
     this.kassaSettingsForm.get("customCashierVatin").disable();
 
 
-    this.onProductSearchValueChanges();//отслеживание изменений поля "Поиск товара"
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Покупатель"
     this.getSetOfPermissions();//
-    this.getSpravSysNds();
-    
+    this.getSpravSysNds();// загрузка справочника НДС
     //   getSetOfPermissions()
     // ->getMyId()
     // ->getMyCompanyId()
@@ -648,7 +550,7 @@ export class CustomersordersDockComponent implements OnInit {
     // ->setDefaultDepartment()
     // ->getStatusesList()
     // ->setDefaultStatus()
-    // ->refreshPermissions() *
+    // ->refreshPermissions()*
 
     //слушалки на изменение полей адреса
     this.filteredSpravSysCountries=this.formBaseInformation.get('country').valueChanges.pipe(startWith(''),map((value:string) => this.filter_country(value)));
@@ -656,21 +558,27 @@ export class CustomersordersDockComponent implements OnInit {
     this.onCitySearchValueChanges();
 
   }
-//---------------------------------------------------------------------------------------------------------------------------------------                            
-// ----------------------------------------------------- *** ПРАВА *** ------------------------------------------------------------------
-//---------------------------------------------------------------------------------------------------------------------------------------
 
-getSetOfPermissions(){
-  const body = {"documentId": 23};//23= Заказы покупателей 
-           return this.http.post('/api/auth/giveMeMyPermissions', body) 
-    .subscribe(
-        (data) => {   
-                    this.permissionsSet=data as any [];
-                    this.getMyId();
-                },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-    );
-}
+  get childFormValid() {
+    if(this.productSearchAndTableComponent!=undefined)
+      return this.productSearchAndTableComponent.getControlTablefield().valid;
+    else return true;    //чтобы не было ExpressionChangedAfterItHasBeenCheckedError. Т.к. форма создается пустая и с .valid=true, а потом уже при заполнении проверяется еще раз.
+  }
+  //---------------------------------------------------------------------------------------------------------------------------------------                            
+  // ----------------------------------------------------- *** ПРАВА *** ------------------------------------------------------------------
+  //---------------------------------------------------------------------------------------------------------------------------------------
+
+  getSetOfPermissions(){
+    const body = {"documentId": 23};//23= Заказы покупателей 
+             return this.http.post('/api/auth/giveMeMyPermissions', body) 
+      .subscribe(
+          (data) => {   
+                      this.permissionsSet=data as any [];
+                      this.getMyId();
+                  },
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+      );
+  }
 
   getCRUD_rights(permissionsSet:any[]){
     this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==280)});
@@ -713,7 +621,6 @@ getSetOfPermissions(){
       this.visAfterCreatingBlocks = false;
       this.visBeforeCreatingBlocks = true;
     }
-    
     this.editability=((this.allowToCreate && +this.id==0)||(this.allowToUpdate && this.id>0));
     // console.log("myCompanyId - "+this.myCompanyId);
     // console.log("documentOfMyCompany - "+documentOfMyCompany);
@@ -722,59 +629,12 @@ getSetOfPermissions(){
     // console.log("allowToCreate - "+this.allowToCreate);
     // return true;
     this.necessaryActionsBeforeAutoCreateNewDock();
+    this.necessaryActionsBeforeGetChilds();
   }
-// --------------------------------------- *** ЧЕКБОКСЫ *** -------------------------------------
-  masterToggle() {
-    this.isThereSelected() ?
-    this.resetSelecion() :
-    this.formBaseInformation.controls.customersOrdersProductTable.value.forEach(row => {
-          if(this.showCheckbox(row)){this.selection.select(row);}//если чекбокс отображаем, значит можно удалять этот документ
-        });
-        this.createCheckedList();
-    this.isAllSelected();
-    this.isThereSelected();
-  }
-  resetSelecion(){
-    this.selection.clear(); 
-  }
-  clickTableCheckbox(row){
-    this.selection.toggle(row); 
-    this.createCheckedList();
-    this.isAllSelected();
-    this.isThereSelected();
-  }
-  createCheckedList(){
-    this.checkedList = [];
-    // console.log("1");
-    for (var i = 0; i < this.formBaseInformation.controls.customersOrdersProductTable.value.length; i++) {
-      // console.log("2");
-      if(this.selection.isSelected(this.formBaseInformation.controls.customersOrdersProductTable.value[i]))
-      this.checkedList.push(this.formBaseInformation.controls.customersOrdersProductTable.value[i].row_id);
-    }
-    if(this.checkedList.length>0){
-      // console.log("3");
-    }else{/*console.log("");*/}
-    // console.log("checkedList - "+this.checkedList);
-  }
-  isAllSelected() {//все выбраны
-    const numSelected = this.selection.selected.length;
-    const numRows = this.formBaseInformation.controls.customersOrdersProductTable.value.length;
-    return  numSelected === numRows;//true если все строки выбраны
-  }  
-  isThereSelected() {//есть выбранные
-    return this.selection.selected.length>0;
-  } 
-  showCheckbox(row:CustomersOrdersProductTable):boolean{
-    if(!(+row.shipped>0))return true; else return false;
-  }
-  /**                              КОНЕЦ ЧЕКБОКСОВ                                  */
-  trackByIndex(i: any) { return i; }
 
   getData(){
     if(+this.id>0){
       this.getDocumentValuesById();
-      this.getProductsTable();
-      // this.accordion.closeAll();
     }else {
       this.getCompaniesList(); 
       this.setDefaultDate();
@@ -794,6 +654,12 @@ getSetOfPermissions(){
             this.canCreateNewDock=true;
             this.createNewDocument();
           }
+  }
+  //нужно загруить всю необходимую информацию, прежде чем вызывать детей (Поиск и добавление товара, Кассовый модуль), иначе их ngOnInit выполнится быстрее, чем загрузится вся информация в родителе
+  necessaryActionsBeforeGetChilds(){
+    this.аctionsBeforeGetChilds++;
+    //Если набрано необходимое кол-во действий
+    if(this.аctionsBeforeGetChilds==4) this.canGetChilds=true;
   }
   refreshShowAllTabs(){
     if(this.id>0){//если в документе есть id
@@ -852,13 +718,9 @@ getSetOfPermissions(){
   }
 
   onCompanyChange(){
-    // this.companyId_temp=this.formBaseInformation.get('company_id').value;
-    // this.formBI.resetForm();//реализовано через ViewChild: @ViewChild("formBI", {static: false}) formBI; + В <form..> прописать #formBI="ngForm"
     this.formBaseInformation.get('department_id').setValue(null);
     this.formBaseInformation.get('cagent_id').setValue(null);
     this.formBaseInformation.get('cagent').setValue('');
-    
-    // this.formBaseInformation.get('company_id').setValue(this.companyId_temp);
     
     this.resetAddressForm();
     this.resetContactsForm();
@@ -1066,13 +928,8 @@ getSetOfPermissions(){
             this.settingsForm.get('autocreateOnStart').setValue(result.autocreateOnStart);
             this.settingsForm.get('autocreateOnCheque').setValue(result.autocreateOnCheque);
             this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.statusIdOnAutocreateOnCheque);
-            // this.settingsForm.get('priceTypeId').setValue(( +this.settingsForm.get('companyId').value == +this.formBaseInformation.get('company_id').value)?result.priceTypeId:null);
-            //вставляем настройки в форму поиска и добавления товара
-            this.formSearch.get('pricingType').setValue(result.pricingType?result.pricingType:'priceType');
-            // this.formSearch.get('price_type_id').setValue(( +this.settingsForm.get('companyId').value == +this.formBaseInformation.get('company_id').value)?result.priceTypeId:null);
-            this.formSearch.get('changePrice').setValue(result.changePrice?result.changePrice:50);
-            this.formSearch.get('changePriceType').setValue(result.changePriceType?result.changePriceType:'procents');
-            this.formSearch.get('plusMinus').setValue(result.plusMinus?result.plusMinus:'plus');
+            
+            this.necessaryActionsBeforeGetChilds();
             //вставляем Отделение и Покупателя (вставится только если новый документ)
             this.setDefaultInfoOnStart(result.departmentId,result.customerId,result.customer,result.name?result.name:'');
           },
@@ -1083,9 +940,8 @@ getSetOfPermissions(){
   //если новый документ - вставляем Отделение и Покупателя (но только если они принадлежат выбранному предприятию, т.е. предприятие в Основной информации и предприятие, для которого были сохранены настройки совпадают)
   setDefaultInfoOnStart(departmentId:number, customerId:number, customer:string, name:string){
     if(+this.id==0){
-      // alert('+this.id==0');
       if(+departmentId>0 && +this.settingsForm.get('companyId').value == +this.formBaseInformation.get('company_id').value){
-        this.formSearch.get('secondaryDepartmentId').setValue(departmentId);
+        // this.formSearch.get('secondaryDepartmentId').setValue(departmentId);
         this.formBaseInformation.get('department_id').setValue(departmentId);
       }
       if(+customerId>0 && +this.settingsForm.get('companyId').value == +this.formBaseInformation.get('company_id').value){
@@ -1094,7 +950,7 @@ getSetOfPermissions(){
         this.getCagentValuesById(customerId);
       }
       if(this.formBaseInformation.get('name').value=='')
-      this.formBaseInformation.get('name').setValue(name);
+        this.formBaseInformation.get('name').setValue(name);
       this.necessaryActionsBeforeAutoCreateNewDock();
     }
   }
@@ -1115,448 +971,7 @@ getSetOfPermissions(){
         this.isCagentListLoading  = true;
         return this.http.post('/api/auth/getCagentsList', body);
       }else return [];
-    } catch (e) {
-      return [];}}
-  
-  priceRecount(){
-    //перерасчет цены в зависимости от выбранного в поле "Расценивать по" значения
-    switch (this.formSearch.get('pricingType').value) {
-      case 'priceType': {//если Тип цены 
-        this.setPrice(this.productPrice);
-        break;}
-      case 'costPrice': {//если Себестоимость 
-
-        // фактическая величина изменения цены 
-        let priceChangeDelta:number;
-        if(this.formSearch.get('changePrice').value==0) this.formSearch.get('changePrice').setValue(0); //чтобы подставлялся 0 после удаления всего в поле Наценка/Скидка
-
-        switch (this.formSearch.get('changePriceType').value) {
-          case 'procents': {//если выбраны проценты 
-  
-            priceChangeDelta=this.netCostPrice*this.formSearch.get('changePrice').value/100;
-            if(this.formSearch.get('plusMinus').value=='minus') priceChangeDelta = -priceChangeDelta;
-  
-            break;}
-          case 'currency': {//если выбрана валюта 
-  
-            if(this.formSearch.get('plusMinus').value=='minus') 
-              priceChangeDelta = -this.formSearch.get('changePrice').value;
-            else priceChangeDelta = +this.formSearch.get('changePrice').value;
-  
-            break;}
-        }
-        this.setPrice(+(this.netCostPrice+priceChangeDelta).toFixed(2));
-        break;}
-      case 'manual': {      //если Вручную
-          this.setPrice(0);
-        break;
-      }
-    }
-  }
-
-  setPrice(price:number){
-    if(this.settingsForm.get('hideTenths').value)//если опция "Убрать копейки"
-      //отбросим копейки:
-      price=+this.numToPrice(price,0);
-
-    //форматируем в вид цены и вставляем в поле Цена
-    this.formSearch.get('product_price').setValue(this.numToPrice(price,2));
-   
-    this.selected_price=price;
-    this.calcSumPriceOfProduct();
-  }
-
-  calcSumPriceOfProduct(){
-    let switcherNDS:boolean = this.formBaseInformation.get('nds').value;
-    let switcherNDSincluded:boolean = this.formBaseInformation.get('nds_included').value;
-    let selectedNDS:number = this.getNdsMultiplifierBySelectedId(+this.formSearch.get('nds_id').value)
-
-    this.formSearch.get('product_count').setValue((this.formSearch.get('product_count').value!=null?this.formSearch.get('product_count').value:'').replace(",", "."));
-    this.formSearch.get('product_price').setValue((this.formSearch.get('product_price').value!=null?this.formSearch.get('product_price').value:'').replace(",", "."));
-    this.formSearch.get('product_sumprice').setValue(this.numToPrice(
-      (+this.formSearch.get('product_count').value)*(+this.formSearch.get('product_price').value)
-      ,2));
-    //если включён переключатель "НДС", но переключатель "НДС включена" выключен, нужно добавить к цене НДС, выбранное в выпадающем списке
-    if(switcherNDS && !switcherNDSincluded) 
-    {this.formSearch.get('product_sumprice').setValue((+this.formSearch.get('product_sumprice').value*selectedNDS).toFixed(2));}
-  }
-  productTableRecount(){
-    //установим нужно ли передавать в кассу НДС для товаров (если переключатель НДС выключен - значит не передаем)
-    //почему сразу не смотрим на formBaseInformation.get('nds').value? Сделано на будущее, в котором кассовый модуль будет реализован отдельной компонентой
-    this.cheque_nds=this.formBaseInformation.get('nds').value;
-    //перерасчет НДС в форме поиска
-    if(+this.formSearch.get('product_id').value) this.calcSumPriceOfProduct();
-    //перерасчет НДС в таблице товаров
-    if(this.formBaseInformation.controls['customersOrdersProductTable'].value.length>0){
-      let switcherNDS:boolean = this.formBaseInformation.get('nds').value;
-      let switcherNDSincluded:boolean = this.formBaseInformation.get('nds_included').value;
-      let multiplifierNDS:number = 1;//множитель НДС. Рассчитывается для каждой строки таблицы. Например, для НДС 20% будет 1.2, для 0 или без НДС будет 1
-      // let KZ:number = 0; //коэффициент затрат, равер делению расходов на итоговую сумму
-      this.formBaseInformation.value.customersOrdersProductTable.map(i => 
-        {
-          multiplifierNDS = this.getNdsMultiplifierBySelectedId(+i['nds_id']);
-          //если включён переключатель "НДС", но переключатель "НДС включена" выключен,
-          if(switcherNDS && !switcherNDSincluded){
-          //..к сумме добавляем НДС
-            i['product_sumprice']=this.numToPrice(+(+i['product_count']*(+i['product_price'])*multiplifierNDS).toFixed(2),2);
-          }else  i['product_sumprice']=this.numToPrice(+((+i['product_count'])*(+i['product_price'])).toFixed(2),2);//..иначе не добавляем, и сумма - это просто произведение количества на цену
-        });
-    }
-  }
-
-  clickPlusMinus(plusMinus:string){
-    switch (plusMinus) {
-      case 'plus': {
-        this.formSearch.get('plusMinus').setValue('plus');
-        this.priceUpDownFieldName='Наценка';
-        break;}
-      case 'minus': {
-        this.formSearch.get('plusMinus').setValue('minus');
-        this.priceUpDownFieldName='Скидка';
-        break;}
-    }
-    this.priceRecount();
-  }
-
-  //Конвертирует число в строку типа 0.00 например 6.40, 99.25
-  numToPrice(price:number,charsAfterDot:number) {
-    //конертим число в строку и отбрасываем лишние нули без округления
-    const reg = new RegExp("^-?\\d+(?:\\.\\d{0," + charsAfterDot + "})?", "g")
-    const a = price.toString().match(reg)[0];
-    //находим положение точки в строке
-    const dot = a.indexOf(".");
-    // если число целое - добавляется точка и нужное кол-во нулей
-    if (dot === -1) { 
-        return a + "." + "0".repeat(charsAfterDot);
-    }
-    //елси не целое число
-    const b = charsAfterDot - (a.length - dot) + 1;
-    return b > 0 ? (a + "0".repeat(b)) : a;
-  }
-  //-------------------------------------------------------------------------------
-  //--------------------------------------- **** поиск по подстроке для товара  ***** ------------------------------------
-  onProductSearchValueChanges(){
-    this.searchProductCtrl.valueChanges
-    .pipe(
-      debounceTime(500),
-      tap(() => {
-        this.filteredProducts = [];
-        if(+this.formSearch.get('product_id').value==0) this.canAutocompleteQuery=true;
-        console.log(this.searchProductCtrl.value)
-      }),      
-      
-      switchMap(fieldObject => 
-        this.getProductsList()),
-
-    ).subscribe(data => {
-      this.isProductListLoading = false;
-      if (data == undefined) {
-        this.filteredProducts = [];
-      } else {
-        this.filteredProducts = data as any;
-        if(this.filteredProducts.length==1){
-          this.onAutoselectProduct();
-      }}});
-
-      // this.searchProductCtrl.valueChanges.subscribe( x => console.log(x));
-  }
-
-  onAutoselectProduct(){
-    this.canAutocompleteQuery=false;
-    this.formSearch.get('product_count').setValue('1');
-    this.formSearch.get('available').setValue(this.filteredProducts[0].total-this.filteredProducts[0].reserved); //Поле "Доступно" = "Всего" - "В резервах"
-    this.formSearch.get('total').setValue(this.filteredProducts[0].total); //Поле "Всего" - всего единиц товара в отделении (складе)
-    this.formSearch.get('reserved').setValue(this.filteredProducts[0].reserved);//Поле "В резервах" - зарезервировано в этом отделении в других Заказах покупателя
-    this.formSearch.get('product_id').setValue(+this.filteredProducts[0].id);
-    this.searchProductCtrl.setValue(this.filteredProducts[0].name);
-    this.formSearch.get('nds_id').setValue(+this.filteredProducts[0].nds_id);
-    this.formSearch.get('edizm_id').setValue(+this.filteredProducts[0].edizm_id);
-    this.productImageName = this.filteredProducts[0].filename;
-    this.formSearch.get('ppr_name_api_atol').setValue(this.filteredProducts[0].ppr_name_api_atol);
-    this.formSearch.get('is_material').setValue(this.filteredProducts[0].is_material);
-    this.formSearch.get('reserved_current').setValue(this.filteredProducts[0].reserved_current);
-    this.afterSelectProduct();
-  }
-
-  onSelectProduct(product:productSearchResponse){
-    this.formSearch.get('product_count').setValue('1');
-    this.formSearch.get('product_id').setValue(+product.id);
-    this.formSearch.get('edizm_id').setValue(+product.edizm_id);
-    this.formSearch.get('nds_id').setValue(+this.filteredProducts[0].nds_id);
-    this.formSearch.get('available').setValue(product.total-product.reserved);
-    this.formSearch.get('total').setValue(product.total);
-    this.formSearch.get('reserved').setValue(product.reserved);
-    this.formSearch.get('ppr_name_api_atol').setValue(product.ppr_name_api_atol);
-    this.formSearch.get('is_material').setValue(product.is_material);
-    this.formSearch.get('reserved_current').setValue(product.reserved_current);
-    this.productImageName = product.filename;
-    this.afterSelectProduct();
-  }
-  afterSelectProduct(){
-    this.edizmName=this.getEdizmNameBySelectedId(+this.formSearch.get('edizm_id').value);
-    this.formSearchReadOnly=true;
-    this.loadMainImage();
-    this.getProductsPriceAndRemains();
-    setTimeout(() => { this.countInput.nativeElement.focus(); }, 500);
-  }
-
-  getShortInfoAboutProduct(){
-    this.http.get('/api/auth/getShortInfoAboutProduct?department_id='+this.formSearch.get('secondaryDepartmentId').value+'&product_id='+this.formSearch.get('product_id').value+'&price_type_id='+this.formSearch.get('price_type_id').value)
-      .subscribe(
-          data => { 
-            this.shortInfoAboutProduct=data as any;
-            this.shortInfoAboutProductArray[0]=this.shortInfoAboutProduct.quantity;
-            this.shortInfoAboutProductArray[1]=this.shortInfoAboutProduct.change;
-            this.shortInfoAboutProductArray[2]=this.shortInfoAboutProduct.date_time_created;
-            this.shortInfoAboutProductArray[3]=this.shortInfoAboutProduct.avg_purchase_price;
-            this.shortInfoAboutProductArray[4]=this.shortInfoAboutProduct.avg_netcost_price;
-            this.shortInfoAboutProductArray[5]=this.shortInfoAboutProduct.last_purchase_price;
-            this.shortInfoAboutProductArray[6]=this.shortInfoAboutProduct.department_type_price;
-            this.shortInfoAboutProductArray[7]=this.shortInfoAboutProduct.department_sell_price;
-            this.setPrice(+this.shortInfoAboutProductArray[7]>0?this.shortInfoAboutProductArray[7]:0);
-            this.calcSumPriceOfProduct();
-          },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-      );
-  }
-  getProductsPriceAndRemains(){
-     let result:any;
-     let price_type_id:number;
-     price_type_id=(+this.formSearch.get('price_type_id').value==0?0:this.formSearch.get('price_type_id').value);
-     this.http.get('/api/auth/getProductsPriceAndRemains?department_id='+this.formSearch.get('secondaryDepartmentId').value+'&product_id='+this.formSearch.get('product_id').value+'&price_type_id='+price_type_id+'&document_id='+this.id)
-      .subscribe(
-          data => { 
-            result=data as any;
-            this.formSearch.get('total').setValue(result.total);
-            this.formSearch.get('reserved').setValue(result.reserved);
-            this.formSearch.get('available').setValue(result.total-result.reserved);
-            this.netCostPrice=(+result.netCost>0?result.netCost:0);
-            this.productPrice=(+result.price>0?result.price:0);
-            this.priceRecount();
-          },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-      );
-  }
-  // отдает цену товара в текущем предприятии по его id и id его типа цены
-  getProductPrice(product_id:number,price_type_id:number){
-    let price:number;
-    return this.http.get('/api/auth/getProductPrice?company_id='+this.formBaseInformation.get('company_id').value+'&product_id='+product_id+'&price_type_id='+price_type_id)
-  }    
-  
-  checkEmptyProductField(){
-    if(this.searchProductCtrl.value.length==0){
-      this.resetFormSearch();
-    }
-  };    
-
-  resetFormSearch(){
-      this.formSearchReadOnly=false;
-      this.nameInput.nativeElement.focus();
-      this.searchProductCtrl.setValue('');
-      this.edizmName='';
-      this.thumbImageAddress="../../../../../../assets/images/no_foto.jpg";      
-      this.mainImageAddress="";
-      this.productImageName=null;
-      this.imageToShow=null;
-      this.selected_sklad_id=this.formSearch.get('secondaryDepartmentId').value;
-      this.selected_reserve=this.formSearch.get('reserve').value;
-      this.priceTypeId_temp=this.formSearch.get('price_type_id').value;
-      this.form.resetForm();//реализовано через ViewChild: @ViewChild("form", {static: false}) form; + В <form..> прописать #form="ngForm"
-      // this.formSearch.get('price_type_id').setValue(+this.selected_type_price_id);
-      this.formSearch.get('product_count').setValue('');
-      this.formSearch.get('secondaryDepartmentId').setValue(this.selected_sklad_id);
-      this.formSearch.get('pricingType').setValue(this.settingsForm.get('pricingType').value);
-      this.formSearch.get('price_type_id').setValue(this.priceTypeId_temp);
-      this.formSearch.get('plusMinus').setValue(this.settingsForm.get('plusMinus').value);
-      this.formSearch.get('changePrice').setValue(this.settingsForm.get('changePrice').value);
-      this.formSearch.get('changePriceType').setValue(this.settingsForm.get('changePriceType').value);
-
-      // this.formSearch.get('reserve').setValue(this.selected_reserve);
-      this.formSearch.get('reserve').setValue(false);
-      this.selected_price=0;
-      this.calcSumPriceOfProduct();//иначе неправильно будут обрабатываться проверки формы
-      this.resetProductCountOfSecondaryDepartmentsList();// сброс кол-ва товара по отделениям (складам)
-      this.gotProductCount=false;
-      this.netCostPrice=0;
-      this.productPrice=0;
-      // this.changePrice=50;
-  }
-
-  getEdizmNameBySelectedId(srchId:number):string {
-    let name='';
-    this.spravSysEdizmOfProductAll.forEach(a=>{
-      if(+a.id == srchId) {name=a.short_name}
-    }); return name;}
-  
-  getProductsList(){ //заполнение Autocomplete для поля Товар
-    try 
-    {
-      if(this.canAutocompleteQuery && this.searchProductCtrl.value.length>1)
-      {
-        this.isProductListLoading  = true;
-        return this.http.get(
-          '/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.formBaseInformation.get('company_id').value+'&departmentId='+this.formSearch.get('secondaryDepartmentId').value+'&document_id='+this.id
-          );
-      }else return [];
-    } catch (e) {
-      return [];
-    }
-  }
-  
-  onSelectPriorityPriceType(priceTypeId:number,priorityTypePriceSide:string){
-    //устанавливаем значение поля Тип цены 
-    this.formSearch.get('price_type_id').setValue(priceTypeId);
-    this.priorityTypePriceId=priceTypeId;
-    this.settingsForm.get('priorityTypePriceSide').setValue(priorityTypePriceSide);
-    this.onPriceTypeSelection();
-  }
-
-  onPriceTypeSelection(){
-    this.selected_type_price_id = +this.formSearch.get('price_type_id').value;
-    if(this.priorityTypePriceId!=this.selected_type_price_id && +this.priorityTypePriceId!=0){//если тип цены, выбранный через поле "Приоритет типа цены" отличен от типа цены, выбранного через поле "Тип цены"
-      //показываем предупреждение
-      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Выбранный тип цены отличается от приоритетного типа ('+this.getPriceTypesNameById(this.priorityTypePriceId)+')'}});
-    }
-    if(+this.formSearch.get('product_id').value>0){//если товар в форме поиска выбран
-      this.getProductsPriceAndRemains();
-    }
-  }
-
-  getPriceTypesList(){
-    this.receivedPriceTypesList=null;
-    this.loadSpravService.getPriceTypesList(+this.formBaseInformation.get('company_id').value)
-    .subscribe(
-      (data) => {this.receivedPriceTypesList=data as any [];
-        if(+this.id>0){
-          switch (this.settingsForm.get('priorityTypePriceSide').value) {//проверяем дефолтную приоритетную цену
-            case 'sklad': {//если sklad - в поле Тип цены выставляем тип цены склада
-              if(this.department_type_price_id>0)
-              this.formSearch.get('price_type_id').setValue(this.department_type_price_id);
-              else this.showWarningTypePriceDialog('Склад', 'cклада',this.formBaseInformation.get('department').value)
-              break;}
-            case 'cagent': {//если cagent - в поле Тип цены выставляем тип покупателя склада
-              if(this.cagent_type_price_id>0)
-              this.formSearch.get('price_type_id').setValue(this.cagent_type_price_id);
-              else this.showWarningTypePriceDialog('Покупатель', 'покупателя',this.formBaseInformation.get('cagent').value)
-              break;}
-            default:{      //если defprice - в поле Тип цены выставляем тип цены по-умолчанию
-              if(this.default_type_price_id>0)
-              this.formSearch.get('price_type_id').setValue(this.default_type_price_id);
-              else this.showWarningTypePriceDialog('Цена по умолчанию', 'вашего предприятия','('+this.formAboutDocument.get('company').value+')');
-            }
-          }
-          this.selected_type_price_id=this.formSearch.get('price_type_id').value;
-          this.priorityTypePriceId=this.formSearch.get('price_type_id').value;
-        }
-      },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-    );
-  }
-
-  getSecondaryDepartmentById(id:number):SecondaryDepartment{
-    let name:string = '';
-      this.secondaryDepartments.forEach(a=>{
-        if(a.id==id) this.secondaryDepartment=a;
-      })
-    return(this.secondaryDepartment);
-  }
-
-  onSecondaryDepartmentSelection(){
-    //установим текущий тип цены отделения (склада) = типу цены выбранного отделения
-    this.department_type_price_id=this.getSecondaryDepartmentById(this.formSearch.get('secondaryDepartmentId').value).pricetype_id;
-    if(this.settingsForm.get('priorityTypePriceSide').value=='sklad'){// если приоритетным типом цены является Склад
-      //типом цены поля "Приоритет типа цены" для значения Склад будет тип цены выбранного отделения (склада)
-      this.priorityTypePriceId=this.department_type_price_id;
-     //если для данного отделения тип цены не установлен - предупреждение
-      if(+this.department_type_price_id==0)
-        this.showWarningTypePriceDialog('Склад', 'cклада',this.getSecondaryDepartmentById(this.formSearch.get('secondaryDepartmentId').value).name)
-      //установим значение поля Тип цены = типу цены склада
-      this.formSearch.get('price_type_id').setValue(this.department_type_price_id); 
-    } 
-    
-      
-    if(+this.formSearch.get('product_id').value>0){//если товар выбран в поиске товара
-      this.getProductsPriceAndRemains();// обновляем информацию о выбранном товаре по выбранному отделению и возможно сменившемуся типу цены (т.к. у разных отделений свои типы цен)
-    } else{
-      // после смены склада очистить поисковую строку:
-      this.searchProductCtrl.setValue('');
-    } 
-  }
-  //отдает список отделений в виде их Id с зарезервированным количеством и общим количеством товара в отделении
-  getProductCount(){
-    if(+this.formSearch.get('product_id').value>0 && !this.gotProductCount){//если товар выбран в поиске товара и инфу о количестве этого товара в отделениях еще не получали
-      this.gettingProductCount=true;
-      this.http.get('/api/auth/getProductCount?product_id='+this.formSearch.get('product_id').value+'&company_id='+this.formBaseInformation.get('company_id').value+'&document_id='+this.id)
-      .subscribe(
-        data => { 
-        this.productCountByDepartments=data as idAndCount[];
-        this.secondaryDepartments.forEach(s=>{
-          s.total=this.getProductCountOfDepartment(s.id,'total');
-          s.reserved=this.getProductCountOfDepartment(s.id,'reserved');
-        });
-         this.gettingProductCount=false;
-         this.gotProductCount=true;
-        },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-      );
-    }
-  }
-  //сброс кол-ва товаров в форме поиска (в списке Склад)
-  resetProductCountOfSecondaryDepartmentsList(){
-    this.secondaryDepartments.forEach(s=>{
-      s.total=this.getProductCountOfDepartment(s.id,'total');
-      s.reserved=this.getProductCountOfDepartment(s.id,'reserved');
-    });
-  }
-  // из полученных в getProductCount данных отдает количество (необходимого типа) товара. Например, количество зарезервированных товаров в отделении N 
-  getProductCountOfDepartment(department_id:number, type_of_count:string):number{
-    let count:number=0;
-    this.productCountByDepartments.forEach(p=>{
-      if(p.id==department_id){
-        switch (type_of_count){
-          case 'total': {count = p.total; break} //всего 
-          default : count=p.reserved;//зарезервирвано
-        }
-      }
-    })
-    return count;
-  }
-  showWarningTypePriceDialog(typePrice:string, subj:string, subjname:string){
-    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:
-    'Для документа "Заказ покупателя" в качестве приоритетного установлен тип цены "'+typePrice+'", но у '+subj+' "'+subjname+'" тип цены '+(this.settingsForm.get('priorityTypePriceSide').value=='defprice'?'по умолчанию в справочнике "Типы цен" ':'')+'не выбран'
-    }});
-  }
-  loadMainImage(){
-    if(this.productImageName!=null){
-      this.getImageService('/api/auth/getFileImageThumb/' + this.productImageName).subscribe(blob => {
-        this.createImageFromBlob(blob);
-      });
-    } 
-  }
-
-  showImage(name:string){
-    if(this.productImageName!=null){
-      // console.log("productImageName - "+this.productImageName);
-      const dialogRef = this.ShowImageDialog.open(ShowImageDialog, {
-        data:
-        { 
-          link: name,
-        },
-      });
-    }
-  }
-  getImageService(imageUrl: string): Observable<Blob> {
-    return this.http.get(imageUrl, {responseType: 'blob'});
-  }
-  
-  createImageFromBlob(image: Blob) {
-    let reader = new FileReader();
-    reader.addEventListener("load", () => {
-        this.imageToShow = reader.result;
-    }, false);
-    if (image) {
-        reader.readAsDataURL(image);
-    }
+    } catch (e) {return [];}
   }
   getDocumentValuesById(){
     const dockId = {"id": this.id};
@@ -1619,7 +1034,6 @@ getSetOfPermissions(){
                 this.department_type_price_id=documentValues.department_type_price_id;
                 this.cagent_type_price_id=documentValues.cagent_type_price_id;
                 this.default_type_price_id=documentValues.default_type_price_id;
-                this.formSearch.get('secondaryDepartmentId').value=+documentValues.department_id;
                 this.creatorId=+documentValues.creator_id;
                 this.searchCagentCtrl.setValue(documentValues.cagent);
                 this.is_completed=documentValues.is_completed;
@@ -1627,7 +1041,7 @@ getSetOfPermissions(){
                 this.getMyShortInfo();//краткая информация о пользователе
                 this.getSpravSysEdizm();//справочник единиц измерения
                 this.formExpansionPanelsString();
-                this.getPriceTypesList();//список типов цен
+                this.getPriceTypesList();
                 this.getDepartmentsList(false);//отделения
                 this.getStatusesList();//статусы документа Заказ покупателя
                 this.getSpravSysCountries();//Страны
@@ -1652,64 +1066,6 @@ getSetOfPermissions(){
     
     this.onBillingAddressChange(); // если адрес места растчетов "Адрес покупателя", он будет addressString
   }
-
-  getProductsTable(){
-    let ProductsTable: CustomersOrdersProductTable[]=[];
-    //сбрасываем, иначе при сохранении будут прибавляться дубли и прочие глюки
-    const control = <FormArray>this.formBaseInformation.get('customersOrdersProductTable');
-    this.gettingTableData=true;
-    control.clear();
-    this.http.get('/api/auth/getCustomersOrdersProductTable?id='+this.id)
-        .subscribe(
-            data => { 
-                // control.clear();
-                this.gettingTableData=false;
-                ProductsTable=data as any;
-                if(ProductsTable.length>0){
-                  ProductsTable.forEach(row=>{
-                    control.push(this.formingProductRowFromApiResponse(row));
-                    // this._table.renderRows();
-                  });
-                }
-                
-            },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-        );
-  }
-
-  getSpravSysNds(){
-        this.loadSpravService.getSpravSysNds()
-        .subscribe((data) => {this.spravSysNdsSet=data as any[];},
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});}
-
-  getNdsNameBySelectedId(srchId:number):string {
-    let name='';
-    this.spravSysNdsSet.forEach(a=>{
-      if(+a.id == srchId) {name=a.name}
-    }); return name;}
-  getPriceTypeNameBySelectedId(srchId:number):string {
-    let name='';
-    this.receivedPriceTypesList.forEach(a=>{
-      if(+a.id == srchId) {name=a.name}
-    }); return name;}
-  getPriceTypesNameById(id:number):string{
-    let name:string = 'тип цены не установлен';
-    if(this.receivedPriceTypesList){
-      this.receivedPriceTypesList.forEach(a=>{
-        if(a.id==id) name=a.name;
-      })
-    }
-    return(name);
-  }
-  getNdsMultiplifierBySelectedId(srchId:number):number {
-  //возвращает множитель по выбранному НДС. например, для 20% будет 1.2, 0% - 1 и т.д 
-      let value=0;
-      this.spravSysNdsSet.forEach(a=>{
-        if(+a.id == srchId) {value=(a.name.includes('%')?(+a.name.replace('%','')):0)/100+1}
-      }); return value;}        
-
-
-
   getTotalProductCount() {
     return  (this.formBaseInformation.value.customersOrdersProductTable.map(t => +t.product_count).reduce((acc, value) => acc + value, 0)).toFixed(3).replace(".000", "").replace(".00", "");
   }
@@ -1736,60 +1092,9 @@ getSetOfPermissions(){
         formIndex++;
         });return retIndex;}
 
-  addProductRow() 
-  { 
-  let thereProductInTableWithSameId:boolean=false;
-    this.formBaseInformation.value.customersOrdersProductTable.map(i => 
-    {// список товаров не должен содержать одинаковые товары из одного и того же склада. Тут проверяем на это
-      if(+i['product_id']==this.formSearch.get('product_id').value && +i['department_id']==this.formSearch.get('secondaryDepartmentId').value)
-      {//такой товар с таким складом уже занесён в таблицу товаров ранее, и надо поругаться.
-        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Данный товар из выбранного вами склада уже есть в списке товаров!',}});
-        thereProductInTableWithSameId=true; 
-      }
-    });
-    if(!thereProductInTableWithSameId){//такого товара  для выбранного складад в списке ещё нет. Добавляем в таблицу (в форму formBaseInformation)
-      const control = <FormArray>this.formBaseInformation.get('customersOrdersProductTable');
-      control.push(this.formingProductRowFromSearchForm());
-     this.resetFormSearch();//подготовка формы поиска к дальнейшему вводу товара
-    } 
-  }
-  //формирование строки таблицы с товарами для заказа покупателя из формы поиска товара
-  formingProductRowFromSearchForm() {
-    return this._fb.group({
-      id: new FormControl (null,[]),
-      row_id: [this.getRowId()],
-      // bik: new FormControl ('',[Validators.required,Validators.pattern('^[0-9]{9}$')]),
-      product_id:  new FormControl (+this.formSearch.get('product_id').value,[]),
-      customers_orders_id:  new FormControl (+this.id,[]),
-      name:  new FormControl (this.searchProductCtrl.value,[]),
-      product_count:  new FormControl (+this.formSearch.get('product_count').value,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$'), ValidationService.countMoreThanZero]),
-      edizm:  new FormControl (this.edizmName,[]),
-      edizm_id:  new FormControl (+this.formSearch.get('edizm_id').value,[]),
-      product_price: new FormControl (this.formSearch.get('product_price').value,[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),ValidationService.priceMoreThanZero]),
-      product_price_of_type_price:  new FormControl (+this.formSearch.get('product_price').value,[]),
-      product_sumprice:  new FormControl (this.formSearch.get('product_sumprice').value,[]),
-      available:  new FormControl (+this.formSearch.get('available').value,[]),
-      nds:  new FormControl (this.getNdsNameBySelectedId(+this.formSearch.get('nds_id').value),[]),
-      nds_id:  new FormControl (+this.formSearch.get('nds_id').value,[]),
-      price_type:  new FormControl    ((this.selected_price==+this.formSearch.get('product_price').value && this.formSearch.get('pricingType').value=='priceType')?this.getPriceTypeNameBySelectedId(+this.formSearch.get('price_type_id').value):'',[]),
-      price_type_id:  new FormControl ((this.selected_price==+this.formSearch.get('product_price').value && this.formSearch.get('pricingType').value=='priceType')?+this.formSearch.get('price_type_id').value:null,[]),
-      reserve: new FormControl (this.formSearch.get('reserve').value,[]),// переключатель Резерв
-      reserved: new FormControl (this.formSearch.get('reserved').value,[]), // сколько зарезервировано этого товара в других документах за исключением этого
-      total: new FormControl (this.formSearch.get('total').value,[]),
-      priority_type_price: new FormControl (this.settingsForm.get('priorityTypePriceSide').value,[]),// приоритет типа цены: Склад (sklad) Покупатель (cagent) Цена по-умолчанию (defprice)
-      department_id: new FormControl (this.formSearch.get('secondaryDepartmentId').value,[]), //id отделения, выбранного в форме поиска 
-      department: new FormControl (this.getSecondaryDepartmentById(+this.formSearch.get('secondaryDepartmentId').value).name,[]), //имя отделения, выбранного в форме поиска 
-      shipped: new FormControl (0,[]),// ведь еще ничего не отгрузили
-      ppr_name_api_atol:  new FormControl (this.formSearch.get('ppr_name_api_atol').value,[]), //Признак предмета расчета в системе Атол
-      is_material:  new FormControl (this.formSearch.get('is_material').value,[]), //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
-      reserved_current:  new FormControl (this.formSearch.get('reserved_current').value,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),// зарезервировано единиц товара в отделении (складе) в ЭТОМ (текущем) Заказе покупателя
-    });
-  }
-  // ('',[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')])
   formingProductRowFromApiResponse(row: CustomersOrdersProductTable) {
     return this._fb.group({
       id: new FormControl (row.id,[]),
-      row_id: [this.getRowId()],// row_id нужен для идентифицирования строк у которых нет id (например из только что создали и не сохранили)
       product_id: new FormControl (row.product_id,[]),
       customers_orders_id: new FormControl (+this.id,[]),
       name: new FormControl (row.name,[]),
@@ -1816,76 +1121,28 @@ getSetOfPermissions(){
       reserved_current:  new FormControl (row.reserved_current,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),// зарезервировано единиц товара в отделении (складе) в ЭТОМ (текущем) Заказе покупателя
     });
   }
-  getRowId():number{
-    let current_row_id:number=this.row_id;
-    this.row_id++;
-    return current_row_id;
-  }
-  
-  deleteProductRow(row: CustomersOrdersProductTable,index:number) {
-    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
-      width: '400px',
-      data:
-      { 
-        head: 'Удаление товарной позиции',
-        warning: 'Удалить товар '+row.name+' ?',
-        // query: 'Данная товарная позиция удалится безвозвратно',
-      },
-    });
-    dialogRef.afterClosed().subscribe(result => {
-      if(result==1){
-        const control = <FormArray>this.formBaseInformation.get('customersOrdersProductTable');
-        if(+row.id==0){// ещё не сохраненная позиция, можно не удалять с сервера (т.к. ее там нет), а только удалить локально
-          control.removeAt(index);
-        }else{ //нужно удалить с сервера и перезагрузить страницу
-          this.http.get('/api/auth/deleteCustomersOrdersProductTableRow?id='+row.id)
-          .subscribe(
-              data => { 
-                this.getProductsTable();
-                this.openSnackBar("Товар успешно удалён", "Закрыть");
-              },
-              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-          );
-        }
-      }
-    }); 
-  }
-  // Обработка нажатия на переключалку Резерв в форме поиска товара
-  onClickReserveSwitcher(){
-    if(this.formSearch.get('reserve').value){
-      this.formSearch.get('reserved_current').setValue(0);
-    }else{
-      this.formSearch.get('reserved_current').setValue(this.formSearch.get('product_count').value);
+   //Конвертирует число в строку типа 0.00 например 6.40, 99.25
+  numToPrice(price:number,charsAfterDot:number) {
+    //конертим число в строку и отбрасываем лишние нули без округления
+    const reg = new RegExp("^-?\\d+(?:\\.\\d{0," + charsAfterDot + "})?", "g")
+    const a = price.toString().match(reg)[0];
+    //находим положение точки в строке
+    const dot = a.indexOf(".");
+    // если число целое - добавляется точка и нужное кол-во нулей
+    if (dot === -1) { 
+        return a + "." + "0".repeat(charsAfterDot);
     }
+    //елси не целое число
+    const b = charsAfterDot - (a.length - dot) + 1;
+    return b > 0 ? (a + "0".repeat(b)) : a;
   }
+
   hideOrShowNdsColumn(){
     if(this.formBaseInformation.get('nds').value){
       this.displayedColumns = ['select','name','product_count','edizm','product_price','product_sumprice','reserved_current','available','total','reserved','shipped','price_type','nds','department',/*'id','row_id','indx',*/'delete'];
     } else {
       this.displayedColumns = ['select','name','product_count','edizm','product_price','product_sumprice','reserved_current','available','total','reserved','shipped','price_type','department',/*'id','row_id','indx',*/'delete'];
     }
-  }
-  onChangeProductPrice(row_index:number){
-    const control = this.getControlTablefield();
-    let product_price = control.controls[row_index].get('product_price').value;
-    let product_price_of_type_price = control.controls[row_index].get('product_price_of_type_price').value;
-    if (+product_price != +product_price_of_type_price) control.controls[row_index].get('price_type_id').setValue(null);
-    this.productTableRecount();
-  }
-  onChangePriceTypeOfRow(row_index:number){
-    const control = this.getControlTablefield();
-    let product_id = control.at(row_index).get('product_id').value;
-    let price_type_id = control.at(row_index).get('price_type_id').value;
-        this.getProductPrice(product_id,price_type_id)
-        .subscribe(
-          data => { 
-            const price=data as number;
-            control.controls[row_index].get('product_price').setValue((+price));
-            control.controls[row_index].get('product_price_of_type_price').setValue((+price));
-            this.productTableRecount();
-          },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-        );
   }
 
   getControlTablefield(){
@@ -1912,13 +1169,6 @@ getSetOfPermissions(){
     } 
   }
 
-  clearTable(): void {
-      const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
-        width: '400px',data:{head: 'Очистка списка товаров',warning: 'Вы хотите удалить все товары из списка?',query: ''},});
-      dialogRef.afterClosed().subscribe(result => {
-        if(result==1){this.formBaseInformation = this._fb.group({CustomersOrdersProductTable: this._fb.array([])});}});  
-  }
-  
   checkDocNumberUnical() {
     if(!this.formBaseInformation.get('doc_number').errors)
     {
@@ -1962,6 +1212,12 @@ getSetOfPermissions(){
   }
 
   updateDocument(onChequePrinting?:boolean){ 
+    const control = <FormArray>this.formBaseInformation.get('customersOrdersProductTable');
+    control.clear();
+    //забираем таблицу товаров из дочернего компонента и записываем ее в основную форму для отправки всего этого дела на сохранение
+    this.productSearchAndTableComponent.getProductTable().forEach(row=>{
+      control.push(this.formingProductRowFromApiResponse(row));
+    });
     return this.http.post('/api/auth/updateCustomersOrders',  this.formBaseInformation.value)
       .subscribe(
           (data) => 
@@ -1997,90 +1253,6 @@ getSetOfPermissions(){
     this._snackBar.open(message, action, {
       duration: 3000,
     });
-  }
-
-  openProductCard(dockId:number) {
-    const dialogRef = this.dialogCreateProduct.open(ProductsDockComponent, {
-      maxWidth: '95vw',
-      maxHeight: '95vh',
-      height: '95%',
-      width: '95%',
-      data:
-      { 
-        mode: 'viewInWindow',
-        dockId: dockId
-      },
-    });
-  } 
-
-  openDialogProductReserves(departmentId:number,productId: number) { //открывает диалог отчета резервов
-    const dialogReserves = this.ProductReservesDialogComponent.open(ProductReservesDialogComponent, {
-      maxWidth: '95vw',
-      maxHeight: '95vh',
-      height: '95%',
-      width: '95%', 
-      minHeight: '200px',
-      data:
-      { 
-        companyId: this.formBaseInformation.get('company_id').value,
-        documentId: +this.id,
-        productId: productId,
-        departmentId:departmentId,
-      },
-    });
-    dialogReserves.afterClosed().subscribe(result => {
-    });
-  }
-//открывает диалог расценки/ from - откуда открываем: searchForm - форма поиска товара, tableHeader - шапка таблицы, tableRow - строка таблицы
-  openDialogPricing(product_id:number, secondaryDepartmentId:number, price_type_id:number,from:string) { 
-    const dialogPricing = this.PricingDialogComponent.open(PricingDialogComponent, {
-      maxWidth: '95vw',
-      maxHeight: '95vh',
-      height: '600px',
-      width: '400px', 
-      minHeight: '600px',
-      data:
-      { //отправляем в диалог:
-        companyId:        this.formBaseInformation.get('company_id').value, //id предприятия
-        documentId:       this.id, //id документа
-        productId:        product_id, // id товара 
-        departmentId:     secondaryDepartmentId, //id отделения
-        priceTypeId:      price_type_id, //id типа цены
-        plusMinus:        this.formSearch.get('plusMinus').value, //наценка или скидка ("+" или "-")
-        pricingType:      this.formSearch.get('pricingType').value, // тип расценки (По типу цены, по Себестоимости или вручную)
-        changePrice:      this.formSearch.get('changePrice').value, //наценка или скидка в цифре (например, 50)
-        changePriceType:  this.formSearch.get('changePriceType').value,// выражение наценки/скидки (валюта или проценты)
-        hideTenths:       this.settingsForm.get('hideTenths').value, //убирать десятые и сотые доли цены (копейки) 
-        saveSettings:     this.settingsForm.get('saveSettings').value, //по-умолчанию сохранять настройки
-        priceTypesList:   this.receivedPriceTypesList,
-      },
-    });
-    dialogPricing.afterClosed().subscribe(result => {
-      if(result){
-        this.applySettings(result);
-        if(result.get('saveSettings').value){
-          //если в диалоге Расценки стояла галка Сохранить настройки - вставляем настройки в форму настроек и сохраняем
-          this.settingsForm.get('pricingType').setValue(result.get('pricingType').value);
-          this.settingsForm.get('priceTypeId').setValue(result.get('priceTypeId').value);
-          this.settingsForm.get('plusMinus').setValue(result.get('plusMinus').value);
-          this.settingsForm.get('changePrice').setValue(result.get('changePrice').value);
-          this.settingsForm.get('changePriceType').setValue(result.get('changePriceType').value);
-          this.settingsForm.get('hideTenths').setValue(result.get('hideTenths').value);
-          this.settingsForm.get('companyId').setValue(this.formBaseInformation.get('company_id').value);
-          this.saveSettingsCustomersOrders();
-        }
-      }
-    });
-  }
-
-  applySettings(set:any){
-    this.formSearch.get('pricingType').setValue(set.get('pricingType').value);
-    this.formSearch.get('price_type_id').setValue(set.get('priceTypeId').value);
-    this.formSearch.get('plusMinus').setValue(set.get('plusMinus').value);
-    this.formSearch.get('changePrice').setValue(set.get('changePrice').value);
-    this.formSearch.get('changePriceType').setValue(set.get('changePriceType').value);
-    this.formSearch.get('product_price').setValue(set.get('resultPrice').value);
-    this.calcSumPriceOfProduct();
   }
 
   //открывает диалог настроек
@@ -2142,6 +1314,26 @@ getSetOfPermissions(){
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
             );
   }
+  getPriceTypesList(){
+    this.receivedPriceTypesList=null;
+    this.loadSpravService.getPriceTypesList(this.formBaseInformation.get('company_id').value)
+    .subscribe(
+      (data) => {
+        this.receivedPriceTypesList=data as any [];
+        this.necessaryActionsBeforeGetChilds();
+      },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+    );
+  }
+  getSpravSysNds(){
+      this.loadSpravService.getSpravSysNds()
+        .subscribe((data) => {
+          this.spravSysNdsSet=data as any[];
+          this.necessaryActionsBeforeGetChilds();
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+  }
+
 //******************************************************************************************************************************************/
 //*******************************           В Ы Б О Р  С Т Р А Н Ы,  Р А Й О Н А,  Г О Р О Д А       ***************************************/
 //******************************************************************************************************************************************/
@@ -2462,7 +1654,7 @@ getSetOfPermissions(){
             }
           }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
         }
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Нет связи с сервером "Атол web-сервер"'}})});
   }  
   openShift(){
     let response: any;

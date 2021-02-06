@@ -7,6 +7,7 @@ import { ValidationService } from './validation.service';
 import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SettingsCustomersordersDialogModule } from '../../../dialogs/settings-customersorders-dialog/settings-customersorders-dialog.module';
+import { ProductSearchAndTableModule } from 'src/app/modules/trade-modules/product-search-and-table/product-search-and-table.module';
 
 @NgModule({
   declarations: [CustomersordersDockComponent, ControlMessagesComponent],
@@ -14,6 +15,7 @@ import { SettingsCustomersordersDialogModule } from '../../../dialogs/settings-c
     CommonModule,
     CustomersordersDockRoutingModule,
     SettingsCustomersordersDialogModule,
+    ProductSearchAndTableModule,
 
     MaterialModule,
     FormsModule,
