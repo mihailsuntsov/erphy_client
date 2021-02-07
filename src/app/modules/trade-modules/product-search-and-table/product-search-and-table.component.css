@@ -3,7 +3,6 @@
     align-items: center;
     justify-content: center;
 }
-
 table {width: 100%;}
 
 li {list-style: none;}
@@ -129,7 +128,6 @@ div#status {
     font-size:14px;
     margin-left: -2px;
 }
-
 div#costPrice .material-icons {
     line-height:0 !important;
     vertical-align: middle;
@@ -137,7 +135,6 @@ div#costPrice .material-icons {
 div#costPrice input {
     margin-left: 19px;
 }
-
 /*-------------- спиннер ---------------------------*/
 .spinner{
     position: absolute;
