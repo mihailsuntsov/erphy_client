@@ -189,7 +189,7 @@
                                                         panelClass="department-list"
                                                         (selectionChange)="onSecondaryDepartmentSelection()"
                                                         formControlName="secondaryDepartmentId">
-                                                            <span *ngFor="let department of receivedDepartmentsList"  class="flex" style="border: 0px solid ;margin: 2px 0; min-width:278px;">
+                                                            <span *ngFor="let department of secondaryDepartments"  class="flex" style="border: 0px solid ;margin: 2px 0; min-width:278px;">
                                                                 <mat-option
                                                                     [value]="department.id"
                                                                     style="padding:0px 5px; flex-grow: 1;">

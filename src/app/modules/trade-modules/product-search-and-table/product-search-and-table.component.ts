@@ -178,7 +178,6 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   @Input() plusMinus:string;
   @Input() changePrice:number;
   @Input() changePriceType:string;
-  @Input() receivedDepartmentsList: SecondaryDepartment [] = [];//массив для получения списка отделений
   @Input() department_id:number;
   @Input() secondaryDepartments:SecondaryDepartment[]=[];// склады в выпадающем списке складов формы поиска товара
   @Input() saveSettings:boolean;
