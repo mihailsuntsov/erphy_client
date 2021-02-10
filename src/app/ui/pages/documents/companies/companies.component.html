@@ -2,7 +2,7 @@
   
     <mat-card-title class="flex" style="height: 30px;">
         <div *ngIf="!displayingDeletedDocks" class="card-name">Предприятия</div>
-        <div *ngIf="displayingDeletedDocks" class="card-name">Удалённые предприятия</div>
+        <div *ngIf="displayingDeletedDocks" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> предприятия</div>
         <!-- {{!displayingDeletedDocks}} -->
         <div [style.display]="(visBtnAdd && !displayingDeletedDocks)?'block':'none' " class="col-sm-auto justify-content-center" style="margin-bottom:10px">
             <a [routerLink]="['../../companiesdock', '']">

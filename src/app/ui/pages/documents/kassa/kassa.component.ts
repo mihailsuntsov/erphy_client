@@ -117,17 +117,17 @@ export class KassaComponent implements OnInit {
     this.sendingQueryForm.searchCategoryString="";
     this.sendingQueryForm.filterOptionsIds = [];
     if(Cookie.get('kassa_companyId')=='undefined' || Cookie.get('kassa_companyId')==null)     
-    Cookie.set('kassa_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('kassa_companyId')=="0"?"0":+Cookie.get('kassa_companyId'));
+      Cookie.set('kassa_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('kassa_companyId')=="0"?"0":+Cookie.get('kassa_companyId'));
     if(Cookie.get('kassa_departmentId')=='undefined' || Cookie.get('kassa_departmentId')==null)  
       Cookie.set('kassa_departmentId',this.sendingQueryForm.departmentId); else this.sendingQueryForm.departmentId=(Cookie.get('kassa_departmentId')=="0"?"0":+Cookie.get('kassa_departmentId'));
     if(Cookie.get('kassa_sortAsc')=='undefined' || Cookie.get('kassa_sortAsc')==null)       
-    Cookie.set('kassa_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('kassa_sortAsc');
+      Cookie.set('kassa_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('kassa_sortAsc');
     if(Cookie.get('kassa_sortColumn')=='undefined' || Cookie.get('kassa_sortColumn')==null)    
-    Cookie.set('kassa_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('kassa_sortColumn');
+      Cookie.set('kassa_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('kassa_sortColumn');
     if(Cookie.get('kassa_offset')=='undefined' || Cookie.get('kassa_offset')==null)        
-    Cookie.set('kassa_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('kassa_offset');
+      Cookie.set('kassa_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('kassa_offset');
     if(Cookie.get('kassa_result')=='undefined' || Cookie.get('kassa_result')==null)        
-    Cookie.set('kassa_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('kassa_result');
+      Cookie.set('kassa_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('kassa_result');
 
     this.fillOptionsList();//заполняем список опций фильтра
     this.getCompaniesList();// 
@@ -258,7 +258,7 @@ export class KassaComponent implements OnInit {
       this.checkedList = [];
       for (var i = 0; i < this.dataSource.data.length; i++) {
         if(this.selection.isSelected(this.dataSource.data[i]))
-        this.checkedList.push(this.dataSource.data[i].id);
+          this.checkedList.push(this.dataSource.data[i].id);
       }
       if(this.checkedList.length>0){
           this.hideAllBtns();

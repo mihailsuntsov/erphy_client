@@ -49,3 +49,9 @@ body {
     z-index: 1000;
     background: white;
   }
+  .star{/*звездочка обязательного поля*/
+    color:crimson;
+    font-size: 20px;
+    font-weight: bold;
+    vertical-align:sub;
+  }

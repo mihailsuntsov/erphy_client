@@ -20,7 +20,8 @@ getTable(queryForm: QueryForm){
                         sortAsc:queryForm.sortAsc, 
                         result:queryForm.result,
                         companyId: queryForm.companyId,
-                        departmentId: queryForm.departmentId};
+                        departmentId: queryForm.departmentId,
+                        filterOptionsIds: queryForm.filterOptionsIds};
         return this.http.post('/api/auth/getCustomersOrdersTable', body); 
     }
 
@@ -31,7 +32,8 @@ getPagesList(queryForm: QueryForm){
                             sortAsc:queryForm.sortAsc, 
                             result:queryForm.result,
                             companyId: queryForm.companyId,
-                            departmentId: queryForm.departmentId
+                            departmentId: queryForm.departmentId,
+                            filterOptionsIds: queryForm.filterOptionsIds
                           };
             return this.http.post('/api/auth/getCustomersOrdersPagesList', body); 
         }

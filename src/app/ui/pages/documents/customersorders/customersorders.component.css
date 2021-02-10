@@ -13,12 +13,26 @@ table {width: 100%;}
     width:100%;
 }
 
-.emptyspace{ flex-grow: 1;}
-
-.company-select{flex-grow: 1; max-width: 400px;}
-
+.company-select{
+    flex-grow: 1; 
+    max-width: 400px;
+    margin-left: 10px;
+}
+.card-name{ flex-grow: 1; }
 .depatrment-select{flex-grow: 1;}
 
+/******* опции *******/
+.emptyspace{ flex-grow: 1;}
+li {list-style: none;}
+.div-100{
+    width:100%;
+    text-align: center;
+}
+.card-name{ flex-grow: 1; }
+.options-button{
+ margin: 5px 15px 0
+}
+/**********************/
 .pagination {
     display: flex;
     padding-left: 10px;
@@ -64,4 +78,15 @@ table {width: 100%;}
   height: 100%;
   width:100%;
   border: 0px solid black;
+}
+
+:root {
+    --light: 20;
+    /* Пороговое значение, отделяющее "светлые" цвета, от "темных". Рекомендуется 50 - 70 */
+    --threshold: 60;
+  }
+   
+.status-name{
+    margin: 5px;
+    color: black;
 }

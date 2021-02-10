@@ -29,6 +29,21 @@ li {list-style: none;}
     display: flex;
     flex-direction: column;
 }
+/*-------------- спиннер ---------------------------*/
+.spinner{
+    position: absolute;
+    top: 0%;
+    left: 50%;
+    margin-left: -22px;
+    margin-top: 78px;
+}
+.spinner-kkm{
+    position: absolute;
+    top: 40%; left: 50%;
+    margin-left: -25px;
+    /* margin-top: 100px; */
+    z-index: 1000;
+}
 /*-------------- Блок ККТ --------------------------*/
 .icon-panel {
     cursor: default;
@@ -63,6 +78,15 @@ li {list-style: none;}
     width: 100%px;
     margin: 8px 8px 8px 0;
   }
+.e-radio-group {
+    display: flex;
+    flex-direction: column;
+    margin: 0px 0 0 -6px;
+} 
+.e-radio-button {
+    margin: 5px;
+}
+
 ::ng-deep .mat-stroked-button{
     line-height: 20px !important;
     width: 33.33%;

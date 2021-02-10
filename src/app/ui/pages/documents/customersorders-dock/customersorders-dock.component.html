@@ -5,7 +5,7 @@
             
             <div class="card-name">Заказ покупателя <span [ngClass]="{invisible: visBeforeCreatingBlocks}">№{{formBaseInformation.get('doc_number').value}}</span></div>
             <div  id="status" style=" font-size: 15px;"> 
-                <div class = "circle-in-selected" [style.background-color]="formBaseInformation.get('status_color').value"></div>
+                <div class = "circle-in-selected" *ngIf="+formBaseInformation.get('status_id').value>0" [style.background-color]="formBaseInformation.get('status_color').value"></div>
                 <mat-form-field  class="mat-form-field-100" style="margin-top: -25px;">
                     <mat-select     style="padding: 0px 0px 0px 23px" 
                                     panelClass="statuseslist"
@@ -83,7 +83,7 @@
                                                                     formControlName="id"/>
                                                         </mat-form-field>
                                                         <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: visAfterCreatingBlocks}">
-                                                            <mat-label>Предприятие{{formBaseInformation.get('company_id').value==''?'*':''}}</mat-label>
+                                                            <mat-label>Предприятие <span *ngIf="formBaseInformation.get('company_id').value==''" class="star">*</span></mat-label>
                                                             <mat-select  formControlName="company_id" (selectionChange)="onCompanyChange()">                          
                                                                 <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
                                                                         {{rt.name}}
@@ -95,7 +95,7 @@
                                                     <div class="col-12"> 
                                                         <mat-form-field  class="mat-form-field-100" [ngClass]="{invisible: visAfterCreatingBlocks}"
                                                         >
-                                                            <mat-label>Отделение (основной склад){{formBaseInformation.get('department_id').value==''?'*':''}}</mat-label>
+                                                            <mat-label>Отделение (основной склад) <span *ngIf="formBaseInformation.get('department_id').value==null" class="star">*</span></mat-label>
                                                             <mat-select formControlName="department_id">
                                                                 <mat-option *ngFor="let department of receivedDepartmentsList" 
                                                                             [value]="department.id">
@@ -122,8 +122,8 @@
                                                                     add_circle_outline
                                                                 </mat-icon>
                                                             </div>
+                                                            <mat-label [ngClass]="{'form-invalid':searchCagentCtrl.touched && formBaseInformation.get('cagent_id').invalid}">{{formBaseInformation.get('cagent_id').value==''||formBaseInformation.get('cagent_id').value==null?'Поиск покупателя ':'Покупатель '}}<span *ngIf="formBaseInformation.get('cagent_id').value==''||formBaseInformation.get('cagent_id').value==null" class="star">*</span></mat-label>
                                                             <input  matInput 
-                                                            placeholder="{{formBaseInformation.get('cagent_id').value==''?'Поиск покупателя*':'Покупатель*'}}"
                                                             [matAutocomplete]="auto4" 
                                                             [formControl]="searchCagentCtrl"
                                                             (input)="canCagentAutocompleteQuery=true; checkEmptyCagentField();"
@@ -153,9 +153,13 @@
                                                                     youtube_searched_for
                                                                 </mat-icon>
                                                             </div>
+                                                            <mat-label>{{formBaseInformation.get('new_cagent').value==''?'Новый покупатель ':'Покупатель'}}<span *ngIf="formBaseInformation.get('new_cagent').value==''||formBaseInformation.get('new_cagent').value==null" class="star">*</span></mat-label>
                                                             <input  matInput
-                                                                    placeholder="{{formBaseInformation.get('new_cagent').value==''?'Новый покупатель*':'Покупатель'}}"
+                                                                    placeholder="{{formBaseInformation.get('new_cagent').value==''?'Наименование нового покупателя':''}}"
                                                                     formControlName="new_cagent"/>
+                                                            <mat-hint  align="start" *ngIf="formBaseInformation.get('new_cagent').touched && formBaseInformation.get('new_cagent').invalid">
+                                                                <i class="form-invalid">Наименование покупателя не введено.</i>
+                                                            </mat-hint>
                                                         </mat-form-field>
                                                     </div>
                                                     <div class="col-12"> 
@@ -510,568 +514,29 @@
 
                                 </div>
                                 <div class="col-lg-4 col-xl-4 col-md-12">  
-                                    <mat-spinner 
-                                        strokeWidth="3" 
-                                        class="spinner-kkm"
-                                        [diameter]="50"
-                                        *ngIf="operationId=='undefined' && +id>0">
-                                    </mat-spinner>
-                                    <mat-card class="internal-card" 
-                                            *ngIf="+id>0" 
-                                            [ngClass]="{settingsBlock:(operationId=='kassaSettings'),smallBlock:(operationId=='undefined'||operationId=='cantwork'||operationId=='sell'||operationId=='buy'||operationId=='sellReturn'||operationId=='buyReturn'||operationId=='openShift'||operationId=='closeShift'||operationId=='error'),mediumBlock:(operationId=='sellCorrection'||operationId=='buyCorrection'||operationId=='sellReturnCorrection'||operationId=='buyReturnCorrection')}">
-                                        <div class="icon-panel"  [style.display]="editability?'block':'none'">
-                                            <mat-icon   matTooltip='Меню'    
-                                                        [matMenuTriggerFor]="menuKKM"
-                                                        (click)="onClickMenuIcon()"
-                                                        class="nav-icon">menu
-                                            </mat-icon>
-                                        </div>
-                                        <mat-menu #menuKKM="matMenu">
-                                            <button mat-menu-item 
-                                                    [matMenuTriggerFor]="cheques"
-                                                    [disabled]="!canWorkWithKassa || operationId=='error' || operationId=='undefined'"
-                                                    matTooltip='Печать чеков'>
-                                                    Чеки
-                                            </button>
-                                            <button mat-menu-item 
-                                                    [matMenuTriggerFor]="shifts"
-                                                    [disabled]="!canWorkWithKassa || operationId=='error' || operationId=='undefined'"
-                                                    matTooltip='Открытие и закрытие смен'>
-                                                    Смены
-                                            </button>
-                                            <button mat-menu-item 
-                                            (click)="onClickKassaSettings()"
-                                            matTooltip='Изменить настройки работы с кассовым аппаратом'>
-                                                <span>Настройки</span>
-                                            </button>
-                                        </mat-menu>
-                                        <mat-menu #cheques="matMenu">
-                                            <button mat-menu-item 
-                                            (click)="onClickReceipt('sell','Чек прихода')">
-                                                <span>Чек прихода</span>
-                                            </button>
-                                            <button mat-menu-item 
-                                            (click)="onClickReceipt('buy','Чек расхода')">
-                                                <span>Чек расхода</span>
-                                            </button>
-                                            <button mat-menu-item 
-                                            (click)="onClickReceipt('sellReturn','Чек возврата прихода')">
-                                                <span>Чек возврата прихода</span>
-                                            </button>
-                                            <button mat-menu-item 
-                                            (click)="onClickReceipt('buyReturn','Чек возврата расхода')">
-                                                <span>Чек возврата расхода</span>
-                                            </button>
-                                            <button mat-menu-item 
-                                            (click)="onClickReceipt('sellCorrection','Чек коррекции прихода')">
-                                                <span>Чек коррекции прихода</span>
-                                            </button>
-                                            <button mat-menu-item 
-                                            (click)="onClickReceipt('buyCorrection','Чек коррекции расхода')">
-                                                <span>Чек коррекции расхода</span>
-                                            </button>
-                                            <!-- <button mat-menu-item 
-                                            (click)="onClickReceipt('sellReturnCorrection','Чек коррекции возврата прихода (ФФД 1.1)')">
-                                                <span>Чек коррекции возврата прихода (ФФД 1.1)</span>
-                                            </button>
-                                            <button mat-menu-item 
-                                            (click)="onClickReceipt('buyReturnCorrection','Чек коррекции возврата расхода (ФФД 1.1)')">
-                                                <span>Чек коррекции возврата расхода (ФФД 1.1)</span>
-                                            </button> -->
-                                        </mat-menu>
-                                        <mat-menu #shifts="matMenu">
-                                            <button mat-menu-item 
-                                            (click)="onClickOpenShift()">
-                                                <span>Открыть смену</span>
-                                            </button>
-                                            <button mat-menu-item 
-                                            (click)="onClickPrintXreport()">
-                                                <span>Печать X-отчёта</span>
-                                            </button>
-                                            <button mat-menu-item 
-                                            (click)="onClickCloseShift()">
-                                                <span>Закрыть смену</span>
-                                            </button>
-                                        </mat-menu>
-                                        <mat-card-header>
-                                            
-                                            <mat-card-title class="card-title">{{operationName}} </mat-card-title>
-                                        </mat-card-header>
-                                        <div class="cashier-fio" *ngIf="operationId!='cantwork'&&operationId!='kassaSettings'&&operationId!='undefined'">
-                                            Кассир: {{cashierFio}}
-                                        </div>
-                                        <!-- Если работа с кассой возможна -->
-                                        <div *ngIf="operationId!='cantwork'">
-                                            <div    style="margin: 15px 18px 10px 18px;" 
-                                                    class="flex" 
-                                                    *ngIf="operationId=='sell'||operationId=='buy'||operationId=='sellReturn'||operationId=='buyReturn'||operationId=='sellCorrection'||operationId=='buyCorrection'||operationId=='sellReturnCorrection'||operationId=='buyReturnCorrection'"
-                                                    >
-                                                <button 
-                                                mat-stroked-button 
-                                                [ngClass]="{selectedPaymentType:(settingsForm.get('selectedPaymentType').value=='cash')}"
-                                                (click)="onSelectedPaymentType('cash')"
-                                                >Наличные</button>
-                                                <button 
-                                                mat-stroked-button 
-                                                [ngClass]="{selectedPaymentType:(settingsForm.get('selectedPaymentType').value=='electronically')}"
-                                                (click)="onSelectedPaymentType('electronically')"
-                                                >Безналичные</button>
-                                                <button 
-                                                mat-stroked-button 
-                                                [ngClass]="{selectedPaymentType:(settingsForm.get('selectedPaymentType').value=='mixed')}"
-                                                (click)="onSelectedPaymentType('mixed')"
-                                                >Смешанная</button>
-                                            </div>
-                                            <mat-card-content class="input-form">
-                                                <div    class="container-fluid" 
-                                                *ngIf="operationId=='sell'||operationId=='buy'||operationId=='sellReturn'||operationId=='buyReturn'||operationId=='sellCorrection'||operationId=='buyCorrection'||operationId=='sellReturnCorrection'||operationId=='buyReturnCorrection'" 
-                                                        style="padding-right: 20px; padding-left: 20px; margin-bottom: -18px;">
-                                                    <div class="row">
-                                                        <div class="col-lg-6  col-md-12">
-                                                            <mat-form-field appearance="outline" 
-                                                                            floatLabel="always"
-                                                                            class="mat-form-field-100">
-                                                                <mat-label>К оплате</mat-label>
-                                                                <input   matInput
-                                                                        [readonly]=true
-                                                                        placeholder="К оплате"
-                                                                        class="prices_input"
-                                                                        [value]="getTotalSumPrice()"/>
-                                                            </mat-form-field>
-                                                        </div>
-                                                        <div class="col-lg-6  col-md-12">
-                                                            <mat-form-field appearance="outline" 
-                                                                            floatLabel="always"
-                                                                            class="mat-form-field-100"
-                                                                            [style.display]="(settingsForm.get('selectedPaymentType').value=='cash'||settingsForm.get('selectedPaymentType').value=='mixed')?'block':'none'">
-                                                                <mat-label>Наличными</mat-label>
-                                                                <input  matInput
-                                                                        [(ngModel)]="nal_income"
-                                                                        class="prices_input"
-                                                                        [ngModelOptions]="{standalone: true}"
-                                                                        [readonly]=false
-                                                                        placeholder="0.00"/>
-                                                            </mat-form-field>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="container-fluid" 
-                                                *ngIf="operationId=='sell'||operationId=='buy'||operationId=='sellReturn'||operationId=='buyReturn'||operationId=='sellCorrection'||operationId=='buyCorrection'||operationId=='sellReturnCorrection'||operationId=='buyReturnCorrection'" 
-                                                style="padding-right: 20px; padding-left: 20px;">
-                                                    <div class="row">
-                                                        <div class="col-lg-6  col-md-12">
-                                                            <mat-form-field appearance="outline" 
-                                                                            floatLabel="always" 
-                                                                            class="mat-form-field-100"
-                                                                            [style.display]="settingsForm.get('selectedPaymentType').value=='electronically'?'none':'block'">
-                                                                <mat-label>Сдача</mat-label>
-                                                                <input   matInput
-                                                                        [readonly]=true
-                                                                        class="prices_input"
-                                                                        [value]="getChange()"/>
-                                                            </mat-form-field>
-                                                        </div>
-                                                        <div class="col-lg-6  col-md-12">
-                                                            <mat-form-field appearance="outline" 
-                                                                            floatLabel="always"
-                                                                            class="mat-form-field-100"
-                                                                            [style.display]="(settingsForm.get('selectedPaymentType').value=='mixed')?'block':'none'">
-                                                                <mat-label>Безналичными</mat-label>
-                                                                <input  matInput
-                                                                        [(ngModel)]="bnal_income"
-                                                                        class="prices_input"
-                                                                        (keypress)="numberOnlyPlusDot($event)"
-                                                                        [ngModelOptions]="{standalone: true}"
-                                                                        [readonly]=false
-                                                                        placeholder="0.00"/>
-                                                                <mat-hint  align="start" *ngIf="+bnal_income>+getTotalSumPrice()">
-                                                                    <i class="form-invalid">Сумма безналичных превышает сумму чека.</i>
-                                                                </mat-hint>
-                                                            </mat-form-field>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="container-fluid operation_block" 
-                                                *ngIf="operationId=='sellCorrection'||operationId=='buyCorrection'||operationId=='sellReturnCorrection'||operationId=='buyReturnCorrection'">
-                                                    <div class="row">
-                                                        <div class="col-12 operation_block_name">
-                                                            Параметры коррекции
-                                                        </div>
-                                                    </div>
-                                                    <div class="row">
-                                                        <div class="col-lg-6 col-md-12">
-                                                            <mat-form-field  class="mat-form-field-100">
-                                                                <input  matInput 
-                                                                        placeholder="Дата коррекции*"
-                                                                        [(ngModel)]="correctionBaseDate"
-                                                                        [readonly]=true
-                                                                        [ngModelOptions]="{standalone: true}"
-                                                                        [matDatepicker]="dp_corr"/>
-                                                                        <mat-datepicker-toggle matSuffix [for]="dp_corr"></mat-datepicker-toggle>
-                                                                <mat-datepicker #dp_corr></mat-datepicker>
-                                                            </mat-form-field>
-                                                        </div>
-                                                        <div class="col-lg-6 col-md-12">
-                                                            <mat-form-field class="mat-form-field-100">
-                                                                <mat-label>Тип коррекции*</mat-label>
-                                                                <mat-select [(ngModel)]="correctionType" [ngModelOptions]="{standalone: true}">
-                                                                    <mat-option value="self">Самостоятельно</mat-option>
-                                                                    <mat-option value="instruction">По предписанию</mat-option>
-                                                                </mat-select>
-                                                            </mat-form-field>
-                                                        </div>
-                                                    </div>
-                                                    <div class="row">
-                                                        <div class="col-lg-6 col-md-12">
-                                                            <mat-form-field  class="mat-form-field-100">
-                                                                <input  matInput 
-                                                                        placeholder="Номер предписания"
-                                                                        [(ngModel)]="correctionBaseNumber"
-                                                                        [ngModelOptions]="{standalone: true}"/>
-                                                            </mat-form-field>
-                                                        </div>
-                                                        <div class="col-lg-6 col-md-12">
-                                                            <mat-form-field  class="mat-form-field-100">
-                                                                <textarea  matInput
-                                                                    placeholder="Комментарий"
-                                                                    [(ngModel)]="correctionCommentary"
-                                                                    [ngModelOptions]="{standalone: true}"
-                                                                    maxlength="28"
-                                                                    rows="1">
-                                                                </textarea>
-                                                                <mat-hint align="end">{{correctionCommentary.length}} / 28</mat-hint>
-                                                            </mat-form-field>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="container-fluid" *ngIf="operationId=='openShift'||operationId=='closeShift'" style="padding-right: 20px; padding-left: 20px; margin: 70px 0 20px;">
-                                                    <div class="row">
-                                                        <div class="col-12">
-                                                            {{shift_status}}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="container-fluid" *ngIf="operationId=='error'" style="padding-right: 20px; padding-left: 20px; margin: 70px 0 20px;">
-                                                    <div class="row">
-                                                        <div class="col-12">
-                                                            {{shift_status}}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <!-- Настройки Кассира -->
-                                                <div class="container-fluid" 
-                                                *ngIf="operationId=='kassaSettings'" 
-                                                style=" padding-right: 20px;
-                                                        padding-left: 18px;">
-                                                    <form [formGroup]="kassaSettingsForm" class="login-form" style="width:100%">
-                                                        <div class="row" style="margin-bottom: 10px;">
-                                                            <div class="col-lg-10 col-md-12">
-                                                                <mat-form-field class="mat-form-field-100">
-                                                                    <mat-label>Касса</mat-label>
-                                                                    <mat-select formControlName="selected_kassa_id" 
-                                                                    (selectionChange)="onKassaSelection()">
-                                                                        <mat-option *ngFor="let kassa of kassaList" 
-                                                                                    [value]="kassa.id">
-                                                                                    {{kassa.name}}
-                                                                        </mat-option>
-                                                                    </mat-select>
-                                                                    <mat-hint  align="start" *ngIf="kassaSettingsForm.get('selected_kassa_id').invalid">
-                                                                        <i class="form-invalid">Касса не выбрана</i>
-                                                                    </mat-hint>
-                                                                </mat-form-field>
-                                                                
-                                                            </div>
-                                                            <div class="col-lg-2 col-md-12 right">
-                                                                <button 
-                                                                    mat-raised-button 
-                                                                    style="width: 36px;
-                                                                    height: 36px;
-                                                                    min-width: 38px;
-                                                                    padding: 0px;
-                                                                    margin: 10px 0 0 -5px;"
-                                                                    color="primary"
-                                                                    [disabled]="!kassaSettingsForm.get('selected_kassa_id').value"
-                                                                    matTooltip='Проверить подключение к кассе'
-                                                                    (click)="testKassaConnect()"
-                                                                    type="submit"
-                                                                    class="button">
-                                                                    <i class="material-icons">settings_ethernet</i>
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                        <!-- <div style="width:100%; border:2px solid red"> -->
-                                                            <mat-progress-bar mode="indeterminate" *ngIf="wasConnectionTest && requestToServer" style="margin:-17px 0 23px"></mat-progress-bar>
-                                                            <div  *ngIf="wasConnectionTest" class="div-100 conn-test-result"> 
-                                                                <span class="test-result-header">{{test_status}}</span>
-                                                            </div>
-                                                        <!-- </div> -->
-                                                        <div class="row">
-                                                            <div class="col-12 operation_block_name">
-                                                            Кассир
-                                                            </div>
-                                                        </div>
-                                                        <div class="row" style="margin-bottom: 10px;">
-                                                            <div class="col-12">
-                                                                <mat-radio-group
-                                                                formControlName="cashier_value_id"
-                                                                    (change)="onCashierTypeChange()"
-                                                                    class="e-radio-group">
-                                                                    <mat-radio-button class="e-radio-button" value="current">
-                                                                        {{userInfo.name}}
-                                                                    </mat-radio-button>
-                                                                    <mat-radio-button class="e-radio-button" value="another">
-                                                                        Другая учетная запись {{anotherCashierFio!=''?(' ('+anotherCashierFio+')'):''}}
-                                                                    </mat-radio-button>
-                                                                    <mat-radio-button class="e-radio-button" value="custom">
-                                                                        Произвольное ФИО
-                                                                    </mat-radio-button>
-                                                                </mat-radio-group>
-                                                            </div>
-                                                        </div>
-                                                        
-                                                        <form [formGroup]="loginform"  #formCashierLogin="ngForm"  class="login-form" style="width:100%">
-                                                            <div class="row">
-                                                                <div class="col-lg-5 col-md-12" *ngIf="kassaSettingsForm.get('cashier_value_id').value=='another' && !anotherCashierIsLoggedIn">
-                                                                    <mat-form-field class="mat-form-field-100">
-                                                                        <input matInput 
-                                                                        placeholder="Логин" 
-                                                                        formControlName="username" 
-                                                                        type="text"    
-                                                                        [ngClass]="{'is-invalid':loginform.get('username').touched && loginform.get('username').invalid}"
-                                                                        />
-                                                                        <mat-hint *ngIf="loginform.get('username').touched && loginform.get('username').invalid">
-                                                                            <i *ngIf="loginform.get('username').errors.required" class="form-invalid">Введите логин</i>
-                                                                            <i *ngIf="loginform.get('username').errors.minlength" class="form-invalid">Логин должно содержать хотя бы 6 символов</i>
-                                                                        </mat-hint>
-                                                                    </mat-form-field>
-                                                                </div>
-                                                                <div class="col-lg-5 col-md-12" *ngIf="kassaSettingsForm.get('cashier_value_id').value=='another' && !anotherCashierIsLoggedIn">
-                                                                    <mat-form-field class="mat-form-field-100">
-                                                                        <input matInput 
-                                                                        placeholder="Пароль" 
-                                                                        formControlName="password"
-                                                                        [type]="'password'"   
-                                                                        [ngClass]="{'is-invalid':loginform.get('password').touched && loginform.get('password').invalid}" 
-                                                                        />
-                                                                        <mat-hint *ngIf="loginform.get('password').touched && loginform.get('password').invalid ">
-                                                                            <i *ngIf="loginform.get('password').errors.required" class="form-invalid">Введите пароль</i>
-                                                                        </mat-hint>
-                                                                    </mat-form-field>
-                                                                </div>
-                                                                <div class="col-lg-2 col-md-12 right" *ngIf="kassaSettingsForm.get('cashier_value_id').value=='another' && !anotherCashierIsLoggedIn">
-                                                                    <button 
-                                                                        mat-raised-button 
-                                                                        style="width: 36px;
-                                                                        height: 36px;
-                                                                        min-width: 38px;
-                                                                        padding: 0px;
-                                                                        margin: 10px 0 0 -5px;"
-                                                                        color="primary"
-                                                                        [disabled]="!loginform.valid"
-                                                                        matTooltip='Войти как кассир'
-                                                                        (click)="cashierLogin()"
-                                                                        type="submit"
-                                                                        class="button">
-                                                                        <i class="material-icons">done</i>
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </form>
-                                                        <div class="row"> 
-                                                            <div class="col-lg-6 col-md-12" *ngIf="kassaSettingsForm.get('cashier_value_id').value=='custom'">
-                                                                <mat-form-field class="mat-form-field-100">
-                                                                    <mat-label>ФИО</mat-label>
-                                                                    <input matInput 
-                                                                    placeholder="Например, Иванов И.В." 
-                                                                    maxlength="30"
-                                                                    formControlName="customCashierFio"
-                                                                    type="text"    
-                                                                    />
-                                                                    <mat-hint  align="start" *ngIf="kassaSettingsForm.get('customCashierFio').touched && kassaSettingsForm.get('customCashierFio').invalid">
-                                                                        <i *ngIf="kassaSettingsForm.get('customCashierFio').value.length==0" class="form-invalid">ФИО не заполнены</i>
-                                                                    </mat-hint>
-                                                                    <mat-hint align="end">{{kassaSettingsForm.get('customCashierFio').value.length}} / 30</mat-hint>
-                                                                </mat-form-field>
-                                                            </div>
-                                                            <div class="col-lg-6 col-md-12" *ngIf="kassaSettingsForm.get('cashier_value_id').value=='custom'">
-                                                                <mat-form-field class="mat-form-field-100">
-                                                                    <input matInput 
-                                                                    placeholder="ИНН" 
-                                                                    (keypress)="numberOnly($event)"
-                                                                    maxlength="12"
-                                                                    formControlName="customCashierVatin"
-                                                                    />
-                                                                    <mat-hint align="start" *ngIf="kassaSettingsForm.get('customCashierVatin').touched && kassaSettingsForm.get('customCashierVatin').invalid">
-                                                                        <i *ngIf="kassaSettingsForm.get('customCashierVatin').errors.pattern" class="form-invalid">Номер должен состоять из 12 цифр</i>
-                                                                        <i *ngIf="kassaSettingsForm.get('customCashierVatin').value.length==0" class="form-invalid">ИНН не заполнен</i>
-                                                                    </mat-hint>
-                                                                    <mat-hint align="end">{{kassaSettingsForm.get('customCashierVatin').value.length}} / 12</mat-hint>
-                                                                </mat-form-field>
-                                                            </div>
-                                                        </div>
-                                                    
-                                                        <div class="row">
-                                                            <div class="col-12 operation_block_name">
-                                                                Место расчёта
-                                                            </div>
-                                                        </div>
-                                                        <div class="row">
-                                                            <div class="col-12">
-                                                                <mat-radio-group
-                                                                    formControlName="billing_address"
-                                                                    (change)="onBillingAddressChange()"
-                                                                    class="e-radio-group">
-                                                                    <mat-radio-button class="e-radio-button" value="settings">
-                                                                        Как в настройках кассы
-                                                                    </mat-radio-button>
-                                                                    <mat-radio-button class="e-radio-button" value="customer" [disabled]="addressString==''">
-                                                                        Адрес покупателя
-                                                                    </mat-radio-button>
-                                                                    <mat-radio-button class="e-radio-button" value="custom">
-                                                                        Произвольный адрес
-                                                                    </mat-radio-button>
-                                                                </mat-radio-group>
-                                                            </div>
-                                                        </div>
-                                                        <div class="row">
-                                                            <div class="col-12">
-                                                                <span *ngIf="kassaSettingsForm.get('billing_address').value!='custom'" 
-                                                                        style="font-size: 12px; color:rgba(0,0,0,.54);">
-                                                                    {{billingAddress}}
-                                                                </span>
-                                                                <mat-form-field  *ngIf="kassaSettingsForm.get('billing_address').value=='custom'" class="mat-form-field-100">
-                                                                    <input matInput 
-                                                                            placeholder="Место расчета" 
-                                                                            [disabled]="kassaSettingsForm.get('billing_address').value!='custom'"
-                                                                            formControlName="custom_billing_address"
-                                                                            type="text"    
-                                                                            />
-                                                                    <mat-hint  align="start" *ngIf="kassaSettingsForm.get('custom_billing_address').touched && kassaSettingsForm.get('custom_billing_address').invalid">
-                                                                        <i class="form-invalid">Место расчёта не заполнено</i>
-                                                                    </mat-hint>
-                                                                </mat-form-field>
-                                                            </div>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </mat-card-content>
-                                            <button 
-                                                mat-raised-button 
-                                                style="width: 129px;
-                                                height: 36px;   
-                                                position: absolute; 
-                                                margin: 0px auto;
-                                                left: 0;
-                                                bottom: 20px;
-                                                right: 0;"
-                                                *ngIf="operationId=='sell'||operationId=='buy'||operationId=='sellReturn'||operationId=='buyReturn'||operationId=='sellCorrection'||operationId=='buyCorrection'||operationId=='sellReturnCorrection'||operationId=='buyReturnCorrection'"
-                                                (click)="checkAndPrintReceipt()"
-                                                [disabled]="!getControlTablefield().valid || getControlTablefield().value.length==0 || (((+getTotalSumPrice()>(+nal_income + (+bnal_income))) || (+bnal_income>+getTotalSumPrice()))&&settingsForm.get('selectedPaymentType').value!='electronically')" 
-                                                color="primary"
-                                                type="submit"
-                                                class="button">
-                                                <i class="material-icons">toc</i> Отбить чек
-                                            </button>
-                                            <button 
-                                                mat-raised-button 
-                                                style="width: 150px;
-                                                height: 36px;   
-                                                position: absolute; 
-                                                margin: 0px auto;
-                                                left: 0;
-                                                bottom: 20px;
-                                                right: 0;"
-                                                *ngIf="operationId=='openShift'"
-                                                (click)="openShift()"
-                                                [disabled]="shiftStatusId!='closed'" 
-                                                color="primary"
-                                                class="button">
-                                                <i class="material-icons">add</i> Открыть смену
-                                            </button>
-                                            <button 
-                                                mat-raised-button 
-                                                style="width: 150px;
-                                                height: 36px;   
-                                                position: absolute; 
-                                                margin: 0px auto;
-                                                left: 0;
-                                                bottom: 20px;
-                                                right: 0;"
-                                                *ngIf="operationId=='closeShift'"
-                                                (click)="closeShift()"
-                                                [disabled]="shiftStatusId=='closed'"  
-                                                color="primary"
-                                                class="button">
-                                                <i class="material-icons">clear</i> Закрыть смену
-                                            </button>
-                                            <button 
-                                                mat-raised-button 
-                                                style="width: 200px;
-                                                height: 36px;   
-                                                position: absolute; 
-                                                margin: 0px auto;
-                                                left: 0;
-                                                bottom: 20px;
-                                                right: 0;"
-                                                *ngIf="operationId=='error'"
-                                                (click)="operationId='undefined';operationName='Операции с ККМ';getShiftStatus(true)"
-                                                color="primary"
-                                                class="button">
-                                                <i class="material-icons">refresh</i> Обновить статус
-                                            </button>
-                                        </div>
-                                        <!-- Если работа с кассой невозможна -->
-                                        <div *ngIf="operationId=='cantwork'" style="margin:20px;">
-                                            <p style="font-weight: bold;">Следующие настройки кассы неверны:</p>
-                                            <p *ngIf="+kassaSettingsForm.get('selected_kassa_id').value==0">- Касса не выбрана</p>
-                                            <p *ngIf="kassaSettingsForm.get('cashier_value_id').value=='another'&&(!anotherCashierFio||!anotherCashierVatin)">- В настройках в графе "Кассир" выбрано "Другая учетная запись", но вход в неё не выполнен.</p>
-                                            <p *ngIf="cashierFio==''">- Кассир не выбран</p>
-                                        </div>
-                                        <button 
-                                            mat-raised-button 
-                                            style="width: 200px;
-                                            height: 36px;   
-                                            position: absolute; 
-                                            margin: 0px auto;
-                                            left: 0;
-                                            bottom: 9px;
-                                            right: 0;"
-                                            *ngIf="operationId=='cantwork'"
-                                            (click)="onClickKassaSettings()"
-                                            color="primary"
-                                            class="button">
-                                            <i class="material-icons">settings</i> Перейти в настройки
-                                        </button>
-                                        <button 
-                                            mat-raised-button 
-                                            style="width: 200px;
-                                            height: 36px;   
-                                            position: absolute; 
-                                            margin: 0px auto;
-                                            left: 0;
-                                            bottom: 9px;
-                                            right: 0;"
-                                            *ngIf="operationId=='kassaSettings'"
-                                            (click)="updateCashierSettings()"
-                                            color="primary"
-                                            [disabled]="!kassaSettingsForm.valid||(kassaSettingsForm.get('cashier_value_id').value=='another')&&anotherCashierFio==''" 
-                                            class="button">
-                                            <i class="material-icons">done</i> Сохранить настройки
-                                        </button>
-                                        <mat-card-actions>
-                                            <span class="kassa_status">{{kassa_status}}</span>
-                                        </mat-card-actions>
-                                    </mat-card>
+                                    <app-kkm 
+                                         *ngIf="canGetChilds && +id>0"
+                                        (sendingProductsTableEvent)="sendingProductsTableHandler()"
+                                        (succesfulChequePrinting)="onSuccesfulChequePrintingHandler()"
+                                        [autocreateOnCheque] = "settingsForm.get('autocreateOnCheque').value"
+                                        [addressString] = "addressString"
+                                        [department_id] = "this.formBaseInformation.get('department_id').value"
+                                        [selectedPaymentType] = "settingsForm.get('selectedPaymentType').value"
+                                        [kkmCanWork] = "childFormValid"
+                                        [cheque_nds] = "cheque_nds"
+                                        [company]="formAboutDocument.get('company').value"
+                                        [department]="formBaseInformation.get('department').value"
+                                    >
+                                    </app-kkm>
                                 </div>
                             </div>  
-<!-- ****************************************************************************************************************************************************************************************** -->
-<!-- ****************************************************************************************************************************************************************************************** -->
-<!-- ****************************************************************************************************************************************************************************************** -->
 <!-- nds_included Parent - {{this.formBaseInformation.get('nds_included').value}}, -->
 <!-- Child form valid: {{ childFormValid }} -->
                             <div class="row">
                                 <div class="col-12"  [ngClass]="{invisible: visBeforeCreatingBlocks}" style="padding-right: 0px; padding-left: 0px;">
-                                    <app-product-search-and-table *ngIf="canGetChilds"
+                                    <app-product-search-and-table 
+                                        *ngIf="canGetChilds && +id>0"
+                                        (totalSumPriceEvent)="totalSumPriceHandler($event)"
                                         [parentDockId]="id" 
                                         [nds]="formBaseInformation.get('nds').value"
                                         [nds_included]="formBaseInformation.get('nds_included').value"
@@ -1096,9 +561,6 @@
                                     ></app-product-search-and-table>
                                 </div>
                             </div>
-<!-- ****************************************************************************************************************************************************************************************** -->
-<!-- ****************************************************************************************************************************************************************************************** -->
-<!-- ****************************************************************************************************************************************************************************************** -->
                         </div>  
                     </mat-tab>
                     <mat-tab  *ngIf="visAfterCreatingBlocks"  label="О документе">

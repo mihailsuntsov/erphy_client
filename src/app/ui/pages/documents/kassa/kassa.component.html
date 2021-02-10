@@ -1,7 +1,7 @@
 <mat-card class="card">
     <mat-card-title class="flex" style="height: 30px;">
         <div *ngIf="!displayingDeletedDocks" class="emptyspace">Кассы онлайн</div>
-        <div *ngIf="displayingDeletedDocks" class="card-name">Удалённые кассы</div>
+        <div *ngIf="displayingDeletedDocks" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> кассы</div>
         <div [style.display]="visBtnAdd==true?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
             <a [routerLink]="['../../kassadock', '']">
                 <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> Создать</button>
@@ -61,38 +61,38 @@
                             </mat-select>
                         </mat-form-field>
                         <span  class="card-name"></span>
-                            <button mat-button
-                                *ngIf="displaySelectOptions"
-                                class="options-button"
-                                [matMenuTriggerFor]="oper"
-                                type="button"
-                                matTooltip='Выбрать опции для фильтра'
-                                matSuffix mat-icon-button>
-                                <mat-icon>list_alt</mat-icon>
-                            </button>
-                            <mat-menu #oper="matMenu" xPosition="before">
-                                <div style="width: 300px;">
-                                    <ul>
-                                        <li *ngFor="let row of optionsIds">
-                                            <mat-checkbox
-                                            (click)="$event.stopPropagation()"
-                                            (change)="$event ? clickFilterOptionsCheckbox(row) : null"
-                                            [checked]="selectionFilterOptions.isSelected(row)"
-                                            >{{row.name}}</mat-checkbox>
-                                        </li>
-                                    </ul>
+                        <button mat-button
+                            *ngIf="displaySelectOptions"
+                            class="options-button"
+                            [matMenuTriggerFor]="oper"
+                            type="button"
+                            matTooltip='Выбрать опции для фильтра'
+                            matSuffix mat-icon-button>
+                            <mat-icon>list_alt</mat-icon>
+                        </button>
+                        <mat-menu #oper="matMenu" xPosition="before">
+                            <div style="width: 300px;">
+                                <ul>
+                                    <li *ngFor="let row of optionsIds">
+                                        <mat-checkbox
+                                        (click)="$event.stopPropagation()"
+                                        (change)="$event ? clickFilterOptionsCheckbox(row) : null"
+                                        [checked]="selectionFilterOptions.isSelected(row)"
+                                        >{{row.name}}</mat-checkbox>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="div-100"> 
+                                <div style="width:100%; height: 38px; padding-bottom: 15px;">
+                                    <button matTooltip="Применить фильтры" 
+                                            mat-mini-fab 
+                                            color="primary" 
+                                            (click)="clickApplyFilters()">
+                                        <mat-icon>done</mat-icon>
+                                    </button>
                                 </div>
-                                <div class="div-100"> 
-                                    <div style="width:100%; height: 38px; padding-bottom: 15px;">
-                                        <button matTooltip="Применить фильтры" 
-                                                mat-mini-fab 
-                                                color="primary" 
-                                                (click)="clickApplyFilters()">
-                                            <mat-icon>done</mat-icon>
-                                        </button>
-                                    </div>
-                                </div> 
-                            </mat-menu>
+                            </div> 
+                        </mat-menu>
                         <span  class="emptyspace" style="display: none"></span>
                         <div class="flex">
                             <mat-form-field class="emptyspace">

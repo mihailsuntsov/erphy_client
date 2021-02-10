@@ -41,9 +41,16 @@ export class SettingsCustomersordersDialogComponent implements OnInit {
   gettingData:boolean=false;
   settingsForm: any; // форма со всей информацией по настройкам
   priceTypesList: idNameDescription [] = [];//список типов цен
+  receivedCompaniesList: any [] = [];//массив для получения списка предприятий
   receivedDepartmentsList: SecondaryDepartment [] = [];//массив для получения списка отделений
+  receivedMyDepartmentsList: SecondaryDepartment [] = [];//массив для получения списка своих отделений
   priceFieldName: string = ''; // наименование поля с предварительной ценой (ценой до наценки/скидки)
   priceUpDownFieldName:string = 'Наценка'; // Наименование поля с наценкой-скидкой
+  //права
+  allowToCreateAllCompanies:boolean;
+  allowToCreateMyCompany:boolean;
+  allowToCreateMyDepartments:boolean;
+
   //для поиска контрагента (получателя) по подстроке
   searchCustomerCtrl = new FormControl();//поле для поиска
   isCagentListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
@@ -67,12 +74,16 @@ export class SettingsCustomersordersDialogComponent implements OnInit {
     }
   
   ngOnInit(): void {
+    this.receivedCompaniesList=this.data.receivedCompaniesList;
+    // this.receivedDepartmentsList=this.data.receivedDepartmentsList;
     this.priceTypesList=this.data.priceTypesList;
-    this.receivedDepartmentsList=this.data.receivedDepartmentsList;
-    this.department_type_price_id=this.data.department_type_price_id;
-    this.cagent_type_price_id=this.data.cagent_type_price_id;
-    this.default_type_price_id=this.data.default_type_price_id;
+    // this.department_type_price_id=this.data.department_type_price_id;
+    // this.cagent_type_price_id=this.data.cagent_type_price_id;
+    // this.default_type_price_id=this.data.default_type_price_id;
     this.id=+this.data.id;
+    this.allowToCreateAllCompanies=this.data.allowToCreateAllCompanies;
+    this.allowToCreateMyCompany=this.data.allowToCreateMyCompany;
+    this.allowToCreateMyDepartments=this.data.allowToCreateMyDepartments;
 
     this.settingsForm = new FormGroup({
       
@@ -92,14 +103,14 @@ export class SettingsCustomersordersDialogComponent implements OnInit {
       hideTenths: new FormControl               (true,[]),
       //сохранить настройки
       saveSettings: new FormControl             (true,[]),
+      //предприятие, для которого создаются настройки
+      companyId: new FormControl                (null,[Validators.required]),
       //отделение по умолчанию
       departmentId: new FormControl             (null,[]),
       //id покупатель по умолчанию
       customerId: new FormControl               (null,[]),
       //название покупателя по умолчанию
       customer: new FormControl                 ('',[]),
-      //предприятие, для которого создаются настройки
-      companyId: new FormControl                (this.data.company_id,[]),
       //наименование заказа
       name:  new FormControl                    ('',[]),
       //приоритет типа цены : Склад (sklad) Покупатель (cagent) Цена по-умолчанию (defprice)
@@ -109,56 +120,107 @@ export class SettingsCustomersordersDialogComponent implements OnInit {
       //автосоздание нового документа, если в текущем успешно напечатан чек
       autocreateOnCheque: new FormControl       (false,[]),
       //статус после успешного отбития чека, перед созданием нового документа
-      statusIdOnAutocreateOnCheque: new FormControl('',[]),
+      statusIdOnAutocreateOnCheque: new FormControl(null,[]),
     });
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Покупатель"
     this.getSettings();
     
   }
-
   //загрузка настроек
   getSettings(){
     let result:any;
     this.gettingData=true;
-    this.http.get('/api/auth/getSettingsCustomersOrders')
-      .subscribe(
-          data => { 
-            result=data as any;
-            this.gettingData=false;
-            //вставляем настройки в форму настроек
+    this.http.get('/api/auth/getSettingsCustomersOrders').subscribe
+    (
+      data => 
+      { 
+        result=data as any;
+        this.gettingData=false;
+        //вставляем настройки в форму настроек
 
-            //если текущее предприятие отлично от того, при котором сохранялись настройки, то данная группа настроек должна быть сброшена, т.к. эти параметры зависят от предприятия:
-            if(this.settingsForm.get('companyId').value != +result.companyId){
-              this.settingsForm.get('departmentId').setValue(null);
-              this.settingsForm.get('customerId').setValue(null);
-              this.settingsForm.get('customer').setValue('');
-              
-              this.searchCustomerCtrl.setValue('');
-            } else {
-              this.settingsForm.get('departmentId').setValue(result.departmentId);
-              this.settingsForm.get('customerId').setValue(result.customerId);
-              this.settingsForm.get('customer').setValue(result.customer);
-              this.searchCustomerCtrl.setValue(result.customer);
-              this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.statusIdOnAutocreateOnCheque);
-            }
-            //данная группа настроек не зависит от предприятия
-            this.settingsForm.get('pricingType').setValue(result.pricingType?result.pricingType:'priceType');
-            this.settingsForm.get('plusMinus').setValue(result.plusMinus?result.plusMinus:'plus');
-            this.settingsForm.get('changePrice').setValue(result.changePrice?result.changePrice:50);
-            this.settingsForm.get('changePriceType').setValue(result.changePriceType?result.changePriceType:'procents');
-            this.settingsForm.get('hideTenths').setValue(result.hideTenths);
-            this.settingsForm.get('saveSettings').setValue(result.saveSettings);
-            this.settingsForm.get('name').setValue(result.name/*?result.name:''*/);
-            this.settingsForm.get('priorityTypePriceSide').setValue(result.priorityTypePriceSide?result.priorityTypePriceSide:'defprice');
-            this.settingsForm.get('autocreateOnStart').setValue(result.autocreateOnStart);
-            this.settingsForm.get('autocreateOnCheque').setValue(result.autocreateOnCheque);
-            this.getStatusesList();
-
-          },
-          error => console.log(error)
-      );
+        //если текущее предприятие отлично от того, при котором сохранялись настройки, то данная группа настроек должна быть сброшена, т.к. эти параметры зависят от предприятия:
+        // if(this.settingsForm.get('companyId').value != +result.companyId){
+        //   this.settingsForm.get('departmentId').setValue(null);
+        //   this.settingsForm.get('customerId').setValue(null);
+        //   this.settingsForm.get('customer').setValue('');
+          
+        //   this.searchCustomerCtrl.setValue('');
+        // } else {
+        //   this.settingsForm.get('departmentId').setValue(result.departmentId);
+        //   this.settingsForm.get('customerId').setValue(result.customerId);
+        //   this.settingsForm.get('customer').setValue(result.customer);
+        //   this.searchCustomerCtrl.setValue(result.customer);
+        //   this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.statusIdOnAutocreateOnCheque);
+        // }
+        this.settingsForm.get('companyId').setValue(result.companyId);
+        this.settingsForm.get('departmentId').setValue(result.departmentId);
+        this.settingsForm.get('customerId').setValue(result.customerId);
+        this.settingsForm.get('customer').setValue(result.customer);
+        this.searchCustomerCtrl.setValue(result.customer);
+        this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.statusIdOnAutocreateOnCheque);
+        //данная группа настроек не зависит от предприятия
+        this.settingsForm.get('pricingType').setValue(result.pricingType?result.pricingType:'priceType');
+        this.settingsForm.get('plusMinus').setValue(result.plusMinus?result.plusMinus:'plus');
+        this.settingsForm.get('changePrice').setValue(result.changePrice?result.changePrice:50);
+        this.settingsForm.get('changePriceType').setValue(result.changePriceType?result.changePriceType:'procents');
+        this.settingsForm.get('hideTenths').setValue(result.hideTenths);
+        this.settingsForm.get('saveSettings').setValue(result.saveSettings);
+        this.settingsForm.get('name').setValue(result.name/*?result.name:''*/);
+        this.settingsForm.get('priorityTypePriceSide').setValue(result.priorityTypePriceSide?result.priorityTypePriceSide:'defprice');
+        this.settingsForm.get('autocreateOnStart').setValue(result.autocreateOnStart);
+        this.settingsForm.get('autocreateOnCheque').setValue(result.autocreateOnCheque);
+        if(+this.settingsForm.get('companyId').value>0){
+          this.getDepartmentsList();
+          this.getStatusesList();
+        }
+      },
+      error => console.log(error)
+    );
   }
 
+  onCompanyChange(){
+    this.settingsForm.get('departmentId').setValue(null);
+    this.searchCustomerCtrl.setValue('');
+    this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(null);
+    this.checkEmptyCagentField();
+    this.getDepartmentsList();
+  }
+  getDepartmentsList(newdock?:boolean){
+    this.receivedDepartmentsList=null;
+    // this.formBaseInformation.get('department_id').setValue('');
+    this.loadSpravService.getDepartmentsListByCompanyId(this.settingsForm.get('companyId').value,false)
+            .subscribe(
+                (data) => {this.receivedDepartmentsList=data as any [];
+                  this.getMyDepartmentsList();
+                },
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+            );
+  }
+  getMyDepartmentsList(){
+    this.receivedMyDepartmentsList=null;
+    this.loadSpravService.getMyDepartmentsListByCompanyId(this.settingsForm.get('companyId').value,false)
+            .subscribe(
+                (data) => {this.receivedMyDepartmentsList=data as any [];
+                  this.doFilterDepartmentsList();
+                  this.setDefaultDepartment();},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+            );
+  }
+
+  doFilterDepartmentsList(){
+    if(!this.allowToCreateAllCompanies && !this.allowToCreateMyCompany && this.allowToCreateMyDepartments){
+      this.receivedDepartmentsList=this.receivedMyDepartmentsList;}
+  }
+  setDefaultDepartment(){
+    if(this.receivedDepartmentsList.length==1)
+    {
+      let depId:number;
+      this.receivedDepartmentsList.forEach(data =>{depId=+data.id;});
+      this.settingsForm.get('departmentId').setValue(depId);
+    }
+    // this.getStatusesList();
+  }
+  
   clickPlusMinus(plusMinus:string){
     switch (plusMinus) {
       case 'plus': {
@@ -223,14 +285,14 @@ export class SettingsCustomersordersDialogComponent implements OnInit {
   getStatusesList(){
     this.receivedStatusesList=null;
     this.loadSpravService.getStatusList(this.settingsForm.get('companyId').value,23) //23 - id документа из таблицы documents
-            .subscribe(
-                (data) => 
-                { this.receivedStatusesList=data as statusInterface[];
-                  if(+this.settingsForm.get('statusIdOnAutocreateOnCheque').value==0) this.setDefaultStatus();
-                  this.setStatusColor();
-                },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-            );
+      .subscribe(
+          (data) => 
+          { this.receivedStatusesList=data as statusInterface[];
+            if(+this.settingsForm.get('statusIdOnAutocreateOnCheque').value==0) this.setDefaultStatus();
+            this.setStatusColor();
+          },
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+      );
            
   }
   setDefaultStatus(){
@@ -267,7 +329,7 @@ export class SettingsCustomersordersDialogComponent implements OnInit {
     //   }
     //   return(name);
     // } else return('');
-    return('');
+     return('');
   }
      
 }

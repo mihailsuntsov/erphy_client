@@ -7,9 +7,10 @@ import { HttpClient } from '@angular/common/http';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { QueryFormService } from './get-customersorders-table.service';
+import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
-import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl } from '@angular/forms';
-import { SettingsCustomersordersDialogComponent } from 'src/app/ui/dialogs/settings-customersorders-dialog/settings-customersorders-dialog.component';
+import { FormGroup, Validators, FormControl } from '@angular/forms';
+import { SettingsCustomersordersDialogComponent } from 'src/app/modules/settings/settings-customersorders-dialog/settings-customersorders-dialog.component';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import {MessageDialog} from 'src/app/ui/dialogs/messagedialog.component';
 
@@ -108,6 +109,12 @@ export class CustomersordersComponent implements OnInit {
   visBtnCopy = false;
   visBtnDelete = false;
 
+  //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
+  selectionFilterOptions = new SelectionModel<idAndName>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние
+  optionsIds: idAndName [];
+  displayingDeletedDocks:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
+  displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
+  //***********************************************************************************************************************/
 
 
   ngOnInit() {
@@ -118,60 +125,63 @@ export class CustomersordersComponent implements OnInit {
     this.sendingQueryForm.offset='0';
     this.sendingQueryForm.result='10';
     this.sendingQueryForm.searchCategoryString="";
+    this.sendingQueryForm.filterOptionsIds = [];
 
     if(Cookie.get('customersorders_companyId')=='undefined' || Cookie.get('customersorders_companyId')==null)     
-    Cookie.set('customersorders_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('customersorders_companyId')=="0"?"0":+Cookie.get('customersorders_companyId'));
+      Cookie.set('customersorders_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('customersorders_companyId')=="0"?"0":+Cookie.get('customersorders_companyId'));
     if(Cookie.get('customersorders_departmentId')=='undefined' || Cookie.get('customersorders_departmentId')==null)  
-    Cookie.set('customersorders_departmentId',this.sendingQueryForm.departmentId); else this.sendingQueryForm.departmentId=(Cookie.get('customersorders_departmentId')=="0"?"0":+Cookie.get('customersorders_departmentId'));
+      Cookie.set('customersorders_departmentId',this.sendingQueryForm.departmentId); else this.sendingQueryForm.departmentId=(Cookie.get('customersorders_departmentId')=="0"?"0":+Cookie.get('customersorders_departmentId'));
     if(Cookie.get('customersorders_sortAsc')=='undefined' || Cookie.get('customersorders_sortAsc')==null)       
-    Cookie.set('customersorders_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('customersorders_sortAsc');
+      Cookie.set('customersorders_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('customersorders_sortAsc');
     if(Cookie.get('customersorders_sortColumn')=='undefined' || Cookie.get('customersorders_sortColumn')==null)    
-    Cookie.set('customersorders_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('customersorders_sortColumn');
+      Cookie.set('customersorders_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('customersorders_sortColumn');
     if(Cookie.get('customersorders_offset')=='undefined' || Cookie.get('customersorders_offset')==null)        
-    Cookie.set('customersorders_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('customersorders_offset');
+      Cookie.set('customersorders_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('customersorders_offset');
     if(Cookie.get('customersorders_result')=='undefined' || Cookie.get('customersorders_result')==null)        
-    Cookie.set('customersorders_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('customersorders_result');
+      Cookie.set('customersorders_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('customersorders_result');
+    
+    this.fillOptionsList();//заполняем список опций фильтра
 
-  // Форма настроек
-  this.settingsForm = new FormGroup({
-    // id отделения
-    departmentId: new FormControl             (null,[]),
-    //покупатель по умолчанию
-    customerId: new FormControl               (null,[]),
-    //наименование покупателя
-    customer: new FormControl                 ('',[]),
-    //наименование заказа по умолчанию
-    orderName:  new FormControl               ('',[]),
-    // тип расценки. priceType - по типу цены, costPrice - себестоимость, manual - вручную
-    pricingType: new FormControl              ('priceType',[]),
-    //тип цены
-    priceTypeId: new FormControl              (null,[]),
-    //наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType
-    changePrice: new FormControl              (50,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
-    // Наценка (plus) или скидка (minus)
-    plusMinus: new FormControl                ('plus',[]),
-    // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
-    changePriceType: new FormControl          ('procents',[]),
-    //убрать десятые (копейки)
-    hideTenths: new FormControl               (true,[]),
-    //сохранить настройки
-    saveSettings: new FormControl             (true,[]),
-    //предприятие, для которого создаются настройки
-    companyId: new FormControl                (null,[]),
-    //наименование заказа
-    name:  new FormControl                    ('',[]),
-    //приоритет типа цены : Склад (sklad) Покупатель (cagent) Цена по-умолчанию (defprice)
-    priorityTypePriceSide: new FormControl    ('defprice',[]),
-    //настройки операций с ККМ
-    //Оплата чека прихода (наличными - nal безналичными - electronically смешанная - mixed)
-    selectedPaymentType:   new FormControl    ('cash',[]),
-    //автосоздание на старте документа, если автозаполнились все поля
-    autocreateOnStart: new FormControl        (false,[]),
-    //автосоздание нового документа, если в текущем успешно напечатан чек
-    autocreateOnCheque: new FormControl       (false,[]),
-    //статус после успешного отбития чека, перед созданием нового документа
-    statusIdOnAutocreateOnCheque: new FormControl('',[]),
-  });
+    // Форма настроек
+    this.settingsForm = new FormGroup({
+      // id отделения
+      departmentId: new FormControl             (null,[]),
+      //покупатель по умолчанию
+      customerId: new FormControl               (null,[]),
+      //наименование покупателя
+      customer: new FormControl                 ('',[]),
+      //наименование заказа по умолчанию
+      orderName:  new FormControl               ('',[]),
+      // тип расценки. priceType - по типу цены, costPrice - себестоимость, manual - вручную
+      pricingType: new FormControl              ('priceType',[]),
+      //тип цены
+      priceTypeId: new FormControl              (null,[]),
+      //наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType
+      changePrice: new FormControl              (50,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      // Наценка (plus) или скидка (minus)
+      plusMinus: new FormControl                ('plus',[]),
+      // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
+      changePriceType: new FormControl          ('procents',[]),
+      //убрать десятые (копейки)
+      hideTenths: new FormControl               (true,[]),
+      //сохранить настройки
+      saveSettings: new FormControl             (true,[]),
+      //предприятие, для которого создаются настройки
+      companyId: new FormControl                (null,[]),
+      //наименование заказа
+      name:  new FormControl                    ('',[]),
+      //приоритет типа цены : Склад (sklad) Покупатель (cagent) Цена по-умолчанию (defprice)
+      priorityTypePriceSide: new FormControl    ('defprice',[]),
+      //настройки операций с ККМ
+      //Оплата чека прихода (наличными - nal безналичными - electronically смешанная - mixed)
+      selectedPaymentType:   new FormControl    ('cash',[]),
+      //автосоздание на старте документа, если автозаполнились все поля
+      autocreateOnStart: new FormControl        (false,[]),
+      //автосоздание нового документа, если в текущем успешно напечатан чек
+      autocreateOnCheque: new FormControl       (false,[]),
+      //статус после успешного отбития чека, перед созданием нового документа
+      statusIdOnAutocreateOnCheque: new FormControl('',[]),
+    });
       this.getCompaniesList();// 
       // -> getSetOfPermissions() 
       // -> getMyId()
@@ -257,12 +267,16 @@ export class CustomersordersComponent implements OnInit {
     if(this.allowToDelete) this.displayedColumns.push('select');
     if(this.showOpenDocIcon) this.displayedColumns.push('opendoc');
     this.displayedColumns.push('doc_number');
+    this.displayedColumns.push('name');
+    this.displayedColumns.push('status');
+    this.displayedColumns.push('sum_price');
     this.displayedColumns.push('shipment_date');
+    // this.displayedColumns.push('description');
     this.displayedColumns.push('company');
     this.displayedColumns.push('department');
-    this.displayedColumns.push('description');
+    
     this.displayedColumns.push('creator');
-    this.displayedColumns.push('status');
+    
     this.displayedColumns.push('date_time_created');
   }
 
@@ -319,7 +333,7 @@ export class CustomersordersComponent implements OnInit {
     for (var i = 0; i < this.dataSource.data.length; i++) {
       // console.log("2");
       if(this.selection.isSelected(this.dataSource.data[i]))
-      this.checkedList.push(this.dataSource.data[i].id);
+        this.checkedList.push(this.dataSource.data[i].id);
     }
     if(this.checkedList.length>0){
       // console.log("3");
@@ -401,12 +415,14 @@ export class CustomersordersComponent implements OnInit {
     // console.log('customersorders_companyId - '+Cookie.get('customersorders_companyId'));
     // console.log('customersorders_departmentId - '+Cookie.get('customersorders_departmentId'));
     this.sendingQueryForm.departmentId="0"; 
+    this.resetOptions();
     this.getDepartmentsList();
   }
   onDepartmentSelection(){
     Cookie.set('customersorders_departmentId',this.sendingQueryForm.departmentId);
     // console.log('customersorders_companyId - '+Cookie.get('customersorders_companyId'));
     // console.log('customersorders_departmentId - '+Cookie.get('customersorders_departmentId'));
+    this.resetOptions();
     this.getData();
   }
   clickBtnDelete(): void {
@@ -419,7 +435,6 @@ export class CustomersordersComponent implements OnInit {
       this.showOnlyVisBtnAdd();
     });        
   }
-
   deleteDocks(){
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
@@ -431,7 +446,34 @@ export class CustomersordersComponent implements OnInit {
                 error => console.log(error),
             );
   }
-    
+  clickBtnRestore(): void {
+    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+      width: '400px',
+      data:
+      { 
+        head: 'Восстановление',
+        query: 'Восстановить выбранные заказы покупателей из удалённых?',
+        warning: '',
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){this.undeleteDocks();}
+      this.clearCheckboxSelection();
+      this.showOnlyVisBtnAdd();
+    });        
+  }
+  undeleteDocks(){
+    const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
+    this.clearCheckboxSelection();
+      return this.http.post('/api/auth/undeleteCustomersOrders', body) 
+    .subscribe(
+        (data) => {   
+                    this.getData();
+                    this.openSnackBar("Успешно восстановлено", "Закрыть");
+                  },
+        error => console.log(error),
+    );
+  }  
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
       duration: 3000,
@@ -540,6 +582,7 @@ export class CustomersordersComponent implements OnInit {
         data:
         { //отправляем в диалог:
           priceTypesList:   this.receivedPriceTypesList, //список типов цен
+          receivedCompaniesList: this.receivedCompaniesList, //список предприятий
           receivedDepartmentsList: this.receivedDepartmentsList,//список отделений
           company_id: +this.sendingQueryForm.companyId, //предприятие (нужно для поиска покупателя)
           department_type_price_id: null,
@@ -590,5 +633,43 @@ export class CustomersordersComponent implements OnInit {
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
     }
-
+//***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
+resetOptions(){
+  this.displayingDeletedDocks=false;
+  this.fillOptionsList();//перезаполняем список опций
+  this.selectionFilterOptions.clear;
+  this.sendingQueryForm.filterOptionsIds = [];
+}
+fillOptionsList(){
+  this.optionsIds=[{id:1, name:"Показать только удалённые"},];
+}
+clickApplyFilters(){
+  let showOnlyDeletedCheckboxIsOn:boolean = false; //присутствует ли включенный чекбокс "Показывать только удалённые"
+  this.selectionFilterOptions.selected.forEach(z=>{
+    if(z.id==1){showOnlyDeletedCheckboxIsOn=true;}
+  })
+  this.displayingDeletedDocks=showOnlyDeletedCheckboxIsOn;
+  this.clearCheckboxSelection();
+  this.sendingQueryForm.offset=0;//сброс пагинации
+  this.getData();
+}
+updateSortOptions(){//после определения прав пересматриваем опции на случай, если права не разрешают действия с определенными опциями, и исключаем эти опции
+  let i=0; 
+  this.optionsIds.forEach(z=>{
+    console.log("allowToDelete - "+this.allowToDelete);
+    if(z.id==1 && !this.allowToDelete){this.optionsIds.splice(i,1)}//исключение опции Показывать удаленные, если нет прав на удаление
+    i++;
+  });
+  if (this.optionsIds.length>0) this.displaySelectOptions=true; else this.displaySelectOptions=false;//если опций нет - не показываем меню опций
+}
+clickFilterOptionsCheckbox(row){
+  this.selectionFilterOptions.toggle(row); 
+  this.createFilterOptionsCheckedList();
+} 
+createFilterOptionsCheckedList(){//this.sendingQueryForm.filterOptionsIds - массив c id выбранных чекбоксов вида "7,5,1,3,6,2,4", который заполняется при нажатии на чекбокс
+  this.sendingQueryForm.filterOptionsIds = [];//                                                     
+  this.selectionFilterOptions.selected.forEach(z=>{
+    this.sendingQueryForm.filterOptionsIds.push(+z.id);
+  });
+}
 }

@@ -1,5 +1,5 @@
-import { Component, OnInit, Input, OnChanges,  SimpleChanges } from '@angular/core';
-import { LoadSpravService } from 'src/app/services/loadsprav';
+import { Component, OnInit, Input, Output, OnChanges,  SimpleChanges } from '@angular/core';
+import { EventEmitter } from '@angular/core';
 import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl } from '@angular/forms';
 import { SelectionModel } from '@angular/cdk/collections';
 import { Observable , of} from 'rxjs';
@@ -103,7 +103,6 @@ interface idAndCount{ //интерфейс для запроса количес�
   selector: 'app-product-search-and-table',
   templateUrl: './product-search-and-table.component.html',
   styleUrls: ['./product-search-and-table.component.css'],
-  providers: [LoadSpravService,]
 })
 
 
@@ -184,6 +183,9 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   @Input() receivedPriceTypesList: idNameDescription[];//массив для получения списка типов цен
   @Input() spravSysNdsSet: SpravSysNdsSet[]; //массив имен и id для ндс 
 
+  @Output() totalSumPriceEvent = new EventEmitter<string>();
+
+
   constructor(
     private _fb: FormBuilder,
     public MessageDialog: MatDialog,
@@ -193,7 +195,6 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
     public ShowImageDialog: MatDialog,
     public PricingDialogComponent: MatDialog,
     public dialogCreateProduct: MatDialog,
-    private loadSpravService:   LoadSpravService,
     private http: HttpClient,
   ) {}
 
@@ -468,11 +469,15 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
     const control = <FormArray>this.formBaseInformation.get('customersOrdersProductTable');
     return control;
   }
-  getTotalProductCount() {
+  getTotalProductCount() {//бежим по столбцу product_count и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
     return  (this.formBaseInformation.value.customersOrdersProductTable.map(t => +t.product_count).reduce((acc, value) => acc + value, 0)).toFixed(3).replace(".000", "").replace(".00", "");
   }
   getTotalSumPrice() {
-    return  (this.formBaseInformation.value.customersOrdersProductTable.map(t => +t.product_sumprice).reduce((acc, value) => acc + value, 0)).toFixed(2);
+    //бежим по столбцу product_sumprice и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
+    let totalSumPrice:any = (this.formBaseInformation.value.customersOrdersProductTable.map(t => +t.product_sumprice).reduce((acc, value) => acc + value, 0)).toFixed(2);
+    //отправляем родителю результат (для его дальнейшей переправки в кассовый модуль)
+    this.totalSumPriceEvent.emit(totalSumPrice);
+    return totalSumPrice;
   }
   productTableRecount(nds_included?:boolean){
     if(this.formBaseInformation!=undefined){//метод может вызываться из ngOnChanges, а т.к. он стартует до ngOnInit, то formBaseInformation может еще не быть
@@ -579,11 +584,6 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
           if(+a.id == srchId) {value=(a.name.includes('%')?(+a.name.replace('%','')):0)/100+1}
         }); return value;}    
 
-  // getSpravSysNds(){
-  //       this.loadSpravService.getSpravSysNds()
-  //       .subscribe((data) => {this.spravSysNdsSet=data as any[];},
-  //       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});}
-
   //Конвертирует число в строку типа 0.00 например 6.40, 99.25
   numToPrice(price:number,charsAfterDot:number) {
     //конертим число в строку и отбрасываем лишние нули без округления
@@ -628,35 +628,25 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
     }); 
   }
   getPriceTypesList(){
-    // this.receivedPriceTypesList=null;
-    // this.loadSpravService.getPriceTypesList(this.company_id)
-    // .subscribe(
-    //   (data) => {
-        // this.receivedPriceTypesList=data as any [];
-        // if(+this.parentDockId>0){
-          switch (this.priorityTypePriceSide) {//проверяем дефолтную приоритетную цену
-            case 'sklad': {//если sklad - в поле Тип цены выставляем тип цены склада
-              if(this.department_type_price_id>0)
-                this.formSearch.get('price_type_id').setValue(this.department_type_price_id);
-              else this.showWarningTypePriceDialog('Склад', 'cклада',this.department)
-              break;}
-            case 'cagent': {//если cagent - в поле Тип цены выставляем тип покупателя склада
-              if(this.cagent_type_price_id>0)
-                this.formSearch.get('price_type_id').setValue(this.cagent_type_price_id);
-              else this.showWarningTypePriceDialog('Покупатель', 'покупателя',this.cagent)
-              break;}
-            default:{      //если defprice - в поле Тип цены выставляем тип цены по-умолчанию
-              if(this.default_type_price_id>0)
-                this.formSearch.get('price_type_id').setValue(this.default_type_price_id);
-              else this.showWarningTypePriceDialog('Цена по умолчанию', 'вашего предприятия','('+this.company+')');
-            }
-          }
-          this.selected_type_price_id=this.formSearch.get('price_type_id').value;
-          this.priorityTypePriceId=this.formSearch.get('price_type_id').value;
-        // }
-    //   },
-    //     error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-    // );
+    switch (this.priorityTypePriceSide) {//проверяем дефолтную приоритетную цену
+      case 'sklad': {//если sklad - в поле Тип цены выставляем тип цены склада
+        if(this.department_type_price_id>0)
+          this.formSearch.get('price_type_id').setValue(this.department_type_price_id);
+        else this.showWarningTypePriceDialog('Склад', 'cклада',this.department)
+        break;}
+      case 'cagent': {//если cagent - в поле Тип цены выставляем тип покупателя склада
+        if(this.cagent_type_price_id>0)
+          this.formSearch.get('price_type_id').setValue(this.cagent_type_price_id);
+        else this.showWarningTypePriceDialog('Покупатель', 'покупателя',this.cagent)
+        break;}
+      default:{      //если defprice - в поле Тип цены выставляем тип цены по-умолчанию
+        if(this.default_type_price_id>0)
+          this.formSearch.get('price_type_id').setValue(this.default_type_price_id);
+        else this.showWarningTypePriceDialog('Цена по умолчанию', 'вашего предприятия','('+this.company+')');
+      }
+    }
+    this.selected_type_price_id=this.formSearch.get('price_type_id').value;
+    this.priorityTypePriceId=this.formSearch.get('price_type_id').value;
   }
 
   showWarningTypePriceDialog(typePrice:string, subj:string, subjname:string){
@@ -687,8 +677,6 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
         if(this.filteredProducts.length==1){
           this.onAutoselectProduct();
       }}});
-
-      // this.searchProductCtrl.valueChanges.subscribe( x => console.log(x));
   }
 
   getEdizmNameBySelectedId(srchId:number):string {

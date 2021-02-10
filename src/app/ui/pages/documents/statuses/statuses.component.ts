@@ -106,17 +106,17 @@ export class StatusesComponent implements OnInit {
       this.sendingQueryForm.filterOptionsIds = [];
 
       if(Cookie.get('satusdock_companyId')=='undefined' || Cookie.get('satusdock_companyId')==null)     
-      Cookie.set('satusdock_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('satusdock_companyId')=="0"?"0":+Cookie.get('satusdock_companyId'));
+        Cookie.set('satusdock_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('satusdock_companyId')=="0"?"0":+Cookie.get('satusdock_companyId'));
       if(Cookie.get('satusdock_documentId')=='undefined' || Cookie.get('satusdock_documentId')==null)  
-      Cookie.set('satusdock_documentId',this.sendingQueryForm.documentId); else this.sendingQueryForm.documentId=(Cookie.get('satusdock_documentId')=="0"?"0":+Cookie.get('satusdock_documentId'));
+        Cookie.set('satusdock_documentId',this.sendingQueryForm.documentId); else this.sendingQueryForm.documentId=(Cookie.get('satusdock_documentId')=="0"?"0":+Cookie.get('satusdock_documentId'));
       if(Cookie.get('satusdock_sortAsc')=='undefined' || Cookie.get('satusdock_sortAsc')==null)       
-      Cookie.set('satusdock_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('satusdock_sortAsc');
+        Cookie.set('satusdock_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('satusdock_sortAsc');
       if(Cookie.get('satusdock_sortColumn')=='undefined' || Cookie.get('satusdock_sortColumn')==null)    
-      Cookie.set('satusdock_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('satusdock_sortColumn');
+        Cookie.set('satusdock_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('satusdock_sortColumn');
       if(Cookie.get('satusdock_offset')=='undefined' || Cookie.get('satusdock_offset')==null)        
-      Cookie.set('satusdock_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('satusdock_offset');
+        Cookie.set('satusdock_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('satusdock_offset');
       if(Cookie.get('satusdock_result')=='undefined' || Cookie.get('satusdock_result')==null)        
-      Cookie.set('satusdock_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('satusdock_result');
+        Cookie.set('satusdock_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('satusdock_result');
 
       this.fillOptionsList();//заполняем список опций фильтра
       this.getCompaniesList();// 
@@ -261,7 +261,7 @@ export class StatusesComponent implements OnInit {
     this.checkedList = [];
     for (var i = 0; i < this.dataSource.data.length; i++) {
       if(this.selection.isSelected(this.dataSource.data[i]))
-      this.checkedList.push(this.dataSource.data[i].id);
+        this.checkedList.push(this.dataSource.data[i].id);
     }
     if(this.checkedList.length>0){
         this.hideAllBtns();

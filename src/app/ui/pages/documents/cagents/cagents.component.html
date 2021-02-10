@@ -97,7 +97,7 @@
         <mat-card class="card">
                 <mat-card-title class="flex" style="height: 30px;">
                         <div *ngIf="!displayingDeletedDocks" class="emptyspace">Контрагенты</div>
-                        <div *ngIf="displayingDeletedDocks" class="card-name">Удалённые контрагенты</div>
+                        <div *ngIf="displayingDeletedDocks" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> контрагенты</div>
                         <div [style.display]="(checkedList.length>0 && mode=='select')?'block':'none'" style="margin:0px 0px 10px 10px">
                             <button  mat-raised-button [mat-dialog-close]=checkedList cdkFocusInitial color="primary"><i class="material-icons">done</i>
                                 <span> Выбрать</span>
