@@ -134,6 +134,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   selected_type_price_id: number; //тип цены, выбранный в форме поиска. Нужен для восстановления выбранного типа цены при сбросе формы поиска товара
   selected_price: number = 0; //цена, выбранная через поле Тип цены. Нужна для сравнения с полем Цена для выявления факта изменения его значения, и оставления значения столбце Тип цены пустым
   selected_sklad_id: number; //id склада, выбранный в форме поиска. Нужен для восстановления при сбросе формы поиска товара
+  selected_pricingType: string; // тип расценки, выбранный в форме поиска.  Нужен для восстановления при сбросе формы поиска товара
   selected_reserve: boolean; //резервирование, выбранное в форме поиска. Нужно для восстановления при сбросе формы поиска товара
   priorityTypePriceId:number=0;// id типа цены, выбранный через поле "Приоритет типа цены"
   secondaryDepartment:SecondaryDepartment; //склад, выбранный в форме поиска товара
@@ -159,6 +160,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   @ViewChild("countInput", {static: false}) countInput;
   @ViewChild("nameInput", {static: false}) nameInput; 
   @ViewChild("form", {static: false}) form; 
+  @ViewChild("productSearchFieldValue", {static: false}) productSearchFieldValue;
   // @ViewChild(MatTable, {static: false}) table_:MatTable<CustomersOrdersProductTable>; 
 
   @Input() parentDockId:number;
@@ -210,13 +212,13 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
       product_price: new FormControl            ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       product_sumprice: new FormControl         (0 ,[]),
       // тип расценки. priceType - по типу цены, costPrice - себестоимость, manual - вручную
-      pricingType: new FormControl              ('priceType' ,[]),
-      //наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType
-      changePrice: new FormControl              (50,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      pricingType: new FormControl              (this.pricingType ,[]),
+      //величина наценки или скидки. В чем выражается (валюта или проценты) - определяет changePriceType
+      changePrice: new FormControl              (this.changePrice,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       // Наценка (plus) или скидка (minus)
-      plusMinus: new FormControl                ('plus',[]),
+      plusMinus: new FormControl                (this.plusMinus,[]),
       // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
-      changePriceType: new FormControl          ('procents',[]),
+      changePriceType: new FormControl          (this.changePriceType,[]),
       price_type_id: new FormControl            (0 ,[]),
       edizm_id: new FormControl                 (0 ,[]),
       additional: new FormControl               ('',[]),
@@ -263,6 +265,10 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
       setTimeout(() => {this.productTableRecount();}, 1);// ставим таймаут, иначе таблица пересчитывается но не обновляется при добавлении столбца. Не понятно, баг это или фича
     }
   }
+  ngAfterViewInit() {
+    setTimeout(() => { this.productSearchFieldValue.nativeElement.focus(); }, 1000);
+  }
+
   trackByIndex(i: any) { return i; }
 
 // --------------------------------------- *** ЧЕКБОКСЫ *** -------------------------------------
@@ -614,12 +620,14 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
         const control = <FormArray>this.formBaseInformation.get('customersOrdersProductTable');
         if(+row.id==0){// ещё не сохраненная позиция, можно не удалять с сервера (т.к. ее там нет), а только удалить локально
           control.removeAt(index);
-        }else{ //нужно удалить с сервера и перезагрузить страницу
+          this.getTotalSumPrice();//чтобы пересчиталась сумма в чеке
+        }else{ //нужно удалить с сервера и перезагрузить таблицу 
           this.http.get('/api/auth/deleteCustomersOrdersProductTableRow?id='+row.id)
           .subscribe(
               data => { 
                 this.getProductsTable();
                 this.openSnackBar("Товар успешно удалён", "Закрыть");
+                this.getTotalSumPrice();//чтобы пересчиталась сумма в чеке
               },
               error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
           );
@@ -1001,7 +1009,6 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
 
   resetFormSearch(){
       this.formSearchReadOnly=false;
-      this.nameInput.nativeElement.focus();
       this.searchProductCtrl.setValue('');
       this.edizmName='';
       this.thumbImageAddress="assets/images/no_foto.jpg";      
@@ -1011,25 +1018,26 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
       this.selected_sklad_id=this.formSearch.get('secondaryDepartmentId').value;
       this.selected_reserve=this.formSearch.get('reserve').value;
       this.priceTypeId_temp=this.formSearch.get('price_type_id').value;
+      this.selected_pricingType=this.formSearch.get('pricingType').value;
       this.form.resetForm();//реализовано через ViewChild: @ViewChild("form", {static: false}) form; + В <form..> прописать #form="ngForm"
       // this.formSearch.get('price_type_id').setValue(+this.selected_type_price_id);
       this.formSearch.get('product_count').setValue('');
       this.formSearch.get('secondaryDepartmentId').setValue(this.selected_sklad_id);
-      this.formSearch.get('pricingType').setValue(this.pricingType);
+      this.formSearch.get('pricingType').setValue(this.selected_pricingType);
       this.formSearch.get('price_type_id').setValue(this.priceTypeId_temp);
       this.formSearch.get('plusMinus').setValue(this.plusMinus);
       this.formSearch.get('changePrice').setValue(this.changePrice);
       this.formSearch.get('changePriceType').setValue(this.changePriceType);
 
-      // this.formSearch.get('reserve').setValue(this.selected_reserve);
-      this.formSearch.get('reserve').setValue(false);
+      this.formSearch.get('reserve').setValue(this.selected_reserve);
+      // this.formSearch.get('reserve').setValue(false);
       this.selected_price=0;
       this.calcSumPriceOfProduct();//иначе неправильно будут обрабатываться проверки формы
       this.resetProductCountOfSecondaryDepartmentsList();// сброс кол-ва товара по отделениям (складам)
       this.gotProductCount=false;
       this.netCostPrice=0;
       this.productPrice=0;
-      // this.changePrice=50;
+      setTimeout(() => { this.productSearchFieldValue.nativeElement.focus(); }, 1000);
   }
   //сброс кол-ва товаров в форме поиска (в списке Склад)
   resetProductCountOfSecondaryDepartmentsList(){
@@ -1080,7 +1088,10 @@ getProductCount(){
     const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
       width: '400px',data:{head: 'Очистка списка товаров',warning: 'Вы хотите удалить все товары из списка?',query: ''},});
     dialogRef.afterClosed().subscribe(result => {
-      if(result==1){this.getControlTablefield().clear()}});  
+      if(result==1){
+        this.getControlTablefield().clear();
+        this.getTotalSumPrice();//чтобы пересчиталась сумма в чеке
+      }});  
   }
 
 }

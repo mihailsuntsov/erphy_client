@@ -90,7 +90,7 @@
     </mat-menu>
     <mat-card-header>
         
-        <mat-card-title class="card-title">{{operationName}} </mat-card-title>
+        <mat-card-title class="card-title">{{operationName}}</mat-card-title>
     </mat-card-header>
     <div class="cashier-fio" *ngIf="operationId!='cantwork'&&operationId!='kassaSettings'&&operationId!='undefined'">
         Кассир: {{cashierFio}}
@@ -452,7 +452,7 @@
         </mat-card-content>
         <button 
             mat-raised-button 
-            style="width: 129px;
+            style="width: 135px;
             height: 36px;   
             position: absolute; 
             margin: 0px auto;
@@ -461,7 +461,7 @@
             right: 0;"
             *ngIf="operationId=='sell'||operationId=='buy'||operationId=='sellReturn'||operationId=='buyReturn'||operationId=='sellCorrection'||operationId=='buyCorrection'||operationId=='sellReturnCorrection'||operationId=='buyReturnCorrection'"
             (click)="checkAndPrintReceipt()"
-            [disabled]="!kkmCanWork || (((+totalSumPrice>(+nal_income + (+bnal_income))) || (+bnal_income>+totalSumPrice))&&selectedPaymentType!='electronically')" 
+            [disabled]="!kkmCanWork || +totalSumPrice==0 || (((+totalSumPrice>(+nal_income + (+bnal_income))) || (+bnal_income>+totalSumPrice))&&selectedPaymentType!='electronically')" 
             color="primary"
             type="submit"
             class="button">

@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit, ViewChild,  OnChanges,  SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ViewChild,  OnChanges,  SimpleChanges, AfterContentChecked } from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { KkmAtolService } from '../../../../services/kkm_atol';
@@ -158,11 +158,6 @@ interface idAndName{ //универсалный интерфейс для выб
   id: number;
   name: string;
 }
-interface idAndCount{ //интерфейс для запроса количества товара
-  id: number;
-  reserved: number;
-  total: number;
-}
 interface idNameDescription{
   id: number;
   name: string;
@@ -173,16 +168,7 @@ interface idAndNameAndShorname{ //универсалный интерфейс д
   name: string;
   short_name: string;
 }
-interface ShortInfoAboutProduct{//интреф. для получения инфо о состоянии товара в отделении (кол-во, последняя поставка), и средним ценам (закупочной и себестоимости) товара
-  quantity:number;
-  change:number;
-  avg_purchase_price:number;
-  avg_netcost_price:number;
-  last_purchase_price:number;
-  department_sell_price:number;
-  department_type_price:string;
-  date_time_created:string;
-}
+
 interface SecondaryDepartment{
   id: number;
   name: string;
@@ -199,29 +185,6 @@ interface statusInterface{
   description:string;
   is_default:boolean;
 }
-
-//Интерфейсы для кассового модуля
-/*interface KassaList{
-  id: number;// id  кассы
-  company_id: number; // id предприятия
-  department_id: number; // id отделения
-  name: string; // наименование кассы
-  server_type: string; // тип сервера (атол или ккмсервер)
-  sno1_id: number; // id системы налогообложения
-  device_server_uid: string;// уник. идентификатор кассы на сервере
-  server_address: string;//адрес сервера в сети
-  sno1_name_api_atol:string; //система налогообложения кассы
-  billing_address:string; // адрес места расчетов
-  company_email:string; // email предприятия
-}
-interface KassaSettings{
-  selected_kassa_id: number;// id выбранной кассы
-  cashier_value_id:string;//кассир: 'current'-текущая учетная запись, 'another'-другая учетная запись, 'custom' произвольные ФИО
-  customCashierFio:string;// произвольное ФИО кассира (для cashier_value_id = custom)
-  customCashierVatin:string;//произвольный ИНН кассира (для cashier_value_id = custom)
-  billing_address:string; // id адреса места расчётов. 'settings' - как в настройках кассы, 'customer' - брать из адреса заказчика, 'custom' произвольный адрес. Если 2 или 3 нет но один из них выбран - печатается settings
-  custom_billing_address:string; // кастомный адрес расчетов
-}*/
 
 @Component({
   selector: 'app-customersorders-dock',
@@ -326,56 +289,6 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
 
   //****************************                   Взаимодействие с ККМ                    ************************************
   cheque_nds=false; //нужно ли проставлять НДС в чеке.
-  /*kassa_status:string; //статус взаимодействия с ККМ
-  shift_status:string; //статус смены ККМ
-  shiftStatusId:string; //id статуса смены ККМ: closed - закрыта  opened - открыта  expired - истекла (превысила 24 часа)
-  operationId: string = "undefined"; // алиас операции с ККМ (например sell или openShift). Сначала ставим undefined, пока не определим в методе setCanWorkWithKassa() можно ли работать с кассой 
-  operationName: string = "Операции с ККМ"; //наименование операции с ККМ (выбирается из меню блока Операции с ККМ)
-  nal_income: string=''; //внесено в кассу наличными при оплате. string - для возможности оставлять поле пустым (иначе будет 0, который нужно будет сначала удалять, а потом уже вписывать значение, что неудобно для кассира)
-  bnal_income: string=''; //оплачено безналичными (при смешанной форме оплаты)
-  kktBlockSize: string='small';// высота блока операций с ККМ. Нужна для её динамического увеличения 
-  userInfo: any;//информация о пользователе
-  kassaList:KassaList[]; //массив с загруженными кассами для кассира
-  loginform: any ; //форма для логина другого кассира
-  kassaSettingsForm: any; //форма с настройками кассира. нужна для из сохранения
-  kassaSettings: KassaSettings;//настройки кассира/ нужны для восстановления настроек в случае их изменения и не сохранения
-  anotherCashierIsLoggedIn = false;
-  cashierFio: string=''// ФИО кассира, которое будет выводиться в кассу. 
-  cashierVatin : string=''// ИНН кассира, который будет выводиться в кассу.
-  anotherCashierFio = '';// ФИО кассира другой (another) учетной записи
-  anotherCashierVatin='';// ИНН кассира другой (another) учетной записи
-  canWorkWithKassa=false;// возможно ли работать с кассой. false если например не выбрана касса, пустое имя кассира или адрес расчетов
-   
-  // установки кассы для связи с сервером и печати чека (тегов чека)
-  server_type: string; // тип сервера (атол или ккмсервер)
-  device_server_uid: string;// уник. идентификатор кассы на сервере
-  server_address: string;//адрес сервера в сети
-  sno1_name_api_atol:string=''; //система налогообложения кассы
-  kassa_billing_address:string=''; //адрес места расчётов в документе "Касса"
-  company_email:string=''; // email предприятия
-  server_type_temp: string; // тип сервера (атол или ккмсервер) - для теста связи
-  device_server_uid_temp: string;// уник. идентификатор кассы на сервере - для теста связи
-  server_address_temp: string;//адрес сервера в сети - для теста связи
-  billingAddress: string='';// финальный адрес места расчётов, который будет передаваться в кассу при печати чека. (paymentsPlace	Место проведения расчета (тег 1187))
-  // для избежания дабл-клика и повторной печати чеков:
-  sellReceiptIsPrinted: boolean=false;                //Чек прихода
-  buyReceiptIsPrinted: boolean=false;                 //Чек расхода
-  sellReturnReceiptIsPrinted: boolean=false;          //Чек возврата прихода
-  buyReturnReceiptIsPrinted: boolean=false;           //Чек возврата расхода
-  sellCorrectionReceiptIsPrinted: boolean=false;      //Чек коррекции прихода
-  buyCorrectionReceiptIsPrinted: boolean=false;       //Чек коррекции расхода
-  sellReturnCorrectionReceiptIsPrinted: boolean=false;//Чек коррекции возврата прихода (ФФД 1.1)
-  buyReturnCorrectionReceiptIsPrinted: boolean=false; //Чек коррекции возврата расхода (ФФД 1.1)
-  correctionBaseDate:string='';//Дата совершения корректируемого расчета (тег 1178)
-  correctionType:string='self';//Тип коррекции (тег 1173)	self - самостоятельно, instruction - по предписанию
-  correctionBaseNumber:string='';//Номер предписания налогового органа (тег 1179)
-  correctionCommentary:string='';//Комментарий для чека коррекции
-  // тест соединения с кассой
-  test_status:string=''; // статус соединения (200, 404 и т.д.)
-  wasConnectionTest:boolean=false;// был ли тест соединения с кассой
-  requestToServer:boolean=false;// идет запрос к серверу
-  testSuccess=false;// запрос к серверу был со статусом 200
-*/
 
   displayedColumns:string[];
   @ViewChild("countInput", {static: false}) countInput;
@@ -412,9 +325,6 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
     public dialogCreateProduct: MatDialog,
     public MessageDialog: MatDialog,
     private loadSpravService:   LoadSpravService,
-    private kkmAtolService: KkmAtolService,
-    private kkmAtolChequesService:KkmAtolChequesService,
-    private Cookie: Cookie,
     private _snackBar: MatSnackBar,
     private _router:Router) 
     { 
@@ -564,7 +474,11 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
     this.onCitySearchValueChanges();
 
   }
+  ngAfterContentChecked() {
 
+    this.cdRef.detectChanges();
+
+  }
   get childFormValid() {
     if(this.productSearchAndTableComponent!=undefined)
       return this.productSearchAndTableComponent.getControlTablefield().valid;
@@ -795,7 +709,7 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
       .subscribe(
           (data) => {this.receivedDepartmentsList=data as any [];
             this.doFilterDepartmentsList();
-            this.setDefaultDepartment();
+            if(+this.id==0) this.setDefaultDepartment();
           },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
@@ -1095,7 +1009,7 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
                 this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
                 this.formExpansionPanelsString();
                 this.getPriceTypesList();
-                // this.getDepartmentsList();//отделения
+                this.getDepartmentsList();//отделения
                 this.getStatusesList();//статусы документа Заказ покупателя
                 this.getSpravSysCountries();//Страны
                 this.hideOrShowNdsColumn();//расчет прятать или показывать колонку НДС
@@ -1318,7 +1232,7 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
     const dialogSettings = this.SettingsCustomersordersDialogComponent.open(SettingsCustomersordersDialogComponent, {
       maxWidth: '95vw',
       maxHeight: '95vh',
-      height: '680px',
+      // height: '680px',
       width: '400px', 
       minHeight: '650px',
       data:
@@ -1623,7 +1537,10 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
 
   //принимает от product-search-and-table.component сумму к оплате и передает ее в kkm.component  
   totalSumPriceHandler($event: any) {
-    if(this.kkmComponent!=undefined) this.kkmComponent.totalSumPrice=$event;
+    if(this.kkmComponent!=undefined) {
+      this.kkmComponent.totalSumPrice=$event; 
+      // console.log($event);  
+    }
   }  
 
   sendingProductsTableHandler() {
@@ -1639,11 +1556,16 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
 
   //обработчик события успешной печати чека - в Заказе покупателя это выставление статуса документа, сохранение и создание нового.  
   onSuccesfulChequePrintingHandler(){
-    //сначала установим статус из настроек при автосоздании перед сохранением
-    this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnAutocreateOnCheque').value);
+    //установим статус из настроек при автосоздании перед сохранением
+    if(this.settingsForm.get('autocreateOnCheque').value) 
+      this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnAutocreateOnCheque').value);
     //потом сохраним:
     if(this.updateDocument(true)){
-      this._router.navigate(['ui/customersordersdock']);
+      //если стоит чекбокс Автосоздание нового после печати чека:
+      if(this.settingsForm.get('autocreateOnCheque').value){
+        this._router.navigate(['ui/customersordersdock']);
+        this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnAutocreateOnCheque').value);
+      }
       this.openSnackBar("Чек был успешно напечатан. Создание нового Заказа покупателя", "Закрыть");
     }
   }

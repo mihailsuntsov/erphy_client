@@ -442,6 +442,7 @@ export class CustomersordersComponent implements OnInit {
             .subscribe(
                 (data) => {   
                             this.getData();
+                            this.openSnackBar("Успешно удалено", "Закрыть");
                           },
                 error => console.log(error),
             );
@@ -576,7 +577,7 @@ export class CustomersordersComponent implements OnInit {
       const dialogSettings = this.SettingsCustomersordersDialogComponent.open(SettingsCustomersordersDialogComponent, {
         maxWidth: '95vw',
         maxHeight: '95vh',
-        height: '680px',
+        // height: '680px',
         width: '400px', 
         minHeight: '650px',
         data:

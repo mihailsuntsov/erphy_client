@@ -143,6 +143,7 @@ export class KkmComponent implements OnInit {
   wasConnectionTest:boolean=false;// был ли тест соединения с кассой
   requestToServer:boolean=false;// идет запрос к серверу
   testSuccess=false;// запрос к серверу был со статусом 200
+  // itIsReallySellOperation:boolean=false;// при запросе к результатам печати чека была ли это операция продажи (т.к. х-отчет может печататься из Чека прихода, нельзя чтобы при печати х-отчета создавался новый документ)
 
   @ViewChild("formCashierLogin", {static: false}) formCashierLogin; 
   @Input()  autocreateOnCheque: boolean;
@@ -225,7 +226,7 @@ export class KkmComponent implements OnInit {
           //Задание успешно добавлено в очередь выполнения для ККМ
           console.log('Задание успешно добавлено в очередь выполнения для ККМ');
           //Проверка исполнения задания
-          this.getTaskStatus(uuid,1,1000);
+          this.getTaskStatus(uuid,1,1000,false);
         }else{ 
           switch(response.status){
             case 401:{this.kassa_status="Ошибка: Авторизация не пройдена";break;};
@@ -471,6 +472,8 @@ export class KkmComponent implements OnInit {
         cheque.request[0].postItems.push(textItem);
       }
     }
+    //забираем товарные позиции из компонента поиска и добалвения товара
+    this.getProductsTable();
     //товарные позиции
     this.productsTable.forEach(row => {
       cheque.request[0].items.push(dividerItem);
@@ -521,7 +524,7 @@ export class KkmComponent implements OnInit {
           //Задание успешно добавлено в очередь выполнения для ККМ
           console.log('Задание успешно добавлено в очередь выполнения для ККМ');
           //Проверка исполнения задания
-          this.getTaskStatus(uuid,1,1000);
+          this.getTaskStatus(uuid,1,1000,true);
           //отмечаем что чек отправляли на отбивание
           switch (this.operationId){
             case 'sell':{this.sellReceiptIsPrinted=true; break;}
@@ -556,11 +559,12 @@ export class KkmComponent implements OnInit {
   } 
 
   //получает результат задания
-	getTaskStatus(uuid:string,cnt:number,time:number)
+	getTaskStatus(uuid:string,cnt:number,time:number,itIsReallySellOperation?:boolean)
 	{
     let maxTrying=3;
     let responseStatus:string;
     let response: any = null;
+    // this.itIsReallySellOperation=itIsReallySellOperation;
     this.kassa_status="Ожидание выполнения задания...";
     console.log("Попытка "+cnt);
     this.sleep(time)
@@ -580,9 +584,10 @@ export class KkmComponent implements OnInit {
             case "ready":{
               this.kassa_status="Задание выполнено без ошибок. ";
               this.getShiftStatus(); // для обновления состояния смены. Если запрос был по открытию или закрытию смены - статус смены обновится
-              //если это был чек прихода, и в настройках стоит Автосоздание после печати чека прихода - создаем новый док
-              if(this.operationId=='sell' && this.autocreateOnCheque){
+              //если это был чек прихода, и это чек прихода
+              if(this.operationId=='sell' && itIsReallySellOperation){
                 // эмитируем событие успешной печати чека, которое обработается в родительском документе
+                // alert('succesfulChequePrinting');
                 this.succesfulChequePrinting.emit();
               }
               break;
@@ -619,7 +624,7 @@ export class KkmComponent implements OnInit {
             cnt++;
             console.log("Макс. количество попыток не использовано, статус - wait или inProgress")
             // alert('повторяем...');
-            this.getTaskStatus(uuid,cnt,2000)
+            this.getTaskStatus(uuid,cnt,2000,itIsReallySellOperation)
           } 
           // if( (cnt>maxTrying){
 

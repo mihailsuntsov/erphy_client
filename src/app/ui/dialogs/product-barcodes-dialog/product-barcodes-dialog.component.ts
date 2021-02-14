@@ -1,11 +1,11 @@
-import { Component, OnInit , Inject, ViewChild} from '@angular/core';
-import {MatDialogRef, MAT_DIALOG_DATA} from '@angular/material/dialog';
-import { Validators, FormGroup, FormControl, ValidationErrors, ValidatorFn, FormBuilder} from '@angular/forms';
-import { HttpClient} from '@angular/common/http';
-import { MatSnackBar} from '@angular/material/snack-bar';
-import { ValidationService } from '../../../services/validation.service';
+import { Component, OnInit , Inject, ViewChild } from '@angular/core';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { Validators, FormGroup, FormControl, ValidationErrors, ValidatorFn, FormBuilder } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { MatSnackBar } from '@angular/material/snack-bar';
+// import { ValidationService } from '../../../services/validation.service';
 import { MatDialog } from '@angular/material/dialog';
-import {MessageDialog} from 'src/app/ui/dialogs/messagedialog.component';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 
 @Component({
   selector: 'app-product-barcodes-dialog',
