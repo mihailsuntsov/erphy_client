@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { ProductGroupFieldsDialogComponent } from './product-group-fields-dialog.component';
 
@@ -6,7 +6,7 @@ describe('ProductGroupFieldsDialogComponent', () => {
   let component: ProductGroupFieldsDialogComponent;
   let fixture: ComponentFixture<ProductGroupFieldsDialogComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ ProductGroupFieldsDialogComponent ]
     })

@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { UniversalCategoriesDialogComponent } from './universal-categories-dialog.component';
 
@@ -6,7 +6,7 @@ describe('UniversalCategoriesDialogComponent', () => {
   let component: UniversalCategoriesDialogComponent;
   let fixture: ComponentFixture<UniversalCategoriesDialogComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ UniversalCategoriesDialogComponent ]
     })
