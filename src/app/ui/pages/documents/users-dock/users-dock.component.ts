@@ -191,8 +191,7 @@ export class UsersDockComponent implements OnInit {
   }
 // -------------------------------------- *** ПРАВА *** ------------------------------------
 getSetOfPermissions(){
-  const body = {"documentId": 5};//5=Пользователи
-        return this.http.post('/api/auth/giveMeMyPermissions', body) 
+  return this.http.get('/api/auth/getMyPermissions?id=5')
           .subscribe(
               (data) => {   
                           this.permissionsSet=data as any [];

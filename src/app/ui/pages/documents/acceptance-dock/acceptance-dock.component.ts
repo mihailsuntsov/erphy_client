@@ -297,8 +297,7 @@ export class AcceptanceDockComponent implements OnInit {
 //---------------------------------------------------------------------------------------------------------------------------------------
 
 getSetOfPermissions(){
-  const body = {"documentId": 15};//15= "Приёмка"
-           return this.http.post('/api/auth/giveMeMyPermissions', body) 
+  return this.http.get('/api/auth/getMyPermissions?id=15')
     .subscribe(
         (data) => {   
                     this.permissionsSet=data as any [];

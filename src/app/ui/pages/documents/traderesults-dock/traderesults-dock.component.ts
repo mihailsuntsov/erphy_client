@@ -143,8 +143,7 @@ export class TraderesultsDockComponent implements OnInit {
   }
 // -------------------------------------- *** ПРАВА *** ------------------------------------
   getSetOfPermissions(){
-    const body = {"documentId": 7};//7=Итоги смен
-          return this.http.post('/api/auth/giveMeMyPermissions', body) 
+    return this.http.get('/api/auth/getMyPermissions?id=7')
             .subscribe(
                 (data) => {   
                             this.permissionsSet=data as any [];

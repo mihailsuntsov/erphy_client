@@ -39,7 +39,7 @@ export class UiComponent implements OnInit {
       authorities: this.token.getAuthorities()
     };
     if(Cookie.get('dokio_token'))
-    this.getAllMyPermissions();// -> getPermissions()
+      this.getAllMyPermissions();// -> getPermissions()
     else this._router.navigate(['/login']);
   }
   getAllMyPermissions()

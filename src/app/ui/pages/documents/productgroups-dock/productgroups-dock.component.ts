@@ -131,8 +131,7 @@ export class ProductgroupsDockComponent implements OnInit {
   }
   // -------------------------------------- *** ПРАВА *** ------------------------------------
   getSetOfPermissions(){
-    const body = {"documentId": 10};//10=Группы товаров
-          return this.http.post('/api/auth/giveMeMyPermissions', body) 
+    return this.http.get('/api/auth/getMyPermissions?id=10')
             .subscribe(
                 (data) => {   
                             this.permissionsSet=data as any [];

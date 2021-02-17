@@ -105,17 +105,17 @@ export class PostingComponent implements OnInit {
       this.sendingQueryForm.searchCategoryString="";
 
       if(Cookie.get('posting_companyId')=='undefined' || Cookie.get('posting_companyId')==null)     
-      Cookie.set('posting_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('posting_companyId')=="0"?"0":+Cookie.get('posting_companyId'));
+        Cookie.set('posting_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('posting_companyId')=="0"?"0":+Cookie.get('posting_companyId'));
       if(Cookie.get('posting_departmentId')=='undefined' || Cookie.get('posting_departmentId')==null)  
-      Cookie.set('posting_departmentId',this.sendingQueryForm.departmentId); else this.sendingQueryForm.departmentId=(Cookie.get('posting_departmentId')=="0"?"0":+Cookie.get('posting_departmentId'));
+        Cookie.set('posting_departmentId',this.sendingQueryForm.departmentId); else this.sendingQueryForm.departmentId=(Cookie.get('posting_departmentId')=="0"?"0":+Cookie.get('posting_departmentId'));
       if(Cookie.get('posting_sortAsc')=='undefined' || Cookie.get('posting_sortAsc')==null)       
-      Cookie.set('posting_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('posting_sortAsc');
+        Cookie.set('posting_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('posting_sortAsc');
       if(Cookie.get('posting_sortColumn')=='undefined' || Cookie.get('posting_sortColumn')==null)    
-      Cookie.set('posting_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('posting_sortColumn');
+        Cookie.set('posting_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('posting_sortColumn');
       if(Cookie.get('posting_offset')=='undefined' || Cookie.get('posting_offset')==null)        
-      Cookie.set('posting_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('posting_offset');
+        Cookie.set('posting_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('posting_offset');
       if(Cookie.get('posting_result')=='undefined' || Cookie.get('posting_result')==null)        
-      Cookie.set('posting_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('posting_result');
+        Cookie.set('posting_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('posting_result');
 
       this.getCompaniesList();// 
       // -> getSetOfPermissions() 
@@ -132,8 +132,7 @@ export class PostingComponent implements OnInit {
 
     // -------------------------------------- *** ПРАВА *** ------------------------------------
    getSetOfPermissions(){
-    const body = {"documentId": 16};//16= "Оприходование"
-          return this.http.post('/api/auth/giveMeMyPermissions', body) 
+    return this.http.get('/api/auth/getMyPermissions?id=16') 
             .subscribe(
                 (data) => {   
                             this.permissionsSet=data as any [];
@@ -274,7 +273,7 @@ export class PostingComponent implements OnInit {
     for (var i = 0; i < this.dataSource.data.length; i++) {
       console.log("2");
       if(this.selection.isSelected(this.dataSource.data[i]))
-      this.checkedList.push(this.dataSource.data[i].id);
+        this.checkedList.push(this.dataSource.data[i].id);
     }
     if(this.checkedList.length>0){
       console.log("3");

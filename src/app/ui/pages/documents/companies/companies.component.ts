@@ -114,13 +114,13 @@ export class CompaniesComponent {
         this.getSetOfPermissions();
 
         if(Cookie.get('companies_sortAsc')=='undefined' || Cookie.get('companies_sortAsc')==null)       
-        Cookie.set('companies_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('companies_sortAsc');
+          Cookie.set('companies_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('companies_sortAsc');
         if(Cookie.get('companies_sortColumn')=='undefined' || Cookie.get('companies_sortColumn')==null)    
-        Cookie.set('companies_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('companies_sortColumn');
+          Cookie.set('companies_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('companies_sortColumn');
         if(Cookie.get('companies_offset')=='undefined' || Cookie.get('companies_offset')==null)        
-        Cookie.set('companies_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('companies_offset');
+          Cookie.set('companies_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('companies_offset');
         if(Cookie.get('companies_result')=='undefined' || Cookie.get('companies_result')==null)        
-        Cookie.set('companies_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('companies_result');
+          Cookie.set('companies_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('companies_result');
       }
 
       getData(){
@@ -129,8 +129,7 @@ export class CompaniesComponent {
       }
 // -------------------------------------- *** ПРАВА *** ------------------------------------
       getSetOfPermissions(){
-        const body = {"documentId": 3};//3=Предприятия
-        return this.http.post('/api/auth/giveMeMyPermissions', body) 
+        return this.http.get('/api/auth/getMyPermissions?id=3')
                 .subscribe(
                     (data) => {   
                                 this.permissionsSet=data as any [];
@@ -203,7 +202,7 @@ export class CompaniesComponent {
         this.checkedList = [];
         for (var i = 0; i < this.receivedMatTable.length; i++) {
           if(this.selection.isSelected(this.receivedMatTable[i]))
-          this.checkedList.push(this.receivedMatTable[i].id);
+            this.checkedList.push(this.receivedMatTable[i].id);
         }
         // this.checkedList = JSON.stringify(this.checkedList);
         if(this.checkedList.length>0){

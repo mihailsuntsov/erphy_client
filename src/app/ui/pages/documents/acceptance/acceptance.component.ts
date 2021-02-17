@@ -105,17 +105,17 @@ export class AcceptanceComponent implements OnInit {
       this.sendingQueryForm.searchCategoryString="";
 
       if(Cookie.get('acceptance_companyId')=='undefined' || Cookie.get('acceptance_companyId')==null)     
-      Cookie.set('acceptance_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('acceptance_companyId')=="0"?"0":+Cookie.get('acceptance_companyId'));
+        Cookie.set('acceptance_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('acceptance_companyId')=="0"?"0":+Cookie.get('acceptance_companyId'));
       if(Cookie.get('acceptance_departmentId')=='undefined' || Cookie.get('acceptance_departmentId')==null)  
-      Cookie.set('acceptance_departmentId',this.sendingQueryForm.departmentId); else this.sendingQueryForm.departmentId=(Cookie.get('acceptance_departmentId')=="0"?"0":+Cookie.get('acceptance_departmentId'));
+        Cookie.set('acceptance_departmentId',this.sendingQueryForm.departmentId); else this.sendingQueryForm.departmentId=(Cookie.get('acceptance_departmentId')=="0"?"0":+Cookie.get('acceptance_departmentId'));
       if(Cookie.get('acceptance_sortAsc')=='undefined' || Cookie.get('acceptance_sortAsc')==null)       
-      Cookie.set('acceptance_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('acceptance_sortAsc');
+        Cookie.set('acceptance_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('acceptance_sortAsc');
       if(Cookie.get('acceptance_sortColumn')=='undefined' || Cookie.get('acceptance_sortColumn')==null)    
-      Cookie.set('acceptance_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('acceptance_sortColumn');
+        Cookie.set('acceptance_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('acceptance_sortColumn');
       if(Cookie.get('acceptance_offset')=='undefined' || Cookie.get('acceptance_offset')==null)        
-      Cookie.set('acceptance_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('acceptance_offset');
+        Cookie.set('acceptance_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('acceptance_offset');
       if(Cookie.get('acceptance_result')=='undefined' || Cookie.get('acceptance_result')==null)        
-      Cookie.set('acceptance_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('acceptance_result');
+        Cookie.set('acceptance_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('acceptance_result');
 
       this.getCompaniesList();// 
       // -> getSetOfPermissions() 
@@ -133,8 +133,7 @@ export class AcceptanceComponent implements OnInit {
   
 // -------------------------------------- *** ПРАВА *** ------------------------------------
    getSetOfPermissions(){
-    const body = {"documentId": 15};//12= "Приёмка"
-          return this.http.post('/api/auth/giveMeMyPermissions', body) 
+    return this.http.get('/api/auth/getMyPermissions?id=15')
             .subscribe(
                 (data) => {   
                             this.permissionsSet=data as any [];
@@ -274,7 +273,7 @@ export class AcceptanceComponent implements OnInit {
     for (var i = 0; i < this.dataSource.data.length; i++) {
       console.log("2");
       if(this.selection.isSelected(this.dataSource.data[i]))
-      this.checkedList.push(this.dataSource.data[i].id);
+        this.checkedList.push(this.dataSource.data[i].id);
     }
     if(this.checkedList.length>0){
       console.log("3");

@@ -290,8 +290,7 @@ export class ShipmentDockComponent implements OnInit {
 //---------------------------------------------------------------------------------------------------------------------------------------
 
 getSetOfPermissions(){
-  const body = {"documentId": 21};//21= Отгрузка 
-           return this.http.post('/api/auth/giveMeMyPermissions', body) 
+  return this.http.get('/api/auth/getMyPermissions?id=21')
     .subscribe(
         (data) => {   
                     this.permissionsSet=data as any [];

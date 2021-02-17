@@ -396,8 +396,7 @@ constructor(private activateRoute: ActivatedRoute,
 // ----------------------------------------------------- *** ПРАВА *** ------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------------------------------------------
 getSetOfPermissions(){
-  const body = {"documentId": 14};//14= "Товары и услуги"
-           return this.http.post('/api/auth/giveMeMyPermissions', body) 
+  return this.http.get('/api/auth/getMyPermissions?id=14')
     .subscribe(
         (data) => {   
                     this.permissionsSet=data as any [];
@@ -915,7 +914,7 @@ refreshPermissions():boolean{
 //*****************************************************************************************************************************************/
   isSelectedCheckbox(id: number){
     if(this.checkedList.includes(id))
-    return true;
+      return true;
     else return false; 
   }
 
@@ -1449,7 +1448,7 @@ checkProductCodeFreeUnical() {
       this.documentsIds.forEach(z=>{
         console.log("object z - "+z+", z.id - "+z.id+", z.name - "+z.name)
         if(this.selection.isSelected(z))
-        this.checkedChangesList.push(+z.id);
+          this.checkedChangesList.push(+z.id);
       })
 
     // console.log("****checkedChangesList - "+JSON.stringify(this.checkedChangesList));

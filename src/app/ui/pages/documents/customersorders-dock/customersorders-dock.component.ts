@@ -489,8 +489,7 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
   //---------------------------------------------------------------------------------------------------------------------------------------
 
   getSetOfPermissions(){
-    const body = {"documentId": 23};//23= Заказы покупателей 
-             return this.http.post('/api/auth/giveMeMyPermissions', body) 
+    return this.http.get('/api/auth/getMyPermissions?id=23')
       .subscribe(
           (data) => {   
                       this.permissionsSet=data as any [];
@@ -940,8 +939,7 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
     } catch (e) {return [];}
   }
   getDocumentValuesById(){
-    const dockId = {"id": this.id};
-          this.http.post('/api/auth/getCustomersOrdersValuesById', dockId)
+    this.http.get('/api/auth/getCustomersOrdersValuesById?id='+ this.id)
         .subscribe(
             data => { 
               
@@ -1141,11 +1139,7 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
     {
       let Unic: boolean;
       this.isDocNumberUnicalChecking=true;
-      const body = {
-        "id3": +this.id, 
-        "id1": +this.formBaseInformation.get('company_id').value,
-        "id2": this.formBaseInformation.get('doc_number').value}; 
-      return this.http.post('/api/auth/isCustomersOrdersNumberUnical',body)
+      return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table=customers_orders')
       .subscribe(
           (data) => {   
                       Unic = data as boolean;

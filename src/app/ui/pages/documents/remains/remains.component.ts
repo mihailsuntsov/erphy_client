@@ -158,25 +158,25 @@ export class RemainsComponent implements OnInit {
 
 
     if(Cookie.get('remains_companyId')=='undefined' || Cookie.get('remains_companyId')==null)     
-    Cookie.set('remains_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('remains_companyId')=="0"?"0":+Cookie.get('remains_companyId'));
+      Cookie.set('remains_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('remains_companyId')=="0"?"0":+Cookie.get('remains_companyId'));
     if(Cookie.get('remains_departmentId')=='undefined' || Cookie.get('remains_departmentId')==null)  
-    Cookie.set('remains_departmentId',this.sendingQueryForm.departmentId); else this.sendingQueryForm.departmentId=(Cookie.get('remains_departmentId')=="0"?"0":+Cookie.get('remains_departmentId'));
+      Cookie.set('remains_departmentId',this.sendingQueryForm.departmentId); else this.sendingQueryForm.departmentId=(Cookie.get('remains_departmentId')=="0"?"0":+Cookie.get('remains_departmentId'));
     if(Cookie.get('remains_sortAsc')=='undefined' || Cookie.get('remains_sortAsc')==null)       
-    Cookie.set('remains_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('remains_sortAsc');
+      Cookie.set('remains_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('remains_sortAsc');
     if(Cookie.get('remains_sortColumn')=='undefined' || Cookie.get('remains_sortColumn')==null)    
-    Cookie.set('remains_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('remains_sortColumn');
+      Cookie.set('remains_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('remains_sortColumn');
     if(Cookie.get('remains_offset')=='undefined' || Cookie.get('remains_offset')==null)        
-    Cookie.set('remains_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('remains_offset');
+      Cookie.set('remains_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('remains_offset');
     if(Cookie.get('remains_result')=='undefined' || Cookie.get('remains_result')==null)        
-    Cookie.set('remains_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('remains_result');
+      Cookie.set('remains_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('remains_result');
     if(Cookie.get('remains_selectedNodeId')=='undefined' || Cookie.get('remains_selectedNodeId')==null)        
-    Cookie.set('remains_selectedNodeId',this.sendingQueryForm.selectedNodeId); else this.sendingQueryForm.selectedNodeId=Cookie.get('remains_selectedNodeId');
+      Cookie.set('remains_selectedNodeId',this.sendingQueryForm.selectedNodeId); else this.sendingQueryForm.selectedNodeId=Cookie.get('remains_selectedNodeId');
     if(Cookie.get('remains_selectedNodeName')=='undefined' || Cookie.get('remains_selectedNodeName')==null)        
-    Cookie.set('remains_selectedNodeName',this.sendingQueryForm.selectedNodeName); else this.sendingQueryForm.selectedNodeName=Cookie.get('remains_selectedNodeName');
+      Cookie.set('remains_selectedNodeName',this.sendingQueryForm.selectedNodeName); else this.sendingQueryForm.selectedNodeName=Cookie.get('remains_selectedNodeName');
     if(Cookie.get('remains_selectedCagentId')=='undefined' || Cookie.get('remains_selectedCagentId')==null)        
-    Cookie.set('remains_selectedCagentId',this.sendingQueryForm.cagentId); else this.sendingQueryForm.cagentId=Cookie.get('remains_selectedCagentId');
+      Cookie.set('remains_selectedCagentId',this.sendingQueryForm.cagentId); else this.sendingQueryForm.cagentId=Cookie.get('remains_selectedCagentId');
     if(Cookie.get('remains_selectedCagentName')=='undefined' || Cookie.get('remains_selectedCagentName')==null)        
-    Cookie.set('remains_selectedCagentName',this.searchCagentCtrl.value); else this.searchCagentCtrl.setValue(Cookie.get('remains_selectedCagentName'));
+      Cookie.set('remains_selectedCagentName',this.searchCagentCtrl.value); else this.searchCagentCtrl.setValue(Cookie.get('remains_selectedCagentName'));
 
     this.optionsIds.forEach(z=>{this.selectionFilterOptions.select(z);this.checkedOptionsList.push(+z.id);});//включаем все чекбоксы в фильтре, и заполняем ими список для отправки запроса
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Поставщик"
@@ -224,8 +224,7 @@ export class RemainsComponent implements OnInit {
 
  // -------------------------------------- *** ПРАВА *** ------------------------------------
   getSetOfPermissions(){
-    const body = {"documentId": 18};//18= "Товарные остатки"
-          return this.http.post('/api/auth/giveMeMyPermissions', body) 
+    return this.http.get('/api/auth/getMyPermissions?id=18')
             .subscribe(
                 (data) => {   
                           this.permissionsSet=data as any [];
@@ -343,7 +342,7 @@ export class RemainsComponent implements OnInit {
 
     for (var i = 0; i < this.receivedMatTable.length; i++) {
       if(this.selection.isSelected(this.receivedMatTable[i]))
-      this.checkedList.push(this.receivedMatTable[i].id);
+        this.checkedList.push(this.receivedMatTable[i].id);
     }
     this.calcVisBtnSetRemains();
     console.log("checkedList - "+this.checkedList);
@@ -738,7 +737,7 @@ export class RemainsComponent implements OnInit {
     this.optionsIds.forEach(z=>{
       console.log("object z - "+z+", z.id - "+z.id+", z.name - "+z.name)
       if(this.selectionFilterOptions.isSelected(z))
-      this.checkedOptionsList.push(+z.id);
+        this.checkedOptionsList.push(+z.id);
     })
   }
 

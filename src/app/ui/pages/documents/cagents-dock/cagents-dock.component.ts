@@ -385,8 +385,7 @@ constructor(private activateRoute: ActivatedRoute,
 // ----------------------------------------------------- *** ПРАВА *** ------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------------------------------------------
   getSetOfPermissions(){
-    const body = {"documentId": 12};//12= "Контрагенты"
-            return this.http.post('/api/auth/giveMeMyPermissions', body) 
+    return this.http.get('/api/auth/getMyPermissions?id=12')
     .subscribe(
         (data) => {   
                     this.permissionsSet=data as any [];
@@ -755,7 +754,7 @@ constructor(private activateRoute: ActivatedRoute,
 
   isSelectedCheckbox(id: number){
     if(this.checkedList.includes(id))
-    return true;
+      return true;
     else return false; 
   }
 

@@ -351,8 +351,7 @@ constructor(private activateRoute: ActivatedRoute,
 // ----------------------------------------------------- *** ПРАВА *** ------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------------------------------------------
   getSetOfPermissions(){
-    const body = {"documentId": 3};//3= "Предприятия"
-            return this.http.post('/api/auth/giveMeMyPermissions', body) 
+    return this.http.get('/api/auth/getMyPermissions?id=3')
     .subscribe(
         (data) => {   
                     this.permissionsSet=data as any [];

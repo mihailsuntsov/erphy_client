@@ -26,21 +26,25 @@
                         <input type="checkbox" name ="sub-group-1" id="sub-group-1">
                         <label for="sub-group-1">Операции</label>
                         <ul>
+                          <li class="nav-item" *ngIf="hasPermission(308)">
+                            <a class="nav-link" routerLink="retailsales">
+                              <mat-icon class="nav-icon">store</mat-icon><span class="docname">Розничные продажи</span></a>
+                          </li>
                           <li class="nav-item" *ngIf="hasPermission(252)">
                             <a class="nav-link" routerLink="shipment">
-                              <mat-icon class="nav-icon">local_shipping</mat-icon><span class="docname">Отгрузка</span></a>
+                              <mat-icon class="nav-icon">local_shipping</mat-icon><span class="docname">Отгрузки</span></a>
                           </li>
                           <li class="nav-item" *ngIf="hasPermission(183)">
                             <a class="nav-link" routerLink="acceptance">
-                              <mat-icon class="nav-icon">system_update_alt</mat-icon><span class="docname">Приёмка</span></a>
+                              <mat-icon class="nav-icon">system_update_alt</mat-icon><span class="docname">Приёмки</span></a>
                           </li>
                           <li class="nav-item" *ngIf="hasPermission(199)">
                             <a class="nav-link" routerLink="posting">
-                              <mat-icon class="nav-icon">library_add</mat-icon><span class="docname">Оприходование</span></a>
+                              <mat-icon class="nav-icon">library_add</mat-icon><span class="docname">Оприходования</span></a>
                           </li>
                           <li class="nav-item" *ngIf="hasPermission(215)">
                             <a class="nav-link" routerLink="writeoff">
-                              <mat-icon class="nav-icon">cancel_presentation</mat-icon><span class="docname">Списание</span></a>
+                              <mat-icon class="nav-icon">cancel_presentation</mat-icon><span class="docname">Списания</span></a>
                           </li>
                         </ul>
                       </li>

@@ -204,15 +204,15 @@ viewMode:string = "grid"; // способ отображения файлов - 
       try{
       this.sendingQueryForm.trash=Cookie.get('files_trash')=="true"?true:false;
       if(Cookie.get('files_sortAsc')=='undefined' || Cookie.get('files_sortAsc')==null)       
-      Cookie.set('files_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('files_sortAsc');
+        Cookie.set('files_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('files_sortAsc');
       if(Cookie.get('files_sortColumn')=='undefined' || Cookie.get('files_sortColumn')==null)    
-      Cookie.set('files_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('files_sortColumn');
+        Cookie.set('files_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('files_sortColumn');
       if(Cookie.get('files_offset')=='undefined' || Cookie.get('files_offset')==null)        
-      Cookie.set('files_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('files_offset');
+        Cookie.set('files_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('files_offset');
       if(Cookie.get('files_result')=='undefined' || Cookie.get('files_result')==null)        
-      Cookie.set('files_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('files_result');
+        Cookie.set('files_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('files_result');
       if(Cookie.get('files_viewMode')=='undefined' || Cookie.get('files_viewMode')==null)        
-      Cookie.set('files_viewMode',this.viewMode); else this.viewMode=Cookie.get('files_viewMode');
+        Cookie.set('files_viewMode',this.viewMode); else this.viewMode=Cookie.get('files_viewMode');
 
 
 
@@ -224,8 +224,7 @@ viewMode:string = "grid"; // способ отображения файлов - 
     
  // -------------------------------------- *** ПРАВА *** ------------------------------------
   getSetOfPermissions(){
-    const body = {"documentId": 13};//13= "Файлы"
-        return this.http.post('/api/auth/giveMeMyPermissions', body) 
+    return this.http.get('/api/auth/getMyPermissions?id=13')
           .subscribe(
               (data) => {   
                           this.permissionsSet=data as any [];
@@ -420,7 +419,7 @@ viewMode:string = "grid"; // способ отображения файлов - 
   
       for (var i = 0; i < this.files.length; i++) {
         if(this.selection.isSelected(this.files[i]))
-        this.checkedList.push(this.files[i].id);
+          this.checkedList.push(this.files[i].id);
       }
       if(this.checkedList.length>0){
           this.hideAllBtns();

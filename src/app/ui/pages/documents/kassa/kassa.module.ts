@@ -7,7 +7,6 @@ import { KassaComponent } from './kassa.component';
 import { FormsModule } from '@angular/forms';
 import { MaterialModule } from '../../../../modules/material.module';
 
-
 @NgModule({
   declarations: [KassaComponent],
   imports: [

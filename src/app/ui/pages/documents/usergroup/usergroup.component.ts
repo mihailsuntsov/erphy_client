@@ -88,8 +88,7 @@ export class UsergroupComponent implements OnInit {
     }
 // -------------------------------------- *** ПРАВА *** ------------------------------------
 getSetOfPermissions(){
-  const body = {"documentId": 6};//6=Группы пользователей
-        return this.http.post('/api/auth/giveMeMyPermissions', body) 
+  return this.http.get('/api/auth/getMyPermissions?id=6')
           .subscribe(
               (data) => {   
                           this.permissionsSet=data as any [];
@@ -186,7 +185,7 @@ getTableHeaderTitles(){
   
       for (var i = 0; i < this.receivedMatTable.length; i++) {
         if(this.selection.isSelected(this.receivedMatTable[i]))
-        this.checkedList.push(this.receivedMatTable[i].id);
+          this.checkedList.push(this.receivedMatTable[i].id);
       }
       this.checkedList = JSON.stringify(this.checkedList);
       if(this.checkedList.length>2){

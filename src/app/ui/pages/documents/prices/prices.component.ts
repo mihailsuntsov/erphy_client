@@ -161,25 +161,25 @@ export class PricesComponent implements OnInit {
 
 
     if(Cookie.get('prices_companyId')=='undefined' || Cookie.get('prices_companyId')==null)     
-    Cookie.set('prices_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('prices_companyId')=="0"?"0":+Cookie.get('prices_companyId'));
+      Cookie.set('prices_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('prices_companyId')=="0"?"0":+Cookie.get('prices_companyId'));
     if(Cookie.get('prices_priceTypeId')=='undefined' || Cookie.get('prices_priceTypeId')==null)  
-    Cookie.set('prices_priceTypeId',this.sendingQueryForm.priceTypeId); else this.sendingQueryForm.priceTypeId=(Cookie.get('prices_priceTypeId')=="0"?"0":+Cookie.get('prices_priceTypeId'));
+      Cookie.set('prices_priceTypeId',this.sendingQueryForm.priceTypeId); else this.sendingQueryForm.priceTypeId=(Cookie.get('prices_priceTypeId')=="0"?"0":+Cookie.get('prices_priceTypeId'));
     if(Cookie.get('prices_sortAsc')=='undefined' || Cookie.get('prices_sortAsc')==null)       
-    Cookie.set('prices_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('prices_sortAsc');
+      Cookie.set('prices_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('prices_sortAsc');
     if(Cookie.get('prices_sortColumn')=='undefined' || Cookie.get('prices_sortColumn')==null)    
-    Cookie.set('prices_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('prices_sortColumn');
+      Cookie.set('prices_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('prices_sortColumn');
     if(Cookie.get('prices_offset')=='undefined' || Cookie.get('prices_offset')==null)        
-    Cookie.set('prices_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('prices_offset');
+      Cookie.set('prices_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('prices_offset');
     if(Cookie.get('prices_result')=='undefined' || Cookie.get('prices_result')==null)        
-    Cookie.set('prices_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('prices_result');
+      Cookie.set('prices_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('prices_result');
     if(Cookie.get('prices_selectedNodeId')=='undefined' || Cookie.get('prices_selectedNodeId')==null)        
-    Cookie.set('prices_selectedNodeId',this.sendingQueryForm.selectedNodeId); else this.sendingQueryForm.selectedNodeId=Cookie.get('prices_selectedNodeId');
+      Cookie.set('prices_selectedNodeId',this.sendingQueryForm.selectedNodeId); else this.sendingQueryForm.selectedNodeId=Cookie.get('prices_selectedNodeId');
     if(Cookie.get('prices_selectedNodeName')=='undefined' || Cookie.get('prices_selectedNodeName')==null)        
-    Cookie.set('prices_selectedNodeName',this.sendingQueryForm.selectedNodeName); else this.sendingQueryForm.selectedNodeName=Cookie.get('prices_selectedNodeName');
+      Cookie.set('prices_selectedNodeName',this.sendingQueryForm.selectedNodeName); else this.sendingQueryForm.selectedNodeName=Cookie.get('prices_selectedNodeName');
     if(Cookie.get('prices_selectedCagentId')=='undefined' || Cookie.get('prices_selectedCagentId')==null)        
-    Cookie.set('prices_selectedCagentId',this.sendingQueryForm.cagentId); else this.sendingQueryForm.cagentId=Cookie.get('prices_selectedCagentId');
+      Cookie.set('prices_selectedCagentId',this.sendingQueryForm.cagentId); else this.sendingQueryForm.cagentId=Cookie.get('prices_selectedCagentId');
     if(Cookie.get('prices_selectedCagentName')=='undefined' || Cookie.get('prices_selectedCagentName')==null)        
-    Cookie.set('prices_selectedCagentName',this.searchCagentCtrl.value); else this.searchCagentCtrl.setValue(Cookie.get('prices_selectedCagentName'));
+      Cookie.set('prices_selectedCagentName',this.searchCagentCtrl.value); else this.searchCagentCtrl.setValue(Cookie.get('prices_selectedCagentName'));
 
     this.optionsIds.forEach(z=>{this.selectionFilterOptions.select(z);this.checkedOptionsList.push(+z.id);});//включаем все чекбоксы в фильтре, и заполняем ими список для отправки запроса
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Поставщик"
@@ -226,8 +226,7 @@ export class PricesComponent implements OnInit {
 
  // -------------------------------------- *** ПРАВА *** ------------------------------------
   getSetOfPermissions(){
-    const body = {"documentId": 19};//19= "Цены"
-          return this.http.post('/api/auth/giveMeMyPermissions', body) 
+    return this.http.get('/api/auth/getMyPermissions?id=19')
             .subscribe(
                 (data) => {   
                           this.permissionsSet=data as any [];
@@ -356,7 +355,7 @@ export class PricesComponent implements OnInit {
 
     for (var i = 0; i < this.receivedMatTable.length; i++) {
       if(this.selection.isSelected(this.receivedMatTable[i]))
-      this.checkedList.push(this.receivedMatTable[i].id);
+        this.checkedList.push(this.receivedMatTable[i].id);
     }
     this.calcVisBtnEditPrices();
     console.log("checkedList - "+this.checkedList);
@@ -704,7 +703,7 @@ export class PricesComponent implements OnInit {
     this.optionsIds.forEach(z=>{
       console.log("object z - "+z+", z.id - "+z.id+", z.name - "+z.name)
       if(this.selectionFilterOptions.isSelected(z))
-      this.checkedOptionsList.push(+z.id);
+        this.checkedOptionsList.push(+z.id);
     });
   }
 

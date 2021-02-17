@@ -185,8 +185,7 @@ constructor(private activateRoute: ActivatedRoute,
 // ----------------------------------------------------- *** ПРАВА *** ------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------------------------------------------
 getSetOfPermissions(){
-  const body = {"documentId": 13};//12= "Файлы"
-          return this.http.post('/api/auth/giveMeMyPermissions', body) 
+  return this.http.get('/api/auth/getMyPermissions?id=13')
   .subscribe(
       (data) => {   
                   this.permissionsSet=data as any [];
@@ -493,7 +492,7 @@ createImageFromBlob(image: Blob) {
 
   isSelectedCheckbox(id: number){
     if(this.checkedList.includes(id))
-    return true;
+      return true;
     else return false; 
   }
   clickTableCheckbox(id:number){

@@ -98,8 +98,7 @@ export class PricetypesDockComponent implements OnInit {
   }
 // -------------------------------------- *** ПРАВА *** ------------------------------------
   getSetOfPermissions(){
-    const body = {"documentId": 9};//9=Типы цен
-          return this.http.post('/api/auth/giveMeMyPermissions', body) 
+    return this.http.get('/api/auth/getMyPermissions?id=9')
             .subscribe(
                 (data) => {   
                             this.permissionsSet=data as any [];

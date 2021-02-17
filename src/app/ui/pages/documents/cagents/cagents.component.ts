@@ -147,15 +147,15 @@ export class CagentsComponent implements OnInit {
     this.sendingQueryForm.searchCategoryString="";
     this.sendingQueryForm.filterOptionsIds = [];
     if(Cookie.get('cagents_companyId')=='undefined' || Cookie.get('cagents_companyId')==null)     
-    Cookie.set('cagents_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('cagents_companyId')=="0"?"0":+Cookie.get('cagents_companyId'));
+      Cookie.set('cagents_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('cagents_companyId')=="0"?"0":+Cookie.get('cagents_companyId'));
     if(Cookie.get('cagents_sortAsc')=='undefined' || Cookie.get('cagents_sortAsc')==null)       
-    Cookie.set('cagents_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('cagents_sortAsc');
+      Cookie.set('cagents_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('cagents_sortAsc');
     if(Cookie.get('cagents_sortColumn')=='undefined' || Cookie.get('cagents_sortColumn')==null)    
-    Cookie.set('cagents_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('cagents_sortColumn');
+      Cookie.set('cagents_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('cagents_sortColumn');
     if(Cookie.get('cagents_offset')=='undefined' || Cookie.get('cagents_offset')==null)        
-    Cookie.set('cagents_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('cagents_offset');
+      Cookie.set('cagents_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('cagents_offset');
     if(Cookie.get('cagents_result')=='undefined' || Cookie.get('cagents_result')==null)        
-    Cookie.set('cagents_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('cagents_result');
+      Cookie.set('cagents_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('cagents_result');
 
     if(this.data)
     {
@@ -171,8 +171,7 @@ export class CagentsComponent implements OnInit {
 
  // -------------------------------------- *** ПРАВА *** ------------------------------------
   getSetOfPermissions(){
-    const body = {"documentId": 12};//12= "Контрагенты"
-          return this.http.post('/api/auth/giveMeMyPermissions', body) 
+    return this.http.get('/api/auth/getMyPermissions?id=12')
             .subscribe(
                 (data) => {   
                             this.permissionsSet=data as any [];
@@ -303,7 +302,7 @@ export class CagentsComponent implements OnInit {
       this.checkedList = [];
       for (var i = 0; i < this.dataSource.data.length; i++) {
         if(this.selection.isSelected(this.dataSource.data[i]))
-        this.checkedList.push(this.dataSource.data[i].id);
+          this.checkedList.push(this.dataSource.data[i].id);
       }
       if(this.checkedList.length>0){
           this.hideAllBtns();

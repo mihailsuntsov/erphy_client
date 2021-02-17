@@ -102,8 +102,7 @@ export class EdizmDockComponent implements OnInit {
   }
 // -------------------------------------- *** ПРАВА *** ------------------------------------
   getSetOfPermissions(){
-    const body = {"documentId": 11};//11=Единицы измерения
-          return this.http.post('/api/auth/giveMeMyPermissions', body) 
+    return this.http.get('/api/auth/getMyPermissions?id=11')
             .subscribe(
                 (data) => {   
                             this.permissionsSet=data as any [];

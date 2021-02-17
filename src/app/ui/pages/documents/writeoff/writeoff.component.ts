@@ -134,8 +134,7 @@ export class WriteoffComponent implements OnInit {
 
     // -------------------------------------- *** ПРАВА *** ------------------------------------
    getSetOfPermissions(){
-    const body = {"documentId": 17};//17= "Списание"
-          return this.http.post('/api/auth/giveMeMyPermissions', body) 
+    return this.http.get('/api/auth/getMyPermissions?id=17')
             .subscribe(
                 (data) => {   
                             this.permissionsSet=data as any [];

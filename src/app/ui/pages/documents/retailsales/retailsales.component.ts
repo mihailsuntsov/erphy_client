@@ -6,13 +6,12 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpClient } from '@angular/common/http';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
-import { QueryFormService } from './get-customersorders-table.service';
+import { QueryFormService } from './get-retailsales-table.service';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
-import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
 import { FormGroup, Validators, FormControl } from '@angular/forms';
-import { SettingsCustomersordersDialogComponent } from 'src/app/modules/settings/settings-customersorders-dialog/settings-customersorders-dialog.component';
+import { SettingsRetailsalesDialogComponent } from 'src/app/modules/settings/settings-rs-dialog/settings-rs-dialog.component';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import {MessageDialog} from 'src/app/ui/dialogs/messagedialog.component';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 
 export interface CheckBox {
   id: number;
@@ -34,13 +33,15 @@ interface idNameDescription{
   name: string;
   description: string;
 }
+
 @Component({
-  selector: 'app-customersorders',
-  templateUrl: './customersorders.component.html',
-  styleUrls: ['./customersorders.component.css'],
+  selector: 'app-retailsales',
+  templateUrl: './retailsales.component.html',
+  styleUrls: ['./retailsales.component.css'],
   providers: [QueryFormService,LoadSpravService,Cookie]
 })
-export class CustomersordersComponent implements OnInit {
+
+export class RetailsalesComponent implements OnInit {
 
   constructor(private queryFormService:   QueryFormService,
     private loadSpravService:   LoadSpravService,
@@ -50,8 +51,8 @@ export class CustomersordersComponent implements OnInit {
     private http: HttpClient,
     public deleteDialog: MatDialog,
     public MessageDialog: MatDialog,
-    public SettingsCustomersordersDialogComponent: MatDialog,
-    public dialogRef1: MatDialogRef<CustomersordersComponent>,) { }
+    public SettingsRetailsalesDialogComponent: MatDialog,
+    public dialogRef1: MatDialogRef<RetailsalesComponent>,) { }
 
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
   receivedPagesList: string [] ;//массив для получения данных пагинации
@@ -127,18 +128,18 @@ export class CustomersordersComponent implements OnInit {
     this.sendingQueryForm.searchCategoryString="";
     this.sendingQueryForm.filterOptionsIds = [];
 
-    if(Cookie.get('customersorders_companyId')=='undefined' || Cookie.get('customersorders_companyId')==null)     
-      Cookie.set('customersorders_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('customersorders_companyId')=="0"?"0":+Cookie.get('customersorders_companyId'));
-    if(Cookie.get('customersorders_departmentId')=='undefined' || Cookie.get('customersorders_departmentId')==null)  
-      Cookie.set('customersorders_departmentId',this.sendingQueryForm.departmentId); else this.sendingQueryForm.departmentId=(Cookie.get('customersorders_departmentId')=="0"?"0":+Cookie.get('customersorders_departmentId'));
-    if(Cookie.get('customersorders_sortAsc')=='undefined' || Cookie.get('customersorders_sortAsc')==null)       
-      Cookie.set('customersorders_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('customersorders_sortAsc');
-    if(Cookie.get('customersorders_sortColumn')=='undefined' || Cookie.get('customersorders_sortColumn')==null)    
-      Cookie.set('customersorders_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('customersorders_sortColumn');
-    if(Cookie.get('customersorders_offset')=='undefined' || Cookie.get('customersorders_offset')==null)        
-      Cookie.set('customersorders_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('customersorders_offset');
-    if(Cookie.get('customersorders_result')=='undefined' || Cookie.get('customersorders_result')==null)        
-      Cookie.set('customersorders_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('customersorders_result');
+    if(Cookie.get('retailsales_companyId')=='undefined' || Cookie.get('retailsales_companyId')==null)     
+      Cookie.set('retailsales_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('retailsales_companyId')=="0"?"0":+Cookie.get('retailsales_companyId'));
+    if(Cookie.get('retailsales_departmentId')=='undefined' || Cookie.get('retailsales_departmentId')==null)  
+      Cookie.set('retailsales_departmentId',this.sendingQueryForm.departmentId); else this.sendingQueryForm.departmentId=(Cookie.get('retailsales_departmentId')=="0"?"0":+Cookie.get('retailsales_departmentId'));
+    if(Cookie.get('retailsales_sortAsc')=='undefined' || Cookie.get('retailsales_sortAsc')==null)       
+      Cookie.set('retailsales_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('retailsales_sortAsc');
+    if(Cookie.get('retailsales_sortColumn')=='undefined' || Cookie.get('retailsales_sortColumn')==null)    
+      Cookie.set('retailsales_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('retailsales_sortColumn');
+    if(Cookie.get('retailsales_offset')=='undefined' || Cookie.get('retailsales_offset')==null)        
+      Cookie.set('retailsales_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('retailsales_offset');
+    if(Cookie.get('retailsales_result')=='undefined' || Cookie.get('retailsales_result')==null)        
+      Cookie.set('retailsales_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('retailsales_result');
     
     this.fillOptionsList();//заполняем список опций фильтра
 
@@ -197,7 +198,7 @@ export class CustomersordersComponent implements OnInit {
 
     // -------------------------------------- *** ПРАВА *** ------------------------------------
    getSetOfPermissions(){
-    return this.http.get('/api/auth/getMyPermissions?id=23')
+          return this.http.get('/api/auth/getMyPermissions?id=25')
             .subscribe(
                 (data) => {   
                             this.permissionsSet=data as any [];
@@ -209,26 +210,26 @@ export class CustomersordersComponent implements OnInit {
 
 
   getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==280)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==281)});
-    this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==282)});
-    this.allowToDeleteAllCompanies = permissionsSet.some(         function(e){return(e==283)});
-    this.allowToDeleteMyCompany = permissionsSet.some(            function(e){return(e==284)});
-    this.allowToDeleteMyDepartments = permissionsSet.some(        function(e){return(e==285)});
-    this.allowToDeleteMyDocs = permissionsSet.some(               function(e){return(e==286)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==287)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==288)});
-    this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==289)});
-    this.allowToViewMyDocs = permissionsSet.some(                 function(e){return(e==290)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==291)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==292)});
-    this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==293)});
-    this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==294)});
+    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==309)});
+    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==310)});
+    this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==311)});
+    this.allowToDeleteAllCompanies = permissionsSet.some(         function(e){return(e==312)});
+    this.allowToDeleteMyCompany = permissionsSet.some(            function(e){return(e==313)});
+    this.allowToDeleteMyDepartments = permissionsSet.some(        function(e){return(e==314)});
+    this.allowToDeleteMyDocs = permissionsSet.some(               function(e){return(e==315)});
+    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==316)});
+    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==317)});
+    this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==318)});
+    this.allowToViewMyDocs = permissionsSet.some(                 function(e){return(e==319)});
+    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==320)});
+    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==321)});
+    this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==322)});
+    this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==323)});
     this.getData();
   }
 
   refreshPermissions():boolean{
-    let documentOfMyCompany:boolean = (this.sendingQueryForm.companyId==this.myCompanyId);
+    // let documentOfMyCompany:boolean = (this.sendingQueryForm.companyId==this.myCompanyId);
     this.allowToView=(this.allowToViewAllCompanies||this.allowToViewMyCompany||this.allowToViewMyDepartments||this.allowToViewMyDocs)?true:false;
     this.allowToUpdate=(this.allowToUpdateAllCompanies||this.allowToUpdateMyCompany||this.allowToUpdateMyDepartments||this.allowToUpdateMyDocs)?true:false;
     this.allowToCreate=(this.allowToCreateAllCompanies||this.allowToCreateMyCompany||this.allowToCreateMyDepartments)?true:false;
@@ -373,7 +374,7 @@ export class CustomersordersComponent implements OnInit {
     this.clearCheckboxSelection();
     this.createCheckedList();
     this.sendingQueryForm.offset=0;
-    Cookie.set('customersorders_result',this.sendingQueryForm.result);
+    Cookie.set('retailsales_result',this.sendingQueryForm.result);
     this.getData();
   }
 
@@ -381,7 +382,7 @@ export class CustomersordersComponent implements OnInit {
   {
     this.clearCheckboxSelection();
     this.sendingQueryForm.offset=value;
-    Cookie.set('customersorders_offset',value);
+    Cookie.set('retailsales_offset',value);
     this.getData();
   }
 
@@ -399,53 +400,49 @@ export class CustomersordersComponent implements OnInit {
           } else {  
               this.sendingQueryForm.sortAsc="asc"
           }
-      Cookie.set('customersorders_sortAsc',this.sendingQueryForm.sortAsc);
+      Cookie.set('retailsales_sortAsc',this.sendingQueryForm.sortAsc);
       } else {
           this.sendingQueryForm.sortColumn=valueSortColumn;
           this.sendingQueryForm.sortAsc="asc";
-          Cookie.set('customersorders_sortAsc',"asc");
-          Cookie.set('customersorders_sortColumn',valueSortColumn);
+          Cookie.set('retailsales_sortAsc',"asc");
+          Cookie.set('retailsales_sortColumn',valueSortColumn);
       }
       this.getData();
   }
   onCompanySelection(){
-    Cookie.set('customersorders_companyId',this.sendingQueryForm.companyId);
-    Cookie.set('customersorders_departmentId','0');
-    // console.log('customersorders_companyId - '+Cookie.get('customersorders_companyId'));
-    // console.log('customersorders_departmentId - '+Cookie.get('customersorders_departmentId'));
+    Cookie.set('retailsales_companyId',this.sendingQueryForm.companyId);
+    Cookie.set('retailsales_departmentId','0');
     this.sendingQueryForm.departmentId="0"; 
     this.resetOptions();
     this.getDepartmentsList();
   }
   onDepartmentSelection(){
-    Cookie.set('customersorders_departmentId',this.sendingQueryForm.departmentId);
-    // console.log('customersorders_companyId - '+Cookie.get('customersorders_companyId'));
-    // console.log('customersorders_departmentId - '+Cookie.get('customersorders_departmentId'));
+    Cookie.set('retailsales_departmentId',this.sendingQueryForm.departmentId);
     this.resetOptions();
     this.getData();
   }
   clickBtnDelete(): void {
-    const dialogRef = this.deleteDialog.open(DeleteDialog, {
-      width: '300px',
-    });
-    dialogRef.afterClosed().subscribe(result => {
-      if(result==1){this.deleteDocks();}
-      this.clearCheckboxSelection();
-      this.showOnlyVisBtnAdd();
-    });        
+    // const dialogRef = this.deleteDialog.open(DeleteDialog, {
+    //   width: '300px',
+    // });
+    // dialogRef.afterClosed().subscribe(result => {
+    //   if(result==1){this.deleteDocks();}
+    //   this.clearCheckboxSelection();
+    //   this.showOnlyVisBtnAdd();
+    // });        
   }
-  deleteDocks(){
-    const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
-    this.clearCheckboxSelection();
-          return this.http.post('/api/auth/deleteCustomersOrders', body) 
-            .subscribe(
-                (data) => {   
-                            this.getData();
-                            this.openSnackBar("Успешно удалено", "Закрыть");
-                          },
-                error => console.log(error),
-            );
-  }
+  // deleteDocks(){
+  //   const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
+  //   this.clearCheckboxSelection();
+  //         return this.http.post('/api/auth/deleteRetailSales', body) 
+  //           .subscribe(
+  //               (data) => {   
+  //                           this.getData();
+  //                           this.openSnackBar("Успешно удалено", "Закрыть");
+  //                         },
+  //               error => console.log(error),
+  //           );
+  // }
   clickBtnRestore(): void {
     const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
       width: '400px',
@@ -465,7 +462,7 @@ export class CustomersordersComponent implements OnInit {
   undeleteDocks(){
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
-      return this.http.post('/api/auth/undeleteCustomersOrders', body) 
+      return this.http.post('/api/auth/undeleteRetailSales', body) 
     .subscribe(
         (data) => {   
                     this.getData();
@@ -507,9 +504,9 @@ export class CustomersordersComponent implements OnInit {
   }
 
   setDefaultCompany(){
-    if(Cookie.get('customersorders_companyId')=='0'){
+    if(Cookie.get('retailsales_companyId')=='0'){
       this.sendingQueryForm.companyId=this.myCompanyId;
-      Cookie.set('customersorders_companyId',this.sendingQueryForm.companyId);
+      Cookie.set('retailsales_companyId',this.sendingQueryForm.companyId);
     }
       this.getDepartmentsList();
   }
@@ -540,7 +537,7 @@ export class CustomersordersComponent implements OnInit {
       console.log('установка отделения по умолчанию - '+this.receivedDepartmentsList[0].id);
 
       this.sendingQueryForm.departmentId=+this.receivedDepartmentsList[0].id;
-      Cookie.set('customersorders_departmentId',this.sendingQueryForm.departmentId);
+      Cookie.set('retailsales_departmentId',this.sendingQueryForm.departmentId);
     }
   this.getCRUD_rights(this.permissionsSet);
   }
@@ -570,10 +567,10 @@ export class CustomersordersComponent implements OnInit {
         (!this.allowToViewAllCompanies && !this.allowToViewMyCompany && !this.allowToViewMyDepartments && this.allowToViewMyDocs)){
       this.receivedDepartmentsList=this.receivedMyDepartmentsList;}
   }
-
-  //открывает диалог настроек
+  
+  // открывает диалог настроек
   openDialogSettings() { 
-    const dialogSettings = this.SettingsCustomersordersDialogComponent.open(SettingsCustomersordersDialogComponent, {
+    const dialogSettings = this.SettingsRetailsalesDialogComponent.open(SettingsRetailsalesDialogComponent, {
       maxWidth: '95vw',
       maxHeight: '95vh',
       // height: '680px',
@@ -610,12 +607,12 @@ export class CustomersordersComponent implements OnInit {
         this.settingsForm.get('autocreateOnStart').setValue(result.get('autocreateOnStart').value);
         this.settingsForm.get('autocreateOnCheque').setValue(result.get('autocreateOnCheque').value);
         this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.get('statusIdOnAutocreateOnCheque').value);
-        this.saveSettingsCustomersOrders();
+        this.saveSettingsRetailSales();
       }
     });
   }
-  saveSettingsCustomersOrders(){
-    return this.http.post('/api/auth/saveSettingsCustomersOrders', this.settingsForm.value)
+  saveSettingsRetailSales(){
+    return this.http.post('/api/auth/saveSettingsRetailSales', this.settingsForm.value)
             .subscribe(
                 (data) => {   
                           this.openSnackBar("Настройки успешно сохранены", "Закрыть");

@@ -240,8 +240,7 @@ export class PostingDockComponent implements OnInit {
 //---------------------------------------------------------------------------------------------------------------------------------------
 
 getSetOfPermissions(){
-  const body = {"documentId": 16};//16= Оприходование
-           return this.http.post('/api/auth/giveMeMyPermissions', body) 
+  return this.http.get('/api/auth/getMyPermissions?id=16')
     .subscribe(
         (data) => {   
                     this.permissionsSet=data as any [];

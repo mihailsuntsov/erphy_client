@@ -129,8 +129,7 @@ export class UsergroupDockComponent implements OnInit {
 
 // -------------------------------------- *** ПРАВА *** ------------------------------------
 getSetOfPermissions(){
-  const body = {"documentId": 6};//6=Группы пользователей
-        return this.http.post('/api/auth/giveMeMyPermissions', body) 
+  return this.http.get('/api/auth/getMyPermissions?id=6')
           .subscribe(
               (data) => {   
                           this.permissionsSet=data as any [];

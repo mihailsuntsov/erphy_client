@@ -150,19 +150,19 @@ export class ProductsComponent implements OnInit {
       this.sendingQueryForm.searchCategoryString="";
 
       if(Cookie.get('products_companyId')=='undefined' || Cookie.get('products_companyId')==null)     
-      Cookie.set('products_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('products_companyId')=="0"?"0":+Cookie.get('products_companyId'));
+        Cookie.set('products_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('products_companyId')=="0"?"0":+Cookie.get('products_companyId'));
       if(Cookie.get('products_sortAsc')=='undefined' || Cookie.get('products_sortAsc')==null)       
-      Cookie.set('products_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('products_sortAsc');
+        Cookie.set('products_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('products_sortAsc');
       if(Cookie.get('products_sortColumn')=='undefined' || Cookie.get('products_sortColumn')==null)    
-      Cookie.set('products_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('products_sortColumn');
+        Cookie.set('products_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('products_sortColumn');
       if(Cookie.get('products_offset')=='undefined' || Cookie.get('products_offset')==null)        
-      Cookie.set('products_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('products_offset');
+        Cookie.set('products_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('products_offset');
       if(Cookie.get('products_result')=='undefined' || Cookie.get('products_result')==null)        
-      Cookie.set('products_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('products_result');
+        Cookie.set('products_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('products_result');
       if(Cookie.get('products_selectedNodeId')=='undefined' || Cookie.get('products_selectedNodeId')==null)        
-      Cookie.set('products_selectedNodeId',this.sendingQueryForm.selectedNodeId); else this.sendingQueryForm.selectedNodeId=Cookie.get('products_selectedNodeId');
+        Cookie.set('products_selectedNodeId',this.sendingQueryForm.selectedNodeId); else this.sendingQueryForm.selectedNodeId=Cookie.get('products_selectedNodeId');
       if(Cookie.get('products_selectedNodeName')=='undefined' || Cookie.get('products_selectedNodeName')==null)        
-      Cookie.set('products_selectedNodeName',this.sendingQueryForm.selectedNodeName); else this.sendingQueryForm.selectedNodeName=Cookie.get('products_selectedNodeName');
+        Cookie.set('products_selectedNodeName',this.sendingQueryForm.selectedNodeName); else this.sendingQueryForm.selectedNodeName=Cookie.get('products_selectedNodeName');
 
       this.getCompaniesList();// -> getSetOfPermissions() -> getMyCompanyId() -> setDefaultCompany() -> getCRUD_rights() -> getData() 
     //API: getCompaniesList         giveMeMyPermissions      getMyCompanyId
@@ -173,8 +173,7 @@ export class ProductsComponent implements OnInit {
 
  // -------------------------------------- *** ПРАВА *** ------------------------------------
   getSetOfPermissions(){
-    const body = {"documentId": 14};//14= "Товары и услуги"
-          return this.http.post('/api/auth/giveMeMyPermissions', body) 
+    return this.http.get('/api/auth/getMyPermissions?id=14')
             .subscribe(
                 (data) => {   
                             this.permissionsSet=data as any [];
@@ -318,7 +317,7 @@ export class ProductsComponent implements OnInit {
 
     for (var i = 0; i < this.receivedMatTable.length; i++) {
       if(this.selection.isSelected(this.receivedMatTable[i]))
-      this.checkedList.push(this.receivedMatTable[i].id);
+        this.checkedList.push(this.receivedMatTable[i].id);
     }
     if(this.checkedList.length>0){
         this.hideAllBtns();

@@ -120,8 +120,7 @@ export class DepartmentsDockComponent implements OnInit {
   }
 // -------------------------------------- *** ПРАВА *** ------------------------------------
   getSetOfPermissions(){
-    const body = {"documentId": 4};//4=Отделения
-          return this.http.post('/api/auth/giveMeMyPermissions', body) 
+    return this.http.get('/api/auth/getMyPermissions?id=4')
             .subscribe(
                 (data) => {   
                             this.permissionsSet=data as any [];
@@ -153,11 +152,11 @@ export class DepartmentsDockComponent implements OnInit {
       this.canUpdateThisDock=true;
       if(!this.allowToUpdateAll){//если нет прав на Отделения: "Редактирование всех"
         if(!this.isItMyDock)//значит остаются на "Редактирование своего", НО если это не мое отделение:
-        this.canUpdateThisDock=false;
+          this.canUpdateThisDock=false;
       }
       if(!this.allowToUpdateMy){//если нет прав на Отделения: "Редактирование своего"
         if(this.isItMyDock)//значит остаются на "Редактирование всех", НО если это мое отделение:
-        this.canUpdateThisDock=false;
+          this.canUpdateThisDock=false;
       }
     }
     this.visAfterCreatingBlocks=!this.allowToCreate;

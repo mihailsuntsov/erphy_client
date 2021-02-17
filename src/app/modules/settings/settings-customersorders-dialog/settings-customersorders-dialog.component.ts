@@ -1,13 +1,11 @@
-import { Component, OnInit , Inject, ViewChild} from '@angular/core';
-import {MatDialogRef, MAT_DIALOG_DATA} from '@angular/material/dialog';
-import { HttpClient} from '@angular/common/http';
+import { Component, OnInit , Inject } from '@angular/core';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { HttpClient } from '@angular/common/http';
 import { FormGroup, Validators, FormControl } from '@angular/forms';
-import { Observable } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { LoadSpravService } from '../../../services/loadsprav';
-import {MessageDialog} from 'src/app/ui/dialogs/messagedialog.component';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 
 interface idNameDescription{
   id: number;
@@ -137,21 +135,6 @@ export class SettingsCustomersordersDialogComponent implements OnInit {
         result=data as any;
         this.gettingData=false;
         //вставляем настройки в форму настроек
-
-        //если текущее предприятие отлично от того, при котором сохранялись настройки, то данная группа настроек должна быть сброшена, т.к. эти параметры зависят от предприятия:
-        // if(this.settingsForm.get('companyId').value != +result.companyId){
-        //   this.settingsForm.get('departmentId').setValue(null);
-        //   this.settingsForm.get('customerId').setValue(null);
-        //   this.settingsForm.get('customer').setValue('');
-          
-        //   this.searchCustomerCtrl.setValue('');
-        // } else {
-        //   this.settingsForm.get('departmentId').setValue(result.departmentId);
-        //   this.settingsForm.get('customerId').setValue(result.customerId);
-        //   this.settingsForm.get('customer').setValue(result.customer);
-        //   this.searchCustomerCtrl.setValue(result.customer);
-        //   this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.statusIdOnAutocreateOnCheque);
-        // }
         this.settingsForm.get('companyId').setValue(result.companyId);
         this.settingsForm.get('departmentId').setValue(result.departmentId);
         this.settingsForm.get('customerId').setValue(result.customerId);

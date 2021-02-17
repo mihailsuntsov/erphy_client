@@ -108,17 +108,17 @@ export class ShipmentComponent implements OnInit {
       this.sendingQueryForm.searchCategoryString="";
 
       if(Cookie.get('shipment_companyId')=='undefined' || Cookie.get('shipment_companyId')==null)     
-      Cookie.set('shipment_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('shipment_companyId')=="0"?"0":+Cookie.get('shipment_companyId'));
+        Cookie.set('shipment_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('shipment_companyId')=="0"?"0":+Cookie.get('shipment_companyId'));
       if(Cookie.get('shipment_departmentId')=='undefined' || Cookie.get('shipment_departmentId')==null)  
-      Cookie.set('shipment_departmentId',this.sendingQueryForm.departmentId); else this.sendingQueryForm.departmentId=(Cookie.get('shipment_departmentId')=="0"?"0":+Cookie.get('shipment_departmentId'));
+        Cookie.set('shipment_departmentId',this.sendingQueryForm.departmentId); else this.sendingQueryForm.departmentId=(Cookie.get('shipment_departmentId')=="0"?"0":+Cookie.get('shipment_departmentId'));
       if(Cookie.get('shipment_sortAsc')=='undefined' || Cookie.get('shipment_sortAsc')==null)       
-      Cookie.set('shipment_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('shipment_sortAsc');
+        Cookie.set('shipment_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('shipment_sortAsc');
       if(Cookie.get('shipment_sortColumn')=='undefined' || Cookie.get('shipment_sortColumn')==null)    
-      Cookie.set('shipment_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('shipment_sortColumn');
+        Cookie.set('shipment_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('shipment_sortColumn');
       if(Cookie.get('shipment_offset')=='undefined' || Cookie.get('shipment_offset')==null)        
-      Cookie.set('shipment_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('shipment_offset');
+        Cookie.set('shipment_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('shipment_offset');
       if(Cookie.get('shipment_result')=='undefined' || Cookie.get('shipment_result')==null)        
-      Cookie.set('shipment_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('shipment_result');
+        Cookie.set('shipment_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('shipment_result');
 
       this.getCompaniesList();// 
       // -> getSetOfPermissions() 
@@ -135,8 +135,7 @@ export class ShipmentComponent implements OnInit {
 
     // -------------------------------------- *** ПРАВА *** ------------------------------------
    getSetOfPermissions(){
-    const body = {"documentId": 21};//21= "Отгрузка"
-          return this.http.post('/api/auth/giveMeMyPermissions', body) 
+    return this.http.get('/api/auth/getMyPermissions?id=21')
             .subscribe(
                 (data) => {   
                             this.permissionsSet=data as any [];
@@ -277,7 +276,7 @@ export class ShipmentComponent implements OnInit {
     for (var i = 0; i < this.dataSource.data.length; i++) {
       // console.log("2");
       if(this.selection.isSelected(this.dataSource.data[i]))
-      this.checkedList.push(this.dataSource.data[i].id);
+        this.checkedList.push(this.dataSource.data[i].id);
     }
     if(this.checkedList.length>0){
       // console.log("3");
