@@ -30,7 +30,7 @@
                         </div>
                     </div>
                     <mat-card-content class="input-form">
-                        <div class="container-fluid">
+                        <div class="container-fluid" [hidden]="readonly">
                             <div class="row">
                                 <div class="col-lg-1  col-md-12 small-padding center-align">
                                     <div class="div-foto hand"> 
@@ -480,6 +480,8 @@
                                         [ngStyle]="   ((getControlTablefield().controls[i].get('product_count').value>(getControlTablefield().controls[i].get('available').value+getControlTablefield().controls[i].get('shipped').value)&&getControlTablefield().controls[i].get('is_material').value)&&!(getControlTablefield().controls[i].get('product_count').invalid && getControlTablefield().controls[i].get('product_count').errors.pattern))?{'background-color': '#ffe4e1'}:{'background-color': 'white'}">
                                             <input matInput 
                                                 class="table-field-editable"
+                                                [ngClass]="{'table-field-editable':!readonly}"
+                                                [readonly]=readonly
                                                 style="width:  95%;"
                                                 placeholder=""
                                                 formControlName="product_count"
@@ -507,7 +509,8 @@
                                         <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i">
                                             
                                             <input matInput 
-                                                class="table-field-editable"
+                                                [ngClass]="{'table-field-editable':!readonly}"
+                                                [readonly]=readonly
                                                 style="width: 95%;"
                                                 placeholder=""
                                                 formControlName="product_price"
@@ -540,7 +543,8 @@
                                         [ngStyle]="   ((getControlTablefield().controls[i].get('reserved_current').value>(getControlTablefield().controls[i].get('available').value+getControlTablefield().controls[i].get('shipped').value)&&getControlTablefield().controls[i].get('is_material').value)&&!(getControlTablefield().controls[i].get('reserved_current').invalid && getControlTablefield().controls[i].get('reserved_current').errors.pattern))?{'background-color': '#ffe4e1'}:{'background-color': 'white'}">
                                            
                                         <input matInput 
-                                                class="table-field-editable"
+                                                [ngClass]="{'table-field-editable':!readonly}"
+                                                [readonly]=readonly
                                                 style="width:  95%;"
                                                 *ngIf="getControlTablefield().controls[i].get('is_material').value"
                                                 placeholder=""
@@ -623,7 +627,8 @@
                                             <mat-select  
                                             formControlName="price_type_id"
                                             (selectionChange)="onChangePriceTypeOfRow(i)"
-                                            class="table-field-editable"
+                                            [ngClass]="{'table-field-editable':!readonly}"
+                                            [disabled]="readonly"
                                             style="max-width:  95%;">
                                                 <mat-option  *ngFor="let rdl of receivedPriceTypesList" 
                                                 [value]="rdl.id"
@@ -639,9 +644,9 @@
                                         <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> 
                                             <mat-select  
                                             formControlName="nds_id" 
-                                            class="table-field-editable"
                                             style="width:  95%;"
                                             (selectionChange)="productTableRecount()" 
+                                            [ngClass]="{'table-field-editable':!readonly}"
                                             [disabled]=false>                          
                                                 <mat-option  *ngFor="let rt of spravSysNdsSet" [value]="rt.id">
                                                         {{rt.name}}

@@ -47,7 +47,7 @@ const routes: Routes = [
       { path: 'kassa', loadChildren: () => import('./pages/documents/kassa/kassa.module').then(m => m.KassaModule) },
       { path: 'kassadock', loadChildren: () => import('./pages/documents/kassa-dock/kassa-dock.module').then(m => m.KassaDockModule) },
       { path: 'retailsales', loadChildren: () => import('./pages/documents/retailsales/retailsales.module').then(m => m.RetailsalesModule) },
-      { path: 'retailsales-dock', loadChildren: () => import('./pages/documents/retailsales-dock/retailsales-dock.module').then(m => m.RetailsalesDockModule) },
+      { path: 'retailsalesdock', loadChildren: () => import('./pages/documents/retailsales-dock/retailsales-dock.module').then(m => m.RetailsalesDockModule) },
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
       { path: '**', redirectTo: 'dashboard',pathMatch: 'full' },
     ]  

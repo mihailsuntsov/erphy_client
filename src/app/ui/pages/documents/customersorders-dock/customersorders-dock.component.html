@@ -538,6 +538,7 @@
                                         *ngIf="canGetChilds && +id>0"
                                         (totalSumPriceEvent)="totalSumPriceHandler($event)"
                                         [parentDockId]="id" 
+                                        [parentDockName]="'CustomersOrders'"
                                         [nds]="formBaseInformation.get('nds').value"
                                         [nds_included]="formBaseInformation.get('nds_included').value"
                                         [company_id]="formBaseInformation.get('company_id').value"
@@ -558,6 +559,7 @@
                                         [saveSettings]="settingsForm.get('saveSettings').value"
                                         [receivedPriceTypesList]="receivedPriceTypesList"
                                         [spravSysNdsSet]="spravSysNdsSet"
+                                        [readonly]="false"
                                     ></app-product-search-and-table>
                                 </div>
                             </div>

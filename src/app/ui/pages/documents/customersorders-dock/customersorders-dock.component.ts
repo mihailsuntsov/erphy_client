@@ -512,13 +512,13 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
     this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==293)});
     this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==294)});
     if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;this.allowToCreateMyDepartments=true}
-    if(this.allowToCreateMyCompany=true)this.allowToCreateMyDepartments=true;
+    if(this.allowToCreateMyCompany)this.allowToCreateMyDepartments=true;
     if(this.allowToViewAllCompanies){this.allowToViewMyCompany=true;this.allowToViewMyDepartments=true;this.allowToViewMyDocs=true}
-    if(this.allowToViewMyCompany=true){this.allowToViewMyDepartments=true;this.allowToViewMyDocs=true}
-    if(this.allowToViewMyDepartments=true)this.allowToViewMyDocs=true;
+    if(this.allowToViewMyCompany){this.allowToViewMyDepartments=true;this.allowToViewMyDocs=true}
+    if(this.allowToViewMyDepartments)this.allowToViewMyDocs=true;
     if(this.allowToUpdateAllCompanies){this.allowToUpdateMyCompany=true;this.allowToUpdateMyDepartments=true;this.allowToUpdateMyDocs=true;}
-    if(this.allowToUpdateMyCompany=true){this.allowToUpdateMyDepartments=true;this.allowToUpdateMyDocs=true;}
-    if(this.allowToUpdateMyDepartments=true)this.allowToUpdateMyDocs=true;
+    if(this.allowToUpdateMyCompany){this.allowToUpdateMyDepartments=true;this.allowToUpdateMyDocs=true;}
+    if(this.allowToUpdateMyDepartments)this.allowToUpdateMyDocs=true;
     this.getData();
   }
 

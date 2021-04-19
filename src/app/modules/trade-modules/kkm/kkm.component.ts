@@ -101,7 +101,7 @@ export class KkmComponent implements OnInit {
   bnal_income: string=''; //оплачено безналичными (при смешанной форме оплаты)
   kktBlockSize: string='small';// высота блока операций с ККМ. Нужна для её динамического увеличения 
   userInfo: any;//информация о пользователе
-  kassaList:KassaList[]; //массив с загруженными кассами для кассира
+  kassaList:KassaList[] = []; //массив с загруженными кассами для кассира
   loginform: any ; //форма для логина другого кассира
   kassaSettingsForm: any; //форма с настройками кассира. нужна для их сохранения
   kassaSettings: KassaSettings;//настройки кассира/ нужны для восстановления настроек в случае их изменения и не сохранения
@@ -688,7 +688,13 @@ export class KkmComponent implements OnInit {
     .subscribe(
         (data) => {
           this.userInfo=data as any;
-          this.getKassaListByDepId();//загружаем список доступных касс
+          if(+this.department_id>0)//если отделение выбрано - загружаем список доступных касс, иначе прерываем цепочку стартовых методов
+              this.getKassaListByDepId();
+            else{
+              this.canWorkWithKassa=false;
+              this.operationId='cantwork';
+              this.operationName='Работа с кассой невозможна.';
+            }
         },
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
     );
@@ -800,7 +806,14 @@ export class KkmComponent implements OnInit {
             this.openSnackBar("Настройки кассы сохранены", "Закрыть");
             //проверка верны ли настройки и можно ли работать с кассой после сохранения настроек
             this.operationId='undefined';
-            this.getKassaListByDepId();
+            // на данном этапе, если отделение не выбрано, цепочка выполнения методов прерывается
+            if(+this.department_id>0)
+              this.getKassaListByDepId();
+            else{
+              this.canWorkWithKassa=false;
+              this.operationId='cantwork';
+              this.operationName='Работа с кассой невозможна. Отделение не выбрано.';
+            }
             if(this.kassaSettingsForm.get('cashier_value_id').value!='another'){
               this.anotherCashierFio='';
               this.anotherCashierVatin='';

@@ -516,13 +516,18 @@
         </button>
     </div>
     <!-- Если работа с кассой невозможна -->
-    <div *ngIf="operationId=='cantwork'" style="margin:20px;">
+    <div *ngIf="operationId=='cantwork' && +department_id>0" style="margin:20px;">
         <p style="font-weight: bold;">Следующие настройки кассы неверны:</p>
         <p *ngIf="kassaList.length==0">- Для предприятия {{company}} и отделения {{department}} нет доступных касс.</p><span style="font-size: 11px; color: rgb(49, 49, 49);">Для добавления кассы перейдите в Настройки->Оборудование->Кассы онлайн и добавьте подключенную кассу</span>
         <p *ngIf="+kassaSettingsForm.get('selected_kassa_id').value==0">- Касса не выбрана</p>
         <p *ngIf="kassaSettingsForm.get('cashier_value_id').value=='another'&&(!anotherCashierFio||!anotherCashierVatin)">- В настройках в графе "Кассир" выбрано "Другая учетная запись", но вход в неё не выполнен.</p>
         <p *ngIf="cashierFio==''">- Кассир не выбран</p>
     </div>
+    <div *ngIf="operationId=='cantwork' && +department_id==0" style="margin:20px;">
+        <p style="font-weight: bold;">Отделение не выбрано</p>
+        <p *ngIf="cashierFio==''">Выберите отделение в блоке "Основная информация"</p>
+    </div>
+
     <button 
         mat-raised-button 
         style="width: 200px;

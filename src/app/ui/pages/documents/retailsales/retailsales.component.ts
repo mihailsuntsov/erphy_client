@@ -9,7 +9,7 @@ import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { QueryFormService } from './get-retailsales-table.service';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { FormGroup, Validators, FormControl } from '@angular/forms';
-import { SettingsRetailsalesDialogComponent } from 'src/app/modules/settings/settings-rs-dialog/settings-rs-dialog.component';
+import { SettingsRetailsalesDialogComponent } from 'src/app/modules/settings/settings-retailsales-dialog/settings-rs-dialog.component';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 
@@ -177,7 +177,7 @@ export class RetailsalesComponent implements OnInit {
       //Оплата чека прихода (наличными - nal безналичными - electronically смешанная - mixed)
       selectedPaymentType:   new FormControl    ('cash',[]),
       //автосоздание на старте документа, если автозаполнились все поля
-      autocreateOnStart: new FormControl        (false,[]),
+      // autocreateOnStart: new FormControl        (false,[]),
       //автосоздание нового документа, если в текущем успешно напечатан чек
       autocreateOnCheque: new FormControl       (false,[]),
       //статус после успешного отбития чека, перед созданием нового документа
@@ -604,7 +604,7 @@ export class RetailsalesComponent implements OnInit {
         if(result.get('priorityTypePriceSide')) this.settingsForm.get('priorityTypePriceSide').setValue(result.get('priorityTypePriceSide').value);
         this.settingsForm.get('hideTenths').setValue(result.get('hideTenths').value);
         this.settingsForm.get('saveSettings').setValue(result.get('saveSettings').value);
-        this.settingsForm.get('autocreateOnStart').setValue(result.get('autocreateOnStart').value);
+        // this.settingsForm.get('autocreateOnStart').setValue(result.get('autocreateOnStart').value);
         this.settingsForm.get('autocreateOnCheque').setValue(result.get('autocreateOnCheque').value);
         this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.get('statusIdOnAutocreateOnCheque').value);
         this.saveSettingsRetailSales();

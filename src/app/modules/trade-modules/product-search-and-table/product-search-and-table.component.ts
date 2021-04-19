@@ -113,7 +113,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   formBaseInformation:any;//форма-обёртка для массива форм customersOrdersProductTable (нужна для вывода таблицы)
   formSearch:any;// форма для поиска товара, ввода необходимых данных и отправки всего этого в formBaseInformation в качестве элемента массива
   settingsForm: any; // форма с настройками (нужно для сохранения некоторых настроек при расценке)
-  displayedColumns:string[];//отображаемые колонки таблицы товаров
+  displayedColumns:string[] = [];//отображаемые колонки таблицы товаров
   gettingTableData: boolean;//идет загрузка товарных позиций
 
   //для Autocomplete по поиску товаров
@@ -164,6 +164,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   // @ViewChild(MatTable, {static: false}) table_:MatTable<CustomersOrdersProductTable>; 
 
   @Input() parentDockId:number;
+  @Input() parentDockName:string; // Идентификатор документа, в который вызывается данный компонент. Например, CustomersOrders, RetailSales и т.д.
   @Input() nds:boolean;
   @Input() nds_included:boolean;
   @Input() priorityTypePriceSide:string;
@@ -184,6 +185,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   @Input() saveSettings:boolean;
   @Input() receivedPriceTypesList: idNameDescription[];//массив для получения списка типов цен
   @Input() spravSysNdsSet: SpravSysNdsSet[]; //массив имен и id для ндс 
+  @Input() readonly:boolean;
 
   @Output() totalSumPriceEvent = new EventEmitter<string>();
 
@@ -256,8 +258,32 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
     this.hideOrShowNdsColumn();
     this.getProductsTable();
     this.getSpravSysEdizm(); //загрузка единиц измерения.
-    this.getPriceTypesList();
+    this.setCurrentTypePrice();
     this.onProductSearchValueChanges();//отслеживание изменений поля "Поиск товара"
+    console.log('-----------------------------------------------------');
+    console.log("parentDockId-"+this.parentDockId);
+    console.log("nds-"+this.nds);
+    console.log("nds_included-"+this.nds_included);
+    console.log("priorityTypePriceSide-"+this.priorityTypePriceSide);
+    console.log("department_type_price_id-"+this.department_type_price_id);//id тип цены в отделении (Складе), для которого создавался данный документ. Нужен для изменения поля Тип цены
+    console.log("cagent_type_price_id-"+this.cagent_type_price_id);//id типа цены покупателя, для которого создавался данный документ.  Нужен для изменения поля Тип цены
+    console.log("default_type_price_id-"+this.default_type_price_id);//id типа цены, установленный по умолчанию.  Нужен для изменения поля Тип цены
+    console.log("department-"+this.department);
+    console.log("cagent-"+this.cagent);
+    console.log("company-"+this.company);
+    console.log("company_id-"+this.company_id);
+    console.log("hideTenths-"+this.hideTenths);
+    console.log("pricingType-"+this.pricingType);
+    console.log("plusMinus-"+this.plusMinus);
+    console.log("changePrice-"+this.changePrice);
+    console.log("changePriceType-"+this.changePriceType);
+    console.log("department_id-"+this.department_id);
+    console.log("secondaryDepartments-"+this.secondaryDepartments);// склады в выпадающем списке складов формы поиска товара
+    console.log("saveSettings-"+this.saveSettings);
+    console.log("receivedPriceTypesList-"+this.receivedPriceTypesList);//массив для получения списка типов цен
+    console.log("spravSysNdsSet-"+this.spravSysNdsSet); //массив имен и id для ндс 
+    console.log('-----------------------------------------------------');
+
   }
   ngOnChanges(changes: SimpleChanges): void {
     if(changes.nds) {
@@ -326,7 +352,7 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
     const control = <FormArray>this.formBaseInformation.get('customersOrdersProductTable');
     this.gettingTableData=true;
     control.clear();
-    this.http.get('/api/auth/getCustomersOrdersProductTable?id='+this.parentDockId)
+    this.http.get('/api/auth/get'+this.parentDockName+'ProductTable?id='+this.parentDockId)
         .subscribe(
             data => { 
                 // control.clear();
@@ -458,18 +484,22 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
   }
 
   hideOrShowNdsColumn(){
-    // this.getNds()
-    // .subscribe(data => {
-    //   // alert(data)
-      if(this.nds){
-        // this.displayedColumns = ['select','name','product_count','edizm','product_price','product_sumprice','reserved_current','available','total','reserved','shipped','price_type','nds','department',/*'id','row_id','indx',*/'delete'];
-        this.displayedColumns = ['select','name','product_count','edizm','product_price','product_sumprice','reserved_current','available','total','reserved','shipped','price_type','nds','department','delete'];
-      } else {
-        // this.displayedColumns = ['select','name','product_count','edizm','product_price','product_sumprice','reserved_current','available','total','reserved','shipped','price_type','department',/*'id','row_id','indx',*/'delete'];
-        this.displayedColumns = ['select','name','product_count','edizm','product_price','product_sumprice','reserved_current','available','total','reserved','shipped','price_type','department','delete'];
-      }
-  // });
-}
+    this.displayedColumns=[];
+    if(this.parentDockName=='CustomersOrders')
+      this.displayedColumns.push('select');
+    this.displayedColumns.push('name','product_count','edizm','product_price','product_sumprice');
+    if(this.parentDockName=='CustomersOrders')
+      this.displayedColumns.push('reserved_current');
+    this.displayedColumns.push('available','total','reserved');
+    if(this.parentDockName=='CustomersOrders')
+      this.displayedColumns.push('shipped');
+    this.displayedColumns.push('price_type');
+    if(this.nds)
+      this.displayedColumns.push('nds');
+    this.displayedColumns.push('department');
+    if(!this.readonly)
+      this.displayedColumns.push('delete');
+  }
 
   getControlTablefield(){
     const control = <FormArray>this.formBaseInformation.get('customersOrdersProductTable');
@@ -635,12 +665,13 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
       }
     }); 
   }
-  getPriceTypesList(){
+  setCurrentTypePrice(){
+    // console.log("child department_type_price_id - "+this.department_type_price_id);
     switch (this.priorityTypePriceSide) {//проверяем дефолтную приоритетную цену
       case 'sklad': {//если sklad - в поле Тип цены выставляем тип цены склада
-        if(this.department_type_price_id>0)
-          this.formSearch.get('price_type_id').setValue(this.department_type_price_id);
-        else this.showWarningTypePriceDialog('Склад', 'cклада',this.department)
+        if(this.department_type_price_id>0){
+          this.formSearch.get('price_type_id').setValue(this.department_type_price_id);}
+        else {this.showWarningTypePriceDialog('Склад', 'cклада',this.department)}
         break;}
       case 'cagent': {//если cagent - в поле Тип цены выставляем тип покупателя склада
         if(this.cagent_type_price_id>0)
@@ -658,7 +689,8 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
   }
 
   showWarningTypePriceDialog(typePrice:string, subj:string, subjname:string){
-    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:
+    if(subjname.length>0)// при старте Розничных продаж предприятие, отделение или покупатель могут быть не выбраны (из настроек). Следовательно, предупреждение, что у subj нет типа цены смысла не несёт
+      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:
     'Для документа "Заказ покупателя" в качестве приоритетного установлен тип цены "'+typePrice+'", но у '+subj+' "'+subjname+'" тип цены '+(this.priorityTypePriceSide=='defprice'?'по умолчанию в справочнике "Типы цен" ':'')+'не выбран'
     }});
   }
