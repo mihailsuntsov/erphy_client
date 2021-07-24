@@ -3,7 +3,7 @@
         <div class="top-bar-plug"></div>
         <mat-card-title class="flex top-bar">
             
-            <div class="card-name">Розничная продажа<span [ngClass]="{invisible: visBeforeCreatingBlocks}">№{{formBaseInformation.get('doc_number').value}}</span></div>
+            <div class="card-name">Розничная продажа<span [ngClass]="{invisible: visBeforeCreatingBlocks}"> №{{formBaseInformation.get('doc_number').value}}</span></div>
             <div  id="status" style=" font-size: 15px;"> 
                 <div class = "circle-in-selected" *ngIf="+formBaseInformation.get('status_id').value>0" [style.background-color]="formBaseInformation.get('status_color').value"></div>
                 <mat-form-field  class="mat-form-field-100" style="margin-top: -25px;">
@@ -41,7 +41,7 @@
             <button 
                 mat-raised-button 
                 style="width: 129px;height: 36px;"
-                *ngIf="!is_completed && visBtnUpdate && canGetChilds"
+                *ngIf="+id>0 && visBtnUpdate && canGetChilds"
                 (click)="updateDocument()"
                 [disabled]="!childFormValid" 
                 color="primary"
@@ -52,8 +52,8 @@
             <button 
                 mat-raised-button 
                 [style.display]="visAfterCreatingBlocks==true?'none':'block'"
-                (click)="createNewDocument()" 
-                *ngIf="allowToCreate"
+                (click)="createNewDocument(false)" 
+                *ngIf="allowToCreate && +id==0"
                 [disabled]="!formBaseInformation.valid" 
                 color="primary"
                 type="submit"
@@ -213,7 +213,7 @@
                                                                 slideWidth50left: formBaseInformation.get('nds').value}">
                                                         <mat-slide-toggle 
                                                         formControlName="nds"
-                                                        [disabled]="is_completed"
+                                                        [disabled]="+id>0"
                                                         matTooltip='Включите, если вы работаете с НДС. Если в накладной присутствует НДС, но вы не плательщик НДС, то включать не нужно.'
                                                         >НДС</mat-slide-toggle>
                                                         <input matInput hidden/>
@@ -221,7 +221,7 @@
                                                     <mat-form-field class="slideWidth50right" [ngClass]="{invisible: !formBaseInformation.get('nds').value}">
                                                         <mat-slide-toggle 
                                                             formControlName="nds_included"
-                                                            [disabled]="is_completed"
+                                                            [disabled]="+id>0"
                                                             (change)="productSearchAndTableComponent.productTableRecount(formBaseInformation.get('nds_included').value)"
                                                             matTooltip='Включите, если цена уже содержит НДС. В противном случае НДС прибавится сверху цены'
                                                         >НДС включена</mat-slide-toggle>
@@ -232,7 +232,7 @@
                                                     <div class="col-12">
                                                         <mat-form-field  class="mat-form-field-100">
                                                             <textarea   matInput
-                                                                        [readonly]=is_completed
+                                                                        [readonly]="+id>0"
                                                                         maxlength="2000"
                                                                         [rows]="id>0?1:3"
                                                                         #description
@@ -255,6 +255,7 @@
                                          *ngIf="canGetChilds"
                                         (sendingProductsTableEvent)="sendingProductsTableHandler()"
                                         (succesfulChequePrinting)="onSuccesfulChequePrintingHandler()"
+                                        (onClickChequePrinting)="onClickChequePrintingHandler()"
                                         [autocreateOnCheque] = "settingsForm.get('autocreateOnCheque').value"
                                         [addressString] = "addressString"
                                         [department_id] = "this.formBaseInformation.get('department_id').value"

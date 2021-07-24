@@ -52,7 +52,7 @@
                                                                 formControlName="id"/>
                                                     </mat-form-field>
                                                     <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: visAfterCreatingBlocks}">
-                                                        <mat-label>Предприятие</mat-label>
+                                                        <mat-label>Предприятие <span *ngIf="formBaseInformation.get('company_id').value==''||formBaseInformation.get('company_id').value==null" class="star">*</span></mat-label>
                                                         <mat-select  formControlName="company_id" (selectionChange)="getDepartmentsList(true)">                          
                                                             <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
                                                                     {{rt.name}}
@@ -62,7 +62,7 @@
                                                 </div>
                                                 <div class="col-12"> 
                                                     <mat-form-field  class="mat-form-field-100">
-                                                        <mat-label>Отделение{{formBaseInformation.get('department_id').value==''?'*':''}}</mat-label>
+                                                        <mat-label>Отделение <span *ngIf="formBaseInformation.get('department_id').value==''||formBaseInformation.get('department_id').value==null" class="star">*</span></mat-label>
                                                         <mat-select formControlName="department_id">
                                                             <mat-option *ngFor="let department of receivedDepartmentsList" 
                                                                         [value]="department.id">
@@ -76,7 +76,7 @@
                                                 </div>
                                                 <div class="col-12">
                                                     <mat-form-field  class="mat-form-field-100">
-                                                        <mat-label>Наименование{{formBaseInformation.get('name').value==''?'*':''}}</mat-label>
+                                                        <mat-label>Наименование <span *ngIf="formBaseInformation.get('name').value==''||formBaseInformation.get('name').value==null" class="star">*</span></mat-label>
                                                         <input  matInput
                                                                 maxlength="60"
                                                                 formControlName="name" [readonly]=!allowToUpdate/>
@@ -88,7 +88,7 @@
                                                 </div>
                                                 <div class="col-12"> 
                                                     <mat-form-field  class="mat-form-field-100">
-                                                        <mat-label>Налогообложение{{formBaseInformation.get('sno1_id').value==''?'*':''}}</mat-label>
+                                                        <mat-label>Налогообложение <span *ngIf="formBaseInformation.get('sno1_id').value==''||formBaseInformation.get('sno1_id').value==null" class="star">*</span></mat-label>
                                                         <mat-select formControlName="sno1_id">
                                                             <mat-option *ngFor="let sno of spravSysTaxationTypes" 
                                                                         [value]="sno.id">
@@ -102,13 +102,27 @@
                                                 </div>
                                                 <div class="col-12"> 
                                                     <mat-form-field  class="mat-form-field-100">
-                                                        <mat-label>Место расчётов{{formBaseInformation.get('billing_address').value==''?'*':''}}</mat-label>
+                                                        <mat-label>Место расчётов <span *ngIf="formBaseInformation.get('billing_address').value==''||formBaseInformation.get('billing_address').value==null" class="star">*</span></mat-label>
                                                         <input  matInput
                                                                 maxlength="300"
                                                                 formControlName="billing_address" [readonly]=!allowToUpdate/>
                                                         <mat-hint align="end" *ngIf="formBaseInformation.get('billing_address').value.length>100">{{formBaseInformation.get('billing_address').value.length}} / 300</mat-hint>
                                                         <mat-hint  align="start" *ngIf="formBaseInformation.get('billing_address').touched && formBaseInformation.get('billing_address').invalid">
                                                             <i class="form-invalid">Место расчётов не выбрано</i>
+                                                        </mat-hint>
+                                                    </mat-form-field>
+                                                </div>
+                                                <div class="col-12"> 
+                                                    <mat-form-field  class="mat-form-field-100">
+                                                        <mat-label>Заводской номер <span *ngIf="formBaseInformation.get('zn_kkt').value==''||formBaseInformation.get('zn_kkt').value==null" class="star">*</span></mat-label>
+                                                        <input  matInput
+                                                                maxlength="300"
+                                                                formControlName="zn_kkt" 
+                                                                (click)="showZnMessage()"
+                                                                [readonly]=true/>
+                                                        <mat-hint align="end" *ngIf="formBaseInformation.get('zn_kkt').value.length>40">{{formBaseInformation.get('zn_kkt').value.length}} / 64</mat-hint>
+                                                        <mat-hint  align="start" *ngIf="formBaseInformation.get('zn_kkt').touched && formBaseInformation.get('zn_kkt').invalid">
+                                                            <i class="form-invalid">Заводской номер не заполнен</i>
                                                         </mat-hint>
                                                     </mat-form-field>
                                                 </div>
@@ -177,7 +191,7 @@
                                             <div class="row">
                                                 <div class="col-12">
                                                     <mat-form-field class="mat-form-field-100">
-                                                        <mat-label>Тип сервера</mat-label>
+                                                        <mat-label>Тип сервера <span *ngIf="formBaseInformation.get('server_type').value==''||formBaseInformation.get('server_type').value==null" class="star">*</span></mat-label>
                                                         <mat-select  formControlName="server_type">                          
                                                             <mat-option value="atol">
                                                                 Атол web-сервер
@@ -190,7 +204,7 @@
                                                 </div>
                                                 <div class="col-12">
                                                     <mat-form-field  class="mat-form-field-100">
-                                                        <mat-label>Идентификатор на сервере{{formBaseInformation.get('device_server_uid').value==''?'*':''}}</mat-label>
+                                                        <mat-label>Идентификатор на сервере <span *ngIf="formBaseInformation.get('device_server_uid').value==''||formBaseInformation.get('device_server_uid').value==null" class="star">*</span></mat-label>
                                                         <input  matInput
                                                                 maxlength="20"
                                                                 formControlName="device_server_uid" [readonly]=!allowToUpdate/>
@@ -202,7 +216,7 @@
                                                 </div>
                                                 <div class="col-12">
                                                     <mat-form-field  class="mat-form-field-100">
-                                                        <mat-label>Адрес и порт сервера{{formBaseInformation.get('server_address').value==''?'*':''}}</mat-label>
+                                                        <mat-label>Адрес и порт сервера <span *ngIf="formBaseInformation.get('server_address').value==''||formBaseInformation.get('server_address').value==null" class="star">*</span></mat-label>
                                                         <input  matInput
                                                                 placeholder="Например http://127.0.0.1:16732"
                                                                 maxlength="300"
@@ -230,7 +244,7 @@
                                                 <div  *ngIf="wasConnectionTest && modelName!=''" class="div-100 test-result-block"> 
                                                     <span class="test-result-row">Модель:     {{modelName}}</span>
                                                     <span class="test-result-row">Прошивка:   {{firmwareVersion}}</span>
-                                                    <span class="test-result-row">Сер. номер: {{serial}}</span>
+                                                    <span class="test-result-row">ЗН ККТ:     {{zn_kkt}}</span>
                                                     <span class="test-result-row">ФФД:        {{ffdVersion}}</span>
                                                     <span class="test-result-row">ФФД ФН:     {{fnFfdVersion}}</span>
                                                 </div>

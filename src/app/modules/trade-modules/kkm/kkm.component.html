@@ -12,10 +12,12 @@
     [diameter]="50"
     *ngIf="operationId=='undefined'">
 </mat-spinner>
+
 <mat-card class="internal-card" 
         [ngClass]="{settingsBlock:(operationId=='kassaSettings'),smallBlock:(operationId=='undefined'||operationId=='cantwork'||operationId=='sell'||operationId=='buy'||operationId=='sellReturn'||operationId=='buyReturn'||operationId=='openShift'||operationId=='closeShift'||operationId=='error'),mediumBlock:(operationId=='sellCorrection'||operationId=='buyCorrection'||operationId=='sellReturnCorrection'||operationId=='buyReturnCorrection')}">
+   
     <div class="icon-panel">
-        <mat-icon   matTooltip='Меню'    
+        <mat-icon   matTooltip='Меню кассового модуля'    
                     [matMenuTriggerFor]="menuKKM"
                     (click)="onClickMenuIcon()"
                     class="nav-icon">menu
@@ -93,7 +95,7 @@
         <mat-card-title class="card-title">{{operationName}}</mat-card-title>
     </mat-card-header>
     <div class="cashier-fio" *ngIf="operationId!='cantwork'&&operationId!='kassaSettings'&&operationId!='undefined'">
-        Кассир: {{cashierFio}}
+        Кассир: {{cashierFio}} 
     </div>
     <!-- Если работа с кассой возможна -->
     <div *ngIf="operationId!='cantwork'">
@@ -460,7 +462,7 @@
             bottom: 20px;
             right: 0;"
             *ngIf="operationId=='sell'||operationId=='buy'||operationId=='sellReturn'||operationId=='buyReturn'||operationId=='sellCorrection'||operationId=='buyCorrection'||operationId=='sellReturnCorrection'||operationId=='buyReturnCorrection'"
-            (click)="checkAndPrintReceipt()"
+            (click)="onClickPrintReceipt()"
             [disabled]="!kkmCanWork || +totalSumPrice==0 || (((+totalSumPrice>(+nal_income + (+bnal_income))) || (+bnal_income>+totalSumPrice))&&selectedPaymentType!='electronically')" 
             color="primary"
             type="submit"
@@ -518,10 +520,11 @@
     <!-- Если работа с кассой невозможна -->
     <div *ngIf="operationId=='cantwork' && +department_id>0" style="margin:20px;">
         <p style="font-weight: bold;">Следующие настройки кассы неверны:</p>
-        <p *ngIf="kassaList.length==0">- Для предприятия {{company}} и отделения {{department}} нет доступных касс.</p><span style="font-size: 11px; color: rgb(49, 49, 49);">Для добавления кассы перейдите в Настройки->Оборудование->Кассы онлайн и добавьте подключенную кассу</span>
+        <p *ngIf="kassaList.length==0">- Для предприятия {{company}} и отделения {{department}} нет доступных касс. <span style="font-size: 11px; color: rgb(49, 49, 49);">Для добавления кассы перейдите в Настройки->Оборудование->Кассы онлайн и добавьте подключенную кассу</span></p>
         <p *ngIf="+kassaSettingsForm.get('selected_kassa_id').value==0">- Касса не выбрана</p>
         <p *ngIf="kassaSettingsForm.get('cashier_value_id').value=='another'&&(!anotherCashierFio||!anotherCashierVatin)">- В настройках в графе "Кассир" выбрано "Другая учетная запись", но вход в неё не выполнен.</p>
         <p *ngIf="cashierFio==''">- Кассир не выбран</p>
+        <p *ngIf="!isKassaInList(kassaSettingsForm.get('selected_kassa_id').value)">- Выбранная в настройках кассира касса недоступна. Возможно, касса была удалена. Перейдите в настройки кассового модуля, и выберите одну из доступных касс.</p>
     </div>
     <div *ngIf="operationId=='cantwork' && +department_id==0" style="margin:20px;">
         <p style="font-weight: bold;">Отделение не выбрано</p>
@@ -555,7 +558,7 @@
         *ngIf="operationId=='kassaSettings'"
         (click)="updateCashierSettings()"
         color="primary"
-        [disabled]="!kassaSettingsForm.valid||(kassaSettingsForm.get('cashier_value_id').value=='another')&&anotherCashierFio==''" 
+        [disabled]="!kassaSettingsForm.valid||((kassaSettingsForm.get('cashier_value_id').value=='another')&&anotherCashierFio=='') || !isKassaInList(kassaSettingsForm.get('selected_kassa_id').value)" 
         class="button">
         <i class="material-icons">done</i> Сохранить настройки
     </button>

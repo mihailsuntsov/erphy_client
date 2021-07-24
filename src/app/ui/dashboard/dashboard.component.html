@@ -1,4 +1,56 @@
-<mat-card class="card">
+<div class="container-fluid" *ngIf="allowToDashboard">
+    <div class="row" style="padding: 10px">
+        <div class="col-xl-6 col-md-12">
+            <app-sales-on-period 
+            *ngIf="allowToVolumes"
+            [companyId] = "companyId"
+            [myCompanyId] = "myCompanyId"
+            [receivedDepartmentsList] = "receivedDepartmentsList"
+            [receivedMyDepartmentsList] = "receivedMyDepartmentsList"
+            [permissionsSet] = "permissionsSet"
+            
+            >
+            </app-sales-on-period>
+        </div>
+        <div class="col-xl-6 col-md-12">
+        </div>
+        <div class="col-xl-6 col-md-12">
+        </div>
+
+    </div>
+</div>
+<button 
+    mat-raised-button 
+    style="position: absolute; bottom: 10px; left: 10px; width: 36px; height: 36px; min-width: 38px;padding: 0px;"
+    color="primary"
+    matTooltip='Настройки стартовой страницы'
+    (click)="openDialogSettings()"
+    type="button"
+    class="button">
+    <i class="material-icons">settings</i>
+</button>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- <mat-card class="card">
 
     <mat-card-content class="input-form">
         <mat-expansion-panel expanded>
@@ -98,8 +150,6 @@
                 <p>- Исправлен баг, когда после создания документа при имеющихся правах на сохранение не появлялась кнопка "Сохранить"</p>
         </mat-expansion-panel>
 
-
-
         <mat-expansion-panel>
             <mat-expansion-panel-header>
                 <mat-panel-title>
@@ -109,12 +159,6 @@
             <p>Запуск Dokio!</p>
         </mat-expansion-panel>
 
-
-
-
-
-
-
     </mat-card-content>
 
-</mat-card>
+</mat-card> -->

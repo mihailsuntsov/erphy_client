@@ -6,6 +6,7 @@ import { ProductSearchAndTableComponent } from './product-search-and-table.compo
 import { ControlMessagesComponent } from './control-messages.component';
 import { ValidationService } from './validation.service';
 
+
 @NgModule({
   declarations: [ProductSearchAndTableComponent, ControlMessagesComponent],
   imports: [

@@ -570,7 +570,7 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
         );
   }
   openProductCard(dockId:number) {
-    const dialogRef = this.dialogCreateProduct.open(ProductsDockComponent, {
+    this.dialogCreateProduct.open(ProductsDockComponent, {
       maxWidth: '95vw',
       maxHeight: '95vh',
       height: '95%',

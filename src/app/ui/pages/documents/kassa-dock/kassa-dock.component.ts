@@ -5,6 +5,7 @@ import { FormGroup, Validators, FormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { FilesComponent } from '../files/files.component';
 import { FilesDockComponent } from '../files-dock/files-dock.component';
@@ -33,6 +34,7 @@ interface dockResponse {//интерфейс для получения отве�
   server_address: string; // адрес сервера и порт в локальной сети или интернете вида http://127.0.0.1:16732
   allow_to_use: boolean; // разрешено исползовать
   is_delete: boolean; // касса удалена
+  zn_kkt: string; // заводской номер кассы
 }
 interface idAndName{ //универсалный интерфейс для выбора из справочников
   id: number;
@@ -107,7 +109,7 @@ export class KassaDockComponent implements OnInit {
   testSuccess=false;// запрос к серверу был со статусом 200
   modelName:string='';
   firmwareVersion:string='';
-  serial:string='';
+  zn_kkt:string='';
   ffdVersion:string='';
   fnFfdVersion:string='';
 
@@ -136,6 +138,7 @@ export class KassaDockComponent implements OnInit {
       additional:         new FormControl('',[]), // дополнительная информация
       server_address:     new FormControl('http://127.0.0.1:16732',[Validators.maxLength(300), Validators.required]), // адрес сервера и порт в локальной сети или интернете вида http://127.0.0.1:16732
       allow_to_use:       new FormControl(false,[]), // разрешено исползовать
+      zn_kkt:             new FormControl('',[Validators.maxLength(64),  Validators.required]), // заводской номер кассы
     });
     this.formAboutDocument = new FormGroup({
       id:                 new FormControl('',[]),
@@ -173,7 +176,7 @@ export class KassaDockComponent implements OnInit {
                       this.permissionsSet=data as any [];
                       this.getMyId();
                   },
-          error => console.log(error),
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
       );
   }
 
@@ -334,6 +337,7 @@ export class KassaDockComponent implements OnInit {
                 this.formBaseInformation.get('additional').setValue(documentValues.additional);
                 this.formBaseInformation.get('server_address').setValue(documentValues.server_address);
                 this.formBaseInformation.get('allow_to_use').setValue(documentValues.allow_to_use);
+                this.formBaseInformation.get('zn_kkt').setValue(documentValues.zn_kkt);
                 this.formAboutDocument.get('master').setValue(documentValues.master);
                 this.formAboutDocument.get('creator').setValue(documentValues.creator);
                 this.formAboutDocument.get('changer').setValue(documentValues.changer);
@@ -361,12 +365,18 @@ export class KassaDockComponent implements OnInit {
             .subscribe(
                 (data) =>   {
                                 this.createdDockId=data as number;
-                                this.id=+this.createdDockId[0];
-                                this.formBaseInformation.get('id').setValue(this.id);
-                                this.getData();
-                                this.openSnackBar("Документ \"Приёмка\" успешно создан", "Закрыть");
+                                if(+this.createdDockId!=0){
+                                  this.id=+this.createdDockId[0];
+                                  this.formBaseInformation.get('id').setValue(this.id);
+                                  this.getData();
+                                  this.openSnackBar("Документ \"Касса\" успешно создан", "Закрыть");
+                                }else{
+                                  this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Касса с данным заводским номером (ЗН) уже есть в базе данных предприятия. ЗН должен быть уникальным. Если в списке касс \"Кассы онлайн\" нет кассы с таким ЗН, проверьте список удалённых касс, и, если необходимо, восстановите удалённую кассу'}})
+                                  this.openSnackBar("Ошибка создания документа \"Касса\"", "Закрыть");
+                                }
+                                
                             },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
             );
   }
 
@@ -375,10 +385,16 @@ export class KassaDockComponent implements OnInit {
         .subscribe(
             (data) => 
             {   
-              this.getData();
-              this.openSnackBar("Документ \"Касса\" сохранён", "Закрыть");
+              let result=data as number;
+              if(+result!=0){
+                this.getData();
+                this.openSnackBar("Документ \"Касса\" сохранён", "Закрыть");
+              }else{
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Касса с данным заводским номером (ЗН) уже есть в базе данных предприятия. ЗН должен быть уникальным. Если в списке касс \"Кассы онлайн\" нет кассы с таким ЗН, проверьте список удалённых касс, и, если необходимо, восстановите удалённую кассу'}})
+                this.openSnackBar("Ошибка сохранения документа \"Касса\"", "Закрыть");
+              }
             },
-            error => console.log(error),
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
         );
   } 
 
@@ -394,7 +410,7 @@ export class KassaDockComponent implements OnInit {
     this.test_status= '';
     this.modelName= '';
     this.firmwareVersion= '';
-    this.serial= '';
+    this.zn_kkt= '';
     this.ffdVersion= '';
     this.fnFfdVersion= '';
     this.kkmAtolService.queryDeviceInfo(address,'info',this.formBaseInformation.get('device_server_uid').value).subscribe(//параметры: 1й - запрос информации (может быть еще запрос кода ошибки), 2й - id кассы в сервере Атола
@@ -407,15 +423,20 @@ export class KassaDockComponent implements OnInit {
           this.test_status='Соединение установлено!';
           this.modelName=       response.deviceInfo.modelName;
           this.firmwareVersion= response.deviceInfo.firmwareVersion;
-          this.serial=          response.deviceInfo.serial;
+          this.zn_kkt=          response.deviceInfo.serial;
           this.ffdVersion=      response.deviceInfo.ffdVersion;
           this.fnFfdVersion=    response.deviceInfo.fnFfdVersion;
+          if(+this.id>0 && this.formBaseInformation.get('zn_kkt').value!=this.zn_kkt)//если мы на этапе редактирования, и заводские номера в карточке кассы и в запросе к кассе не совпедают, то эта карточка не от подключенной кассы
+            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Тест соединения пройден, но данная карточка кассы не соответствует подключенной ККМ по заводскому номеру. Для подключенной ККМ необходимо завести новую карточку'}})
+          if(+this.id==0)//если на этапе создания - вписываем заводской номер в карточку кассы
+            this.formBaseInformation.get('zn_kkt').setValue(this.zn_kkt);
           console.log(this.test_status);
         } catch (e) {
           this.test_status="Ошибка связи с кассой. Запрос кода ошибки..."
           this.requestToServer=true;
           let errorMessage:string=response.error.description;//ошибки тоже возворащают объект, в котором может содержаться детальное описание ошибки
           if(errorMessage=='Порт недоступен'||errorMessage=='Нет связи') errorMessage=errorMessage+'. Проверьте, включена ли касса и подключена ли она к компьютеру.'
+          //запрашиваем код ошибки
           this.kkmAtolService.queryShiftStatus(address,'errorCode',this.formBaseInformation.get('device_server_uid').value).subscribe((data) => {
             this.requestToServer=false;
             let response=data as any;
@@ -425,13 +446,17 @@ export class KassaDockComponent implements OnInit {
               case 404:{this.test_status="ККТ по заданному идентификатору не найдена или ККТ по умолчанию не выбрана";break;};
               case 408:{this.test_status="За 30 секунд не удалось захватить управление драйвером (занят фоновыми непрерываемыми задачами). Повторите запрос позже";break;};
               default :{this.test_status="Ошибка при выполнении запроса";};//420
-              console.log(this.test_status);
-              this.test_status=this.test_status+'. '+errorMessage;
             }
-          }, error => {console.log(error);this.requestToServer=false;});
+            this.test_status=this.test_status+'. '+errorMessage;
+            console.log(this.test_status);
+          }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
         }
       }, error => {console.log(error);this.requestToServer=false;this.test_status= 'Нет связи с сервером';});
-  }  
+  } 
+  
+  showZnMessage(){
+    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Данное поле заполняется только при создании карточки кассы. Это происходит автоматически при тестировании соединения (кнопка \"Тест соединения\")'}})
+  }
   //*****************************************************************************************************************************************/
   //***************************************************    добавление файлов          *******************************************************/
   //*****************************************************************************************************************************************/
@@ -474,7 +499,7 @@ export class KassaDockComponent implements OnInit {
                     this.openSnackBar("Файлы добавлены", "Закрыть");
                     this.loadFilesInfo();
                             },
-                  error => console.log(error),
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
               );
   }
   loadFilesInfo(){//                                     загружает информацию по прикрепленным файлам
@@ -483,7 +508,7 @@ export class KassaDockComponent implements OnInit {
           (data) => {  
                       this.filesInfo = data as any; 
                     },
-          error => console.log(error),
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
       );
   }
   clickBtnDeleteFile(id: number): void {
@@ -508,7 +533,7 @@ export class KassaDockComponent implements OnInit {
                     this.openSnackBar("Успешно удалено", "Закрыть");
                     this.loadFilesInfo();
                 },
-        error => console.log(error),
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
     );  
   }
 }

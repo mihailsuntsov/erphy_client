@@ -242,6 +242,33 @@
 
                             </td>
                         </ng-container>
+
+                        <ng-container matColumnDef="hasSellReceipt">
+                            <th mat-header-cell *matHeaderCellDef>
+                            <span (click)="setSort('hasSellReceipt')" class="sortheader"> Чек продажи 
+                                <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='hasSellReceipt'" class="material-icons sortarrow">arrow_upward</i>
+                                <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='hasSellReceipt'" class="material-icons sortarrow">arrow_downward</i>
+                            </span>
+                            <td mat-cell *matCellDef="let row"> 
+                                <mat-chip-list>
+                                    <mat-chip 
+                                    *ngIf="row.hasSellReceipt==false" 
+                                    matTooltip="Чек по розничной продаже не выбит"
+                                    style="color:red">
+                                        Нет
+                                    </mat-chip>
+                                    <mat-chip 
+                                    *ngIf="row.hasSellReceipt==true"
+                                    matTooltip="Чек по розничной продаже выбит"
+                                    style="color:green"
+                                    >
+                                        Да
+                                    </mat-chip>
+                                </mat-chip-list>
+                            </td>
+                        </ng-container>
+
+
                         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                         <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
                     </table>

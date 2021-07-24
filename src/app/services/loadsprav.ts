@@ -33,6 +33,9 @@ export class LoadSpravService{
         const body = {id:depId};
         return this.http.post('/api/auth/getUsersListByDepartmentId', body);}     
           
+    //отдает сотрудников (пользователей) по id отделения
+    getEmployeeListByDepartmentId(id:number){return this.http.get('/api/auth/getEmployeeListByDepartmentId?id='+id);}
+
     //загружает деревья категорий продуктов
     getProductCategoriesTrees(companyId: number){
         const body = {companyId: companyId};

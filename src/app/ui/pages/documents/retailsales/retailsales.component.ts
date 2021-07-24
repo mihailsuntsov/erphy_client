@@ -270,13 +270,11 @@ export class RetailsalesComponent implements OnInit {
     this.displayedColumns.push('name');
     this.displayedColumns.push('status');
     this.displayedColumns.push('sum_price');
-    this.displayedColumns.push('shipment_date');
-    // this.displayedColumns.push('description');
+    // this.displayedColumns.push('shipment_date');
+    this.displayedColumns.push('hasSellReceipt');
     this.displayedColumns.push('company');
     this.displayedColumns.push('department');
-    
     this.displayedColumns.push('creator');
-    
     this.displayedColumns.push('date_time_created');
   }
 

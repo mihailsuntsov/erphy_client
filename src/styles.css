@@ -55,3 +55,8 @@ body {
     font-weight: bold;
     vertical-align:sub;
   }
+
+  .icon-button{
+    padding: 0px !important; 
+    min-width: 38px !important;
+  }

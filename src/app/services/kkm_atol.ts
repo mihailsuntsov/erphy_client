@@ -132,6 +132,27 @@ export class KkmAtolService{
             }
         ));
     }
+    //Запрос информации о ФН   
+    queryFnInfo(address:string,requestType:string,deviceID:string){
+        const params=('?deviceID='+deviceID)//
+        return from(
+            fetch(address+'/api/v2/operations/queryFnInfo'+params,
+                {
+                    headers:{'Content-Type': 'application/json'},
+                    method: 'POST',
+                }
+            ).then(function(response) {
+                switch(requestType){
+                    case 'status': {
+                        return response.json();
+                    }
+                    case 'errorCode': {
+                        return response.status;
+                    }
+                }
+            }
+        ));
+    }
      //Чек прихода (с печатью на чековой ленте)
     receipt(body:Object){
         return from(

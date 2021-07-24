@@ -66,6 +66,7 @@ interface KassaList{
   sno1_name_api_atol:string; //система налогообложения кассы
   billing_address:string; // адрес места расчетов
   company_email:string; // email предприятия
+  zn_kkt:string; // заводской номер KKM
 }
 interface KassaSettings{
   selected_kassa_id: number;// id выбранной кассы
@@ -92,9 +93,13 @@ interface SpravSysNdsSet{
 })
 export class KkmComponent implements OnInit {
 
+  zn_kkt:string; // заводской номер текущей KKM
   kassa_status:string; //статус взаимодействия с ККМ
   shift_status:string; //статус смены ККМ
   shiftStatusId:string; //id статуса смены ККМ: closed - закрыта  opened - открыта  expired - истекла (превысила 24 часа)
+  fnSerial:string; // серийный номер фискального накопителя
+  shiftNumber:number; // номер смены
+  shiftExpiredAt:string;// дата и время экспирации смены - строка вида "2021-05-24T15:08:47+05:00"
   operationId: string = "undefined"; // алиас операции с ККМ (например sell или openShift). Сначала ставим undefined, пока не определим в методе setCanWorkWithKassa() можно ли работать с кассой 
   operationName: string = "Операции с ККМ"; //наименование операции с ККМ (выбирается из меню блока Операции с ККМ)
   nal_income: string=''; //внесено в кассу наличными при оплате. string - для возможности оставлять поле пустым (иначе будет 0, который нужно будет сначала удалять, а потом уже вписывать значение, что неудобно для кассира)
@@ -121,19 +126,14 @@ export class KkmComponent implements OnInit {
   sno1_name_api_atol:string=''; //система налогообложения кассы
   kassa_billing_address:string=''; //адрес места расчётов в документе "Касса"
   company_email:string=''; // email предприятия
+  kassaId:number; // id кассы
+  company_id:number; // id предприятия кассы
   server_type_temp: string; // тип сервера (атол или ккмсервер) - для теста связи
   device_server_uid_temp: string;// уник. идентификатор кассы на сервере - для теста связи
   server_address_temp: string;//адрес сервера в сети - для теста связи
   billingAddress: string='';// финальный адрес места расчётов, который будет передаваться в кассу при печати чека. (paymentsPlace	Место проведения расчета (тег 1187))
   // для избежания дабл-клика и повторной печати чеков:
-  sellReceiptIsPrinted: boolean=false;                //Чек прихода
-  buyReceiptIsPrinted: boolean=false;                 //Чек расхода
-  sellReturnReceiptIsPrinted: boolean=false;          //Чек возврата прихода
-  buyReturnReceiptIsPrinted: boolean=false;           //Чек возврата расхода
-  sellCorrectionReceiptIsPrinted: boolean=false;      //Чек коррекции прихода
-  buyCorrectionReceiptIsPrinted: boolean=false;       //Чек коррекции расхода
-  sellReturnCorrectionReceiptIsPrinted: boolean=false;//Чек коррекции возврата прихода (ФФД 1.1)
-  buyReturnCorrectionReceiptIsPrinted: boolean=false; //Чек коррекции возврата расхода (ФФД 1.1)
+  kkmIsFree: boolean = true;
   correctionBaseDate:string='';//Дата совершения корректируемого расчета (тег 1178)
   correctionType:string='self';//Тип коррекции (тег 1173)	self - самостоятельно, instruction - по предписанию
   correctionBaseNumber:string='';//Номер предписания налогового органа (тег 1179)
@@ -143,7 +143,8 @@ export class KkmComponent implements OnInit {
   wasConnectionTest:boolean=false;// был ли тест соединения с кассой
   requestToServer:boolean=false;// идет запрос к серверу
   testSuccess=false;// запрос к серверу был со статусом 200
-  // itIsReallySellOperation:boolean=false;// при запросе к результатам печати чека была ли это операция продажи (т.к. х-отчет может печататься из Чека прихода, нельзя чтобы при печати х-отчета создавался новый документ)
+  docId:number;//номер документа в реестре документов (таблица documents) от которого будет печататься чек, 
+  id:number; // id документа (например, розничная продажа с id=102 )
 
   @ViewChild("formCashierLogin", {static: false}) formCashierLogin; 
   @Input()  autocreateOnCheque: boolean;
@@ -157,6 +158,7 @@ export class KkmComponent implements OnInit {
   @Input()  company:string; // наименование предприятия
   @Output() sendingProductsTableEvent = new EventEmitter<any>(); //запрос таблицы с товарами и услугами
   @Output() succesfulChequePrinting = new EventEmitter<any>();   //событие успешной печати чека
+  @Output() onClickChequePrinting = new EventEmitter<any>();   //событие нажатия на кнопку Отбить чек
 
   constructor(
     private cdRef:ChangeDetectorRef,
@@ -203,20 +205,23 @@ export class KkmComponent implements OnInit {
     this.operationName='Открытие смены';
     this.getShiftStatus();
   }  
+
   onClickCloseShift(){
     this.operationId='closeShift';
     this.operationName='Закрытие смены';
     this.getShiftStatus();
   }  
+
   onClickKassaSettings(){
+    this.kassa_status='';
     this.operationId='kassaSettings';
     this.operationName='Настройки';
+    this.onBillingAddressChange(); // чтобы задизсейблить поле "Место расчета произвольного адреса" в случае, если Место расчета не выбрано как "Произвольный адрес". Иначе кнопка "Сохранить настройки" будет неактивна
   }
+
   onClickPrintXreport(){
     let response: any;
     let uuid: string = this.getUUID();
-    // this.operationId='closeShift';
-    // this.operationName='Закрытие смены';
     this.kassa_status="Отправка запроса на печать Х-отчета";
     this.kkmAtolService.printXreport(this.server_address,uuid,this.device_server_uid,this.cashierFio,this.cashierVatin).subscribe(
       (data) => {
@@ -226,7 +231,7 @@ export class KkmComponent implements OnInit {
           //Задание успешно добавлено в очередь выполнения для ККМ
           console.log('Задание успешно добавлено в очередь выполнения для ККМ');
           //Проверка исполнения задания
-          this.getTaskStatus(uuid,1,1000,false);
+          this.getTaskStatus(uuid,1,1000,this.operationId);
         }else{ 
           switch(response.status){
             case 401:{this.kassa_status="Ошибка: Авторизация не пройдена";break;};
@@ -241,55 +246,57 @@ export class KkmComponent implements OnInit {
         }
       }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
   }
+
   getShiftStatus(onStart?:boolean){
-    this.kkmAtolService.queryShiftStatus(this.server_address,'status',this.device_server_uid).subscribe(
-      (data) => {
-        let response=data as any;
-        try{
-          console.log("Статус смены-"+response.shiftStatus.state);
-          //если при выполнении данной строки происходит ошибка, значит загрузился JSON не по статусу 200, а сервер сгенерировал ошибку и статус 401, 403 или 404.
-          //тогда в catch запрашиваем уточненный статус http запроса (4ХХ) и расшифровываем ошибку
-          this.shiftStatusId=response.shiftStatus.state;
-          switch(this.shiftStatusId){
-            case "closed":{this.shift_status="Смена закрыта";break;}
-            case "opened":{this.shift_status="Смена открыта";break;}
-            case "expired":{this.shift_status="Смена открыта но истекла (превысила 24 часа). Для открытия новой смены закройте текущую.";break;}
-          }
-          if(onStart){
-            if(this.shiftStatusId=="expired"){
-              this.operationId='closeShift';
-              this.operationName='Закрытие смены';
-            }else{
-              this.operationId='sell';
-              this.operationName='Чек прихода';
-            }
-          }
-        } catch (e) {
-          console.log("Код статуса не = 200");
-          console.log("Запрос кода ошибки...");
-          this.operationId='error';
-          // this.operationId='openShift';
-          this.operationName='Ошибка ККМ';
-          this.shift_status="Запрос кода ошибки...";
-          //ошибки тоже возворащают объект, в котором может содержаться детальное описание ошибки:
-          let errorMessage:string=response.error.description;
-          this.kkmAtolService.queryShiftStatus(this.server_address,'errorCode',this.device_server_uid).subscribe((data) => {
-            let response=data as any;
-            switch(response){
-              case 401:{this.shift_status="Ошибка: Авторизация не пройдена";break;};
-              case 403:{this.shift_status="Ошибка: ККМ не активирована";break;};
-              case 404:{this.shift_status="ККМ по заданному идентификатору не найдена или ККМ по умолчанию не выбрана";break;};
-              case 408:{this.shift_status="За 30 секунд не удалось захватить управление драйвером (занят фоновыми непрерываемыми задачами). Повторите запрос позже";break;};
-              default:{this.shift_status="Ошибка при выполнении запроса";};//420
-              this.shift_status=this.shift_status+'. '+errorMessage;
-            }
-          }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+    this.kkmAtolService.queryShiftStatus(this.server_address,'status',this.device_server_uid).subscribe((data) =>{
+      let response=data as any;
+      try{
+        console.log("Статус смены-"+response.shiftStatus.state);
+        //если при выполнении данной строки происходит ошибка, значит загрузился JSON не по статусу 200, а сервер сгенерировал ошибку и статус 401, 403 или 404.
+        //тогда в catch запрашиваем уточненный статус http запроса (4ХХ) и расшифровываем ошибку
+        this.shiftStatusId=response.shiftStatus.state;
+        switch(this.shiftStatusId){
+          case "closed":{this.shift_status="Смена закрыта";break;}
+          case "opened":{this.shift_status="Смена открыта";break;}
+          case "expired":{this.shift_status="Смена открыта но истекла (превысила 24 часа). Для открытия новой смены закройте текущую.";break;}
         }
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Нет связи с сервером "Атол web-сервер"'}})});
+        if(onStart){
+          if(this.shiftStatusId=="expired"){
+            this.operationId='closeShift';
+            this.operationName='Закрытие смены';
+          }else{
+            this.operationId='sell';
+            this.operationName='Чек прихода';
+          }
+        }
+      } catch (e) {
+        this.shift_status="Ошибка связи с кассой. Запрос кода ошибки..."
+        this.operationId='error';
+        this.operationName='Ошибка ККМ';
+        this.requestToServer=true;
+        let errorMessage:string=response.error.description;//ошибки тоже возворащают объект, в котором может содержаться детальное описание ошибки
+        if(errorMessage=='Порт недоступен'||errorMessage=='Нет связи') 
+          errorMessage=errorMessage+'. Проверьте, включена ли касса и подключена ли она к компьютеру.'
+        this.kkmAtolService.queryShiftStatus(this.server_address,'errorCode',this.device_server_uid).subscribe((data) => {//запрашиваем код ошибки
+          this.requestToServer=false;
+          let response=data as any;
+          switch(response){
+            case 401:{this.shift_status="Ошибка: Авторизация не пройдена";break;};
+            case 403:{this.shift_status="Ошибка: ККТ не активирована";break;};
+            case 404:{this.shift_status="ККТ по заданному идентификатору не найдена или ККТ по умолчанию не выбрана";break;};
+            case 408:{this.shift_status="За 30 секунд не удалось захватить управление драйвером (занят фоновыми непрерываемыми задачами). Повторите запрос позже";break;};
+            default :{this.shift_status="Ошибка при выполнении запроса";};//420
+          }
+          this.shift_status=this.shift_status+'. '+errorMessage;
+          console.log(this.shift_status);
+        }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+      }
+    }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Нет связи с сервером "Атол web-сервер"'}})});
   }  
   openShift(){
     let response: any;
     let uuid: string = this.getUUID();
+    this.operationId='openShift';
     this.operationName='Открытие смены';
     this.kassa_status="Отправка запроса на открытие смены...";
     this.kkmAtolService.openShift(this.server_address,uuid,this.device_server_uid,this.cashierFio,this.cashierVatin).subscribe(
@@ -300,7 +307,7 @@ export class KkmComponent implements OnInit {
           //Задание успешно добавлено в очередь выполнения для ККМ
           console.log('Задание успешно добавлено в очередь выполнения для ККМ');
           //Проверка исполнения задания
-          this.getTaskStatus(uuid,1,1000);
+          this.getTaskStatus(uuid,1,1000,this.operationId);
         }else{ 
           switch(response.status){
             case 401:{this.kassa_status="Ошибка: Авторизация не пройдена";break;};
@@ -330,7 +337,7 @@ export class KkmComponent implements OnInit {
           //Задание успешно добавлено в очередь выполнения для ККМ
           console.log('Задание успешно добавлено в очередь выполнения для ККМ');
           //Проверка исполнения задания
-          this.getTaskStatus(uuid,1,1000);
+          this.getTaskStatus(uuid,1,1000,this.operationId);
         }else{ 
           switch(response.status){
             case 401:{this.kassa_status="Ошибка: Авторизация не пройдена";break;};
@@ -349,76 +356,170 @@ export class KkmComponent implements OnInit {
     this.wasConnectionTest=true;
     this.requestToServer=true;
     this.test_status= '';
-    this.kkmAtolService.queryDeviceInfo(this.server_address_temp,'info',this.device_server_uid_temp).subscribe(//параметры: 1й - запрос информации (может быть еще запрос кода ошибки), 2й - id кассы в сервере Атола
-      (data) => {
-        let response=data as any;
-        try{
-          //если при выполнении данной строки происходит ошибка, значит загрузился JSON не по статусу 200, а сервер сгенерировал ошибку и статус 401, 403 или 404.
-          //тогда в catch запрашиваем уточненный статус http запроса (4ХХ) и расшифровываем ошибку
-          let tryNotToCatchTheError = response.deviceInfo.modelName;
+    this.kkmAtolService.queryDeviceInfo(this.server_address_temp,'info',this.device_server_uid_temp).subscribe(//параметры: 2й - запрос информации (может быть еще запрос кода ошибки), 3й - id кассы в сервере Атола
+    (data) => {
+      let response=data as any;
+      try{
+        //если при выполнении данной строки происходит ошибка, значит загрузился JSON не по статусу 200, а сервер сгенерировал ошибку и статус 401, 403 или 404.
+        //тогда в catch запрашиваем уточненный статус http запроса (4ХХ) и расшифровываем ошибку
+        this.requestToServer=false;
+        this.zn_kkt=response.deviceInfo.serial;
+        this.test_status='Соединение установлено!';
+      } catch (e) {
+        this.test_status="Ошибка связи с кассой. Запрос кода ошибки..."
+        this.requestToServer=true;
+        let errorMessage:string=response.error.description;//ошибки тоже возворащают объект, в котором может содержаться детальное описание ошибки
+        if(errorMessage=='Порт недоступен'||errorMessage=='Нет связи') errorMessage=errorMessage+'. Проверьте, включена ли касса и подключена ли она к компьютеру.'
+        this.kkmAtolService.queryShiftStatus(this.server_address_temp,'errorCode',this.device_server_uid_temp).subscribe((data) => {
           this.requestToServer=false;
-          this.test_status='Соединение установлено!';
-        } catch (e) {
-          this.test_status="Ошибка связи с кассой. Запрос кода ошибки..."
-          this.requestToServer=true;
-          let errorMessage:string=response.error.description;//ошибки тоже возворащают объект, в котором может содержаться детальное описание ошибки
-          if(errorMessage=='Порт недоступен'||errorMessage=='Нет связи') errorMessage=errorMessage+'. Проверьте, включена ли касса и подключена ли она к компьютеру.'
-          this.kkmAtolService.queryShiftStatus(this.server_address_temp,'errorCode',this.device_server_uid_temp).subscribe((data) => {
-            this.requestToServer=false;
-            let response=data as any;
-            switch(response){
-              case 401:{this.test_status="Ошибка: Авторизация не пройдена";break;};
-              case 403:{this.test_status="Ошибка: ККМ не активирована";break;};
-              case 404:{this.test_status="ККМ по заданному идентификатору не найдена или ККМ по умолчанию не выбрана";break;};
-              case 408:{this.test_status="За 30 секунд не удалось захватить управление драйвером (занят фоновыми непрерываемыми задачами). Повторите запрос позже";break;};
-              default :{this.test_status="Ошибка при выполнении запроса";};//420
-              console.log(this.test_status);
-              this.test_status=this.test_status+'. '+errorMessage;
-            }
-          }, error => {console.log(error);this.requestToServer=false;});
-        }
-      }, error => {console.log(error);this.requestToServer=false;this.test_status= 'Нет связи с сервером';});
+          let response=data as any;
+          switch(response){
+            case 401:{this.test_status="Ошибка: Авторизация не пройдена";break;};
+            case 403:{this.test_status="Ошибка: ККМ не активирована";break;};
+            case 404:{this.test_status="ККМ по заданному идентификатору не найдена или ККМ по умолчанию не выбрана";break;};
+            case 408:{this.test_status="За 30 секунд не удалось захватить управление драйвером (занят фоновыми непрерываемыми задачами). Повторите запрос позже";break;};
+            default :{this.test_status="Ошибка при выполнении запроса";}//420
+          }
+          this.test_status=this.test_status+'. '+errorMessage;
+          console.log(this.test_status);
+        }, error => {console.log(error);this.requestToServer=false;});
+      }
+    }, error => {console.log(error);this.requestToServer=false;this.test_status= 'Нет связи с сервером';});
   }
+
+  //при выборе типа чека через меню кассового блока
   onClickReceipt(receiptTypeId:string,receiptTypeName:string){
     this.operationId=receiptTypeId;
     this.operationName=receiptTypeName;
     this.kassa_status='';
   }
-  // перед печатью чека проверяем на дабл-клик и повторную отправку.
-  checkAndPrintReceipt(){
-    let receiptIsPrinted:boolean;
-    if(this.selectedPaymentType=='electronically'){
-      this.bnal_income=this.totalSumPrice;
-    }
-    switch (this.operationId){
-      case 'sell':{if(this.sellReceiptIsPrinted) receiptIsPrinted=true; break;}
-      case 'buy':{if(this.buyReceiptIsPrinted) receiptIsPrinted=true; break;}
-      case 'sellReturn':{if(this.sellReturnReceiptIsPrinted) receiptIsPrinted=true; break;}
-      case 'buyReturn':{if(this.buyReturnReceiptIsPrinted) receiptIsPrinted=true; break;}
-      case 'sellCorrection':{if(this.sellCorrectionReceiptIsPrinted) receiptIsPrinted=true; break;}
-      case 'buyCorrection':{if(this.buyCorrectionReceiptIsPrinted) receiptIsPrinted=true; break;}
-      case 'sellReturnCorrection':{if(this.sellReturnCorrectionReceiptIsPrinted) receiptIsPrinted=true; break;}
-      case 'buyReturnCorrection':{if(this.buyReturnCorrectionReceiptIsPrinted) receiptIsPrinted=true; break;}
-    }
-    if(receiptIsPrinted){
-      const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
-        width: '400px',
-        data:
-        { 
-          head: 'Попытка повторного отбития чека "'+this.operationName+'"',
-          warning: 'Отбить '+this.operationName+' ещё раз?',
-          query: 'Чек данного типа уже отправлялся на регистрацию из данного документа. Возможно, вы сделали двойной клик по кнопке "Отбить чек"',
-        },
-      });
-      dialogRef.afterClosed().subscribe(result => {
-        if(result==1){
-          this.printReceipt();
-        }
-      });  
-    } else this.printReceipt();
+
+
+  //Вызывается при успешном окончании задания
+  //метод заносит информацию об операциях взаимодействия с ККМ в БД (например, открытия/закрытия смен, пробитие чеков и т.д.)
+  //вызывается при успешном заврешении задания на ККМ. 
+  onTaskSuccess(operationId:string){
+    console.log('Задание '+operationId+' на ККМ успешно завершено.');
+    console.log('Начало запроса информации из ККМ для создания чека в базе данных:');
+    this.requestToServer=true;
+    // сначала запрашиваем заводской номер ККМ
+    console.log('Запрос заводского номера ККТ...');
+    this.kkmAtolService.queryDeviceInfo(this.server_address_temp,'info',this.device_server_uid_temp).subscribe(//параметры: 2й - запрос информации (может быть еще запрос кода ошибки), 3й - id кассы в сервере Атола
+    (data) => {
+      let response=data as any;
+      try{
+        this.requestToServer=false;
+        this.zn_kkt=response.deviceInfo.serial; //получили заводской номер ККМ
+        console.log(this.zn_kkt);
+        //запрашиваем информацию о смене
+        console.log('Запрос информации о смене...');
+        this.kkmAtolService.queryShiftStatus(this.server_address,'status',this.device_server_uid).subscribe(
+          (data) => {
+            let responseShiftStatus=data as any;
+            try{
+              this.shiftStatusId=responseShiftStatus.shiftStatus.state; // статус смены: opened closed expired
+              this.shiftNumber=responseShiftStatus.shiftStatus.number; // номер смены
+              this.shiftExpiredAt=responseShiftStatus.shiftStatus.expiredAt; // время истечения (экспирации) смены
+              console.log('Статус смены - '+this.shiftStatusId);
+              console.log('Номер смены - '+this.shiftNumber);
+              console.log('Время истечения (экспирации) смены - '+this.shiftExpiredAt);
+                //запрашиваем информацию о ФН
+                console.log('Запрос информации о фискальном накопителе...');
+                this.kkmAtolService.queryFnInfo(this.server_address,'status',this.device_server_uid).subscribe(
+                  (data) => {
+                    let responseFnInfo=data as any;
+                    try{
+                      this.fnSerial=responseFnInfo.fnInfo.serial; // серийный номер ФН
+                      console.log('Номер ФН - '+this.fnSerial);
+                      this.updateKkmOperation(operationId);
+                    } catch (e) {//если при выполнении данной строки происходит ошибка, значит загрузился JSON не по статусу 200, а сервер сгенерировал ошибку и статус 401, 403 или 404.
+                      console.log("Ошибка связи с кассой. Код ошибки - "+responseFnInfo.error.code+(responseFnInfo.error.code==166?" (фискальный накопитель не найден)":""));
+                      if(responseFnInfo.error.code==166){ //166 = "ФН не найден"
+                        //Если ФН не найден, то скорее всего взаимодействие с ККМ производится в режиме разработчика
+                        //В данном случае за номер ФН берем произвольный номер, а номер смены тут не нужен, его будет получать из API сам бэкэнд (т.к. в случае отутствия ФН номер смены всегда = 0)
+                        this.fnSerial="9999078900008855";
+                        this.updateKkmOperation(operationId);
+                      }
+                    }
+                  }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Нет связи с сервером "Атол web-сервер"'}})});
+
+
+
+            } catch (e) {//если при выполнении данной строки происходит ошибка, значит загрузился JSON не по статусу 200, а сервер сгенерировал ошибку и статус 401, 403 или 404.
+              console.log("Ошибка связи с кассой");
+            }
+          }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Нет связи с сервером "Атол web-сервер"'}})});
+      } catch (e) {
+        console.log("Ошибка связи с кассой");
+      }
+    }, error => {console.log(error);this.requestToServer=false;this.test_status= 'Нет связи с сервером "Атол web-сервер"';});
   }
+
+  //Зачем мы прокидываем operationId? К тому времени как дойдем до данного метода, глобальный operationId уже может измениться, т.к. сервер получит новое задание, и из глобального operationId нельзя брать значение. Нужно значение именно того operationId, который был во время отправки запроса getTaskStatus
+  //Вообще это очень маловероятно, но теоретически может быть
+  updateKkmOperation(operationId:string){
+    console.log("Запись информации об операции ("+operationId+") на ККМ");
+    let query:string = '';
+    if(operationId=='openShift'||operationId=='closeShift'){
+      query='/api/auth/updateShiftStatus'+
+      '?zn_kkt='+this.zn_kkt+
+      '&shiftStatusId='+this.shiftStatusId+
+      '&shiftNumber='+this.shiftNumber+
+      '&shiftExpiredAt='+this.shiftExpiredAt+
+      '&companyId='+this.company_id+
+      '&kassaId='+this.kassaId+
+      '&fnSerial='+this.fnSerial;
+    } else if(operationId=='sell'){
+      query='/api/auth/addReceipt'+
+      '?zn_kkt='+this.zn_kkt+
+      '&shiftStatusId='+this.shiftStatusId+
+      '&shiftNumber='+this.shiftNumber+
+      '&shiftExpiredAt='+this.shiftExpiredAt+
+      '&companyId='+this.company_id+
+      '&docId='+this.docId+
+      '&id='+this.id+
+      '&kassaId='+this.kassaId+
+      '&fnSerial='+this.fnSerial+
+      '&operationId='+operationId+
+      '&sno='+this.sno1_name_api_atol+//система налогообложения кассы (из паспорта кассы)
+      '&billing_address='+ this.billingAddress+//место расчетов
+      '&payment_type='+this.selectedPaymentType+ 
+      '&cash='+(+this.nal_income-(+this.getChange()))+//расчет наличными = сколько внесли нала минус сдача
+      '&electronically='+(+this.bnal_income);
+    }
+    this.http.get(query)
+      .subscribe(
+          (data) => 
+          {   
+            let result=data as number;
+            console.log("Запись информации об операции ("+operationId+") успешно произведена");
+            //если операцией был чек прихода
+            if(operationId=='sell'){
+              // эмитируем событие успешной печати чека, которое обработается в родительском документе
+              console.log("Эмитирование события успешной печати чека для родительского модуля");
+              this.succesfulChequePrinting.emit();
+            }
+
+          },
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});this.kkmIsFree=true;}
+      );
+  }
+
+  //нажата кнопка Отбить чек
+  onClickPrintReceipt(){
+  // при нажатии кнопки Отбить чек испускаем событие в родительский компонент
+    console.log('Нажатие кнопки "Отбить чек"');
+    if (this.kkmIsFree){
+      console.log('Касса свободна.');
+      this.kkmIsFree = false;
+      this.onClickChequePrinting.emit();
+    } else 
+        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Касса занята."}})
+    
+  }
+
   // отправка на печать чека прихода/расхода/коррекции
-  printReceipt(){
+  printReceipt(docId:number, id:number){ //docId - номер документа в реестре документов (таблица documents) от которого будет печататься чек, id - id документа (например, розничная продажа с id=102 передастся как "printReceipt(25,102)")
     let response: any;
     let uuid: string = this.getUUID();
     let cheque:any; //объект чека
@@ -426,6 +527,11 @@ export class KkmComponent implements OnInit {
     let textItem: any //объект дополнительного элемента для вывода до печати документа
     let dividerItem: any = this.kkmAtolChequesService.getDividerItem(); //объект разделителя позиций в чеке
     let payment: any; //объект оплаты в чеке
+    
+    //чтобы не передавать параметрами по цепочке до метода updateKkmOperation, docId и id заносим в глобальные переменные данного класса, а в updateKkmOperation их оттуда получим:
+    this.docId=docId;
+    this.id=id;
+    
     switch(this.operationId){
       case 'sell':{cheque=this.kkmAtolChequesService.getCheque();break;}
       default :{cheque=this.kkmAtolChequesService.getCorrectionCheque11();break;}
@@ -472,7 +578,7 @@ export class KkmComponent implements OnInit {
         cheque.request[0].postItems.push(textItem);
       }
     }
-    //забираем товарные позиции из компонента поиска и добалвения товара
+    //забираем товарные позиции из компонента поиска и добавления товара
     this.getProductsTable();
     //товарные позиции
     this.productsTable.forEach(row => {
@@ -500,6 +606,7 @@ export class KkmComponent implements OnInit {
       }
       case "electronically":{
         payment.type= 'electronically';
+        this.bnal_income=this.totalSumPrice;
         payment.sum=+this.bnal_income;
         cheque.request[0].payments.push(payment);
         break;
@@ -524,18 +631,7 @@ export class KkmComponent implements OnInit {
           //Задание успешно добавлено в очередь выполнения для ККМ
           console.log('Задание успешно добавлено в очередь выполнения для ККМ');
           //Проверка исполнения задания
-          this.getTaskStatus(uuid,1,1000,true);
-          //отмечаем что чек отправляли на отбивание
-          switch (this.operationId){
-            case 'sell':{this.sellReceiptIsPrinted=true; break;}
-            case 'buy':{this.buyReceiptIsPrinted=true; break;}
-            case 'sellReturn':{this.sellReturnReceiptIsPrinted=true; break;}
-            case 'buyReturn':{this.buyReturnReceiptIsPrinted=true; break;}
-            case 'sellCorrection':{this.sellCorrectionReceiptIsPrinted=true; break;}
-            case 'buyCorrection':{this.buyCorrectionReceiptIsPrinted=true; break;}
-            case 'sellReturnCorrection':{this.sellReturnCorrectionReceiptIsPrinted=true; break;}
-            case 'buyReturnCorrection':{this.buyReturnCorrectionReceiptIsPrinted=true; break;}
-          }
+          this.getTaskStatus(uuid,1,1000,this.operationId);
         }else{ 
           switch(response.status){
             case 401:{this.kassa_status="Ошибка: Авторизация не пройдена";break;};
@@ -549,6 +645,7 @@ export class KkmComponent implements OnInit {
             };
           }
           console.log(this.kassa_status);
+          this.kkmIsFree=true;
         }
       }, 
       error => {
@@ -558,13 +655,14 @@ export class KkmComponent implements OnInit {
     );
   } 
 
-  //получает результат задания
-	getTaskStatus(uuid:string,cnt:number,time:number,itIsReallySellOperation?:boolean)
+  //получает результат задания, опрашивая сервер по uuid задания. Опрашивает cnt раз, через time микросекунд
+  //operationId прокидываем сюда, чтобы не было путаницы по ним во время частых обращений к ККМ-серверу, в т.ч. и рекурсивных, и каждому uuid соответствовала своя operationId
+	//тем более что далее при успешности выполнения задания нужно исполнять onTaskSuccess и updateKkmOperation, куда так же по цепочке передаем operationId успешно выполненного задания
+  getTaskStatus(uuid:string,cnt:number,time:number,operationId:string)
 	{
     let maxTrying=3;
     let responseStatus:string;
     let response: any = null;
-    // this.itIsReallySellOperation=itIsReallySellOperation;
     this.kassa_status="Ожидание выполнения задания...";
     console.log("Попытка "+cnt);
     this.sleep(time)
@@ -583,19 +681,16 @@ export class KkmComponent implements OnInit {
           switch(responseStatus){
             case "ready":{
               this.kassa_status="Задание выполнено без ошибок. ";
+              this.onTaskSuccess(operationId);// запись в БД информации об открытии/закрытии смен, печати чеков
               this.getShiftStatus(); // для обновления состояния смены. Если запрос был по открытию или закрытию смены - статус смены обновится
-              //если это был чек прихода, и это чек прихода
-              if(this.operationId=='sell' && itIsReallySellOperation){
-                // эмитируем событие успешной печати чека, которое обработается в родительском документе
-                // alert('succesfulChequePrinting');
-                this.succesfulChequePrinting.emit();
-              }
+              this.kkmIsFree=true;
               break;
             }
             case "error":{
               this.kassa_status="Задание выполнено с ошибкой: "+response.results[0].error.description;
               if(response.results[0].error.description=="Превышение длины реквизита") 
                 this.kassa_status=this.kassa_status+". Возможно, введён неверный ИНН";
+              this.kkmIsFree=true;
               break;
             }
             case "wait":{
@@ -608,14 +703,17 @@ export class KkmComponent implements OnInit {
             }
             case "interrupted ":{
               this.kassa_status="Задание не выполнялось, т.к. предыдущие задания выполнены с ошибкой. ";
+              this.kkmIsFree=true;
               break;
             }
             case "blocked":{
               this.kassa_status="Задание результат задания неизвестен, очередь выполнения остановлена. ";
+              this.kkmIsFree=true;
               break;
             }
             case "canceled":{
               this.kassa_status="Задание прервано. ";
+              this.kkmIsFree=true;
               break;
             }
           }
@@ -624,7 +722,7 @@ export class KkmComponent implements OnInit {
             cnt++;
             console.log("Макс. количество попыток не использовано, статус - wait или inProgress")
             // alert('повторяем...');
-            this.getTaskStatus(uuid,cnt,2000,itIsReallySellOperation)
+            this.getTaskStatus(uuid,cnt,2000,operationId)
           } 
           // if( (cnt>maxTrying){
 
@@ -658,6 +756,7 @@ export class KkmComponent implements OnInit {
       }
     }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
   }
+
   onSelectedPaymentType(paymentType:string){
     this.bnal_income='';
     this.nal_income='';
@@ -677,12 +776,14 @@ export class KkmComponent implements OnInit {
       };
     }
   }
+
   //расчет сдачи
   getChange():string{
     //сдача равна сумме внесенной в кассу наличности и оплаченного безнала, минус стоимость покупки:
     let change:number=(+this.nal_income + (+this.bnal_income))-(+this.totalSumPrice);
     return (change<0?0:change).toFixed(2);
   }
+
   getMyShortInfo(){
     this.loadSpravService.getMyShortInfo()
     .subscribe(
@@ -699,6 +800,7 @@ export class KkmComponent implements OnInit {
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
     );
   }
+
   //вход в систему другого кассира
   cashierLogin(){
     let isUserCanWorkWithKKM: boolean;
@@ -731,14 +833,16 @@ export class KkmComponent implements OnInit {
             this.onCashierTypeChange();
           }
         },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error+' Возможно, введенные логин или пароль не верны, либо пользователь не имеет статус "Активный", либо пользователь не из этого предприятия. '}})}
     );
   }
+
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
       duration: 3000,
     });
   }
+
   onCashierTypeChange(){
     this.anotherCashierIsLoggedIn=false;
     this.wasConnectionTest=false;
@@ -759,6 +863,7 @@ export class KkmComponent implements OnInit {
       }
     }
   }
+
   //устанавлиает финальные ФИО и ИНН кассира, которые будут выводиться в чек
   setCashierFioAndVatin(){
     switch(this.kassaSettingsForm.get('cashier_value_id').value){
@@ -778,6 +883,7 @@ export class KkmComponent implements OnInit {
       }
     }
   }
+
   onBillingAddressChange(){//вызывается поочередно 
     switch(this.kassaSettingsForm.get('billing_address').value){
       case 'settings':{// - как в настройках кассы
@@ -796,6 +902,7 @@ export class KkmComponent implements OnInit {
       }
     }
   }
+
  //сохраняет настройки кассира
   updateCashierSettings(){
     this.wasConnectionTest=false;
@@ -828,6 +935,18 @@ export class KkmComponent implements OnInit {
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
       );
   }
+
+  //заносит информацию об открытии смены в базу данных
+  openShiftInDB(zn_kkt:string){
+    this.http.get('/api/auth/openShiftInDB?zn_kkt='+zn_kkt)
+      .subscribe(
+          (data) => 
+          {   
+            let result=data as number;
+          },
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+      );
+  }
   //загружает список касс для кассира по id отделения
   getKassaListByDepId(){
     this.http.get('/api/auth/getKassaListByDepId?id='+this.department_id)
@@ -840,6 +959,7 @@ export class KkmComponent implements OnInit {
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
   }
+
 //загрузка настроек кассира
   getKassaCashierSettings(){
     this.http.get('/api/auth/getKassaCashierSettings')
@@ -858,6 +978,7 @@ export class KkmComponent implements OnInit {
           error => {console.log(error)},
       );
   }
+  
   //применение загруженных настроек кассира и информации о нем
   applyKassaCashierSettings(onStart?:boolean){
     this.kassaSettingsForm.get('selected_kassa_id').setValue(this.kassaSettings.selected_kassa_id);
@@ -871,30 +992,38 @@ export class KkmComponent implements OnInit {
     this.onCashierTypeChange();//чтобы заэнейблить нужные и задисейблить ненужные поля
     this.setCashierFioAndVatin();//Установить ФИО и ИНН для текущего кассира
     this.setCanWorkWithKassa(onStart);//узнать можно ли сейчас работать с кассой
-    this.onBillingAddressChange(); // если адрес места растчетов "Произвольный адрес", он будет =  kassaSettingsForm.get('custom_billing_address')
   }
+
   //определяет, можно ли пользователю работать с кассой
   setCanWorkWithKassa(onStart?:boolean){
     if(
       this.kassaList.length==0||//нет доступных пользователю касс (из его отделений, разрешенные к использованию и не удаленные - в kassaList загружаются только касы подходящие под эти условия):
       +this.kassaSettingsForm.get('selected_kassa_id').value==0 ||//если касса не выбрана
+      !this.isKassaInList(this.kassaSettingsForm.get('selected_kassa_id').value) || //касса отсутствует в загруженном списке касс
       (this.kassaSettingsForm.get('cashier_value_id').value=='another'&&(this.anotherCashierFio==''||this.anotherCashierVatin==''))||//если выбрано "Другая учетная запись (custom)", но данных по ней нет
       this.cashierFio==''//кассир не выбран
       ) {
       this.canWorkWithKassa=false;
       this.operationId='cantwork';
       this.operationName='Работа с кассой невозможна.';
-      // alert(+this.kassaSettingsForm.get('selected_kassa_id').value);
     } else {
       this.canWorkWithKassa=true;
-      // this.operationId='sell';
-      // this.operationName='Чек прихода';
-
       //если пользователь может работать с кассой - проверим, может ли работать сама касса))
       this.getShiftStatus(onStart);
     };
     // console.log('canWorkWithKassa - '+this.canWorkWithKassa);
   }
+
+  isKassaInList(id:number):boolean{//определяет, есть ли касса с заданным id в загруженном списке касс
+    let kassaInList: boolean = false; // У кассира может быть выбрана касса, которой уже нет в списке загруженных касс (например, кассу удалили)
+    this.kassaList.map(i=>{
+      if(i.id==id){
+        kassaInList=true; 
+      }
+    });
+    return kassaInList;
+  }
+
   //берет значения по кассе (server_type, server_address, device_server_uid) из загруженного в getKassaListByDepId списка касс
   getKassaValues(){
     this.kassaList.map(i=>{
@@ -903,12 +1032,16 @@ export class KkmComponent implements OnInit {
         this.device_server_uid=i.device_server_uid;// уник. идентификатор кассы на сервере
         this.server_address=i.server_address;//адрес сервера в сети
         this.sno1_name_api_atol=i.sno1_name_api_atol; //система налогообложения кассы
+        this.kassaId = i.id; //id кассы
+        this.company_id=i.company_id; //id предприятия кассы
         this.company_email=i.company_email; // email предприятия
         this.kassa_billing_address=i.billing_address; // адрес места растчетов
-        this.onBillingAddressChange(); // если адрес места растчетов "Как в насройках кассы", он будет kassa_billing_address
+        this.zn_kkt=i.zn_kkt; //заводской номер ККТ
+        this.onBillingAddressChange(); // если адрес места растчетов = "Как в настройках кассы", он будет kassa_billing_address
       }
-    })
+    });
   }
+
   //достает "наименование НДС по системе Атол" из загруженного справочника НДС
   getNdsApiAtolName(nds_id:number):string{
     let name:string='';
@@ -919,6 +1052,15 @@ export class KkmComponent implements OnInit {
     });
     return name;
   }
+
+  //очищает поля "К оплате", "Наличными", "Сдача"
+  clearFields(){
+    this.totalSumPrice='0.00';
+    this.nal_income='0.00';
+    this.bnal_income='0.00';
+    this.getChange();
+  }
+
   //для тестирования связи с кассой.
   getTemporaryKassaValues(){
     this.kassaList.map(i=>{
@@ -929,29 +1071,36 @@ export class KkmComponent implements OnInit {
       }
     })
   }
+
   //при выборе из списка другой кассы берем её параметры для теста связи(адрес сервера и т.п.), а для чеков остается старая касса. Пока не сохраним настройки.
   onKassaSelection(){
     this.wasConnectionTest=false;
     this.getTemporaryKassaValues();
   }
+
   onClickMenuIcon(){
     this.kassa_status='';
     this.applyKassaCashierSettings();//восстанавливаем настройки в форме (если их не сохранили)
   }
+
   getUUID(): string {
     return (`${1e7}-${1e3}-${4e3}-${8e3}-${1e11}`).replace(/[018]/g, (c: any) =>
         (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
     )
   }
+
   sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
+
   numberOnlyPlusDot(event): boolean {
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
     if (charCode > 31 && ((charCode < 48 || charCode > 57) && charCode!=46)) { return false; } return true;}
+
   numberOnly(event): boolean {
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
     if (charCode > 31 && (charCode < 48 || charCode > 57)) { return false; } return true;}
+
   getProductsTable(){
     this.sendingProductsTableEvent.emit();
   }
