@@ -220,6 +220,11 @@ export class KkmComponent implements OnInit {
   }
 
   onClickPrintXreport(){
+    this.operationId='printXreport';
+    this.operationName='Печать X-отчёта';
+  }  
+
+  printXreport(){
     let response: any;
     let uuid: string = this.getUUID();
     this.kassa_status="Отправка запроса на печать Х-отчета";
@@ -400,59 +405,61 @@ export class KkmComponent implements OnInit {
   //вызывается при успешном заврешении задания на ККМ. 
   onTaskSuccess(operationId:string){
     console.log('Задание '+operationId+' на ККМ успешно завершено.');
-    console.log('Начало запроса информации из ККМ для создания чека в базе данных:');
-    this.requestToServer=true;
-    // сначала запрашиваем заводской номер ККМ
-    console.log('Запрос заводского номера ККТ...');
-    this.kkmAtolService.queryDeviceInfo(this.server_address_temp,'info',this.device_server_uid_temp).subscribe(//параметры: 2й - запрос информации (может быть еще запрос кода ошибки), 3й - id кассы в сервере Атола
-    (data) => {
-      let response=data as any;
-      try{
-        this.requestToServer=false;
-        this.zn_kkt=response.deviceInfo.serial; //получили заводской номер ККМ
-        console.log(this.zn_kkt);
-        //запрашиваем информацию о смене
-        console.log('Запрос информации о смене...');
-        this.kkmAtolService.queryShiftStatus(this.server_address,'status',this.device_server_uid).subscribe(
-          (data) => {
-            let responseShiftStatus=data as any;
-            try{
-              this.shiftStatusId=responseShiftStatus.shiftStatus.state; // статус смены: opened closed expired
-              this.shiftNumber=responseShiftStatus.shiftStatus.number; // номер смены
-              this.shiftExpiredAt=responseShiftStatus.shiftStatus.expiredAt; // время истечения (экспирации) смены
-              console.log('Статус смены - '+this.shiftStatusId);
-              console.log('Номер смены - '+this.shiftNumber);
-              console.log('Время истечения (экспирации) смены - '+this.shiftExpiredAt);
-                //запрашиваем информацию о ФН
-                console.log('Запрос информации о фискальном накопителе...');
-                this.kkmAtolService.queryFnInfo(this.server_address,'status',this.device_server_uid).subscribe(
-                  (data) => {
-                    let responseFnInfo=data as any;
-                    try{
-                      this.fnSerial=responseFnInfo.fnInfo.serial; // серийный номер ФН
-                      console.log('Номер ФН - '+this.fnSerial);
-                      this.updateKkmOperation(operationId);
-                    } catch (e) {//если при выполнении данной строки происходит ошибка, значит загрузился JSON не по статусу 200, а сервер сгенерировал ошибку и статус 401, 403 или 404.
-                      console.log("Ошибка связи с кассой. Код ошибки - "+responseFnInfo.error.code+(responseFnInfo.error.code==166?" (фискальный накопитель не найден)":""));
-                      if(responseFnInfo.error.code==166){ //166 = "ФН не найден"
-                        //Если ФН не найден, то скорее всего взаимодействие с ККМ производится в режиме разработчика
-                        //В данном случае за номер ФН берем произвольный номер, а номер смены тут не нужен, его будет получать из API сам бэкэнд (т.к. в случае отутствия ФН номер смены всегда = 0)
-                        this.fnSerial="9999078900008855";
+    if(operationId=='sell'||operationId=='openShift'||operationId=='closeShift'){
+      console.log('Начало запроса информации из ККМ для создания чека в базе данных:');
+      this.requestToServer=true;
+      // сначала запрашиваем заводской номер ККМ
+      console.log('Запрос заводского номера ККТ...');
+      this.kkmAtolService.queryDeviceInfo(this.server_address_temp,'info',this.device_server_uid_temp).subscribe(//параметры: 2й - запрос информации (может быть еще запрос кода ошибки), 3й - id кассы в сервере Атола
+      (data) => {
+        let response=data as any;
+        try{
+          this.requestToServer=false;
+          this.zn_kkt=response.deviceInfo.serial; //получили заводской номер ККМ
+          console.log(this.zn_kkt);
+          //запрашиваем информацию о смене
+          console.log('Запрос информации о смене...');
+          this.kkmAtolService.queryShiftStatus(this.server_address,'status',this.device_server_uid).subscribe(
+            (data) => {
+              let responseShiftStatus=data as any;
+              try{
+                this.shiftStatusId=responseShiftStatus.shiftStatus.state; // статус смены: opened closed expired
+                this.shiftNumber=responseShiftStatus.shiftStatus.number; // номер смены
+                this.shiftExpiredAt=responseShiftStatus.shiftStatus.expiredAt; // время истечения (экспирации) смены
+                console.log('Статус смены - '+this.shiftStatusId);
+                console.log('Номер смены - '+this.shiftNumber);
+                console.log('Время истечения (экспирации) смены - '+this.shiftExpiredAt);
+                  //запрашиваем информацию о ФН
+                  console.log('Запрос информации о фискальном накопителе...');
+                  this.kkmAtolService.queryFnInfo(this.server_address,'status',this.device_server_uid).subscribe(
+                    (data) => {
+                      let responseFnInfo=data as any;
+                      try{
+                        this.fnSerial=responseFnInfo.fnInfo.serial; // серийный номер ФН
+                        console.log('Номер ФН - '+this.fnSerial);
                         this.updateKkmOperation(operationId);
+                      } catch (e) {//если при выполнении данной строки происходит ошибка, значит загрузился JSON не по статусу 200, а сервер сгенерировал ошибку и статус 401, 403 или 404.
+                        console.log("Ошибка связи с кассой. Код ошибки - "+responseFnInfo.error.code+(responseFnInfo.error.code==166?" (фискальный накопитель не найден)":""));
+                        if(responseFnInfo.error.code==166){ //166 = "ФН не найден"
+                          //Если ФН не найден, то скорее всего взаимодействие с ККМ производится в режиме разработчика
+                          //В данном случае за номер ФН берем произвольный номер, а номер смены тут не нужен, его будет получать из API сам бэкэнд (т.к. в случае отутствия ФН номер смены всегда = 0)
+                          this.fnSerial="9999078900008855";
+                          this.updateKkmOperation(operationId);
+                        }
                       }
-                    }
-                  }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Нет связи с сервером "Атол web-сервер"'}})});
+                    }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Нет связи с сервером "Атол web-сервер"'}})});
 
 
 
-            } catch (e) {//если при выполнении данной строки происходит ошибка, значит загрузился JSON не по статусу 200, а сервер сгенерировал ошибку и статус 401, 403 или 404.
-              console.log("Ошибка связи с кассой");
-            }
-          }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Нет связи с сервером "Атол web-сервер"'}})});
-      } catch (e) {
-        console.log("Ошибка связи с кассой");
-      }
-    }, error => {console.log(error);this.requestToServer=false;this.test_status= 'Нет связи с сервером "Атол web-сервер"';});
+              } catch (e) {//если при выполнении данной строки происходит ошибка, значит загрузился JSON не по статусу 200, а сервер сгенерировал ошибку и статус 401, 403 или 404.
+                console.log("Ошибка связи с кассой");
+              }
+            }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Нет связи с сервером "Атол web-сервер"'}})});
+        } catch (e) {
+          console.log("Ошибка связи с кассой");
+        }
+      }, error => {console.log(error);this.requestToServer=false;this.test_status= 'Нет связи с сервером "Атол web-сервер"';});
+    }
   }
 
   //Зачем мы прокидываем operationId? К тому времени как дойдем до данного метода, глобальный operationId уже может измениться, т.к. сервер получит новое задание, и из глобального operationId нельзя брать значение. Нужно значение именно того operationId, который был во время отправки запроса getTaskStatus

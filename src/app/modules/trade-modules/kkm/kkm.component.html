@@ -14,7 +14,7 @@
 </mat-spinner>
 
 <mat-card class="internal-card" 
-        [ngClass]="{settingsBlock:(operationId=='kassaSettings'),smallBlock:(operationId=='undefined'||operationId=='cantwork'||operationId=='sell'||operationId=='buy'||operationId=='sellReturn'||operationId=='buyReturn'||operationId=='openShift'||operationId=='closeShift'||operationId=='error'),mediumBlock:(operationId=='sellCorrection'||operationId=='buyCorrection'||operationId=='sellReturnCorrection'||operationId=='buyReturnCorrection')}">
+        [ngClass]="{settingsBlock:(operationId=='kassaSettings'),smallBlock:(operationId=='undefined'||operationId=='cantwork'||operationId=='sell'||operationId=='buy'||operationId=='sellReturn'||operationId=='buyReturn'||operationId=='openShift'||operationId=='closeShift'||operationId=='printXreport'||operationId=='error'),mediumBlock:(operationId=='sellCorrection'||operationId=='buyCorrection'||operationId=='sellReturnCorrection'||operationId=='buyReturnCorrection')}">
    
     <div class="icon-panel">
         <mat-icon   matTooltip='Меню кассового модуля'    
@@ -500,6 +500,22 @@
             color="primary"
             class="button">
             <i class="material-icons">clear</i> Закрыть смену
+        </button>
+        <button 
+            mat-raised-button 
+            style="width: 160px;
+            height: 36px;   
+            position: absolute; 
+            margin: 0px auto;
+            left: 0;
+            bottom: 20px;
+            right: 0;"
+            *ngIf="operationId=='printXreport'"
+            (click)="printXreport()"
+            [disabled]="shiftStatusId=='closed'"  
+            color="primary"
+            class="button">
+            Напечатать X-отчёт
         </button>
         <button 
             mat-raised-button 
