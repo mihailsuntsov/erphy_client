@@ -3,7 +3,6 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { HttpClient } from '@angular/common/http';
 import { FormGroup, Validators, FormControl } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { LoadSpravService } from '../../../services/loadsprav';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 
@@ -28,13 +27,14 @@ interface statusInterface{
   description:string;
   is_default:boolean;
 }
+
 @Component({
-  selector: 'app-settings-rs-dialog',
-  templateUrl: './settings-rs-dialog.component.html',
-  styleUrls: ['./settings-rs-dialog.component.css'],
+  selector: 'app-settings-inventory-dialog',
+  templateUrl: './settings-inventory-dialog.component.html',
+  styleUrls: ['./settings-inventory-dialog.component.css'],
   providers: [LoadSpravService,]
 })
-export class SettingsRetailsalesDialogComponent implements OnInit {
+export class SettingsInventoryDialogComponent implements OnInit {
 
   gettingData:boolean=false;
   settingsForm: any; // форма со всей информацией по настройкам
@@ -49,20 +49,12 @@ export class SettingsRetailsalesDialogComponent implements OnInit {
   allowToCreateMyCompany:boolean;
   allowToCreateMyDepartments:boolean;
 
-  //для поиска контрагента (получателя) по подстроке
-  searchCustomerCtrl = new FormControl();//поле для поиска
-  isCagentListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
-  canCagentAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
-  filteredCagents: any;
-  department_type_price_id: number; //id тип цены в отделении (Складе), для которого создавался данный документ. Нужен для изменения поля Тип цены
-  cagent_type_price_id: number; //id типа цены покупателя, для которого создавался данный документ.  Нужен для изменения поля Тип цены
-  default_type_price_id: number; //id типа цены, установленный по умолчанию.  Нужен для изменения поля Тип цены
   receivedStatusesList: statusInterface [] = []; // массив для получения статусов
   status_color: string = '';
-  id:number; 
+  id:number; // id головного документа (вызвавшего настройки).
 
   constructor(private http: HttpClient,
-    public SettingsDialog: MatDialogRef<SettingsRetailsalesDialogComponent>,
+    public SettingsDialog: MatDialogRef<SettingsInventoryDialogComponent>,
     public MessageDialog: MatDialog,
     private loadSpravService:   LoadSpravService,
     @Inject(MAT_DIALOG_DATA) public data: any,) { }
@@ -73,54 +65,40 @@ export class SettingsRetailsalesDialogComponent implements OnInit {
   
   ngOnInit(): void {
     this.receivedCompaniesList=this.data.receivedCompaniesList;
-    // this.receivedDepartmentsList=this.data.receivedDepartmentsList;
     this.priceTypesList=this.data.priceTypesList;
-    // this.department_type_price_id=this.data.department_type_price_id;
-    // this.cagent_type_price_id=this.data.cagent_type_price_id;
-    // this.default_type_price_id=this.data.default_type_price_id;
     this.id=+this.data.id;
     this.allowToCreateAllCompanies=this.data.allowToCreateAllCompanies;
     this.allowToCreateMyCompany=this.data.allowToCreateMyCompany;
     this.allowToCreateMyDepartments=this.data.allowToCreateMyDepartments;
 
     this.settingsForm = new FormGroup({
-      
-      //наименование заказа по умолчанию
-      orderName:  new FormControl               ('',[]),
-      //тип расценки (радиокнопки: 1. Тип цены (priceType), 2. Себестоимость (avgCostPrice) 3. Вручную (manual))
-      pricingType: new FormControl              ('priceType',[]),
-      //тип цены
-      priceTypeId: new FormControl              (null,[]),
-      //наценка/скидка в цифре (например, 50)
-      changePrice: new FormControl              (50,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
-      //наценка или скидка (+ или -)
-      plusMinus: new FormControl                ('plus',[]),
-      // тип наценки/скидки (валюта или проценты)
-      changePriceType: new FormControl          ('procents',[]),
-      //убрать десятые (копейки)
-      hideTenths: new FormControl               (true,[]),
-      //сохранить настройки
-      saveSettings: new FormControl             (true,[]),
-      //предприятие, для которого создаются настройки
-      companyId: new FormControl                (null,[Validators.required]),
-      //отделение по умолчанию
+      // предприятие, для которого создаются настройки
+      companyId: new FormControl                (null,[]),
+      // id отделения
       departmentId: new FormControl             (null,[]),
-      //id покупатель по умолчанию
-      customerId: new FormControl               (null,[]),
-      //название покупателя по умолчанию
-      customer: new FormControl                 ('',[]),
-      //наименование заказа
+      // наименование инвертаризации по умолчанию
       name:  new FormControl                    ('',[]),
-      //приоритет типа цены : Склад (sklad) Покупатель (cagent) Цена по-умолчанию (defprice)
-      priorityTypePriceSide: new FormControl    ('defprice',[]),
-      //автосоздание на старте документа, если автозаполнились все поля
-      // autocreateOnStart: new FormControl        (false,[]),
-      //автосоздание нового документа, если в текущем успешно напечатан чек
-      autocreateOnCheque: new FormControl       (false,[]),
-      //статус после успешного отбития чека, перед созданием нового документа
-      statusIdOnAutocreateOnCheque: new FormControl(null,[]),
+      // тип расценки. priceType - по типу цены, avgCostPrice - средн. себестоимость, lastPurchasePrice - Последняя закупочная цена, avgPurchasePrice - Средняя закупочная цена, manual - вручную
+      pricingType: new FormControl              ('avgCostPrice',[]), // по умолчанию ставим "Средняя закупочная цена"
+      // тип цены
+      priceTypeId: new FormControl              (null,[]),
+      // наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType
+      changePrice: new FormControl              (10,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]), // по умолчанию "плюс 10%"
+      // Наценка (plus) или скидка (minus)
+      plusMinus: new FormControl                ('plus',[]),
+      // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
+      changePriceType: new FormControl          ('procents',[]),
+      // убрать десятые (копейки)
+      hideTenths: new FormControl               (true,[]),
+      // статус после завершения инвентаризации
+      statusOnFinishId: new FormControl         ('',[]),
+      //  фактический баланс по умолчанию. "estimated" - как расчётный, "other" - другой (выбирается в other_actual_balance)
+      defaultActualBalance: new FormControl                ('',[]),
+      // "другой" фактический баланс по умолчанию. Например, 1
+      otherActualBalance: new FormControl       (0,[Validators.pattern('^[0-9]{1,6}(?:[.,][0-9]{0,3})?\r?$')]),
+      // автодобавление товара из формы поиска в таблицу
+      autoAdd:  new FormControl                 (false,[]),
     });
-    this.onCagentSearchValueChanges();//отслеживание изменений поля "Покупатель"
     this.getSettings();
     
   }
@@ -128,7 +106,7 @@ export class SettingsRetailsalesDialogComponent implements OnInit {
   getSettings(){
     let result:any;
     this.gettingData=true;
-    this.http.get('/api/auth/getSettingsRetailSales').subscribe
+    this.http.get('/api/auth/getSettingsInventory').subscribe
     (
       data => 
       { 
@@ -136,42 +114,43 @@ export class SettingsRetailsalesDialogComponent implements OnInit {
         this.gettingData=false;
         //вставляем настройки в форму настроек
         this.settingsForm.get('companyId').setValue(result.companyId);
+        //данная группа настроек зависит от предприятия
         this.settingsForm.get('departmentId').setValue(result.departmentId);
-        this.settingsForm.get('customerId').setValue(result.customerId);
-        this.settingsForm.get('customer').setValue(result.customer);
-        this.searchCustomerCtrl.setValue(result.customer);
-        this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.statusIdOnAutocreateOnCheque);
+        this.settingsForm.get('statusOnFinishId').setValue(result.statusOnFinishId);
+        this.settingsForm.get('priceTypeId').setValue(result.priceTypeId);
         //данная группа настроек не зависит от предприятия
-        this.settingsForm.get('pricingType').setValue(result.pricingType?result.pricingType:'priceType');
+        this.settingsForm.get('pricingType').setValue(result.pricingType?result.pricingType:'avgCostPrice');
         this.settingsForm.get('plusMinus').setValue(result.plusMinus?result.plusMinus:'plus');
-        this.settingsForm.get('changePrice').setValue((result.changePrice||result.changePrice==0)?result.changePrice:50);
+        this.settingsForm.get('changePrice').setValue(result.changePrice?result.changePrice:50);
         this.settingsForm.get('changePriceType').setValue(result.changePriceType?result.changePriceType:'procents');
         this.settingsForm.get('hideTenths').setValue(result.hideTenths);
-        this.settingsForm.get('saveSettings').setValue(result.saveSettings);
         this.settingsForm.get('name').setValue(result.name/*?result.name:''*/);
-        this.settingsForm.get('priorityTypePriceSide').setValue(result.priorityTypePriceSide?result.priorityTypePriceSide:'defprice');
-        // this.settingsForm.get('autocreateOnStart').setValue(result.autocreateOnStart);
-        this.settingsForm.get('autocreateOnCheque').setValue(result.autocreateOnCheque);
+        this.settingsForm.get('defaultActualBalance').setValue(result.defaultActualBalance);
+        this.settingsForm.get('otherActualBalance').setValue(result.otherActualBalance);
+        this.settingsForm.get('autoAdd').setValue(result.autoAdd);
         if(+this.settingsForm.get('companyId').value>0){
           this.getDepartmentsList();
           this.getStatusesList();
+          this.getPriceTypesList();
+          this.checkPlusMinus();
         }
       },
       error => console.log(error)
     );
   }
 
+  //при изменении предприятия необходимо загрузить все зависимые от него справочники, удалив выбранные по старому предприятию параметры (отделения, тип цены, статусы)
   onCompanyChange(){
     this.settingsForm.get('departmentId').setValue(null);
-    this.searchCustomerCtrl.setValue('');
-    this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(null);
-    this.checkEmptyCagentField();
+    this.settingsForm.get('statusOnFinishId').setValue(null);
+    this.settingsForm.get('priceTypeId').setValue(null);
     this.getDepartmentsList();
     this.getStatusesList();
+    this.getPriceTypesList();
   }
+
   getDepartmentsList(newdock?:boolean){
     this.receivedDepartmentsList=null;
-    // this.formBaseInformation.get('department_id').setValue('');
     this.loadSpravService.getDepartmentsListByCompanyId(this.settingsForm.get('companyId').value,false)
             .subscribe(
                 (data) => {this.receivedDepartmentsList=data as any [];
@@ -195,15 +174,32 @@ export class SettingsRetailsalesDialogComponent implements OnInit {
     if(!this.allowToCreateAllCompanies && !this.allowToCreateMyCompany && this.allowToCreateMyDepartments){
       this.receivedDepartmentsList=this.receivedMyDepartmentsList;}
   }
+
   setDefaultDepartment(){
     if(this.receivedDepartmentsList.length==1)
     {
       this.settingsForm.get('departmentId').setValue(this.receivedDepartmentsList[0].id);
     }
   }
-  
+
+  getPriceTypesList(){
+    this.priceTypesList=null;
+    this.loadSpravService.getPriceTypesList(this.settingsForm.get('companyId').value)
+    .subscribe(
+      (data) => {
+        this.priceTypesList=data as any [];
+      },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+    );
+  }
+
   clickPlusMinus(plusMinus:string){
-    switch (plusMinus) {
+    this.settingsForm.get('plusMinus').setValue(plusMinus);
+    this.checkPlusMinus();
+  }
+
+  checkPlusMinus(){
+    switch (this.settingsForm.get('plusMinus').value) {
       case 'plus': {
         this.settingsForm.get('plusMinus').setValue('plus');
         this.priceUpDownFieldName='Наценка';
@@ -218,79 +214,42 @@ export class SettingsRetailsalesDialogComponent implements OnInit {
   applyPrice(){
     this.SettingsDialog.close(this.settingsForm);
   }
-  //при стирании наименования полностью нужно удалить id покупателя в скрытьм поле customerId 
-  
-  checkEmptyCagentField(){
-    if(this.searchCustomerCtrl.value.length==0){
-      this.settingsForm.get('customerId').setValue(null);
-      this.settingsForm.get('customer').setValue('');
-  }};     
-  
-  getCagentsList(){ //заполнение Autocomplete
-    try {
-      if(this.canCagentAutocompleteQuery && this.searchCustomerCtrl.value.length>1){
-        const body = {
-          "searchString":this.searchCustomerCtrl.value,
-          "companyId":this.settingsForm.get('companyId').value};
-        this.isCagentListLoading  = true;
-        return this.http.post('/api/auth/getCagentsList', body);
-      }else return [];
-    } catch (e) {
-      return [];}}
-  
+   
   numberOnlyPlusDot(event): boolean {
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
     if (charCode > 31 && ((charCode < 48 || charCode > 57) && charCode!=46)) { return false; } return true;}
-  
-  onCagentSearchValueChanges(){
-    this.searchCustomerCtrl.valueChanges
-    .pipe(
-      debounceTime(500),
-      tap(() => {
-        this.filteredCagents = [];}),       
-      switchMap(fieldObject =>  
-        this.getCagentsList()))
-    .subscribe(data => {
-      this.isCagentListLoading = false;
-      if (data == undefined) {
-        this.filteredCagents = [];
-      } else {
-        this.filteredCagents = data as any;
-  }});}
 
-  onSelectCagent(id:number,name:string){
-    this.settingsForm.get('customerId').setValue(+id);
-    this.settingsForm.get('customer').setValue(name);
-  }
   //------------------------------С Т А Т У С Ы-------------------------------------------------
   getStatusesList(){
     this.receivedStatusesList=null;
-    this.loadSpravService.getStatusList(this.settingsForm.get('companyId').value,25) //25 - id документа из таблицы documents
+    this.loadSpravService.getStatusList(this.settingsForm.get('companyId').value,27) //27 - id документа из таблицы documents
       .subscribe(
           (data) => 
           { this.receivedStatusesList=data as statusInterface[];
-            if(+this.settingsForm.get('statusIdOnAutocreateOnCheque').value==0) this.setDefaultStatus();
+            if(+this.settingsForm.get('statusOnFinishId').value==0) this.setDefaultStatus();
             this.setStatusColor();
           },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
            
   }
+
   setDefaultStatus(){
     if(this.receivedStatusesList.length>0)
     {
       this.receivedStatusesList.forEach(a=>{
           if(a.is_default){
-            this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(a.id);
+            this.settingsForm.get('statusOnFinishId').setValue(a.id);
           }
       });
     }
   }
+
   //устанавливает цвет статуса (используется для цветовой индикации статусов)
   setStatusColor():void{
     this.receivedStatusesList.forEach(m=>
       {
-        if(m.id==+this.settingsForm.get('statusIdOnAutocreateOnCheque').value){
+        if(m.id==+this.settingsForm.get('statusOnFinishId').value){
           this.status_color=m.color;
         }
       });
@@ -300,6 +259,10 @@ export class SettingsRetailsalesDialogComponent implements OnInit {
 
   getPriceTypesNameById(id:number):string{
      return('');
+  }
+
+  onPriceTypeSelection(){
+
   }
 
 }

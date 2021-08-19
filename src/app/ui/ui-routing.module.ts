@@ -48,10 +48,14 @@ const routes: Routes = [
       { path: 'kassadock', loadChildren: () => import('./pages/documents/kassa-dock/kassa-dock.module').then(m => m.KassaDockModule) },
       { path: 'retailsales', loadChildren: () => import('./pages/documents/retailsales/retailsales.module').then(m => m.RetailsalesModule) },
       { path: 'retailsalesdock', loadChildren: () => import('./pages/documents/retailsales-dock/retailsales-dock.module').then(m => m.RetailsalesDockModule) },
+      { path: 'inventory', loadChildren: () => import('./pages/documents/inventory/inventory.module').then(m => m.InventoryModule) },
+      { path: 'inventorydock', loadChildren: () => import('./pages/documents/inventory-dock/inventory-dock.module').then(m => m.InventoryDockModule) },
+      
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
       { path: '**', redirectTo: 'dashboard',pathMatch: 'full' },
     ]  
   },
+  
 ]
 
 @NgModule({

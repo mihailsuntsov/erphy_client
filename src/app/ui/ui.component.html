@@ -46,6 +46,10 @@
                             <a class="nav-link" routerLink="writeoff">
                               <mat-icon class="nav-icon">cancel_presentation</mat-icon><span class="docname">Списания</span></a>
                           </li>
+                          <li class="nav-item" *ngIf="hasPermission(328)">
+                            <a class="nav-link" routerLink="inventory">
+                              <mat-icon class="nav-icon">fact_check</mat-icon><span class="docname">Инвентаризации</span></a>
+                          </li>
                         </ul>
                       </li>
                       <li class="nav-item" *ngIf="hasPermission(70)">

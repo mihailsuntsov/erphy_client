@@ -893,7 +893,17 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
             
             this.necessaryActionsBeforeGetChilds();
             //вставляем Отделение и Покупателя (вставится только если новый документ)
-            this.setDefaultInfoOnStart(+result.departmentId,+result.customerId,result.customer,result.name?result.name:'');
+            // this.setDefaultInfoOnStart(+result.departmentId,+result.customerId,result.customer,result.name?result.name:'');
+            
+            //если предприятия из настроек больше нет в списке предприятий (например, для пользователя урезали права, и выбранное предприятие более недоступно)
+            //необходимо сбросить данное предприятие в null 
+            if(!this.isCompanyInList(+result.companyId)){
+              this.formBaseInformation.get('company_id').setValue(null);
+            } else { 
+              //вставляем Отделение и Покупателя (вставится только если новый документ)
+              this.setDefaultInfoOnStart(+result.departmentId,+result.customerId,result.customer,result.name?result.name:'');
+            }
+            this.setDefaultCompany();
           },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
@@ -915,9 +925,14 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
         if(this.formBaseInformation.get('name').value=='')
           this.formBaseInformation.get('name').setValue(name);
       // }
-      this.setDefaultCompany();
       this.necessaryActionsBeforeAutoCreateNewDock();
     }
+  }
+  //определяет, есть ли предприятие в загруженном списке предприятий
+  isCompanyInList(companyId:number):boolean{
+    let inList:boolean=false;
+    this.receivedCompaniesList.map(i=>{if(i.id==companyId) inList=true;});
+    return inList;
   }
   //при стирании наименования полностью нужно удалить id покупателя в скрытьм поле cagent_id 
   checkEmptyCagentField(){
@@ -1252,7 +1267,6 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
         if(result.get('customerId')) this.settingsForm.get('customerId').setValue(result.get('customerId').value);
         if(result.get('customer')) this.settingsForm.get('customer').setValue(result.get('customer').value);
         if(result.get('pricingType')) this.settingsForm.get('pricingType').setValue(result.get('pricingType').value);
-        // if(result.get('priceTypeId')) this.settingsForm.get('priceTypeId').setValue(result.get('priceTypeId').value);
         if(result.get('plusMinus')) this.settingsForm.get('plusMinus').setValue(result.get('plusMinus').value);
         if(result.get('changePrice')) this.settingsForm.get('changePrice').setValue(result.get('changePrice').value);
         if(result.get('changePriceType')) this.settingsForm.get('changePriceType').setValue(result.get('changePriceType').value);
@@ -1271,6 +1285,8 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
           (+result.get('customerId').value>0?result.get('customer').value:null),
           (result.get('name')?result.get('name').value:''),
           );
+        //чтобы настройки применились к модулю Поиск и добавление товара"
+        this.productSearchAndTableComponent.applySettings(result);
       }
     });
   }

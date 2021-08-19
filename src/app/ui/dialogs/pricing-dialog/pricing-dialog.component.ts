@@ -18,12 +18,15 @@ export class PricingDialogComponent implements OnInit {
   pricingForm: any; // форма со всей информацией по расценке
   priceTypesList: idNameDescription [] = [];//список типов цен
   priceFieldName: string = ''; // наименование поля с предварительной ценой (ценой до наценки/скидки)
-  netCostPrice:number; // себестоимость
+  avgCostPrice:number; // себестоимость
   priceOfTypePrice:number = 0; // цена для выбранного типа цены
+  lastPurchasePrice:number = 0; // последняя закупочная цена
+  avgPurchasePrice:number = 0; // средняя закупочная цена
   changePrice:number = 0;//наценка/скидка в цифре (например, 50). Переменная нужна для хранения переданного значения, т.к. в зависимости от типа расценки changePrice в форме может быть 0 (например для расценки по Типу цены) или переданным значением (например для расценки по Себестоимости). 
   resultPrice:number=0; // конечная цена
   priceUpDownFieldName:string = 'Наценка'; // Наименование поля с наценкой-скидкой
   finalPriceToShow:string='0.00';// конечная цена в формате с 2 знаками после запятой, типа 44.99 или 15.00
+  // parentDockName:string=''; //наименование родительского документа (Розничная продажа = retailSale, инвентаризация = inventory). От него зависит вид выбора типа расценки pricingType: для розничной продажи это радиокнопки, для 
 
   constructor(
     private http: HttpClient,
@@ -32,11 +35,12 @@ export class PricingDialogComponent implements OnInit {
 
   onNoClick(): void {
     this.PricingDialog.close();
-    }
+  }
 
   ngOnInit(): void {
     this.priceTypesList=this.data.priceTypesList;
     this.changePrice=this.data.changePrice;
+    // this.parentDockName=this.data.parentDockName;
     this.pricingForm = new FormGroup({
       //тип расценки (радиокнопки: 1. Тип цены (priceType), 2. Себестоимость (costPrice) 3. Вручную (manual))
       pricingType: new FormControl              (this.data.pricingType,[]),
@@ -70,13 +74,23 @@ export class PricingDialogComponent implements OnInit {
       case 'priceType': {//если Тип цены 
         this.priceFieldName = "Цена для выбранного типа цены, руб.";
         this.pricingForm.get('prePrice').setValue(this.priceOfTypePrice);
-        this.pricingForm.get('changePrice').setValue(0);
-        break;}
-      case 'costPrice': {//если Себестоимость 
-        this.priceFieldName = "Себестоимость, руб.";
-        this.pricingForm.get('prePrice').setValue(this.netCostPrice);
         this.pricingForm.get('changePrice').setValue(this.changePrice);
         break;}
+      case 'avgCostPrice': {//если Себестоимость 
+        this.priceFieldName = "Себестоимость, руб.";
+        this.pricingForm.get('prePrice').setValue(this.avgCostPrice);
+        this.pricingForm.get('changePrice').setValue(this.changePrice);
+        break;}
+      case 'lastPurchasePrice': {//если последняя закупочная цена
+        this.priceFieldName = "Последняя закупочная цена, руб.";
+        this.pricingForm.get('prePrice').setValue(this.lastPurchasePrice);
+        this.pricingForm.get('changePrice').setValue(this.changePrice);
+      break;}
+      case 'avgPurchasePrice': {//если средняя закупочная цена
+        this.priceFieldName = "Средняя закупочная цена, руб.";
+        this.pricingForm.get('prePrice').setValue(this.avgPurchasePrice);
+        this.pricingForm.get('changePrice').setValue(this.changePrice);
+      break;}
       case 'manual': {      //если Вручную
         this.priceFieldName = "Цена, руб."
         this.pricingForm.get('prePrice').setValue(0);
@@ -91,25 +105,36 @@ export class PricingDialogComponent implements OnInit {
     let result:any;
     let price_type_id:number;
     price_type_id=(+this.pricingForm.get('priceTypeId').value==0?0:this.pricingForm.get('priceTypeId').value);
-     this.http.get('/api/auth/getProductsPriceAndRemains?department_id='+this.data.departmentId+'&product_id='+this.data.productId+'&price_type_id='+price_type_id+'&document_id='+this.data.documentId)
+    //  this.http.get('/api/auth/getProductsPriceAndRemains?department_id='+this.data.departmentId+'&product_id='+this.data.productId+'&price_type_id='+price_type_id+'&document_id='+this.data.documentId)
+    this.http.get('/api/auth/getProductPricesAll?departmentId='+this.data.departmentId+'&productId='+this.data.productId+'&priceTypeId='+price_type_id)
       .subscribe(
           data => { 
             result=data as any;
             switch (this.pricingForm.get('pricingType').value) {
               case 'priceType': {//если Тип цены 
-                this.pricingForm.get('prePrice').setValue(+result.price>0?result.price:0);
-                break;}
-              case 'costPrice': {//если Себестоимость 
+                this.pricingForm.get('prePrice').setValue(+result.priceOfTypePrice>0?result.priceOfTypePrice:0);
+              break;}
+              case 'avgCostPrice': {//если Себестоимость 
                 this.priceFieldName = "Себестоимость, руб.";
-                this.pricingForm.get('prePrice').setValue(+result.netCost>0?result.netCost:0);
-                break;}
-                case 'manual': {      //если Вручную
-                  this.priceFieldName = "Цена, руб."
-                break;
+                this.pricingForm.get('prePrice').setValue(+result.avgCostPrice>0?result.avgCostPrice:0);
+              break;}
+              case 'lastPurchasePrice': {//если последняя закупочная цена
+                this.priceFieldName = "Себестоимость, руб.";
+                this.pricingForm.get('prePrice').setValue(+result.lastPurchasePrice>0?result.lastPurchasePrice:0);
+              break;}
+              case 'avgPurchasePrice': {//если средняя закупочная цена
+                this.priceFieldName = "Себестоимость, руб.";
+                this.pricingForm.get('prePrice').setValue(+result.avgPurchasePrice>0?result.avgPurchasePrice:0);
+              break;}
+              case 'manual': {      //если Вручную
+                this.priceFieldName = "Цена, руб."
+              break;
               }
             }
-            this.netCostPrice=(+result.netCost>0?result.netCost:0);
-            this.priceOfTypePrice=(+result.price>0?result.price:0);
+            this.avgCostPrice=(+result.avgCostPrice>0?result.avgCostPrice:0);
+            this.priceOfTypePrice=(+result.priceOfTypePrice>0?result.priceOfTypePrice:0);
+            this.lastPurchasePrice=(+result.lastPurchasePrice>0?result.lastPurchasePrice:0);
+            this.avgPurchasePrice=(+result.avgPurchasePrice>0?result.avgPurchasePrice:0);
             this.onPricingTypeSelection();
           },
           error => console.log(error)

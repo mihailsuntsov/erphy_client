@@ -98,3 +98,10 @@ tr.mat-footer-row {
     padding: 0px;
     color:rgb(100, 100, 100);
 }
+.doc_container_window_mode {
+    left: 0;
+    top: 0;
+    height: 100%;
+    width:100%;
+    border: 0px solid black;
+  }

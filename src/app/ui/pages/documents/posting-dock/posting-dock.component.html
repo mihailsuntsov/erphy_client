@@ -13,7 +13,7 @@
                     class="button">
                     <i class="material-icons">done</i> Сохранить
                 </button>
-                <a routerLink="../../posting">
+                <a routerLink="../../posting" [style.display]="(mode=='standart')?'block':'none'">
                     <button 
                         mat-raised-button 
                         color="accent"
@@ -21,6 +21,15 @@
                         <i class="material-icons">close</i> {{id>0?'Выйти':'Отмена'}}
                     </button>
                 </a>
+                <button [style.display]="(mode=='window')?'block':'none'"
+                        mat-raised-button
+                        style="margin-left:10px"
+                        [mat-dialog-close]="is_completed" 
+                        matDialogClose 
+                        color="accent">
+                        <i class="material-icons">close</i>
+                        <span> Закрыть </span>
+                </button>
     </mat-card-title>
     <mat-card-subtitle [ngClass]="{invisible: visBeforeCreatingBlocks}">Предприятие: {{formAboutDocument.get('company').value}}</mat-card-subtitle>
     <mat-card-content> 

@@ -1,4 +1,4 @@
-<!-- <code><pre>{{getControlTablefield().value | json}}</pre></code> -->
+<!-- <code><pre>{{settingsForm.value | json}}</pre></code> -->
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
@@ -224,6 +224,7 @@
                                                             <mat-label>Расценивать по</mat-label>
                                                             <mat-select  
                                                             formControlName="pricingType">
+
                                                                 <mat-option 
                                                                 value="priceType"
                                                                 (click)="priceRecount()" 
@@ -231,13 +232,31 @@
                                                                 >
                                                                 Типу цены
                                                                 </mat-option>
+
                                                                 <mat-option 
-                                                                value="costPrice"
+                                                                value="avgCostPrice"
                                                                 (click)="priceRecount()" 
-                                                                matTooltip='Расценка на основании себестоимости'
+                                                                matTooltip='Расценка на основании средней себестоимости'
                                                                 >
-                                                                Себестоимости
+                                                                Cр. себестоимости
                                                                 </mat-option>
+
+                                                                <mat-option 
+                                                                value="lastPurchasePrice"
+                                                                (click)="priceRecount()" 
+                                                                matTooltip='Расценка на основании последней закупочной цены'
+                                                                >
+                                                                Последней закупочной цене
+                                                                </mat-option>
+
+                                                                <mat-option 
+                                                                value="avgPurchasePrice"
+                                                                (click)="priceRecount()" 
+                                                                matTooltip='Расценка на основании средней закупочной цены'
+                                                                >
+                                                                Средней закупочной цене
+                                                                </mat-option>
+
                                                                 <mat-option 
                                                                 value="manual"
                                                                 (click)="priceRecount()" 
@@ -306,8 +325,8 @@
                                                             </button>
                                                         </div>
                                                     </mat-menu>
-                                                    <!-- Если расценка по себестоимости -->
-                                                    <div class="mat-form-field-100 flex" id="costPrice" *ngIf="formSearch.get('pricingType').value=='costPrice'">
+                                                    <!-- Если расценка по себестоимости, средней закупочной или последней закупочной ценам -->
+                                                    <div class="mat-form-field-100 flex" id="costPrice" *ngIf="formSearch.get('pricingType').value=='avgCostPrice'||formSearch.get('pricingType').value=='lastPurchasePrice'||formSearch.get('pricingType').value=='avgPurchasePrice'">
                                                                 <button 
                                                                 mat-icon-button
                                                                 style="position: relative;
@@ -318,7 +337,7 @@
                                                                 z-index: 1000;"
                                                                 matTooltip="Нажмите, чтобы сделать скидку"
                                                                 [ngClass]="{invisible: formSearch.get('plusMinus').value=='minus'}"
-                                                                *ngIf="formSearch.get('changePrice').value>0"
+                                                                *ngIf="formSearch.get('changePrice').value>=0"
                                                                 (click)="clickPlusMinus('minus')">
                                                                     <mat-icon style="font-size: 15px; height: 15px;">add_box</mat-icon>
                                                                 </button>
@@ -332,7 +351,7 @@
                                                                 z-index: 1000;"
                                                                 matTooltip="Нажмите, чтобы сделать наценку"
                                                                 [ngClass]="{invisible: formSearch.get('plusMinus').value=='plus'}"
-                                                                *ngIf="formSearch.get('changePrice').value>0"
+                                                                *ngIf="formSearch.get('changePrice').value>=0"
                                                                 (click)="clickPlusMinus('plus')">
                                                                     <mat-icon style="font-size: 15px; height: 15px;">indeterminate_check_box</mat-icon>
                                                                 </button>

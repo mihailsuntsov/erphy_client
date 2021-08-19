@@ -128,12 +128,12 @@ export class CagentsComponent implements OnInit {
     private httpService:   LoadSpravService,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
-    public universalCategoriesDialog: MatDialog,
+    private universalCategoriesDialog: MatDialog,
     private Cookie: Cookie,
-    public ConfirmDialog: MatDialog,
+    private ConfirmDialog: MatDialog,
     private http: HttpClient,
-    public deleteDialog: MatDialog,
-    public dialogRef1: MatDialogRef<CagentsComponent>,
+    private deleteDialog: MatDialog,
+    private dialogRef1: MatDialogRef<CagentsComponent>,
    @Optional() @Inject(MAT_DIALOG_DATA) public data: any) { 
     }
       

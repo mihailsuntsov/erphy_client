@@ -1,6 +1,5 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, Inject, OnInit, Optional, ViewChild } from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
-// import { LoadSpravService } from './loadsprav-writeoff';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl, AbstractControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -10,12 +9,13 @@ import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { MomentDateAdapter} from '@angular/material-moment-adapter';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { ProductsDockComponent } from '../products-dock/products-dock.component';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { FilesComponent } from '../files/files.component';
 import { FilesDockComponent } from '../files-dock/files-dock.component';
 import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from '@angular/material/core';
 import {MessageDialog} from 'src/app/ui/dialogs/messagedialog.component';
 import * as _moment from 'moment';
+import { Router } from '@angular/router';
 import {default as _rollupMoment} from 'moment';
 import { Observable } from 'rxjs';
 const moment = _rollupMoment || _moment;
@@ -119,7 +119,7 @@ interface shortInfoAboutProduct{//интреф. для получения инф
 export class WriteoffDockComponent implements OnInit {
 
   id: number = 0;// id документа
-  createdDockId: string[];//массив для получение id созданного документа
+  createdDockId: number;//массив для получение id созданного документа
   receivedCompaniesList: any [];//массив для получения списка предприятий
   receivedDepartmentsList: idAndName [] = [];//массив для получения списка отделений
   receivedMyDepartmentsList: idAndName [] = [];//массив для получения списка отделений
@@ -135,7 +135,7 @@ export class WriteoffDockComponent implements OnInit {
   shortInfoAboutProduct: shortInfoAboutProduct = null; //получение краткого инфо по товару
   shortInfoAboutProductArray: any[] = []; //получение краткого инфо по товару
   imageToShow:any; // переменная в которую будет подгружаться картинка товара (если он jpg или png)
-
+  mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра карточки файла
   //Формы
   formBaseInformation:any;//форма для основной информации, содержащейся в документе
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
@@ -193,11 +193,13 @@ export class WriteoffDockComponent implements OnInit {
   constructor(private activateRoute: ActivatedRoute,
     private _fb: FormBuilder, //чтобы билдить группу форм myForm
     private http: HttpClient,
-    public ShowImageDialog: MatDialog,
-    public ConfirmDialog: MatDialog,
-    public dialogAddFiles: MatDialog,
-    public dialogCreateProduct: MatDialog,
-    public MessageDialog: MatDialog,
+    private ShowImageDialog: MatDialog,
+    private ConfirmDialog: MatDialog,
+    private dialogAddFiles: MatDialog,
+    private _router:Router,
+    private dialogCreateProduct: MatDialog,
+    private MessageDialog: MatDialog,
+    @Optional() @Inject(MAT_DIALOG_DATA) public data: any,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar) 
     {this.id = +activateRoute.snapshot.params['id'];}
@@ -236,6 +238,12 @@ export class WriteoffDockComponent implements OnInit {
       additional: new FormControl              ('',[]),
     });
 
+    if(this.data)//если документ вызывается в окне из другого документа
+    {
+      this.mode=this.data.mode;
+      if(this.mode=='window'){this.id=this.data.id; this.formBaseInformation.get('id').setValue(this.id);}
+    } 
+    
     this.onProductSearchValueChanges();//отслеживание изменений поля "Поиск товара"
     this.getSetOfPermissions();//
     // ->getMyId()
@@ -253,6 +261,7 @@ export class WriteoffDockComponent implements OnInit {
     this.myForm = this._fb.group({
       tableFields: this._fb.array([])
     });
+
   }
 //---------------------------------------------------------------------------------------------------------------------------------------                            
 // ----------------------------------------------------- *** ПРАВА *** ------------------------------------------------------------------
@@ -265,7 +274,7 @@ getSetOfPermissions(){
                     this.permissionsSet=data as any [];
                     this.getMyId();
                 },
-        error => console.log(error),
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
     );
 }
 
@@ -346,7 +355,7 @@ getSetOfPermissions(){
             .subscribe(
                 (data) => {this.myId=data as any;
                   this.getMyCompanyId();},
-                error => console.log(error)
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
             );
   }
   getMyCompanyId(){
@@ -354,7 +363,7 @@ getSetOfPermissions(){
       (data) => {
         this.myCompanyId=data as number;
         this.getMyDepartmentsList();
-      }, error => console.log(error));
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
   }
   getMyDepartmentsList(){
     this.receivedMyDepartmentsList=null;
@@ -362,7 +371,7 @@ getSetOfPermissions(){
             .subscribe(
                 (data) => {this.receivedMyDepartmentsList=data as any [];
                   this.getCRUD_rights(this.permissionsSet);;},
-                error => console.log(error)
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
             );
   }
   getCompaniesList(){
@@ -376,7 +385,7 @@ getSetOfPermissions(){
                   this.doFilterCompaniesList();
                   this.setDefaultCompany();
                 },                      
-                error => console.log(error)
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
             );
   }
   setDefaultCompany(){
@@ -391,7 +400,7 @@ getSetOfPermissions(){
                 (data) => {this.receivedDepartmentsList=data as any [];
                     this.doFilterDepartmentsList();
                     this.setDefaultDepartment();},
-                error => console.log(error)
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
             );
   }
   setDefaultDepartment(){
@@ -410,13 +419,13 @@ getSetOfPermissions(){
     this.http.post('/api/auth/getSpravSysEdizm', {id1: companyId, string1:"(1,2,3,4,5)"})  // все типы ед. измерения
     .subscribe((data) => {this.spravSysEdizmOfProductAll = data as any[];
             },
-    error => console.log(error));
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
   }
   getSpravSysWriteoff(){
     this.http.post('/api/auth/getSpravSysWriteoff',null)  
     .subscribe((data) => {this.spravSysWriteoff = data as any[];
             },
-    error => console.log(error));
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
   }
   setDefaultDate(){
     this.formBaseInformation.get('writeoff_date').setValue(moment());
@@ -514,7 +523,7 @@ getSetOfPermissions(){
             this.shortInfoAboutProductArray[4]=this.shortInfoAboutProduct.avg_netcost_price;
             this.shortInfoAboutProductArray[5]=this.shortInfoAboutProduct.last_purchase_price;
           },
-          error => console.log(error)
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
       );
   }
   checkEmptyProductField(){
@@ -615,7 +624,7 @@ getSetOfPermissions(){
                 
                 this.refreshPermissions();
             },
-            error => console.log(error)
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
         );
   }
 
@@ -636,7 +645,7 @@ getSetOfPermissions(){
                   });
                 }
             },
-            error => console.log(error)
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
         );
   }
 
@@ -781,21 +790,40 @@ getSetOfPermissions(){
     }
   }
 
+
   createNewDocument(){
     this.createdDockId=null;
     this.http.post('/api/auth/insertWriteoff', this.formBaseInformation.value)
-            .subscribe(
-                (data) =>   {
-                                this.createdDockId=data as string [];
-                                this.id=+this.createdDockId[0];
-                                this.formBaseInformation.get('id').setValue(this.id);
-                                this.getData();
-                                this.openSnackBar("Документ \"Списание\" успешно создан", "Закрыть");
-                            },
-                error => console.log(error),
-            );
+      .subscribe(
+      (data) => {
+                  this.createdDockId=data as number;
+                  switch(this.createdDockId){
+                    case null:{// null возвращает если не удалось создать документ из-за ошибки
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа Списание"}});
+                      break;
+                    }
+                    case 0:{//недостаточно прав
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа Списание"}});
+                      break;
+                    }
+                    default:{// Списание успешно создалась в БД 
+                      this.openSnackBar("Документ \"Списание\" успешно создан", "Закрыть");
+                      this.afterCreateDocument();
+                    }
+                  }
+                },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});},
+      );
   }
 
+  //действия после создания нового документа 
+  afterCreateDocument(){
+    this.id=+this.createdDockId;
+    this._router.navigate(['/ui/writeoffdock', this.id]);
+    this.formBaseInformation.get('id').setValue(this.id);
+    this.getData();
+  }
+  
   completeDocument(){
     const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
       width: '400px',data:{
@@ -804,7 +832,7 @@ getSetOfPermissions(){
         query: 'После завершения списания документ станет недоступным для редактирования.'},});
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
-        this.is_completed =true;
+        
         this.updateDocument(true);
       }
     });
@@ -818,20 +846,27 @@ getSetOfPermissions(){
       "description":            this.formBaseInformation.get('description').value,
       "department_id":          this.formBaseInformation.get('department_id').value,
       "doc_number":             this.formBaseInformation.get('doc_number').value,
-      "writeoff_date":        this.formBaseInformation.get('writeoff_date').value,
-      "is_completed":           this.is_completed,
-      "writeoffProductTable": control.value,
+      "writeoff_date":          this.formBaseInformation.get('writeoff_date').value,
+      "is_completed":           complete,
+      "writeoffProductTable":   control.value,
     }
       return this.http.post('/api/auth/updateWriteoff', body)
         .subscribe(
             (data) => 
             {   
-              this.getData();
-              if (!complete){
-                this.openSnackBar("Документ \"Списание\" сохранён", "Закрыть");
-              } else { this.openSnackBar("Документ \"Списание\" завершён", "Закрыть");}
+              let result:number=data as number;
+
+              if(result==1){//сохранилось хорошо
+                
+                this.getData();
+                if (!complete){
+                  this.openSnackBar("Документ \"Списание\" сохранён", "Закрыть");
+                } else {this.is_completed =true; this.openSnackBar("Документ \"Списание\" завершён", "Закрыть");}
+              } else {//при завершении Списания количество списываемого товара оказалось больше, чем есть на складе
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Невозможно завершить списание. У одной или нескольких позиций количество товара к списанию превышает доступное количество товара"}})
+              }
             },
-            error => console.log(error),
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
         );
   } 
 
@@ -925,7 +960,7 @@ getSetOfPermissions(){
                     this.openSnackBar("Изображения добавлены", "Закрыть");
                     this.loadFilesInfo();
                             },
-                  error => console.log(error),
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
               );
   }
   loadFilesInfo(){//                                     загружает информацию по картинкам товара
@@ -936,7 +971,7 @@ getSetOfPermissions(){
                             this.filesInfo = data as any[]; 
                             this.loadMainImage();
                           },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
             );
   }
   clickBtnDeleteFile(id: number): void {
@@ -962,7 +997,7 @@ getSetOfPermissions(){
                     this.openSnackBar("Успешно удалено", "Закрыть");
                     this.loadFilesInfo();
                 },
-        error => console.log(error),
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
     );  
   }
 

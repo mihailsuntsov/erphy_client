@@ -2,7 +2,6 @@
   
     <mat-card-title class="flex">
         <div class="card-name">Списание <span [ngClass]="{invisible: visBeforeCreatingBlocks}">№{{formBaseInformation.get('doc_number').value}}</span></div>
-                
                 <button 
                     mat-raised-button 
                     *ngIf="!is_completed"
@@ -13,7 +12,7 @@
                     class="button">
                     <i class="material-icons">done</i> Сохранить
                 </button>
-                <a routerLink="../../writeoff">
+                <a routerLink="../../writeoff" [style.display]="(mode=='standart')?'block':'none'">
                     <button 
                         mat-raised-button 
                         color="accent"
@@ -21,6 +20,15 @@
                         <i class="material-icons">close</i> {{id>0?'Выйти':'Отмена'}}
                     </button>
                 </a>
+                <button [style.display]="(mode=='window')?'block':'none'"
+                        mat-raised-button
+                        style="margin-left:10px"
+                        [mat-dialog-close]="is_completed" 
+                        matDialogClose 
+                        color="accent">
+                        <i class="material-icons">close</i>
+                        <span> Закрыть </span>
+                </button>
     </mat-card-title>
     <mat-card-subtitle [ngClass]="{invisible: visBeforeCreatingBlocks}">Предприятие: {{formAboutDocument.get('company').value}}</mat-card-subtitle>
     <mat-card-content> 
@@ -167,10 +175,6 @@
                                                     
                                                     
                                                     <div style="min-width:70px;">
-                                                        <!-- <a class="inactive" [routerLink]="['../../filesdock', i.id ]">
-                                                            <mat-icon matTooltip="Открыть файл" class="initial" style="padding-right: 10px;">launch</mat-icon>
-                                                        </a> -->
-                                                        
                                                         
                                                         <button mat-button 
                                                         class="min-heigth"

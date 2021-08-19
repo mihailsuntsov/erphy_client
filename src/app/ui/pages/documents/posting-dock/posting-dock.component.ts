@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, Inject, OnInit, Optional, ViewChild } from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from './loadsprav-posting';
 import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl, AbstractControl } from '@angular/forms';
@@ -9,7 +9,8 @@ import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { MomentDateAdapter} from '@angular/material-moment-adapter';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { ProductsDockComponent } from '../products-dock/products-dock.component';
-import { MatDialog } from '@angular/material/dialog';
+import { Router } from '@angular/router';
+import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { FilesComponent } from '../files/files.component';
 import { FilesDockComponent } from '../files-dock/files-dock.component';
 import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from '@angular/material/core';
@@ -104,7 +105,7 @@ interface shortInfoAboutProduct{//интреф. для получения инф
 export class PostingDockComponent implements OnInit {
 
   id: number = 0;// id документа
-  createdDockId: string[];//массив для получение id созданного документа
+  createdDockId: number;//для получение id созданного документа
   receivedCompaniesList: any [];//массив для получения списка предприятий
   receivedDepartmentsList: idAndName [] = [];//массив для получения списка отделений
   receivedMyDepartmentsList: idAndName [] = [];//массив для получения списка отделений
@@ -119,7 +120,7 @@ export class PostingDockComponent implements OnInit {
   shortInfoAboutProduct: shortInfoAboutProduct = null; //получение краткого инфо по товару
   shortInfoAboutProductArray: any[] = []; //получение краткого инфо по товару
   imageToShow:any; // переменная в которую будет подгружаться картинка товара (если он jpg или png)
-
+  mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра карточки файла
   //Формы
   formBaseInformation:any;//форма для основной информации, содержащейся в документе
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
@@ -179,8 +180,10 @@ export class PostingDockComponent implements OnInit {
     public ShowImageDialog: MatDialog,
     public ConfirmDialog: MatDialog,
     public dialogAddFiles: MatDialog,
+    @Optional() @Inject(MAT_DIALOG_DATA) public data: any,
     public dialogCreateProduct: MatDialog,
     public MessageDialog: MatDialog,
+    private _router:Router,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar) 
     {this.id = +activateRoute.snapshot.params['id'];}
@@ -216,6 +219,12 @@ export class PostingDockComponent implements OnInit {
       product_sumprice: new FormControl      (0,[]),
       edizm_id: new FormControl      (0,[]),
     });
+
+    if(this.data)//если документ вызывается в окне из другого документа
+    {
+      this.mode=this.data.mode;
+      if(this.mode=='window'){this.id=this.data.id; this.formBaseInformation.get('id').setValue(this.id);}
+    } 
 
     this.onProductSearchValueChanges();//отслеживание изменений поля "Поиск товара"
     this.getSetOfPermissions();//
@@ -580,7 +589,7 @@ getSetOfPermissions(){
                 
                 this.refreshPermissions();
             },
-            error => console.log(error)
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
         );
   }
 
@@ -601,7 +610,7 @@ getSetOfPermissions(){
                   });
                 }
             },
-            error => console.log(error)
+             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
         );
   }
 
@@ -752,14 +761,32 @@ getSetOfPermissions(){
     this.http.post('/api/auth/insertPosting', this.formBaseInformation.value)
             .subscribe(
                 (data) =>   {
-                                this.createdDockId=data as string [];
-                                this.id=+this.createdDockId[0];
-                                this.formBaseInformation.get('id').setValue(this.id);
-                                this.getData();
-                                this.openSnackBar("Документ \"Оприходование\" успешно создан", "Закрыть");
+                              this.createdDockId=data as number;
+                              switch(this.createdDockId){
+                                case null:{// null возвращает если не удалось создать документ из-за ошибки
+                                  this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа Оприходование"}});
+                                  break;
+                                }
+                                case 0:{//недостаточно прав
+                                  this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа Оприходование"}});
+                                  break;
+                                }
+                                default:{// Оприходование успешно создалось в БД 
+                                  this.openSnackBar("Документ \"Оприходование\" успешно создан", "Закрыть");
+                                  this.afterCreateDocument();
+                                }
+                              }
                             },
-                error => console.log(error),
+                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
             );
+  }
+    
+  //действия после создания нового документа 
+  afterCreateDocument(){
+    this.id=+this.createdDockId;
+    this._router.navigate(['/ui/postingdock', this.id]);
+    this.formBaseInformation.get('id').setValue(this.id);
+    this.getData();
   }
 
   completeDocument(){
@@ -770,7 +797,6 @@ getSetOfPermissions(){
         query: 'После завершения оприходования документ станет недоступным для редактирования.'},});
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
-        this.is_completed =true;
         this.updateDocument(true);
       }
     });
@@ -784,20 +810,23 @@ getSetOfPermissions(){
       "description":            this.formBaseInformation.get('description').value,
       "department_id":          this.formBaseInformation.get('department_id').value,
       "doc_number":             this.formBaseInformation.get('doc_number').value,
-      "posting_date":        this.formBaseInformation.get('posting_date').value,
-      "is_completed":           this.is_completed,
-      "postingProductTable": control.value,
+      "posting_date":           this.formBaseInformation.get('posting_date').value,
+      "is_completed":           complete,
+      "postingProductTable":    control.value,
     }
       return this.http.post('/api/auth/updatePosting', body)
         .subscribe(
             (data) => 
             {   
-              this.getData();
               if (!complete){
                 this.openSnackBar("Документ \"Оприходование\" сохранён", "Закрыть");
-              } else { this.openSnackBar("Документ \"Оприходование\" завершён", "Закрыть");}
+              } else { 
+                this.is_completed =true;//если успешно сохранился и это сохранение при завершении - отмечаемся как завершенный
+                this.openSnackBar("Документ \"Оприходование\" завершён", "Закрыть");
+              }
+                this.getData();
             },
-            error => console.log(error),
+             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
         );
   } 
 
@@ -894,7 +923,7 @@ getSetOfPermissions(){
                     this.openSnackBar("Изображения добавлены", "Закрыть");
                     this.loadFilesInfo();
                             },
-                  error => console.log(error),
+                   error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
               );
   }
   loadFilesInfo(){//                                     загружает информацию по картинкам товара
@@ -931,7 +960,7 @@ getSetOfPermissions(){
                     this.openSnackBar("Успешно удалено", "Закрыть");
                     this.loadFilesInfo();
                 },
-        error => console.log(error),
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
     );  
   }
 

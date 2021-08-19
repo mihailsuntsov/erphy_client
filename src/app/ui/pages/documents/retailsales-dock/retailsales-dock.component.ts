@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit, ViewChild,  OnChanges,  SimpleChanges, AfterContentChecked } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { KkmAtolService } from '../../../../services/kkm_atol';
@@ -6,23 +6,20 @@ import { KkmAtolChequesService } from '../../../../services/kkm_atol_cheques';
 import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
-// import { Observable } from 'rxjs';
-import { map, startWith, debounceTime, tap, switchMap, mergeMap, concatMap  } from 'rxjs/operators';
-// import { MomentDateAdapter} from '@angular/material-moment-adapter';
+import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { MatDialog } from '@angular/material/dialog';
 import { ValidationService } from './validation.service';
 import { SettingsRetailsalesDialogComponent } from 'src/app/modules/settings/settings-retailsales-dialog/settings-rs-dialog.component';
 import { ProductSearchAndTableComponent } from 'src/app/modules/trade-modules/product-search-and-table/product-search-and-table.component';
 import { KkmComponent } from 'src/app/modules/trade-modules/kkm/kkm.component';
-// import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatAccordion } from '@angular/material/expansion';
 import { Router } from '@angular/router';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { Input } from '@angular/core';
 
-interface RetailSalesProductTable { //интерфейс для формы, массив из которых будет содержать форма retailSalesProductTable, входящая в formBaseInformation, которая будет включаться в formBaseInformation
+interface RetailSalesProductTable { //интерфейс для формы, массив из которых будет содержать форма retailSalesProductTable, входящая в formBaseInformation
   id: number;
   row_id: number;
   product_id: number;
@@ -50,10 +47,6 @@ interface RetailSalesProductTable { //интерфейс для формы, ма
   ppr_name_api_atol: string; //Признак предмета расчета в системе Атол. Невидимое поле. Нужно для передачи в таблицу товаров в качестве тега для чека на ккм Атол
   is_material: boolean; //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)            
 }
-interface IdAndName_ru{
-  id: number;
-  name_ru: string;
-}
 interface SpravSysNdsSet{
   id: number;
   name: string;
@@ -62,7 +55,7 @@ interface SpravSysNdsSet{
   is_active: string;
   calculated: string;
 }
-interface dockResponse {//интерфейс для получения ответа в методе getRetailSalesValuesById
+interface DockResponse {//интерфейс для получения ответа в методе getRetailSalesValuesById
   id: number;
   company: string;
   company_id: number;
@@ -94,22 +87,22 @@ interface dockResponse {//интерфейс для получения отве�
   additional_address: string;
   receipt_id: number;
 }
-interface filesInfo {
+interface FilesInfo {
   id: string;
   name: string;
   original_name: string;
   date_time_created: string;
 }
-interface idAndName{ //универсалный интерфейс для выбора из справочников
+interface IdAndName{ //универсалный интерфейс для выбора из справочников
   id: number;
   name: string;
 }
-interface idNameDescription{
+interface IdNameDescription{
   id: number;
   name: string;
   description: string;
 }
-interface idAndNameAndShorname{ //универсалный интерфейс для выбора из справочников
+interface IdAndNameAndShortname{ //универсалный интерфейс для выбора из справочников
   id: string;
   name: string;
   short_name: string;
@@ -121,7 +114,7 @@ interface SecondaryDepartment{
   reserved: number;
   total: number;
 }
-interface statusInterface{
+interface StatusInterface{
   id:number;
   name:string;
   status_type:number;//тип статуса: 1 - обычный; 2 - конечный положительный 3 - конечный отрицательный
@@ -130,11 +123,7 @@ interface statusInterface{
   description:string;
   is_default:boolean;
 }
-// interface SetOfTypePrices{
-//   department_type_price_id:number;//тип цены для отделения в этой Розничной продаже
-//   cagent_type_price_id:number;//тип цены для покупателя в этой Розничной продаже
-//   default_type_price_id:number;//тип цены по умолчанию (устанавливается в Типах цен)
-// }
+
 @Component({
   selector: 'app-retailsales-dock',
   templateUrl: './retailsales-dock.component.html',
@@ -145,41 +134,42 @@ export class RetailsalesDockComponent implements OnInit {
 
   id: number = 0;// id документа
   createdDockId: number;//получение id созданного документа
-  receivedCompaniesList: any [];//массив для получения списка предприятий
+  receivedCompaniesList: IdAndName [];//массив для получения списка предприятий
   receivedDepartmentsList: SecondaryDepartment [] = [];//массив для получения списка отделений
-  receivedStatusesList: statusInterface [] = []; // массив для получения статусов
+  receivedStatusesList: StatusInterface [] = []; // массив для получения статусов
   receivedMyDepartmentsList: SecondaryDepartment [] = [];//массив для получения списка отделений
-  receivedUsersList  : any [];//массив для получения списка пользователей
+  // receivedUsersList  : any [];//массив для получения списка пользователей
   myCompanyId:number=0;
   
-  allFields: any[][] = [];//[номер строки начиная с 0][объект - вся инфо о товаре (id,кол-во, цена... )] - массив товаров
-  filesInfo : filesInfo [] = []; //массив для получения информации по прикрепленным к документу файлам 
+  // allFields: any[][] = [];//[номер строки начиная с 0][объект - вся инфо о товаре (id,кол-во, цена... )] - массив товаров
+  filesInfo : FilesInfo [] = []; //массив для получения информации по прикрепленным к документу файлам 
   myId:number=0;
   creatorId:number=0;
   startProcess: boolean=true; // идеут стартовые запросы. после того как все запросы пройдут - будет false.
   is_addingNewCagent: boolean = false; // при создании документа создаём нового получателя (false) или ищем уже имеющегося (true)
-  panelContactsOpenState = true;
-  panelAddressOpenState = false;
-  addressString: string = ''; // строка для свёрнутого блока Адрес
-  gettingTableData:boolean=false;//идет загрузка данных - нужно для спиннера
+  // panelContactsOpenState = true;
+  // panelAddressOpenState = false;
+  addressString: string = ''; // строка для адреса расположения ККМ
+  // gettingTableData:boolean=false;//идет загрузка данных - нужно для спиннера
   canGetChilds: boolean=false; //можно ли грузить дочерние модули
-  actionsBeforeCreateNewDock:number=0;// количество выполненных действий, необходимых чтобы создать новый документ
+  // actionsBeforeCreateNewDock:number=0;// количество выполненных действий, необходимых чтобы создать новый документ
   actionsBeforeGetChilds:number=0;// количество выполненных действий, необходимых чтобы загрузить дочерние модули (кассу и форму товаров)
   // Расценка (все настройки здесь - по умолчанию. После первого же сохранения настроек данные настройки будут заменяться в методе getSettings() )
-  productPrice:number=0; //Цена найденного и выбранного в форме поиска товара.
-  netCostPrice:number = 0; // себестоимость найденного и выбранного в форме поиска товара.
-  priceUpDownFieldName:string = 'Наценка'; // Наименование поля с наценкой-скидкой
-  priceTypeId_temp:number; // id типа цены. Нужна для временного хранения типа цены на время сброса формы поиска товара
-  companyId_temp:number; // id предприятия. Нужна для временного хранения предприятия на время сброса формы formBaseInformation
+  // productPrice:number=0; //Цена найденного и выбранного в форме поиска товара.
+  // netCostPrice:number = 0; // себестоимость найденного и выбранного в форме поиска товара.
+  // priceUpDownFieldName:string = 'Наценка'; // Наименование поля с наценкой-скидкой
+  // priceTypeId_temp:number; // id типа цены. Нужна для временного хранения типа цены на время сброса формы поиска товара
+  // companyId_temp:number; // id предприятия. Нужна для временного хранения предприятия на время сброса формы formBaseInformation
   receipt_id: number = 0; // id чека розничной продажи
   department_type_price_id: number; //id тип цены в отделении (Складе), для которого создавался данный документ. Нужен для изменения поля Тип цены
   cagent_type_price_id: number; //id типа цены покупателя, для которого создавался данный документ.  Нужен для изменения поля Тип цены
   default_type_price_id: number; //id типа цены, установленный по умолчанию.  Нужен для изменения поля Тип цены
   spravSysNdsSet: SpravSysNdsSet[] = []; //массив имен и id для ндс 
-  secondaryDepartments:SecondaryDepartment[]=[];// склады в выпадающем списке складов формы поиска товара
-  spravSysEdizmOfProductAll: idAndNameAndShorname[] = [];// массив, куда будут грузиться все единицы измерения товара
-  receivedPriceTypesList: idNameDescription [] = [];//массив для получения списка типов цен
+  // secondaryDepartments:SecondaryDepartment[]=[];// склады в выпадающем списке складов формы поиска товара
+  spravSysEdizmOfProductAll: IdAndNameAndShortname[] = [];// массив, куда будут грузиться все единицы измерения товара
+  receivedPriceTypesList: IdNameDescription [] = [];//массив для получения списка типов цен
   displayedColumns:string[];//отображаемые колонки таблицы с товарами
+  // afterChangeSettings:boolean; //true после изменения настроек
   // setOfTypePrices: SetOfTypePrices;
   // Формы
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
@@ -216,20 +206,20 @@ export class RetailsalesDockComponent implements OnInit {
   //****************************                   Взаимодействие с ККМ                    ************************************
   cheque_nds=false; //нужно ли проставлять НДС в чеке.
 
-  @ViewChild("countInput", {static: false}) countInput;
-  @ViewChild("nameInput", {static: false}) nameInput; 
-  @ViewChild("doc_number", {static: false}) doc_number; 
-  @ViewChild("form", {static: false}) form; 
-  @ViewChild("formCashierLogin", {static: false}) formCashierLogin; 
-  @ViewChild("formBI", {static: false}) formBI; 
-  @ViewChild(MatAccordion) accordion: MatAccordion;
+  // @ViewChild("countInput", {static: false}) countInput;
+  // @ViewChild("nameInput", {static: false}) nameInput; 
+  // @ViewChild("formCashierLogin", {static: false}) formCashierLogin; 
+  // @ViewChild("form", {static: false}) form; 
+  // @ViewChild("formBI", {static: false}) formBI; 
+  // @ViewChild(MatAccordion) accordion: MatAccordion;
+  // @Input() authorized: boolean;
+  @ViewChild("doc_number", {static: false}) doc_number; //для редактирования номера документа
   @ViewChild(ProductSearchAndTableComponent, {static: false}) public productSearchAndTableComponent:ProductSearchAndTableComponent;
   @ViewChild(KkmComponent, {static: false}) public kkmComponent:KkmComponent;
-  @Input() authorized: boolean;
+  
 
   isDocNumberUnicalChecking = false;//идёт ли проверка на уникальность номера
   doc_number_isReadOnly=true;
-  // is_completed=false;
 
   //для поиска контрагента (получателя) по подстроке
   searchCagentCtrl = new FormControl();//поле для поиска
@@ -241,11 +231,8 @@ export class RetailsalesDockComponent implements OnInit {
     private cdRef:ChangeDetectorRef,
     private _fb: FormBuilder, //чтобы билдить группу форм retailSalesProductTable
     private http: HttpClient,
-    // public ShowImageDialog: MatDialog,
     public ConfirmDialog: MatDialog,
     public dialogAddFiles: MatDialog,
-    // public ProductReservesDialogComponent: MatDialog,
-    // public PricingDialogComponent: MatDialog,
     public SettingsRetailsalesDialogComponent: MatDialog,
     public dialogCreateProduct: MatDialog,
     public MessageDialog: MatDialog,
@@ -339,7 +326,7 @@ export class RetailsalesDockComponent implements OnInit {
     //     getCRUD_rights
     //     |
     //     getData(------>(если созданный док)--> [getDocumentValuesById] --> refreshPermissions 
-    //     |  
+    //     |
     //     (если новый док):
     //     [getCompaniesList, getSpravSysNds* ]
     //     |
@@ -351,13 +338,13 @@ export class RetailsalesDockComponent implements OnInit {
     //     |
     //     [getDepartmentsList, getPriceTypesList*] 
     //     |
-    //     [setDefaultDepartment, doFilterDepartmentsList]
-    //     | (если идет стартовая загрузка)
+    //     [setDefaultDepartment, getSetOfTypePrices, doFilterDepartmentsList]
+    //     | (если идет стартовая загрузка):
     //     getStatusesList
     //     |
     //     setDefaultStatus
     //     |
-    //     getSetOfTypePrices, setStatusColor, getSpravSysEdizm
+    //     setStatusColor, getSpravSysEdizm
     //     |
     //     refreshPermissions*
     
@@ -374,7 +361,7 @@ export class RetailsalesDockComponent implements OnInit {
     else return true;    //чтобы не было ExpressionChangedAfterItHasBeenCheckedError. Т.к. форма создается пустая и с .valid=true, а потом уже при заполнении проверяется еще раз.
   }
 
-//---------------------------------------------------------------------------------------------------------------------------------------                            
+  //---------------------------------------------------------------------------------------------------------------------------------------                            
   // ----------------------------------------------------- *** ПРАВА *** ------------------------------------------------------------------
   //---------------------------------------------------------------------------------------------------------------------------------------
 
@@ -518,6 +505,7 @@ export class RetailsalesDockComponent implements OnInit {
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
   }
+
   setDefaultCompany(){
     if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим своё по дефолту
       this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
@@ -570,8 +558,12 @@ export class RetailsalesDockComponent implements OnInit {
     //если отделение было выбрано (через настройки или же в этом методе) - определяем его наименование (оно будет отправляться в дочерние компоненты)
     if(+this.formBaseInformation.get('department_id').value>0)
       this.formBaseInformation.get('department').setValue(this.getDepartmentNameById(this.formBaseInformation.get('department_id').value));
-    //если идет стартовая прогрузка - продолжаем цепочку запросов. Если это была, например, просто смена предприятия - продолжать далее текущего метода смысла нет
-    if(this.startProcess) this.getStatusesList();
+    
+    //загрузка типов цен для покупателя, склада и по умолчанию  
+    this.getSetOfTypePrices();
+      //если идет стартовая прогрузка - продолжаем цепочку запросов. Если это была, например, просто смена предприятия - продолжать далее текущего метода смысла нет
+    if(this.startProcess) 
+      this.getStatusesList();
   }
 
   // проверки на различные случаи
@@ -592,7 +584,7 @@ export class RetailsalesDockComponent implements OnInit {
     this.receivedStatusesList=null;
     this.loadSpravService.getStatusList(this.formBaseInformation.get('company_id').value,25) //25 - id предприятия из таблицы documents
             .subscribe(
-                (data) => {this.receivedStatusesList=data as statusInterface[];
+                (data) => {this.receivedStatusesList=data as StatusInterface[];
                   if(+this.id==0){this.setDefaultStatus();}},
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             );
@@ -609,7 +601,6 @@ export class RetailsalesDockComponent implements OnInit {
     }
     this.setStatusColor();
     this.getSpravSysEdizm(); //загрузка единиц измерения. Загружаем тут, т.к. нужно чтобы сначала определилось предприятие, его id нужен для загрузки
-    this.getSetOfTypePrices();
   }
 
   getSpravSysEdizm():void {    
@@ -621,7 +612,7 @@ export class RetailsalesDockComponent implements OnInit {
   }
 
   doFilterCompaniesList(){
-    let myCompany:idAndName;
+    let myCompany:IdAndName;
     if(!this.allowToCreateAllCompanies){
       this.receivedCompaniesList.forEach(company=>{
       if(this.myCompanyId==company.id) myCompany={id:company.id, name:company.name}});
@@ -632,7 +623,7 @@ export class RetailsalesDockComponent implements OnInit {
   doFilterDepartmentsList(){
     if(!this.allowToCreateAllCompanies && !this.allowToCreateMyCompany && this.allowToCreateMyDepartments){
       this.receivedDepartmentsList=this.receivedMyDepartmentsList;}
-    this.secondaryDepartments=this.receivedDepartmentsList;
+    // this.secondaryDepartments=this.receivedDepartmentsList;
   }
   inMyDepthsId(id:number):boolean{//проверяет, состоит ли присланный id в группе id отделений пользователя
     let inMyDepthsId:boolean = false;
@@ -715,29 +706,53 @@ export class RetailsalesDockComponent implements OnInit {
             this.settingsForm.get('autocreateOnCheque').setValue(result.autocreateOnCheque);
             this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.statusIdOnAutocreateOnCheque);
             
-            // this.necessaryActionsBeforeGetChilds();
-            //вставляем Отделение и Покупателя (вставится только если новый документ)
-            this.setDefaultInfoOnStart(+result.departmentId,+result.customerId,result.customer,result.name?result.name:'');
+            //если предприятия из настроек больше нет в списке предприятий (например, для пользователя урезали права, и выбранное предприятие более недоступно)
+            //необходимо сбросить данное предприятие в null 
+            if(!this.isCompanyInList(+result.companyId)){
+              // alert('Не в листе')
+              this.formBaseInformation.get('company_id').setValue(null);
+            } else { 
+              // alert('В листе')
+              //вставляем Отделение и Покупателя (вставится только если новый документ)
+              this.setDefaultInfoOnStart();
+            }
+            this.setDefaultCompany();
           },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
   }
 
+  //определяет, есть ли предприятие в загруженном списке предприятий
+  isCompanyInList(companyId:number):boolean{
+    let inList:boolean=false;
+    this.receivedCompaniesList.map(i=>{if(i.id==companyId) inList=true;});
+    return inList;
+  }
+
   //если новый документ - вставляем Отделение и Покупателя (но только если они принадлежат выбранному предприятию, т.е. предприятие в Основной информации и предприятие, для которого были сохранены настройки совпадают)
-  setDefaultInfoOnStart(departmentId:number, customerId:number, customer:string, name:string){
+  setDefaultInfoOnStart(){
     if(+this.id==0){//документ новый
-      this.formBaseInformation.get('company_id').setValue(+this.settingsForm.get('companyId').value)
-      if(+departmentId>0){
-        this.formBaseInformation.get('department_id').setValue(departmentId);
+      this.formBaseInformation.get('company_id').setValue(this.settingsForm.get('companyId').value)
+      // if(+departmentId>0){
+        this.formBaseInformation.get('department_id').setValue(this.settingsForm.get('departmentId').value);
+      // }
+      if(+this.settingsForm.get('customerId').value>0){
+        this.searchCagentCtrl.setValue(this.settingsForm.get('customer').value);
+        this.formBaseInformation.get('cagent_id').setValue(this.settingsForm.get('customerId').value);
+        this.formBaseInformation.get('cagent').setValue(this.settingsForm.get('customer').value);
+      } else {
+        this.searchCagentCtrl.setValue(null);
+        this.formBaseInformation.get('cagent_id').setValue(null);
+        this.formBaseInformation.get('cagent').setValue('');
       }
-      if(+customerId>0){
-        this.searchCagentCtrl.setValue(customer);
-        this.formBaseInformation.get('cagent_id').setValue(customerId);
-        this.formBaseInformation.get('cagent').setValue(customer);
+      this.formBaseInformation.get('name').setValue(this.settingsForm.get('name').value);
+      
+      if(!this.startProcess){
+        // меняем отделение в модуле "Поиск и добавление товара" и перезапускаем модуль
+        this.productSearchAndTableComponent.department_id=this.formBaseInformation.get('department_id').value;
+        this.productSearchAndTableComponent.doOnInit();
+        // this.afterChangeSettings=false;
       }
-      if(this.formBaseInformation.get('name').value=='')
-        this.formBaseInformation.get('name').setValue(name);
-      this.setDefaultCompany();
     }
   }
   //при стирании наименования полностью нужно удалить id покупателя в скрытьм поле cagent_id 
@@ -764,7 +779,7 @@ export class RetailsalesDockComponent implements OnInit {
         .subscribe(
             data => { 
               
-                let documentValues: dockResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
+                let documentValues: DockResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
                 //Заполнение формы из интерфейса documentValues:
                 this.formAboutDocument.get('id').setValue(+documentValues.id);
                 this.formAboutDocument.get('master').setValue(documentValues.master);
@@ -879,7 +894,7 @@ export class RetailsalesDockComponent implements OnInit {
     if (dot === -1) { 
         return a + "." + "0".repeat(charsAfterDot);
     }
-    //елси не целое число
+    //если не целое число
     const b = charsAfterDot - (a.length - dot) + 1;
     return b > 0 ? (a + "0".repeat(b)) : a;
   }
@@ -892,10 +907,10 @@ export class RetailsalesDockComponent implements OnInit {
     }
   }
 //????????????????
-  getControlTablefield(){
-    const control = <FormArray>this.formBaseInformation.get('retailSalesProductTable');
-    return control;
-  }
+  // getControlTablefield(){
+  //   const control = <FormArray>this.formBaseInformation.get('retailSalesProductTable');
+  //   return control;
+  // }
 
   EditDocNumber(): void {
     if(this.allowToUpdate && +this.id==0){
@@ -1077,7 +1092,6 @@ export class RetailsalesDockComponent implements OnInit {
         if(result.get('customerId')) this.settingsForm.get('customerId').setValue(result.get('customerId').value);
         if(result.get('customer')) this.settingsForm.get('customer').setValue(result.get('customer').value);
         if(result.get('pricingType')) this.settingsForm.get('pricingType').setValue(result.get('pricingType').value);
-        // if(result.get('priceTypeId')) this.settingsForm.get('priceTypeId').setValue(result.get('priceTypeId').value);
         if(result.get('plusMinus')) this.settingsForm.get('plusMinus').setValue(result.get('plusMinus').value);
         if(result.get('changePrice')) this.settingsForm.get('changePrice').setValue(result.get('changePrice').value);
         if(result.get('changePriceType')) this.settingsForm.get('changePriceType').setValue(result.get('changePriceType').value);
@@ -1085,17 +1099,15 @@ export class RetailsalesDockComponent implements OnInit {
         if(result.get('priorityTypePriceSide')) this.settingsForm.get('priorityTypePriceSide').setValue(result.get('priorityTypePriceSide').value);
         this.settingsForm.get('hideTenths').setValue(result.get('hideTenths').value);
         this.settingsForm.get('saveSettings').setValue(result.get('saveSettings').value);
-        // this.settingsForm.get('autocreateOnStart').setValue(result.get('autocreateOnStart').value);
         this.settingsForm.get('autocreateOnCheque').setValue(result.get('autocreateOnCheque').value);
         this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.get('statusIdOnAutocreateOnCheque').value);
         this.saveSettingsRetailSales();
-        //вставляем Отделение,Покупателя и Наименование заказа (вставится только если новый документ)
-        this.setDefaultInfoOnStart(
-          (result.get('departmentId')?result.get('departmentId').value:null),
-          (+result.get('customerId').value>0?result.get('customerId').value:null),
-          (+result.get('customerId').value>0?result.get('customer').value:null),
-          (result.get('name')?result.get('name').value:''),
-          );
+        // если это новый документ, и ещё нет выбранных товаров - применяем настройки 
+        if(+this.id==0 && this.productSearchAndTableComponent.getProductTable().length==0)  {
+          this.getData();
+        }
+        //чтобы настройки применились к модулю Поиск и добавление товара"
+        this.productSearchAndTableComponent.applySettings(result);
       }
     });
   }

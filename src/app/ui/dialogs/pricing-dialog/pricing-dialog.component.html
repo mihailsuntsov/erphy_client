@@ -22,14 +22,34 @@
                 <div class="container-fluid">
                     <div class="row">
                         <div class="col-12"> 
-                            <mat-radio-group
+                            <!-- <mat-radio-group
                                 formControlName="pricingType"
                                 (change)="onPricingTypeSelection()"
                                 class="radio-group">
                                 <mat-radio-button class="radio-button" value="priceType">Тип цены</mat-radio-button>
                                 <mat-radio-button class="radio-button" value="costPrice">Себестоимость</mat-radio-button>
                                 <mat-radio-button class="radio-button" value="manual">Вручную</mat-radio-button>
-                            </mat-radio-group>
+                            </mat-radio-group> -->
+                            <mat-form-field  class="mat-form-field-100">
+                                <mat-label>Расценивать</mat-label>
+                                <mat-select formControlName="pricingType"  matTooltip="Способ расценки товара" (selectionChange)="onPriceTypeSelection()">
+                                    <mat-option value="priceType">
+                                        По типу цены
+                                    </mat-option>
+                                    <mat-option value="avgCostPrice">
+                                        По ср. себестоимости
+                                    </mat-option>
+                                    <mat-option value="lastPurchasePrice">
+                                        Последняя закупочная цена
+                                    </mat-option>
+                                    <mat-option value="avgPurchasePrice">
+                                        Средняя закупочная цена
+                                    </mat-option>
+                                    <mat-option value="manual">
+                                        Вручную
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
                         </div>
                     </div>
                     <div class="row">

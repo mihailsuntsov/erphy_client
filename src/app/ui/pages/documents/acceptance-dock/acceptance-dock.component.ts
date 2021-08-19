@@ -303,7 +303,7 @@ getSetOfPermissions(){
                     this.permissionsSet=data as any [];
                     this.getMyId();
                 },
-        error => console.log(error),
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
     );
 }
 
@@ -943,7 +943,7 @@ getSetOfPermissions(){
                                 this.getData();
                                 this.openSnackBar("Документ \"Приёмка\" успешно создан", "Закрыть");
                             },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
             );
   }
 
@@ -955,7 +955,6 @@ getSetOfPermissions(){
         query: 'После завершения приёмки документ станет недоступным для редактирования.'},});
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
-        this.is_completed =true;
         this.updateDocument(true);
       }
     });
@@ -975,19 +974,22 @@ getSetOfPermissions(){
       "nds_included":           this.formBaseInformation.get('nds_included').value,
       "overhead":               this.formBaseInformation.get('overhead').value,
       "overhead_netcost_method":this.formBaseInformation.get('overhead_netcost_method').value,
-      "is_completed":           this.is_completed,
+      "is_completed":           complete,
       "acceptanceProductTable": control.value,
     }
       return this.http.post('/api/auth/updateAcceptance', body)
         .subscribe(
             (data) => 
             {   
-              this.getData();
               if (!complete){
                 this.openSnackBar("Документ \"Приёмка\" сохранён", "Закрыть");
-              } else { this.openSnackBar("Документ \"Приёмка\" завершён", "Закрыть");}
+              } else { 
+                this.is_completed =true;//если успешно сохранился и это сохранение при завершении - отмечаемся как завершенный
+                this.openSnackBar("Документ \"Приёмка\" завершён", "Закрыть");
+              }
+                this.getData();
             },
-            error => console.log(error),
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
         );
   } 
 
@@ -1086,7 +1088,7 @@ openDialogCreateProduct() {
                     this.openSnackBar("Файлы добавлены", "Закрыть");
                     this.loadFilesInfo();
                             },
-                  error => console.log(error),
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
               );
   }
   loadFilesInfo(){//                                     загружает информацию по прикрепленным файлам
@@ -1097,7 +1099,7 @@ openDialogCreateProduct() {
                             this.filesInfo = data as any[]; 
                             this.loadMainImage();
                           },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
             );
 }
 clickBtnDeleteFile(id: number): void {
@@ -1123,7 +1125,7 @@ deleteFile(id:number){
                   this.openSnackBar("Успешно удалено", "Закрыть");
                   this.loadFilesInfo();
               },
-      error => console.log(error),
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
   );  
 }
 

@@ -6,12 +6,13 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpClient } from '@angular/common/http';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
-import { QueryFormService } from './get-retailsales-table.service';
+import { QueryFormService } from './get-docs-table.service';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { FormGroup, Validators, FormControl } from '@angular/forms';
-import { SettingsRetailsalesDialogComponent } from 'src/app/modules/settings/settings-retailsales-dialog/settings-rs-dialog.component';
+import { SettingsInventoryDialogComponent } from 'src/app/modules/settings/settings-inventory-dialog/settings-inventory-dialog.component';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
+import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
 
 export interface CheckBox {
   id: number;
@@ -34,26 +35,27 @@ interface idNameDescription{
   description: string;
 }
 
+
 @Component({
-  selector: 'app-retailsales',
-  templateUrl: './retailsales.component.html',
-  styleUrls: ['./retailsales.component.css'],
+  selector: 'app-inventory',
+  templateUrl: './inventory.component.html',
+  styleUrls: ['./inventory.component.css'],
   providers: [QueryFormService,LoadSpravService,Cookie]
 })
-
-export class RetailsalesComponent implements OnInit {
+export class InventoryComponent implements OnInit {
 
   constructor(private queryFormService:   QueryFormService,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
     public universalCategoriesDialog: MatDialog,
-    public ConfirmDialog: MatDialog,
+    public сonfirmDialog: MatDialog,
     private http: HttpClient,
     public deleteDialog: MatDialog,
     public MessageDialog: MatDialog,
-    public SettingsRetailsalesDialogComponent: MatDialog,
-    public dialogRef1: MatDialogRef<RetailsalesComponent>,) { }
+    public SettingsInventoryDialogComponent: MatDialog,
+    public dialogRef1: MatDialogRef<InventoryComponent>,) { }
 
+    
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
   receivedPagesList: string [] ;//массив для получения данных пагинации
   dataSource = new MatTableDataSource<CheckBox>(); //массив данных для таблицы и чекбоксов (чекбоксы берут из него id, таблица -всё)
@@ -128,60 +130,43 @@ export class RetailsalesComponent implements OnInit {
     this.sendingQueryForm.searchCategoryString="";
     this.sendingQueryForm.filterOptionsIds = [];
 
-    if(Cookie.get('retailsales_companyId')=='undefined' || Cookie.get('retailsales_companyId')==null)     
-      Cookie.set('retailsales_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('retailsales_companyId')=="0"?"0":+Cookie.get('retailsales_companyId'));
-    if(Cookie.get('retailsales_departmentId')=='undefined' || Cookie.get('retailsales_departmentId')==null)  
-      Cookie.set('retailsales_departmentId',this.sendingQueryForm.departmentId); else this.sendingQueryForm.departmentId=(Cookie.get('retailsales_departmentId')=="0"?"0":+Cookie.get('retailsales_departmentId'));
-    if(Cookie.get('retailsales_sortAsc')=='undefined' || Cookie.get('retailsales_sortAsc')==null)       
-      Cookie.set('retailsales_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('retailsales_sortAsc');
-    if(Cookie.get('retailsales_sortColumn')=='undefined' || Cookie.get('retailsales_sortColumn')==null)    
-      Cookie.set('retailsales_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('retailsales_sortColumn');
-    if(Cookie.get('retailsales_offset')=='undefined' || Cookie.get('retailsales_offset')==null)        
-      Cookie.set('retailsales_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('retailsales_offset');
-    if(Cookie.get('retailsales_result')=='undefined' || Cookie.get('retailsales_result')==null)        
-      Cookie.set('retailsales_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('retailsales_result');
+    if(Cookie.get('inventory_companyId')=='undefined' || Cookie.get('inventory_companyId')==null)     
+      Cookie.set('inventory_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('inventory_companyId')=="0"?"0":+Cookie.get('inventory_companyId'));
+    if(Cookie.get('inventory_departmentId')=='undefined' || Cookie.get('inventory_departmentId')==null)  
+      Cookie.set('inventory_departmentId',this.sendingQueryForm.departmentId); else this.sendingQueryForm.departmentId=(Cookie.get('inventory_departmentId')=="0"?"0":+Cookie.get('inventory_departmentId'));
+    if(Cookie.get('inventory_sortAsc')=='undefined' || Cookie.get('inventory_sortAsc')==null)       
+      Cookie.set('inventory_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('inventory_sortAsc');
+    if(Cookie.get('inventory_sortColumn')=='undefined' || Cookie.get('inventory_sortColumn')==null)    
+      Cookie.set('inventory_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('inventory_sortColumn');
+    if(Cookie.get('inventory_offset')=='undefined' || Cookie.get('inventory_offset')==null)        
+      Cookie.set('inventory_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('inventory_offset');
+    if(Cookie.get('inventory_result')=='undefined' || Cookie.get('inventory_result')==null)        
+      Cookie.set('inventory_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('inventory_result');
     
     this.fillOptionsList();//заполняем список опций фильтра
 
     // Форма настроек
     this.settingsForm = new FormGroup({
+      // предприятие, для которого создаются настройки
+      companyId: new FormControl                (null,[]),
       // id отделения
       departmentId: new FormControl             (null,[]),
-      //покупатель по умолчанию
-      customerId: new FormControl               (null,[]),
-      //наименование покупателя
-      customer: new FormControl                 ('',[]),
-      //наименование заказа по умолчанию
-      // orderName:  new FormControl               ('',[]),
-      // тип расценки. priceType - по типу цены, costPrice - себестоимость, manual - вручную
-      pricingType: new FormControl              ('priceType',[]),
-      //тип цены
+      // наименование инвертаризации по умолчанию
+      name:  new FormControl                    ('',[]),
+      // тип расценки. priceType - по типу цены, avgCostPrice - средн. себестоимость, lastPurchasePrice - Последняя закупочная цена, avgPurchasePrice - Средняя закупочная цена, manual - вручную
+      pricingType: new FormControl              ('avgCostPrice',[]), // по умолчанию ставим "Средняя закупочная цена"
+      // тип цены
       priceTypeId: new FormControl              (null,[]),
-      //наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType
-      changePrice: new FormControl              (50,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      // наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType
+      changePrice: new FormControl              (10,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]), // по умолчанию "плюс 10%"
       // Наценка (plus) или скидка (minus)
       plusMinus: new FormControl                ('plus',[]),
       // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
       changePriceType: new FormControl          ('procents',[]),
-      //убрать десятые (копейки)
+      // убрать десятые (копейки)
       hideTenths: new FormControl               (true,[]),
-      //сохранить настройки
-      saveSettings: new FormControl             (true,[]),
-      //предприятие, для которого создаются настройки
-      companyId: new FormControl                (null,[]),
-      //наименование заказа
-      name:  new FormControl                    ('',[]),
-      //приоритет типа цены : Склад (sklad) Покупатель (cagent) Цена по-умолчанию (defprice)
-      priorityTypePriceSide: new FormControl    ('defprice',[]),
-      //настройки операций с ККМ
-      //Оплата чека прихода (наличными - nal безналичными - electronically смешанная - mixed)
-      selectedPaymentType:   new FormControl    ('cash',[]),
-      //автосоздание на старте документа, если автозаполнились все поля
-      // autocreateOnStart: new FormControl        (false,[]),
-      //автосоздание нового документа, если в текущем успешно напечатан чек
-      autocreateOnCheque: new FormControl       (false,[]),
-      //статус после успешного отбития чека, перед созданием нового документа
-      statusIdOnAutocreateOnCheque: new FormControl('',[]),
+      // статус после завершения инвентаризации
+      statusOnFinishId: new FormControl         ('',[]),
     });
       this.getCompaniesList();// 
       // -> getSetOfPermissions() 
@@ -198,7 +183,7 @@ export class RetailsalesComponent implements OnInit {
 
     // -------------------------------------- *** ПРАВА *** ------------------------------------
    getSetOfPermissions(){
-          return this.http.get('/api/auth/getMyPermissions?id=25')
+          return this.http.get('/api/auth/getMyPermissions?id=27')
             .subscribe(
                 (data) => {   
                             this.permissionsSet=data as any [];
@@ -210,26 +195,25 @@ export class RetailsalesComponent implements OnInit {
 
 
   getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==309)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==310)});
-    this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==311)});
-    this.allowToDeleteAllCompanies = permissionsSet.some(         function(e){return(e==312)});
-    this.allowToDeleteMyCompany = permissionsSet.some(            function(e){return(e==313)});
-    this.allowToDeleteMyDepartments = permissionsSet.some(        function(e){return(e==314)});
-    this.allowToDeleteMyDocs = permissionsSet.some(               function(e){return(e==315)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==316)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==317)});
-    this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==318)});
-    this.allowToViewMyDocs = permissionsSet.some(                 function(e){return(e==319)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==320)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==321)});
-    this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==322)});
-    this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==323)});
+    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==329)});
+    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==330)});
+    this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==331)});
+    this.allowToDeleteAllCompanies = permissionsSet.some(         function(e){return(e==332)});
+    this.allowToDeleteMyCompany = permissionsSet.some(            function(e){return(e==333)});
+    this.allowToDeleteMyDepartments = permissionsSet.some(        function(e){return(e==334)});
+    this.allowToDeleteMyDocs = permissionsSet.some(               function(e){return(e==335)});
+    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==336)});
+    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==337)});
+    this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==338)});
+    this.allowToViewMyDocs = permissionsSet.some(                 function(e){return(e==339)});
+    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==340)});
+    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==341)});
+    this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==342)});
+    this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==343)});
     this.getData();
   }
 
   refreshPermissions():boolean{
-    // let documentOfMyCompany:boolean = (this.sendingQueryForm.companyId==this.myCompanyId);
     this.allowToView=(this.allowToViewAllCompanies||this.allowToViewMyCompany||this.allowToViewMyDepartments||this.allowToViewMyDocs)?true:false;
     this.allowToUpdate=(this.allowToUpdateAllCompanies||this.allowToUpdateMyCompany||this.allowToUpdateMyDepartments||this.allowToUpdateMyDocs)?true:false;
     this.allowToCreate=(this.allowToCreateAllCompanies||this.allowToCreateMyCompany||this.allowToCreateMyDepartments)?true:false;
@@ -251,10 +235,8 @@ export class RetailsalesComponent implements OnInit {
   getData(){
     if(this.refreshPermissions() && this.allowToView)
     {
-      console.log('department 1 = '+this.sendingQueryForm.departmentId);
       this.doFilterCompaniesList(); //если нет просмотра по всем предприятиям - фильтруем список предприятий до своего предприятия
       this.doFilterDepartmentsList();//если нет просмотра по свому предприятию - фильтруем список отделений предприятия до своих отделений
-      console.log('department 2 = '+this.sendingQueryForm.departmentId);
       this.getTableHeaderTitles();
       this.getPagesList();
       this.getTable();
@@ -266,11 +248,18 @@ export class RetailsalesComponent implements OnInit {
     this.displayedColumns=[];
     if(this.allowToDelete) this.displayedColumns.push('select');
     if(this.showOpenDocIcon) this.displayedColumns.push('opendoc');
-    this.displayedColumns.push('doc_number','cagent','name','status','sum_price','hasSellReceipt','company','department','creator','date_time_created');
+    this.displayedColumns.push('doc_number');
+    this.displayedColumns.push('name');
+    this.displayedColumns.push('status');
+    this.displayedColumns.push('product_count');
+    this.displayedColumns.push('is_completed');
+    this.displayedColumns.push('company');
+    this.displayedColumns.push('department');
+    this.displayedColumns.push('creator');
+    this.displayedColumns.push('date_time_created');
   }
 
   getPagesList(){
-    // this.receivedPagesList=null;
     this.queryFormService.getPagesList(this.sendingQueryForm)
             .subscribe(
                 data => {this.receivedPagesList=data as string [];
@@ -287,7 +276,7 @@ export class RetailsalesComponent implements OnInit {
             .subscribe(
                 (data) => {
                   this.dataSource.data = data as any []; 
-                  if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
+                  if(this.dataSource.data && this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0); //!!!
                 },
                 error => console.log(error) 
             );
@@ -300,7 +289,6 @@ export class RetailsalesComponent implements OnInit {
     this.isThereSelected() ?
     this.resetSelecion() :
         this.dataSource.data.forEach(row => {
-          // if(!row.is_completed){this.selection.select(row);}
           if(this.showCheckbox(row)){this.selection.select(row);}//если чекбокс отображаем, значит можно удалять этот документ
         });
         this.createCheckedList();
@@ -317,20 +305,18 @@ export class RetailsalesComponent implements OnInit {
     this.isThereSelected();
   }
   createCheckedList(){
-    this.checkedList = [];
-    // console.log("1");
-    for (var i = 0; i < this.dataSource.data.length; i++) {
-      // console.log("2");
-      if(this.selection.isSelected(this.dataSource.data[i]))
-        this.checkedList.push(this.dataSource.data[i].id);
+    if(this.dataSource.data){//!!!
+      this.checkedList = [];
+      for (var i = 0; i < this.dataSource.data.length; i++) {
+        if(this.selection.isSelected(this.dataSource.data[i]))
+          this.checkedList.push(this.dataSource.data[i].id);
+      }
+      if(this.checkedList.length>0){
+          this.hideAllBtns();
+          if(this.allowToDelete) this.visBtnDelete = true;
+          if(this.checkedList.length==1){this.visBtnCopy = true}
+      }else{console.log("");this.showOnlyVisBtnAdd()}
     }
-    if(this.checkedList.length>0){
-      // console.log("3");
-        this.hideAllBtns();
-        if(this.allowToDelete) this.visBtnDelete = true;
-        if(this.checkedList.length==1){this.visBtnCopy = true}
-    }else{console.log("");this.showOnlyVisBtnAdd()}
-    // console.log("checkedList - "+this.checkedList);
   }
   isAllSelected() {//все выбраны
     const numSelected = this.selection.selected.length;
@@ -354,6 +340,7 @@ export class RetailsalesComponent implements OnInit {
     this.visBtnAdd = false;
     this.visBtnDelete = false;
   }
+
   showOnlyVisBtnAdd(){
     if(this.allowToCreate) this.visBtnAdd = true;
     this.visBtnDelete = false;
@@ -363,7 +350,7 @@ export class RetailsalesComponent implements OnInit {
     this.clearCheckboxSelection();
     this.createCheckedList();
     this.sendingQueryForm.offset=0;
-    Cookie.set('retailsales_result',this.sendingQueryForm.result);
+    Cookie.set('inventory_result',this.sendingQueryForm.result);
     this.getData();
   }
 
@@ -371,13 +358,14 @@ export class RetailsalesComponent implements OnInit {
   {
     this.clearCheckboxSelection();
     this.sendingQueryForm.offset=value;
-    Cookie.set('retailsales_offset',value);
+    Cookie.set('inventory_offset',value);
     this.getData();
   }
 
   clearCheckboxSelection(){
-    this.selection.clear();
-    this.dataSource.data.forEach(row => this.selection.deselect(row));
+    this.selection.clear(); 
+    if(this.dataSource.data) //!!!
+      this.dataSource.data.forEach(row => this.selection.deselect(row));
   }
 
   setSort(valueSortColumn:any) // set sorting column
@@ -389,56 +377,56 @@ export class RetailsalesComponent implements OnInit {
           } else {  
               this.sendingQueryForm.sortAsc="asc"
           }
-      Cookie.set('retailsales_sortAsc',this.sendingQueryForm.sortAsc);
+      Cookie.set('inventory_sortAsc',this.sendingQueryForm.sortAsc);
       } else {
           this.sendingQueryForm.sortColumn=valueSortColumn;
           this.sendingQueryForm.sortAsc="asc";
-          Cookie.set('retailsales_sortAsc',"asc");
-          Cookie.set('retailsales_sortColumn',valueSortColumn);
+          Cookie.set('inventory_sortAsc',"asc");
+          Cookie.set('inventory_sortColumn',valueSortColumn);
       }
       this.getData();
   }
   onCompanySelection(){
-    Cookie.set('retailsales_companyId',this.sendingQueryForm.companyId);
-    Cookie.set('retailsales_departmentId','0');
+    Cookie.set('inventory_companyId',this.sendingQueryForm.companyId);
+    Cookie.set('inventory_departmentId','0');
     this.sendingQueryForm.departmentId="0"; 
     this.resetOptions();
     this.getDepartmentsList();
   }
   onDepartmentSelection(){
-    Cookie.set('retailsales_departmentId',this.sendingQueryForm.departmentId);
+    Cookie.set('inventory_departmentId',this.sendingQueryForm.departmentId);
     this.resetOptions();
     this.getData();
   }
   clickBtnDelete(): void {
-    // const dialogRef = this.deleteDialog.open(DeleteDialog, {
-    //   width: '300px',
-    // });
-    // dialogRef.afterClosed().subscribe(result => {
-    //   if(result==1){this.deleteDocks();}
-    //   this.clearCheckboxSelection();
-    //   this.showOnlyVisBtnAdd();
-    // });        
+    const dialogRef = this.deleteDialog.open(DeleteDialog, {
+      width: '300px',
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){this.deleteDocks();}
+      this.clearCheckboxSelection();
+      this.showOnlyVisBtnAdd();
+    });        
   }
-  // deleteDocks(){
-  //   const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
-  //   this.clearCheckboxSelection();
-  //         return this.http.post('/api/auth/deleteRetailSales', body) 
-  //           .subscribe(
-  //               (data) => {   
-  //                           this.getData();
-  //                           this.openSnackBar("Успешно удалено", "Закрыть");
-  //                         },
-  //               error => console.log(error),
-  //           );
-  // }
+  deleteDocks(){
+    const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
+    this.clearCheckboxSelection();
+          return this.http.post('/api/auth/deleteInventory', body) 
+            .subscribe(
+                (data) => {   
+                            this.getData();
+                            this.openSnackBar("Успешно удалено", "Закрыть");
+                          },
+                error => console.log(error),
+            );
+  }
   clickBtnRestore(): void {
-    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+    const dialogRef = this.сonfirmDialog.open(ConfirmDialog, {
       width: '400px',
       data:
       { 
         head: 'Восстановление',
-        query: 'Восстановить выбранные заказы покупателей из удалённых?',
+        query: 'Восстановить выбранные инвентаризации из удалённых?',
         warning: '',
       },
     });
@@ -451,7 +439,7 @@ export class RetailsalesComponent implements OnInit {
   undeleteDocks(){
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
-      return this.http.post('/api/auth/undeleteRetailSales', body) 
+      return this.http.post('/api/auth/undeleteInventory', body) 
     .subscribe(
         (data) => {   
                     this.getData();
@@ -493,9 +481,9 @@ export class RetailsalesComponent implements OnInit {
   }
 
   setDefaultCompany(){
-    if(Cookie.get('retailsales_companyId')=='0'){
+    if(Cookie.get('inventory_companyId')=='0'){
       this.sendingQueryForm.companyId=this.myCompanyId;
-      Cookie.set('retailsales_companyId',this.sendingQueryForm.companyId);
+      Cookie.set('inventory_companyId',this.sendingQueryForm.companyId);
     }
       this.getDepartmentsList();
   }
@@ -523,10 +511,10 @@ export class RetailsalesComponent implements OnInit {
   setDefaultDepartment(){
     if(this.receivedDepartmentsList.length==1)
     {
-      console.log('установка отделения по умолчанию - '+this.receivedDepartmentsList[0].id);
+      // console.log('установка отделения по умолчанию - '+this.receivedDepartmentsList[0].id);
 
       this.sendingQueryForm.departmentId=+this.receivedDepartmentsList[0].id;
-      Cookie.set('retailsales_departmentId',this.sendingQueryForm.departmentId);
+      Cookie.set('inventory_departmentId',this.sendingQueryForm.departmentId);
     }
   this.getCRUD_rights(this.permissionsSet);
   }
@@ -559,7 +547,7 @@ export class RetailsalesComponent implements OnInit {
   
   // открывает диалог настроек
   openDialogSettings() { 
-    const dialogSettings = this.SettingsRetailsalesDialogComponent.open(SettingsRetailsalesDialogComponent, {
+    const dialogSettings = this.SettingsInventoryDialogComponent.open(SettingsInventoryDialogComponent, {
       maxWidth: '95vw',
       maxHeight: '95vh',
       // height: '680px',
@@ -582,26 +570,20 @@ export class RetailsalesComponent implements OnInit {
         //если нажата кнопка Сохранить настройки - вставляем настройки в форму настроек и сохраняем
         if(result.get('companyId')) this.settingsForm.get('companyId').setValue(result.get('companyId').value);
         if(result.get('departmentId')) this.settingsForm.get('departmentId').setValue(result.get('departmentId').value);
-        if(result.get('customerId')) this.settingsForm.get('customerId').setValue(result.get('customerId').value);
-        if(result.get('customer')) this.settingsForm.get('customer').setValue(result.get('customer').value);
         if(result.get('pricingType')) this.settingsForm.get('pricingType').setValue(result.get('pricingType').value);
-        // if(result.get('priceTypeId')) this.settingsForm.get('priceTypeId').setValue(result.get('priceTypeId').value);
+        if(result.get('priceTypeId')) this.settingsForm.get('priceTypeId').setValue(result.get('priceTypeId').value);
         if(result.get('plusMinus')) this.settingsForm.get('plusMinus').setValue(result.get('plusMinus').value);
         if(result.get('changePrice')) this.settingsForm.get('changePrice').setValue(result.get('changePrice').value);
         if(result.get('changePriceType')) this.settingsForm.get('changePriceType').setValue(result.get('changePriceType').value);
         if(result.get('name')) this.settingsForm.get('name').setValue(result.get('name').value);
-        if(result.get('priorityTypePriceSide')) this.settingsForm.get('priorityTypePriceSide').setValue(result.get('priorityTypePriceSide').value);
         this.settingsForm.get('hideTenths').setValue(result.get('hideTenths').value);
-        this.settingsForm.get('saveSettings').setValue(result.get('saveSettings').value);
-        // this.settingsForm.get('autocreateOnStart').setValue(result.get('autocreateOnStart').value);
-        this.settingsForm.get('autocreateOnCheque').setValue(result.get('autocreateOnCheque').value);
-        this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.get('statusIdOnAutocreateOnCheque').value);
-        this.saveSettingsRetailSales();
+        this.settingsForm.get('statusOnFinishId').setValue(result.get('statusOnFinishId').value);
+        this.saveSettingsInventory();
       }
     });
   }
-  saveSettingsRetailSales(){
-    return this.http.post('/api/auth/saveSettingsRetailSales', this.settingsForm.value)
+  saveSettingsInventory(){
+    return this.http.post('/api/auth/saveSettingsInventory', this.settingsForm.value)
             .subscribe(
                 (data) => {   
                           this.openSnackBar("Настройки успешно сохранены", "Закрыть");

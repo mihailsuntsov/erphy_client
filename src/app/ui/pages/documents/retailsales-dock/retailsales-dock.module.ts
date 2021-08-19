@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RetailsalesDockRoutingModule } from './retailsales-dock-routing.module';
 import { RetailsalesDockComponent } from './retailsales-dock.component';
-import { ControlMessagesComponent } from './control-messages.component';
 import { ValidationService } from './validation.service';
 import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -11,7 +10,7 @@ import { ProductSearchAndTableModule } from 'src/app/modules/trade-modules/produ
 import { KkmModule } from 'src/app/modules/trade-modules/kkm/kkm.module';
 
 @NgModule({
-  declarations: [RetailsalesDockComponent, ControlMessagesComponent],
+  declarations: [RetailsalesDockComponent, /*ControlMessagesComponent*/],
   imports: [
     CommonModule,
     RetailsalesDockRoutingModule,

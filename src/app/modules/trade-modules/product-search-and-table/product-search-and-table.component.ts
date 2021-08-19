@@ -68,7 +68,7 @@ interface idAndNameAndShorname{ //универсалный интерфейс д
   name: string;
   short_name: string;
 }
-interface ShortInfoAboutProduct{//интреф. для получения инфо о состоянии товара в отделении (кол-во, последняя поставка), и средним ценам (закупочной и себестоимости) товара
+interface ShortInfoAboutProduct{//интерф. для получения инфо о состоянии товара в отделении (кол-во, последняя поставка), и средним ценам (закупочной и себестоимости) товара
   quantity:number;
   change:number;
   avg_purchase_price:number;
@@ -109,7 +109,7 @@ interface idAndCount{ //интерфейс для запроса количес�
 
 
 export class ProductSearchAndTableComponent implements OnInit, OnChanges {
-  counter:number=0;
+  // counter:number=0;
   formBaseInformation:any;//форма-обёртка для массива форм customersOrdersProductTable (нужна для вывода таблицы)
   formSearch:any;// форма для поиска товара, ввода необходимых данных и отправки всего этого в formBaseInformation в качестве элемента массива
   settingsForm: any; // форма с настройками (нужно для сохранения некоторых настроек при расценке)
@@ -147,7 +147,9 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
 
   // Расценка (все настройки здесь - по умолчанию. После первого же сохранения настроек данные настройки будут заменяться в методе getSettings() )
   productPrice:number=0; //Цена найденного и выбранного в форме поиска товара.
-  netCostPrice:number = 0; // себестоимость найденного и выбранного в форме поиска товара.
+  avgCostPrice:number = 0; // себестоимость найденного и выбранного в форме поиска товара.
+  lastPurchasePrice:number = 0; // последняя закупочная цена найденного и выбранного в форме поиска товара.
+  avgPurchasePrice:number = 0; // средняя закупочная цена найденного и выбранного в форме поиска товара.
   priceUpDownFieldName:string = 'Наценка'; // Наименование поля с наценкой-скидкой
   priceTypeId_temp:number; // id типа цены. Нужна для временного хранения типа цены на время сброса формы поиска товара
   companyId_temp:number; // id предприятия. Нужна для временного хранения предприятия на время сброса формы formBaseInformation
@@ -186,6 +188,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   @Input() receivedPriceTypesList: idNameDescription[];//массив для получения списка типов цен
   @Input() spravSysNdsSet: SpravSysNdsSet[]; //массив имен и id для ндс 
   @Input() readonly:boolean;
+  @Input() parent_document_id:number;// из какого документа вызывают. Например, CustomersOrders, Inventory, RetailSales
 
   @Output() totalSumPriceEvent = new EventEmitter<string>();
 
@@ -254,6 +257,24 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
       // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
       changePriceType: new FormControl          ('procents',[]),
     });
+
+    this.doOnInit();
+
+  }
+  ngOnChanges(changes: SimpleChanges): void {
+    if(changes.nds) {
+      this.hideOrShowNdsColumn();
+      setTimeout(() => {this.productTableRecount();}, 1);// ставим таймаут, иначе таблица пересчитывается но не обновляется при добавлении столбца. Не понятно, баг это или фича
+    }
+  }
+  ngAfterViewInit() {
+    setTimeout(() => { this.productSearchFieldValue.nativeElement.focus(); }, 1000);
+  }
+
+  trackByIndex(i: any) { return i; }
+
+
+  doOnInit(){
     this.formSearch.get('secondaryDepartmentId').setValue(this.department_id);
     this.hideOrShowNdsColumn();
     this.getProductsTable();
@@ -283,19 +304,8 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
     console.log("receivedPriceTypesList-"+this.receivedPriceTypesList);//массив для получения списка типов цен
     console.log("spravSysNdsSet-"+this.spravSysNdsSet); //массив имен и id для ндс 
     console.log('-----------------------------------------------------');
-
-  }
-  ngOnChanges(changes: SimpleChanges): void {
-    if(changes.nds) {
-      this.hideOrShowNdsColumn();
-      setTimeout(() => {this.productTableRecount();}, 1);// ставим таймаут, иначе таблица пересчитывается но не обновляется при добавлении столбца. Не понятно, баг это или фича
-    }
-  }
-  ngAfterViewInit() {
-    setTimeout(() => { this.productSearchFieldValue.nativeElement.focus(); }, 1000);
   }
 
-  trackByIndex(i: any) { return i; }
 
 // --------------------------------------- *** ЧЕКБОКСЫ *** -------------------------------------
 masterToggle() {
@@ -319,9 +329,7 @@ clickTableCheckbox(row){
 }
 createCheckedList(){
   this.checkedList = [];
-  // console.log("1");
   for (var i = 0; i < this.formBaseInformation.controls.customersOrdersProductTable.value.length; i++) {
-    // console.log("2");
     if(this.selection.isSelected(this.formBaseInformation.controls.customersOrdersProductTable.value[i])){
       this.checkedList.push(this.formBaseInformation.controls.customersOrdersProductTable.value[i].row_id);
     }
@@ -883,7 +891,7 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
           this.settingsForm.get('changePriceType').setValue(result.get('changePriceType').value);
           this.settingsForm.get('hideTenths').setValue(result.get('hideTenths').value);
           this.settingsForm.get('companyId').setValue(this.company_id);
-          this.saveSettingsCustomersOrders();
+          this.updateSettings();
         }
       }
     });
@@ -894,11 +902,20 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
     this.formSearch.get('plusMinus').setValue(set.get('plusMinus').value);
     this.formSearch.get('changePrice').setValue(set.get('changePrice').value);
     this.formSearch.get('changePriceType').setValue(set.get('changePriceType').value);
-    this.formSearch.get('product_price').setValue(set.get('resultPrice').value);
+    
+    if(set.get('resultPrice')){ // если настройки поступили из формы расценки выбранного товара
+      this.formSearch.get('product_price').setValue(set.get('resultPrice').value);
+    }else{// иначе настройки пришли из формы настроек родительского документа.
+      this.priorityTypePriceSide=set.get('priorityTypePriceSide').value; //получили приоритет цены
+      this.setCurrentTypePrice(); // установим тип цены по приоритету цены
+      this.onPriceTypeSelection(); // пересчитаем цену в зависимости от новго типа цены
+    }
+
+    
     this.calcSumPriceOfProduct();
   }
-  saveSettingsCustomersOrders(){
-    return this.http.post('/api/auth/saveSettingsCustomersOrders', this.settingsForm.value)
+  updateSettings(){
+    return this.http.post('/api/auth/saveSettings'+this.parent_document_id, this.settingsForm.value)
             .subscribe(
                 (data) => {   
                           this.openSnackBar("Настройки успешно сохранены", "Закрыть");
@@ -966,7 +983,9 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
             this.formSearch.get('total').setValue(result.total);
             this.formSearch.get('reserved').setValue(result.reserved);
             this.formSearch.get('available').setValue(result.total-result.reserved);
-            this.netCostPrice=(+result.netCost>0?result.netCost:0);
+            this.avgCostPrice=(+result.avgCostPrice>0?result.avgCostPrice:0);
+            this.lastPurchasePrice=(+result.lastPurchasePrice>0?result.lastPurchasePrice:0);
+            this.avgPurchasePrice=(+result.avgPurchasePrice>0?result.avgPurchasePrice:0);
             this.productPrice=(+result.price>0?result.price:0);
             this.priceRecount();
           },
@@ -976,31 +995,43 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
   priceRecount(){
     //перерасчет цены в зависимости от выбранного в поле "Расценивать по" значения
     switch (this.formSearch.get('pricingType').value) {
-      case 'priceType': {//если Тип цены 
+      case 'priceType': {//если "Тип цены"
         this.setPrice(this.productPrice);
         break;}
-      case 'costPrice': {//если Себестоимость 
-        // фактическая величина изменения цены 
-        let priceChangeDelta:number;
-        if(this.formSearch.get('changePrice').value==0) this.formSearch.get('changePrice').setValue(0); //чтобы подставлялся 0 после удаления всего в поле Наценка/Скидка
-        switch (this.formSearch.get('changePriceType').value) {
-          case 'procents': {//если выбраны проценты 
-            priceChangeDelta=this.netCostPrice*this.formSearch.get('changePrice').value/100;
-            if(this.formSearch.get('plusMinus').value=='minus') priceChangeDelta = -priceChangeDelta;
-            break;}
-          case 'currency': {//если выбрана валюта 
-            if(this.formSearch.get('plusMinus').value=='minus') 
-              priceChangeDelta = -this.formSearch.get('changePrice').value;
-            else priceChangeDelta = +this.formSearch.get('changePrice').value;
-            break;}
-        }
-        this.setPrice(+(this.netCostPrice+priceChangeDelta).toFixed(2));
-        break;}
-      case 'manual': {      //если Вручную
+      case 'manual': {      //если "Вручную"
           this.setPrice(0);
         break;
       }
+      case 'avgCostPrice':{
+        this.setChangePrice(this.avgCostPrice);
+        break;
+      }
+      case 'lastPurchasePrice':{
+        this.setChangePrice(this.lastPurchasePrice);
+        break;
+      }
+      case 'avgPurchasePrice':{
+        this.setChangePrice(this.avgPurchasePrice);
+        break;
+      }
     }
+  }
+  setChangePrice(price:number){
+    // фактическая величина изменения цены -изменяем цену по условиям, содержащимся в параметрах plusMinus, changePrice и changePriceType
+    let priceChangeDelta:number;
+    if(this.formSearch.get('changePrice').value==0) this.formSearch.get('changePrice').setValue(0); //чтобы подставлялся 0 после удаления всего в поле Наценка/Скидка
+    switch (this.formSearch.get('changePriceType').value) {
+      case 'procents': {//если выбраны проценты 
+        priceChangeDelta=price*this.formSearch.get('changePrice').value/100;
+        if(this.formSearch.get('plusMinus').value=='minus') priceChangeDelta = -priceChangeDelta;
+        break;}
+      case 'currency': {//если выбрана валюта 
+        if(this.formSearch.get('plusMinus').value=='minus') 
+          priceChangeDelta = -this.formSearch.get('changePrice').value;
+        else priceChangeDelta = +this.formSearch.get('changePrice').value;
+        break;}
+    }
+    this.setPrice(+(price+priceChangeDelta).toFixed(2));
   }
   setPrice(price:number){
     if(this.hideTenths)//если опция "Убрать копейки"
@@ -1067,7 +1098,7 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
       this.calcSumPriceOfProduct();//иначе неправильно будут обрабатываться проверки формы
       this.resetProductCountOfSecondaryDepartmentsList();// сброс кол-ва товара по отделениям (складам)
       this.gotProductCount=false;
-      this.netCostPrice=0;
+      this.avgCostPrice=0;
       this.productPrice=0;
       setTimeout(() => { this.productSearchFieldValue.nativeElement.focus(); }, 1000);
   }

@@ -9,6 +9,7 @@ import { LoadSpravService } from './loadsprav';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { QueryFormService } from './get-writeoff-table.service';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 
 export interface CheckBox {
   id: number;
@@ -91,9 +92,9 @@ export class WriteoffComponent implements OnInit {
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
     public universalCategoriesDialog: MatDialog,
+    private MessageDialog: MatDialog,
     public ConfirmDialog: MatDialog,
     private http: HttpClient,
-    private Cookie: Cookie,
     public deleteDialog: MatDialog,
     public dialogRef1: MatDialogRef<WriteoffComponent>,) { }
 
@@ -140,7 +141,7 @@ export class WriteoffComponent implements OnInit {
                             this.permissionsSet=data as any [];
                             this.getMyId();
                         },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
             );
   }
 
@@ -220,7 +221,7 @@ export class WriteoffComponent implements OnInit {
                 this.pagenum=this.receivedPagesList[1];
                 this.listsize=this.receivedPagesList[2];
                 this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
-                error => console.log(error)
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             ); 
   }
 
@@ -231,7 +232,7 @@ export class WriteoffComponent implements OnInit {
                   this.dataSource.data = data as any []; 
                   if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
                 },
-                error => console.log(error) 
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
             );
   }
 
@@ -365,9 +366,14 @@ export class WriteoffComponent implements OnInit {
           return this.http.post('/api/auth/deleteWriteoff', body) 
             .subscribe(
                 (data) => {   
-                            this.getData();
+                            let result=data as boolean;
+                            if(result){
+                              this.openSnackBar("Успешно удалено", "Закрыть");
+                              this.getData();
+                            }else
+                              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав для удаления'}});
                           },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
             );
     }
     
@@ -383,7 +389,7 @@ export class WriteoffComponent implements OnInit {
                 (data) => {this.receivedCompaniesList=data as any [];
                   this.getSetOfPermissions();
                 },
-                error => console.log(error)
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             );
   }
   getMyId(){
@@ -392,7 +398,7 @@ export class WriteoffComponent implements OnInit {
             .subscribe(
                 (data) => {this.myId=data as any;
                   this.getMyCompanyId();},
-                error => console.log(error)
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             );
   }
   getMyCompanyId(){
@@ -400,7 +406,7 @@ export class WriteoffComponent implements OnInit {
       (data) => {
         this.myCompanyId=data as number;
         this.setDefaultCompany();
-      }, error => console.log(error));
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
   }
 
   setDefaultCompany(){
@@ -417,7 +423,7 @@ export class WriteoffComponent implements OnInit {
             .subscribe(
                 (data) => {this.receivedDepartmentsList=data as any [];
                             this.getMyDepartmentsList();},
-                error => console.log(error)
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             );
   }
 
@@ -427,7 +433,7 @@ export class WriteoffComponent implements OnInit {
             .subscribe(
                 (data) => {this.receivedMyDepartmentsList=data as any [];
                   this.setDefaultDepartment();},
-                error => console.log(error)
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             );
   }
 
