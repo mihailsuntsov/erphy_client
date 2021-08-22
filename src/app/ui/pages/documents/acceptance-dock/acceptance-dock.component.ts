@@ -12,6 +12,7 @@ import { ProductsDockComponent } from '../products-dock/products-dock.component'
 import { MatDialog } from '@angular/material/dialog';
 import { FilesComponent } from '../files/files.component';
 import { FilesDockComponent } from '../files-dock/files-dock.component';
+import { Router } from '@angular/router';
 import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from '@angular/material/core';
 import {MessageDialog} from 'src/app/ui/dialogs/messagedialog.component';
 import * as _moment from 'moment';
@@ -143,7 +144,7 @@ export class AcceptanceDockComponent implements OnInit {
   id: number = 0;// id документа
   myId:number=0;
   creatorId:number=0;
-  createdDockId: string[];//массив для получение id созданного документа
+  createdDockId: number;//массив для получение id созданного документа
   receivedCompaniesList: any [];//массив для получения списка предприятий
   receivedDepartmentsList: idAndName [] = [];//массив для получения списка отделений
   receivedMyDepartmentsList: idAndName [] = [];//массив для получения списка отделений
@@ -231,7 +232,8 @@ export class AcceptanceDockComponent implements OnInit {
     public dialogCreateProduct: MatDialog,
     public MessageDialog: MatDialog,
     private loadSpravService:   LoadSpravService,
-    private _snackBar: MatSnackBar) 
+    private _snackBar: MatSnackBar,
+    private _router:Router) 
     {this.id = +activateRoute.snapshot.params['id'];}
 
   ngOnInit() {
@@ -937,14 +939,32 @@ getSetOfPermissions(){
     this.http.post('/api/auth/insertAcceptance', this.formBaseInformation.value)
             .subscribe(
                 (data) =>   {
-                                this.createdDockId=data as string [];
-                                this.id=+this.createdDockId[0];
-                                this.formBaseInformation.get('id').setValue(this.id);
-                                this.getData();
-                                this.openSnackBar("Документ \"Приёмка\" успешно создан", "Закрыть");
-                            },
+                  this.createdDockId=data as number;
+                  switch(this.createdDockId){
+                    case null:{// null возвращает если не удалось создать документ из-за ошибки
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа Приёмка"}});
+                      break;
+                    }
+                    case 0:{//недостаточно прав
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа Приёмка"}});
+                      break;
+                    }
+                    default:{// Приёмка успешно создалась в БД 
+                      this.openSnackBar("Документ \"Приёмка\" успешно создан", "Закрыть");
+                      this.afterCreateDocument();
+                    }
+                  }
+                },
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
             );
+  }
+
+  //действия после создания нового документа 
+  afterCreateDocument(){
+    this.id=+this.createdDockId;
+    this._router.navigate(['/ui/acceptancedock', this.id]);
+    this.formBaseInformation.get('id').setValue(this.id);
+    this.getData();
   }
 
   completeDocument(){
@@ -987,7 +1007,7 @@ getSetOfPermissions(){
                 this.is_completed =true;//если успешно сохранился и это сохранение при завершении - отмечаемся как завершенный
                 this.openSnackBar("Документ \"Приёмка\" завершён", "Закрыть");
               }
-                this.getData();
+                // this.getData();
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
         );
@@ -1097,7 +1117,7 @@ openDialogCreateProduct() {
             .subscribe(
                 (data) => {  
                             this.filesInfo = data as any[]; 
-                            this.loadMainImage();
+                            // this.loadMainImage();
                           },
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
             );

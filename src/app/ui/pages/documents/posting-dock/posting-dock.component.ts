@@ -824,7 +824,7 @@ getSetOfPermissions(){
                 this.is_completed =true;//если успешно сохранился и это сохранение при завершении - отмечаемся как завершенный
                 this.openSnackBar("Документ \"Оприходование\" завершён", "Закрыть");
               }
-                this.getData();
+                // this.getData();
             },
              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
         );
@@ -920,7 +920,7 @@ getSetOfPermissions(){
             return this.http.post('/api/auth/addFilesToPosting', body) 
               .subscribe(
                   (data) => {  
-                    this.openSnackBar("Изображения добавлены", "Закрыть");
+                    this.openSnackBar("Файлы добавлены", "Закрыть");
                     this.loadFilesInfo();
                             },
                    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
@@ -932,7 +932,7 @@ getSetOfPermissions(){
             .subscribe(
                 (data) => {  
                             this.filesInfo = data as any[]; 
-                            this.loadMainImage();
+                            // this.loadMainImage();
                           },
                 error => console.log(error),
             );

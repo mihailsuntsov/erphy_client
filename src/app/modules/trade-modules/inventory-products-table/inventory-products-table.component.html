@@ -231,8 +231,7 @@
                                 [formGroup]="formBaseInformation" 
                                 [trackBy]="trackByIndex" 
                                 style="margin-top: 20px;" 
-                                class="mat-elevation-z8"
-                                *ngIf="showTable">
+                                class="mat-elevation-z8">
 
                                     <ng-container matColumnDef="select" [formArrayName]="'inventoryProductTable'">
                                         <th mat-header-cell *matHeaderCellDef class="checkbox-col">
@@ -283,7 +282,7 @@
                                         <td mat-footer-cell *matFooterCellDef></td>
                                     </ng-container>
                                     <ng-container matColumnDef="actual_balance" [formArrayName]="'inventoryProductTable'">
-                                        <th mat-header-cell *matHeaderCellDef class="cell-padding width-60">
+                                        <th mat-header-cell *matHeaderCellDef class="cell-padding width-80">
                                             <span 
                                                 style="cursor: default;"
                                                 matTooltip="Фактический остаток данного товара в отделении">
@@ -311,7 +310,7 @@
                                         <td mat-footer-cell *matFooterCellDef class="cell-padding width-60"> {{totalProductCount}} </td>
                                     </ng-container>
                                     <ng-container matColumnDef="product_price" [formArrayName]="'inventoryProductTable'">
-                                        <th mat-header-cell *matHeaderCellDef style="width: 70px;">
+                                        <th mat-header-cell *matHeaderCellDef style="width: 80px;">
                                             <span 
                                                 style="cursor: default;"
                                                 matTooltip="Цена за единицу товара или услуги">
@@ -360,6 +359,16 @@
                                             <mat-icon matTooltip="Удалить товар" style="cursor: default" (click)="deleteProductRow(row,i)">delete_forever</mat-icon>
                                         </td>
                                         <td mat-footer-cell *matFooterCellDef></td>
+                                    </ng-container>
+                                    <ng-container matColumnDef="empty_f" [formArrayName]="'inventoryProductTable'">
+                                        <th mat-header-cell *matHeaderCellDef  class="cell-padding width-80">Фактический остаток</th>
+                                        <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> &nbsp; </td>
+                                        <td mat-footer-cell *matFooterCellDef>  &nbsp;</td>
+                                    </ng-container>
+                                    <ng-container matColumnDef="empty_p" [formArrayName]="'inventoryProductTable'">
+                                        <th mat-header-cell *matHeaderCellDef  style="width: 80px;">Цена</th>
+                                        <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> &nbsp; </td>
+                                        <td mat-footer-cell *matFooterCellDef>  &nbsp;</td>
                                     </ng-container>
                                     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                                     <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>

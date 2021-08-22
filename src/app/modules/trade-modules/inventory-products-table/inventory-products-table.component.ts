@@ -1,13 +1,13 @@
-import { Component, OnInit, Input, Output, OnChanges,  SimpleChanges } from '@angular/core';
+import { Component, OnInit, Input, Output} from '@angular/core';
 import { EventEmitter } from '@angular/core';
 import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl } from '@angular/forms';
 import { SelectionModel } from '@angular/cdk/collections';
-import { Observable , of} from 'rxjs';
+import { Observable } from 'rxjs';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { ProductCategoriesSelectComponent } from 'src/app/modules/trade-modules/product-categories-select/product-categories-select.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatDialog } from '@angular/material/dialog';
-import { ValidationService } from './validation.service';
+// import { ValidationService } from './validation.service';
 import { HttpClient } from '@angular/common/http';
 import { ProductsDockComponent } from 'src/app/ui/pages/documents/products-dock/products-dock.component';
 import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component';
@@ -15,7 +15,7 @@ import { ViewChild } from '@angular/core';
 import { PricingDialogComponent } from 'src/app/ui/dialogs/pricing-dialog/pricing-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
-
+import { MatTable } from '@angular/material/table';
 
 interface InventoryProductTable { //интерфейс для товаров, (т.е. для формы, массив из которых будет содержать форма inventoryProductTable, входящая в formBaseInformation)
   id: number;                     // id строки с товаром товара в таблице inventory_product
@@ -90,7 +90,6 @@ export class InventoryProductsTableComponent implements OnInit {
   selected_price: number = 0; //цена, выбранная через поле Тип цены. Нужна для сравнения с полем Цена для выявления факта изменения его значения, и оставления значения столбце Тип цены пустым
   selected_pricingType: string; // тип расценки, выбранный в форме поиска.  Нужен для восстановления при сбросе формы поиска товара
   formSearchReadOnly=false;
-  showTable=true;
   placeholderActualBalance:string='0';// фактическое кол-во товара по умолчанию, вычисляемое по настройкам после нахождения товара в форме поиска (нужно для плейсхолдера поля "Факт. остаток, чтобы было видно, что будет по умолчанию, если в него ничего не вводить")
   
   //групповое добавление товаров
@@ -113,6 +112,7 @@ export class InventoryProductsTableComponent implements OnInit {
   trackByIndex = (i) => i;
 
   @ViewChild("estimated_balance", {static: false}) estimated_balance;
+  // @ViewChild(MatTable) _table: MatTable<any>;
   // @ViewChild("nameInput", {static: false}) nameInput; 
   @ViewChild("form", {static: false}) form; // связь с формой <form #form="ngForm" ...
   @ViewChild("productSearchField", {static: false}) productSearchField;
@@ -189,7 +189,7 @@ export class InventoryProductsTableComponent implements OnInit {
   }
 
   ngAfterViewInit() {
-    setTimeout(() => { this.productSearchField.nativeElement.focus();}, 3000);
+    setTimeout(() => { this.productSearchField.nativeElement.focus();}, 2000);
   }
 
   // trackByIndex(i: any) { return i; }
@@ -637,7 +637,7 @@ export class InventoryProductsTableComponent implements OnInit {
         const control = <FormArray>this.formBaseInformation.get('inventoryProductTable');
         // if(+row.id==0){// ещё не сохраненная позиция, можно не удалять с сервера (т.к. ее там нет), а только удалить локально
           control.removeAt(index);
-          this.refreshProductsTable();
+          this.refreshTableColumns();
           this.afterDeleteRow();
       }
     }); 
@@ -647,10 +647,16 @@ export class InventoryProductsTableComponent implements OnInit {
     this.resetRowIds(); //переназначаем идентификаторы строк row_id, чтобы они шли по порядку от 0
     this.productTableRecount();//пересчитаем итоги.
   }
-  refreshProductsTable(){
-    this.showTable=false;
-    setTimeout(() => { this.showTable=true;}, 1);
+
+  refreshTableColumns(){
+    this.displayedColumns.splice(2,1,'empty_f');
+    this.displayedColumns.splice(4,1,'empty_p');
+    setTimeout(() => { 
+      this.displayedColumns.splice(2, 1, 'actual_balance');
+      this.displayedColumns.splice(4, 1, 'product_price');
+    }, 1);
   }
+
   resetRowIds(){
     this.row_id=0;
     const control = <FormArray>this.formBaseInformation.get('inventoryProductTable');
@@ -864,14 +870,5 @@ export class InventoryProductsTableComponent implements OnInit {
   numberOnlyPlusDotAndComma(event): boolean {
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
     if (charCode > 31 && ((charCode < 48 || charCode > 57) && charCode!=44 && charCode!=46)) { return false; } return true;}
-
-    aaa(){
-      alert(this.getBodyScrollTop());
-    }
-getBodyScrollTop(){
-
-return self.pageYOffset || (document.documentElement && document.documentElement.scrollTop) || (document.body && document.body.scrollTop);
-
-}
 
 }

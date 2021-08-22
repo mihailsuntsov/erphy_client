@@ -14,7 +14,8 @@ import { Router } from '@angular/router';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { WriteoffDockComponent } from '../writeoff-dock/writeoff-dock.component';
 import { PostingDockComponent } from '../posting-dock/posting-dock.component';
-import { NumberCardModule } from '@swimlane/ngx-charts';
+import { FilesComponent } from '../files/files.component';
+import { FilesDockComponent } from '../files-dock/files-dock.component';
 
 interface InventoryProductTable { //интерфейс для товаров, (т.е. для формы, массив из которых будет содержать форма inventoryProductTable, входящая в formBaseInformation)
   id: number;
@@ -25,10 +26,10 @@ interface InventoryProductTable { //интерфейс для товаров, (�
   estimated_balance: number;
   actual_balance: number;
   edizm: string;
-  edizm_id: number;
+  // edizm_id: number;
   product_price: number;
   department_id: number; // склад инвентаризации
-  department: string; // склад с которого будет производиться отгрузка товара.                                  
+  department: string; // название склада, с которого будет производиться инвентаризация.                                  
 }
 interface DockResponse {//интерфейс для получения ответа в методе getInventoryValuesById
   id: number;
@@ -111,7 +112,7 @@ export class InventoryDockComponent implements OnInit {
   receivedMyDepartmentsList: IdAndName [] = [];//массив для получения списка отделений
   myCompanyId:number=0;
   myId:number=0;
-  allFields: any[][] = [];//[номер строки начиная с 0][объект - вся инфо о товаре (id,кол-во, цена... )] - массив товаров
+  // allFields: any[][] = [];//[номер строки начиная с 0][объект - вся инфо о товаре (id,кол-во, цена... )] - массив товаров
   filesInfo : FilesInfo [] = []; //массив для получения информации по прикрепленным к документу файлам 
   creatorId:number=0;
   startProcess: boolean=true; // идеут стартовые запросы. после того как все запросы пройдут - будет false.
@@ -135,7 +136,7 @@ export class InventoryDockComponent implements OnInit {
   formWP:any// Форма для отправки при создании Списания или Оприходования
 
   //переменные для управления динамическим отображением элементов
-  visAfterCreatingBlocks = true; //блоки, отображаемые ПОСЛЕ создания документа (id >0)
+  // visAfterCreatingBlocks = true; //блоки, отображаемые ПОСЛЕ создания документа (id >0)
 
   //переменные прав
   permissionsSet: any[];//сет прав на документ
@@ -222,7 +223,7 @@ export class InventoryDockComponent implements OnInit {
       name:  new FormControl                    ('',[]),              // наименование инвертаризации по умолчанию
       pricingType: new FormControl              ('avgCostPrice',[]),  // по умолчанию ставим "Средняя закупочная цена"// тип расценки. priceType - по типу цены, avgCostPrice - средн. себестоимость, lastPurchasePrice - Последняя закупочная цена, avgPurchasePrice - Средняя закупочная цена, manual - вручную
       priceTypeId: new FormControl              (null,[]),            // тип цены
-      changePrice: new FormControl              (10,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]), // наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType, по умолчанию "плюс 10%"
+      changePrice: new FormControl              (0,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]), // наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType, по умолчанию "плюс 10%"
       plusMinus: new FormControl                ('plus',[]),          // Наценка (plus) или скидка (minus)
       changePriceType: new FormControl          ('procents',[]),      // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
       hideTenths: new FormControl               (true,[]),            // убрать десятые (копейки)
@@ -270,10 +271,12 @@ export class InventoryDockComponent implements OnInit {
   ngAfterContentChecked() {
     this.cdRef.detectChanges();
   }
+  //чтобы "на лету" чекать валидность таблицы с товарами
   get childFormValid() {
+    // проверяем, чтобы не было ExpressionChangedAfterItHasBeenCheckedError. Т.к. форма создается пустая и с .valid=true, а потом уже при заполнении проверяется еще раз.
     if(this.inventoryProductsTableComponent!=undefined) 
       return this.inventoryProductsTableComponent.getControlTablefield().valid;
-    else return true;    //чтобы не было ExpressionChangedAfterItHasBeenCheckedError. Т.к. форма создается пустая и с .valid=true, а потом уже при заполнении проверяется еще раз.
+    else return true;    
   }
   //---------------------------------------------------------------------------------------------------------------------------------------                            
   // ----------------------------------------------------- *** ПРАВА *** ------------------------------------------------------------------
@@ -404,7 +407,6 @@ export class InventoryDockComponent implements OnInit {
   setDefaultCompany(){
     if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим своё по дефолту
       this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
-    // this.formAboutDocument.get('company').setValue(this.getCompanyNameById(this.formBaseInformation.get('company_id').value));
     this.getDepartmentsList(); 
     this.getPriceTypesList();
   }
@@ -419,7 +421,6 @@ export class InventoryDockComponent implements OnInit {
 
   onDepartmentChange(){
       this.formBaseInformation.get('department').setValue(this.getDepartmentNameById(this.formBaseInformation.get('department_id').value));
-      // this.inventoryProductsTableComponent.formSearch.get('secondaryDepartmentId').setValue(this.formBaseInformation.get('department_id').value);
   }
 
   getDepartmentsList(){
@@ -616,6 +617,7 @@ export class InventoryDockComponent implements OnInit {
                 // this.getSpravSysEdizm();//справочник единиц измерения
                 this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
                 this.getPriceTypesList();
+                this.loadFilesInfo();
                 this.getDepartmentsList();//отделения
                 this.getStatusesList();//статусы документа Инвентаризация
                 this.getLinkedDocs(); //загрузка связанных документов
@@ -737,12 +739,9 @@ export class InventoryDockComponent implements OnInit {
       .subscribe(
           (data) => 
           {   
-            // let response=data as any;
-            // if(onChequePrinting) 
-            // this.getData();
+            this.setStatusColor();//чтобы обновился цвет статуса
             if(this.inventoryProductsTableComponent) this.inventoryProductsTableComponent.showColumns(); //чтобы спрятать столбцы после завершения Инвентаризации
             this.openSnackBar("Документ \"Инвентаризация\" "+ (complete?"завершён.":"сохренён."), "Закрыть");
-            // this.inventoryProductsTableComponent.getProductsTable();
           },
           error => {
             this.showQueryErrorMessage(error);
@@ -884,8 +883,7 @@ export class InventoryDockComponent implements OnInit {
     if(this.inventoryProductsTableComponent.getProductTable().length>0) this.canEditCompAndDepth=false; else this.canEditCompAndDepth=true;
   }
 
-
-
+//*************************************************          СВЯЗАННЫЕ ДОКУМЕНТЫ          ******************************************************/
 
 
 
@@ -1120,6 +1118,89 @@ export class InventoryDockComponent implements OnInit {
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
         );
   }
+//*****************************************************************************************************************************************/
+/***********************************************************         ФАЙЛЫ          *******************************************************/
+//*****************************************************************************************************************************************/
+
+
+openDialogAddFiles() {
+  const dialogRef = this.dialogAddFiles.open(FilesComponent, {
+    maxWidth: '95vw',
+    maxHeight: '95vh',
+    height: '95%',
+    width: '95%',
+    data:
+    { 
+      mode: 'select',
+      companyId: this.formBaseInformation.get('company_id').value
+    },
+  });
+  dialogRef.afterClosed().subscribe(result => {
+    console.log(`Dialog result: ${result}`);
+    if(result)this.addFilesToInventory(result);
+  });
+}
+openFileCard(dockId:number) {
+  const dialogRef = this.dialogAddFiles.open(FilesDockComponent, {
+    maxWidth: '95vw',
+    maxHeight: '95vh',
+    height: '95%',
+    width: '95%',
+    data:
+    { 
+      mode: 'window',
+      dockId: dockId
+    },
+  });
+}
+loadFilesInfo(){//                                     загружает информацию по прикрепленным файлам
+  const body = {"id":this.id};
+        return this.http.post('/api/auth/getListOfInventoryFiles', body) 
+          .subscribe(
+              (data) => {  
+                          this.filesInfo = data as any[]; 
+                        },
+              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+          );
+}
+addFilesToInventory(filesIds: number[]){
+  const body = {"id1":this.id, "setOfLongs1":filesIds};// передаем id товара и id файлов 
+          return this.http.post('/api/auth/addFilesToInventory', body) 
+            .subscribe(
+                (data) => {  
+                  this.loadFilesInfo();
+                  this.openSnackBar("Файлы добавлены", "Закрыть");
+                          },
+                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+            );
+}
+
+clickBtnDeleteFile(id: number): void {
+  const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+    width: '400px',
+    data:
+    { 
+      head: 'Удаление файла',
+      query: 'Удалить файл из инвентаризации?',
+      warning: 'Файл не будет удалён безвозвратно, он останется в библиотеке "Файлы".',
+    },
+  });
+  dialogRef.afterClosed().subscribe(result => {
+    if(result==1){this.deleteFile(id);}
+  });        
+}
+
+deleteFile(id:number){
+  const body = {id: id, any_id:this.id}; 
+  return this.http.post('/api/auth/deleteInventoryFile',body)
+  .subscribe(
+      (data) => {   
+                  this.loadFilesInfo();
+                  this.openSnackBar("Успешно удалено", "Закрыть");
+              },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+  );  
+}
   //------------------------------------------ COMMON UTILITES -----------------------------------------
   //Конвертирует число в строку типа 0.00 например 6.40, 99.25
   numToPrice(price:number,charsAfterDot:number) {

@@ -644,7 +644,7 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
     return b > 0 ? (a + "0".repeat(b)) : a;
   }
   deleteProductRow(row: CustomersOrdersProductTable,index:number) {
-    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {  
       width: '400px',
       data:
       { 
@@ -659,6 +659,7 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
         if(+row.id==0){// ещё не сохраненная позиция, можно не удалять с сервера (т.к. ее там нет), а только удалить локально
           control.removeAt(index);
           this.getTotalSumPrice();//чтобы пересчиталась сумма в чеке
+          this.refreshTableColumns();//чтобы глючные input-поля в таблице встали на свои места. Это у Ангуляра такой прикол
         }else{ //нужно удалить с сервера и перезагрузить таблицу 
           this.http.get('/api/auth/deleteCustomersOrdersProductTableRow?id='+row.id)
           .subscribe(
@@ -1156,5 +1157,10 @@ getProductCount(){
         this.getTotalSumPrice();//чтобы пересчиталась сумма в чеке
       }});  
   }
-
+  refreshTableColumns(){
+    this.displayedColumns=[];
+    setTimeout(() => { 
+      this.hideOrShowNdsColumn();
+    }, 1);
+  }
 }

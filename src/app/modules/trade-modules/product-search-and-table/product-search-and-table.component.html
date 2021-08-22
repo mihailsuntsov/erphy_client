@@ -7,7 +7,7 @@
                     
                     <div class="flex card" style="padding: 0px 15px; font-size: 20px;">
                         <div class="card-name">
-                            Поиск и добавление товара
+                            {{readonly?'Реализованные товары':'Поиск и добавление товара'}}
                         </div>
                         <div>
                             
@@ -453,7 +453,8 @@
                                 [diameter]="44"
                                 *ngIf="gettingTableData"
                                 ></mat-spinner>
-                                <table mat-table #_table  [dataSource]="getControlTablefield().value" 
+                                <table mat-table #_table  
+                                [dataSource]="getControlTablefield().value" 
                                 [formGroup]="formBaseInformation" 
                                 [trackBy]="trackByIndex" 
                                 style="margin-top: 20px;" 
@@ -518,7 +519,7 @@
                                         <td mat-footer-cell *matFooterCellDef></td>
                                     </ng-container>
                                     <ng-container matColumnDef="product_price" [formArrayName]="'customersOrdersProductTable'">
-                                        <th mat-header-cell *matHeaderCellDef style="width: 70px;">
+                                        <th mat-header-cell *matHeaderCellDef style="width: 80px;">
                                             <span 
                                                 style="cursor: default;"
                                                 matTooltip="Цена за единицу товара или услуги">
@@ -692,7 +693,6 @@
                                         </td>
                                         <td mat-footer-cell *matFooterCellDef></td>
                                     </ng-container>
-
                                     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                                     <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
                                     <tr mat-footer-row *matFooterRowDef="displayedColumns"></tr>
@@ -703,5 +703,6 @@
                 </mat-card>
             </form>
         </div>
+        <!-- <code><pre>{{formBaseInformation.get('customersOrdersProductTable').value | json}}</pre></code> -->
     </div>
 </div>

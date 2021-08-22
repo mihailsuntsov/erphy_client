@@ -858,7 +858,7 @@ getSetOfPermissions(){
 
               if(result==1){//сохранилось хорошо
                 
-                this.getData();
+                // this.getData();
                 if (!complete){
                   this.openSnackBar("Документ \"Списание\" сохранён", "Закрыть");
                 } else {this.is_completed =true; this.openSnackBar("Документ \"Списание\" завершён", "Закрыть");}
@@ -957,7 +957,7 @@ getSetOfPermissions(){
             return this.http.post('/api/auth/addFilesToWriteoff', body) 
               .subscribe(
                   (data) => {  
-                    this.openSnackBar("Изображения добавлены", "Закрыть");
+                    this.openSnackBar("Файлы добавлены", "Закрыть");
                     this.loadFilesInfo();
                             },
                   error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
@@ -969,7 +969,7 @@ getSetOfPermissions(){
             .subscribe(
                 (data) => {  
                             this.filesInfo = data as any[]; 
-                            this.loadMainImage();
+                            // this.loadMainImage();
                           },
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
             );

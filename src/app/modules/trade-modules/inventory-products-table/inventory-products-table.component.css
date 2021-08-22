@@ -75,6 +75,9 @@ tr.mat-footer-row {
 .width-60{
     width: 60px;
 }
+.width-80{
+    width: 80px;
+}
 ::ng-deep td  .mat-select-arrow { /*прячем стрелку mat-select НДС в таблице товаров*/
     border-top: 0px;
 }

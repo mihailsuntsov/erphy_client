@@ -83,7 +83,7 @@ export class SettingsInventoryDialogComponent implements OnInit {
       // тип цены
       priceTypeId: new FormControl              (null,[]),
       // наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType
-      changePrice: new FormControl              (10,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]), // по умолчанию "плюс 10%"
+      changePrice: new FormControl              (0,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]), // по умолчанию "плюс 10%"
       // Наценка (plus) или скидка (minus)
       plusMinus: new FormControl                ('plus',[]),
       // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
@@ -121,7 +121,7 @@ export class SettingsInventoryDialogComponent implements OnInit {
         //данная группа настроек не зависит от предприятия
         this.settingsForm.get('pricingType').setValue(result.pricingType?result.pricingType:'avgCostPrice');
         this.settingsForm.get('plusMinus').setValue(result.plusMinus?result.plusMinus:'plus');
-        this.settingsForm.get('changePrice').setValue(result.changePrice?result.changePrice:50);
+        this.settingsForm.get('changePrice').setValue(result.changePrice?result.changePrice:0);
         this.settingsForm.get('changePriceType').setValue(result.changePriceType?result.changePriceType:'procents');
         this.settingsForm.get('hideTenths').setValue(result.hideTenths);
         this.settingsForm.get('name').setValue(result.name/*?result.name:''*/);
