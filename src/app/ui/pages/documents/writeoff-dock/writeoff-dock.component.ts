@@ -33,7 +33,7 @@ export const MY_FORMATS = {
   },
 };
 
-interface dockResponse {//интерфейс для получения ответа в методе getWriteoffValuesById
+interface DockResponse {//интерфейс для получения ответа в методе getWriteoffValuesById
   id: number;
   company: string;
   company_id: string;
@@ -600,7 +600,7 @@ getSetOfPermissions(){
         .subscribe(
             data => { 
               
-                let documentValues: dockResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
+                let documentValues: DockResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
                 //Заполнение формы из интерфейса documentValues:
                 this.formBaseInformation.get('id').setValue(+documentValues.id);
                 this.formBaseInformation.get('company_id').setValue(documentValues.company_id);

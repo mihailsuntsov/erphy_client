@@ -50,6 +50,10 @@
                             <a class="nav-link" routerLink="inventory">
                               <mat-icon class="nav-icon">fact_check</mat-icon><span class="docname">Инвентаризации</span></a>
                           </li>
+                          <li class="nav-item" *ngIf="hasPermission(344)">
+                            <a class="nav-link" routerLink="return">
+                              <mat-icon class="nav-icon">person_remove_alt_1</mat-icon><span class="docname">Возвраты покупателей</span></a>
+                          </li>
                         </ul>
                       </li>
                       <li class="nav-item" *ngIf="hasPermission(70)">
@@ -79,14 +83,6 @@
                       </li>
                     </ul>
                   </li>
-              
-                  <!-- <li class="has-children">
-                    <input type="checkbox" name ="group-2" id="group-2" checked>
-                    <label for="group-2">Склад</label>
-                    <ul>
-                      
-                    </ul>
-                  </li> -->
               
                   <li class="has-children">
                     <input type="checkbox" name ="group-3" id="group-3">

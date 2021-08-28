@@ -725,7 +725,8 @@ export class RetailsalesDockComponent implements OnInit {
   //определяет, есть ли предприятие в загруженном списке предприятий
   isCompanyInList(companyId:number):boolean{
     let inList:boolean=false;
-    this.receivedCompaniesList.map(i=>{if(i.id==companyId) inList=true;});
+    if(this.receivedCompaniesList)
+      this.receivedCompaniesList.map(i=>{if(i.id==companyId) inList=true;});
     return inList;
   }
 
@@ -969,14 +970,18 @@ export class RetailsalesDockComponent implements OnInit {
                   } else {// Розничная продажа успешно создалась в БД 
                     this.openSnackBar("Документ \"Розничная продажа\" успешно создан", "Закрыть");
                     console.log('Розничная продажа успешно создана');
+                    
+                    //действия после создания нового документа Розничные продажи (это самый последний этап)
+                    this.afterCreateRetailSales();
+                    
                     //если нужна печать чека - печатаем чек, по успешному завершению печати создастся событие, 
-                    //обработчик которого запустит метод afterCreateRetailSales с действиями, идущими после создания документа
+                    //обработчик которого выплнит действия, идущие после создания документа
                     if (withReceipt){
                       console.log('Запрос на печать чека из новой Розничной продажи');
                       this.kkmComponent.printReceipt(25, this.createdDockId);//25 - Розничная продажа);
                     //если печать чека не нужна - переходим сразу к этим действиям (afterCreateRetailSales)
-                    } else
-                        this.afterCreateRetailSales();
+                    } 
+                    
                   }
                 },
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});this.kkmComponent.kkmIsFree=true;},
@@ -985,26 +990,14 @@ export class RetailsalesDockComponent implements OnInit {
 
   //действия после создания нового документа Розничные продажи (это самый последний этап)
   afterCreateRetailSales(){
-    //если стоит чекбокс Автосоздание нового после печати чека:
-    if(this.settingsForm.get('autocreateOnCheque').value){
-      this._router.navigate(['ui/retailsalesdock',0]);
-      this.id=0;
-      this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными на продажу товарами
-      this.setDefaultStatus();//устанавливаем статус документа по умолчанию
-      this.formBaseInformation.get('id').setValue(null);
-      this.formBaseInformation.get('doc_number').setValue('');
-      this.formBaseInformation.get('description').setValue('');
-      this.refreshShowAllTabs();
-      this.getSettings();
-      this.kkmComponent.clearFields(); //сбрасываем поля "К оплате", "Наличными" и "Сдача" кассового блока
-    } else {
+
       this.id=+this.createdDockId;
       this._router.navigate(['/ui/retailsalesdock', this.id]);
       this.formBaseInformation.get('id').setValue(this.id);
       this.formBaseInformation.get('cagent_id').enable();//иначе при сохранении он не будет отпраляться
       this.productSearchAndTableComponent.hideOrShowNdsColumn();//чтобы убрать столбцы выбора и удаления товара из таблицы
       this.getData();
-    }
+   
     
   }
 
@@ -1175,7 +1168,25 @@ export class RetailsalesDockComponent implements OnInit {
     this.openSnackBar("Чек был успешно напечатан", "Закрыть");
 
     // окончательные действия после создания Розничной продажи
-    this.afterCreateRetailSales();
+    // this.afterCreateRetailSales(); - сейчас делаем эти действия не дожидаясь успешной печати чека. 
+    // Иначе может случиться что при неуспешно напечатанном чеке эти действия так и не выполнятся, 
+    // и впоследствии, когда чек напечатаем, Розничная продажа создастся снова
+
+
+    //если стоит чекбокс Автосоздание нового после печати чека:
+    if(this.settingsForm.get('autocreateOnCheque').value){
+      this._router.navigate(['ui/retailsalesdock',0]);
+      this.id=0;
+      this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными на продажу товарами
+      this.setDefaultStatus();//устанавливаем статус документа по умолчанию
+      this.formBaseInformation.get('id').setValue(null);
+      this.formBaseInformation.get('doc_number').setValue('');
+      this.formBaseInformation.get('description').setValue('');
+      this.refreshShowAllTabs();
+      this.getSettings();
+      this.kkmComponent.clearFields(); //сбрасываем поля "К оплате", "Наличными" и "Сдача" кассового блока
+    }
+
 
   }
 

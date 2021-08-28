@@ -50,11 +50,14 @@ const routes: Routes = [
       { path: 'retailsalesdock', loadChildren: () => import('./pages/documents/retailsales-dock/retailsales-dock.module').then(m => m.RetailsalesDockModule) },
       { path: 'inventory', loadChildren: () => import('./pages/documents/inventory/inventory.module').then(m => m.InventoryModule) },
       { path: 'inventorydock', loadChildren: () => import('./pages/documents/inventory-dock/inventory-dock.module').then(m => m.InventoryDockModule) },
+      { path: 'returndock', loadChildren: () => import('./pages/documents/return-dock/return-dock.module').then(m => m.ReturnDockModule) },
+      { path: 'return', loadChildren: () => import('./pages/documents/return/return.module').then(m => m.ReturnModule) },
       
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
       { path: '**', redirectTo: 'dashboard',pathMatch: 'full' },
     ]  
   },
+  
   
 ]
 

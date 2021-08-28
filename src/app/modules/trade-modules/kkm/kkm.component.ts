@@ -658,6 +658,7 @@ export class KkmComponent implements OnInit {
       error => {
         console.log(error);
         this.kassa_status="Ошибка связи с сервером. Проверьте, запущен ли сервер Атол"
+        this.kkmIsFree=true;
       }
     );
   } 
@@ -725,16 +726,17 @@ export class KkmComponent implements OnInit {
             }
           }
           this.cdRef.detectChanges();
+          cnt++;
           if (cnt<=maxTrying && (responseStatus=='wait' || responseStatus=='inProgress')){
-            cnt++;
             console.log("Макс. количество попыток не использовано, статус - wait или inProgress")
-            // alert('повторяем...');
             this.getTaskStatus(uuid,cnt,2000,operationId)
-          } 
-          // if( (cnt>maxTrying){
-
-          // }
-
+          }
+          //данная ситуация может быть при потере связи с кассой
+          if(cnt>maxTrying && (responseStatus=='wait' || responseStatus=='inProgress')) {
+            console.log("Достигнуто макс. количество попыток, время ожидания завершения задания истекло, статус:"+responseStatus);
+            this.kassa_status="Время ожидания завершения задания истекло";
+            this.kkmIsFree=true;
+          }
         } catch (e) {
           console.log("Код статуса не = 200");
           console.log("Запрос кода ошибки...");

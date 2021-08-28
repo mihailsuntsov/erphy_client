@@ -1,4 +1,4 @@
-.logo {       
+ .logo {       
     font-size: 2.5rem;     
     color: rgb(58, 0, 134);     
     margin: 5px;     
@@ -54,7 +54,15 @@
     position: relative;
     top: 2px;
   }
-  
+  body {
+    font-size: 0.8rem;
+    font-family: "Jaldi", sans-serif;
+    color: #ffffff;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+ 
   
   
   .sidebar-fixed .sidebar {
@@ -94,7 +102,6 @@
   
   ol, ul, dl {
     margin-top: 0;
-    /* margin-bottom: 1rem; */
   }
   
   ol, ul {
@@ -106,11 +113,8 @@
       font: inherit;
       vertical-align: baseline;
   }
-  /* -------------------------------- 
-  
-  Accordeon - menu 
-  
-  -------------------------------- */
+
+
   *, *::after {
     box-sizing: border-box;
   }
@@ -119,13 +123,7 @@
     font-size: 62.5%;
   }
   
-  body {
-    font-size: 0.8rem;
-    font-family: "Jaldi", sans-serif;
-    color: #ffffff;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
+
   
   .mat-icon {
     height: 25px;
@@ -137,7 +135,6 @@
     background: #4d5158;
   }
   .cd-accordion-menu ul {
-    /* by default hide all sub menus */
     display: none;
   }
   .cd-accordion-menu li {
@@ -147,21 +144,19 @@
     user-select: none;
   }
   .cd-accordion-menu input[type=checkbox] {
-    /* hide native checkbox */
     position: absolute;
     opacity: 0;
   }
   .cd-accordion-menu label, .cd-accordion-menu a {
     position: relative;
     display: block;
-    padding: 10px 10px 10px 5px; /*5px - расстояние стрелки от края*/
+    padding: 10px 10px 10px 5px; 
     background: #4d5158;
     box-shadow: inset 0 -1px #555960;
     color: #ffffff;
     font-size: 0.8rem;
   }
   .cd-accordion-menu label::after, .cd-accordion-menu a::after {
-    /* icons */
     content: '';
     display: inline-block;
     width: 32px;
@@ -178,13 +173,11 @@
     cursor: pointer;
   }
   .cd-accordion-menu label::after {
-    /* background-image: url(src/assets/images/arrow.png); */
     background-image: url(/../../../assets/images/arrow.png);
     background-repeat: no-repeat;
   }
   .cd-accordion-menu label::after {
-    /* arrow icon */
-    
+  
     right: 5px;
     background-position: 0 0;
     -webkit-transform: scale(0.5,0.5) translate(50%,-100%) rotate(-90deg);
@@ -196,7 +189,6 @@
   
   
   .cd-accordion-menu input[type=checkbox]:checked + label::after {
-    /* rotate arrow */
     -webkit-transform: scale(0.5,0.5) translate(50%,-100%);
     -moz-transform: scale(0.5,0.5) translate(50%,-100%);
     -ms-transform: scale(0.5,0.5) translate(50%,-100%);
@@ -237,5 +229,5 @@
   }
   
   .docname{
-      position: relative; /* Относительное позиционирование */ 
-  }
+      position: relative; 
+  } 

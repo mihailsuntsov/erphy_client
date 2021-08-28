@@ -7,7 +7,6 @@ import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { ProductCategoriesSelectComponent } from 'src/app/modules/trade-modules/product-categories-select/product-categories-select.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatDialog } from '@angular/material/dialog';
-// import { ValidationService } from './validation.service';
 import { HttpClient } from '@angular/common/http';
 import { ProductsDockComponent } from 'src/app/ui/pages/documents/products-dock/products-dock.component';
 import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component';
@@ -17,30 +16,32 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { MatTable } from '@angular/material/table';
 
-interface InventoryProductTable { //интерфейс для товаров, (т.е. для формы, массив из которых будет содержать форма inventoryProductTable, входящая в formBaseInformation)
-  id: number;                     // id строки с товаром товара в таблице inventory_product
+interface ReturnProductTable { //интерфейс для товаров, (т.е. для формы, массив из которых будет содержать форма returnProductTable, входящая в formBaseInformation)
+  id: number;                     // id строки с товаром товара в таблице return_product
   row_id: number;                 // id строки 
   product_id: number;             // id товара 
-  inventory_id:number;            // id документа Инвентаризация
+  // return_id:number;               // id документа Возврат ...
   name: string;                   // наименование товара
-  estimated_balance: number;      // кол-во товаров на складе в БД системы Докио
-  actual_balance: number;         // актуальное кол-во товаров на складе
   edizm: string;                  // наименование единицы измерения
   product_price: number;          // цена товара
-  department_id: number;          // склад инвентаризации
-  difference: number;             // разница
-  discrepancy: number;            // расхождение (излишек/недостача)
+  product_netcost: number;        // себестоимость
+  product_count: number;          // кол-во товара
+  department_id: number;          // склад
+  remains: number;                // остаток на складе
+  nds_id: number;                 // id ставки НДС
+  // nds: number;                    // НДС в валютном выражении
+  product_sumprice: number;       // сумма как product_count * product_price (высчитываем сумму и пихем ее в БД, чтобы потом на бэкэнде в SQL запросах ее не высчитывать)
+  product_sumnetcost:number;      // сумма по себестоимости = product_netcost * product_count; тоже записываем в БД по тем же причинам что и сумму
+
 }
 interface ProductSearchResponse{  // интерфейс получения списка товаров во время поиска товара 
   name: string;                   // наименование товара
   product_id: number;             // id товара
+  // estimated_balance: number;      // остатки
   filename: string;               // картинка товара
-  estimated_balance: number;      // кол-во товара по БД (на момент формирования документа Инвентаризаиця)
   edizm: string;                  // наименование единицы измерения товара
-  priceOfTypePrice: number;       // цена по запрошенному id типа цены
-  avgCostPrice: number;           // средняя себестоимость
-  lastPurchasePrice: number;      // последняя закупочная цена
-  avgPurchasePrice : number;      // средняя закупочная цена
+  remains: number;                // остатки 
+  nds_id: number;                 // ндс 
 }
 interface ShortInfoAboutProduct{//интерф. для получения инфо о состоянии товара в отделении (кол-во, последняя поставка), и средним ценам (закупочной и себестоимости) товара
   quantity:number;
@@ -52,26 +53,29 @@ interface ShortInfoAboutProduct{//интерф. для получения инф
   department_type_price:string;
   date_time_created:string;
 }
-interface IdNameDescription{
+interface SpravSysNdsSet{
   id: number;
   name: string;
   description: string;
+  name_api_atol: string;
+  is_active: string;
+  calculated: string;
 }
 @Component({
-  selector: 'app-inventory-products-table',
-  templateUrl: './inventory-products-table.component.html',
-  styleUrls: ['./inventory-products-table.component.css'],
+  selector: 'app-return-products-table',
+  templateUrl: './return-products-table.component.html',
+  styleUrls: ['./return-products-table.component.css'],
   providers: [ProductCategoriesSelectComponent]
 })
-export class InventoryProductsTableComponent implements OnInit {
-  formBaseInformation:any;//форма-обёртка для массива форм inventoryProductTable (нужна для вывода таблицы)
+export class ReturnProductsTableComponent implements OnInit {
+  formBaseInformation:any;//форма-обёртка для массива форм returnProductTable (нужна для вывода таблицы)
   formSearch:any;// форма для поиска товара, ввода необходимых данных и отправки всего этого в formBaseInformation в качестве элемента массива
   settingsForm: any; // форма с настройками (нужно для сохранения некоторых настроек при расценке)
   displayedColumns:string[] = [];//отображаемые колонки таблицы товаров
   gettingTableData: boolean;//идет загрузка товарных позиций
   totalProductCount:number=0;//всего кол-во товаров
-  totalDifference:number=0;//всего разница
-  totalDiscrepancy:number=0;//всего избыток/недостача
+  totalProductSumm:number=0;//всего разница
+  totalNetcost:number=0;//всего избыток/недостача
 
   //для Autocomplete по поиску товаров
   searchProductCtrl = new FormControl();//поле для поиска товаров
@@ -90,7 +94,6 @@ export class InventoryProductsTableComponent implements OnInit {
   selected_price: number = 0; //цена, выбранная через поле Тип цены. Нужна для сравнения с полем Цена для выявления факта изменения его значения, и оставления значения столбце Тип цены пустым
   selected_pricingType: string; // тип расценки, выбранный в форме поиска.  Нужен для восстановления при сбросе формы поиска товара
   formSearchReadOnly=false;
-  showTable=true;
   placeholderActualBalance:string='0';// фактическое кол-во товара по умолчанию, вычисляемое по настройкам после нахождения товара в форме поиска (нужно для плейсхолдера поля "Факт. остаток, чтобы было видно, что будет по умолчанию, если в него ничего не вводить")
   
   //групповое добавление товаров
@@ -106,34 +109,26 @@ export class InventoryProductsTableComponent implements OnInit {
   companyId_temp:number; // id предприятия. Нужна для временного хранения предприятия на время сброса формы formBaseInformation
 
   //чекбоксы
-  selection = new SelectionModel<InventoryProductTable>(true, []);// SelectionModel - специальный класс для удобной работы с чекбоксами
+  selection = new SelectionModel<ReturnProductTable>(true, []);// SelectionModel - специальный класс для удобной работы с чекбоксами
   checkedList:number[]=[]; //строка для накапливания id чекбоксов вида [2,5,27...]
   row_id:number=0;// уникальность строки в табл. товаров только id товара обеспечить не может, т.к. в таблице может быть > 1 одинакового товара (уникальность обеспечивается id товара и id склада). Для уникальности используем виртуальный row_id
 
   trackByIndex = (i) => i;
 
-  @ViewChild("estimated_balance", {static: false}) estimated_balance;
+  @ViewChild("product_count", {static: false}) product_count;
   // @ViewChild(MatTable) _table: MatTable<any>;
   // @ViewChild("nameInput", {static: false}) nameInput; 
   @ViewChild("form", {static: false}) form; // связь с формой <form #form="ngForm" ...
   @ViewChild("productSearchField", {static: false}) productSearchField;
 
   @Input() parentDockId:number;   //id родительского документа 
-  @Input() parentDockName:string; // Идентификатор документа, в который вызывается данный компонент. Например, Inventory и т.д.
+  @Input() parentDockName:string; // Идентификатор документа, в который вызывается данный компонент. Например, Return и т.д.
   @Input() company_id:number;
   @Input() department_id:number;
-  @Input() pricingType:string;  // тип расценки. priceType - по типу цены, avgCostPrice - средн. себестоимость, lastPurchasePrice - Последняя закупочная цена, avgPurchasePrice - Средняя закупочная цена, manual - вручную
-  @Input() priceTypeId:number;  // тип цены (дейстует при pricingType = "priceType")
-  @Input() plusMinus:string;
-  @Input() hideTenths:boolean;  
-  @Input() changePrice:number;
-  @Input() changePriceType:string;
-  @Input() receivedPriceTypesList: IdNameDescription[];//массив для получения списка типов цен
   @Input() readonly:boolean;
-  @Input() defaultActualBalance:string;
-  @Input() otherActualBalance:number;
   @Input() autoAdd:boolean;
-
+  @Input() nds:boolean;
+  @Input() spravSysNdsSet: SpravSysNdsSet[] = []; //массив имен и id для ндс 
   @Output() changeProductsTableLength = new EventEmitter<any>();   //событие изменения таблицы товаров (а именно - количества товаров в ней)
 
   constructor( private _fb: FormBuilder,
@@ -150,50 +145,31 @@ export class InventoryProductsTableComponent implements OnInit {
   ngOnInit(): void {
 
     this.formBaseInformation = new FormGroup({
-      inventoryProductTable: new FormArray([]),
+      returnProductTable: new FormArray([]),
     });
     // форма поиска и добавления товара
     this.formSearch = new FormGroup({
       row_id: new FormControl                   ('',[]),
-      product_id: new FormControl               ('',[Validators.required]),                                           // id товара
-      // inventory_id: new FormControl             ('',[]),
-      estimated_balance: new FormControl        ('',[]),      // расчётный остаток -- кол-во товара по БД на момент формирования документа Инвентаризаиця
-      actual_balance: new FormControl           ('',[Validators.pattern('^[0-9]{1,6}(?:[.,][0-9]{0,3})?\r?$')]),      // фактический остаток
-      priceOfTypePrice: new FormControl         ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),      // цена по запрошенному id типа цены
-      edizm: new FormControl                    ('',[]),                                                              // наименование единицы измерения товара
-      avgCostPrice: new FormControl             ('',[]),                                                              // средняя себестоимость
-      lastPurchasePrice: new FormControl        ('',[]),                                                              // последняя закупочная цена
-      avgPurchasePrice : new FormControl        ('',[]),                                                              // средняя закупочная цена
-      product_price : new FormControl           ('',[]),                                                              // цена товара (которая уйдет в таблицу выбранных товаров). Т.е. мы как можем вписать цену вручную, так и выбрать из предложенных (см. выше)
+      product_id: new FormControl               ('',[Validators.required]),   // id товара
+      edizm: new FormControl                    ('',[]),                      // наименование единицы измерения товара
+      product_price : new FormControl           ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),                      // цена товара (которая уйдет в таблицу выбранных товаров). Т.е. мы как можем вписать цену вручную, так и выбрать из предложенных (см. выше)
+      product_count : new FormControl           ('',[Validators.required,Validators.pattern('^[0-9]{1,6}(?:[.,][0-9]{0,3})?\r?$')]),  // количество товара к возврату
+      product_netcost : new FormControl         ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),                      // себестоимость единицы товара
+      remains : new FormControl                 ('',[]),                      // остатки на складе
+      nds_id: new FormControl                   ('',[]),                      // НДС
+      // nds: new FormControl                      (0,[]),                    // НДС в валютном ввыражении
+      product_sumprice : new FormControl        (0,[]),                       // суммарная стоимость товара = цена * кол-во
+      product_sumnetcost : new FormControl      (0,[]),                       // суммарная себестоимость товара = себестоимость * кол-во
     });
 
-      // форма для сохранения настроек при расценке
-      this.settingsForm = new FormGroup({
-      // убрать десятые (копейки)
-      hideTenths: new FormControl               (true,[]),
-      // сохранить настройки
-      saveSettings: new FormControl             (true,[]),
-      // предприятие, для которого создаются настройки
-      companyId: new FormControl                (null,[]),
-      // тип расценки. priceType - по типу цены, avgCostPrice - средн. себестоимость, lastPurchasePrice - Последняя закупочная цена, avgPurchasePrice - Средняя закупочная цена, manual - вручную
-      pricingType: new FormControl              ('avgCostPrice',[]),  // по умолчанию ставим "Средняя закупочная цена"
-      // тип цены
-      priceTypeId: new FormControl              (null,[]),
-      // наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType
-      changePrice: new FormControl              (10,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
-      // наценка (plus) или скидка (minus)
-      plusMinus: new FormControl                ('plus',[]),
-      // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
-      changePriceType: new FormControl          ('procents',[]),
-    });
     this.doOnInit();
   }
 
   ngAfterViewInit() {
-    setTimeout(() => { this.productSearchField.nativeElement.focus();}, 2000);
+    this.formSearchReadOnly=false;
+    this.searchProductCtrl.setValue('');
+    setTimeout(() => { this.productSearchField.nativeElement.focus();}, 1000);
   }
-
-  // trackByIndex(i: any) { return i; }
 
   doOnInit(){
     this.getProductsTable();
@@ -205,13 +181,15 @@ export class InventoryProductsTableComponent implements OnInit {
     this.displayedColumns=[];
     // if(!this.readonly)
       // this.displayedColumns.push('select');
-    // this.displayedColumns.push('index','row_id');
-    this.displayedColumns.push('name','estimated_balance','actual_balance','edizm','product_price','difference','discrepancy');
+    this.displayedColumns.push('index','row_id');
+    this.displayedColumns.push('name','product_count','edizm','product_price','product_sumprice','product_netcost','product_sumnetcost');
+    if(this.nds)
+      this.displayedColumns.push('nds');
     if(!this.readonly)
       this.displayedColumns.push('delete');
   }
   getControlTablefield(){
-    const control = <FormArray>this.formBaseInformation.get('inventoryProductTable');
+    const control = <FormArray>this.formBaseInformation.get('returnProductTable');
     return control;
   }
   clearTable(): void {
@@ -230,7 +208,7 @@ export class InventoryProductsTableComponent implements OnInit {
   masterToggle() {
     this.isThereSelected() ?
     this.resetSelecion() :
-    this.formBaseInformation.controls.inventoryProductTable.value.forEach(row => {
+    this.formBaseInformation.controls.returnProductTable.value.forEach(row => {
           if(this.showCheckbox(row)){this.selection.select(row);}//если чекбокс отображаем, значит можно удалять этот документ
         });
         this.createCheckedList();
@@ -248,22 +226,22 @@ export class InventoryProductsTableComponent implements OnInit {
   }
   createCheckedList(){
     this.checkedList = [];
-    for (var i = 0; i < this.formBaseInformation.controls.inventoryProductTable.value.length; i++) {
-      if(this.selection.isSelected(this.formBaseInformation.controls.inventoryProductTable.value[i])){
-        this.checkedList.push(this.formBaseInformation.controls.inventoryProductTable.value[i].row_id);
+    for (var i = 0; i < this.formBaseInformation.controls.returnProductTable.value.length; i++) {
+      if(this.selection.isSelected(this.formBaseInformation.controls.returnProductTable.value[i])){
+        this.checkedList.push(this.formBaseInformation.controls.returnProductTable.value[i].row_id);
       }
       
     }
   }
   isAllSelected() {//все выбраны
     const numSelected = this.selection.selected.length;
-    const numRows = this.formBaseInformation.controls.inventoryProductTable.value.length;
+    const numRows = this.formBaseInformation.controls.returnProductTable.value.length;
     return  numSelected === numRows;//true если все строки выбраны
   }  
   isThereSelected() {//есть выбранные
     return this.selection.selected.length>0;
   } 
-  showCheckbox(row:InventoryProductTable):boolean{
+  showCheckbox(row:ReturnProductTable):boolean{
     return true;
   }
   // --------------------------------------- *** КОНЕЦ ЧЕКБОКСОВ  *** -------------------------------------
@@ -299,7 +277,7 @@ export class InventoryProductsTableComponent implements OnInit {
       {
         this.isProductListLoading  = true;
         return this.http.get(
-          '/api/auth/getInventoryProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.company_id+'&departmentId='+this.department_id+'&priceTypeId='+(+this.priceTypeId)
+          '/api/auth/getReturnProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.company_id+'&departmentId='+this.department_id
           );
       }else return [];
     } catch (e) {
@@ -311,28 +289,25 @@ export class InventoryProductsTableComponent implements OnInit {
     this.canAutocompleteQuery=false;
     this.formSearch.get('product_id').setValue(+this.filteredProducts[0].product_id);               // id товара
     this.searchProductCtrl.setValue(this.filteredProducts[0].name);                                 // наименование товара
+    this.formSearch.get('product_count').setValue(0);                                               // кол-во
     this.formSearch.get('edizm').setValue(this.filteredProducts[0].edizm);                          // наименование единицы измерения товара
     this.productImageName = this.filteredProducts[0].filename;                                      // картинка товара
-    this.formSearch.get('estimated_balance').setValue(this.filteredProducts[0].estimated_balance);  // кол-во товара по БД (на момент формирования документа Инвентаризаиця)
-    this.formSearch.get('priceOfTypePrice').setValue(this.filteredProducts[0].priceOfTypePrice);    // цена по запрошенному id типа цены
-    this.formSearch.get('avgCostPrice').setValue(this.filteredProducts[0].avgCostPrice);            // средняя себестоимость
-    this.formSearch.get('lastPurchasePrice').setValue(this.filteredProducts[0].lastPurchasePrice);  // последняя закупочная цена
-    this.formSearch.get('avgPurchasePrice').setValue(this.filteredProducts[0].avgPurchasePrice);    // средняя закупочная цена
+    this.formSearch.get('remains').setValue(this.filteredProducts[0].remains);                      // остатки - кол-во товара по БД
+    this.formSearch.get('nds_id').setValue(this.filteredProducts[0].nds_id);                        // id НДС 
+    this.formSearch.get('product_netcost').setValue(0);                                             // себестоимость 
     this.afterSelectProduct();
     this.filteredProducts=[];
   }
 
   onSelectProduct(product:ProductSearchResponse){
-    
     this.formSearch.get('product_id').setValue(+product.product_id);               // id товара
     this.searchProductCtrl.setValue(product.name);                                 // наименование товара
+    this.formSearch.get('product_count').setValue(0);                                               // кол-во
     this.formSearch.get('edizm').setValue(product.edizm);                          // наименование единицы измерения товара
     this.productImageName = product.filename;                                      // картинка товара
-    this.formSearch.get('estimated_balance').setValue(product.estimated_balance);  // кол-во товара по БД (на момент формирования документа Инвентаризаиця)
-    this.formSearch.get('priceOfTypePrice').setValue(product.priceOfTypePrice);    // цена по запрошенному id типа цены
-    this.formSearch.get('avgCostPrice').setValue(product.avgCostPrice);            // средняя себестоимость
-    this.formSearch.get('lastPurchasePrice').setValue(product.lastPurchasePrice);  // последняя закупочная цена
-    this.formSearch.get('avgPurchasePrice').setValue(product.avgPurchasePrice);    // средняя закупочная цена
+    this.formSearch.get('remains').setValue(product.remains);                      // остатки - кол-во товара по БД
+    this.formSearch.get('nds_id').setValue(product.nds_id);                        // id НДС 
+    this.formSearch.get('product_netcost').setValue(0);                            // себестоимость 
     this.canAutocompleteQuery=false;
     this.afterSelectProduct();
   }
@@ -343,132 +318,22 @@ export class InventoryProductsTableComponent implements OnInit {
       setTimeout(() => {this.addProductRow();}, 100);
     }else {
       this.formSearchReadOnly=true;
-      this.placeholderActualBalance=String(this.getDefaultActualBalance('form'));
       this.loadMainImage();
+      this.formSearch.get('product_count').setValue(1);  
+      setTimeout(() => { this.product_count.nativeElement.focus(); }, 200);   
     }
     
-    setTimeout(() => { this.estimated_balance.nativeElement.focus(); }, 100);
   }
 
   setPrice(){
-    switch (this.pricingType){
-      case 'priceType':{//по типу цены
-        this.formSearch.get('product_price').setValue(this.priceFilter(+this.formSearch.get('priceOfTypePrice').value));
-        break;
-      }
-      case 'avgCostPrice':{//средн. себестоимость
-        this.formSearch.get('product_price').setValue(this.priceFilter(+this.formSearch.get('avgCostPrice').value)); 
-        break;
-      }
-      case 'lastPurchasePrice':{//Последняя закупочная цена
-        this.formSearch.get('product_price').setValue(this.priceFilter(+this.formSearch.get('lastPurchasePrice').value)); 
-        break;
-      }
-      case 'avgPurchasePrice':{//Средняя закупочная цена
-        this.formSearch.get('product_price').setValue(this.priceFilter(+this.formSearch.get('avgPurchasePrice').value));
-        break; 
-      }
-      // case 'manual':{
-        
-      // }
-    }
-  }
-
-  //пересчёт цены в зависимости от настроек (наценка, плюс-минус, проценты/рубли)
-  priceFilter(prePrice:number):string{// prePrice - цена до перерасчета
-    //величина изменения цены (не важно проценты или валюта). Например 50. А чего 50 (проценты или рубли) - это уже другой вопрос
-    let priceChangeValue:number = +this.changePrice;
-    // фактическая величина изменения цены 
-    let priceChangeDelta:number;
-
-    switch (this.changePriceType) {
-      case 'procents': {//если выбраны проценты 
-        priceChangeDelta=prePrice*priceChangeValue/100;
-        if(this.plusMinus=='minus') priceChangeDelta = -priceChangeDelta;
-        break;}
-      case 'currency': {//если выбрана валюта 
-        if(this.plusMinus=='minus') 
-          priceChangeDelta = -priceChangeValue;
-        else priceChangeDelta = priceChangeValue;
-        break;}
-    }
-
-    let resultPrice=+prePrice+priceChangeDelta;
-    let resultPriceText='';
-    if(this.hideTenths){//если опция "Убрать копейки"
-      //отбросим копейки:
-      resultPrice=+this.numToPrice(resultPrice,0);
-      //форматируем в вид цены
-      resultPriceText=this.numToPrice(resultPrice,2);
-    } else {
-      //если копейки не обрасываем - прото форматируем в вид цены 
-      resultPriceText=this.numToPrice(resultPrice,2);
-    }
-    return resultPriceText;
-  }
-
-  //открывает диалог расценки
-  openDialogPricing() { 
-    const dialogPricing = this.PricingDialogComponent.open(PricingDialogComponent, {
-      maxWidth: '95vw',
-      maxHeight: '95vh',
-      height: '600px',
-      width: '400px', 
-      minHeight: '600px',
-      data:
-      { //отправляем в диалог:
-        companyId:        this.company_id, //id предприятия
-        documentId:       this.parentDockId, //id документа
-        productId:        this.formSearch.get('product_id').value, // id товара 
-        departmentId:     this.department_id, //id отделения
-        priceTypeId:      this.priceTypeId, //id типа цены
-        plusMinus:        this.plusMinus, //наценка или скидка ("+" или "-")
-        pricingType:      this.pricingType, // тип расценки (По типу цены, по Себестоимости или вручную)
-        changePrice:      this.changePrice, //наценка или скидка в цифре (например, 50)
-        changePriceType:  this.changePriceType,// выражение наценки/скидки (валюта или проценты)
-        hideTenths:       this.hideTenths, //убирать десятые и сотые доли цены (копейки) 
-        saveSettings:     false, //по-умолчанию сохранять настройки
-        priceTypesList:   this.receivedPriceTypesList,
-      },
-    });
-    dialogPricing.afterClosed().subscribe(result => {
-      if(result){
-        this.applySettings(result);
-        if(result.get('saveSettings').value){
-          //Eсли в диалоге Расценки стояла галка Сохранить настройки: 
-          // - вставляем настройки в форму настроек и сохраняем,
-          this.settingsForm.get('pricingType').setValue(result.get('pricingType').value);
-          this.settingsForm.get('priceTypeId').setValue(result.get('priceTypeId').value);
-          this.settingsForm.get('plusMinus').setValue(result.get('plusMinus').value);
-          this.settingsForm.get('changePrice').setValue(result.get('changePrice').value);
-          this.settingsForm.get('changePriceType').setValue(result.get('changePriceType').value);
-          this.settingsForm.get('hideTenths').setValue(result.get('hideTenths').value);
-          this.settingsForm.get('companyId').setValue(this.company_id);
-
-          // - сохраняем текущие настройки для следующих расценок товаров
-          this.pricingType=result.get('pricingType').value;
-          this.priceTypeId=result.get('priceTypeId').value;
-          this.plusMinus=result.get('plusMinus').value;
-          this.changePrice=result.get('changePrice').value;
-          this.changePriceType=result.get('changePriceType').value;
-
-          this.updateSettings();
-        }
-      }
-    });
-  }
-  applySettings(set:any){
-    if(set.get('resultPrice')){ // если настройки поступили из формы расценки выбранного товара
-      this.formSearch.get('product_price').setValue(set.get('resultPrice').value);
-    }
+        this.formSearch.get('product_price').setValue(0);
   }
 
   updateSettings(){
-    return this.http.post('/api/auth/saveSettingsInventory', this.settingsForm.value)
+    return this.http.post('/api/auth/saveSettingsReturn', this.settingsForm.value)
             .subscribe(
                 (data) => {   
                           this.openSnackBar("Настройки успешно сохранены", "Закрыть");
-                          
                         },
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
             );
@@ -520,9 +385,9 @@ export class InventoryProductsTableComponent implements OnInit {
     return this.http.get(imageUrl, {responseType: 'blob'});
   }
   getProductsTable(){
-    let productsTable: InventoryProductTable[]=[];
+    let productsTable: ReturnProductTable[]=[];
     //сбрасываем, иначе при сохранении будут прибавляться дубли и прочие глюки
-    const control = <FormArray>this.formBaseInformation.get('inventoryProductTable');
+    const control = <FormArray>this.formBaseInformation.get('returnProductTable');
     this.gettingTableData=true;
     control.clear();
     this.row_id=0;
@@ -543,35 +408,34 @@ export class InventoryProductsTableComponent implements OnInit {
         );
   }
 
-  formingProductRowFromApiResponse(row: InventoryProductTable) {
+  formingProductRowFromApiResponse(row: ReturnProductTable) {
     return this._fb.group({
       id: new FormControl (row.id,[]),
       row_id: [this.getRowId()],// row_id нужен для идентифицирования строк у которых нет id (например из только что создали и не сохранили)
       product_id: new FormControl (row.product_id,[]),
+      // return_id:  new FormControl (+this.parentDockId,[]),
       name: new FormControl (row.name,[]),
       edizm: new FormControl (row.edizm,[]),
-      estimated_balance:  new FormControl (row.estimated_balance,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
-      actual_balance:  new FormControl (row.actual_balance,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
+      remains: new FormControl (+row.remains,[]),
+      nds_id: new FormControl (+row.nds_id,[]),
+      product_sumprice: new FormControl ((+row.product_count*(+row.product_price)).toFixed(2),[]),
+      product_sumnetcost: new FormControl ((+row.product_count*(+row.product_netcost)).toFixed(2),[]),
+      product_count:  new FormControl (row.product_count,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
+      product_netcost:  new FormControl (this.numToPrice(row.product_netcost,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       product_price:  new FormControl (this.numToPrice(row.product_price,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),
       // ValidationService.priceMoreThanZero  -- пока исключил ошибку "Цена=0", чтобы позволить сохранять с нулевой ценой, а также делать с ней связанные документы.
-    ]),
-      difference: new FormControl (row.actual_balance-row.estimated_balance,[]),
-      discrepancy: new FormControl ((row.actual_balance-row.estimated_balance)*row.product_price,[]),
+      ]),
     });
   }
+
   addProductRow(){ 
-  const control = <FormArray>this.formBaseInformation.get('inventoryProductTable');
+  const control = <FormArray>this.formBaseInformation.get('returnProductTable');
   let thereProductInTableWithSameId:boolean=false;
-    this.formBaseInformation.value.inventoryProductTable.map(i => 
+    this.formBaseInformation.value.returnProductTable.map(i => 
     {// список товаров не должен содержать одинаковые товары из одного и того же склада. Тут проверяем на это
       if(+i['product_id']==this.formSearch.get('product_id').value)
       {//такой товар с таким складом уже занесён в таблицу товаров ранее, и надо смёрджить их, т.е. слить в один, просуммировав их фактические остатки.
-        // alert(i['row_id'])
-        //суммируем кол-во уже имеющегося в таблице товара и того, что в форме поиска
-        control.controls[i['row_id']].get('actual_balance').setValue(
-          (this.formSearch.get('actual_balance').value==''?this.getDefaultActualBalance('form'):+this.formSearch.get('actual_balance').value)+(+i['actual_balance'])
-        );
-        this.onChangeActualBalance(i['row_id']);
+        alert('Такой товар уже есть')
         thereProductInTableWithSameId=true; 
       }
     });
@@ -586,45 +450,25 @@ export class InventoryProductsTableComponent implements OnInit {
   
   //формирование строки таблицы с товарами для заказа покупателя из формы поиска товара
   formingProductRowFromSearchForm() {
-    let actualBalance=this.formSearch.get('actual_balance').value==''?this.getDefaultActualBalance('form'):+this.formSearch.get('actual_balance').value;
     return this._fb.group({
       id: new FormControl (null,[]),
       row_id: [this.getRowId()],
       product_id:  new FormControl (+this.formSearch.get('product_id').value,[]),
-      inventory_id:  new FormControl (+this.parentDockId,[]),
       name:  new FormControl (this.searchProductCtrl.value,[]),
-      estimated_balance:  new FormControl (+this.formSearch.get('estimated_balance').value,[]),
-      actual_balance:  new FormControl (actualBalance,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
       edizm:  new FormControl (this.formSearch.get('edizm').value,[]),
       product_price: new FormControl (this.formSearch.get('product_price').value,[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),/*ValidationService.priceMoreThanZero*/]),
-      difference:  new FormControl (actualBalance-(+this.formSearch.get('estimated_balance').value),[]),
-      discrepancy:  new FormControl ((actualBalance-(+this.formSearch.get('estimated_balance').value))*+this.formSearch.get('product_price').value,[]),
+      product_count:  new FormControl (this.formSearch.get('product_count').value,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
+      product_netcost:  new FormControl (this.formSearch.get('product_netcost').value,[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      remains: new FormControl (+this.formSearch.get('remains').value,[]),
+      nds_id: new FormControl (+this.formSearch.get('nds_id').value,[]),
+      product_sumprice: new FormControl ((+this.formSearch.get('product_count').value*(+this.formSearch.get('product_price').value)).toFixed(2),[]),
+      product_sumnetcost: new FormControl ((+this.formSearch.get('product_count').value*(+this.formSearch.get('product_netcost').value)).toFixed(2),[]),
+
+      // nds: new FormControl (+this.formSearch.get('remains').value,[]),
     });
   }
   
-  //вычисляем фактический баланс по умолчанию (назначается в настройках). "estimated" - как расчётный, "other" - другой (выбирается в otherActualBalance)
-  getDefaultActualBalance(querySource:string):number{
-    let actual_balance:number;
-    switch(this.defaultActualBalance){
-      case 'estimated':{
-        if(querySource=='form')
-          actual_balance=+this.formSearch.get('estimated_balance').value;
-        if(querySource=='list')
-          actual_balance=this.estimatedBalance;
-        break;
-      }
-      case 'other':{
-        actual_balance=+this.otherActualBalance;
-        break;
-      }
-      default:{//если в настройках ничего нет
-        actual_balance=0;
-      }
-    }
-    return actual_balance;
-  }
-
-  deleteProductRow(row: InventoryProductTable,index:number) {
+  deleteProductRow(row: ReturnProductTable,index:number) {
     const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
       width: '400px',
       data:
@@ -635,7 +479,7 @@ export class InventoryProductsTableComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
-        const control = <FormArray>this.formBaseInformation.get('inventoryProductTable');
+        const control = <FormArray>this.formBaseInformation.get('returnProductTable');
         // if(+row.id==0){// ещё не сохраненная позиция, можно не удалять с сервера (т.к. ее там нет), а только удалить локально
           control.removeAt(index);
           this.refreshTableColumns();
@@ -650,18 +494,16 @@ export class InventoryProductsTableComponent implements OnInit {
   }
 
   refreshTableColumns(){
-    this.displayedColumns.splice(2,1,'empty_f');
-    this.displayedColumns.splice(4,1,'empty_p');
+    this.displayedColumns=[]
     setTimeout(() => { 
-      this.displayedColumns.splice(2, 1, 'actual_balance');
-      this.displayedColumns.splice(4, 1, 'product_price');
+      this.showColumns();
     }, 1);
   }
 
   resetRowIds(){
     this.row_id=0;
-    const control = <FormArray>this.formBaseInformation.get('inventoryProductTable');
-    this.formBaseInformation.value.inventoryProductTable.map(i => 
+    const control = <FormArray>this.formBaseInformation.get('returnProductTable');
+    this.formBaseInformation.value.returnProductTable.map(i => 
       {
         control.controls[this.row_id].get('row_id').setValue(this.row_id);
         this.row_id++;
@@ -675,14 +517,25 @@ export class InventoryProductsTableComponent implements OnInit {
   }
 
   onChangeProductPrice(row_index:number){
-    this.setRowDifference(row_index);
-    this.setRowDiscrepancy(row_index);
+    this.setRowSumPrice(row_index);
     this.productTableRecount();
   }
-  onChangeActualBalance(row_index:number){
-    this.setRowDifference(row_index);
-    this.setRowDiscrepancy(row_index);
+  onChangeProductCount(row_index:number){
+    this.setRowSumPrice(row_index);
+    this.setRowNetcost(row_index);
     this.productTableRecount();
+  }
+  onChangeProductNetcost(row_index:number){
+    this.setRowNetcost(row_index);
+    this.productTableRecount();
+  }
+  setRowSumPrice(row_index:number){
+    const control = this.getControlTablefield();
+    control.controls[row_index].get('product_sumprice').setValue((control.controls[row_index].get('product_count').value*control.controls[row_index].get('product_price').value).toFixed(2));
+  }
+  setRowNetcost(row_index:number){
+    const control = this.getControlTablefield();
+    control.controls[row_index].get('product_sumnetcost').setValue(((control.controls[row_index].get('product_count').value)*control.controls[row_index].get('product_netcost').value).toFixed(3).replace(".000", "").replace(".00", ""));
   }
   productTableRecount(){
     if(this.formBaseInformation!=undefined){//метод может вызываться из ngOnChanges, а т.к. он стартует до ngOnInit, то formBaseInformation может еще не быть
@@ -690,30 +543,23 @@ export class InventoryProductsTableComponent implements OnInit {
     }
   }
   recountTotals(){
-    this.totalProductCount=this.getTotalProductCount();
-    this.totalDifference=this.getTotalDifference();
-    this.totalDiscrepancy=this.getTotalDiscrepancy();
+    this.totalProductCount= this.getTotalProductCount();
+    this.totalProductSumm=  this.getTotalSumPrice();
+    this.totalNetcost=      this.getTotalNetcost();
   }
   //возвращает таблицу товаров в родительский компонент для сохранения
   getProductTable(){
-    return this.formBaseInformation.value.inventoryProductTable;
+    return this.formBaseInformation.value.returnProductTable;
   }
-  setRowDifference(row_index:number){
-    const control = this.getControlTablefield();
-    control.controls[row_index].get('difference').setValue((control.controls[row_index].get('actual_balance').value-control.controls[row_index].get('estimated_balance').value).toFixed(2));
+
+  getTotalProductCount() {//бежим по столбцу product_count и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
+    return  (this.formBaseInformation.value.returnProductTable.map(t => +t.product_count).reduce((acc, value) => acc + value, 0)).toFixed(3).replace(".000", "").replace(".00", "");
   }
-  setRowDiscrepancy(row_index:number){
-    const control = this.getControlTablefield();
-    control.controls[row_index].get('discrepancy').setValue(((control.controls[row_index].get('actual_balance').value-control.controls[row_index].get('estimated_balance').value)*control.controls[row_index].get('product_price').value).toFixed(3).replace(".000", "").replace(".00", ""));
+  getTotalSumPrice() { //бежим по столбцу product_sumprice и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
+    return (this.formBaseInformation.value.returnProductTable.map(t => +t.product_sumprice).reduce((acc, value) => acc + value, 0)).toFixed(3).replace(".000", "").replace(".00", "");
   }
-  getTotalProductCount() {//бежим по столбцу actual_balance и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
-    return  (this.formBaseInformation.value.inventoryProductTable.map(t => +t.actual_balance).reduce((acc, value) => acc + value, 0)).toFixed(3).replace(".000", "").replace(".00", "");
-  }
-  getTotalDifference() { //бежим по столбцу difference и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
-    return (this.formBaseInformation.value.inventoryProductTable.map(t => +t.difference).reduce((acc, value) => acc + value, 0)).toFixed(3).replace(".000", "").replace(".00", "");
-  }
-  getTotalDiscrepancy() {//бежим по столбцу discrepancy и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
-    return (this.formBaseInformation.value.inventoryProductTable.map(t => +t.discrepancy).reduce((acc, value) => acc + value, 0)).toFixed(2);
+  getTotalNetcost() {//бежим по столбцу product_sumnetcost и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
+    return (this.formBaseInformation.value.returnProductTable.map(t => +t.product_sumnetcost).reduce((acc, value) => acc + value, 0)).toFixed(2);
   }
   //Конвертирует число в строку типа 0.00 например 6.40, 99.25
   numToPrice(price:number,charsAfterDot:number) {
@@ -745,8 +591,7 @@ export class InventoryProductsTableComponent implements OnInit {
       this.productImageName=null;
       this.imageToShow=null;
       this.form.resetForm();//реализовано через ViewChild: @ViewChild("form", {static: false}) form; + В <form..> прописать #form="ngForm"
-      this.formSearch.get('estimated_balance'). setValue('');
-      this.formSearch.get('actual_balance').    setValue('');
+      this.formSearch.get('remains').           setValue('');
       this.formSearch.get('product_id').        setValue(null);
       this.formSearch.get('product_price').     setValue('');
       this.selected_price=0;
@@ -756,11 +601,6 @@ export class InventoryProductsTableComponent implements OnInit {
 
       setTimeout(() => { this.productSearchField.nativeElement.focus(); }, 100);
   }
-
-  
-
-
-
 
   //****************************************************************************** МАССОВОЕ ДОБАВЛЕНИЕ ТОВАРОВ ЧЕРЕЗ СПРАВОЧНИК *******************************************************************
   openDialogProductCategoriesSelect(selection:string){
@@ -790,7 +630,7 @@ export class InventoryProductsTableComponent implements OnInit {
     const body =  {
       companyId:this.company_id,         // предприятие, по которому идет запрос данных
       departmentId:this.department_id,   // id отделения
-      priceTypeId:+this.priceTypeId,     // тип цены, по которому будут выданы цены
+      priceTypeId:0,                     // тип цены, по которому будут выданы цены
       reportOn:selection,                // по категориям или по товарам/услугам (categories, products)
       reportOnIds:this.reportOnIds       // id категорий или товаров/услуг (того, что выбрано в reportOn)
     };
@@ -812,26 +652,20 @@ export class InventoryProductsTableComponent implements OnInit {
   }
   
   addProductRowFromProductsList(row: ProductSearchResponse){ 
-  const control = <FormArray>this.formBaseInformation.get('inventoryProductTable');
+  const control = <FormArray>this.formBaseInformation.get('returnProductTable');
   let thereProductInTableWithSameId:boolean=false;
-    this.formBaseInformation.value.inventoryProductTable.map(i => 
+    this.formBaseInformation.value.returnProductTable.map(i => 
     { // список товаров не должен содержать одинаковые товары из одного и того же склада. Тут проверяем на это
         // console.log('product_id - '+i['product_id']);
       if(+i['product_id']==row.product_id){
         //такой товар с таким складом уже занесён в таблицу товаров ранее, и надо смёрджить их, т.е. слить в один, просуммировав их фактические остатки.
-        console.log(' estimated_balance -'+ i['estimated_balance']);
-        
-        //суммируем кол-во уже имеющегося в таблице товара и того, что в форме поиска
-        this.estimatedBalance=i['estimated_balance'];// это нужно, чтобы getDefaultActualBalance воспользовалась данным количеством в своем решении
-        console.log('getDefaultActualBalance - '+this.getDefaultActualBalance('list'));
-        control.controls[i['row_id']].get('actual_balance').setValue(this.getDefaultActualBalance('list')+(+i['actual_balance']));
-        this.onChangeActualBalance(i['row_id']); 
+        alert('такой товар с таким складом уже занесён в таблицу товаров ранее')
         thereProductInTableWithSameId=true; 
       }
     });
     if(!thereProductInTableWithSameId){//такого товара  для выбранного склада в списке ещё нет. Добавляем в таблицу (в форму formBaseInformation)
       this.estimatedBalance=row['estimated_balance'];// это нужно, чтобы getDefaultActualBalance воспользовалась данным количеством в своем решении
-      control.push(this.formingProductRowFromProductsList(row,this.getDefaultActualBalance('list')));
+      control.push(this.formingProductRowFromProductsList(row));
     } 
     this.searchProductCtrl.setValue('');
     this.changeProductsTableLength.emit();//событие изменения кол-ва товаров в таблице
@@ -839,31 +673,22 @@ export class InventoryProductsTableComponent implements OnInit {
     this.recountTotals();
   }
 
-  formingProductRowFromProductsList(row: ProductSearchResponse, actual_balance) {
+  formingProductRowFromProductsList(row: ProductSearchResponse) {
     return this._fb.group({
       row_id: [this.getRowId()],// row_id нужен для идентифицирования строк у которых нет id (например из только что создали и не сохранили)
       product_id: new FormControl (row.product_id,[]),
       name: new FormControl (row.name,[]),
       edizm: new FormControl (row.edizm,[]),
-      estimated_balance:  new FormControl (row.estimated_balance,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
-      actual_balance:  new FormControl (actual_balance,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
-      product_price:  new FormControl (this.priceFilter(this.getPrice(row)),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),/*ValidationService.priceMoreThanZero*/]),
-      difference: new FormControl (actual_balance-row.estimated_balance,[]),
-      discrepancy: new FormControl ((actual_balance-row.estimated_balance)*this.getPrice(row),[]),
+      remains: new FormControl (+row.remains,[]),
+      product_count:  new FormControl (1,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
+      product_netcost:  new FormControl (0,[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      product_price:  new FormControl (0,[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      product_sumprice: new FormControl (0,[]),
+      product_sumnetcost: new FormControl (0,[]),
+      nds_id: new FormControl (row.nds_id,[]),
     });
   }
 
-  //в зависимости от политики назначения цены возвращаем одну из цен, содержащихся в передаваемом объекте
-  getPrice(row: ProductSearchResponse):number{
-    let price:number=0;
-    switch (this.pricingType){
-      case 'priceType':return row.priceOfTypePrice;           //по типу цены
-      case 'avgCostPrice':return row.avgCostPrice;            //Средняя себестоимость
-      case 'lastPurchasePrice':return row.lastPurchasePrice;  //Последняя закупочная цена
-      case 'avgPurchasePrice':return row.avgPurchasePrice;    //Средняя закупочная цена
-      default: return 0;
-    }
-  }
 //************************************************************************************* COMMON UTILITES *****************************************************************************************/
   numberOnlyPlusDot(event): boolean {
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which

@@ -1,0 +1,103 @@
+<mat-card class="card">
+    <mat-card-title class="flex">
+        <div class="card-name">Настройки</div>
+        <button 
+            (click)="onNoClick()"
+            matTooltip="Закрыть окно настроек"
+            mat-raised-button 
+            color="accent"
+            class="button">
+            <i class="material-icons">close</i> Закрыть 
+        </button>
+    </mat-card-title>
+    <mat-card-content > 
+        <div class="card">
+            <mat-spinner 
+            strokeWidth="3" 
+            class="spinner"
+            [diameter]="50"
+            *ngIf="gettingData"
+            ></mat-spinner>
+            <form [formGroup]="settingsForm">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12"> 
+                            <mat-form-field  class="mat-form-field-100">
+                                <mat-label> Предприятие  </mat-label>
+                                <mat-select formControlName="companyId"  (selectionChange)="onCompanyChange()" matTooltip="Предприятие по умолчанию">
+                                    
+                                    <mat-option *ngFor="let cmp of receivedCompaniesList" 
+                                                [value]="cmp.id">
+                                                {{cmp.name}}
+                                    </mat-option>
+                                </mat-select>
+                                <mat-hint  align="start" *ngIf="settingsForm.get('companyId').touched && settingsForm.get('companyId').invalid">
+                                    <i class="form-invalid">Предприятие не выбрано.</i>
+                                </mat-hint>
+                            </mat-form-field>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12"> 
+                            <mat-form-field  class="mat-form-field-100">
+                                <mat-label>Отделение (основной склад)</mat-label>
+                                <mat-select formControlName="departmentId"  matTooltip="Отделение по умолчанию">
+                                    <mat-option *ngFor="let department of receivedDepartmentsList" 
+                                                [value]="department.id">
+                                                {{department.name}}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <mat-checkbox formControlName="autoAdd"  matTooltip="Автодобавление товара из формы поиска в таблицу товаров">Автодобавление</mat-checkbox>
+                        </div>
+                    </div>
+
+                    <div class="row" style="margin-top:10px">
+                        <div class="col-12"> 
+                            <div class = "circle-in-selected" [style.background-color]="status_color" *ngIf="settingsForm.get('statusOnFinishId').value!=null"></div>
+                            <mat-form-field  class="mat-form-field-100"  matTooltip="Присваеваемый статус при завершении инвентаризации">
+                                <mat-label>Статус при завершении</mat-label>
+                                <mat-select     [ngStyle]="(settingsForm.get('statusOnFinishId').value!=null)?{'padding': '5px 0 5px 25px'}:{}"
+                                                formControlName="statusOnFinishId"
+                                                (selectionChange)="setStatusColor();">
+                                    <mat-option *ngFor="let status of receivedStatusesList" 
+                                                [value]="status.id"
+                                                matTooltip={{status.description}}>
+                                                <div style="display: inline;line-height: 20px;">
+                                                    <div class = "circle-wrapper" >
+                                                        <div class = "circle-in-list" [style.background-color]="status.color"></div>
+                                                    </div>
+                                                    <div class = "status-name">{{status.name}}</div>
+                                                </div>
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
+                    </div>
+                </div>
+                
+                <mat-divider></mat-divider>
+                
+                <div class="row">
+                    <button 
+                    (click)="applySettings()"
+                    class="apply-button"
+                    matTooltip="Сохранить настройки и закрыть"
+                    mat-raised-button 
+                    color="primary"
+                    [disabled]="(!settingsForm.valid)"
+                    >
+                    <i class="material-icons">done</i> Сохранить 
+                </button>
+                </div>
+
+            </form>
+        </div>
+        <!-- <code><pre>{{settingsForm.value | json}}</pre></code> -->
+    </mat-card-content> 
+</mat-card>
+    

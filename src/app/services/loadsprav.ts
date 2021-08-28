@@ -51,11 +51,12 @@ export class LoadSpravService{
             let dockList: idAndName [] = [];
             dockList = [
                 // {id:3, name:'Предприятия'},
-                {id:12, name:'Контрагент'},
+                {id:28, name:'Возврат покупателя'},
                 {id:23, name:'Заказ покупателя'},
+                {id:27, name:'Инвентаризация'},
+                {id:12, name:'Контрагент'},
                 {id:21, name:'Отгрузка'},
                 {id:25, name:'Розничная продажа'},
-                {id:27, name:'Инвентаризация'},
             ];
             return dockList; 
         }

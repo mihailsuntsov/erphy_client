@@ -47,13 +47,14 @@ export class InventoryComponent implements OnInit {
   constructor(private queryFormService:   QueryFormService,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
-    public universalCategoriesDialog: MatDialog,
+    // public universalCategoriesDialog: MatDialog,
     public сonfirmDialog: MatDialog,
     private http: HttpClient,
     public deleteDialog: MatDialog,
     public MessageDialog: MatDialog,
     public SettingsInventoryDialogComponent: MatDialog,
-    public dialogRef1: MatDialogRef<InventoryComponent>,) { }
+    // public dialogRef1: MatDialogRef<InventoryComponent>,
+    ) { }
 
     
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
@@ -167,6 +168,12 @@ export class InventoryComponent implements OnInit {
       hideTenths: new FormControl               (true,[]),
       // статус после завершения инвентаризации
       statusOnFinishId: new FormControl         ('',[]),
+      //  фактический баланс по умолчанию. "estimated" - как расчётный, "other" - другой (выбирается в other_actual_balance)
+      defaultActualBalance: new FormControl     ('',[]),              
+      // "другой" фактический баланс по умолчанию. Например, 1
+      otherActualBalance: new FormControl       (0,[Validators.pattern('^[0-9]{1,6}(?:[.,][0-9]{0,3})?\r?$')]),
+      // автодобавление товара из формы поиска в таблицу
+      autoAdd: new FormControl                  (false,[]),        
     });
       this.getCompaniesList();// 
       // -> getSetOfPermissions() 
@@ -221,11 +228,11 @@ export class InventoryComponent implements OnInit {
     this.showOpenDocIcon=(this.allowToUpdate||this.allowToView);
     this.visBtnAdd = (this.allowToCreate)?true:false;
     
-    console.log("allowToView - "+this.allowToView);
-    console.log("allowToUpdate - "+this.allowToUpdate);
-    console.log("allowToCreate - "+this.allowToCreate);
-    console.log("allowToDelete - "+this.allowToDelete);
-    console.log("allowToDeleteAllCompanies - "+this.allowToDeleteAllCompanies);
+    // console.log("allowToView - "+this.allowToView);
+    // console.log("allowToUpdate - "+this.allowToUpdate);
+    // console.log("allowToCreate - "+this.allowToCreate);
+    // console.log("allowToDelete - "+this.allowToDelete);
+    // console.log("allowToDeleteAllCompanies - "+this.allowToDeleteAllCompanies);
     return true;
   }
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
@@ -578,6 +585,7 @@ export class InventoryComponent implements OnInit {
         if(result.get('name')) this.settingsForm.get('name').setValue(result.get('name').value);
         this.settingsForm.get('hideTenths').setValue(result.get('hideTenths').value);
         this.settingsForm.get('statusOnFinishId').setValue(result.get('statusOnFinishId').value);
+        this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
         this.saveSettingsInventory();
       }
     });
