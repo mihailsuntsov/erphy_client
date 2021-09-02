@@ -79,6 +79,7 @@ interface dockResponse {//интерфейс для получения отве�
   excizable: boolean;
   not_buy: boolean;
   not_sell: boolean;
+  indivisible: boolean;
   }
   interface SpravSysNdsSet{
     id: number;
@@ -217,7 +218,17 @@ numRows: NumRow[] = [
   {value: '500', viewValue: '500'},
   {value: '1000', viewValue: '1000'}
 ];
-documentsIds: idAndName [] = [{id:"15", name:"Приёмка"},{id:"21", name:"Отгрузка"},{id:"16", name:"Оприходование"},{id:"17", name:"Списание"},{id:"25", name:"Розн. продажа"}]//список документов, по которым можно получить отчёт
+documentsIds: idAndName [] = 
+[
+{id:"15", name: "Приёмки"},
+{id:"21", name: "Отгрузки"},
+{id:"16", name: "Оприходования"},
+{id:"17", name: "Списания"},
+{id:"25", name: "Розичные продажи"},
+{id:"28", name: "Возвраты покупателей"},
+{id:"29", name: "Возвраты поставщикам"},
+{id:"30", name: "Перемещения"},
+]//список документов, по которым можно получить отчёт
 checkedChangesList:number[]=[]; //массив для накапливания id выбранных документов чекбоксов в отчете по истории товара, вида [2,5,27...], а так же для заполнения загруженными значениями чекбоксов
 
 
@@ -303,12 +314,12 @@ constructor(private activateRoute: ActivatedRoute,
   onNoClick(): void {this.dialogRefProduct.close();}
   ngOnInit() {
     // дефолтные значения для отчета по истории изменения товара
-      this.formProductHistory.companyId='0';
-      this.formProductHistory.departmentId='0';
+      this.formProductHistory.companyId=0;
+      this.formProductHistory.departmentId=0;
       this.formProductHistory.sortAsc='desc';
       this.formProductHistory.sortColumn='date_time_created_sort';
-      this.formProductHistory.offset='0';
-      this.formProductHistory.result='10';
+      this.formProductHistory.offset=0;
+      this.formProductHistory.result=10;
       
     this.fieldsForm = this.fb.group({
         fields: this.fb.array([])
@@ -342,6 +353,7 @@ constructor(private activateRoute: ActivatedRoute,
       excizable: new FormControl      ('',[]),
       not_buy: new FormControl      ('',[]),
       not_sell: new FormControl      ('',[]),
+      indivisible: new FormControl      ('',[]),
       productPricesTable: new FormArray([]),//массив с формами цен
     });
     this.formAboutDocument = new FormGroup({
@@ -546,6 +558,8 @@ refreshPermissions():boolean{
                 this.formBaseInformation.get('excizable').setValue(documentValues.excizable);
                 this.formBaseInformation.get('not_buy').setValue(documentValues.not_buy);
                 this.formBaseInformation.get('not_sell').setValue(documentValues.not_sell);
+                this.formBaseInformation.get('indivisible').setValue(documentValues.indivisible);
+                
 
                 this.searchProductGroupsCtrl.setValue(documentValues.productgroup);
                 this.checkedList=documentValues.product_categories_id;
@@ -1378,17 +1392,17 @@ checkProductCodeFreeUnical() {
     this.getTable();
   }
   getTable(){
-    let depIdHasChanged:boolean=false;
+    // let depIdHasChanged:boolean=false;
     this.formProductHistory.productId=+this.id;
-    this.formProductHistory.dockTypesIds=JSON.stringify(this.checkedChangesList).replace("[", "").replace("]", "");
-    if(this.formProductHistory.departmentId=='0'){
-      let ids:number[]=[];
-      depIdHasChanged=true;
-      this.receivedMyDepartmentsList.forEach(r=>{
-        ids.push(+r.id);
-      });
-      this.formProductHistory.departmentId=JSON.stringify(ids).replace("[", "").replace("]", "");
-    }
+    this.formProductHistory.dockTypesIds=this.checkedChangesList;
+    // if(this.formProductHistory.departmentId==0){
+      // let ids:number[]=[];
+      // depIdHasChanged=true;
+      // this.receivedMyDepartmentsList.forEach(r=>{
+        // ids.push(+r.id);
+      // });
+      // this.formProductHistory.departmentId=(ids.length>1?0:);
+    // } // если нужно вывести по всем отделениям - отправляем 0, либо id отделения, если по выбранному
     this.productHistoryService.getTable(this.formProductHistory)
             .subscribe(
                 (data) => {
@@ -1396,7 +1410,7 @@ checkProductCodeFreeUnical() {
                 },
                 error => console.log(error) 
             );
-    if(depIdHasChanged)this.formProductHistory.departmentId='0';
+    // if(depIdHasChanged)this.formProductHistory.departmentId=0;
   }
   getTableHeaderTitles(){
     this.displayedColumns=[];

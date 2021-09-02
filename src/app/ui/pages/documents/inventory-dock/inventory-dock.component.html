@@ -39,7 +39,8 @@
             <button 
                 style="width: 129px;height: 36px;min-width: 38px;"
                 mat-raised-button 
-                *ngIf="!formBaseInformation.get('is_completed').value && +id>0"
+                *ngIf=" +id>0 && !formBaseInformation.get('is_completed').value && inventoryProductsTableComponent"
+                [disabled]="!childFormValid||inventoryProductsTableComponent.indivisibleErrorOfProductTable" 
                 (click)="completeDocument()" 
                 type="button"
                 color="primary"
@@ -51,7 +52,8 @@
                 [matMenuTriggerFor]="addDockMenu"
                 mat-raised-button 
                 matTooltip='Создать документы "Списание" или "Оприходование", основанные на данной инвентаризации'
-                *ngIf="+id>0"
+                [disabled]="!childFormValid||!formBaseInformation.valid||inventoryProductsTableComponent.indivisibleErrorOfProductTable" 
+                *ngIf="+id>0 && inventoryProductsTableComponent"
                 color="primary"
                 class="button"
                 style="width: 129px;height: 36px;min-width: 38px;">
@@ -70,22 +72,26 @@
             <button 
                 mat-raised-button 
                 style="width: 129px;height: 36px;min-width: 38px;"
-                *ngIf="+id>0 && allowToUpdate && canGetChilds && !formBaseInformation.get('is_completed').value"
+                *ngIf="+id>0 && allowToUpdate && canGetChilds && !formBaseInformation.get('is_completed').value && inventoryProductsTableComponent"
                 matTooltip='Сохранить документ'
                 (click)="updateDocument()"
-                [disabled]="!childFormValid" 
+                [disabled]="!childFormValid||inventoryProductsTableComponent.indivisibleErrorOfProductTable" 
                 color="primary"
                 type="button"
                 class="button">
                 <i class="material-icons">done</i> Сохранить
             </button>
+            <!-- <div *ngIf="inventoryProductsTableComponent">
+            1-{{!formBaseInformation.valid}}<br>
+            2-{{inventoryProductsTableComponent.indivisibleErrorOfProductTable}}
+        </div> -->
             <button 
                 mat-raised-button 
                 matTooltip='Создать документ'
                 (click)="createNewDocument()" 
                 style="width: 129px;height: 36px;min-width: 38px;"
-                *ngIf="allowToCreate && +id==0"
-                [disabled]="!formBaseInformation.valid" 
+                *ngIf="allowToCreate && +id==0  && inventoryProductsTableComponent"
+                [disabled]="!childFormValid||!formBaseInformation.valid||inventoryProductsTableComponent.indivisibleErrorOfProductTable" 
                 color="primary"
                 type="submit"
                 class="button">

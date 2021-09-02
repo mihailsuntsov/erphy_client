@@ -30,6 +30,7 @@ interface InventoryProductTable { //интерфейс для товаров, (�
   department_id: number;          // склад инвентаризации
   difference: number;             // разница
   discrepancy: number;            // расхождение (излишек/недостача)
+  indivisible: boolean;           // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
 }
 interface ProductSearchResponse{  // интерфейс получения списка товаров во время поиска товара 
   name: string;                   // наименование товара
@@ -41,6 +42,7 @@ interface ProductSearchResponse{  // интерфейс получения сп�
   avgCostPrice: number;           // средняя себестоимость
   lastPurchasePrice: number;      // последняя закупочная цена
   avgPurchasePrice : number;      // средняя закупочная цена
+  indivisible: boolean;           // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
 }
 interface ShortInfoAboutProduct{//интерф. для получения инфо о состоянии товара в отделении (кол-во, последняя поставка), и средним ценам (закупочной и себестоимости) товара
   quantity:number;
@@ -72,6 +74,8 @@ export class InventoryProductsTableComponent implements OnInit {
   totalProductCount:number=0;//всего кол-во товаров
   totalDifference:number=0;//всего разница
   totalDiscrepancy:number=0;//всего избыток/недостача
+  indivisibleErrorOfSearchForm:boolean = false; // дробное кол-во товара при неделимом товаре в форме поиска
+  indivisibleErrorOfProductTable:boolean = false;// дробное кол-во товара при неделимом товаре в таблице товаров
 
   //для Autocomplete по поиску товаров
   searchProductCtrl = new FormControl();//поле для поиска товаров
@@ -157,14 +161,15 @@ export class InventoryProductsTableComponent implements OnInit {
       row_id: new FormControl                   ('',[]),
       product_id: new FormControl               ('',[Validators.required]),                                           // id товара
       // inventory_id: new FormControl             ('',[]),
-      estimated_balance: new FormControl        ('',[]),      // расчётный остаток -- кол-во товара по БД на момент формирования документа Инвентаризаиця
+      estimated_balance: new FormControl        ('',[]),                                                              // расчётный остаток -- кол-во товара по БД на момент формирования документа Инвентаризаиця
       actual_balance: new FormControl           ('',[Validators.pattern('^[0-9]{1,6}(?:[.,][0-9]{0,3})?\r?$')]),      // фактический остаток
-      priceOfTypePrice: new FormControl         ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),      // цена по запрошенному id типа цены
+      priceOfTypePrice: new FormControl         ('',[]),                                                              // цена по запрошенному id типа цены
       edizm: new FormControl                    ('',[]),                                                              // наименование единицы измерения товара
       avgCostPrice: new FormControl             ('',[]),                                                              // средняя себестоимость
       lastPurchasePrice: new FormControl        ('',[]),                                                              // последняя закупочная цена
       avgPurchasePrice : new FormControl        ('',[]),                                                              // средняя закупочная цена
-      product_price : new FormControl           ('',[]),                                                              // цена товара (которая уйдет в таблицу выбранных товаров). Т.е. мы как можем вписать цену вручную, так и выбрать из предложенных (см. выше)
+      product_price : new FormControl           ('',[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]), // цена товара (которая уйдет в таблицу выбранных товаров). Т.е. мы как можем вписать цену вручную, так и выбрать из предложенных (см. выше)
+      indivisible: new FormControl              ('',[]),                                                              // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
     });
 
       // форма для сохранения настроек при расценке
@@ -318,6 +323,7 @@ export class InventoryProductsTableComponent implements OnInit {
     this.formSearch.get('avgCostPrice').setValue(this.filteredProducts[0].avgCostPrice);            // средняя себестоимость
     this.formSearch.get('lastPurchasePrice').setValue(this.filteredProducts[0].lastPurchasePrice);  // последняя закупочная цена
     this.formSearch.get('avgPurchasePrice').setValue(this.filteredProducts[0].avgPurchasePrice);    // средняя закупочная цена
+    this.formSearch.get('indivisible').setValue(this.filteredProducts[0].indivisible);              // неделимость (необходимо для проверки правильности ввода кол-ва товара)
     this.afterSelectProduct();
     this.filteredProducts=[];
   }
@@ -333,6 +339,7 @@ export class InventoryProductsTableComponent implements OnInit {
     this.formSearch.get('avgCostPrice').setValue(product.avgCostPrice);            // средняя себестоимость
     this.formSearch.get('lastPurchasePrice').setValue(product.lastPurchasePrice);  // последняя закупочная цена
     this.formSearch.get('avgPurchasePrice').setValue(product.avgPurchasePrice);    // средняя закупочная цена
+    this.formSearch.get('indivisible').setValue(product.indivisible);              // неделимость (необходимо для проверки правильности ввода кол-ва товара)
     this.canAutocompleteQuery=false;
     this.afterSelectProduct();
   }
@@ -555,11 +562,13 @@ export class InventoryProductsTableComponent implements OnInit {
       product_price:  new FormControl (this.numToPrice(row.product_price,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),
       // ValidationService.priceMoreThanZero  -- пока исключил ошибку "Цена=0", чтобы позволить сохранять с нулевой ценой, а также делать с ней связанные документы.
     ]),
-      difference: new FormControl (row.actual_balance-row.estimated_balance,[]),
-      discrepancy: new FormControl ((row.actual_balance-row.estimated_balance)*row.product_price,[]),
+      difference: new FormControl ((row.actual_balance-row.estimated_balance).toFixed(3),[]),
+      discrepancy: new FormControl (((row.actual_balance-row.estimated_balance)*row.product_price).toFixed(2),[]),
+      indivisible:  new FormControl (row.indivisible,[]),
     });
   }
   addProductRow(){ 
+  this.productSearchField.nativeElement.focus();//убираем курсор из текущего поля, чтобы оно не было touched и красным после сброса формы
   const control = <FormArray>this.formBaseInformation.get('inventoryProductTable');
   let thereProductInTableWithSameId:boolean=false;
     this.formBaseInformation.value.inventoryProductTable.map(i => 
@@ -597,8 +606,9 @@ export class InventoryProductsTableComponent implements OnInit {
       actual_balance:  new FormControl (actualBalance,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
       edizm:  new FormControl (this.formSearch.get('edizm').value,[]),
       product_price: new FormControl (this.formSearch.get('product_price').value,[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),/*ValidationService.priceMoreThanZero*/]),
-      difference:  new FormControl (actualBalance-(+this.formSearch.get('estimated_balance').value),[]),
-      discrepancy:  new FormControl ((actualBalance-(+this.formSearch.get('estimated_balance').value))*+this.formSearch.get('product_price').value,[]),
+      difference:  new FormControl ((actualBalance-(+this.formSearch.get('estimated_balance').value)).toFixed(3).replace('.000', '').replace('.00', ''),[]),
+      discrepancy:  new FormControl (((actualBalance-(+this.formSearch.get('estimated_balance').value))*+this.formSearch.get('product_price').value).toFixed(3).replace('.000', '').replace('.00', ''),[]),
+      indivisible:  new FormControl (this.formSearch.get('indivisible').value,[]),
     });
   }
   
@@ -675,14 +685,17 @@ export class InventoryProductsTableComponent implements OnInit {
   }
 
   onChangeProductPrice(row_index:number){
+    this.commaToDotInTableField(row_index, 'product_price');
     this.setRowDifference(row_index);
     this.setRowDiscrepancy(row_index);
     this.productTableRecount();
   }
   onChangeActualBalance(row_index:number){
+    this.commaToDotInTableField(row_index, 'actual_balance');
     this.setRowDifference(row_index);
     this.setRowDiscrepancy(row_index);
     this.productTableRecount();
+    this.checkIndivisibleErrorOfProductTable();
   }
   productTableRecount(){
     if(this.formBaseInformation!=undefined){//метод может вызываться из ngOnChanges, а т.к. он стартует до ngOnInit, то formBaseInformation может еще не быть
@@ -700,6 +713,8 @@ export class InventoryProductsTableComponent implements OnInit {
   }
   setRowDifference(row_index:number){
     const control = this.getControlTablefield();
+    console.log("1 - "+(control.controls[row_index].get('actual_balance').value-control.controls[row_index].get('estimated_balance').value));
+    console.log("2 - "+(control.controls[row_index].get('actual_balance').value-control.controls[row_index].get('estimated_balance').value).toFixed(2));
     control.controls[row_index].get('difference').setValue((control.controls[row_index].get('actual_balance').value-control.controls[row_index].get('estimated_balance').value).toFixed(2));
   }
   setRowDiscrepancy(row_index:number){
@@ -760,7 +775,38 @@ export class InventoryProductsTableComponent implements OnInit {
   
 
 
-
+  commaToDotInTableField(row_index:number, fieldName:string){
+    const control = this.getControlTablefield();
+    control.controls[row_index].get(fieldName).setValue(control.controls[row_index].get(fieldName).value.replace(",", "."));
+  }
+  checkActualBalanceInForm(){
+    if(this.formSearch.get('actual_balance').value!=null && this.formSearch.get('actual_balance').value!='')
+      this.formSearch.get('actual_balance').setValue((this.formSearch.get('actual_balance').value).replace(",", "."));
+    this.checkIndivisibleErrorOfSearchForm();
+  }
+  checkProductPriceInForm(){
+    if(this.formSearch.get('product_price').value!=null && this.formSearch.get('product_price').value!='')
+      this.formSearch.get('product_price').setValue((this.formSearch.get('product_price').value).replace(",", "."));
+    this.checkIndivisibleErrorOfSearchForm();
+  }
+  // true - ошибка (если введено нецелое кол-во товара, при том что оно должно быть целым)
+  checkIndivisibleErrorOfSearchForm(){ 
+    this.indivisibleErrorOfSearchForm=(
+      this.formSearch.get('actual_balance').value!='' && 
+      +this.formSearch.get('product_id').value>0 && 
+      this.formSearch.get('indivisible').value && // кол-во товара должно быть целым, ...
+      !Number.isInteger(parseFloat(this.formSearch.get('actual_balance').value)) // но при этом кол-во товара не целое
+    )
+  }
+  checkIndivisibleErrorOfProductTable(){
+    let result=false;// ошибки нет
+    this.formBaseInformation.value.inventoryProductTable.map(t =>{
+      if(t['indivisible'] && t['actual_balance']!='' && !Number.isInteger(parseFloat(t['actual_balance']))){
+        result=true;
+      }
+    })
+    this.indivisibleErrorOfProductTable=result;
+  }
 
   //****************************************************************************** МАССОВОЕ ДОБАВЛЕНИЕ ТОВАРОВ ЧЕРЕЗ СПРАВОЧНИК *******************************************************************
   openDialogProductCategoriesSelect(selection:string){
@@ -848,9 +894,10 @@ export class InventoryProductsTableComponent implements OnInit {
       estimated_balance:  new FormControl (row.estimated_balance,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
       actual_balance:  new FormControl (actual_balance,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
       product_price:  new FormControl (this.priceFilter(this.getPrice(row)),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),/*ValidationService.priceMoreThanZero*/]),
-      difference: new FormControl (actual_balance-row.estimated_balance,[]),
-      discrepancy: new FormControl ((actual_balance-row.estimated_balance)*this.getPrice(row),[]),
-    });
+      difference: new FormControl ((actual_balance-row.estimated_balance).toFixed(3).replace('.000', '').replace('.00', ''),[]),
+      discrepancy: new FormControl (((actual_balance-row.estimated_balance)*this.getPrice(row)).toFixed(3).replace('.000', '').replace('.00', ''),[]),
+      indivisible:  new FormControl (row.indivisible,[]),
+    });   
   }
 
   //в зависимости от политики назначения цены возвращаем одну из цен, содержащихся в передаваемом объекте
@@ -871,5 +918,7 @@ export class InventoryProductsTableComponent implements OnInit {
   numberOnlyPlusDotAndComma(event): boolean {
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
     if (charCode > 31 && ((charCode < 48 || charCode > 57) && charCode!=44 && charCode!=46)) { return false; } return true;}
-
+  //для проверки в таблице с вызовом из html
+  isInteger (i:number):boolean{return Number.isInteger(i)}
+  parseFloat(i:string){return parseFloat(i)}
 }

@@ -237,12 +237,20 @@
                                                             </div>
 
                                                             <div class="flex">
-                                                                <mat-form-field 
-                                                                    class="slideWidth100">
-                                                                    <mat-slide-toggle formControlName="not_sell">Снято с продажи</mat-slide-toggle>
+                                                                <mat-form-field style="width:50%; margin-right:5px;" 
+                                                                    >
+                                                                    <mat-slide-toggle formControlName="not_sell">Снят с продаж</mat-slide-toggle>
+                                                                    <input matInput hidden/>
+                                                                </mat-form-field>
+                                                            
+                                                                <mat-form-field  style="width:50%;"
+                                                                    >
+                                                                    <mat-slide-toggle formControlName="indivisible">Неделимый</mat-slide-toggle>
                                                                     <input matInput hidden/>
                                                                 </mat-form-field>
                                                             </div>
+
+
 
                                                             <div  [ngClass]="{invisible: visBeforeCreatingBlocks || (+formBaseInformation.get('ppr_id').value>2)}">
                                                                 <div class="flex"  *ngIf="formBaseInformation.get('company_id').value">

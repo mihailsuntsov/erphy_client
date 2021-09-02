@@ -11,6 +11,6 @@ export class ProductHistoryQuery{
     offset: any;
     sortAsc: any;
     result: any;//количество записей на странице
-    dockTypesIds: string;//строка с id документов, по которым надо вывести данные (например, по приёмке и оприходованию)
+    dockTypesIds: number[];//id документов, по которым надо вывести данные (например, по приёмке и оприходованию)
 
 }

@@ -967,7 +967,7 @@ export class ReturnDockComponent implements OnInit {
       this.formWP.get('return_id').setValue(this.id);
       this.formWP.get('company_id').setValue(this.formBaseInformation.get('company_id').value);
       this.formWP.get('department_id').setValue(this.formBaseInformation.get('department_id').value);
-      this.formWP.get('description').setValue('Создано из Инвентаризации №'+ this.formBaseInformation.get('doc_number').value);
+      this.formWP.get('description').setValue('Создано из Возврата покупателя №'+ this.formBaseInformation.get('doc_number').value);
       this.getProductsTableWP(dockname);//формируем таблицу товаров для создаваемого документа
       this.http.post('/api/auth/insert'+dockname, this.formWP.value)
       .subscribe(
@@ -1002,7 +1002,6 @@ export class ReturnDockComponent implements OnInit {
     const control = <FormArray>this.formWP.get(tableName);
     control.clear();
     this.returnProductsTableComponent.getProductTable().forEach(row=>{
-        if((row.actual_balance-row.estimated_balance)<0)
           control.push(this.formingProductRowWP(row,dockname));
     });
   }
@@ -1099,8 +1098,7 @@ export class ReturnDockComponent implements OnInit {
       },
     });
     dialogRef.afterClosed().subscribe(result => {
-      // console.log(`Dialog result: ${result}`);
-      // if(result) this.getReturnLinkedDocsList('writeoff',true);//если вернулось true - значит, возможно, зайдя в Списание его закрыли. Обновим список списаний. Да, возможно заходили в уже закрытый документ, и запрос на обновление списка документов будет произведен зря
+      if(result) this.getReturnLinkedDocsList('writeoff',true);//если вернулось true - значит, возможно, зайдя в Списание его закрыли. Обновим список списаний. Да, возможно заходили в уже закрытый документ, и запрос на обновление списка документов будет произведен зря
     });
   }
   deleteLinkedDock(docName:string,id:number){

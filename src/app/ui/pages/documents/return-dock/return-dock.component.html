@@ -39,7 +39,8 @@
             <button 
                 style="width: 129px;height: 36px;min-width: 38px;"
                 mat-raised-button 
-                *ngIf="!formBaseInformation.get('is_completed').value && +id>0"
+                *ngIf=" +id>0 && !formBaseInformation.get('is_completed').value && returnProductsTableComponent"
+                [disabled]="!childFormValid||returnProductsTableComponent.indivisibleErrorOfProductTable" 
                 (click)="completeDocument()" 
                 type="button"
                 color="primary"
@@ -50,8 +51,9 @@
                 mat-button 
                 [matMenuTriggerFor]="addDockMenu"
                 mat-raised-button 
-                matTooltip='Создать документы "Списание" или "Оприходование", основанные на данной документа'
-                *ngIf="+id>0"
+                matTooltip='Создать документ "Списание", основанный на данном документе "Возврат покупателя"'
+                *ngIf="+id>0 && returnProductsTableComponent"
+                [disabled]="!childFormValid||!formBaseInformation.valid||returnProductsTableComponent.indivisibleErrorOfProductTable" 
                 color="primary"
                 class="button"
                 style="width: 129px;height: 36px;min-width: 38px;">
@@ -66,10 +68,10 @@
             <button 
                 mat-raised-button 
                 style="width: 129px;height: 36px;min-width: 38px;"
-                *ngIf="+id>0 && allowToUpdate && canGetChilds && !formBaseInformation.get('is_completed').value"
+                *ngIf="+id>0 && allowToUpdate && canGetChilds && !formBaseInformation.get('is_completed').value && returnProductsTableComponent"
                 matTooltip='Сохранить документ'
                 (click)="updateDocument()"
-                [disabled]="!childFormValid" 
+                [disabled]="!childFormValid||returnProductsTableComponent.indivisibleErrorOfProductTable" 
                 color="primary"
                 type="button"
                 class="button">
@@ -80,8 +82,8 @@
                 matTooltip='Создать документ'
                 (click)="createNewDocument()" 
                 style="width: 129px;height: 36px;min-width: 38px;"
-                *ngIf="allowToCreate && +id==0"
-                [disabled]="!formBaseInformation.valid" 
+                *ngIf="allowToCreate && +id==0  && returnProductsTableComponent"
+                [disabled]="!childFormValid||!formBaseInformation.valid||returnProductsTableComponent.indivisibleErrorOfProductTable" 
                 color="primary"
                 type="submit"
                 class="button">

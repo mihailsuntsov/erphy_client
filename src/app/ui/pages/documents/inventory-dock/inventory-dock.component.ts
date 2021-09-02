@@ -678,7 +678,6 @@ export class InventoryDockComponent implements OnInit {
 
   //создание нового документа Инвентаризация
   createNewDocument(){
-    console.log('Создание нового документа Инвентаризация');
     this.createdDockId=null;
     this.getProductsTable();
     this.http.post('/api/auth/insertInventory', this.formBaseInformation.value)
@@ -689,6 +688,7 @@ export class InventoryDockComponent implements OnInit {
                   switch(this.createdDockId){
                     case null:{// null возвращает если не удалось создать документ из-за ошибки
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа Инвентаризация"}});
+                      console.log("3-"+!this.formBaseInformation.valid);
                       break;
                     }
                     case 0:{//недостаточно прав
@@ -900,7 +900,6 @@ export class InventoryDockComponent implements OnInit {
       .subscribe(
       (data) => {
                   let createdDockId=data as number;
-                
                   switch(createdDockId){
                     case null:{// null возвращает если не удалось создать документ из-за ошибки
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа "+(dockname=="Writeoff"?"Списание":"Оприходование")}});

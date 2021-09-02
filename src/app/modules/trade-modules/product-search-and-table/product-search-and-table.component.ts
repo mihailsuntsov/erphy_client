@@ -43,6 +43,7 @@ interface CustomersOrdersProductTable { //интерфейс для формы, 
   reserved_current: number; // сколько зарезервировано в данном заказе покупателя  
   ppr_name_api_atol: string; //Признак предмета расчета в системе Атол. Невидимое поле. Нужно для передачи в таблицу товаров в качестве тега для чека на ккм Атол
   is_material: boolean; //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)            
+  indivisible: boolean; // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
 }
 interface productSearchResponse{//интерфейс получения данных из бд 
   id:number;
@@ -57,6 +58,7 @@ interface productSearchResponse{//интерфейс получения данн
   ppr_name_api_atol:string; //Признак предмета расчета в системе Атол. Невидимое поле. Нужно для передачи в таблицу товаров в качестве тега для чека на ккм Атол
   is_material:boolean; //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
   reserved_current:number;// зарезервировано единиц товара в отделении (складе) в ЭТОМ (текущем) Заказе покупателя:
+  indivisible: boolean; // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
 }
 interface idNameDescription{
   id: number;
@@ -236,6 +238,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
       ppr_name_api_atol: new FormControl        ('',[]), //Признак предмета расчета в системе Атол. Невидимое поле. Нужно для передачи в таблицу товаров в качестве тега для чека на ккм Атол
       is_material: new FormControl              ('',[]), //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
       reserved_current: new FormControl         ('',[]),
+      indivisible: new FormControl              ('',[]), // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
     });
 
     // Форма для сохранения настроек при расценке
@@ -404,6 +407,7 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
       ppr_name_api_atol:  new FormControl (row.ppr_name_api_atol,[]), //Признак предмета расчета в системе Атол
       is_material:  new FormControl (row.is_material,[]), //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
       reserved_current:  new FormControl (row.reserved_current,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),// зарезервировано единиц товара в отделении (складе) в ЭТОМ (текущем) Заказе покупателя
+      indivisible:  new FormControl (row.indivisible,[]),
     });
   }
   addProductRow() 
@@ -453,6 +457,7 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
       ppr_name_api_atol:  new FormControl (this.formSearch.get('ppr_name_api_atol').value,[]), //Признак предмета расчета в системе Атол
       is_material:  new FormControl (this.formSearch.get('is_material').value,[]), //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
       reserved_current:  new FormControl (this.formSearch.get('reserved_current').value,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),// зарезервировано единиц товара в отделении (складе) в ЭТОМ (текущем) Заказе покупателя
+      indivisible:  new FormControl (this.formSearch.get('indivisible').value,[]),
     });
   }
   getSecondaryDepartmentById(id:number):SecondaryDepartment{
@@ -769,6 +774,7 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
     this.formSearch.get('ppr_name_api_atol').setValue(this.filteredProducts[0].ppr_name_api_atol);
     this.formSearch.get('is_material').setValue(this.filteredProducts[0].is_material);
     this.formSearch.get('reserved_current').setValue(this.filteredProducts[0].reserved_current);
+    this.formSearch.get('indivisible').setValue(this.filteredProducts[0].indivisible);              // неделимость (необходимо для проверки правильности ввода кол-ва товара)
     this.afterSelectProduct();
   }
   onPriceTypeSelection(){
@@ -792,6 +798,7 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
     this.formSearch.get('ppr_name_api_atol').setValue(product.ppr_name_api_atol);
     this.formSearch.get('is_material').setValue(product.is_material);
     this.formSearch.get('reserved_current').setValue(product.reserved_current);
+    this.formSearch.get('indivisible').setValue(product.indivisible);              // неделимость (необходимо для проверки правильности ввода кол-ва товара)
     this.productImageName = product.filename;
     this.afterSelectProduct();
   }

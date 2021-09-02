@@ -32,6 +32,7 @@ interface ReturnProductTable { //интерфейс для товаров, (т.�
   // nds: number;                    // НДС в валютном выражении
   product_sumprice: number;       // сумма как product_count * product_price (высчитываем сумму и пихем ее в БД, чтобы потом на бэкэнде в SQL запросах ее не высчитывать)
   product_sumnetcost:number;      // сумма по себестоимости = product_netcost * product_count; тоже записываем в БД по тем же причинам что и сумму
+  indivisible: boolean;           // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
 
 }
 interface ProductSearchResponse{  // интерфейс получения списка товаров во время поиска товара 
@@ -42,6 +43,7 @@ interface ProductSearchResponse{  // интерфейс получения сп�
   edizm: string;                  // наименование единицы измерения товара
   remains: number;                // остатки 
   nds_id: number;                 // ндс 
+  indivisible: boolean;           // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
 }
 interface ShortInfoAboutProduct{//интерф. для получения инфо о состоянии товара в отделении (кол-во, последняя поставка), и средним ценам (закупочной и себестоимости) товара
   quantity:number;
@@ -76,6 +78,8 @@ export class ReturnProductsTableComponent implements OnInit {
   totalProductCount:number=0;//всего кол-во товаров
   totalProductSumm:number=0;//всего разница
   totalNetcost:number=0;//всего избыток/недостача
+  indivisibleErrorOfSearchForm:boolean; // дробное кол-во товара при неделимом товаре в форме поиска
+  indivisibleErrorOfProductTable:boolean;// дробное кол-во товара при неделимом товаре в таблице товаров
 
   //для Autocomplete по поиску товаров
   searchProductCtrl = new FormControl();//поле для поиска товаров
@@ -152,14 +156,15 @@ export class ReturnProductsTableComponent implements OnInit {
       row_id: new FormControl                   ('',[]),
       product_id: new FormControl               ('',[Validators.required]),   // id товара
       edizm: new FormControl                    ('',[]),                      // наименование единицы измерения товара
-      product_price : new FormControl           ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),                      // цена товара (которая уйдет в таблицу выбранных товаров). Т.е. мы как можем вписать цену вручную, так и выбрать из предложенных (см. выше)
-      product_count : new FormControl           ('',[Validators.required,Validators.pattern('^[0-9]{1,6}(?:[.,][0-9]{0,3})?\r?$')]),  // количество товара к возврату
-      product_netcost : new FormControl         ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),                      // себестоимость единицы товара
+      product_price : new FormControl           ('',[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),                      // цена товара (которая уйдет в таблицу выбранных товаров). Т.е. мы как можем вписать цену вручную, так и выбрать из предложенных (см. выше)
+      product_count : new FormControl           ('',[Validators.required,Validators.pattern('^[0-9]{1,6}(?:[.,][0-9]{0,3})?\r?$')]),                      // количество товара к возврату
+      product_netcost : new FormControl         ('',[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),                      // себестоимость единицы товара
       remains : new FormControl                 ('',[]),                      // остатки на складе
       nds_id: new FormControl                   ('',[]),                      // НДС
       // nds: new FormControl                      (0,[]),                    // НДС в валютном ввыражении
       product_sumprice : new FormControl        (0,[]),                       // суммарная стоимость товара = цена * кол-во
       product_sumnetcost : new FormControl      (0,[]),                       // суммарная себестоимость товара = себестоимость * кол-во
+      indivisible: new FormControl              ('',[]),                      // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
     });
 
     this.doOnInit();
@@ -181,7 +186,7 @@ export class ReturnProductsTableComponent implements OnInit {
     this.displayedColumns=[];
     // if(!this.readonly)
       // this.displayedColumns.push('select');
-    this.displayedColumns.push('index','row_id');
+    // this.displayedColumns.push('index','row_id');
     this.displayedColumns.push('name','product_count','edizm','product_price','product_sumprice','product_netcost','product_sumnetcost');
     if(this.nds)
       this.displayedColumns.push('nds');
@@ -295,6 +300,7 @@ export class ReturnProductsTableComponent implements OnInit {
     this.formSearch.get('remains').setValue(this.filteredProducts[0].remains);                      // остатки - кол-во товара по БД
     this.formSearch.get('nds_id').setValue(this.filteredProducts[0].nds_id);                        // id НДС 
     this.formSearch.get('product_netcost').setValue(0);                                             // себестоимость 
+    this.formSearch.get('indivisible').setValue(this.filteredProducts[0].indivisible);              // неделимость (необходимо для проверки правильности ввода кол-ва товара)
     this.afterSelectProduct();
     this.filteredProducts=[];
   }
@@ -308,6 +314,7 @@ export class ReturnProductsTableComponent implements OnInit {
     this.formSearch.get('remains').setValue(product.remains);                      // остатки - кол-во товара по БД
     this.formSearch.get('nds_id').setValue(product.nds_id);                        // id НДС 
     this.formSearch.get('product_netcost').setValue(0);                            // себестоимость 
+    this.formSearch.get('indivisible').setValue(product.indivisible);              // неделимость (необходимо для проверки правильности ввода кол-ва товара)
     this.canAutocompleteQuery=false;
     this.afterSelectProduct();
   }
@@ -425,10 +432,12 @@ export class ReturnProductsTableComponent implements OnInit {
       product_price:  new FormControl (this.numToPrice(row.product_price,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),
       // ValidationService.priceMoreThanZero  -- пока исключил ошибку "Цена=0", чтобы позволить сохранять с нулевой ценой, а также делать с ней связанные документы.
       ]),
+      indivisible:  new FormControl (row.indivisible,[]),
     });
   }
 
   addProductRow(){ 
+  this.productSearchField.nativeElement.focus();//убираем курсор из текущего поля, чтобы оно не было touched и красным после сброса формы
   const control = <FormArray>this.formBaseInformation.get('returnProductTable');
   let thereProductInTableWithSameId:boolean=false;
     this.formBaseInformation.value.returnProductTable.map(i => 
@@ -463,7 +472,7 @@ export class ReturnProductsTableComponent implements OnInit {
       nds_id: new FormControl (+this.formSearch.get('nds_id').value,[]),
       product_sumprice: new FormControl ((+this.formSearch.get('product_count').value*(+this.formSearch.get('product_price').value)).toFixed(2),[]),
       product_sumnetcost: new FormControl ((+this.formSearch.get('product_count').value*(+this.formSearch.get('product_netcost').value)).toFixed(2),[]),
-
+      indivisible:  new FormControl (this.formSearch.get('indivisible').value,[]),
       // nds: new FormControl (+this.formSearch.get('remains').value,[]),
     });
   }
@@ -517,15 +526,19 @@ export class ReturnProductsTableComponent implements OnInit {
   }
 
   onChangeProductPrice(row_index:number){
+    this.commaToDotInTableField(row_index, 'product_price');
     this.setRowSumPrice(row_index);
     this.productTableRecount();
   }
   onChangeProductCount(row_index:number){
+    this.commaToDotInTableField(row_index, 'product_count');
     this.setRowSumPrice(row_index);
     this.setRowNetcost(row_index);
     this.productTableRecount();
+    this.checkIndivisibleErrorOfProductTable();
   }
   onChangeProductNetcost(row_index:number){
+    this.commaToDotInTableField(row_index, 'product_netcost');
     this.setRowNetcost(row_index);
     this.productTableRecount();
   }
@@ -556,7 +569,7 @@ export class ReturnProductsTableComponent implements OnInit {
     return  (this.formBaseInformation.value.returnProductTable.map(t => +t.product_count).reduce((acc, value) => acc + value, 0)).toFixed(3).replace(".000", "").replace(".00", "");
   }
   getTotalSumPrice() { //бежим по столбцу product_sumprice и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
-    return (this.formBaseInformation.value.returnProductTable.map(t => +t.product_sumprice).reduce((acc, value) => acc + value, 0)).toFixed(3).replace(".000", "").replace(".00", "");
+    return (this.formBaseInformation.value.returnProductTable.map(t => +t.product_sumprice).reduce((acc, value) => acc + value, 0)).toFixed(2).replace(".000", "").replace(".00", "");
   }
   getTotalNetcost() {//бежим по столбцу product_sumnetcost и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
     return (this.formBaseInformation.value.returnProductTable.map(t => +t.product_sumnetcost).reduce((acc, value) => acc + value, 0)).toFixed(2);
@@ -576,7 +589,7 @@ export class ReturnProductsTableComponent implements OnInit {
     const b = charsAfterDot - (a.length - dot) + 1;
     return b > 0 ? (a + "0".repeat(b)) : a;
   }
-  
+
   checkEmptyProductField(){
     if(this.searchProductCtrl.value.length==0){
       this.resetFormSearch();
@@ -601,6 +614,46 @@ export class ReturnProductsTableComponent implements OnInit {
 
       setTimeout(() => { this.productSearchField.nativeElement.focus(); }, 100);
   }
+
+  commaToDotInTableField(row_index:number, fieldName:string){
+    const control = this.getControlTablefield();
+    control.controls[row_index].get(fieldName).setValue(control.controls[row_index].get(fieldName).value.replace(",", "."));
+  }
+  checkProductCountInForm(){
+    if(this.formSearch.get('product_count').value!=null && this.formSearch.get('product_count').value!='')
+      this.formSearch.get('product_count').setValue((this.formSearch.get('product_count').value).replace(",", "."));
+    this.checkIndivisibleErrorOfSearchForm();
+  }
+  checkProductPriceInForm(){
+    if(this.formSearch.get('product_price').value!=null && this.formSearch.get('product_price').value!='')
+      this.formSearch.get('product_price').setValue((this.formSearch.get('product_price').value).replace(",", "."));
+    this.checkIndivisibleErrorOfSearchForm();
+  }
+  checkProductNetcostInForm(){
+    if(this.formSearch.get('product_netcost').value!=null && this.formSearch.get('product_netcost').value!='')
+      this.formSearch.get('product_netcost').setValue((this.formSearch.get('product_netcost').value).replace(",", "."));
+    this.checkIndivisibleErrorOfSearchForm();
+  }
+  // true - ошибка (если введено нецелое кол-во товара, при том что оно должно быть целым)
+  checkIndivisibleErrorOfSearchForm(){ 
+    this.indivisibleErrorOfSearchForm=(
+      this.formSearch.get('product_count').value!='' && 
+      +this.formSearch.get('product_id').value>0 && 
+      this.formSearch.get('indivisible').value && // кол-во товара должно быть целым, ...
+      !Number.isInteger(parseFloat(this.formSearch.get('product_count').value)) // но при этом кол-во товара не целое
+    )
+  }
+  checkIndivisibleErrorOfProductTable(){
+    let result=false;// ошибки нет
+    this.formBaseInformation.value.returnProductTable.map(t =>{
+      if(t['indivisible'] && t['product_count']!='' && !Number.isInteger(parseFloat(t['product_count']))){
+        result=true;
+      }
+    })
+    this.indivisibleErrorOfProductTable=result;
+  }
+
+
 
   //****************************************************************************** МАССОВОЕ ДОБАВЛЕНИЕ ТОВАРОВ ЧЕРЕЗ СПРАВОЧНИК *******************************************************************
   openDialogProductCategoriesSelect(selection:string){
@@ -686,6 +739,7 @@ export class ReturnProductsTableComponent implements OnInit {
       product_sumprice: new FormControl (0,[]),
       product_sumnetcost: new FormControl (0,[]),
       nds_id: new FormControl (row.nds_id,[]),
+      indivisible: new FormControl (row.indivisible,[]),
     });
   }
 
@@ -697,4 +751,7 @@ export class ReturnProductsTableComponent implements OnInit {
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
     if (charCode > 31 && ((charCode < 48 || charCode > 57) && charCode!=44 && charCode!=46)) { return false; } return true;}
 
+  //для проверки в таблице с вызовом из html
+  isInteger (i:number):boolean{return Number.isInteger(i)}
+  parseFloat(i:string){return parseFloat(i)}
 }

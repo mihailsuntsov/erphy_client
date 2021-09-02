@@ -91,6 +91,21 @@ export class UiComponent implements OnInit {
     window.location.reload();
   }
 
+  arrowClick(e,parentLevel:number){
+    let clickedElement = e.target;
+    console.log(clickedElement);
+    if(parentLevel==1)
+      clickedElement.parentElement.classList.toggle("showMenu");
+    if(parentLevel==2)
+      clickedElement.parentElement.parentElement.classList.toggle("showMenu");
+    if(parentLevel==3)
+      clickedElement.parentElement.parentElement.parentElement.classList.toggle("showMenu");
+  }
+
+  menuClick(e){
+    let sidebar = document.querySelector(".sidebar");
+    sidebar.classList.toggle("close");
+  }
 }
 
 

@@ -26,7 +26,7 @@
                                 *ngIf="!readonly"
                                 type="submit"
                                 style="margin-bottom: 10px;"
-                                [disabled]="(!formSearch.valid)"
+                                [disabled]="(!formSearch.valid)||indivisibleErrorOfSearchForm"
                                 color="primary"
                                 class="button">
                                 <i class="material-icons">playlist_add</i> В список
@@ -127,14 +127,16 @@
                                                                             #product_count
                                                                             [placeholder]="placeholderActualBalance"
                                                                             formControlName="product_count"
-                                                                            (keypress)="numberOnlyPlusDotAndComma($event)"
+                                                                            (input)="checkProductCountInForm()"
+                                                                            (change)="checkProductCountInForm()"
+                                                                            (keypress)="numberOnlyPlusDotAndComma($event);"
                                                                             [readonly]="+formSearch.get('product_id').value==0?true:false"/>
-                                                                    <mat-hint  align="start" *ngIf="formSearch.get('product_count').touched">
+                                                                    <mat-hint  align="start">
                                                                         <i *ngIf="formSearch.get('product_count').invalid && formSearch.get('product_count').errors.pattern" class="form-invalid">Неправильный формат. Допускается до 6 цифр в целой и до 3 цифр в дробной части. </i>
-                                                                        <i *ngIf="(+formSearch.get('product_count').value==0) && formSearch.get('product_count').value!=''" class="form-invalid">Значение должно быть больше 0</i>
-                                                                        <i *ngIf="formSearch.get('product_count').value=='' && +this.formSearch.get('product_id').value>0" class="form-invalid">Поле не заполнено</i>
+                                                                        <i *ngIf="formSearch.get('product_count').value!=null && (+formSearch.get('product_count').value==0) && formSearch.get('product_count').value!=''" class="form-invalid">Значение должно быть больше 0</i>
+                                                                        <i *ngIf="(formSearch.get('product_count').value==null || formSearch.get('product_count').value=='') && +this.formSearch.get('product_id').value>0" class="form-invalid">Поле не заполнено</i>
+                                                                        <i *ngIf="indivisibleErrorOfSearchForm" class="form-invalid">Должно быть целым</i>
                                                                     </mat-hint>
-                                                            
                                                                 </mat-form-field>
                                                             </div>
                                                             <div class="col-lg-1 col-md-12" style="min-width: 85px;"> 
@@ -142,20 +144,15 @@
                                                                     <input  matInput 
                                                                             placeholder="Цена{{formSearch.get('edizm').value==''?'':' за 1 '}}{{formSearch.get('edizm').value}}"
                                                                             formControlName="product_price"
+                                                                            (input)="checkProductPriceInForm()"
+                                                                            (change)="checkProductPriceInForm()"
                                                                             (keypress)="numberOnlyPlusDotAndComma($event)"
                                                                             [readonly]="+formSearch.get('product_id').value==0?true:false"/>
-                                                                            <!-- <button mat-button 
-                                                                            type="button"
-                                                                            (click)="openDialogPricing()"
-                                                                            *ngIf="+formSearch.get('product_id').value>0" 
-                                                                            matTooltip='Расценить товар иначе'
-                                                                            matSuffix mat-icon-button>
-                                                                            <mat-icon>assessment</mat-icon>
-                                                                            </button> -->
+
                                                                     <mat-hint align="start">
                                                                         <i *ngIf=" formSearch.get('product_price').invalid && formSearch.get('product_price').errors.pattern && formSearch.get('product_price').value>0 && formSearch.get('product_price').touched" class="form-invalid">Неправильный формат. Допускается до 7 цифр в целой и до 2 цифр в дробной части</i>
-                                                                        <i *ngIf="formSearch.get('product_price').value=='' && +this.formSearch.get('product_id').value>0 && formSearch.get('product_price').touched" class="form-invalid">Поле не заполнено</i>
-                                                                        <i *ngIf="formSearch.get('product_price').value==0 && formSearch.get('product_price').value!=''" class="form-invalid">Цена = 0</i>
+                                                                        <i *ngIf="(formSearch.get('product_price').value==null || formSearch.get('product_price').value=='') && formSearch.get('product_price').value!='0' && +this.formSearch.get('product_id').value>0 && formSearch.get('product_price').touched" class="form-invalid">Поле не заполнено</i>
+                                                                        <i *ngIf="formSearch.get('product_price').value=='0' && formSearch.get('product_price').touched" class="form-invalid">Цена = 0</i>
                                                                         <i *ngIf="formSearch.get('product_price').value<0 && formSearch.get('product_price').value!=''" class="form-invalid">Отрицательная цена!</i>
                                                                     </mat-hint>
                                                                         
@@ -196,11 +193,13 @@
                                                                     <mat-label>Себест. ед.</mat-label>
                                                                     <input  matInput 
                                                                             formControlName="product_netcost"
+                                                                            (input)="checkProductNetcostInForm()"
+                                                                            (change)="checkProductNetcostInForm()"
                                                                             (keypress)="numberOnlyPlusDotAndComma($event)"
                                                                             [readonly]="+formSearch.get('product_id').value==0?true:false"/>
                                                                     <mat-hint  align="start" *ngIf="formSearch.get('product_netcost').touched">
                                                                         <i *ngIf="formSearch.get('product_netcost').invalid && formSearch.get('product_netcost').errors.pattern" class="form-invalid">Неправильный формат. Допускается до 6 цифр в целой и до 3 цифр в дробной части. </i>
-                                                                        <i *ngIf="formSearch.get('product_netcost').value=='' && +this.formSearch.get('product_id').value>0" class="form-invalid">Поле не заполнено</i>
+                                                                        <i *ngIf="(formSearch.get('product_netcost').value==null || formSearch.get('product_netcost').value=='') && formSearch.get('product_netcost').value!='0' && +this.formSearch.get('product_id').value>0 && formSearch.get('product_netcost').touched" class="form-invalid">Поле не заполнено</i>
                                                                     </mat-hint>
                                                             
                                                                 </mat-form-field>
@@ -293,7 +292,7 @@
                                         <th mat-header-cell *matHeaderCellDef class="cell-padding width-80">
                                             <span 
                                                 style="cursor: default;"
-                                                matTooltip="Количество списываемого товара">
+                                                matTooltip="Количество возвращаемого товара">
                                                 Количество
                                             </span>
                                         </th>
@@ -310,9 +309,15 @@
                                                 placeholder=""
                                                 formControlName="product_count"
                                                 (keyup)="onChangeProductCount(i);"
+                                                (keypress)="numberOnlyPlusDotAndComma($event)"
                                             />
                                             <control-messages  class="table-form-invalid" [control]="getControlTablefield().controls[i].get('product_count')"></control-messages>
                                             <mat-hint align="start">
+                                                <i *ngIf="  getControlTablefield().controls[i].get('product_count').value !='' && 
+                                                            getControlTablefield().controls[i].get('indivisible').value && 
+                                                            !isInteger(parseFloat(getControlTablefield().controls[i].get('product_count').value))"  class="table-form-invalid">
+                                                            Должно быть целым
+                                                </i>
                                                 <i *ngIf="getControlTablefield().controls[i].get('product_count').invalid && getControlTablefield().controls[i].get('product_count').errors.pattern" class="table-form-invalid">Неправильный формат. Допускается до 7 цифр в целой и до 3 цифр в дробной части</i>
                                             </mat-hint>
                                         <td mat-footer-cell *matFooterCellDef class="cell-padding width-60"> {{totalProductCount}} </td>
@@ -345,7 +350,7 @@
                                                 placeholder=""
                                                 formControlName="product_price"
                                                 (keyup)="onChangeProductPrice(i);"
-                                                (keypress)="numberOnlyPlusDot($event)"
+                                                (keypress)="numberOnlyPlusDotAndComma($event)"
                                             />
                                             <control-messages  class="table-form-invalid" [control]="getControlTablefield().controls[i].get('product_price')"></control-messages>
                                             <mat-hint align="start" >
@@ -395,7 +400,7 @@
                                                 placeholder=""
                                                 formControlName="product_netcost"
                                                 (keyup)="onChangeProductNetcost(i);"
-                                                (keypress)="numberOnlyPlusDot($event)"
+                                                (keypress)="numberOnlyPlusDotAndComma($event)"
                                             />
                                             <control-messages  class="table-form-invalid" [control]="getControlTablefield().controls[i].get('product_netcost')"></control-messages>
                                             <mat-hint align="start" >
