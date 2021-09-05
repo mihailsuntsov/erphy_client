@@ -218,6 +218,7 @@
                                                         <mat-slide-toggle 
                                                         formControlName="nds"
                                                         [disabled]="is_completed"
+                                                        (change)="productSearchAndTableComponent.onChangeNds(formBaseInformation.get('nds_included').value)"
                                                         matTooltip='Включите, если вы работаете с НДС. Если в накладной присутствует НДС, но вы не плательщик НДС, то включать не нужно.'
                                                         >НДС</mat-slide-toggle>
                                                         <input matInput hidden/>
@@ -226,7 +227,7 @@
                                                         <mat-slide-toggle 
                                                             formControlName="nds_included"
                                                             [disabled]="is_completed"
-                                                            (change)="productSearchAndTableComponent.productTableRecount(formBaseInformation.get('nds_included').value)"
+                                                            (change)="productSearchAndTableComponent.onChangeNdsIncluded(formBaseInformation.get('nds_included').value)"
                                                             matTooltip='Включите, если цена уже содержит НДС. В противном случае НДС прибавится сверху цены'
                                                         >НДС включена</mat-slide-toggle>
                                                         <input matInput hidden/>
@@ -522,7 +523,7 @@
                                         [addressString] = "addressString"
                                         [department_id] = "this.formBaseInformation.get('department_id').value"
                                         [selectedPaymentType] = "settingsForm.get('selectedPaymentType').value"
-                                        [kkmCanWork] = "childFormValid"
+                                        [productTableIsValid] = "childFormValid"
                                         [cheque_nds] = "cheque_nds"
                                         [company]="formAboutDocument.get('company').value"
                                         [department]="formBaseInformation.get('department').value"

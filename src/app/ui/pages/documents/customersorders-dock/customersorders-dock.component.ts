@@ -481,7 +481,8 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
   }
   get childFormValid() {
     if(this.productSearchAndTableComponent!=undefined)
-      return this.productSearchAndTableComponent.getControlTablefield().valid;
+    //если нет ошибок в форме, включая отсутствие дробного количества у неделимых товаров
+      return (this.productSearchAndTableComponent.getControlTablefield().valid && !this.productSearchAndTableComponent.indivisibleErrorOfProductTable);
     else return true;    //чтобы не было ExpressionChangedAfterItHasBeenCheckedError. Т.к. форма создается пустая и с .valid=true, а потом уже при заполнении проверяется еще раз.
   }
   //---------------------------------------------------------------------------------------------------------------------------------------                            

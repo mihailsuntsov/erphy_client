@@ -226,7 +226,6 @@ export class ReturnComponent implements OnInit {
         this.getTableHeaderTitles();
         this.getPagesList();
         this.getTable();
-        this.getPriceTypesList();
       }
     }
   
@@ -235,7 +234,7 @@ export class ReturnComponent implements OnInit {
       if(this.allowToDelete) this.displayedColumns.push('select');
       if(this.showOpenDocIcon) this.displayedColumns.push('opendoc');
       this.displayedColumns.push('doc_number');
-      this.displayedColumns.push('name');
+      this.displayedColumns.push('cagent');
       this.displayedColumns.push('status');
       this.displayedColumns.push('product_count');
       this.displayedColumns.push('is_completed');
@@ -539,7 +538,6 @@ export class ReturnComponent implements OnInit {
         minHeight: '650px',
         data:
         { //отправляем в диалог:
-          priceTypesList:   this.receivedPriceTypesList, //список типов цен
           receivedCompaniesList: this.receivedCompaniesList, //список предприятий
           receivedDepartmentsList: this.receivedDepartmentsList,//список отделений
           company_id: +this.sendingQueryForm.companyId, //предприятие (нужно для поиска покупателя)
@@ -571,14 +569,6 @@ export class ReturnComponent implements OnInit {
               );
     }
   
-    getPriceTypesList(){
-      this.receivedPriceTypesList=null;
-      this.loadSpravService.getPriceTypesList(+this.sendingQueryForm.companyId)
-      .subscribe(
-        (data) => {this.receivedPriceTypesList=data as any [];},
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-      );
-    }
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
     resetOptions(){
       this.displayingDeletedDocks=false;

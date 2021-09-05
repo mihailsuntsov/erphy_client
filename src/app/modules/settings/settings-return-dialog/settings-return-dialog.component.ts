@@ -38,7 +38,6 @@ export class SettingsReturnDialogComponent implements OnInit {
 
   gettingData:boolean=false;
   settingsForm: any; // форма со всей информацией по настройкам
-  priceTypesList: idNameDescription [] = [];//список типов цен
   receivedCompaniesList: any [] = [];//массив для получения списка предприятий
   receivedDepartmentsList: SecondaryDepartment [] = [];//массив для получения списка отделений
   receivedMyDepartmentsList: SecondaryDepartment [] = [];//массив для получения списка своих отделений
@@ -65,7 +64,6 @@ export class SettingsReturnDialogComponent implements OnInit {
   
   ngOnInit(): void {
     this.receivedCompaniesList=this.data.receivedCompaniesList;
-    this.priceTypesList=this.data.priceTypesList;
     this.id=+this.data.id;
     this.allowToCreateAllCompanies=this.data.allowToCreateAllCompanies;
     this.allowToCreateMyCompany=this.data.allowToCreateMyCompany;
@@ -81,6 +79,8 @@ export class SettingsReturnDialogComponent implements OnInit {
       statusOnFinishId: new FormControl         ('',[]),
       // автодобавление товара из формы поиска в таблицу
       autoAdd:  new FormControl                 (false,[]),
+      // отображать блок работы с онлайн кассой 
+      showKkm:  new FormControl                 (false,[]),
     });
     this.getSettings();
     
@@ -102,6 +102,7 @@ export class SettingsReturnDialogComponent implements OnInit {
         this.settingsForm.get('statusOnFinishId').setValue(result.statusOnFinishId);
         //данная группа настроек не зависит от предприятия
         this.settingsForm.get('autoAdd').setValue(result.autoAdd);
+        this.settingsForm.get('showKkm').setValue(result.showKkm);
         if(+this.settingsForm.get('companyId').value>0){
           this.getDepartmentsList();
           this.getStatusesList();

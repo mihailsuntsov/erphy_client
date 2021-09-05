@@ -117,6 +117,10 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   settingsForm: any; // форма с настройками (нужно для сохранения некоторых настроек при расценке)
   displayedColumns:string[] = [];//отображаемые колонки таблицы товаров
   gettingTableData: boolean;//идет загрузка товарных позиций
+  // totalProductCount:number=0;//всего кол-во товаров
+  totalProductSumm:number=0;//всего разница
+  indivisibleErrorOfSearchForm:boolean; // дробное кол-во товара при неделимом товаре в форме поиска
+  indivisibleErrorOfProductTable:boolean;// дробное кол-во товара при неделимом товаре в таблице товаров
 
   //для Autocomplete по поиску товаров
   searchProductCtrl = new FormControl();//поле для поиска товаров
@@ -190,7 +194,8 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   @Input() receivedPriceTypesList: idNameDescription[];//массив для получения списка типов цен
   @Input() spravSysNdsSet: SpravSysNdsSet[]; //массив имен и id для ндс 
   @Input() readonly:boolean;
-  @Input() parent_document_id:number;// из какого документа вызывают. Например, CustomersOrders, Inventory, RetailSales
+  @Input() parent_document_id:string;// из какого документа вызывают. Например, CustomersOrders, RetailSales
+  @Input() autoAdd:boolean;//автодобавление товара из формы поиска товара в таблицу
 
   @Output() totalSumPriceEvent = new EventEmitter<string>();
 
@@ -267,7 +272,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if(changes.nds) {
       this.hideOrShowNdsColumn();
-      setTimeout(() => {this.productTableRecount();}, 1);// ставим таймаут, иначе таблица пересчитывается но не обновляется при добавлении столбца. Не понятно, баг это или фича
+      setTimeout(() => {this.tableNdsRecount();}, 1);// ставим таймаут, иначе таблица пересчитывается но не обновляется при добавлении столбца. Не понятно, баг это или фича
     }
   }
   ngAfterViewInit() {
@@ -336,12 +341,7 @@ createCheckedList(){
     if(this.selection.isSelected(this.formBaseInformation.controls.customersOrdersProductTable.value[i])){
       this.checkedList.push(this.formBaseInformation.controls.customersOrdersProductTable.value[i].row_id);
     }
-    
   }
-  if(this.checkedList.length>0){
-    // console.log("3");
-  }else{/*console.log("");*/}
-  // console.log("checkedList - "+this.checkedList);
 }
 isAllSelected() {//все выбраны
   const numSelected = this.selection.selected.length;
@@ -366,13 +366,13 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
     this.http.get('/api/auth/get'+this.parentDockName+'ProductTable?id='+this.parentDockId)
         .subscribe(
             data => { 
-                // control.clear();
                 this.gettingTableData=false;
                 ProductsTable=data as any;
                 if(ProductsTable.length>0){
                   ProductsTable.forEach(row=>{
                     control.push(this.formingProductRowFromApiResponse(row));
                   });
+                  this.finishRecount();// подсчёт итогов у таблицы
                 }
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
@@ -425,6 +425,7 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
       const control = <FormArray>this.formBaseInformation.get('customersOrdersProductTable');
       control.push(this.formingProductRowFromSearchForm());
      this.resetFormSearch();//подготовка формы поиска к дальнейшему вводу товара
+     this.finishRecount(); // подсчёт тоталов в таблице
     } 
   }
    //формирование строки таблицы с товарами для заказа покупателя из формы поиска товара
@@ -518,70 +519,6 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
     const control = <FormArray>this.formBaseInformation.get('customersOrdersProductTable');
     return control;
   }
-  getTotalProductCount() {//бежим по столбцу product_count и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
-    return  (this.formBaseInformation.value.customersOrdersProductTable.map(t => +t.product_count).reduce((acc, value) => acc + value, 0)).toFixed(3).replace(".000", "").replace(".00", "");
-  }
-  getTotalSumPrice() {
-    //бежим по столбцу product_sumprice и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
-    let totalSumPrice:any = (this.formBaseInformation.value.customersOrdersProductTable.map(t => +t.product_sumprice).reduce((acc, value) => acc + value, 0)).toFixed(2);
-    //отправляем родителю результат (для его дальнейшей переправки в кассовый модуль)
-    this.totalSumPriceEvent.emit(totalSumPrice);
-    return totalSumPrice;
-  }
-  productTableRecount(nds_included?:boolean){
-    if(this.formBaseInformation!=undefined){//метод может вызываться из ngOnChanges, а т.к. он стартует до ngOnInit, то formBaseInformation может еще не быть
-      if(nds_included!=undefined)
-        this.nds_included=nds_included;
-
-      // alert('this.nds-'+this.nds+', this.nds_included-'+this.nds_included+', length - '+this.formBaseInformation.controls['customersOrdersProductTable'].value.length);
-      //установим нужно ли передавать в кассу НДС для товаров (если переключатель НДС выключен - значит не передаем)
-      //почему сразу не смотрим на formBaseInformation.get('nds').value? Сделано на будущее, в котором кассовый модуль будет реализован отдельной компонентой
-      // this.cheque_nds=this.formBaseInformation.get('nds').value;
-      //перерасчет НДС в форме поиска
-      if(+this.formSearch.get('product_id').value) this.calcSumPriceOfProduct();
-      //перерасчет НДС в таблице товаров
-      // this.nds_included=nds_included;//передаем сюда параметром, т.к. @Input() передается уже после вызова productTableRecount(), и нужно либо так, либо обсерваблить this.nds_included
-      if(this.formBaseInformation.controls['customersOrdersProductTable'].value.length>0){
-        let switcherNDS:boolean = this.nds;
-        let switcherNDSincluded:boolean = this.nds_included;
-        // alert(this.nds_included)
-        let multiplifierNDS:number = 1;//множитель НДС. Рассчитывается для каждой строки таблицы. Например, для НДС 20% будет 1.2, для 0 или без НДС будет 1
-        // let KZ:number = 0; //коэффициент затрат, равер делению расходов на итоговую сумму
-        this.formBaseInformation.value.customersOrdersProductTable.map(i => 
-          {
-            multiplifierNDS = this.getNdsMultiplifierBySelectedId(+i['nds_id']);
-            //если включён переключатель "НДС", но переключатель "НДС включена" выключен,
-            // alert('switcherNDS-'+switcherNDS+', switcherNDSincluded-'+switcherNDSincluded);
-            if(switcherNDS && !switcherNDSincluded){
-              // alert("false, нужно добавлять к сумме, multiplifierNDS="+this.numToPrice(+(+i['product_count']*(+i['product_price'])*multiplifierNDS).toFixed(2),2))
-            //..к сумме добавляем НДС
-              i['product_sumprice']=this.numToPrice(+(+i['product_count']*(+i['product_price'])*multiplifierNDS).toFixed(2),2);
-              // alert("i['product_sumprice']="+i['product_sumprice']);
-            }else i['product_sumprice']=this.numToPrice(+((+i['product_count'])*(+i['product_price'])).toFixed(2),2);//..иначе не добавляем, и сумма - это просто произведение количества на цену
-          });
-
-          // this.formBaseInformation.value.customersOrdersProductTable.map(i =>{
-            // alert("i['product_sumprice']="+i['product_sumprice']);
-          // });
-          // this.table_.renderRows();
-      }
-    }
-  }
-  onChangePriceTypeOfRow(row_index:number){
-    const control = this.getControlTablefield();
-    let product_id = control.at(row_index).get('product_id').value;
-    let price_type_id = control.at(row_index).get('price_type_id').value;
-        this.getProductPrice(product_id,price_type_id)
-        .subscribe(
-          data => { 
-            const price=data as number;
-            control.controls[row_index].get('product_price').setValue((+price));
-            control.controls[row_index].get('product_price_of_type_price').setValue((+price));
-            this.productTableRecount();
-          },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-        );
-  }
   openProductCard(dockId:number) {
     this.dialogCreateProduct.open(ProductsDockComponent, {
       maxWidth: '95vw',
@@ -613,41 +550,6 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
     dialogReserves.afterClosed().subscribe(result => {
     });
   }
-  numberOnlyPlusDot(event): boolean {
-    const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
-    if (charCode > 31 && ((charCode < 48 || charCode > 57) && charCode!=46)) { return false; } return true;}
-  numberOnlyPlusDotAndComma(event): boolean {
-    const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
-    if (charCode > 31 && ((charCode < 48 || charCode > 57) && charCode!=44 && charCode!=46)) { return false; } return true;}
-  onChangeProductPrice(row_index:number){
-    const control = this.getControlTablefield();
-    let product_price = control.controls[row_index].get('product_price').value;
-    let product_price_of_type_price = control.controls[row_index].get('product_price_of_type_price').value;
-    if (+product_price != +product_price_of_type_price) control.controls[row_index].get('price_type_id').setValue(null);
-    this.productTableRecount();
-  }
-  getNdsMultiplifierBySelectedId(srchId:number):number {
-    //возвращает множитель по выбранному НДС. например, для 20% будет 1.2, 0% - 1 и т.д 
-        let value=0;
-        this.spravSysNdsSet.forEach(a=>{
-          if(+a.id == srchId) {value=(a.name.includes('%')?(+a.name.replace('%','')):0)/100+1}
-        }); return value;}    
-
-  //Конвертирует число в строку типа 0.00 например 6.40, 99.25
-  numToPrice(price:number,charsAfterDot:number) {
-    //конертим число в строку и отбрасываем лишние нули без округления
-    const reg = new RegExp("^-?\\d+(?:\\.\\d{0," + charsAfterDot + "})?", "g")
-    const a = price.toString().match(reg)[0];
-    //находим положение точки в строке
-    const dot = a.indexOf(".");
-    // если число целое - добавляется точка и нужное кол-во нулей
-    if (dot === -1) { 
-        return a + "." + "0".repeat(charsAfterDot);
-    }
-    //елси не целое число
-    const b = charsAfterDot - (a.length - dot) + 1;
-    return b > 0 ? (a + "0".repeat(b)) : a;
-  }
   deleteProductRow(row: CustomersOrdersProductTable,index:number) {
     const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {  
       width: '400px',
@@ -665,13 +567,15 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
           control.removeAt(index);
           this.getTotalSumPrice();//чтобы пересчиталась сумма в чеке
           this.refreshTableColumns();//чтобы глючные input-поля в таблице встали на свои места. Это у Ангуляра такой прикол
+          this.finishRecount(); // подсчёт тоталов в таблице
         }else{ //нужно удалить с сервера и перезагрузить таблицу 
           this.http.get('/api/auth/deleteCustomersOrdersProductTableRow?id='+row.id)
           .subscribe(
               data => { 
                 this.getProductsTable();
                 this.openSnackBar("Товар успешно удалён", "Закрыть");
-                this.getTotalSumPrice();//чтобы пересчиталась сумма в чеке
+                this.finishRecount(); // подсчёт тоталов в таблице
+
               },
               error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
           );
@@ -747,17 +651,19 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
     error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
   }
   getProductsList(){ //заполнение Autocomplete для поля Товар
-    try 
-    {
-      if(this.canAutocompleteQuery && this.searchProductCtrl.value.length>1)
+    if(!this.isProductListLoading){// смысла долбить сервер, пока он формирует ответ, нет. Плюс иногда onProductSearchValueChanges отрабатывает дуплетом, что приводит к двойному добавлению товара
+      try 
       {
-        this.isProductListLoading  = true;
-        return this.http.get(
-          '/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.company_id+'&departmentId='+this.formSearch.get('secondaryDepartmentId').value+'&document_id='+this.parentDockId
-          );
-      }else return [];
-    } catch (e) {
-      return [];
+        if(this.canAutocompleteQuery && this.searchProductCtrl.value.length>1)
+        {
+          this.isProductListLoading  = true;
+          return this.http.get(
+            '/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.company_id+'&departmentId='+this.formSearch.get('secondaryDepartmentId').value+'&document_id='+this.parentDockId
+            );
+        }else return [];
+      } catch (e) {
+        return [];
+      }
     }
   }
   onAutoselectProduct(){
@@ -850,11 +756,12 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
     this.priceRecount();
   }
   afterSelectProduct(){
-    this.edizmName=this.getEdizmNameBySelectedId(+this.formSearch.get('edizm_id').value);
-    this.formSearchReadOnly=true;
-    this.loadMainImage();
-    this.getProductsPriceAndRemains();
-    setTimeout(() => { this.countInput.nativeElement.focus(); }, 500);
+
+      this.edizmName=this.getEdizmNameBySelectedId(+this.formSearch.get('edizm_id').value);
+      this.formSearchReadOnly=true;
+      if(!this.autoAdd)this.loadMainImage();//если автодобавление, то картинку грузить ни к чему
+      this.getProductsPriceAndRemains();
+      setTimeout(() => { this.countInput.nativeElement.focus(); }, 500);
   }
   loadMainImage(){
     if(this.productImageName!=null){
@@ -996,6 +903,9 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
             this.avgPurchasePrice=(+result.avgPurchasePrice>0?result.avgPurchasePrice:0);
             this.productPrice=(+result.price>0?result.price:0);
             this.priceRecount();
+            if(this.autoAdd){
+              setTimeout(() => {this.addProductRow();},100);
+            }
           },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
@@ -1099,9 +1009,7 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
       this.formSearch.get('plusMinus').setValue(this.plusMinus);
       this.formSearch.get('changePrice').setValue(this.changePrice);
       this.formSearch.get('changePriceType').setValue(this.changePriceType);
-
       this.formSearch.get('reserve').setValue(this.selected_reserve);
-      // this.formSearch.get('reserve').setValue(false);
       this.selected_price=0;
       this.calcSumPriceOfProduct();//иначе неправильно будут обрабатываться проверки формы
       this.resetProductCountOfSecondaryDepartmentsList();// сброс кол-ва товара по отделениям (складам)
@@ -1170,4 +1078,169 @@ getProductCount(){
       this.hideOrShowNdsColumn();
     }, 1);
   }
+  getNdsMultiplifierBySelectedId(srchId:number):number {
+    //возвращает множитель по выбранному НДС. например, для 20% будет 1.2, 0% - 1 и т.д 
+        let value=0;
+        this.spravSysNdsSet.forEach(a=>{
+          if(+a.id == srchId) {value=(a.name.includes('%')?(+a.name.replace('%','')):0)/100+1}
+        }); return value;}   
+
+        //пересчитывает НДС в таблице товаров
+tableNdsRecount(nds_included?:boolean){
+  if(this.formBaseInformation!=undefined){//метод может вызываться из ngOnChanges, а т.к. он стартует до ngOnInit, то formBaseInformation может еще не быть
+    if(nds_included!=undefined)
+      this.nds_included=nds_included;
+    //перерасчет НДС в форме поиска
+    if(+this.formSearch.get('product_id').value) this.calcSumPriceOfProduct();
+    //перерасчет НДС в таблице товаров
+    if(this.formBaseInformation.controls['customersOrdersProductTable'].value.length>0){
+      let switcherNDS:boolean = this.nds;
+      let switcherNDSincluded:boolean = this.nds_included;
+      let multiplifierNDS:number = 1;//множитель НДС. Рассчитывается для каждой строки таблицы. Например, для НДС 20% будет 1.2, для 0 или без НДС будет 1
+      this.formBaseInformation.value.customersOrdersProductTable.map(i =>{
+          multiplifierNDS = this.getNdsMultiplifierBySelectedId(+i['nds_id']);
+          //если включён переключатель "НДС", но переключатель "НДС включена" выключен,
+          if(switcherNDS && !switcherNDSincluded){
+          //..к сумме добавляем НДС
+            i['product_sumprice']=this.numToPrice(+(+i['product_count']*(+i['product_price'])*multiplifierNDS).toFixed(2),2);
+          }else i['product_sumprice']=this.numToPrice(+((+i['product_count'])*(+i['product_price'])).toFixed(2),2);//..иначе не добавляем, и сумма - это просто произведение количества на цену
+        })}}
+}
+
+//отправляем родителю результат (для его дальнейшей переправки в кассовый модуль)
+  sendSumPriceToKKM(){
+    this.totalSumPriceEvent.emit(this.totalProductSumm.toString());
+  }
+   // равна ли изменённая цена цене по выбранному Типу цены. Если нет - сбрасываем выбор Типа цены
+  rowPriceEqualsToTypePrice(row_index:number){
+    const control = this.getControlTablefield();
+    let product_price = control.controls[row_index].get('product_price').value;
+    let product_price_of_type_price = control.controls[row_index].get('product_price_of_type_price').value;
+    if (+product_price != +product_price_of_type_price) control.controls[row_index].get('price_type_id').setValue(null);
+  }
+//------------------------------------------------------------------------- Обсчёт строки таблицы и её итогов ---------------------------------------------------------------------------------
+//------------------------------------------------- ON CHANGE...
+//при изменении поля Количество в таблице товаров
+onChangeProductCount(row_index:number){
+  this.commaToDotInTableField(row_index, 'product_count');  // замена запятой на точку
+  this.setRowSumPrice(row_index);                           // пересчёт суммы оплаты за данный товар
+  this.tableNdsRecount();                                   // пересчёт Суммы оплаты за товар с учётом НДС
+  this.finishRecount();                                     // подсчёт TOTALS и отправка суммы в ККМ
+  this.checkIndivisibleErrorOfProductTable();               // проверка на неделимость товара
+}
+//при изменении поля Цена в таблице товаров
+onChangeProductPrice(row_index:number){
+  this.commaToDotInTableField(row_index, 'product_price');  // замена запятой на точку
+  this.rowPriceEqualsToTypePrice(row_index);                // равна ли изменённая цена цене по выбранному Типу цены. Если нет - сбрасываем выбор Типа цены
+  this.setRowSumPrice(row_index);                           // пересчёт суммы оплаты за данный товар
+  this.tableNdsRecount();                                   // пересчёт Суммы оплаты за товар с учётом НДС
+  this.finishRecount();                                     // подсчёт TOTALS и отправка суммы в ККМ
+} 
+//при изменении Типа цены в таблице товаров
+onChangePriceTypeOfRow(row_index:number){
+  const control = this.getControlTablefield();
+  let product_id = control.at(row_index).get('product_id').value;
+  let price_type_id = control.at(row_index).get('price_type_id').value;
+  this.getProductPrice(product_id,price_type_id).subscribe( //запрашиваем цену по Типу цены для данного товара
+    data => { 
+    const price=data as number;
+    control.controls[row_index].get('product_price').setValue((+price));
+    control.controls[row_index].get('product_price_of_type_price').setValue((+price));
+    this.setRowSumPrice(row_index);                         // пересчёт суммы оплаты за данный товар
+    this.tableNdsRecount();                                 // пересчёт суммы оплаты за товар с учётом НДС
+    this.finishRecount();                                   // подсчёт TOTALS и отправка суммы в ККМ
+  },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})})
+}
+// при изменении "НДС" в родительском модуле
+onChangeNds(nds_included:boolean){
+  setTimeout(() => { 
+    this.tableNdsRecount(nds_included);                      // пересчёт Суммы оплаты за товар с учётом НДС
+    this.finishRecount();                                    // подсчёт TOTALS и отправка суммы в ККМ
+  }, 1);
+}
+// при изменении "НДС включено" в родительском модуле
+onChangeNdsIncluded(nds_included?:boolean){
+  this.tableNdsRecount(nds_included);                        // пересчёт Суммы оплаты за товар с учётом НДС
+  this.finishRecount();                                      // подсчёт TOTALS и отправка суммы в ККМ
+}
+// при изменении НДС в таблице товаров
+onChangeProductNds(){
+  this.tableNdsRecount();                                    // пересчёт Суммы оплаты за товар с учётом НДС
+  this.finishRecount();                                      // подсчёт TOTALS и отправка суммы в ККМ
+}
+
+//------------------------------------------------- RECOUNT ROWS
+
+// пересчёт суммы оплаты за данный товар
+setRowSumPrice(row_index:number){
+  const control = this.getControlTablefield();
+  control.controls[row_index].get('product_sumprice').setValue((control.controls[row_index].get('product_count').value*control.controls[row_index].get('product_price').value).toFixed(2));
+}
+
+//------------------------------------------------- TOTALS
+// getTotalProductCount() {//бежим по столбцу product_count и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
+//   return  (this.formBaseInformation.value.customersOrdersProductTable.map(t => +t.product_count).reduce((acc, value) => acc + value, 0)).toFixed(3).replace(".000", "").replace(".00", "");
+// }
+getTotalSumPrice() {//бежим по столбцу product_sumprice и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
+  return  (this.formBaseInformation.value.customersOrdersProductTable.map(t => +t.product_sumprice).reduce((acc, value) => acc + value, 0)).toFixed(2);
+}
+// подсчёт TOTALS и отправка суммы в ККМ
+finishRecount(){
+  this.recountTotals();                                      // подсчёт TOTALS
+  this.sendSumPriceToKKM();                                  // отправим сумму в ККМ
+}
+recountTotals(){
+  if(this.formBaseInformation!=undefined){//метод может вызываться из ngOnChanges, а т.к. он стартует до ngOnInit, то formBaseInformation может еще не быть
+    // this.totalProductCount= this.getTotalProductCount();
+    this.totalProductSumm=  this.getTotalSumPrice();
+}}
+//------------------------------------------------------------------- Методы для работы с признаком "Неделимость" -----------------------------------------------------------------------------
+  // true - ошибка (если введено нецелое кол-во товара, при том что оно должно быть целым)
+  checkIndivisibleErrorOfSearchForm(){ 
+    this.indivisibleErrorOfSearchForm=(
+      this.formSearch.get('product_count').value!='' && 
+      +this.formSearch.get('product_id').value>0 && 
+      this.formSearch.get('indivisible').value && // кол-во товара должно быть целым, ...
+      !Number.isInteger(parseFloat(this.formSearch.get('product_count').value))) // но при этом кол-во товара не целое
+  }
+  checkIndivisibleErrorOfProductTable(){
+    let result=false;// ошибки нет
+    this.formBaseInformation.value.customersOrdersProductTable.map(t =>{
+      if(t['indivisible'] && t['product_count']!='' && !Number.isInteger(parseFloat(t['product_count']))){
+        result=true;
+      }})
+    this.indivisibleErrorOfProductTable=result;
+  }
+//--------------------------------------------------------------------------- Утилиты ---------------------------------------------------------------------------------------------------------
+  //заменяет запятую на точку при вводе цены или количества в заданной ячейке
+  commaToDotInTableField(row_index:number, fieldName:string){
+    const control = this.getControlTablefield();
+    control.controls[row_index].get(fieldName).setValue(control.controls[row_index].get(fieldName).value.replace(",", "."));
+  }
+  //для проверки в таблице с вызовом из html
+  isInteger (i:number):boolean{return Number.isInteger(i)}
+  parseFloat(i:string){return parseFloat(i)}
+
+  //Конвертирует число в строку типа 0.00 например 6.40, 99.25
+  numToPrice(price:number,charsAfterDot:number) {
+    //конертим число в строку и отбрасываем лишние нули без округления
+    const reg = new RegExp("^-?\\d+(?:\\.\\d{0," + charsAfterDot + "})?", "g")
+    const a = price.toString().match(reg)[0];
+    //находим положение точки в строке
+    const dot = a.indexOf(".");
+    // если число целое - добавляется точка и нужное кол-во нулей
+    if (dot === -1) { 
+        return a + "." + "0".repeat(charsAfterDot);
+    }
+    //елси не целое число
+    const b = charsAfterDot - (a.length - dot) + 1;
+    return b > 0 ? (a + "0".repeat(b)) : a;
+  }
+  numberOnlyPlusDot(event): boolean {
+    const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
+    if (charCode > 31 && ((charCode < 48 || charCode > 57) && charCode!=46)) { return false; } return true;}
+  numberOnlyPlusDotAndComma(event): boolean {
+    const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
+    if (charCode > 31 && ((charCode < 48 || charCode > 57) && charCode!=44 && charCode!=46)) { return false; } return true;}
+  
 }

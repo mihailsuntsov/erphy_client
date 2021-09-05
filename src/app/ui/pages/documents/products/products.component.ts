@@ -6,6 +6,7 @@ import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpClient } from '@angular/common/http';
+import { ProductCategoriesSelectComponent } from 'src/app/modules/trade-modules/product-categories-select/product-categories-select.component';
 import { MatDialog } from '@angular/material/dialog';
 import { LoadSpravService } from './loadsprav';
 import { QueryFormService } from './get-products-table.service';
@@ -32,12 +33,16 @@ export interface NumRow {//интерфейс для списка количес
   value: string;
   viewValue: string;
 }
+interface IdAndName {
+  id: number;
+  name:string;
+}
 
 @Component({
   selector: 'app-products',
   templateUrl: './products.component.html',
   styleUrls: ['./products.component.css'],
-  providers: [QueryFormService,LoadSpravService,Cookie]
+  providers: [QueryFormService,LoadSpravService,Cookie,ProductCategoriesSelectComponent]
 })
 export class ProductsComponent implements OnInit {
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
@@ -51,7 +56,7 @@ export class ProductsComponent implements OnInit {
   TREE_DATA: FoodNode[]=[];
   numRootCategories: number=0;
   numChildsOfSelectedCategory: number=0;
-
+  selectedObjects: number[]=[]; // выбранные во всплывающем окне выбора категорий объекты (категории), для массового присвоения товарам
 
   //переменные прав
   permissionsSet: any[];//сет прав на документ
@@ -132,7 +137,8 @@ export class ProductsComponent implements OnInit {
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
     public productCategoriesDialog: MatDialog,
-    private Cookie: Cookie,
+    // private Cookie: Cookie,
+    private productCategoriesSelectComponent: MatDialog,
     public ConfirmDialog: MatDialog,
     public ProductDuplicateDialog: MatDialog,
     private http: HttpClient,
@@ -668,21 +674,69 @@ export class ProductsComponent implements OnInit {
     }
     console.log("this.numRootCategories: "+this.numRootCategories);
   }
-recountNumChildsOfSelectedCategory(){//считает количество подкатегорий в выбранной категории
-  let parentNode:any;
-  let parentOfCurrentNode:any;
-  parentNode=this.getNodeById(+this.sendingQueryForm.selectedNodeId);
-  this.numChildsOfSelectedCategory=0;
-  for (let i = 0; i < this.treeControl.dataNodes.length; i++) {
-    parentOfCurrentNode=this.getParent(this.treeControl.dataNodes[i]);
-    if(parentOfCurrentNode){
-      console.log("parentOfCurrentNode: "+parentOfCurrentNode.id);
-      if(parentOfCurrentNode.id==parentNode.id){
-        this.numChildsOfSelectedCategory++;
-  }}}
-  //console.log("this.numChildsOfSelectedCategory: "+this.numChildsOfSelectedCategory);
-}
+  recountNumChildsOfSelectedCategory(){//считает количество подкатегорий в выбранной категории
+    let parentNode:any;
+    let parentOfCurrentNode:any;
+    parentNode=this.getNodeById(+this.sendingQueryForm.selectedNodeId);
+    this.numChildsOfSelectedCategory=0;
+    for (let i = 0; i < this.treeControl.dataNodes.length; i++) {
+      parentOfCurrentNode=this.getParent(this.treeControl.dataNodes[i]);
+      if(parentOfCurrentNode){
+        console.log("parentOfCurrentNode: "+parentOfCurrentNode.id);
+        if(parentOfCurrentNode.id==parentNode.id){
+          this.numChildsOfSelectedCategory++;
+    }}}
+    //console.log("this.numChildsOfSelectedCategory: "+this.numChildsOfSelectedCategory);
+  }
 
+  openDialogProductCategoriesSelect(){
+    const dialogSettings = this.productCategoriesSelectComponent.open(ProductCategoriesSelectComponent, {
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      width: '800px', 
+      minHeight: '650px',
+      data:
+      { //отправляем в диалог:
+        idTypes:    'categories', // 
+        companyId:  +this.sendingQueryForm.companyId, //предприятие, по которому будут отображаться товары и категории
+      },
+    });
+    dialogSettings.afterClosed().subscribe(result => {
+      if(result){
+        this.selectedObjects=[];
+        result.map(i => {
+          this.selectedObjects.push(i.id);
+        });
+        this.setCategoriesToProducts();
+      }
+    });
+  }
+
+  setCategoriesToProducts(){
+    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+      width: '400px',
+      data:
+      { 
+        head: 'Присвоение категорий товарам',
+        query: 'Сохранить категории, которые уже есть у товаров?',
+        warning: 'Можно сохранить категории, которые уже есть у товаров, и добавить к ним выбранные.',
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      const body = {"setOfLongs1":  this.checkedList,
+                    "setOfLongs2":  this.selectedObjects,
+                    "yesNo":        result==1?true:false
+      }; //join переводит из массива в строку
+      this.clearCheckboxSelection();
+          return this.http.post('/api/auth/setCategoriesToProducts', body) 
+              .subscribe(
+                  (data) => {   
+                              alert("успешно");
+                          },
+                  error => console.log(error),
+              );
+    });      
+  }
 
 
 }

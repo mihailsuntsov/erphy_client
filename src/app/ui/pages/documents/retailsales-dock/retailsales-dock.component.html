@@ -25,6 +25,7 @@
                     <mat-hint  align="start" *ngIf="formBaseInformation.get('status_id').touched && formBaseInformation.get('status_id').invalid">
                         <i class="form-invalid">Статус продажи не выбран.</i>
                     </mat-hint>
+
                 </mat-form-field>
             </div>
             <button 
@@ -34,16 +35,41 @@
                 matTooltip='Настройки документа "Розничная продажа"'
                 (click)="openDialogSettings()"
                 type="button"
+                (submit)="false"
                 class="button">
                 <i class="material-icons">settings</i>
             </button>
-            
+            <button 
+                mat-button 
+                [matMenuTriggerFor]="addDockMenu"
+                mat-raised-button 
+                matTooltip='Создать связанные документы, основанные на данной розничной продаже'
+                [disabled]="!childFormValid||!formBaseInformation.valid||productSearchAndTableComponent.indivisibleErrorOfProductTable" 
+                *ngIf="+id>0 && productSearchAndTableComponent"
+                color="primary"
+                (submit)="false"
+                type="button"
+                class="button"
+                style="width: 129px;height: 36px;min-width: 38px;">
+                <i class="material-icons">add</i> Документ<i class="material-icons">arrow_drop_down</i>
+            </button>
+            <mat-menu #addDockMenu="matMenu" yPosition="below" xPosition="before">
+                <button mat-menu-item (click)="goToNewDocument()">
+                    <mat-icon>add_circle_outline</mat-icon>
+                    <span>Розничная продажа</span>
+                </button>
+                <button mat-menu-item (click)="createLinkedDock('Return')">
+                    <mat-icon>sentiment_very_dissatisfied</mat-icon>
+                    <span>Возврат покупателя</span>
+                </button>
+            </mat-menu>
             <button 
                 mat-raised-button 
                 style="width: 129px;height: 36px;"
-                *ngIf="+id>0 && visBtnUpdate && canGetChilds"
+                *ngIf="+id>0 && allowToUpdate && canGetChilds"
                 (click)="updateDocument()"
                 [disabled]="!childFormValid" 
+                (submit)="false"
                 color="primary"
                 type="button"
                 class="button">
@@ -53,17 +79,20 @@
                 mat-raised-button 
                 [style.display]="visAfterCreatingBlocks==true?'none':'block'"
                 (click)="createNewDocument(false)" 
+                (submit)="false"
                 *ngIf="allowToCreate && +id==0"
-                [disabled]="!formBaseInformation.valid" 
+                [disabled]="!formBaseInformation.valid || !childFormValid" 
                 color="primary"
-                type="submit"
+                type="button"
                 class="button">
-                <i class="material-icons">play_circle_outline</i> Создать продажу
+                <i class="material-icons">done</i> Создать
             </button>
             <a routerLink="../../retailsales">
                 <button 
                     mat-raised-button 
+                    (submit)="false"
                     color="accent"
+                    type="button"
                     class="button">
                     <i class="material-icons">close</i> {{id>0?'Выйти':'Отмена'}}
                 </button>
@@ -256,6 +285,7 @@
                                                                         <mat-slide-toggle 
                                                                         formControlName="nds"
                                                                         [disabled]="+id>0"
+                                                                        (change)="productSearchAndTableComponent.onChangeNds(formBaseInformation.get('nds_included').value)"
                                                                         matTooltip='Включите, если вы работаете с НДС. Если в накладной присутствует НДС, но вы не плательщик НДС, то включать не нужно.'
                                                                         >НДС</mat-slide-toggle>
                                                                         <input matInput hidden/>
@@ -264,9 +294,9 @@
                                                                         <mat-slide-toggle 
                                                                             formControlName="nds_included"
                                                                             [disabled]="+id>0"
-                                                                            (change)="productSearchAndTableComponent.productTableRecount(formBaseInformation.get('nds_included').value)"
+                                                                            (change)="productSearchAndTableComponent.onChangeNdsIncluded(formBaseInformation.get('nds_included').value)"
                                                                             matTooltip='Включите, если цена уже содержит НДС. В противном случае НДС прибавится сверху цены'
-                                                                        >НДС включена</mat-slide-toggle>
+                                                                        >НДС включён</mat-slide-toggle>
                                                                         <input matInput hidden/>
                                                                     </mat-form-field>
                                                                 </div>
@@ -304,7 +334,8 @@
 
                             <div class="col-xl-4 col-md-6 col-sm-12">  
                                 <app-kkm 
-                                        *ngIf="canGetChilds"
+                                        *ngIf="canGetChilds && settingsForm.get('showKkm').value"
+                                    (getTotalSumPriceEvent)="getTotalSumPriceHandler()"
                                     (sendingProductsTableEvent)="sendingProductsTableHandler()"
                                     (succesfulChequePrinting)="onSuccesfulChequePrintingHandler()"
                                     (onClickChequePrinting)="onClickChequePrintingHandler()"
@@ -312,10 +343,9 @@
                                     [addressString] = "addressString"
                                     [department_id] = "this.formBaseInformation.get('department_id').value"
                                     [selectedPaymentType] = "settingsForm.get('selectedPaymentType').value"
-                                    [kkmCanWork] = "childFormValid"
+                                    [productTableIsValid] = "childFormValid"
                                     [cheque_nds] = "cheque_nds"
                                     [company]="formAboutDocument.get('company').value"
-
                                     [department]="formBaseInformation.get('department').value"
                                 >
                                 </app-kkm>
@@ -353,6 +383,7 @@
                                     [changePrice]="settingsForm.get('changePrice').value"
                                     [changePriceType]="settingsForm.get('changePriceType').value"
                                     [saveSettings]="settingsForm.get('saveSettings').value"
+                                    [autoAdd]="settingsForm.get('autoAdd').value"
                                     [receivedPriceTypesList]="receivedPriceTypesList"
                                     [spravSysNdsSet]="spravSysNdsSet"
                                     [readonly]="+id>0"
@@ -361,6 +392,78 @@
                             </div>
                         </div>
                     </div>  
+                </mat-tab>
+                
+                <mat-tab *ngIf="+id>0">
+                    <ng-template mat-tab-label>
+                        <div>Связанные</div><div><span [matBadge]="linkedDocsReturn.length" matBadgeOverlap="false">&nbsp;</span></div>
+                    </ng-template>
+                    <div class="col-xl-5 col-lg-5 col-md-8 col-sm-12">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <mat-card  style="margin:10px 0 10px;width:100%;">
+                                    <mat-card-header>
+                                        <mat-card-title class="card-title">Связанные документы</mat-card-title>
+                                    </mat-card-header>
+                                    <mat-card-content class="input-form">
+                                        
+                                        <mat-accordion>
+                                            <mat-expansion-panel 
+                                            *ngIf="linkedDocsReturn.length>0"
+                                            (opened)="panelReturnOpenState = true"
+                                            (closed)="panelReturnOpenState = false"
+                                            [expanded]="panelReturnOpenState">
+                                                <mat-expansion-panel-header>
+                                                    <mat-panel-title>
+                                                        Возвраты покупателей ({{linkedDocsReturn.length}})
+                                                    </mat-panel-title>
+                                                    <mat-panel-description *ngIf="!panelReturnOpenState">
+                                                        <div style="display: flex; flex-flow: column;">
+                                                            
+                                                        </div>
+                                                    </mat-panel-description>
+                                                </mat-expansion-panel-header>
+                                                <div class="row">
+
+                                                    <div style="width: 100%;">
+                                                        <ng-container *ngFor="let i of linkedDocsReturn">
+                                                            <div class="filename-row">
+                                                                <div class="file-wrapper" (click)="dialogOpenLinkedDoc(i.id)" matTooltip='Открыть возврат покупателя'>
+                                                                    <span style="cursor: pointer;"> Возврат №{{ i.doc_number }} от {{i.date_time_created}}</span>
+                                                                </div>
+                                                                <div style="min-width:74px;">
+                                                                    <button mat-button 
+                                                                    class="min-heigth"
+                                                                            type="button"
+                                                                            [matTooltip]="i.is_completed?'Завершён':'В работе'"
+                                                                            matSuffix>
+                                                                        <mat-icon *ngIf='i.is_completed'>lock</mat-icon>
+                                                                        <mat-icon *ngIf='!(i.is_completed)'>lock_open</mat-icon>
+                                                                    </button>
+                                                                    <button mat-button 
+                                                                            *ngIf="!i.is_completed && this.allowToUpdate"
+                                                                            class="min-heigth"
+                                                                            type="button"
+                                                                            (click)="clickButtonDeleteLinkedDock('Return',i.id)"
+                                                                            matTooltip='Удалить возврат покупателя'
+                                                                            matSuffix>
+                                                                        <mat-icon>delete_forever</mat-icon>
+                                                                    </button>
+
+                                                                </div>
+                                                            </div>
+                                                        </ng-container>
+                                                    </div>
+                                                </div>
+                                            </mat-expansion-panel>
+                                        </mat-accordion>
+
+
+                                    </mat-card-content>
+                                </mat-card> 
+                            </div>
+                        </div>
+                    </div>
                 </mat-tab>
                 <mat-tab  *ngIf="visAfterCreatingBlocks"  label="О документе">
                     <form [formGroup]="formAboutDocument">

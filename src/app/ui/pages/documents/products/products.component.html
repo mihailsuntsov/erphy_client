@@ -98,17 +98,33 @@
         <mat-card class="card">
                 <mat-card-title class="flex" style="height: 30px;">
                         <div class="emptyspace">Товары и услуги</div>
+
+
+                        <button 
+                        mat-button 
+                        [matMenuTriggerFor]="addDockMenu"
+                        mat-raised-button 
+                        matTooltip='Действия над выбранными товарами и услугами'
+                        
+                        *ngIf="selection.selected.length>0"
+                        color="primary"
+                        (submit)="false"
+                        type="button"
+                        class="button"
+                        style="width: 142px;height: 36px;min-width: 38px;">
+                        <i class="material-icons">add_task</i>&nbsp;&nbsp;Действия<i class="material-icons">arrow_drop_down</i>
+                        </button>
+                        <mat-menu #addDockMenu="matMenu" yPosition="below" xPosition="before">
+                            <button mat-menu-item *ngIf="allowToCreate && selection.selected.length==1" (click)="clickBtnDuplicateProduct()" matTooltip='Дублировать выбранный товар'><mat-icon>control_point_duplicate</mat-icon><span>Дублировать</span></button>
+                            <button mat-menu-item *ngIf="allowToUpdate && selection.selected.length>0" (click)="openDialogProductCategoriesSelect()" matTooltip='Изменить категории у выбранных товаров'><mat-icon>rule</mat-icon><span>Категории</span></button>
+                            <button mat-menu-item *ngIf="allowToDelete && selection.selected.length>0" (click)="clickBtnDelete()" matTooltip='Удалить выбранные товары'><mat-icon>delete_forever</mat-icon><span>Удалить</span></button>
+                        </mat-menu>
                         <div [style.display]="visBtnAdd==true?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
                             <a [routerLink]="['../../productsdock', '']">
                                 <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> Создать</button>
                             </a>   
                         </div>
-                        <div  *ngIf="allowToCreate && selection.selected.length==1" class="col-sm-auto justify-content-center" style="margin:0px 10px 10px 0px">
-                                    <button mat-raised-button (click)="clickBtnDuplicateProduct()" color="primary"><i class="material-icons">control_point_duplicate</i> Дублировать</button>
-                            </div>
-                        <div  *ngIf="allowToDelete && selection.selected.length>0" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
-                                <button mat-raised-button (click)="clickBtnDelete()" color="warn"><i class="material-icons">delete_forever</i> Удалить</button>
-                        </div>
+                        
                     </mat-card-title>
                     <mat-card-content>
                         <div class="card  w-100">

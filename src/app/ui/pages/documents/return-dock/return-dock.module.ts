@@ -7,7 +7,7 @@ import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SettingsReturnDialogModule } from '../../../../modules/settings/settings-return-dialog/settings-return-dialog.module';
 import { ReturnProductsTableModule } from 'src/app/modules/trade-modules/return-products-table/return-products-table.module';
-
+import { KkmModule } from 'src/app/modules/trade-modules/kkm/kkm.module';
 
 @NgModule({
   declarations: [ReturnDockComponent],
@@ -16,7 +16,7 @@ import { ReturnProductsTableModule } from 'src/app/modules/trade-modules/return-
     ReturnDockRoutingModule,
     SettingsReturnDialogModule,
     ReturnProductsTableModule,
-
+    KkmModule,
     
     MaterialModule,
     FormsModule,

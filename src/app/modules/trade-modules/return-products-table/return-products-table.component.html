@@ -320,7 +320,7 @@
                                                 </i>
                                                 <i *ngIf="getControlTablefield().controls[i].get('product_count').invalid && getControlTablefield().controls[i].get('product_count').errors.pattern" class="table-form-invalid">Неправильный формат. Допускается до 7 цифр в целой и до 3 цифр в дробной части</i>
                                             </mat-hint>
-                                        <td mat-footer-cell *matFooterCellDef class="cell-padding width-60"> {{totalProductCount}} </td>
+                                        <td mat-footer-cell *matFooterCellDef class="cell-padding width-60"></td>
                                     </ng-container>
                                     <ng-container matColumnDef="edizm" [formArrayName]="'returnProductTable'">
                                         <th mat-header-cell *matHeaderCellDef class="cell-padding width-60">Ед. изм.</th>

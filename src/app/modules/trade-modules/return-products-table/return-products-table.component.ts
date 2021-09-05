@@ -134,6 +134,7 @@ export class ReturnProductsTableComponent implements OnInit {
   @Input() nds:boolean;
   @Input() spravSysNdsSet: SpravSysNdsSet[] = []; //массив имен и id для ндс 
   @Output() changeProductsTableLength = new EventEmitter<any>();   //событие изменения таблицы товаров (а именно - количества товаров в ней)
+  @Output() totalSumPriceEvent = new EventEmitter<string>();
 
   constructor( private _fb: FormBuilder,
     public MessageDialog: MatDialog,
@@ -525,6 +526,11 @@ export class ReturnProductsTableComponent implements OnInit {
     return current_row_id;
   }
 
+  //отправляем родителю результат (для его дальнейшей переправки в кассовый модуль)
+  sendSumPriceToKKM(){
+    this.totalSumPriceEvent.emit(this.totalProductSumm.toString());
+  }
+
   onChangeProductPrice(row_index:number){
     this.commaToDotInTableField(row_index, 'product_price');
     this.setRowSumPrice(row_index);
@@ -556,20 +562,21 @@ export class ReturnProductsTableComponent implements OnInit {
     }
   }
   recountTotals(){
-    this.totalProductCount= this.getTotalProductCount();
+    // this.totalProductCount= this.getTotalProductCount();
     this.totalProductSumm=  this.getTotalSumPrice();
     this.totalNetcost=      this.getTotalNetcost();
+    this.sendSumPriceToKKM(); //отправляем родителю totalProductSumm для его переправки в ККМ
   }
   //возвращает таблицу товаров в родительский компонент для сохранения
   getProductTable(){
     return this.formBaseInformation.value.returnProductTable;
   }
 
-  getTotalProductCount() {//бежим по столбцу product_count и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
-    return  (this.formBaseInformation.value.returnProductTable.map(t => +t.product_count).reduce((acc, value) => acc + value, 0)).toFixed(3).replace(".000", "").replace(".00", "");
-  }
+  // getTotalProductCount() {//бежим по столбцу product_count и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
+  //   return  (this.formBaseInformation.value.returnProductTable.map(t => +t.product_count).reduce((acc, value) => acc + value, 0)).toFixed(3).replace(".000", "").replace(".00", "");
+  // }
   getTotalSumPrice() { //бежим по столбцу product_sumprice и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
-    return (this.formBaseInformation.value.returnProductTable.map(t => +t.product_sumprice).reduce((acc, value) => acc + value, 0)).toFixed(2).replace(".000", "").replace(".00", "");
+    return (this.formBaseInformation.value.returnProductTable.map(t => +t.product_sumprice).reduce((acc, value) => acc + value, 0)).toFixed(2);
   }
   getTotalNetcost() {//бежим по столбцу product_sumnetcost и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
     return (this.formBaseInformation.value.returnProductTable.map(t => +t.product_sumnetcost).reduce((acc, value) => acc + value, 0)).toFixed(2);
@@ -615,6 +622,7 @@ export class ReturnProductsTableComponent implements OnInit {
       setTimeout(() => { this.productSearchField.nativeElement.focus(); }, 100);
   }
 
+  //заменяет запятую на точку при вводе цены или количества в заданной ячейке
   commaToDotInTableField(row_index:number, fieldName:string){
     const control = this.getControlTablefield();
     control.controls[row_index].get(fieldName).setValue(control.controls[row_index].get(fieldName).value.replace(",", "."));

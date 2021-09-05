@@ -38,7 +38,7 @@ export class SettingsRetailsalesDialogComponent implements OnInit {
 
   gettingData:boolean=false;
   settingsForm: any; // форма со всей информацией по настройкам
-  priceTypesList: idNameDescription [] = [];//список типов цен
+  // priceTypesList: idNameDescription [] = [];//список типов цен
   receivedCompaniesList: any [] = [];//массив для получения списка предприятий
   receivedDepartmentsList: SecondaryDepartment [] = [];//массив для получения списка отделений
   receivedMyDepartmentsList: SecondaryDepartment [] = [];//массив для получения списка своих отделений
@@ -74,7 +74,7 @@ export class SettingsRetailsalesDialogComponent implements OnInit {
   ngOnInit(): void {
     this.receivedCompaniesList=this.data.receivedCompaniesList;
     // this.receivedDepartmentsList=this.data.receivedDepartmentsList;
-    this.priceTypesList=this.data.priceTypesList;
+    // this.priceTypesList=this.data.priceTypesList;
     // this.department_type_price_id=this.data.department_type_price_id;
     // this.cagent_type_price_id=this.data.cagent_type_price_id;
     // this.default_type_price_id=this.data.default_type_price_id;
@@ -119,6 +119,10 @@ export class SettingsRetailsalesDialogComponent implements OnInit {
       autocreateOnCheque: new FormControl       (false,[]),
       //статус после успешного отбития чека, перед созданием нового документа
       statusIdOnAutocreateOnCheque: new FormControl(null,[]),
+      // отображать блок работы с онлайн кассой 
+      showKkm:  new FormControl                 (false,[]),
+      // автодобавление товара в таблицу товаров
+      autoAdd:  new FormControl                 (false,[]),
     });
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Покупатель"
     this.getSettings();
@@ -152,6 +156,9 @@ export class SettingsRetailsalesDialogComponent implements OnInit {
         this.settingsForm.get('priorityTypePriceSide').setValue(result.priorityTypePriceSide?result.priorityTypePriceSide:'defprice');
         // this.settingsForm.get('autocreateOnStart').setValue(result.autocreateOnStart);
         this.settingsForm.get('autocreateOnCheque').setValue(result.autocreateOnCheque);
+        this.settingsForm.get('showKkm').setValue(result.showKkm);
+        this.settingsForm.get('autoAdd').setValue(result.autoAdd);
+        
         if(+this.settingsForm.get('companyId').value>0){
           this.getDepartmentsList();
           this.getStatusesList();

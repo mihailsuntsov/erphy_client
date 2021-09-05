@@ -51,7 +51,6 @@
                 mat-button 
                 [matMenuTriggerFor]="addDockMenu"
                 mat-raised-button 
-                matTooltip='Создать документ "Списание", основанный на данном документе "Возврат покупателя"'
                 *ngIf="+id>0 && returnProductsTableComponent"
                 [disabled]="!childFormValid||!formBaseInformation.valid||returnProductsTableComponent.indivisibleErrorOfProductTable" 
                 color="primary"
@@ -60,7 +59,9 @@
                 <i class="material-icons">add</i> Документ<i class="material-icons">arrow_drop_down</i>
             </button>
             <mat-menu #addDockMenu="matMenu" yPosition="below" xPosition="before">
-                <button mat-menu-item (click)="createLinkedDock('Writeoff')">
+                <button mat-menu-item 
+                        (click)="createLinkedDock('Writeoff')" 
+                        matTooltip='Создать документ "Списание", основанный на данном документе "Возврат покупателя"'>
                     <mat-icon>cancel_presentation</mat-icon>
                     <span>Списание</span>
                 </button>
@@ -89,16 +90,25 @@
                 class="button">
                 <i class="material-icons">done</i> Создать
             </button>
-            <a routerLink="../../return">
+            <a routerLink="../../return"  [style.display]="(mode=='standart')?'block':'none'">
                 <button 
                     style="width: 129px;height: 36px;min-width: 38px;"
                     mat-raised-button 
-                    matTooltip='Выйти из документа в меню'
+                    [matTooltip]="id>0?'Выйти из документа в меню':'Отменить создание нового документа'"
                     color="accent"
                     class="button">
-                    <i class="material-icons">close</i> Выйти
+                    <i class="material-icons">close</i>  {{id>0?'Выйти':'Отмена'}}
                 </button>
             </a>
+            <button [style.display]="(mode=='window')?'block':'none'"
+                    mat-raised-button
+                    style="margin-left:10px"
+                    [mat-dialog-close]="formBaseInformation.get('is_completed').value"
+                    matDialogClose 
+                    color="accent">
+                    <i class="material-icons">close</i>
+                    <span> Закрыть </span>
+            </button>
         </mat-card-title>
         <mat-card-content> 
             <mat-tab-group>
@@ -277,30 +287,77 @@
                             </div>  
 
                             <div class="col-xl-5 col-md-6 col-sm-12">  
-                                <mat-card class="internal-card" style="padding: 10px 10px 10px;" *ngIf="LinkedDocsWriteoff.length>0||LinkedDocsPosting.length>0">
+                                <app-kkm 
+                                    *ngIf="canGetChilds && settingsForm.get('showKkm').value"
+                                    (getTotalSumPriceEvent)="getTotalSumPriceHandler()"
+                                    (sendingProductsTableEvent)="sendingProductsTableHandler()"
+                                    (succesfulChequePrinting)="onSuccesfulChequePrintingHandler()"
+                                    (onClickChequePrinting)="onClickChequePrintingHandler()"
+                                    autocreateOnCheque = "settingsForm.get('autocreateOnCheque').value"
+                                    addressString = ""
+                                    [department_id] = "this.formBaseInformation.get('department_id').value"
+                                    selectedPaymentType = "cash"
+                                    [productTableIsValid] = "childFormValid"
+                                    [cheque_nds] = "formBaseInformation.get('nds').value"
+                                    [company]="formAboutDocument.get('company').value"
+                                    [department]="formBaseInformation.get('department').value"
+                                >
+                                </app-kkm>
+                            </div>
+                        </div>  
+
+                        <div class="row">
+                            <div class="col-12" style="padding-right: 0px; padding-left: 0px;">
+
+                                <app-return-products-table 
+                                    *ngIf="canGetChilds"
+                                    (totalSumPriceEvent)="totalSumPriceHandler($event)"
+                                    (changeProductsTableLength)="onChangeProductsTableLengthHandler()"
+                                    [parentDockId]="id" 
+                                    [parentDockName]="'Return'"
+                                    [company_id]="formBaseInformation.get('company_id').value"
+                                    [department_id]="formBaseInformation.get('department_id').value"
+                                    [autoAdd]="settingsForm.get('autoAdd').value"
+                                    [readonly]="formBaseInformation.get('is_completed').value"
+                                    [nds]="formBaseInformation.get('nds').value"
+                                    [spravSysNdsSet]="spravSysNdsSet"
+                                ></app-return-products-table>
+                            </div>
+                        </div>
+                    </div>  
+                </mat-tab>
+                <mat-tab *ngIf="+id>0"  matTooltip="Связанные документы">
+                    <ng-template mat-tab-label>
+                        <p>
+                            <span [matBadge]="LinkedDocsWriteoff.length" matBadgeOverlap="false">Связанные</span>
+                        </p>
+                    </ng-template>
+                    <div class="col-xl-5 col-lg-5 col-md-8 col-sm-12">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <mat-card  style="margin:10px 0 10px;width:100%;">
                                     <mat-card-header>
-                                        <mat-card-title class="card-title" style="margin-left: -5px;">Связанные документы</mat-card-title>
+                                        <mat-card-title class="card-title">Связанные документы</mat-card-title>
                                     </mat-card-header>
                                     <mat-card-content class="input-form">
-
+                                        
                                         <mat-accordion>
                                             <mat-expansion-panel 
                                             *ngIf="LinkedDocsWriteoff.length>0"
-                                            (opened)="panelWriteoffOpenState = true"
-                                            (closed)="panelWriteoffOpenState = false"
-                                            [expanded]="panelWriteoffOpenState">
+                                            (opened)="panelReturnOpenState = true"
+                                            (closed)="panelReturnOpenState = false"
+                                            [expanded]="panelReturnOpenState">
                                                 <mat-expansion-panel-header>
                                                     <mat-panel-title>
-                                                        Списания
+                                                        Списания ({{LinkedDocsWriteoff.length}})
                                                     </mat-panel-title>
-                                                    <mat-panel-description *ngIf="!panelWriteoffOpenState">
+                                                    <mat-panel-description *ngIf="!panelReturnOpenState">
                                                         <div style="display: flex; flex-flow: column;">
                                                             
                                                         </div>
                                                     </mat-panel-description>
                                                 </mat-expansion-panel-header>
                                                 <div class="row">
-
                                                     <div style="width: 100%;">
                                                         <ng-container *ngFor="let i of LinkedDocsWriteoff">
                                                             <div class="filename-row">
@@ -336,26 +393,8 @@
                                     </mat-card-content>
                                 </mat-card> 
                             </div>
-                        </div>  
-
-                        <div class="row">
-                            <div class="col-12" style="padding-right: 0px; padding-left: 0px;">
-
-                                <app-return-products-table 
-                                    *ngIf="canGetChilds"
-                                    (changeProductsTableLength)="onChangeProductsTableLengthHandler()"
-                                    [parentDockId]="id" 
-                                    [parentDockName]="'Return'"
-                                    [company_id]="formBaseInformation.get('company_id').value"
-                                    [department_id]="formBaseInformation.get('department_id').value"
-                                    [autoAdd]="settingsForm.get('autoAdd').value"
-                                    [readonly]="formBaseInformation.get('is_completed').value"
-                                    [nds]="formBaseInformation.get('nds').value"
-                                    [spravSysNdsSet]="spravSysNdsSet"
-                                ></app-return-products-table>
-                            </div>
                         </div>
-                    </div>  
+                    </div>
                 </mat-tab>
                 <mat-tab *ngIf="+id>0">
                     <ng-template mat-tab-label>
@@ -415,6 +454,7 @@
                         </div>
                     </div>
                 </mat-tab>
+                
                 <mat-tab  *ngIf="+id>0"  label="О документе">
                     <div class="col-xl-5 col-lg-5 col-md-8 col-sm-12">
                         <div class="container-fluid">

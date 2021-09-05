@@ -117,7 +117,9 @@
                         <div class="col-12"> 
                             <mat-form-field  class="mat-form-field-100">
                                 <mat-label>Приоритет цены</mat-label>
-                                <mat-select formControlName="priorityTypePriceSide" matTooltip="Приоритет типа цены по умолчанию">
+                                <mat-select formControlName="priorityTypePriceSide" 
+                                            matTooltip="Приоритет типа цены по умолчанию" 
+                                            [disabled]="settingsForm.get('pricingType').value != 'priceType'">
                                     <mat-option value="sklad"
                                                 matTooltip='Тип цены склада. Устанавливается в документе "Отделения"'>
                                         Склад {{getPriceTypesNameById(department_type_price_id)}}
@@ -171,8 +173,19 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-12">
+                        <div class="col-6">
                             <mat-checkbox formControlName="hideTenths">Убирать копейки</mat-checkbox>
+                        </div>
+                        <div class="col-6">
+                            <mat-checkbox formControlName="autoAdd"  matTooltip="Автодобавление товара из формы поиска в таблицу товаров">Автодобавление</mat-checkbox>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <mat-checkbox formControlName="autocreateOnCheque" matTooltip="Автоматически создавать новый документ Розничная продажа, если текущая продажа успешно завершена">Автосоздание</mat-checkbox>
+                        </div>
+                        <div class="col-6">
+                            <mat-checkbox formControlName="showKkm"  matTooltip="Показывать блок работы с онлайн-кассой">Онлайн-касса</mat-checkbox>
                         </div>
                     </div>
                     <div class="row">
@@ -180,16 +193,11 @@
                             <mat-checkbox formControlName="saveSettings">Сохранять настройки после расценки</mat-checkbox>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-12">
-                            <mat-checkbox formControlName="autocreateOnCheque" matTooltip="Автоматически создавать новый документ Розничная продажа, если чек прихода напечатан успешно">Автосоздание нового после чека</mat-checkbox>
-                        </div>
-                    </div>
-                    <div class="row" *ngIf="settingsForm.get('autocreateOnCheque').value && settingsForm.get('statusIdOnAutocreateOnCheque').value">
+                    <div class="row" *ngIf="settingsForm.get('statusIdOnAutocreateOnCheque').value">
                         <div class="col-12"> 
                             <div class = "circle-in-selected" [style.background-color]="status_color"></div>
-                            <mat-form-field  class="mat-form-field-100" style="margin-top: -20px;" matTooltip="Перед автоматическим созданием после успешного отбития чека документ сохраняется. Данный статус - это статус документа при таком сохранении">
-                                <mat-label>Статус при сохранении перед автосозданием</mat-label>
+                            <mat-form-field  class="mat-form-field-100" style="margin-top: -20px;" matTooltip="Статус, который присвоится документу при успешном завершении розничной продажи">
+                                <mat-label>Статус при завершении</mat-label>
                                 <mat-select     style="padding: 5px 0 5px 25px;" 
                                                 formControlName="statusIdOnAutocreateOnCheque"
                                                 (selectionChange)="setStatusColor();">

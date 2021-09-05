@@ -311,7 +311,7 @@
                                                 </i>
                                                 <i *ngIf="getControlTablefield().controls[i].get('actual_balance').invalid && getControlTablefield().controls[i].get('actual_balance').errors.pattern" class="table-form-invalid">Неправильный формат. Допускается до 7 цифр в целой и до 3 цифр в дробной части</i>
                                             </mat-hint>
-                                        <td mat-footer-cell *matFooterCellDef class="cell-padding width-60"> {{totalProductCount}} </td>
+                                        <td mat-footer-cell *matFooterCellDef class="cell-padding width-60"></td>
                                     </ng-container>
                                     <ng-container matColumnDef="product_price" [formArrayName]="'inventoryProductTable'">
                                         <th mat-header-cell *matHeaderCellDef style="width: 80px;">

@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, ViewChild, Component, OnInit, Input, Output } from '@angular/core';
+import { ChangeDetectorRef, ViewChild, Component, OnInit, Input, Output, ElementRef } from '@angular/core';
 import { EventEmitter } from '@angular/core';
 import { KkmAtolService } from 'src/app/services/kkm_atol';
 import { MatDialog } from '@angular/material/dialog';
@@ -146,12 +146,13 @@ export class KkmComponent implements OnInit {
   docId:number;//номер документа в реестре документов (таблица documents) от которого будет печататься чек, 
   id:number; // id документа (например, розничная продажа с id=102 )
 
+  @ViewChild("nalInput") nalInput: ElementRef;//для считывания с поля Наличными в переменную nal_income. Т.к. ngModel при нажатии enter в данном поле сбрасывает его в 0
   @ViewChild("formCashierLogin", {static: false}) formCashierLogin; 
   @Input()  autocreateOnCheque: boolean;
   @Input()  addressString: string;// адрес в родительском документе (может использоваться в качестве места расчетов)
   @Input()  department_id: number; // id отделения. Нужен для загрузки списка касс по отделению
   @Input()  spravSysNdsSet: SpravSysNdsSet[] = []; //массив имен и id для ндс 
-  @Input()  kkmCanWork:boolean; //можно ли отбивать чек
+  @Input()  productTableIsValid:boolean; //валидна ли таблица товаров и можно ли отбивать чек
   @Input()  selectedPaymentType: string;//Оплата чека прихода (наличными - cash, безналичными - electronically, смешанная - mixed)
   @Input()  cheque_nds:boolean;//нужно ли проставлять НДС в чеке. Берется от переключателя "НДС"
   @Input()  department:string; //наименование отделения
@@ -159,7 +160,8 @@ export class KkmComponent implements OnInit {
   @Output() sendingProductsTableEvent = new EventEmitter<any>(); //запрос таблицы с товарами и услугами
   @Output() succesfulChequePrinting = new EventEmitter<any>();   //событие успешной печати чека
   @Output() onClickChequePrinting = new EventEmitter<any>();   //событие нажатия на кнопку Отбить чек
-
+  @Output() getTotalSumPriceEvent = new EventEmitter<any>();   //запрос на итоговую цену в таблице товаров и услуг
+  
   constructor(
     private cdRef:ChangeDetectorRef,
     private kkmAtolService: KkmAtolService,
@@ -196,7 +198,8 @@ export class KkmComponent implements OnInit {
     this.kassaSettingsForm.get("customCashierFio").disable();
     this.kassaSettingsForm.get("customCashierVatin").disable();
 
-        
+    
+    console.log('Инициализация модуля ККМ')
     this.getMyShortInfo();//краткая информация о пользователе (точка входа в кассу)
   }
 
@@ -272,6 +275,7 @@ export class KkmComponent implements OnInit {
           }else{
             this.operationId='sell';
             this.operationName='Чек прихода';
+            this.getTotalSumPriceEvent.emit();//запрос итоговой суммы
           }
         }
       } catch (e) {
@@ -1065,8 +1069,9 @@ export class KkmComponent implements OnInit {
   //очищает поля "К оплате", "Наличными", "Сдача"
   clearFields(){
     this.totalSumPrice='0.00';
-    this.nal_income='0.00';
+    this.nal_income='';
     this.bnal_income='0.00';
+    this.nalInput.nativeElement.value='';
     this.getChange();
   }
 
@@ -1080,7 +1085,19 @@ export class KkmComponent implements OnInit {
       }
     })
   }
-
+  //печать чека по нажатии Enter в поле Наличными
+  chequeFromInput(){//если выполняются условия, при которых кнопка "Напечатать чек" активна, вызываем метод, который вызывается при нажатии на данную кнопку
+    if(this.printChequeButtonIsActive){
+      this.onClickPrintReceipt();
+    }
+  }
+  onNalInputChange(){
+    this.nal_income=this.nalInput.nativeElement.value;
+  }
+  // условия для активности кнопки "Напечатать чек"
+  get printChequeButtonIsActive():boolean{
+    return (!(!this.productTableIsValid || +this.totalSumPrice==0 || (((+this.totalSumPrice>(+this.nal_income + (+this.bnal_income))) || (+this.bnal_income>+this.totalSumPrice))&&this.selectedPaymentType!='electronically')))
+  }
   //при выборе из списка другой кассы берем её параметры для теста связи(адрес сервера и т.п.), а для чеков остается старая касса. Пока не сохраним настройки.
   onKassaSelection(){
     this.wasConnectionTest=false;

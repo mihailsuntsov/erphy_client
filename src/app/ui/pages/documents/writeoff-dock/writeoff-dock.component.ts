@@ -135,7 +135,7 @@ export class WriteoffDockComponent implements OnInit {
   shortInfoAboutProduct: shortInfoAboutProduct = null; //получение краткого инфо по товару
   shortInfoAboutProductArray: any[] = []; //получение краткого инфо по товару
   imageToShow:any; // переменная в которую будет подгружаться картинка товара (если он jpg или png)
-  mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра карточки файла
+  mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
   //Формы
   formBaseInformation:any;//форма для основной информации, содержащейся в документе
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)

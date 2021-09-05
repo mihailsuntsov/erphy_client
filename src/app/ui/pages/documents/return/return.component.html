@@ -173,13 +173,13 @@
                             </span>
                             <td mat-cell *matCellDef="let row"><p style="margin: 5px">{{row.product_count}}</p></td>
                         </ng-container>
-                        <ng-container matColumnDef="name">
+                        <ng-container matColumnDef="cagent">
                             <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('name')" class="sortheader"> Наименование 
-                                <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='name'" class="material-icons sortarrow">arrow_upward</i>
-                                <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='name'" class="material-icons sortarrow">arrow_downward</i>
+                            <span (click)="setSort('cagent')" class="sortheader"> Покупатель 
+                                <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='cagent'" class="material-icons sortarrow">arrow_upward</i>
+                                <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='cagent'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
-                            <td mat-cell *matCellDef="let row"> {{row.name}} </td>
+                            <td mat-cell *matCellDef="let row"> {{row.cagent}} </td>
                         </ng-container>
                         <ng-container matColumnDef="description">
                             <th mat-header-cell *matHeaderCellDef style="width:300px;">
@@ -233,7 +233,7 @@
                         </ng-container>
                         <ng-container matColumnDef="is_completed">
                             <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('is_completed')" class="sortheader"> Завершена 
+                            <span (click)="setSort('is_completed')" class="sortheader"> Завершён
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='is_completed'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='is_completed'" class="material-icons sortarrow">arrow_downward</i>
                             </span>

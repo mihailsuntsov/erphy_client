@@ -120,6 +120,7 @@
             >Смешанная</button>
         </div>
         <mat-card-content class="input-form">
+            
             <div    class="container-fluid" 
             *ngIf="operationId=='sell'||operationId=='buy'||operationId=='sellReturn'||operationId=='buyReturn'||operationId=='sellCorrection'||operationId=='buyCorrection'||operationId=='sellReturnCorrection'||operationId=='buyReturnCorrection'" 
                     style="padding-right: 20px; padding-left: 20px; margin-bottom: -18px;">
@@ -128,10 +129,10 @@
                         <mat-form-field appearance="outline" 
                                         floatLabel="always"
                                         class="mat-form-field-100">
-                            <mat-label>К оплате</mat-label>
+                            <mat-label>Итог</mat-label>
                             <input   matInput
                                     [readonly]=true
-                                    placeholder="К оплате"
+                                    placeholder="Итог"
                                     class="prices_input"
                                     [value]="totalSumPrice"/>
                         </mat-form-field>
@@ -142,10 +143,10 @@
                                         class="mat-form-field-100"
                                         [style.display]="(selectedPaymentType=='cash'||selectedPaymentType=='mixed')?'block':'none'">
                             <mat-label>Наличными</mat-label>
-                            <input  matInput
-                                    [(ngModel)]="nal_income"
+                            <input  matInput #nalInput
+                                    (keyup)="onNalInputChange()"
+                                    (keyup.enter)="chequeFromInput()"
                                     class="prices_input"
-                                    [ngModelOptions]="{standalone: true}"
                                     [readonly]=false
                                     placeholder="0.00"/>
                         </mat-form-field>
@@ -454,7 +455,7 @@
         </mat-card-content>
         <button 
             mat-raised-button 
-            style="width: 135px;
+            style="width: 160px;
             height: 36px;   
             position: absolute; 
             margin: 0px auto;
@@ -463,11 +464,11 @@
             right: 0;"
             *ngIf="operationId=='sell'||operationId=='buy'||operationId=='sellReturn'||operationId=='buyReturn'||operationId=='sellCorrection'||operationId=='buyCorrection'||operationId=='sellReturnCorrection'||operationId=='buyReturnCorrection'"
             (click)="onClickPrintReceipt()"
-            [disabled]="!kkmCanWork || +totalSumPrice==0 || (((+totalSumPrice>(+nal_income + (+bnal_income))) || (+bnal_income>+totalSumPrice))&&selectedPaymentType!='electronically')" 
+            [disabled]="!printChequeButtonIsActive" 
             color="primary"
             type="submit"
             class="button">
-            <i class="material-icons">toc</i> Отбить чек
+            <i class="material-icons">summarize</i> Напечатать чек
         </button>
         <button 
             mat-raised-button 

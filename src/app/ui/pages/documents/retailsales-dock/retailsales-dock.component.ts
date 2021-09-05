@@ -15,6 +15,7 @@ import { ProductSearchAndTableComponent } from 'src/app/modules/trade-modules/pr
 import { KkmComponent } from 'src/app/modules/trade-modules/kkm/kkm.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatAccordion } from '@angular/material/expansion';
+import { ReturnDockComponent } from '../return-dock/return-dock.component';
 import { Router } from '@angular/router';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { Input } from '@angular/core';
@@ -123,7 +124,17 @@ interface StatusInterface{
   description:string;
   is_default:boolean;
 }
-
+interface CanCreateLinkedDock{//интерфейс ответа на запрос о возможности создания связанного документа
+  can:boolean;
+  reason:string;
+}
+interface LinkedDocs {//интерфейс для загрузки связанных документов
+  id:number;
+  doc_number:number;
+  date_time_created:string;
+  description:string;
+  is_completed:boolean;
+}
 @Component({
   selector: 'app-retailsales-dock',
   templateUrl: './retailsales-dock.component.html',
@@ -169,12 +180,16 @@ export class RetailsalesDockComponent implements OnInit {
   spravSysEdizmOfProductAll: IdAndNameAndShortname[] = [];// массив, куда будут грузиться все единицы измерения товара
   receivedPriceTypesList: IdNameDescription [] = [];//массив для получения списка типов цен
   displayedColumns:string[];//отображаемые колонки таблицы с товарами
-  // afterChangeSettings:boolean; //true после изменения настроек
-  // setOfTypePrices: SetOfTypePrices;
+
+  //для загрузки связанных документов
+  linkedDocsReturn:LinkedDocs[]=[];
+  panelReturnOpenState=false;
+
   // Формы
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
   formBaseInformation: FormGroup; //массив форм для накопления информации о Заказе покупателя
   settingsForm: any; // форма с настройками
+  formReturn:any// Форма для отправки при создании Возврата покупателя
 
   //переменные для управления динамическим отображением элементов
   visBeforeCreatingBlocks = true; //блоки, отображаемые ДО создания документа (до получения id)
@@ -273,7 +288,17 @@ export class RetailsalesDockComponent implements OnInit {
       date_time_created: new FormControl        ('',[]),
       date_time_changed: new FormControl        ('',[]),
     });
-
+    // Форма для отправки при создании Возврата покупателя
+    this.formReturn = new FormGroup({
+      retail_sales_id: new FormControl    (null,[]),
+      date_return: new FormControl        ('',[]),
+      nds: new FormControl                ('',[]),
+      cagent_id: new FormControl          (null,[Validators.required]),
+      company_id: new FormControl         (null,[Validators.required]),
+      department_id: new FormControl      (null,[Validators.required]),
+      description: new FormControl        ('',[]),
+      returnProductTable: new FormArray   ([]),
+    });
     // Форма настроек
     this.settingsForm = new FormGroup({
       // id отделения
@@ -313,6 +338,10 @@ export class RetailsalesDockComponent implements OnInit {
       autocreateOnCheque: new FormControl       (false,[]),
       //статус после успешного отбития чека, перед созданием нового документа
       statusIdOnAutocreateOnCheque: new FormControl(null,[]),
+      //показывать блок ККМ
+      showKkm: new FormControl                  (null,[]),
+      // автодобавление товара из формы поиска в таблицу
+      autoAdd: new FormControl                  (false,[]),            
     });
 
     //     getSetOfPermissions
@@ -357,7 +386,8 @@ export class RetailsalesDockComponent implements OnInit {
   }
   get childFormValid() {
     if(this.productSearchAndTableComponent!=undefined)
-      return this.productSearchAndTableComponent.getControlTablefield().valid;
+    //если нет ошибок в форме, включая отсутствие дробного количества у неделимых товаров
+      return (this.productSearchAndTableComponent.getControlTablefield().valid && !this.productSearchAndTableComponent.indivisibleErrorOfProductTable);
     else return true;    //чтобы не было ExpressionChangedAfterItHasBeenCheckedError. Т.к. форма создается пустая и с .valid=true, а потом уже при заполнении проверяется еще раз.
   }
 
@@ -705,7 +735,9 @@ export class RetailsalesDockComponent implements OnInit {
             // this.settingsForm.get('autocreateOnStart').setValue(result.autocreateOnStart);
             this.settingsForm.get('autocreateOnCheque').setValue(result.autocreateOnCheque);
             this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.statusIdOnAutocreateOnCheque);
-            
+            this.settingsForm.get('showKkm').setValue(result.showKkm);
+            this.settingsForm.get('autoAdd').setValue(result.autoAdd);
+
             //если предприятия из настроек больше нет в списке предприятий (например, для пользователя урезали права, и выбранное предприятие более недоступно)
             //необходимо сбросить данное предприятие в null 
             if(!this.isCompanyInList(+result.companyId)){
@@ -818,6 +850,7 @@ export class RetailsalesDockComponent implements OnInit {
                 this.getPriceTypesList();
                 this.getDepartmentsList();//отделения
                 this.getStatusesList();//статусы документа Розничная продажа
+                this.getLinkedDocsList('return'); //загрузка связанных документов
                 this.hideOrShowNdsColumn();//расчет прятать или показывать колонку НДС
                 this.refreshPermissions();//пересчитаем права
                 this.cheque_nds=documentValues.nds;//нужно ли передавать в кассу (в чек) данные об НДС
@@ -951,54 +984,60 @@ export class RetailsalesDockComponent implements OnInit {
 
   //создание нового документа Розничная продажа
   createNewDocument(withReceipt:boolean){// с true запрос придет при нажатии на кнопку Отбить чек
-    console.log('Создание нового документа Розничная продажа');
-    this.createdDockId=null;
-    //если отправляем нового контрагента, в cagent_id отправляем null, и backend понимает что нужно создать нового контрагента:
-    this.formBaseInformation.get('cagent_id').setValue(this.is_addingNewCagent?null:this.formBaseInformation.get('cagent_id').value);
-    this.getProductsTable();
-    //если после создания продажи будет автоматически создаваться новая продажа - необходимо установить для старой продажи статус, заданный в настройках
-    if(this.settingsForm.get('autocreateOnCheque').value)
-      this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnAutocreateOnCheque').value);
-    this.http.post('/api/auth/insertRetailSales', this.formBaseInformation.value)
-      .subscribe(
-      (data) => {
-                  this.actionsBeforeGetChilds=0;
-                  this.createdDockId=data as number;
-                  if (this.createdDockId==0){// 0 возвращает если не удалось сохранить изза превышения количества покупаемого товара над доступным количеством
-                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Невозможно создать документ. У одной или нескольких позиций количество товара к продаже превышает доступное количество товара"}})
-                    this.kkmComponent.kkmIsFree=true; //освобождаем ККМ для приема заданий на следующие чеки
-                  } else {// Розничная продажа успешно создалась в БД 
-                    this.openSnackBar("Документ \"Розничная продажа\" успешно создан", "Закрыть");
-                    console.log('Розничная продажа успешно создана');
-                    
-                    //действия после создания нового документа Розничные продажи (это самый последний этап)
-                    this.afterCreateRetailSales();
-                    
-                    //если нужна печать чека - печатаем чек, по успешному завершению печати создастся событие, 
-                    //обработчик которого выплнит действия, идущие после создания документа
-                    if (withReceipt){
-                      console.log('Запрос на печать чека из новой Розничной продажи');
-                      this.kkmComponent.printReceipt(25, this.createdDockId);//25 - Розничная продажа);
-                    //если печать чека не нужна - переходим сразу к этим действиям (afterCreateRetailSales)
-                    } 
-                    
-                  }
-                },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});this.kkmComponent.kkmIsFree=true;},
-      );
+    if(this.productSearchAndTableComponent && this.productSearchAndTableComponent.getProductTable().length>0){
+      console.log('Создание нового документа Розничная продажа');
+      this.createdDockId=null;
+      //если отправляем нового контрагента, в cagent_id отправляем null, и backend понимает что нужно создать нового контрагента:
+      this.formBaseInformation.get('cagent_id').setValue(this.is_addingNewCagent?null:this.formBaseInformation.get('cagent_id').value);
+      this.getProductsTable();
+      //если в настройках есть статус, присваеваемый документу при создании, выставляем его
+      if(this.settingsForm.get('statusIdOnAutocreateOnCheque').value)
+        this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnAutocreateOnCheque').value);
+      this.http.post('/api/auth/insertRetailSales', this.formBaseInformation.value)
+        .subscribe(
+        (data) => {
+                    this.actionsBeforeGetChilds=0;
+                    this.createdDockId=data as number;
+                    if (this.createdDockId==0){// 0 возвращает если не удалось сохранить изза превышения количества покупаемого товара над доступным количеством
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Невозможно создать документ. У одной или нескольких позиций количество товара к продаже превышает доступное количество товара"}})
+                      this.kkmComponent.kkmIsFree=true; //освобождаем ККМ для приема заданий на следующие чеки
+                    } else {// Розничная продажа успешно создалась в БД 
+                      this.openSnackBar("Документ \"Розничная продажа\" успешно создан", "Закрыть");
+                      console.log('Розничная продажа успешно создана');
+                      //действия после создания нового документа Розничные продажи (это самый последний этап)
+                      this.afterCreateRetailSales(withReceipt);
+                      //если нужна печать чека - печатаем чек, по успешному завершению печати создастся событие, 
+                      //обработчик которого выплнит действия, идущие после успешной печати чека (например создание новой Розничной продажи)
+                      if (withReceipt){
+                        console.log('Запрос на печать чека из новой Розничной продажи');
+                        this.kkmComponent.printReceipt(25, this.createdDockId);//25 - Розничная продажа);
+                      //если печать чека не нужна - переходим сразу к этим действиям (afterCreateRetailSales)
+                      } 
+                    }
+                  },
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});this.kkmComponent.kkmIsFree=true;},
+        );
+    } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Невозможно создать продажу без товарных позиций. Сначала необходимо выбрать товар для продажи.'}});}
   }
 
-  //действия после создания нового документа Розничные продажи (это самый последний этап)
-  afterCreateRetailSales(){
+  // действия после создания нового документа Розничные продажи (это самый последний этап)
+  // делаем эти действия не дожидаясь успешной печати чека. 
+  // Иначе может случиться что при неуспешно напечатанном чеке эти действия так и не выполнятся, 
+  // и впоследствии, когда чек напечатаем, Розничная продажа создастся снова
+  afterCreateRetailSales(withReceipt:boolean){// с true запрос придет при отбиваемом в данный момент чеке
+    // Сначала обживаем текущий документ:
+    this.id=+this.createdDockId;
+    this._router.navigate(['/ui/retailsalesdock', this.id]);
+    this.formBaseInformation.get('id').setValue(this.id);
+    this.setStatusColor();//чтобы обновился цвет статуса
+    this.formBaseInformation.get('cagent_id').enable();//иначе при сохранении он не будет отпраляться
+    this.productSearchAndTableComponent.hideOrShowNdsColumn();//чтобы убрать столбцы выбора и удаления товара из таблицы
+    // this.getData();
 
-      this.id=+this.createdDockId;
-      this._router.navigate(['/ui/retailsalesdock', this.id]);
-      this.formBaseInformation.get('id').setValue(this.id);
-      this.formBaseInformation.get('cagent_id').enable();//иначе при сохранении он не будет отпраляться
-      this.productSearchAndTableComponent.hideOrShowNdsColumn();//чтобы убрать столбцы выбора и удаления товара из таблицы
-      this.getData();
-   
-    
+    //если чек не отбивается, и стоит чекбокс Автосоздание нового после создания Розничной продажи:
+    if(!withReceipt && this.settingsForm.get('autocreateOnCheque').value)
+      this.goToNewDocument();
+
   }
 
   updateDocument(onChequePrinting?:boolean){ 
@@ -1016,7 +1055,6 @@ export class RetailsalesDockComponent implements OnInit {
               'У некоторых позиций не был сохранён резерв, т.к. он превышал заказываемое либо доступное количество товара'
               }});
             }
-            // this.productSearchAndTableComponent.getProductsTable();
           },
           error => {
             this.showQueryErrorMessage(error);
@@ -1094,6 +1132,8 @@ export class RetailsalesDockComponent implements OnInit {
         this.settingsForm.get('saveSettings').setValue(result.get('saveSettings').value);
         this.settingsForm.get('autocreateOnCheque').setValue(result.get('autocreateOnCheque').value);
         this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.get('statusIdOnAutocreateOnCheque').value);
+        this.settingsForm.get('showKkm').setValue(result.get('showKkm').value);
+        this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
         this.saveSettingsRetailSales();
         // если это новый документ, и ещё нет выбранных товаров - применяем настройки 
         if(+this.id==0 && this.productSearchAndTableComponent.getProductTable().length==0)  {
@@ -1159,22 +1199,8 @@ export class RetailsalesDockComponent implements OnInit {
     });
   }
 
-    //**************************** КАССОВЫЕ ОПЕРАЦИИ  ******************************/
-
-  //обработчик события успешной печати чека - в Заказе покупателя это выставление статуса документа, сохранение и создание нового.  
-  onSuccesfulChequePrintingHandler(){
-    // alert('Операция - '+this.kkmComponent.operationId);
-    console.log("Чек был успешно напечатан");
-    this.openSnackBar("Чек был успешно напечатан", "Закрыть");
-
-    // окончательные действия после создания Розничной продажи
-    // this.afterCreateRetailSales(); - сейчас делаем эти действия не дожидаясь успешной печати чека. 
-    // Иначе может случиться что при неуспешно напечатанном чеке эти действия так и не выполнятся, 
-    // и впоследствии, когда чек напечатаем, Розничная продажа создастся снова
-
-
-    //если стоит чекбокс Автосоздание нового после печати чека:
-    if(this.settingsForm.get('autocreateOnCheque').value){
+  //создание нового документа после завершения текущего
+  goToNewDocument(){
       this._router.navigate(['ui/retailsalesdock',0]);
       this.id=0;
       this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными на продажу товарами
@@ -1185,22 +1211,157 @@ export class RetailsalesDockComponent implements OnInit {
       this.refreshShowAllTabs();
       this.getSettings();
       this.kkmComponent.clearFields(); //сбрасываем поля "К оплате", "Наличными" и "Сдача" кассового блока
-    }
-
-
   }
 
+//**********************************************************************************************************************************************/  
+//*************************************************          СВЯЗАННЫЕ ДОКУМЕНТЫ          ******************************************************/
+//**********************************************************************************************************************************************/  
 
+  //создание Списания или Оприходования
+  createLinkedDock(dockname:string){// принимает аргументы: Return
+    let canCreateLinkedDock:CanCreateLinkedDock=this.canCreateLinkedDock(dockname); //проверим на возможность создания связанного документа
+    if(canCreateLinkedDock.can){
+      this.formReturn.get('retail_sales_id').setValue(this.id);
+      this.formReturn.get('cagent_id').setValue(this.formBaseInformation.get('cagent_id').value);
+      this.formReturn.get('nds').setValue(this.formBaseInformation.get('nds').value);
+      this.formReturn.get('company_id').setValue(this.formBaseInformation.get('company_id').value);
+      this.formReturn.get('department_id').setValue(this.formBaseInformation.get('department_id').value);
+      this.formReturn.get('description').setValue('Создано из Розничной продажи №'+ this.formBaseInformation.get('doc_number').value);
+      this.getProductsTableLinkedDoc(dockname);//формируем таблицу товаров для создаваемого документа
+      this.http.post('/api/auth/insert'+dockname, this.formReturn.value)
+      .subscribe(
+      (data) => {
+                  let createdDockId=data as number;
+                
+                  switch(createdDockId){
+                    case null:{// null возвращает если не удалось создать документ из-за ошибки
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа "+(dockname=="Return"?"Возврат покупателя":"")}});
+                      break;
+                    }
+                    case 0:{//недостаточно прав
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа "+(dockname=="Return"?"Возврат покупателя":"")}});
+                      break;
+                    }
+                    default:{// Документ успешно создался в БД 
+                      this.openSnackBar("Документ "+(dockname=='Return'?'Возврат покупателя':'')+" успешно создан", "Закрыть");
+                      this.getLinkedDocsList(dockname.toLowerCase());//обновляем список этого документа
+                    }
+                  }
+                },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});},
+      );
+    } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:canCreateLinkedDock.reason}});
+  }
 
-
-
+  
+// забирает таблицу товаров из дочернего компонента и помещает ее в форму, предназначенную для создания Списания
+  getProductsTableLinkedDoc(dockname:string){
+    let tableName:string;//для маппинга в соответствующие названия сетов в бэкэнде (например private Set<PostingProductForm> postingProductTable;)
+    tableName='returnProductTable';
+    const control = <FormArray>this.formReturn.get(tableName);
+    control.clear();
+    this.productSearchAndTableComponent.getProductTable().forEach(row=>{
+          control.push(this.formingProductRowLinkedDoc(row,dockname));
+    });
+  }
+  formingProductRowLinkedDoc(row: RetailSalesProductTable, dockname:string) {
+    return this._fb.group({
+      product_id: new FormControl (row.product_id,[]),
+      product_count: new FormControl (row.product_count,[]),
+      product_price:  new FormControl (row.product_price,[]),
+      product_sumprice: new FormControl (((row.product_count)*row.product_price).toFixed(2),[]),
+      nds_id:  new FormControl (row.nds_id,[]),
+    });
+  }
+  // можно ли создать связанный документ (да - если есть товары, подходящие для этого, и нет уже завершённого документа)
+  canCreateLinkedDock(dockname:string):CanCreateLinkedDock{
+    if(!(this.productSearchAndTableComponent && this.productSearchAndTableComponent.getProductTable().length>0)){
+        return {can:false, reason:'Невозможно создать '+dockname+', так как нет товарных позиций'};
+    }else
+      return {can:true, reason:''};
+  }
+  getLinkedDocs(){
+    this.getLinkedDocsList('return');//загрузка связанных возвратов
+  }
+  getLinkedDocsList(docName:string, fromDialog?:boolean){
+    this.http.get('/api/auth/getRetailSalesLinkedDocsList?id='+this.id+'&docName='+docName)
+    .subscribe(
+        (data) => {   
+                      this.linkedDocsReturn=data as LinkedDocs [];
+                  },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+    );
+  }
+  clickButtonDeleteLinkedDock(docName:string,id:number): void {
+      const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+        width: '400px',
+        data:
+        { 
+          head: 'Удаление',
+          warning: 'Удалить '+(docName=='Return'?'возврат покупателя?':''),
+          query: '',
+        },
+      });
+      dialogRef.afterClosed().subscribe(result => {
+        if(result==1){
+          this.deleteLinkedDock(docName,id);
+        }
+      });  
+  }
+  dialogOpenLinkedDoc(id:number) {
+    const dialogRef = this.dialogCreateProduct.open(ReturnDockComponent, {
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      height: '95%',
+      width: '95%',
+      data:
+      { 
+        mode: 'window',
+        id: id
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result) this.getLinkedDocsList('return',true);//если вернулось true - значит, возможно, зайдя в Возврат покупателя, его закрыли. Обновим список возвратов.
+  })}
+  deleteLinkedDock(docName:string,id:number){
+    const body = {"checked": id}; 
+        return this.http.post('/api/auth/delete'+docName, body) 
+        .subscribe(
+            (data) => {   
+                        let result=data as boolean;
+                        if(result){
+                          this.openSnackBar("Успешно удалено", "Закрыть");
+                          this.getLinkedDocsList(docName.toLowerCase());//загрузка связанных возвратов
+                        }else
+                          this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав для удаления'}});
+                      },
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+        );
+  }
+//*****************************************************************************************************************************************/
+//**************************** КАССОВЫЕ ОПЕРАЦИИ  ******************************/
+  //принимает от кассового модуля запрос на итоговую цену. цена запрашивается у returnProductsTableComponent и отдаётся в totalSumPriceHandler обратно в кассовый модуль
+  getTotalSumPriceHandler() {
+    if(this.productSearchAndTableComponent!=undefined) {
+      this.productSearchAndTableComponent.finishRecount();
+    }
+  }  
+  //обработчик события успешной печати чека - в Заказе покупателя это выставление статуса документа, сохранение и создание нового.  
+  onSuccesfulChequePrintingHandler(){
+    console.log("Чек был успешно напечатан");
+    this.openSnackBar("Чек был успешно напечатан", "Закрыть");
+    //если стоит чекбокс Автосоздание нового после создания Розничной продажи:
+    if(this.settingsForm.get('autocreateOnCheque').value){
+      this.goToNewDocument();
+    }
+  }
   //обработка события нажатия на кнопку "Отбить чек", испущенного в компоненте кассовых операций
   onClickChequePrintingHandler(){
     if (+this.id>0){//если Розничная продажа уже была создана ранее, и нажали Отбить чек
       //нужно сделать запрос, создавался ли из этой Розничной продажи чек такого типа ранее
       console.log('Розничная продажа производит запрос, создавался ли из этой Розничной продажи чек такого типа (sell) ранее');
       this.http.get('/api/auth/isReceiptPrinted?company_id='+this.formBaseInformation.get('company_id').value+
-      '&document_id=25'+'&id='+(this.id)+'&operation_id=sell')
+      '&document_id=25'+'&id='+(this.id)+'&operation_id='+(this.kkmComponent?this.kkmComponent.operationId:'sell'))// за id операции выбираем тот, что сейчас выбран в модуле ККМ
       .subscribe(
           (data) => {   
                       const result=data as boolean;
@@ -1249,8 +1410,6 @@ export class RetailsalesDockComponent implements OnInit {
                       this.department_type_price_id=setOfTypePrices.department_type_price_id;
                       this.cagent_type_price_id=setOfTypePrices.cagent_type_price_id;
                       this.default_type_price_id=setOfTypePrices.default_type_price_id;
-                      
-
                       if(!this.startProcess){
                         this.productSearchAndTableComponent.department_type_price_id=setOfTypePrices.department_type_price_id;
                         this.productSearchAndTableComponent.cagent_type_price_id=setOfTypePrices.cagent_type_price_id;
