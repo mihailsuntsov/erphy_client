@@ -9,7 +9,7 @@ import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { QueryFormService } from './get-docs-table.service';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { FormGroup, FormControl } from '@angular/forms';
-import { SettingsReturnDialogComponent } from 'src/app/modules/settings/settings-return-dialog/settings-return-dialog.component';
+import { SettingsReturnsupDialogComponent } from 'src/app/modules/settings/settings-returnsup-dialog/settings-returnsup-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
@@ -36,12 +36,12 @@ interface idNameDescription{
 }
 
 @Component({
-  selector: 'app-return',
-  templateUrl: './return.component.html',
-  styleUrls: ['./return.component.css'],
+  selector: 'app-returnsup',
+  templateUrl: './returnsup.component.html',
+  styleUrls: ['./returnsup.component.css'],
   providers: [QueryFormService,LoadSpravService,Cookie]
 })
-export class ReturnComponent implements OnInit {
+export class ReturnsupComponent implements OnInit {
 
   constructor(
     private queryFormService:   QueryFormService,
@@ -51,7 +51,7 @@ export class ReturnComponent implements OnInit {
     private http: HttpClient,
     private deleteDialog: MatDialog,
     private MessageDialog: MatDialog,
-    private SettingsReturnDialogComponent: MatDialog,
+    private SettingsReturnsupDialogComponent: MatDialog,
     ) { }
 
     sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
@@ -128,18 +128,18 @@ export class ReturnComponent implements OnInit {
       this.sendingQueryForm.searchCategoryString="";
       this.sendingQueryForm.filterOptionsIds = [];
   
-      if(Cookie.get('return_companyId')=='undefined' || Cookie.get('return_companyId')==null)     
-        Cookie.set('return_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('return_companyId')=="0"?"0":+Cookie.get('return_companyId'));
-      if(Cookie.get('return_departmentId')=='undefined' || Cookie.get('return_departmentId')==null)  
-        Cookie.set('return_departmentId',this.sendingQueryForm.departmentId); else this.sendingQueryForm.departmentId=(Cookie.get('return_departmentId')=="0"?"0":+Cookie.get('return_departmentId'));
-      if(Cookie.get('return_sortAsc')=='undefined' || Cookie.get('return_sortAsc')==null)       
-        Cookie.set('return_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('return_sortAsc');
-      if(Cookie.get('return_sortColumn')=='undefined' || Cookie.get('return_sortColumn')==null)    
-        Cookie.set('return_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('return_sortColumn');
-      if(Cookie.get('return_offset')=='undefined' || Cookie.get('return_offset')==null)        
-        Cookie.set('return_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('return_offset');
-      if(Cookie.get('return_result')=='undefined' || Cookie.get('return_result')==null)        
-        Cookie.set('return_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('return_result');
+      if(Cookie.get('returnsup_companyId')=='undefined' || Cookie.get('returnsup_companyId')==null)     
+        Cookie.set('returnsup_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('returnsup_companyId')=="0"?"0":+Cookie.get('returnsup_companyId'));
+      if(Cookie.get('returnsup_departmentId')=='undefined' || Cookie.get('returnsup_departmentId')==null)  
+        Cookie.set('returnsup_departmentId',this.sendingQueryForm.departmentId); else this.sendingQueryForm.departmentId=(Cookie.get('returnsup_departmentId')=="0"?"0":+Cookie.get('returnsup_departmentId'));
+      if(Cookie.get('returnsup_sortAsc')=='undefined' || Cookie.get('returnsup_sortAsc')==null)       
+        Cookie.set('returnsup_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('returnsup_sortAsc');
+      if(Cookie.get('returnsup_sortColumn')=='undefined' || Cookie.get('returnsup_sortColumn')==null)    
+        Cookie.set('returnsup_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('returnsup_sortColumn');
+      if(Cookie.get('returnsup_offset')=='undefined' || Cookie.get('returnsup_offset')==null)        
+        Cookie.set('returnsup_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('returnsup_offset');
+      if(Cookie.get('returnsup_result')=='undefined' || Cookie.get('returnsup_result')==null)        
+        Cookie.set('returnsup_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('returnsup_result');
       
       this.fillOptionsList();//заполняем список опций фильтра
   
@@ -170,7 +170,7 @@ export class ReturnComponent implements OnInit {
   
       // -------------------------------------- *** ПРАВА *** ------------------------------------
     getSetOfPermissions(){
-          return this.http.get('/api/auth/getMyPermissions?id=28')
+          return this.http.get('/api/auth/getMyPermissions?id=29')
             .subscribe(
                 (data) => {   
                             this.permissionsSet=data as any [];
@@ -181,21 +181,21 @@ export class ReturnComponent implements OnInit {
     }
   
     getCRUD_rights(permissionsSet:any[]){
-      this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==345)});
-      this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==346)});
-      this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==347)});
-      this.allowToDeleteAllCompanies = permissionsSet.some(         function(e){return(e==348)});
-      this.allowToDeleteMyCompany = permissionsSet.some(            function(e){return(e==349)});
-      this.allowToDeleteMyDepartments = permissionsSet.some(        function(e){return(e==350)});
-      this.allowToDeleteMyDocs = permissionsSet.some(               function(e){return(e==351)});
-      this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==352)});
-      this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==353)});
-      this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==354)});
-      this.allowToViewMyDocs = permissionsSet.some(                 function(e){return(e==355)});
-      this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==356)});
-      this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==357)});
-      this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==358)});
-      this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==359)});
+      this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==361)});
+      this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==362)});
+      this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==363)});
+      this.allowToDeleteAllCompanies = permissionsSet.some(         function(e){return(e==364)});
+      this.allowToDeleteMyCompany = permissionsSet.some(            function(e){return(e==365)});
+      this.allowToDeleteMyDepartments = permissionsSet.some(        function(e){return(e==366)});
+      this.allowToDeleteMyDocs = permissionsSet.some(               function(e){return(e==367)});
+      this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==368)});
+      this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==369)});
+      this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==370)});
+      this.allowToViewMyDocs = permissionsSet.some(                 function(e){return(e==371)});
+      this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==372)});
+      this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==373)});
+      this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==374)});
+      this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==375)});
       this.getData();
     }
   
@@ -306,7 +306,7 @@ export class ReturnComponent implements OnInit {
     isAllSelected() {//все выбраны
       const numSelected = this.selection.selected.length;
       const numRows = this.dataSource.data.length;
-      return  numSelected === numRows;//true если все строки выбраны
+      return numSelected === numRows;//true если все строки выбраны
     }  
     isThereSelected() {//есть выбранные
       return this.selection.selected.length>0;
@@ -335,7 +335,7 @@ export class ReturnComponent implements OnInit {
       this.clearCheckboxSelection();
       this.createCheckedList();
       this.sendingQueryForm.offset=0;
-      Cookie.set('return_result',this.sendingQueryForm.result);
+      Cookie.set('returnsup_result',this.sendingQueryForm.result);
       this.getData();
     }
   
@@ -343,7 +343,7 @@ export class ReturnComponent implements OnInit {
     {
       this.clearCheckboxSelection();
       this.sendingQueryForm.offset=value;
-      Cookie.set('return_offset',value);
+      Cookie.set('returnsup_offset',value);
       this.getData();
     }
   
@@ -362,24 +362,24 @@ export class ReturnComponent implements OnInit {
             } else {  
                 this.sendingQueryForm.sortAsc="asc"
             }
-        Cookie.set('return_sortAsc',this.sendingQueryForm.sortAsc);
+        Cookie.set('returnsup_sortAsc',this.sendingQueryForm.sortAsc);
         } else {
             this.sendingQueryForm.sortColumn=valueSortColumn;
             this.sendingQueryForm.sortAsc="asc";
-            Cookie.set('return_sortAsc',"asc");
-            Cookie.set('return_sortColumn',valueSortColumn);
+            Cookie.set('returnsup_sortAsc',"asc");
+            Cookie.set('returnsup_sortColumn',valueSortColumn);
         }
         this.getData();
     }
     onCompanySelection(){
-      Cookie.set('return_companyId',this.sendingQueryForm.companyId);
-      Cookie.set('return_departmentId','0');
+      Cookie.set('returnsup_companyId',this.sendingQueryForm.companyId);
+      Cookie.set('returnsup_departmentId','0');
       this.sendingQueryForm.departmentId="0"; 
       this.resetOptions();
       this.getDepartmentsList();
     }
     onDepartmentSelection(){
-      Cookie.set('return_departmentId',this.sendingQueryForm.departmentId);
+      Cookie.set('returnsup_departmentId',this.sendingQueryForm.departmentId);
       this.resetOptions();
       this.getData();
     }
@@ -396,7 +396,7 @@ export class ReturnComponent implements OnInit {
     deleteDocks(){
       const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
       this.clearCheckboxSelection();
-            return this.http.post('/api/auth/deleteReturn', body) 
+            return this.http.post('/api/auth/deleteReturnsup', body) 
                   .subscribe(
                     (data) => {   
                       let result=data as boolean;
@@ -428,7 +428,7 @@ export class ReturnComponent implements OnInit {
     undeleteDocks(){
       const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
       this.clearCheckboxSelection();
-        return this.http.post('/api/auth/undeleteReturn', body) 
+        return this.http.post('/api/auth/undeleteReturnsup', body) 
       .subscribe(
           (data) => {   
                       this.getData();
@@ -470,9 +470,9 @@ export class ReturnComponent implements OnInit {
     }
   
     setDefaultCompany(){
-      if(Cookie.get('return_companyId')=='0'){
+      if(Cookie.get('returnsup_companyId')=='0'){
         this.sendingQueryForm.companyId=this.myCompanyId;
-        Cookie.set('return_companyId',this.sendingQueryForm.companyId);
+        Cookie.set('returnsup_companyId',this.sendingQueryForm.companyId);
       }
         this.getDepartmentsList();
     }
@@ -501,7 +501,7 @@ export class ReturnComponent implements OnInit {
       if(this.receivedDepartmentsList.length==1)
       {
         this.sendingQueryForm.departmentId=+this.receivedDepartmentsList[0].id;
-        Cookie.set('return_departmentId',this.sendingQueryForm.departmentId);
+        Cookie.set('returnsup_departmentId',this.sendingQueryForm.departmentId);
       }
     this.getCRUD_rights(this.permissionsSet);
     }
@@ -534,7 +534,7 @@ export class ReturnComponent implements OnInit {
     
     // открывает диалог настроек
     openDialogSettings() { 
-      const dialogSettings = this.SettingsReturnDialogComponent.open(SettingsReturnDialogComponent, {
+      const dialogSettings = this.SettingsReturnsupDialogComponent.open(SettingsReturnsupDialogComponent, {
         maxWidth: '95vw',
         maxHeight: '95vh',
         // height: '680px',
@@ -558,12 +558,12 @@ export class ReturnComponent implements OnInit {
           if(result.get('departmentId')) this.settingsForm.get('departmentId').setValue(result.get('departmentId').value);
           this.settingsForm.get('statusOnFinishId').setValue(result.get('statusOnFinishId').value);
           this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
-          this.saveSettingsReturn();
+          this.saveSettingsReturnsup();
         }
       });
     }
-    saveSettingsReturn(){
-      return this.http.post('/api/auth/saveSettingsReturn', this.settingsForm.value)
+    saveSettingsReturnsup(){
+      return this.http.post('/api/auth/saveSettingsReturnsup', this.settingsForm.value)
               .subscribe(
                   (data) => {   
                             this.openSnackBar("Настройки успешно сохранены", "Закрыть");

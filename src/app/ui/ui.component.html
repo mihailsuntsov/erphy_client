@@ -22,6 +22,10 @@
             <a routerLink="acceptance">
               <span class="unselectable">Приёмки</span></a>
           </li>
+          <li *ngIf="hasPermission(360)">
+            <a routerLink="returnsup">
+              <span class="unselectable">Возврат поставщику</span></a>
+          </li>
         </ul>
       </li>
       <li *ngIf="hasPermission(344)">

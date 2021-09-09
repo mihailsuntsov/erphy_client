@@ -52,6 +52,7 @@ export class LoadSpravService{
             dockList = [
                 // {id:3, name:'Предприятия'},
                 {id:28, name:'Возврат покупателя'},
+                {id:29, name:'Возврат поставщику'},
                 {id:23, name:'Заказ покупателя'},
                 {id:27, name:'Инвентаризация'},
                 {id:12, name:'Контрагент'},

@@ -52,11 +52,14 @@ const routes: Routes = [
       { path: 'inventorydock', loadChildren: () => import('./pages/documents/inventory-dock/inventory-dock.module').then(m => m.InventoryDockModule) },
       { path: 'returndock', loadChildren: () => import('./pages/documents/return-dock/return-dock.module').then(m => m.ReturnDockModule) },
       { path: 'return', loadChildren: () => import('./pages/documents/return/return.module').then(m => m.ReturnModule) },
+      { path: 'returnsupdock', loadChildren: () => import('./pages/documents/returnsup-dock/returnsup-dock.module').then(m => m.ReturnsupDockModule) },
+      { path: 'returnsup', loadChildren: () => import('./pages/documents/returnsup/returnsup.module').then(m => m.ReturnsupModule) },
       
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
       { path: '**', redirectTo: 'dashboard',pathMatch: 'full' },
     ]  
   },
+  
   
   
 ]

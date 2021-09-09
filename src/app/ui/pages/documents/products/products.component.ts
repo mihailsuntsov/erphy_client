@@ -7,6 +7,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpClient } from '@angular/common/http';
 import { ProductCategoriesSelectComponent } from 'src/app/modules/trade-modules/product-categories-select/product-categories-select.component';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { LoadSpravService } from './loadsprav';
 import { QueryFormService } from './get-products-table.service';
@@ -138,6 +139,7 @@ export class ProductsComponent implements OnInit {
     private _snackBar: MatSnackBar,
     public productCategoriesDialog: MatDialog,
     // private Cookie: Cookie,
+    public MessageDialog: MatDialog,
     private productCategoriesSelectComponent: MatDialog,
     public ConfirmDialog: MatDialog,
     public ProductDuplicateDialog: MatDialog,
@@ -731,9 +733,9 @@ export class ProductsComponent implements OnInit {
           return this.http.post('/api/auth/setCategoriesToProducts', body) 
               .subscribe(
                   (data) => {   
-                              alert("успешно");
+                          this.openSnackBar("Назначение категорий успешно завершено", "Закрыть");
                           },
-                  error => console.log(error),
+                          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
               );
     });      
   }

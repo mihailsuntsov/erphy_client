@@ -14,24 +14,19 @@ import { ViewChild } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 
-interface ReturnProductTable { //интерфейс для товаров, (т.е. для формы, массив из которых будет содержать форма returnProductTable, входящая в formBaseInformation)
+interface ReturnsupProductTable { //интерфейс для товаров, (т.е. для формы, массив из которых будет содержать форма returnsupProductTable, входящая в formBaseInformation)
   id: number;                     // id строки с товаром товара в таблице return_product
   row_id: number;                 // id строки 
   product_id: number;             // id товара 
-  // return_id:number;               // id документа Возврат ...
   name: string;                   // наименование товара
   edizm: string;                  // наименование единицы измерения
   product_price: number;          // цена товара
-  product_netcost: number;        // себестоимость
   product_count: number;          // кол-во товара
   department_id: number;          // склад
   remains: number;                // остаток на складе
   nds_id: number;                 // id ставки НДС
-  // nds: number;                    // НДС в валютном выражении
   product_sumprice: number;       // сумма как product_count * product_price (высчитываем сумму и пихем ее в БД, чтобы потом на бэкэнде в SQL запросах ее не высчитывать)
-  product_sumnetcost:number;      // сумма по себестоимости = product_netcost * product_count; тоже записываем в БД по тем же причинам что и сумму
   indivisible: boolean;           // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
-
 }
 interface ProductSearchResponse{  // интерфейс получения списка товаров во время поиска товара 
   name: string;                   // наименование товара
@@ -61,21 +56,21 @@ interface SpravSysNdsSet{
   is_active: string;
   calculated: string;
 }
+
 @Component({
-  selector: 'app-return-products-table',
-  templateUrl: './return-products-table.component.html',
-  styleUrls: ['./return-products-table.component.css'],
+  selector: 'app-returnsup-products-table',
+  templateUrl: './returnsup-products-table.component.html',
+  styleUrls: ['./returnsup-products-table.component.css'],
   providers: [ProductCategoriesSelectComponent]
 })
-export class ReturnProductsTableComponent implements OnInit {
-  formBaseInformation:any;//форма-обёртка для массива форм returnProductTable (нужна для вывода таблицы)
+export class ReturnsupProductsTableComponent implements OnInit {
+  formBaseInformation:any;//форма-обёртка для массива форм returnsupProductTable (нужна для вывода таблицы)
   formSearch:any;// форма для поиска товара, ввода необходимых данных и отправки всего этого в formBaseInformation в качестве элемента массива
   settingsForm: any; // форма с настройками (нужно для сохранения некоторых настроек при расценке)
   displayedColumns:string[] = [];//отображаемые колонки таблицы товаров
   gettingTableData: boolean;//идет загрузка товарных позиций
   totalProductCount:number=0;//всего кол-во товаров
   totalProductSumm:number=0;//всего разница
-  totalNetcost:number=0;//всего избыток/недостача
   indivisibleErrorOfSearchForm:boolean; // дробное кол-во товара при неделимом товаре в форме поиска
   indivisibleErrorOfProductTable:boolean;// дробное кол-во товара при неделимом товаре в таблице товаров
 
@@ -105,13 +100,12 @@ export class ReturnProductsTableComponent implements OnInit {
 
   // Расценка (все настройки здесь - по умолчанию. После первого же сохранения настроек данные настройки будут заменяться в методе getSettings() )
   productPrice:number=0; //Цена найденного и выбранного в форме поиска товара.
-  netCostPrice:number = 0; // себестоимость найденного и выбранного в форме поиска товара.
   priceUpDownFieldName:string = 'Наценка'; // Наименование поля с наценкой-скидкой
   priceTypeId_temp:number; // id типа цены. Нужна для временного хранения типа цены на время сброса формы поиска товара
   companyId_temp:number; // id предприятия. Нужна для временного хранения предприятия на время сброса формы formBaseInformation
 
   //чекбоксы
-  selection = new SelectionModel<ReturnProductTable>(true, []);// SelectionModel - специальный класс для удобной работы с чекбоксами
+  selection = new SelectionModel<ReturnsupProductTable>(true, []);// SelectionModel - специальный класс для удобной работы с чекбоксами
   checkedList:number[]=[]; //строка для накапливания id чекбоксов вида [2,5,27...]
   row_id:number=0;// уникальность строки в табл. товаров только id товара обеспечить не может, т.к. в таблице может быть > 1 одинакового товара (уникальность обеспечивается id товара и id склада). Для уникальности используем виртуальный row_id
 
@@ -124,7 +118,7 @@ export class ReturnProductsTableComponent implements OnInit {
   @ViewChild("productSearchField", {static: false}) productSearchField;
 
   @Input() parentDockId:number;   //id родительского документа 
-  @Input() parentDockName:string; // Идентификатор документа, в который вызывается данный компонент. Например, Return и т.д.
+  @Input() parentDockName:string; // Идентификатор документа, в который вызывается данный компонент. Например, Returnsup и т.д.
   @Input() company_id:number;
   @Input() department_id:number;
   @Input() readonly:boolean;
@@ -148,7 +142,7 @@ export class ReturnProductsTableComponent implements OnInit {
   ngOnInit(): void {
 
     this.formBaseInformation = new FormGroup({
-      returnProductTable: new FormArray([]),
+      returnsupProductTable: new FormArray([]),
     });
     // форма поиска и добавления товара
     this.formSearch = new FormGroup({
@@ -157,12 +151,10 @@ export class ReturnProductsTableComponent implements OnInit {
       edizm: new FormControl                    ('',[]),                      // наименование единицы измерения товара
       product_price : new FormControl           ('',[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),                      // цена товара (которая уйдет в таблицу выбранных товаров). Т.е. мы как можем вписать цену вручную, так и выбрать из предложенных (см. выше)
       product_count : new FormControl           ('',[Validators.required,Validators.pattern('^[0-9]{1,6}(?:[.,][0-9]{0,3})?\r?$')]),                      // количество товара к возврату
-      product_netcost : new FormControl         ('',[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),                      // себестоимость единицы товара
       remains : new FormControl                 ('',[]),                      // остатки на складе
       nds_id: new FormControl                   ('',[]),                      // НДС
       // nds: new FormControl                      (0,[]),                    // НДС в валютном ввыражении
       product_sumprice : new FormControl        (0,[]),                       // суммарная стоимость товара = цена * кол-во
-      product_sumnetcost : new FormControl      (0,[]),                       // суммарная себестоимость товара = себестоимость * кол-во
       indivisible: new FormControl              ('',[]),                      // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
     });
 
@@ -186,14 +178,14 @@ export class ReturnProductsTableComponent implements OnInit {
     // if(!this.readonly)
       // this.displayedColumns.push('select');
     // this.displayedColumns.push('index','row_id');
-    this.displayedColumns.push('name','product_count','edizm','product_price','product_sumprice','product_netcost','product_sumnetcost');
+    this.displayedColumns.push('name','product_count','edizm','remains','product_price','product_sumprice');
     if(this.nds)
       this.displayedColumns.push('nds');
     if(!this.readonly)
       this.displayedColumns.push('delete');
   }
   getControlTablefield(){
-    const control = <FormArray>this.formBaseInformation.get('returnProductTable');
+    const control = <FormArray>this.formBaseInformation.get('returnsupProductTable');
     return control;
   }
   clearTable(): void {
@@ -212,7 +204,7 @@ export class ReturnProductsTableComponent implements OnInit {
   masterToggle() {
     this.isThereSelected() ?
     this.resetSelecion() :
-    this.formBaseInformation.controls.returnProductTable.value.forEach(row => {
+    this.formBaseInformation.controls.returnsupProductTable.value.forEach(row => {
           if(this.showCheckbox(row)){this.selection.select(row);}//если чекбокс отображаем, значит можно удалять этот документ
         });
         this.createCheckedList();
@@ -230,22 +222,22 @@ export class ReturnProductsTableComponent implements OnInit {
   }
   createCheckedList(){
     this.checkedList = [];
-    for (var i = 0; i < this.formBaseInformation.controls.returnProductTable.value.length; i++) {
-      if(this.selection.isSelected(this.formBaseInformation.controls.returnProductTable.value[i])){
-        this.checkedList.push(this.formBaseInformation.controls.returnProductTable.value[i].row_id);
+    for (var i = 0; i < this.formBaseInformation.controls.returnsupProductTable.value.length; i++) {
+      if(this.selection.isSelected(this.formBaseInformation.controls.returnsupProductTable.value[i])){
+        this.checkedList.push(this.formBaseInformation.controls.returnsupProductTable.value[i].row_id);
       }
       
     }
   }
   isAllSelected() {//все выбраны
     const numSelected = this.selection.selected.length;
-    const numRows = this.formBaseInformation.controls.returnProductTable.value.length;
+    const numRows = this.formBaseInformation.controls.returnsupProductTable.value.length;
     return  numSelected === numRows;//true если все строки выбраны
   }  
   isThereSelected() {//есть выбранные
     return this.selection.selected.length>0;
   } 
-  showCheckbox(row:ReturnProductTable):boolean{
+  showCheckbox(row:ReturnsupProductTable):boolean{
     return true;
   }
   // --------------------------------------- *** КОНЕЦ ЧЕКБОКСОВ  *** -------------------------------------
@@ -281,7 +273,7 @@ export class ReturnProductsTableComponent implements OnInit {
       {
         this.isProductListLoading  = true;
         return this.http.get(
-          '/api/auth/getReturnProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.company_id+'&departmentId='+this.department_id
+          '/api/auth/getReturnsupProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.company_id+'&departmentId='+this.department_id
           );
       }else return [];
     } catch (e) {
@@ -298,7 +290,6 @@ export class ReturnProductsTableComponent implements OnInit {
     this.productImageName = this.filteredProducts[0].filename;                                      // картинка товара
     this.formSearch.get('remains').setValue(this.filteredProducts[0].remains);                      // остатки - кол-во товара по БД
     this.formSearch.get('nds_id').setValue(this.filteredProducts[0].nds_id);                        // id НДС 
-    this.formSearch.get('product_netcost').setValue(0);                                             // себестоимость 
     this.formSearch.get('indivisible').setValue(this.filteredProducts[0].indivisible);              // неделимость (необходимо для проверки правильности ввода кол-ва товара)
     this.afterSelectProduct();
     this.filteredProducts=[];
@@ -312,7 +303,6 @@ export class ReturnProductsTableComponent implements OnInit {
     this.productImageName = product.filename;                                      // картинка товара
     this.formSearch.get('remains').setValue(product.remains);                      // остатки - кол-во товара по БД
     this.formSearch.get('nds_id').setValue(product.nds_id);                        // id НДС 
-    this.formSearch.get('product_netcost').setValue(0);                            // себестоимость 
     this.formSearch.get('indivisible').setValue(product.indivisible);              // неделимость (необходимо для проверки правильности ввода кол-ва товара)
     this.canAutocompleteQuery=false;
     this.afterSelectProduct();
@@ -335,15 +325,6 @@ export class ReturnProductsTableComponent implements OnInit {
         this.formSearch.get('product_price').setValue(0);
   }
 
-  updateSettings(){
-    return this.http.post('/api/auth/saveSettingsReturn', this.settingsForm.value)
-            .subscribe(
-                (data) => {   
-                          this.openSnackBar("Настройки успешно сохранены", "Закрыть");
-                        },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-            );
-  }
 
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
@@ -391,13 +372,13 @@ export class ReturnProductsTableComponent implements OnInit {
     return this.http.get(imageUrl, {responseType: 'blob'});
   }
   getProductsTable(){
-    let productsTable: ReturnProductTable[]=[];
+    let productsTable: ReturnsupProductTable[]=[];
     //сбрасываем, иначе при сохранении будут прибавляться дубли и прочие глюки
-    const control = <FormArray>this.formBaseInformation.get('returnProductTable');
+    const control = <FormArray>this.formBaseInformation.get('returnsupProductTable');
     this.gettingTableData=true;
     control.clear();
     this.row_id=0;
-    this.http.get('/api/auth/get'+this.parentDockName+'ProductTable?id='+this.parentDockId)
+    this.http.get('/api/auth/getReturnsupProductTable?id='+this.parentDockId)
         .subscribe(
             data => { 
                 this.gettingTableData=false;
@@ -414,20 +395,17 @@ export class ReturnProductsTableComponent implements OnInit {
         );
   }
 
-  formingProductRowFromApiResponse(row: ReturnProductTable) {
+  formingProductRowFromApiResponse(row: ReturnsupProductTable) {
     return this._fb.group({
       id: new FormControl (row.id,[]),
       row_id: [this.getRowId()],// row_id нужен для идентифицирования строк у которых нет id (например из только что создали и не сохранили)
       product_id: new FormControl (row.product_id,[]),
-      // return_id:  new FormControl (+this.parentDockId,[]),
       name: new FormControl (row.name,[]),
       edizm: new FormControl (row.edizm,[]),
       remains: new FormControl (+row.remains,[]),
       nds_id: new FormControl (+row.nds_id,[]),
       product_sumprice: new FormControl ((+row.product_count*(+row.product_price)).toFixed(2),[]),
-      product_sumnetcost: new FormControl ((+row.product_count*(+row.product_netcost)).toFixed(2),[]),
       product_count:  new FormControl (row.product_count,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
-      product_netcost:  new FormControl (this.numToPrice(row.product_netcost,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       product_price:  new FormControl (this.numToPrice(row.product_price,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),
       // ValidationService.priceMoreThanZero  -- пока исключил ошибку "Цена=0", чтобы позволить сохранять с нулевой ценой, а также делать с ней связанные документы.
       ]),
@@ -437,9 +415,9 @@ export class ReturnProductsTableComponent implements OnInit {
 
   addProductRow(){ 
   this.productSearchField.nativeElement.focus();//убираем курсор из текущего поля, чтобы оно не было touched и красным после сброса формы
-  const control = <FormArray>this.formBaseInformation.get('returnProductTable');
+  const control = <FormArray>this.formBaseInformation.get('returnsupProductTable');
   let thereProductInTableWithSameId:boolean=false;
-    this.formBaseInformation.value.returnProductTable.map(i => 
+    this.formBaseInformation.value.returnsupProductTable.map(i => 
     {// список товаров не должен содержать одинаковые товары из одного и того же склада. Тут проверяем на это
       if(+i['product_id']==this.formSearch.get('product_id').value)
       {//такой товар с таким складом уже занесён в таблицу товаров ранее, и надо смёрджить их, т.е. слить в один, просуммировав их фактические остатки.
@@ -466,17 +444,15 @@ export class ReturnProductsTableComponent implements OnInit {
       edizm:  new FormControl (this.formSearch.get('edizm').value,[]),
       product_price: new FormControl (this.formSearch.get('product_price').value,[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),/*ValidationService.priceMoreThanZero*/]),
       product_count:  new FormControl (this.formSearch.get('product_count').value,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
-      product_netcost:  new FormControl (this.formSearch.get('product_netcost').value,[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       remains: new FormControl (+this.formSearch.get('remains').value,[]),
       nds_id: new FormControl (+this.formSearch.get('nds_id').value,[]),
       product_sumprice: new FormControl ((+this.formSearch.get('product_count').value*(+this.formSearch.get('product_price').value)).toFixed(2),[]),
-      product_sumnetcost: new FormControl ((+this.formSearch.get('product_count').value*(+this.formSearch.get('product_netcost').value)).toFixed(2),[]),
       indivisible:  new FormControl (this.formSearch.get('indivisible').value,[]),
       // nds: new FormControl (+this.formSearch.get('remains').value,[]),
     });
   }
   
-  deleteProductRow(row: ReturnProductTable,index:number) {
+  deleteProductRow(row: ReturnsupProductTable,index:number) {
     const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
       width: '400px',
       data:
@@ -487,7 +463,7 @@ export class ReturnProductsTableComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
-        const control = <FormArray>this.formBaseInformation.get('returnProductTable');
+        const control = <FormArray>this.formBaseInformation.get('returnsupProductTable');
         // if(+row.id==0){// ещё не сохраненная позиция, можно не удалять с сервера (т.к. ее там нет), а только удалить локально
           control.removeAt(index);
           this.refreshTableColumns();
@@ -510,8 +486,8 @@ export class ReturnProductsTableComponent implements OnInit {
 
   resetRowIds(){
     this.row_id=0;
-    const control = <FormArray>this.formBaseInformation.get('returnProductTable');
-    this.formBaseInformation.value.returnProductTable.map(i => 
+    const control = <FormArray>this.formBaseInformation.get('returnsupProductTable');
+    this.formBaseInformation.value.returnsupProductTable.map(i => 
       {
         control.controls[this.row_id].get('row_id').setValue(this.row_id);
         this.row_id++;
@@ -537,47 +513,33 @@ export class ReturnProductsTableComponent implements OnInit {
   onChangeProductCount(row_index:number){
     this.commaToDotInTableField(row_index, 'product_count');
     this.setRowSumPrice(row_index);
-    this.setRowNetcost(row_index);
     this.productTableRecount();
     this.checkIndivisibleErrorOfProductTable();
-  }
-  onChangeProductNetcost(row_index:number){
-    this.commaToDotInTableField(row_index, 'product_netcost');
-    this.setRowNetcost(row_index);
-    this.productTableRecount();
   }
   setRowSumPrice(row_index:number){
     const control = this.getControlTablefield();
     control.controls[row_index].get('product_sumprice').setValue((control.controls[row_index].get('product_count').value*control.controls[row_index].get('product_price').value).toFixed(2));
   }
-  setRowNetcost(row_index:number){
-    const control = this.getControlTablefield();
-    control.controls[row_index].get('product_sumnetcost').setValue(((control.controls[row_index].get('product_count').value)*control.controls[row_index].get('product_netcost').value).toFixed(3).replace(".000", "").replace(".00", ""));
-  }
+
   productTableRecount(){
     if(this.formBaseInformation!=undefined){//метод может вызываться из ngOnChanges, а т.к. он стартует до ngOnInit, то formBaseInformation может еще не быть
       this.recountTotals();
     }
   }
   recountTotals(){
-    // this.totalProductCount= this.getTotalProductCount();
     this.totalProductSumm=  this.getTotalSumPrice();
-    this.totalNetcost=      this.getTotalNetcost();
     this.sendSumPriceToKKM(); //отправляем родителю totalProductSumm для его переправки в ККМ
   }
   //возвращает таблицу товаров в родительский компонент для сохранения
   getProductTable(){
-    return this.formBaseInformation.value.returnProductTable;
+    return this.formBaseInformation.value.returnsupProductTable;
   }
 
   // getTotalProductCount() {//бежим по столбцу product_count и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
-  //   return  (this.formBaseInformation.value.returnProductTable.map(t => +t.product_count).reduce((acc, value) => acc + value, 0)).toFixed(3).replace(".000", "").replace(".00", "");
+  //   return  (this.formBaseInformation.value.returnsupProductTable.map(t => +t.product_count).reduce((acc, value) => acc + value, 0)).toFixed(3).replace(".000", "").replace(".00", "");
   // }
   getTotalSumPrice() { //бежим по столбцу product_sumprice и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
-    return (this.formBaseInformation.value.returnProductTable.map(t => +t.product_sumprice).reduce((acc, value) => acc + value, 0)).toFixed(2);
-  }
-  getTotalNetcost() {//бежим по столбцу product_sumnetcost и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
-    return (this.formBaseInformation.value.returnProductTable.map(t => +t.product_sumnetcost).reduce((acc, value) => acc + value, 0)).toFixed(2);
+    return (this.formBaseInformation.value.returnsupProductTable.map(t => +t.product_sumprice).reduce((acc, value) => acc + value, 0)).toFixed(2);
   }
   //Конвертирует число в строку типа 0.00 например 6.40, 99.25
   numToPrice(price:number,charsAfterDot:number) {
@@ -613,7 +575,6 @@ export class ReturnProductsTableComponent implements OnInit {
       this.formSearch.get('product_id').        setValue(null);
       this.formSearch.get('product_price').     setValue('');
       this.selected_price=0;
-      this.netCostPrice=0;
       this.productPrice=0;
       this.placeholderActualBalance='0';
 
@@ -635,11 +596,6 @@ export class ReturnProductsTableComponent implements OnInit {
       this.formSearch.get('product_price').setValue((this.formSearch.get('product_price').value).replace(",", "."));
     this.checkIndivisibleErrorOfSearchForm();
   }
-  checkProductNetcostInForm(){
-    if(this.formSearch.get('product_netcost').value!=null && this.formSearch.get('product_netcost').value!='')
-      this.formSearch.get('product_netcost').setValue((this.formSearch.get('product_netcost').value).replace(",", "."));
-    this.checkIndivisibleErrorOfSearchForm();
-  }
   // true - ошибка (если введено нецелое кол-во товара, при том что оно должно быть целым)
   checkIndivisibleErrorOfSearchForm(){ 
     this.indivisibleErrorOfSearchForm=(
@@ -651,7 +607,7 @@ export class ReturnProductsTableComponent implements OnInit {
   }
   checkIndivisibleErrorOfProductTable(){
     let result=false;// ошибки нет
-    this.formBaseInformation.value.returnProductTable.map(t =>{
+    this.formBaseInformation.value.returnsupProductTable.map(t =>{
       if(t['indivisible'] && t['product_count']!='' && !Number.isInteger(parseFloat(t['product_count']))){
         result=true;
       }
@@ -711,9 +667,9 @@ export class ReturnProductsTableComponent implements OnInit {
   }
   
   addProductRowFromProductsList(row: ProductSearchResponse){ 
-  const control = <FormArray>this.formBaseInformation.get('returnProductTable');
+  const control = <FormArray>this.formBaseInformation.get('returnsupProductTable');
   let thereProductInTableWithSameId:boolean=false;
-    this.formBaseInformation.value.returnProductTable.map(i => 
+    this.formBaseInformation.value.returnsupProductTable.map(i => 
     { // список товаров не должен содержать одинаковые товары из одного и того же склада. Тут проверяем на это
         // console.log('product_id - '+i['product_id']);
       if(+i['product_id']==row.product_id){
@@ -740,10 +696,8 @@ export class ReturnProductsTableComponent implements OnInit {
       edizm: new FormControl (row.edizm,[]),
       remains: new FormControl (+row.remains,[]),
       product_count:  new FormControl (1,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
-      product_netcost:  new FormControl (0,[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       product_price:  new FormControl (0,[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       product_sumprice: new FormControl (0,[]),
-      product_sumnetcost: new FormControl (0,[]),
       nds_id: new FormControl (row.nds_id,[]),
       indivisible: new FormControl (row.indivisible,[]),
     });

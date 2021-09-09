@@ -15,6 +15,7 @@ import { ProductSearchAndTableComponent } from 'src/app/modules/trade-modules/pr
 import { KkmComponent } from 'src/app/modules/trade-modules/kkm/kkm.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatAccordion } from '@angular/material/expansion';
+import { v4 as uuidv4 } from 'uuid';
 import { ReturnDockComponent } from '../return-dock/return-dock.component';
 import { Router } from '@angular/router';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
@@ -277,7 +278,8 @@ export class RetailsalesDockComponent implements OnInit {
       status_name: new FormControl        ('',[]),
       status_color: new FormControl       ('',[]),
       status_description: new FormControl ('',[]),
-      new_cagent: new FormControl          ({disabled: true, value: '' },[Validators.required]),
+      new_cagent: new FormControl         ({disabled: true, value: '' },[Validators.required]),
+      uid: new FormControl                ('',[]),//eybr идентификатор для создаваемой розн. продажи, чтобы избежать дублей
     });
     this.formAboutDocument = new FormGroup({
       id: new FormControl                       ('',[]),
@@ -369,11 +371,11 @@ export class RetailsalesDockComponent implements OnInit {
     //     |
     //     [setDefaultDepartment, getSetOfTypePrices, doFilterDepartmentsList]
     //     | (если идет стартовая загрузка):
-    //     getStatusesList
+    //     getStatusesList, getSpravSysEdizm
     //     |
     //     setDefaultStatus
     //     |
-    //     setStatusColor, getSpravSysEdizm
+    //     setStatusColor
     //     |
     //     refreshPermissions*
     
@@ -594,6 +596,7 @@ export class RetailsalesDockComponent implements OnInit {
       //если идет стартовая прогрузка - продолжаем цепочку запросов. Если это была, например, просто смена предприятия - продолжать далее текущего метода смысла нет
     if(this.startProcess) 
       this.getStatusesList();
+      this.getSpravSysEdizm(); //загрузка единиц измерения. Загружаем тут, т.к. нужно чтобы сначала определилось предприятие, его id нужен для загрузки
   }
 
   // проверки на различные случаи
@@ -630,7 +633,7 @@ export class RetailsalesDockComponent implements OnInit {
       });
     }
     this.setStatusColor();
-    this.getSpravSysEdizm(); //загрузка единиц измерения. Загружаем тут, т.к. нужно чтобы сначала определилось предприятие, его id нужен для загрузки
+    // this.getSpravSysEdizm(); //загрузка единиц измерения. Загружаем тут, т.к. нужно чтобы сначала определилось предприятие, его id нужен для загрузки
   }
 
   getSpravSysEdizm():void {    
@@ -993,6 +996,8 @@ export class RetailsalesDockComponent implements OnInit {
       //если в настройках есть статус, присваеваемый документу при создании, выставляем его
       if(this.settingsForm.get('statusIdOnAutocreateOnCheque').value)
         this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnAutocreateOnCheque').value);
+      this.formBaseInformation.get('uid').setValue(uuidv4());
+      // this.formBaseInformation.get('uid').setValue('f3176720-fded-4ea0-989a-227f8681da37');
       this.http.post('/api/auth/insertRetailSales', this.formBaseInformation.value)
         .subscribe(
         (data) => {
@@ -1209,7 +1214,7 @@ export class RetailsalesDockComponent implements OnInit {
       this.formBaseInformation.get('doc_number').setValue('');
       this.formBaseInformation.get('description').setValue('');
       this.refreshShowAllTabs();
-      this.getSettings();
+      // this.getSettings();
       this.kkmComponent.clearFields(); //сбрасываем поля "К оплате", "Наличными" и "Сдача" кассового блока
   }
 

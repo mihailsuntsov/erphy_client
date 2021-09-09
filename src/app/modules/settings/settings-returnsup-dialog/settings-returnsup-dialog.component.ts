@@ -24,12 +24,12 @@ interface statusInterface{
 }
 
 @Component({
-  selector: 'app-settings-return-dialog',
-  templateUrl: './settings-return-dialog.component.html',
-  styleUrls: ['./settings-return-dialog.component.css'],
+  selector: 'app-settings-returnsup-dialog',
+  templateUrl: './settings-returnsup-dialog.component.html',
+  styleUrls: ['./settings-returnsup-dialog.component.css'],
   providers: [LoadSpravService,]
 })
-export class SettingsReturnDialogComponent implements OnInit {
+export class SettingsReturnsupDialogComponent implements OnInit {
 
   gettingData:boolean=false;
   settingsForm: any; // форма со всей информацией по настройкам
@@ -48,7 +48,7 @@ export class SettingsReturnDialogComponent implements OnInit {
   id:number; // id головного документа (вызвавшего настройки).
 
   constructor(private http: HttpClient,
-    public SettingsDialog: MatDialogRef<SettingsReturnDialogComponent>,
+    public SettingsDialog: MatDialogRef<SettingsReturnsupDialogComponent>,
     public MessageDialog: MatDialog,
     private loadSpravService:   LoadSpravService,
     @Inject(MAT_DIALOG_DATA) public data: any,) { }
@@ -74,8 +74,6 @@ export class SettingsReturnDialogComponent implements OnInit {
       statusOnFinishId: new FormControl         ('',[]),
       // автодобавление товара из формы поиска в таблицу
       autoAdd:  new FormControl                 (false,[]),
-      // отображать блок работы с онлайн кассой 
-      showKkm:  new FormControl                 (false,[]),
     });
     this.getSettings();
     
@@ -84,7 +82,7 @@ export class SettingsReturnDialogComponent implements OnInit {
   getSettings(){
     let result:any;
     this.gettingData=true;
-    this.http.get('/api/auth/getSettingsReturn').subscribe
+    this.http.get('/api/auth/getSettingsReturnsup').subscribe
     (
       data => 
       { 
@@ -97,7 +95,6 @@ export class SettingsReturnDialogComponent implements OnInit {
         this.settingsForm.get('statusOnFinishId').setValue(result.statusOnFinishId);
         //данная группа настроек не зависит от предприятия
         this.settingsForm.get('autoAdd').setValue(result.autoAdd);
-        this.settingsForm.get('showKkm').setValue(result.showKkm);
         if(+this.settingsForm.get('companyId').value>0){
           this.getDepartmentsList();
           this.getStatusesList();
@@ -159,7 +156,7 @@ export class SettingsReturnDialogComponent implements OnInit {
   //------------------------------С Т А Т У С Ы-------------------------------------------------
   getStatusesList(){
     this.receivedStatusesList=null;
-    this.loadSpravService.getStatusList(this.settingsForm.get('companyId').value,28) //28 - id документа из таблицы documents
+    this.loadSpravService.getStatusList(this.settingsForm.get('companyId').value,29) //29 - id документа из таблицы documents
       .subscribe(
           (data) => 
           { this.receivedStatusesList=data as statusInterface[];

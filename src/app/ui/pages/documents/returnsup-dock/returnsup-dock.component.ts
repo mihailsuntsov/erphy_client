@@ -7,15 +7,15 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { SettingsReturnDialogComponent } from 'src/app/modules/settings/settings-return-dialog/settings-return-dialog.component';
-import { ReturnProductsTableComponent } from 'src/app/modules/trade-modules/return-products-table/return-products-table.component';
+import { SettingsReturnsupDialogComponent } from 'src/app/modules/settings/settings-returnsup-dialog/settings-returnsup-dialog.component';
+import { ReturnsupProductsTableComponent } from 'src/app/modules/trade-modules/returnsup-products-table/returnsup-products-table.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { Router } from '@angular/router';
-import { KkmComponent } from 'src/app/modules/trade-modules/kkm/kkm.component';
-import { KkmAtolService } from '../../../../services/kkm_atol';
-import { KkmAtolChequesService } from '../../../../services/kkm_atol_cheques';
+// import { KkmComponent } from 'src/app/modules/trade-modules/kkm/kkm.component';
+// import { KkmAtolService } from '../../../../services/kkm_atol';
+// import { KkmAtolChequesService } from '../../../../services/kkm_atol_cheques';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
-import { WriteoffDockComponent } from '../writeoff-dock/writeoff-dock.component';
+// import { WriteoffDockComponent } from '../writeoff-dock/writeoff-dock.component';
 import { FilesComponent } from '../files/files.component';
 import { FilesDockComponent } from '../files-dock/files-dock.component';
 import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from '@angular/material/core';
@@ -35,22 +35,20 @@ export const MY_FORMATS = {
   },
 };
 
-interface ReturnProductTable { //интерфейс для товаров, (т.е. для формы, массив из которых будет содержать форма returnProductTable, входящая в formBaseInformation)
+interface ReturnsupProductTable { //интерфейс для товаров, (т.е. для формы, массив из которых будет содержать форма returnsupProductTable, входящая в formBaseInformation)
   id: number;                     // id строки с товаром товара в таблице return_product
   row_id: number;                 // id строки 
   product_id: number;             // id товара 
   name: string;                   // наименование товара
   edizm: string;                  // наименование единицы измерения
   product_price: number;          // цена товара
-  product_netcost: number;        // себестоимость
   product_count: number;          // кол-во товара
   department_id: number;          // склад
   remains: number;                // остаток на складе
   nds_id: number;                 // id ставки НДС
   product_sumprice: number;       // сумма как product_count * product_price (высчитываем сумму и пихем ее в БД, чтобы потом на бэкэнде в SQL запросах ее не высчитывать)
-  product_sumnetcost:number;      // сумма по себестоимости = product_netcost * product_count; тоже записываем в БД по тем же причинам что и сумму                               
 }
-interface DockResponse {//интерфейс для получения ответа в методе getReturnValuesById
+interface DockResponse {//интерфейс для получения ответа в методе getReturnsupValuesById
   id: number;
   company: string;
   company_id: number;
@@ -126,15 +124,15 @@ interface SpravSysNdsSet{
   calculated: string;
 }
 @Component({
-  selector: 'app-return-dock',
-  templateUrl: './return-dock.component.html',
-  styleUrls: ['./return-dock.component.css'],
-  providers: [LoadSpravService, Cookie, KkmComponent, KkmAtolService, KkmAtolChequesService, 
+  selector: 'app-returnsup-dock',
+  templateUrl: './returnsup-dock.component.html',
+  styleUrls: ['./returnsup-dock.component.css'],
+  providers: [LoadSpravService, Cookie,
     {provide: MAT_DATE_LOCALE, useValue: 'ru'},
     {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},]
 })
-export class ReturnDockComponent implements OnInit {
+export class ReturnsupDockComponent implements OnInit {
 
   id: number = 0;// id документа
   createdDockId: number;//получение id созданного документа
@@ -166,14 +164,14 @@ export class ReturnDockComponent implements OnInit {
 
   // Формы
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
-  formBaseInformation: FormGroup; //массив форм для накопления информации о Заказе покупателя
+  formBaseInformation: FormGroup; //массив форм для накопления информации о Возврате поставщику
   settingsForm: any; // форма с настройками
   formWP:any// Форма для отправки при создании Списания или Оприходования
 
   //переменные для управления динамическим отображением элементов
   // visAfterCreatingBlocks = true; //блоки, отображаемые ПОСЛЕ создания документа (id >0)
 
-  //для поиска контрагента (покупателя) по подстроке
+  //для поиска контрагента (поставщика) по подстроке
   searchCagentCtrl = new FormControl();//поле для поиска
   isCagentListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canCagentAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
@@ -201,16 +199,16 @@ export class ReturnDockComponent implements OnInit {
   isDocNumberUnicalChecking = false;//идёт ли проверка на уникальность номера
   doc_number_isReadOnly=true;
   @ViewChild("doc_number", {static: false}) doc_number; //для редактирования номера документа
-  @ViewChild(ReturnProductsTableComponent, {static: false}) public returnProductsTableComponent:ReturnProductsTableComponent;
-  @ViewChild(KkmComponent, {static: false}) public kkmComponent:KkmComponent;
+  @ViewChild(ReturnsupProductsTableComponent, {static: false}) public returnsupProductsTableComponent:ReturnsupProductsTableComponent;
+  // @ViewChild(KkmComponent, {static: false}) public kkmComponent:KkmComponent;
 
   constructor(private activateRoute: ActivatedRoute,
     private cdRef:ChangeDetectorRef,
-    private _fb: FormBuilder, //чтобы билдить группу форм returnProductTable
+    private _fb: FormBuilder, //чтобы билдить группу форм returnsupProductTable
     private http: HttpClient,
     public ConfirmDialog: MatDialog,
     public dialogAddFiles: MatDialog,
-    public SettingsReturnDialogComponent: MatDialog,
+    public SettingsReturnsupDialogComponent: MatDialog,
     public dialogCreateProduct: MatDialog,
     @Optional() @Inject(MAT_DIALOG_DATA) public data: any,
     public MessageDialog: MatDialog,
@@ -240,7 +238,7 @@ export class ReturnDockComponent implements OnInit {
       is_completed: new FormControl       (false,[]),
       nds: new FormControl                (false,[]),
       date_return: new FormControl        ('',[Validators.required]),
-      returnProductTable: new FormArray([]),
+      returnsupProductTable: new FormArray([]),
     });
     this.formAboutDocument = new FormGroup({
       id: new FormControl                       ('',[]),
@@ -252,24 +250,23 @@ export class ReturnDockComponent implements OnInit {
       date_time_changed: new FormControl        ('',[]),
     });
     
-    // Форма для отправки при создании Списания или Оприходования
-      this.formWP = new FormGroup({
-        return_id: new FormControl       (null,[]),
-        posting_date: new FormControl       ('',[]),
-        writeoff_date: new FormControl      ('',[]),
-        company_id: new FormControl         (null,[Validators.required]),
-        department_id: new FormControl      (null,[Validators.required]),
-        description: new FormControl        ('',[]),
-        writeoffProductTable: new FormArray ([]),
-        postingProductTable: new FormArray  ([]),
-      });
+    // // Форма для отправки при создании Списания или Оприходования
+    //   this.formWP = new FormGroup({
+    //     return_id: new FormControl       (null,[]),
+    //     posting_date: new FormControl       ('',[]),
+    //     writeoff_date: new FormControl      ('',[]),
+    //     company_id: new FormControl         (null,[Validators.required]),
+    //     department_id: new FormControl      (null,[Validators.required]),
+    //     description: new FormControl        ('',[]),
+    //     writeoffProductTable: new FormArray ([]),
+    //     postingProductTable: new FormArray  ([]),
+    //   });
     // Форма настроек
     this.settingsForm = new FormGroup({
       companyId: new FormControl                (null,[]),            // предприятие, для которого создаются настройки
       departmentId: new FormControl             (null,[]),            // id отделения
       statusOnFinishId: new FormControl         ('',[]),              // статус после завершения документа
       autoAdd: new FormControl                  (false,[]),            // автодобавление товара из формы поиска в таблицу
-      showKkm: new FormControl                  (null,[]),            // показывать блок ККМ
     });
 
     if(this.data)//если документ вызывается в окне из другого документа
@@ -321,21 +318,17 @@ export class ReturnDockComponent implements OnInit {
   //чтобы "на лету" чекать валидность таблицы с товарами
   get childFormValid() {
     // проверяем, чтобы не было ExpressionChangedAfterItHasBeenCheckedError. Т.к. форма создается пустая и с .valid=true, а потом уже при заполнении проверяется еще раз.
-    if(this.returnProductsTableComponent!=undefined) 
-      return this.returnProductsTableComponent.getControlTablefield().valid;
+    if(this.returnsupProductsTableComponent!=undefined) 
+      return this.returnsupProductsTableComponent.getControlTablefield().valid;
     else return true;    
   }
-  // get totalProductSumm() {
-  //   if(this.returnProductsTableComponent!=undefined) 
-  //     return this.returnProductsTableComponent.totalProductSumm;
-  //   else return 0;    
-  // }
+
   //---------------------------------------------------------------------------------------------------------------------------------------                            
   // ----------------------------------------------------- *** ПРАВА *** ------------------------------------------------------------------
   //---------------------------------------------------------------------------------------------------------------------------------------
 
   getSetOfPermissions(){
-    return this.http.get('/api/auth/getMyPermissions?id=28')
+    return this.http.get('/api/auth/getMyPermissions?id=29')
       .subscribe(
           (data) => {   
                       this.permissionsSet=data as any [];
@@ -365,7 +358,7 @@ export class ReturnDockComponent implements OnInit {
     this.editability=((this.allowToCreate && +this.id==0)||(this.allowToUpdate && this.id>0));
     this.necessaryActionsBeforeGetChilds();
   }
- //  -------------     ***** поиск по подстроке для покупателя ***    --------------------------
+ //  -------------     ***** поиск по подстроке для поставщика ***    --------------------------
  onCagentSearchValueChanges(){
   this.searchCagentCtrl.valueChanges
   .pipe(
@@ -443,17 +436,17 @@ export class ReturnDockComponent implements OnInit {
         .subscribe((data) => {this.spravSysNdsSet=data as any[];},
         error => console.log(error));}
   getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==345)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==346)});
-    this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==347)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==352)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==353)});
-    this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==354)});
-    this.allowToViewMyDocs = permissionsSet.some(                 function(e){return(e==355)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==356)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==357)});
-    this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==358)});
-    this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==359)});
+    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==361)});
+    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==362)});
+    this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==363)});
+    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==368)});
+    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==369)});
+    this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==370)});
+    this.allowToViewMyDocs = permissionsSet.some(                 function(e){return(e==371)});
+    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==372)});
+    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==373)});
+    this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==374)});
+    this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==375)});
    
     if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;this.allowToCreateMyDepartments=true}
     if(this.allowToCreateMyCompany)this.allowToCreateMyDepartments=true;
@@ -463,9 +456,6 @@ export class ReturnDockComponent implements OnInit {
     if(this.allowToUpdateAllCompanies){this.allowToUpdateMyCompany=true;this.allowToUpdateMyDepartments=true;this.allowToUpdateMyDocs=true;}
     if(this.allowToUpdateMyCompany){this.allowToUpdateMyDepartments=true;this.allowToUpdateMyDocs=true;}
     if(this.allowToUpdateMyDepartments)this.allowToUpdateMyDocs=true;
-    // console.log("allowToCreateAllCompanies - "+this.allowToCreateAllCompanies);
-    // console.log("allowToCreateMyCompany - "+this.allowToCreateMyCompany);
-    // console.log("allowToCreateMyDepartments - "+this.allowToCreateMyDepartments);
     this.getData();
   }
 
@@ -527,10 +517,10 @@ export class ReturnDockComponent implements OnInit {
     //если в настройках не было отделения, и в списке предприятий только одно предприятие - ставим его по дефолту
     if(+this.formBaseInformation.get('department_id').value==0 && this.receivedDepartmentsList.length==1){
       this.formBaseInformation.get('department_id').setValue(this.receivedDepartmentsList[0].id);
-      //Если дочерние компоненты уже загружены - устанавливаем предприятие по дефолту как склад в форме поиска и добавления товара
+      //Если дочерние компоненты уже загружены - устанавливаем предприятие по дефолту как склад в форме поиска и добавления товара !!!!!!!!
       // if(!this.startProcess){
-      //   this.returnProductsTableComponent.formSearch.get('secondaryDepartmentId').setValue(this.formBaseInformation.get('department_id').value);  
-      //   this.returnProductsTableComponent.setCurrentTypePrice();//если сменили отделение - нужно проверить, есть ли у него тип цены. И если нет - в вызываемом методе выведется предупреждение для пользователя
+      //   this.returnsupProductsTableComponent.formSearch.get('secondaryDepartmentId').setValue(this.formBaseInformation.get('department_id').value);  
+      //   this.returnsupProductsTableComponent.setCurrentTypePrice();//если сменили отделение - нужно проверить, есть ли у него тип цены. И если нет - в вызываемом методе выведется предупреждение для пользователя
       // }
     }
     //если отделение было выбрано (через настройки или же в этом методе) - определяем его наименование (оно будет отправляться в дочерние компоненты)
@@ -560,7 +550,7 @@ export class ReturnDockComponent implements OnInit {
   }
   getStatusesList(){
     this.receivedStatusesList=null;
-    this.loadSpravService.getStatusList(this.formBaseInformation.get('company_id').value,28) //28 - id документа из таблицы documents
+    this.loadSpravService.getStatusList(this.formBaseInformation.get('company_id').value,29) //29 - id документа из таблицы documents
             .subscribe(
                 (data) => {this.receivedStatusesList=data as StatusInterface[];
                   if(+this.id==0){this.setDefaultStatus();}},
@@ -625,7 +615,7 @@ export class ReturnDockComponent implements OnInit {
   //загрузка настроек
   getSettings(){
     let result:any;
-    this.http.get('/api/auth/getSettingsReturn')
+    this.http.get('/api/auth/getSettingsReturnsup')
       .subscribe(
           data => { 
             result=data as any;
@@ -636,7 +626,6 @@ export class ReturnDockComponent implements OnInit {
             this.settingsForm.get('statusOnFinishId').setValue(result.statusOnFinishId);
             //данная группа настроек не зависит от предприятия
             this.settingsForm.get('autoAdd').setValue(result.autoAdd);
-            this.settingsForm.get('showKkm').setValue(result.showKkm);
             //если предприятия из настроек больше нет в списке предприятий (например, для пользователя урезали права, и выбранное предприятие более недоступно)
             //необходимо сбросить данное предприятие в null 
             if(!this.isCompanyInList(+result.companyId)){
@@ -668,7 +657,7 @@ export class ReturnDockComponent implements OnInit {
   }
 
   getDocumentValuesById(){
-    this.http.get('/api/auth/getReturnValuesById?id='+ this.id)
+    this.http.get('/api/auth/getReturnsupValuesById?id='+ this.id)
         .subscribe(
             data => { 
                 let documentValues: DockResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
@@ -695,32 +684,30 @@ export class ReturnDockComponent implements OnInit {
                 this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
                 this.formBaseInformation.get('is_completed').setValue(documentValues.is_completed);
                 this.creatorId=+documentValues.creator_id;
-                this.getSettings(); // настройки документа Возврат покупателя
+                this.getSettings(); // настройки документа Возврат поставщику
                 // this.getSpravSysEdizm();//справочник единиц измерения
                 this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
                 this.getPriceTypesList();
                 this.loadFilesInfo();
                 this.getDepartmentsList();//отделения
-                this.getStatusesList();//статусы документа Возврат покупателя
-                this.getLinkedDocs(); //загрузка связанных документов
+                this.getStatusesList();//статусы документа Возврат поставщику
+                // this.getLinkedDocs(); //загрузка связанных документов
                 this.refreshPermissions();//пересчитаем права
-                // if(this.returnProductsTableComponent) this.returnProductsTableComponent.showColumns(); //чтобы спрятать столбцы после завершения Инвентаризации
+                // if(this.returnsupProductsTableComponent) this.returnsupProductsTableComponent.showColumns(); //чтобы спрятать столбцы после завершения Инвентаризации
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
         );
   }
 
-  formingProductRowFromApiResponse(row: ReturnProductTable) {
+  formingProductRowFromApiResponse(row: ReturnsupProductTable) {
     return this._fb.group({
       id: new FormControl (row.id,[]),
       product_id:         new FormControl (row.product_id,[]),
-      return_id:          new FormControl (this.id,[]),
+      returnsup_id:       new FormControl (this.id,[]),
       nds_id:             new FormControl (row.nds_id,[]),
-      product_netcost:    new FormControl ((+row.product_netcost).toFixed(2),[]),
-      product_count:      new FormControl ((+row.product_count).toFixed(2),[]),
+      product_count:      new FormControl ((+row.product_count),[]),
       product_price:      new FormControl ((+row.product_price).toFixed(2),[]),
       product_sumprice:   new FormControl ((+row.product_count*(+row.product_price)).toFixed(2),[]),
-      product_sumnetcost: new FormControl ((+row.product_count*(+row.product_netcost)).toFixed(2),[]),
     });
   }
 
@@ -749,7 +736,7 @@ export class ReturnDockComponent implements OnInit {
     {
       let Unic: boolean;
       this.isDocNumberUnicalChecking=true;
-      return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table=return')
+      return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table=returnsup')
       .subscribe(
           (data) => {   
                       Unic = data as boolean;
@@ -761,28 +748,28 @@ export class ReturnDockComponent implements OnInit {
     }
   }
 
-  //создание нового документа Возврат покупателя
+  //создание нового документа Возврат поставщику
   createNewDocument(){
-    console.log('Создание нового документа Возврат покупателя');
+    console.log('Создание нового документа Возврат поставщику');
     this.createdDockId=null;
     this.getProductsTable();
-    this.http.post('/api/auth/insertReturn', this.formBaseInformation.value)
+    this.http.post('/api/auth/insertReturnsup', this.formBaseInformation.value)
       .subscribe(
       (data) => {
                   this.actionsBeforeGetChilds=0;
                   this.createdDockId=data as number;
                   switch(this.createdDockId){
                     case null:{// null возвращает если не удалось создать документ из-за ошибки
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа Возврат покупателя"}});
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа Возврат поставщику"}});
                       break;
                     }
                     case 0:{//недостаточно прав
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа Возврат покупателя"}});
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа Возврат поставщику"}});
                       break;
                     }
-                    default:{// Возврат покупателя успешно создалась в БД 
-                      this.openSnackBar("Документ \"Возврат покупателя\" успешно создан", "Закрыть");
-                      this.afterCreateReturn();
+                    default:{// Возврат поставщику успешно создалась в БД 
+                      this.openSnackBar("Документ \"Возврат поставщику\" успешно создан", "Закрыть");
+                      this.afterCreateReturnsup();
                     }
                   }
                 },
@@ -791,9 +778,9 @@ export class ReturnDockComponent implements OnInit {
   }
 
   //действия после создания нового документа Инвентаризиция
-  afterCreateReturn(){
+  afterCreateReturnsup(){
       this.id=+this.createdDockId;
-      this._router.navigate(['/ui/returndock', this.id]);
+      this._router.navigate(['/ui/returnsupdock', this.id]);
       this.formBaseInformation.get('id').setValue(this.id);
       this.getData();
   }
@@ -802,8 +789,8 @@ export class ReturnDockComponent implements OnInit {
     if(!notShowDialog){//notShowDialog=false - показывать диалог
       const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
         width: '400px',data:{
-          head: 'Завершение возврата покупателя',
-          warning: 'Вы хотите завершить данный возврат покупателя?',
+          head: 'Завершение возврата поставщику',
+          warning: 'Вы хотите завершить данный возврат поставщику?',
           query: 'После завершения документ станет недоступным для редактирования.'},});
       dialogRef.afterClosed().subscribe(result => {
         if(result==1){
@@ -815,18 +802,45 @@ export class ReturnDockComponent implements OnInit {
 
   updateDocument(complete?:boolean){ 
     this.getProductsTable();    
-    if(complete) {
-      if(this.settingsForm.get('statusOnFinishId').value)//если в настройках есть "Статус при завершении" - выставим его
-        this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);
-      this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с завершением
+    let currentStatus:number=this.formBaseInformation.get('status_id').value;
+    if(complete){
+      this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с завершением - временно устанавливаем true, временно - чтобы это ушло в запросе на сервер, но не повлияло на внешний вид документа, если вернется не true
+      if(this.settingsForm.get('statusOnFinishId').value){//если в настройках есть "Статус при завершении" - временно выставляем его
+        this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);}
     }
-    return this.http.post('/api/auth/updateReturn',  this.formBaseInformation.value)
+    this.http.post('/api/auth/updateReturnsup',  this.formBaseInformation.value)
       .subscribe(
           (data) => 
           {   
-            this.setStatusColor();//чтобы обновился цвет статуса
-            if(this.returnProductsTableComponent) this.returnProductsTableComponent.showColumns(); //чтобы спрятать столбцы после завершения Инвентаризации
-            this.openSnackBar("Документ \"Возврат покупателя\" "+ (complete?"завершён.":"сохренён."), "Закрыть");
+            if(complete){
+              this.formBaseInformation.get('is_completed').setValue(false);//если сохранение с завершением - удаляем временную установку признака завершенности, 
+              this.formBaseInformation.get('status_id').setValue(currentStatus);//и возвращаем предыдущий статус
+            }
+            let result:number=data as number;
+            switch(result){
+              case null:{// null возвращает если не удалось создать документ из-за ошибки
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка "+ (complete?"завершения":"сохренения") + " документа \"Возврат поставщику\""}});
+                break;
+              }
+              case -1:{//недостаточно прав
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа \"Возврат поставщику\""}});
+                break;
+              }
+              case 0:{//недостаточно товара на складе
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Количество тоара на складе у одной или нескольких позиций несдостаточно для возврата поставщику"}});
+                break;
+              }
+              default:{// Успешно
+                this.openSnackBar("Документ \"Возврат поставщику\" "+ (complete?"завершён.":"сохренён."), "Закрыть");
+                if(complete) {
+                  this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с завершением - окончательно устанавливаем признак завершенности = true
+                  if(this.returnsupProductsTableComponent) this.returnsupProductsTableComponent.showColumns(); //чтобы спрятать столбцы после завершения 
+                  if(this.settingsForm.get('statusOnFinishId').value){//если в настройках есть "Статус при завершении" - выставим его
+                    this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);}
+                  this.setStatusColor();//чтобы обновился цвет статуса
+                }
+              }
+            }
           },
           error => {
             this.showQueryErrorMessage(error);
@@ -834,15 +848,15 @@ export class ReturnDockComponent implements OnInit {
       );
   } 
   clearFormSearchAndProductTable(){
-    this.returnProductsTableComponent.resetFormSearch();
-    this.returnProductsTableComponent.getControlTablefield().clear();
+    this.returnsupProductsTableComponent.resetFormSearch();
+    this.returnsupProductsTableComponent.getControlTablefield().clear();
     this.getTotalSumPrice();//чтобы пересчиталась сумма в чеке
   }
   //забирает таблицу товаров из дочернего компонента и помещает ее в основную форму
   getProductsTable(){
-    const control = <FormArray>this.formBaseInformation.get('returnProductTable');
+    const control = <FormArray>this.formBaseInformation.get('returnsupProductTable');
     control.clear();
-    this.returnProductsTableComponent.getProductTable().forEach(row=>{
+    this.returnsupProductsTableComponent.getProductTable().forEach(row=>{
       control.push(this.formingProductRowFromApiResponse(row));
     });
   }
@@ -866,7 +880,7 @@ export class ReturnDockComponent implements OnInit {
 
   //открывает диалог настроек
   openDialogSettings() { 
-    const dialogSettings = this.SettingsReturnDialogComponent.open(SettingsReturnDialogComponent, {
+    const dialogSettings = this.SettingsReturnsupDialogComponent.open(SettingsReturnsupDialogComponent, {
       maxWidth: '95vw',
       maxHeight: '95vh',
       width: '400px', 
@@ -876,7 +890,7 @@ export class ReturnDockComponent implements OnInit {
         priceTypesList:   this.receivedPriceTypesList, //список типов цен
         receivedCompaniesList: this.receivedCompaniesList, //список предприятий
         receivedDepartmentsList: this.receivedDepartmentsList, //список отделений
-        company_id: this.formBaseInformation.get('company_id').value, // текущее предприятие (нужно для поиска покупателя)
+        company_id: this.formBaseInformation.get('company_id').value, // текущее предприятие (нужно для поиска поставщика)
         allowToCreateAllCompanies: this.allowToCreateAllCompanies,
         allowToCreateMyCompany: this.allowToCreateMyCompany,
         allowToCreateMyDepartments: this.allowToCreateMyDepartments,
@@ -889,13 +903,11 @@ export class ReturnDockComponent implements OnInit {
         if(result.get('companyId')) this.settingsForm.get('companyId').setValue(result.get('companyId').value);
         if(result.get('departmentId')) this.settingsForm.get('departmentId').setValue(result.get('departmentId').value);
         if(result.get('autoAdd')) this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
-        if(result.get('showKkm')) this.settingsForm.get('showKkm').setValue(result.get('showKkm').value);
+        // if(result.get('showKkm')) this.settingsForm.get('showKkm').setValue(result.get('showKkm').value);
         this.settingsForm.get('statusOnFinishId').setValue(result.get('statusOnFinishId').value);
-        this.saveSettingsReturn();
-        // this.getTotalSumPriceHandler();
-        /*this.returnProductsTableComponent.sendSumPriceToKKM();*/// на тот случай если в настройках включат флаг "Онлайн-касса" - чтобы в кассе сразу появилась сумма
+        this.saveSettingsReturnsup();
         // если это новый документ, и ещё нет выбранных товаров - применяем настройки 
-        if(+this.id==0 && this.returnProductsTableComponent.getProductTable().length==0)  {
+        if(+this.id==0 && this.returnsupProductsTableComponent.getProductTable().length==0)  {
           this.getData();
         }
       }
@@ -906,11 +918,11 @@ export class ReturnDockComponent implements OnInit {
     //т.к. нет флажка "НДС включён" (т.к. он всегда включён в цену, если "НДС"=true), то в таблице товаров ничего пересчитывать не надо - НДС не накидывается к цене, если "НДС включён" !=true
   }
   hideOrShowNdsColumn(){
-    setTimeout(() => {this.returnProductsTableComponent.showColumns();}, 1);
+    setTimeout(() => {this.returnsupProductsTableComponent.showColumns();}, 1);
   }
 
-  saveSettingsReturn(){
-    return this.http.post('/api/auth/saveSettingsReturn', this.settingsForm.value)
+  saveSettingsReturnsup(){
+    return this.http.post('/api/auth/saveSettingsReturnsup', this.settingsForm.value)
             .subscribe(
                 (data) => {   
                           this.openSnackBar("Настройки успешно сохранены", "Закрыть");
@@ -967,7 +979,7 @@ export class ReturnDockComponent implements OnInit {
   }
   //товары должны добавляться только для одного предприятия и одного отделения. Если 1й товар уже добавлен, на начальной стадии (когда документ еще не создан, т.е. id = 0) нужно запретить изменять предприятие и отделение
   setCanEditCompAndDepth(){
-    if(this.returnProductsTableComponent.getProductTable().length>0) this.canEditCompAndDepth=false; else this.canEditCompAndDepth=true;
+    if(this.returnsupProductsTableComponent.getProductTable().length>0) this.canEditCompAndDepth=false; else this.canEditCompAndDepth=true;
   }
 
   onSwitchNds(){
@@ -976,222 +988,16 @@ export class ReturnDockComponent implements OnInit {
 
   }
 
+    //принимает от product-search-and-table.component сумму к оплате и никуда ее не передает :-( (атавизм от возврата покупателя, там она передавалась в модуль ККМ)
+    totalSumPriceHandler($event: any) {
+    }  
+
 //*************************************************          СВЯЗАННЫЕ ДОКУМЕНТЫ          ******************************************************/
-  //создание Списания или Оприходования
-  createLinkedDock(dockname:string){// принимает аргументы: Writeoff
-    let canCreateLinkedDock:CanCreateLinkedDock=this.canCreateLinkedDock(dockname); //проверим на возможность создания связанного документа
-    if(canCreateLinkedDock.can){
-      this.formWP.get('return_id').setValue(this.id);
-      this.formWP.get('company_id').setValue(this.formBaseInformation.get('company_id').value);
-      this.formWP.get('department_id').setValue(this.formBaseInformation.get('department_id').value);
-      this.formWP.get('description').setValue('Создано из Возврата покупателя №'+ this.formBaseInformation.get('doc_number').value);
-      this.getProductsTableWP(dockname);//формируем таблицу товаров для создаваемого документа
-      this.http.post('/api/auth/insert'+dockname, this.formWP.value)
-      .subscribe(
-      (data) => {
-                  let createdDockId=data as number;
-                
-                  switch(createdDockId){
-                    case null:{// null возвращает если не удалось создать документ из-за ошибки
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа "+(dockname=="Writeoff"?"Списание":"")}});
-                      break;
-                    }
-                    case 0:{//недостаточно прав
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа "+(dockname=="Writeoff"?"Списание":"")}});
-                      break;
-                    }
-                    default:{// Документ успешно создался в БД 
-                      this.openSnackBar("Документ "+(dockname=='Writeoff'?'Списание':'')+" успешно создан", "Закрыть");
-                      this.getReturnLinkedDocsList(dockname.toLowerCase());//обновляем список этого документа
-                    }
-                  }
-                },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});},
-      );
-    } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:canCreateLinkedDock.reason}});
-  }
-
-  
-// забирает таблицу товаров из дочернего компонента и помещает ее в форму, предназначенную для создания Списания
-  getProductsTableWP(dockname:string){
-    let tableName:string;//для маппинга в соответствующие названия сетов в бэкэнде (например private Set<PostingProductForm> postingProductTable;)
-    tableName='writeoffProductTable';
-    const control = <FormArray>this.formWP.get(tableName);
-    control.clear();
-    this.returnProductsTableComponent.getProductTable().forEach(row=>{
-          control.push(this.formingProductRowWP(row,dockname));
-    });
-  }
-
-  // можно ли создать связанный документ (да - если есть товары, подходящие для этого, и нет уже завершённого документа)
-  canCreateLinkedDock(dockname:string):CanCreateLinkedDock{
-    let isThereCompletedLinkedDocks:boolean = this.isThereCompletedLinkedDocks(dockname);
-    let noProductsToCreateLinkedDock:boolean = this.getProductsCountToLinkedDock()==0;
-    if(isThereCompletedLinkedDocks || noProductsToCreateLinkedDock){
-      if(isThereCompletedLinkedDocks)
-        return {can:false, reason:'Невозможно создать '+(dockname=='Writeoff'?'Списание':'')+', так как уже есть завершенный документ '+(dockname=='Writeoff'?'Списание':'')};
-      else
-        return {can:false, reason:'Невозможно создать '+(dockname=='Writeoff'?'Списание':'')+', так как нет позиций с количеством более 0'};
-    }else
-      return {can:true, reason:''};
-  }
-
-  //есть ли уже завершенный связанный документ (для возможности создания их при их отсутствии) Например, не получится создать Списание, если уже есть завершенные Списания
-  isThereCompletedLinkedDocks(dockname:string):boolean{
-    let isThere:boolean=false;
-    if(dockname=='Writeoff'){// Если Списание
-      this.LinkedDocsWriteoff.map(i=>{
-        if(i.is_completed)
-          isThere=true;
-      });
-    } else {// 'Posting'       Если Оприходование
-      this.LinkedDocsPosting.map(i=>{
-        if(i.is_completed)
-          isThere=true;
-      });
-    }
-    return isThere;
-  }
-  // возвращает количество товаров, подходящих для связанных документов (для возможности создания их при количестве >0) Например, не получится создать Списание, если кол-во товаров с недостачей = 0, т.е списывать нечего
-  getProductsCountToLinkedDock():number{
-    let count:number=0;
-    this.returnProductsTableComponent.getProductTable().forEach(row=>{
-        if(row.product_count>0)
-          count++
-    });
-    return count;
-  }
-  formingProductRowWP(row: ReturnProductTable, dockname:string) {
-    return this._fb.group({
-      product_id: new FormControl (row.product_id,[]),
-      product_count: new FormControl (row.product_count,[]),
-      product_price:  new FormControl (row.product_price,[]),
-      product_sumprice: new FormControl (((row.product_count)*row.product_price).toFixed(2),[]),
-      reason_id: new FormControl (3,[]), // 3 - Недостачи и потери от порчи ценностей
-    });
-  }
-
-  getLinkedDocs(){
-    this.getReturnLinkedDocsList('writeoff');//загрузка связанных списаний
-  }
-
-  getReturnLinkedDocsList(docName:string, fromDialog?:boolean){
-    this.http.get('/api/auth/getReturnLinkedDocsList?id='+this.id+'&docName='+docName)
-    .subscribe(
-        (data) => {   
-                      this.LinkedDocsWriteoff=data as LinkedDocs [];
-                  },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-    );
-  }
-
-
-  clickButtonDeleteLinkedDock(docName:string,id:number): void {
-      const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
-        width: '400px',
-        data:
-        { 
-          head: 'Удаление',
-          warning: 'Удалить данное '+(docName=='Writeoff'?'Списание?':'Оприходование?'),
-          query: '',
-        },
-      });
-      dialogRef.afterClosed().subscribe(result => {
-        if(result==1){
-          this.deleteLinkedDock(docName,id);
-        }
-      });  
-  }
-  dialogOpenWriteoff(id:number) {
-    const dialogRef = this.dialogCreateProduct.open(WriteoffDockComponent, {
-      maxWidth: '95vw',
-      maxHeight: '95vh',
-      height: '95%',
-      width: '95%',
-      data:
-      { 
-        mode: 'window',
-        id: id
-      },
-    });
-    dialogRef.afterClosed().subscribe(result => {
-      if(result) this.getReturnLinkedDocsList('writeoff',true);//если вернулось true - значит, возможно, зайдя в Списание его закрыли. Обновим список списаний. Да, возможно заходили в уже закрытый документ, и запрос на обновление списка документов будет произведен зря
-    });
-  }
-  deleteLinkedDock(docName:string,id:number){
-    const body = {"checked": id}; 
-        return this.http.post('/api/auth/delete'+docName, body) 
-        .subscribe(
-            (data) => {   
-                        let result=data as boolean;
-                        if(result){
-                          this.openSnackBar("Успешно удалено", "Закрыть");
-                          // this.getReturnLinkedDocsList(docName.toLowerCase());
-                        }else
-                          this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав для удаления'}});
-                      },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-        );
-  }
-
-//************************************* ДЛЯ РАБОТЫ С КАССОВЫМ МОДУЛЕМ *********************************************************************/  
-  sendingProductsTableHandler() {
-    this.kkmComponent.productsTable=[];
-    this.returnProductsTableComponent.getProductTable().forEach(row=>{
-      this.kkmComponent.productsTable.push(row);
-    });
-  }
-  //принимает от кассового модуля запрос на итоговую цену. цена запрашивается у returnProductsTableComponent и отдаётся в totalSumPriceHandler обратно в кассовый модуль
-  getTotalSumPriceHandler() {
-    if(this.returnProductsTableComponent!=undefined) {
-      this.returnProductsTableComponent.recountTotals();
-    }
-  }  
-  //принимает от product-search-and-table.component сумму к оплате и передает ее в kkm.component  
-  totalSumPriceHandler($event: any) {
-    if(this.kkmComponent!=undefined) {
-      this.kkmComponent.totalSumPrice=$event; 
-      console.log("$event - "+$event);  
-      console.log("totalSumPrice - "+this.kkmComponent.totalSumPrice);  
-    }
-  }  
-  //обработчик события успешной печати чека - в Заказе покупателя это выставление статуса документа, сохранение и создание нового.  
-  onSuccesfulChequePrintingHandler(){
-    console.log("Чек был успешно напечатан");
-    this.openSnackBar("Чек был успешно напечатан", "Закрыть");
-  }
-  //обработка события нажатия на кнопку "Отбить чек", испущенного в компоненте кассовых операций
-  onClickChequePrintingHandler(){
-    // if (+this.id>0){//если Розничная продажа уже была создана ранее, и нажали Отбить чек
-    //   //нужно сделать запрос, создавался ли из этой Розничной продажи чек такого типа ранее
-    //   console.log('Розничная продажа производит запрос, создавался ли из этой Розничной продажи чек такого типа (sell) ранее');
-    //   this.http.get('/api/auth/isReceiptPrinted?company_id='+this.formBaseInformation.get('company_id').value+
-    //   '&document_id=25'+'&id='+(this.id)+'&operation_id='+(this.kkmComponent?this.kkmComponent.operationId:'sell'))// за id операции выбираем тот, что сейчас выбран в модуле ККМ
-    //   .subscribe(
-    //       (data) => {   
-    //                   const result=data as boolean;
-    //                   if (result){
-    //                     console.log('Чек sell ранее печатался.')
-    //                     this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Чек такого типа уже отбивался из данной розничной продажи'}});
-    //                     this.kkmComponent.kkmIsFree=true;
-    //                   }
-    //                   else {
-    //                     console.log('Чек sell ранее не печатался. Обращаемся к кассовому модулю с заданием напечатать чек (printReceipt)')
-                        this.kkmComponent.printReceipt(28, this.id);//28 - Возврат покупателя
-                      // }
-      //     },
-      //     error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});this.kkmComponent.kkmIsFree=true;},
-      // )
-    // } else { //если розн. продажа еще не создана:
-    //   console.log('Розничная продажа еще не создана');
-    // }
-  }
+//  пока таковых нет
 
 //*****************************************************************************************************************************************/
 /***********************************************************         ФАЙЛЫ          *******************************************************/
 //*****************************************************************************************************************************************/
-
-
 openDialogAddFiles() {
   const dialogRef = this.dialogAddFiles.open(FilesComponent, {
     maxWidth: '95vw',
@@ -1206,7 +1012,7 @@ openDialogAddFiles() {
   });
   dialogRef.afterClosed().subscribe(result => {
     console.log(`Dialog result: ${result}`);
-    if(result)this.addFilesToReturn(result);
+    if(result)this.addFilesToReturnsup(result);
   });
 }
 openFileCard(dockId:number) {
@@ -1224,7 +1030,7 @@ openFileCard(dockId:number) {
 }
 loadFilesInfo(){//                                     загружает информацию по прикрепленным файлам
   const body = {"id":this.id};
-        return this.http.post('/api/auth/getListOfReturnFiles', body) 
+        return this.http.post('/api/auth/getListOfReturnsupFiles', body) 
           .subscribe(
               (data) => {  
                           this.filesInfo = data as any[]; 
@@ -1232,9 +1038,9 @@ loadFilesInfo(){//                                     загружает инф
               error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
           );
 }
-addFilesToReturn(filesIds: number[]){
+addFilesToReturnsup(filesIds: number[]){
   const body = {"id1":this.id, "setOfLongs1":filesIds};// передаем id товара и id файлов 
-          return this.http.post('/api/auth/addFilesToReturn', body) 
+          return this.http.post('/api/auth/addFilesToReturnsup', body) 
             .subscribe(
                 (data) => {  
                   this.loadFilesInfo();
@@ -1261,7 +1067,7 @@ clickBtnDeleteFile(id: number): void {
 
 deleteFile(id:number){
   const body = {id: id, any_id:this.id}; 
-  return this.http.post('/api/auth/deleteReturnFile',body)
+  return this.http.post('/api/auth/deleteReturnsupFile',body)
   .subscribe(
       (data) => {   
                   this.loadFilesInfo();
@@ -1288,11 +1094,11 @@ deleteFile(id:number){
   }
   getTotalProductCount() {//бежим по столбцу product_count и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
     this.getProductsTable();
-    return (this.formBaseInformation.value.returnProductTable.map(t => +t.product_count).reduce((acc, value) => acc + value, 0)).toFixed(3).replace(".000", "").replace(".00", "");
+    return (this.formBaseInformation.value.returnsupProductTable.map(t => +t.product_count).reduce((acc, value) => acc + value, 0)).toFixed(3).replace(".000", "").replace(".00", "");
   }
   getTotalSumPrice() {//бежим по столбцу product_sumprice и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
     this.getProductsTable();
-    return (this.formBaseInformation.value.returnProductTable.map(t => +t.product_sumprice).reduce((acc, value) => acc + value, 0)).toFixed(2);
+    return (this.formBaseInformation.value.returnsupProductTable.map(t => +t.product_sumprice).reduce((acc, value) => acc + value, 0)).toFixed(2);
   }
   numberOnly(event): boolean {
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
@@ -1306,7 +1112,7 @@ deleteFile(id:number){
   getFormIngexByProductId(productId:number):number{
     let retIndex:number;
     let formIndex:number=0;
-    this.formBaseInformation.value.returnProductTable.map(i => 
+    this.formBaseInformation.value.returnsupProductTable.map(i => 
       {
       if(+i['product_id']==productId){retIndex=formIndex}
       formIndex++;
