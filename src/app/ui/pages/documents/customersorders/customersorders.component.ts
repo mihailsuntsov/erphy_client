@@ -637,7 +637,7 @@ export class CustomersordersComponent implements OnInit {
   resetOptions(){
     this.displayingDeletedDocks=false;
     this.fillOptionsList();//перезаполняем список опций
-    this.selectionFilterOptions.clear;
+    this.selectionFilterOptions.clear();
     this.sendingQueryForm.filterOptionsIds = [];
   }
   fillOptionsList(){

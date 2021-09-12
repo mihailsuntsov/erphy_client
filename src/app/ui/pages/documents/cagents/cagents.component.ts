@@ -678,7 +678,7 @@ recountNumChildsOfSelectedCategory(){//считает количество по�
   resetOptions(){
     this.displayingDeletedDocks=false;
     this.fillOptionsList();//перезаполняем список опций
-    this.selectionFilterOptions.clear;
+    this.selectionFilterOptions.clear();
     this.sendingQueryForm.filterOptionsIds = [];
   }
   fillOptionsList(){

@@ -48,7 +48,7 @@ export class InventoryComponent implements OnInit {
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
     // public universalCategoriesDialog: MatDialog,
-    public сonfirmDialog: MatDialog,
+    public confirmDialog: MatDialog,
     private http: HttpClient,
     public deleteDialog: MatDialog,
     public MessageDialog: MatDialog,
@@ -428,7 +428,7 @@ export class InventoryComponent implements OnInit {
             );
   }
   clickBtnRestore(): void {
-    const dialogRef = this.сonfirmDialog.open(ConfirmDialog, {
+    const dialogRef = this.confirmDialog.open(ConfirmDialog, {
       width: '400px',
       data:
       { 
@@ -613,7 +613,7 @@ export class InventoryComponent implements OnInit {
   resetOptions(){
     this.displayingDeletedDocks=false;
     this.fillOptionsList();//перезаполняем список опций
-    this.selectionFilterOptions.clear;
+    this.selectionFilterOptions.clear();
     this.sendingQueryForm.filterOptionsIds = [];
   }
   fillOptionsList(){

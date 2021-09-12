@@ -4,11 +4,15 @@ import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpClient } from '@angular/common/http';
+import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { LoadSpravService } from './loadsprav';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { QueryFormService } from './get-acceptance-table.service';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
+import { FormGroup, FormControl } from '@angular/forms';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
+import { SettingsAcceptanceDialogComponent } from 'src/app/modules/settings/settings-acceptance-dialog/settings-acceptance-dialog.component';
 export interface CheckBox {
   id: number;
   is_completed:boolean;
@@ -23,6 +27,10 @@ export interface idAndName {
 export interface NumRow {//интерфейс для списка количества строк
   value: string;
   viewValue: string;
+}
+export interface idAndName {
+  id: number;
+  name:string;
 }
 @Component({
   selector: 'app-acceptance',
@@ -67,6 +75,9 @@ export class AcceptanceComponent implements OnInit {
   allowToDelete:boolean = false;
 
   showOpenDocIcon:boolean=false;
+  gettingTableData:boolean=true;
+
+  settingsForm: any; // форма с настройками
 
   numRows: NumRow[] = [
     {value: '5', viewValue: '5'},
@@ -84,14 +95,21 @@ export class AcceptanceComponent implements OnInit {
   visBtnAdd:boolean;
   visBtnCopy = false;
   visBtnDelete = false;
+  //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
+  selectionFilterOptions = new SelectionModel<idAndName>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние
+  optionsIds: idAndName [];
+  displayingDeletedDocks:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
+  displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
+  //***********************************************************************************************************************/
 
   constructor(private queryFormService:   QueryFormService,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
     public universalCategoriesDialog: MatDialog,
-    public ConfirmDialog: MatDialog,
+    public confirmDialog: MatDialog,
     private http: HttpClient,
-    private Cookie: Cookie,
+    private settingsAcceptanceDialogComponent: MatDialog,
+    private MessageDialog: MatDialog,
     public deleteDialog: MatDialog,
     public dialogRef1: MatDialogRef<AcceptanceComponent>,) { }
 
@@ -103,6 +121,7 @@ export class AcceptanceComponent implements OnInit {
       this.sendingQueryForm.offset='0';
       this.sendingQueryForm.result='10';
       this.sendingQueryForm.searchCategoryString="";
+      this.sendingQueryForm.filterOptionsIds = [];
 
       if(Cookie.get('acceptance_companyId')=='undefined' || Cookie.get('acceptance_companyId')==null)     
         Cookie.set('acceptance_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('acceptance_companyId')=="0"?"0":+Cookie.get('acceptance_companyId'));
@@ -116,6 +135,20 @@ export class AcceptanceComponent implements OnInit {
         Cookie.set('acceptance_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('acceptance_offset');
       if(Cookie.get('acceptance_result')=='undefined' || Cookie.get('acceptance_result')==null)        
         Cookie.set('acceptance_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('acceptance_result');
+
+      this.fillOptionsList();//заполняем список опций фильтра
+
+      // Форма настроек
+      this.settingsForm = new FormGroup({
+        // предприятие, для которого создаются настройки
+        companyId: new FormControl                (null,[]),
+        // id отделения
+        departmentId: new FormControl             (null,[]),
+        // статус после завершения
+        statusOnFinishId: new FormControl         ('',[]),
+        // автодобавление товара из формы поиска в таблицу
+        autoAdd: new FormControl                  (false,[]),  
+      });
 
       this.getCompaniesList();// 
       // -> getSetOfPermissions() 
@@ -203,9 +236,11 @@ export class AcceptanceComponent implements OnInit {
     this.displayedColumns.push('company');
     this.displayedColumns.push('department');
     this.displayedColumns.push('cagent');
+    this.displayedColumns.push('status');
+    this.displayedColumns.push('product_count');
+    this.displayedColumns.push('is_completed');
     this.displayedColumns.push('description');
     this.displayedColumns.push('creator');
-    this.displayedColumns.push('status');
     this.displayedColumns.push('date_time_created');
   }
 
@@ -223,13 +258,15 @@ export class AcceptanceComponent implements OnInit {
   }
 
   getTable(){
+    this.gettingTableData=true;
     this.queryFormService.getTable(this.sendingQueryForm)
             .subscribe(
                 (data) => {
                   this.dataSource.data = data as any []; 
                   if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
+                  this.gettingTableData=false;
                 },
-                error => console.log(error) 
+                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
             );
   }
 
@@ -337,10 +374,12 @@ export class AcceptanceComponent implements OnInit {
     Cookie.set('acceptance_companyId',this.sendingQueryForm.companyId);
     Cookie.set('acceptance_departmentId','0');
     this.sendingQueryForm.departmentId="0"; 
+    this.resetOptions();
     this.getDepartmentsList();
   }
   onDepartmentSelection(){
     Cookie.set('acceptance_departmentId',this.sendingQueryForm.departmentId);
+    this.resetOptions();
     this.getData();
   }
   clickBtnDelete(): void {
@@ -475,6 +514,114 @@ export class AcceptanceComponent implements OnInit {
     if( (!this.allowToViewAllCompanies && !this.allowToViewMyCompany && this.allowToViewMyDepartments)||
         (!this.allowToViewAllCompanies && !this.allowToViewMyCompany && !this.allowToViewMyDepartments && this.allowToViewMyDocs)){
       this.receivedDepartmentsList=this.receivedMyDepartmentsList;}
+  }    
+  //*************************************************************   НАСТРОЙКИ   ************************************************************/    
+  // открывает диалог настроек
+  openDialogSettings() { 
+    const dialogSettings = this.settingsAcceptanceDialogComponent.open(SettingsAcceptanceDialogComponent, {
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      // height: '680px',
+      width: '400px', 
+      minHeight: '650px',
+      data:
+      { //отправляем в диалог:
+        receivedCompaniesList: this.receivedCompaniesList, //список предприятий
+        receivedDepartmentsList: this.receivedDepartmentsList,//список отделений
+        company_id: +this.sendingQueryForm.companyId, //предприятие (нужно для поиска покупателя)
+        department_type_price_id: null,
+        cagent_type_price_id: null,
+        default_type_price_id: null,
+        id: 0, //чтобы понять, новый док или уже созданный
+      },
+    });
+    dialogSettings.afterClosed().subscribe(result => {
+      if(result){
+        //если нажата кнопка Сохранить настройки - вставляем настройки в форму настроек и сохраняем
+        if(result.get('companyId')) this.settingsForm.get('companyId').setValue(result.get('companyId').value);
+        if(result.get('departmentId')) this.settingsForm.get('departmentId').setValue(result.get('departmentId').value);
+        this.settingsForm.get('statusOnFinishId').setValue(result.get('statusOnFinishId').value);
+        this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
+        this.saveSettingsAcceptance();
+      }
+    });
   }
-
+  // Сохраняет настройки
+  saveSettingsAcceptance(){
+    return this.http.post('/api/auth/saveSettingsAcceptance', this.settingsForm.value)
+            .subscribe(
+                (data) => {   
+                          this.openSnackBar("Настройки успешно сохранены", "Закрыть");
+                          
+                        },
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+            );
+  }
+  //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
+  clickBtnRestore(): void {
+    const dialogRef = this.confirmDialog.open(ConfirmDialog, {
+      width: '400px',
+      data:
+      { 
+        head: 'Восстановление',
+        query: 'Восстановить выбранные приёмки из удалённых?',
+        warning: '',
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){this.undeleteDocks();}
+      this.clearCheckboxSelection();
+      this.showOnlyVisBtnAdd();
+    });        
+  }
+  undeleteDocks(){
+    const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
+    this.clearCheckboxSelection();
+      return this.http.post('/api/auth/undeleteAcceptance', body) 
+    .subscribe(
+        (data) => {   
+                    this.getData();
+                    this.openSnackBar("Успешно восстановлено", "Закрыть");
+                  },
+        error => console.log(error),
+    );
+  }  
+  resetOptions(){
+    this.displayingDeletedDocks=false;
+    this.fillOptionsList();//перезаполняем список опций
+    this.selectionFilterOptions.clear();
+    this.sendingQueryForm.filterOptionsIds = [];
+  }
+  fillOptionsList(){
+    this.optionsIds=[{id:1, name:"Показать только удалённые"},];
+  }
+  clickApplyFilters(){
+    let showOnlyDeletedCheckboxIsOn:boolean = false; //присутствует ли включенный чекбокс "Показывать только удалённые"
+    this.selectionFilterOptions.selected.forEach(z=>{
+      if(z.id==1){showOnlyDeletedCheckboxIsOn=true;}
+    })
+    this.displayingDeletedDocks=showOnlyDeletedCheckboxIsOn;
+    this.clearCheckboxSelection();
+    this.sendingQueryForm.offset=0;//сброс пагинации
+    this.getData();
+  }
+  updateSortOptions(){//после определения прав пересматриваем опции на случай, если права не разрешают действия с определенными опциями, и исключаем эти опции
+    let i=0; 
+    this.optionsIds.forEach(z=>{
+      console.log("allowToDelete - "+this.allowToDelete);
+      if(z.id==1 && !this.allowToDelete){this.optionsIds.splice(i,1)}//исключение опции Показывать удаленные, если нет прав на удаление
+      i++;
+    });
+    if (this.optionsIds.length>0) this.displaySelectOptions=true; else this.displaySelectOptions=false;//если опций нет - не показываем меню опций
+  }
+  clickFilterOptionsCheckbox(row){
+    this.selectionFilterOptions.toggle(row); 
+    this.createFilterOptionsCheckedList();
+  } 
+  createFilterOptionsCheckedList(){//this.sendingQueryForm.filterOptionsIds - массив c id выбранных чекбоксов вида "7,5,1,3,6,2,4", который заполняется при нажатии на чекбокс
+    this.sendingQueryForm.filterOptionsIds = [];//                                                     
+    this.selectionFilterOptions.selected.forEach(z=>{
+      this.sendingQueryForm.filterOptionsIds.push(+z.id);
+    });
+  }
 }

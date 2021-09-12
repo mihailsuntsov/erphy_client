@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { WriteoffRoutingModule } from './writeoff-routing.module';
 import { WriteoffComponent } from './writeoff.component';
 
+import { SettingsWriteoffDialogModule } from '../../../../modules/settings/settings-writeoff-dialog/settings-writeoff-dialog.module';
 import { FormsModule } from '@angular/forms';
 import { MaterialModule } from '../../../../modules/material.module';
 
@@ -13,6 +14,7 @@ import { MaterialModule } from '../../../../modules/material.module';
     CommonModule,
     WriteoffRoutingModule,
     
+    SettingsWriteoffDialogModule,
     FormsModule,
     MaterialModule
   ]

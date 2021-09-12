@@ -1,30 +1,28 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, OnInit, Optional, ViewChild} from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
-import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl, AbstractControl } from '@angular/forms';
+import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component';
-import { debounceTime, tap, switchMap } from 'rxjs/operators';
-import { MomentDateAdapter} from '@angular/material-moment-adapter';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
-import { ProductsDockComponent } from '../products-dock/products-dock.component';
-import { MatDialog } from '@angular/material/dialog';
+import { debounceTime, tap, switchMap } from 'rxjs/operators';
+import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { SettingsAcceptanceDialogComponent } from 'src/app/modules/settings/settings-acceptance-dialog/settings-acceptance-dialog.component';
+import { AcceptanceProductsTableComponent } from 'src/app/modules/trade-modules/acceptance-products-table/acceptance-products-table.component';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
+import { Router } from '@angular/router';
+import { ReturnsupDockComponent } from '../returnsup-dock/returnsup-dock.component';
 import { FilesComponent } from '../files/files.component';
 import { FilesDockComponent } from '../files-dock/files-dock.component';
-import { Router } from '@angular/router';
 import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from '@angular/material/core';
-import {MessageDialog} from 'src/app/ui/dialogs/messagedialog.component';
+import { MomentDateAdapter} from '@angular/material-moment-adapter';
 import * as _moment from 'moment';
 import {default as _rollupMoment} from 'moment';
-import { Observable } from 'rxjs';
 const moment = _rollupMoment || _moment;
 moment.defaultFormat = "DD.MM.YYYY";
 moment.fn.toJSON = function() { return this.format('DD.MM.YYYY'); }
 export const MY_FORMATS = {
-  parse: {
-    dateInput: 'DD.MM.YYYY',
-  },
+  parse: {dateInput: 'DD.MM.YYYY',},
   display: {
     dateInput: 'DD.MM.YYYY',
     monthYearLabel: 'MMM YYYY',
@@ -32,8 +30,22 @@ export const MY_FORMATS = {
     monthYearA11yLabel: 'MMMM YYYY',
   },
 };
+interface AcceptanceProductTable { //интерфейс для товаров, (т.е. для формы, массив из которых будет содержать форма acceptanceProductTable, входящая в formBaseInformation)
+  id: number;                     // id строки с товаром товара в таблице return_product
+  row_id: number;                 // id строки 
+  product_id: number;             // id товара 
+  name: string;                   // наименование товара
+  edizm: string;                  // наименование единицы измерения
+  product_price: number;          // цена товара
+  product_count: number;          // кол-во товара
+  product_netcost: number;        // себестоимость  товара
+  department_id: number;          // склад
+  remains: number;                // остаток на складе
+  nds_id: number;                 // id ставки НДС
+  product_sumprice: number;       // сумма как product_count * product_price (высчитываем сумму и пихем ее в БД, чтобы потом на бэкэнде в SQL запросах ее не высчитывать)
+}
 
-interface dockResponse {//интерфейс для получения ответа в методе getAcceptanceValuesById
+interface DockResponse {//интерфейс для получения ответа в методе getAcceptanceValuesById
   id: number;
   company: string;
   company_id: string;
@@ -58,6 +70,50 @@ interface dockResponse {//интерфейс для получения отве�
   overhead: string;
   is_archive: boolean;
   overhead_netcost_method: number;
+  status_id: number;
+  status_name: string;
+  status_color: string;
+  status_description: string;
+}
+interface FilesInfo {
+  id: string;
+  name: string;
+  original_name: string;
+  date_time_created: string;
+}
+interface IdAndName{ //универсалный интерфейс для выбора из справочников
+  id: number;
+  name: string;
+}
+interface IdNameDescription{
+  id: number;
+  name: string;
+  description: string;
+}
+interface IdAndNameAndShortname{ //универсалный интерфейс для выбора из справочников
+  id: string;
+  name: string;
+  short_name: string;
+}
+interface StatusInterface{
+  id:number;
+  name:string;
+  status_type:number;//тип статуса: 1 - обычный; 2 - конечный положительный 3 - конечный отрицательный
+  output_order:number;
+  color:string;
+  description:string;
+  is_default:boolean;
+}
+interface LinkedDocs {//интерфейс для загрузки связанных документов
+  id:number;
+  doc_number:number;
+  date_time_created:string;
+  description:string;
+  is_completed:boolean;
+}
+interface CanCreateLinkedDock{//интерфейс ответа на запрос о возможности создания связанного документа
+  can:boolean;
+  reason:string;
 }
 interface SpravSysNdsSet{
   id: number;
@@ -66,68 +122,6 @@ interface SpravSysNdsSet{
   name_api_atol: string;
   is_active: string;
   calculated: string;
-}
-// interface BaseInformation {//интерфейс для основной информации в документе
-//   id: number;
-//   company_id: string;
-//   department_id: string;
-//   cagent_id: string;
-//   doc_number: string;
-//   nds: boolean;
-//   nds_included: boolean;
-//   acceptance_date: string;
-//   description : string;
-//   overhead: string;
-//   overhead_netcost_method: number;
-//   AcceptanceProductTable: FormGroup;
-// }
-
-interface TableFields { //интерфейс для формы, массив из которых будет содержать форма myForm, которая будет отправляться на сохранение списка товаров
-  product_id: number;
-  acceptance_id:number;
-  name: string;
-  product_count: number;
-  edizm: string;
-  edizm_id: number;
-  product_price: number;
-  product_sumprice: number;
-  product_netcost: number;
-  nds: string;
-  nds_id: number;
-}
-
-interface filesInfo {
-  id: string;
-  name: string;
-  original_name: string;
-  date_time_created: string;
-}
-
-interface productSearchResponse{//интерфейс получения данных из бд 
-  id:number;
-  name: string;
-  nds_id:number;
-  edizm_id:number;
-  filename:string;
-}
-
-interface idAndName{ //универсалный интерфейс для выбора из справочников
-  id: number;
-  name: string;
-}
-
-interface idAndNameAndShorname{ //универсалный интерфейс для выбора из справочников
-  id: string;
-  name: string;
-  short_name: string;
-}
-interface shortInfoAboutProduct{//интреф. для получения инфо о состоянии товара в отделении (кол-во, последняя поставка), и средним ценам (закупочной и себестоимости) товара
-     quantity:number;
-     change:number;
-     avg_purchase_price:number;
-     avg_netcost_price:number;
-     last_purchase_price:number;
-     date_time_created:string;
 }
 
 @Component({
@@ -142,45 +136,46 @@ interface shortInfoAboutProduct{//интреф. для получения инф
 export class AcceptanceDockComponent implements OnInit {
 
   id: number = 0;// id документа
-  myId:number=0;
-  creatorId:number=0;
-  createdDockId: number;//массив для получение id созданного документа
-  receivedCompaniesList: any [];//массив для получения списка предприятий
-  receivedDepartmentsList: idAndName [] = [];//массив для получения списка отделений
-  receivedMyDepartmentsList: idAndName [] = [];//массив для получения списка отделений
-  // receivedUsersList  : any [];//массив для получения списка пользователей
+  createdDockId: number;//получение id созданного документа
+  receivedCompaniesList: IdAndName [];//массив для получения списка предприятий
+  receivedDepartmentsList: IdAndName [] = [];//массив для получения списка отделений
+  receivedStatusesList: StatusInterface [] = []; // массив для получения статусов
+  receivedMyDepartmentsList: IdAndName [] = [];//массив для получения списка отделений
   myCompanyId:number=0;
-  spravSysEdizmOfProductAll: idAndNameAndShorname[] = [];// массив, куда будут грузиться все единицы измерения товара
+  myId:number=0;
   // allFields: any[][] = [];//[номер строки начиная с 0][объект - вся инфо о товаре (id,кол-во, цена... )] - массив товаров
-  productSearchResponse: productSearchResponse[] = [];// массив для найденных через форму поиска formSearch товаров
-  filesInfo : filesInfo [] = []; //массив для получения информации по прикрепленным к документу файлам 
-  shortInfoAboutProduct: shortInfoAboutProduct = null; //получение краткого инфо по товару
-  shortInfoAboutProductArray: any[] = []; //получение краткого инфо по товару
-  imageToShow:any; // переменная в которую будет подгружаться картинка товара (если он jpg или png)
+  filesInfo : FilesInfo [] = []; //массив для получения информации по прикрепленным к документу файлам 
+  creatorId:number=0;
+  startProcess: boolean=true; // идеут стартовые запросы. после того как все запросы пройдут - будет false.
+  canGetChilds: boolean=false; //можно ли грузить дочерние модули
+  actionsBeforeGetChilds:number=0;// количество выполненных действий, необходимых чтобы загрузить дочерние модули (кассу и форму товаров)
+  spravSysEdizmOfProductAll: IdAndNameAndShortname[] = [];// массив, куда будут грузиться все единицы измерения товара
+  receivedPriceTypesList: IdNameDescription [] = [];//массив для получения списка типов цен
+  displayedColumns:string[];//отображаемые колонки таблицы с товарами
+  canEditCompAndDepth=true;
+  panelWriteoffOpenState=false;
+  panelPostingOpenState=false;
+  spravSysNdsSet: SpravSysNdsSet[] = []; //массив имен и id для ндс 
+  mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
 
-  //Формы
-  formBaseInformation:any;//форма для основной информации, содержащейся в документе
+  //для загрузки связанных документов
+  linkedDocsReturn:LinkedDocs[]=[];
+  panelReturnOpenState=false;
+
+  // Формы
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
-  public myForm: FormGroup; //форма с массивом форм для накопления информации о товаре
-  tableFields: TableFields; //форма, из которой будет состоять массив myForm
-
-  //для Autocomplete по поиску товаров
-  formSearch:any;// форма для поиска товара, ввода необходимых данных и отправки всего этого в myForm в качестве элемента массива
-  searchProductCtrl = new FormControl();//поле для поиска товаров
-  isProductListLoading  = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
-  canAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
-  filteredProducts: productSearchResponse[] = [];
-  productImageName:string = null;
-  mainImageAddress:string = '../../../../../../assets/images/no_foto.jpg';
-  thumbImageAddress:string = '../../../../../../assets/images/no_foto.jpg';
+  formBaseInformation: FormGroup; //массив форм для накопления информации о Возврате поставщику
+  settingsForm: any; // форма с настройками
+  formReturnsup:any// Форма для отправки при создании Возврата поставщику
 
   //переменные для управления динамическим отображением элементов
-  visBeforeCreatingBlocks = true; //блоки, отображаемые ДО создания документа (до получения id)
-  visAfterCreatingBlocks = true; //блоки, отображаемые ПОСЛЕ создания документа (id >0)
-  visBtnUpdate = false;
-  visBtnAdd:boolean;
-  visBtnCopy = false;
-  visBtnDelete = false;
+  // visAfterCreatingBlocks = true; //блоки, отображаемые ПОСЛЕ создания документа (id >0)
+
+  //для поиска контрагента (поставщика) по подстроке
+  searchCagentCtrl = new FormControl();//поле для поиска
+  isCagentListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
+  canCagentAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
+  filteredCagents: any;
 
   //переменные прав
   permissionsSet: any[];//сет прав на документ
@@ -198,45 +193,34 @@ export class AcceptanceDockComponent implements OnInit {
   allowToView:boolean = false;
   allowToUpdate:boolean = false;
   allowToCreate:boolean = false;
-  // showOpenDocIcon:boolean=false;
+  showOpenDocIcon:boolean=false;
+  editability:boolean = false;//редактируемость. true если есть право на создание и документ создаётся, или есть право на редактирование и документ создан
 
-  // ******  справочники  ******************
-  // spravSysPPRSet: any[];//сет признаков предмета расчета 
-  spravSysNdsSet: SpravSysNdsSet[] = []; //массив имен и id для ндс 
-
-  displayedColumns = ['name','product_count','edizm','product_price','product_sumprice','product_netcost','nds','delete'];
-  @ViewChild("countInput", {static: false}) countInput;
-  @ViewChild("nameInput", {static: false}) nameInput; 
-  @ViewChild("doc_number", {static: false}) doc_number; 
-  @ViewChild("form", {static: false}) form; 
-  edizmName:string='';
-  formSearchReadOnly=false;
   isDocNumberUnicalChecking = false;//идёт ли проверка на уникальность номера
   doc_number_isReadOnly=true;
-  is_completed=false;
-
-  //для поиска контрагента (поставщика) по подстроке
-  searchCagentCtrl = new FormControl();//поле для поиска
-  isCagentListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
-  canCagentAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
-  filteredCagents: any;
-
-
+  @ViewChild("doc_number", {static: false}) doc_number; //для редактирования номера документа
+  @ViewChild("form", {static: false}) form; // связь с формой <form #form="ngForm" ...
+  @ViewChild(AcceptanceProductsTableComponent, {static: false}) public acceptanceProductsTableComponent:AcceptanceProductsTableComponent;
 
   constructor(private activateRoute: ActivatedRoute,
-    private _fb: FormBuilder, //чтобы билдить группу форм myForm
+    private cdRef:ChangeDetectorRef,
+    private _fb: FormBuilder, //чтобы билдить группу форм acceptanceProductTable
     private http: HttpClient,
-    public ShowImageDialog: MatDialog,
     public ConfirmDialog: MatDialog,
     public dialogAddFiles: MatDialog,
+    public SettingsAcceptanceDialogComponent: MatDialog,
     public dialogCreateProduct: MatDialog,
+    @Optional() @Inject(MAT_DIALOG_DATA) public data: any,
     public MessageDialog: MatDialog,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
     private _router:Router) 
-    {this.id = +activateRoute.snapshot.params['id'];}
+    { 
+      if(activateRoute.snapshot.params['id'])
+        this.id = +activateRoute.snapshot.params['id'];
+    }
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.formBaseInformation = new FormGroup({
       id: new FormControl      (this.id,[]),
       company_id: new FormControl      ('',[Validators.required]),
@@ -249,83 +233,115 @@ export class AcceptanceDockComponent implements OnInit {
       cagent: new FormControl      ('',[]),
       nds: new FormControl      (false,[]),
       nds_included: new FormControl      (true,[]),
-      is_completed: new FormControl      (false,[]),
+      status_id: new FormControl          ('',[]),
+      status_name: new FormControl        ('',[]),
+      status_color: new FormControl       ('',[]),
+      status_description: new FormControl ('',[]),
+      is_completed: new FormControl       (false,[]),
       overhead: new FormControl      ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       overhead_netcost_method: new FormControl      (0,[]),
-      AcceptanceProductTable: new FormArray([])
+      acceptanceProductTable: new FormArray([])
     });
     this.formAboutDocument = new FormGroup({
-      id: new FormControl      ('',[]),
-      master: new FormControl      ('',[]),
-      creator: new FormControl      ('',[]),
-      changer: new FormControl      ('',[]),
-      company: new FormControl      ('',[]),
-      date_time_created: new FormControl      ('',[]),
-      date_time_changed: new FormControl      ('',[]),
-    });
-    
-    this.formSearch = new FormGroup({
-      product_id: new FormControl      ('',[Validators.required]),
-      acceptance_id: new FormControl      ('',[]),
-      product_count: new FormControl      ('',[Validators.required,Validators.pattern('^[0-9]{1,6}(?:[.,][0-9]{0,3})?\r?$')]),
-      product_price: new FormControl      ('',[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
-      product_sumprice: new FormControl      (0,[]),
-      nds_id: new FormControl      ('',[Validators.required]),
-      edizm_id: new FormControl      (0,[]),
+      id: new FormControl                       ('',[]),
+      master: new FormControl                   ('',[]),
+      creator: new FormControl                  ('',[]),
+      changer: new FormControl                  ('',[]),
+      company: new FormControl                  ('',[]),
+      date_time_created: new FormControl        ('',[]),
+      date_time_changed: new FormControl        ('',[]),
     });
 
-    this.onProductSearchValueChanges();//отслеживание изменений поля "Поиск товара"
+    // Форма для отправки при создании Возврата поставщику
+      this.formReturnsup = new FormGroup({
+        acceptance_id: new FormControl      (null,[]),
+        cagent_id: new FormControl          ('',[]),
+        nds: new FormControl                (null,[]),
+        date_return: new FormControl        ('',[]),
+        company_id: new FormControl         (null,[Validators.required]),
+        department_id: new FormControl      (null,[Validators.required]),
+        description: new FormControl        ('',[]),
+        returnsupProductTable: new FormArray ([]),
+      });
+
+    // Форма настроек
+    this.settingsForm = new FormGroup({
+      companyId: new FormControl                (null,[]),            // предприятие, для которого создаются настройки
+      departmentId: new FormControl             (null,[]),            // id отделения
+      statusOnFinishId: new FormControl         ('',[]),              // статус после завершения документа
+      autoAdd: new FormControl                  (false,[]),            // автодобавление товара из формы поиска в таблицу
+    });
+
+    if(this.data)//если документ вызывается в окне из другого документа
+    {
+      this.mode=this.data.mode;
+      if(this.mode=='window'){this.id=this.data.id; this.formBaseInformation.get('id').setValue(this.id);}
+    } 
+   
+    //     getSetOfPermissions
+    //     |
+    //     getMyId
+    //     |
+    //     getMyCompanyId
+    //     |
+    //     getMyDepartmentsList
+    //     |
+    //     getCRUD_rights
+    //     |
+    //     getData(------>(если созданный док)--> [getDocumentValuesById] --> refreshPermissions 
+    //     |
+    //     (если новый док):
+    //     [getCompaniesList ]
+    //     |
+    //     [getSettings, doFilterCompaniesList]
+    //     |
+    //     setDefaultInfoOnStart
+    //     |
+    //     setDefaultCompany 
+    //     |
+    //     [getDepartmentsList, getPriceTypesList*] 
+    //     |
+    //     [setDefaultDepartment, doFilterDepartmentsList]
+    //     | (если идет стартовая загрузка):
+    //     getStatusesList,       checkAnyCases
+    //     |        		          |
+    //     setDefaultStatus       refreshPermissions*  
+    //     |
+    //     setStatusColor, getSpravSysEdizm
+    // *необходимое действие для загрузки дочерних компонентов 
+
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Поставщик"
+    this.getSetOfPermissions();
     this.getSpravSysNds();
-    this.getSetOfPermissions();//
-    // ->getMyId()
-    // ->getMyCompanyId()
-    // ->getMyDepartmentsList()
-    // ->getCRUD_rights()
-    // ->getData()------>(если созданный док)---> this.getDocumentValuesById(); --> refreshPermissions()     
-    // ->(если новый док):
-    // ->getCompaniesList() 
-    // ->setDefaultCompany()
-    // ->getDepartmentsList()
-    // ->setDefaultDepartment()
-    // ->refreshPermissions() 
-    //
-    this.myForm = this._fb.group({
-      tableFields: this._fb.array([])
-    });
   }
-//---------------------------------------------------------------------------------------------------------------------------------------                            
-// ----------------------------------------------------- *** ПРАВА *** ------------------------------------------------------------------
-//---------------------------------------------------------------------------------------------------------------------------------------
-
-getSetOfPermissions(){
-  return this.http.get('/api/auth/getMyPermissions?id=15')
-    .subscribe(
-        (data) => {   
-                    this.permissionsSet=data as any [];
-                    this.getMyId();
-                },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-    );
-}
-
-  getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==184)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==185)});
-    this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==192)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==188)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==189)});
-    this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==195)});
-    this.allowToViewMyDocs = permissionsSet.some(                 function(e){return(e==196)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==190)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==191)});
-    this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==197)});
-    this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==198)});
-
-    this.getData();
+  //чтобы не было ExpressionChangedAfterItHasBeenCheckedError
+  ngAfterContentChecked() {
+    this.cdRef.detectChanges();
+  }
+  //чтобы "на лету" чекать валидность таблицы с товарами
+  get childFormValid() {
+    // проверяем, чтобы не было ExpressionChangedAfterItHasBeenCheckedError. Т.к. форма создается пустая и с .valid=true, а потом уже при заполнении проверяется еще раз.
+    if(this.acceptanceProductsTableComponent!=undefined) 
+      return this.acceptanceProductsTableComponent.getControlTablefield().valid;
+    else return true;    
   }
 
-  refreshPermissions():boolean{
+  //---------------------------------------------------------------------------------------------------------------------------------------                            
+  // ----------------------------------------------------- *** ПРАВА *** ------------------------------------------------------------------
+  //---------------------------------------------------------------------------------------------------------------------------------------
+
+  getSetOfPermissions(){
+    return this.http.get('/api/auth/getMyPermissions?id=15')
+      .subscribe(
+          (data) => {   
+                      this.permissionsSet=data as any [];
+                      this.getMyId();
+                  },
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+      );
+  }
+
+  refreshPermissions(){
     let documentOfMyCompany:boolean = (this.formBaseInformation.get('company_id').value==this.myCompanyId);
     let documentOfMyDepartments:boolean = (this.inMyDepthsId(+this.formBaseInformation.get('department_id').value));
     this.allowToView=(
@@ -342,238 +358,31 @@ getSetOfPermissions(){
     )?true:false;
     this.allowToCreate=(this.allowToCreateAllCompanies || this.allowToCreateMyCompany||this.allowToCreateMyDepartments)?true:false;
     
-    if(this.id>0){//если в документе есть id
-      this.visAfterCreatingBlocks = true;
-      this.visBeforeCreatingBlocks = false;
-      this.visBtnUpdate = this.allowToUpdate;
-    }else{
-      this.visAfterCreatingBlocks = false;
-      this.visBeforeCreatingBlocks = true;
+    this.editability=((this.allowToCreate && +this.id==0)||(this.allowToUpdate && this.id>0));
+    this.necessaryActionsBeforeGetChilds();
   }
-
-  // console.log("myCompanyId - "+this.myCompanyId);
-  // console.log("documentOfMyCompany - "+documentOfMyCompany);
-  // console.log("allowToView - "+this.allowToView);
-  // console.log("allowToUpdate - "+this.allowToUpdate);
-  // console.log("allowToCreate - "+this.allowToCreate);
-  return true;
-
-}
-// -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
-  getData(){
-    if(+this.id>0){
-      this.getDocumentValuesById();
-      this.getProductTable();
-    }else {
-      this.getCompaniesList();
-      this.setDefaultDate();
-    }
-  }
-  // refreshShowAllTabs(){
-  //   if(this.id>0){//если в документе есть id
-  //     this.visAfterCreatingBlocks = true;
-  //     this.visBeforeCreatingBlocks = false;
-  //     this.visBtnUpdate = this.allowToUpdate;
-  //   }else{
-  //     this.visAfterCreatingBlocks = false;
-  //     this.visBeforeCreatingBlocks = true;
-  //   }
-  // }
-  getSpravSysNds(){
-        this.loadSpravService.getSpravSysNds()
-        .subscribe((data) => {this.spravSysNdsSet=data as any[];},
-        error => console.log(error));}
-  getMyId(){
-    this.receivedMyDepartmentsList=null;
-    this.loadSpravService.getMyId()
-            .subscribe(
-                (data) => {this.myId=data as any;
-                  this.getMyCompanyId();},
-                error => console.log(error)
-            );
-  }
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
-      (data) => {
-        this.myCompanyId=data as number;
-        this.getMyDepartmentsList();
-      }, error => console.log(error));
-  }
-  getMyDepartmentsList(){
-    this.receivedMyDepartmentsList=null;
-    this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
-            .subscribe(
-                (data) => {this.receivedMyDepartmentsList=data as any [];
-                  this.getCRUD_rights(this.permissionsSet);;},
-                error => console.log(error)
-            );
-  }
-  getCompaniesList(){
-    console.log("getCompaniesList");
-    this.receivedCompaniesList=null;
-    this.loadSpravService.getCompaniesList()
-            .subscribe(
-                (data) => 
-                {
-                  this.receivedCompaniesList=data as any [];
-                  this.doFilterCompaniesList();
-                  this.setDefaultCompany();
-                },                      
-                error => console.log(error)
-            );
-  }
-  setDefaultCompany(){
-      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
-      this.getDepartmentsList();
-  }
-  getDepartmentsList(){
-    this.receivedDepartmentsList=null;
-    this.formBaseInformation.get('department_id').setValue('');
-    this.loadSpravService.getDepartmentsListByCompanyId(this.formBaseInformation.get('company_id').value,false)
-            .subscribe(
-                (data) => {this.receivedDepartmentsList=data as any [];
-                    this.doFilterDepartmentsList();
-                    this.setDefaultDepartment();},
-                error => console.log(error)
-            );
-  }
-  setDefaultDepartment(){
-    if(this.receivedDepartmentsList.length==1)
-    {
-      let depId:number;
-      this.receivedDepartmentsList.forEach(data =>{depId=+data.id;});
-      this.formBaseInformation.get('department_id').setValue(depId);
-    }
-    this.getSpravSysEdizm(); //загрузка единиц измерения. Загружаем тут, т.к. нужно чтобы сначала определилось предприятие, его id нужен для загрузки
-    this.refreshPermissions();
-  }
-  getSpravSysEdizm():void {    
-    let companyId=+this.formBaseInformation.get('company_id').value;
-    this.http.post('/api/auth/getSpravSysEdizm', {id1: companyId, string1:"(1,2,3,4,5)"})  // все типы ед. измерения
-    .subscribe((data) => {this.spravSysEdizmOfProductAll = data as any[];
-            },
-    error => console.log(error));
-  }
-  setDefaultDate(){
-    this.formBaseInformation.get('acceptance_date').setValue(moment());
-  }
-  doFilterCompaniesList(){
-    let myCompany:idAndName;
-    if(!this.allowToCreateAllCompanies){
-      this.receivedCompaniesList.forEach(company=>{
-      if(this.myCompanyId==company.id) myCompany={id:company.id, name:company.name}});
-      this.receivedCompaniesList=[];
-      this.receivedCompaniesList.push(myCompany);
-    }
-  }
-  doFilterDepartmentsList(){
-    console.log('doFilterDepartmentsList');
-    if(!this.allowToCreateAllCompanies && !this.allowToCreateMyCompany && this.allowToCreateMyDepartments){
-      this.receivedDepartmentsList=this.receivedMyDepartmentsList;}
-  }
-  inMyDepthsId(id:number):boolean{//проверяет, состоит ли присланный id в группе id отделений пользователя
-    console.log('inMyDepthsId');
-    let inMyDepthsId:boolean = false;
-    this.receivedMyDepartmentsList.forEach(myDepth =>{
-      myDepth.id==id?inMyDepthsId=true:null;
-    });
-  return inMyDepthsId;
-  }
-
-  //--------------------------------------- **** поиск по подстроке для товара  ***** ------------------------------------
-  onProductSearchValueChanges(){
-    this.searchProductCtrl.valueChanges
-    .pipe(
-      debounceTime(500),
-      tap(() => {
-        this.filteredProducts = [];
-      }),       
-      switchMap(fieldObject =>  
-        this.getProductsList()
-      )
-    )
-    .subscribe(data => {
-      this.isProductListLoading = false;
-      if (data == undefined) {
-        this.filteredProducts = [];
-      } else {
-        this.filteredProducts = data as any;
-        if(this.filteredProducts.length==1){
-          this.onAutoselectProduct();
-        }
-      }
-    });
-  }
-
-  onAutoselectProduct(){
-    this.canAutocompleteQuery=false;
-    this.formSearch.get('product_id').setValue(+this.filteredProducts[0].id);
-    this.searchProductCtrl.setValue(this.filteredProducts[0].name);
-    this.formSearch.get('nds_id').setValue(+this.filteredProducts[0].nds_id);
-    this.formSearch.get('edizm_id').setValue(+this.filteredProducts[0].edizm_id);
-    this.productImageName = this.filteredProducts[0].filename;
-    this.afterSelectProduct();
-  }
-
-  onSelectProduct(product:productSearchResponse){
-    this.formSearch.get('product_id').setValue(+product.id);
-    this.formSearch.get('nds_id').setValue(+product.nds_id);
-    this.formSearch.get('edizm_id').setValue(+product.edizm_id);
-    this.productImageName = product.filename;
-    this.afterSelectProduct();
-  }
-
-  afterSelectProduct(){
-    this.edizmName=this.getEdizmNameBySelectedId(+this.formSearch.get('edizm_id').value);
-    this.formSearchReadOnly=true;
-    this.loadMainImage();
-    this.getShortInfoAboutProduct();
-    setTimeout(() => { this.countInput.nativeElement.focus(); }, 500);
-  }
-
-  checkEmptyProductField(){
-    if(this.searchProductCtrl.value.length==0){
-      this.resetFormSearch();
-    }
-  };    
-
-  resetFormSearch(){
-      this.formSearchReadOnly=false;
-      this.nameInput.nativeElement.focus();
-      this.searchProductCtrl.setValue('');
-      this.edizmName='';
-      this.formSearch.get('product_count').setValue('');//если оставить null в этих 2 полях, будет ошибка
-      this.formSearch.get('product_price').setValue('');
-      this.thumbImageAddress="../../../../../../assets/images/no_foto.jpg";      
-      this.mainImageAddress="";
-      this.productImageName=null;
-      this.imageToShow=null;
-      this.form.resetForm();//реализовано через ViewChild: @ViewChild("form", {static: false}) form; + В <form..> прописать #form="ngForm"
-      this.calcSumPriceOfProduct();
-  }
-
-  //  -------------     ***** поиск по подстроке для поставщика ***    --------------------------
-  onCagentSearchValueChanges(){
-    this.searchCagentCtrl.valueChanges
-    .pipe(
-      debounceTime(500),
-      tap(() => {
-        this.filteredCagents = [];}),       
-      switchMap(fieldObject =>  
-        this.getCagentsList()))
-    .subscribe(data => {
-      this.isCagentListLoading = false;
-      if (data == undefined) {
-        this.filteredCagents = [];
-      } else {
-        this.filteredCagents = data as any;
+ //  -------------     ***** поиск по подстроке для поставщика ***    --------------------------
+ onCagentSearchValueChanges(){
+  this.searchCagentCtrl.valueChanges
+  .pipe(
+    debounceTime(500),
+    tap(() => {
+      this.filteredCagents = [];}),       
+    switchMap(fieldObject =>  
+      this.getCagentsList()))
+  .subscribe(data => {
+    this.isCagentListLoading = false;
+    if (data == undefined) {
+      this.filteredCagents = [];
+    } else {
+      this.filteredCagents = data as any;
   }});}
   onSelectCagent(id:any,name:string){
     this.formBaseInformation.get('cagent_id').setValue(+id);}
   checkEmptyCagentField(){
     if(this.searchCagentCtrl.value.length==0){
-      this.formBaseInformation.get('cagent_id').setValue();
-  }};     
+      this.formBaseInformation.get('cagent_id').setValue(null);
+  }}
   getCagentsList(){ //заполнение Autocomplete для поля Товар
     try {
       if(this.canCagentAutocompleteQuery && this.searchCagentCtrl.value.length>1){
@@ -584,72 +393,278 @@ getSetOfPermissions(){
         return this.http.post('/api/auth/getCagentsList', body);
       }else return [];
     } catch (e) {
-      return [];}}
+    return [];}}
 //-------------------------------------------------------------------------------
-
-  getEdizmNameBySelectedId(srchId:number):string {
-    let name='';
-    this.spravSysEdizmOfProductAll.forEach(a=>{
-      if(+a.id == srchId) {name=a.short_name}
-    }); return name;}
-
-  getNdsNameBySelectedId(srchId:number):string {
-    let name='';
-    this.spravSysNdsSet.forEach(a=>{
-      if(+a.id == srchId) {name=a.name}
-    }); return name;}
-
-  getNdsMultiplifierBySelectedId(srchId:number):number {
-  //возвращает множитель по выбранному НДС. например, для 20% будет 1.2, 0% - 1 и т.д 
-      let value=0;
-      this.spravSysNdsSet.forEach(a=>{
-        if(+a.id == srchId) {value=(a.name.includes('%')?(+a.name.replace('%','')):0)/100+1}
-      }); return value;}  
-
-  loadMainImage(){
-    if(this.productImageName!=null){
-      this.getImageService('/api/auth/getFileImageThumb/' + this.productImageName).subscribe(blob => {
-        this.createImageFromBlob(blob);
-      });
-    } 
-  }
-
-  getImageService(imageUrl: string): Observable<Blob> {
-    return this.http.get(imageUrl, {responseType: 'blob'});
+  //нужно загруить всю необходимую информацию, прежде чем вызывать детей (Поиск и добавление товара, Кассовый модуль), иначе их ngOnInit выполнится быстрее, чем загрузится вся информация в родителе
+  //вызовы из:
+  //getPriceTypesList()*
+  //getSpravSysNds()
+  //refreshPermissions()
+  necessaryActionsBeforeGetChilds(){
+    this.actionsBeforeGetChilds++;
+    //Если набрано необходимое кол-во действий для отображения модуля Формы поиска и добавления товара
+    if(this.actionsBeforeGetChilds==2){
+      this.canGetChilds=true;
+      this.startProcess=false;// все стартовые запросы прошли
+    }
   }
   
-  createImageFromBlob(image: Blob) {
-    let reader = new FileReader();
-    reader.addEventListener("load", () => {
-        this.imageToShow = reader.result;
-    }, false);
-    if (image) {
-        reader.readAsDataURL(image);
+  getMyId(){
+    this.receivedMyDepartmentsList=null;
+    this.loadSpravService.getMyId()
+            .subscribe(
+                (data) => {this.myId=data as any;
+                  this.getMyCompanyId();},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+            );
+  }
+  getMyCompanyId(){
+    this.loadSpravService.getMyCompanyId().subscribe(
+      (data) => {
+        this.myCompanyId=data as number;
+        this.getMyDepartmentsList();
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+  }
+  getMyDepartmentsList(){
+    this.receivedMyDepartmentsList=null;
+    this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
+            .subscribe(
+                (data) => {this.receivedMyDepartmentsList=data as any [];
+                  this.getCRUD_rights(this.permissionsSet);},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+            );
+  }
+  getSpravSysNds(){
+        this.loadSpravService.getSpravSysNds()
+        .subscribe((data) => {this.spravSysNdsSet=data as any[];},
+        error => console.log(error));}
+  getCRUD_rights(permissionsSet:any[]){
+    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==184)});
+    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==185)});
+    this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==192)});
+    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==188)});
+    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==189)});
+    this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==195)});
+    this.allowToViewMyDocs = permissionsSet.some(                 function(e){return(e==196)});
+    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==190)});
+    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==191)});
+    this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==197)});
+    this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==198)});
+   
+    if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;this.allowToCreateMyDepartments=true}
+    if(this.allowToCreateMyCompany)this.allowToCreateMyDepartments=true;
+    if(this.allowToViewAllCompanies){this.allowToViewMyCompany=true;this.allowToViewMyDepartments=true;this.allowToViewMyDocs=true}
+    if(this.allowToViewMyCompany){this.allowToViewMyDepartments=true;this.allowToViewMyDocs=true}
+    if(this.allowToViewMyDepartments)this.allowToViewMyDocs=true;
+    if(this.allowToUpdateAllCompanies){this.allowToUpdateMyCompany=true;this.allowToUpdateMyDepartments=true;this.allowToUpdateMyDocs=true;}
+    if(this.allowToUpdateMyCompany){this.allowToUpdateMyDepartments=true;this.allowToUpdateMyDocs=true;}
+    if(this.allowToUpdateMyDepartments)this.allowToUpdateMyDocs=true;
+    this.getData();
+  }
+
+  getData(){
+    if(+this.id>0){
+      this.getDocumentValuesById();
+    }else {
+      this.getCompaniesList(); 
+      this.setDefaultDate();
     }
   }
 
-  showImage(name:string){
-    if(this.productImageName!=null){
-      console.log("productImageName - "+this.productImageName);
-      const dialogRef = this.ShowImageDialog.open(ShowImageDialog, {
-        data:
-        { 
-          link: name,
-        },
+  getCompaniesList(){
+    this.receivedCompaniesList=null;
+    this.loadSpravService.getCompaniesList()
+      .subscribe(
+          (data) => 
+          {
+            this.receivedCompaniesList=data as any [];
+            this.doFilterCompaniesList();
+            if(+this.id==0)
+              this.getSettings();
+          },                      
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+      );
+  }
+
+  setDefaultCompany(){
+    if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим своё по дефолту
+      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+    this.getDepartmentsList(); 
+    this.getPriceTypesList();
+  }
+
+  onCompanyChange(){
+    this.formBaseInformation.get('department_id').setValue(null);
+    this.formBaseInformation.get('status_id').setValue(null);
+    this.actionsBeforeGetChilds=0;
+    this.getDepartmentsList();
+    this.getPriceTypesList();
+  }
+
+  onDepartmentChange(){
+      this.formBaseInformation.get('department').setValue(this.getDepartmentNameById(this.formBaseInformation.get('department_id').value));
+  }
+
+  getDepartmentsList(){
+    this.receivedDepartmentsList=null;
+    this.loadSpravService.getDepartmentsListByCompanyId(this.formBaseInformation.get('company_id').value,false)
+      .subscribe(
+          (data) => {this.receivedDepartmentsList=data as any [];
+            this.doFilterDepartmentsList();
+            if(+this.id==0) this.setDefaultDepartment();
+          },
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+      );
+  }
+  setDefaultDepartment(){
+    //если в настройках не было отделения, и в списке предприятий только одно предприятие - ставим его по дефолту
+    if(+this.formBaseInformation.get('department_id').value==0 && this.receivedDepartmentsList.length==1){
+      this.formBaseInformation.get('department_id').setValue(this.receivedDepartmentsList[0].id);
+      //Если дочерние компоненты уже загружены - устанавливаем предприятие по дефолту как склад в форме поиска и добавления товара !!!!!!!!
+      // if(!this.startProcess){
+      //   this.acceptanceProductsTableComponent.formSearch.get('secondaryDepartmentId').setValue(this.formBaseInformation.get('department_id').value);  
+      //   this.acceptanceProductsTableComponent.setCurrentTypePrice();//если сменили отделение - нужно проверить, есть ли у него тип цены. И если нет - в вызываемом методе выведется предупреждение для пользователя
+      // }
+    }
+    //если отделение было выбрано (через настройки или же в этом методе) - определяем его наименование (оно будет отправляться в дочерние компоненты)
+    if(+this.formBaseInformation.get('department_id').value>0)
+      this.formBaseInformation.get('department').setValue(this.getDepartmentNameById(this.formBaseInformation.get('department_id').value));
+
+    //если идет стартовая прогрузка - продолжаем цепочку запросов. Если это была, например, просто смена предприятия - продолжать далее текущего метода смысла нет
+    if(this.startProcess) {
+      this.getStatusesList();
+      this.checkAnyCases();
+    }
+  }
+  куа 
+  // проверки на различные случаи
+  checkAnyCases(){
+    //проверка на то, что отделение все еще числится в отделениях предприятия (не было удалено и т.д.)
+    if(!this.inDepthsId(+this.formBaseInformation.get('department_id').value)){
+      this.formBaseInformation.get('department_id').setValue(null);
+    }
+    //проверка на то, что отделение подходит под ограничения прав (если можно создавать только по своим отделениям, но выбрано отделение, не являющееся своим - устанавливаем null в выбранное id отделения)
+    if(!this.allowToCreateAllCompanies && !this.allowToCreateMyCompany && this.allowToCreateMyDepartments){
+      if(!this.inMyDepthsId(+this.formBaseInformation.get('department_id').value)){
+        this.formBaseInformation.get('department_id').setValue(null);
+      }
+    }
+    if(this.startProcess) this.refreshPermissions();
+  }
+  getStatusesList(){
+    this.receivedStatusesList=null;
+    this.loadSpravService.getStatusList(this.formBaseInformation.get('company_id').value,15) //15 - id документа из таблицы documents
+            .subscribe(
+                (data) => {this.receivedStatusesList=data as StatusInterface[];
+                  if(+this.id==0){this.setDefaultStatus();}},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+            );
+  }
+
+  setDefaultStatus(){
+    if(this.receivedStatusesList.length>0)
+    {
+      this.receivedStatusesList.forEach(a=>{
+          if(a.is_default){
+            this.formBaseInformation.get('status_id').setValue(a.id);
+          }
       });
+    }
+    this.setStatusColor();
+    this.getSpravSysEdizm(); //загрузка единиц измерения. Загружаем тут, т.к. нужно чтобы сначала определилось предприятие, его id нужен для загрузки
+  }
+
+  getSpravSysEdizm():void {    
+    let companyId=+this.formBaseInformation.get('company_id').value;
+    this.http.post('/api/auth/getSpravSysEdizm', {id1: companyId, string1:"(1,2,3,4,5)"})  // все типы ед. измерения
+    .subscribe((data) => {this.spravSysEdizmOfProductAll = data as any[];
+            },
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+  }
+
+  doFilterCompaniesList(){
+    let myCompany:IdAndName;
+    if(!this.allowToCreateAllCompanies){
+      this.receivedCompaniesList.forEach(company=>{
+      if(this.myCompanyId==company.id) myCompany={id:company.id, name:company.name}});
+      this.receivedCompaniesList=[];
+      this.receivedCompaniesList.push(myCompany);
+    }
+  }
+  doFilterDepartmentsList(){
+    if(!this.allowToCreateAllCompanies && !this.allowToCreateMyCompany && this.allowToCreateMyDepartments){
+      this.receivedDepartmentsList=this.receivedMyDepartmentsList;}
+    // this.secondaryDepartments=this.receivedDepartmentsList;
+  }
+  inMyDepthsId(id:number):boolean{//проверяет, состоит ли присланный id в группе id отделений пользователя
+    let inMyDepthsId:boolean = false;
+    this.receivedMyDepartmentsList.forEach(myDepth =>{
+      myDepth.id==id?inMyDepthsId=true:null;
+    });
+  return inMyDepthsId;
+  }
+  inDepthsId(id:number):boolean{//проверяет, состоит ли присланный id в группе id отделений предприятия
+    let inDepthsId:boolean = false;
+    
+    this.receivedDepartmentsList.forEach(depth =>{
+      console.log("depth.id - "+depth.id+", id - "+id)
+      depth.id==id?inDepthsId=true:null;
+      console.log("inDepthsId - "+inDepthsId);
+    });
+    console.log("returning inDepthsId - "+inDepthsId);
+  return inDepthsId;
+  }
+
+  //загрузка настроек
+  getSettings(){
+    let result:any;
+    this.http.get('/api/auth/getSettingsAcceptance')
+      .subscribe(
+          data => { 
+            result=data as any;
+            //вставляем настройки в форму настроек
+            this.settingsForm.get('companyId').setValue(result.companyId);
+            //данная группа настроек зависит от предприятия
+            this.settingsForm.get('departmentId').setValue(result.departmentId);
+            this.settingsForm.get('statusOnFinishId').setValue(result.statusOnFinishId);
+            //данная группа настроек не зависит от предприятия
+            this.settingsForm.get('autoAdd').setValue(result.autoAdd);
+            //если предприятия из настроек больше нет в списке предприятий (например, для пользователя урезали права, и выбранное предприятие более недоступно)
+            //необходимо сбросить данное предприятие в null 
+            if(!this.isCompanyInList(+result.companyId)){
+              this.formBaseInformation.get('company_id').setValue(null);
+            } else { 
+              //вставляем Отделение и Покупателя (вставится только если новый документ)
+              this.setDefaultInfoOnStart();
+            }
+            this.setDefaultCompany();
+          },
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+      );
+  }
+
+  //определяет, есть ли предприятие в загруженном списке предприятий
+  isCompanyInList(companyId:number):boolean{
+    let inList:boolean=false;
+    if(this.receivedCompaniesList) // иначе если док создан (id>0), т.е. списка предприятий нет, и => ERROR TypeError: Cannot read property 'map' of null
+      this.receivedCompaniesList.map(i=>{if(i.id==companyId) inList=true;});
+    return inList;
+  }
+
+  //если новый документ
+  setDefaultInfoOnStart(){
+    if(+this.id==0){//документ новый
+      this.formBaseInformation.get('company_id').setValue(this.settingsForm.get('companyId').value)
+      this.formBaseInformation.get('department_id').setValue(this.settingsForm.get('departmentId').value);
     }
   }
 
   getDocumentValuesById(){
-    const dockId = {"id": this.id};
-          this.http.post('/api/auth/getAcceptanceValuesById', dockId)
+    this.http.get('/api/auth/getAcceptanceValuesById?id='+ this.id)
         .subscribe(
             data => { 
-              
-                let documentValues: dockResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
-                //Заполнение формы из интерфейса documentValues:
+                let documentValues: DockResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
                 this.formBaseInformation.get('id').setValue(+documentValues.id);
-                // this.formBaseInformation.get('cagent_id').setValue(documentValues.cagent_id);
                 this.formBaseInformation.get('company_id').setValue(documentValues.company_id);
                 this.formBaseInformation.get('department_id').setValue(documentValues.department_id);
                 this.formBaseInformation.get('department').setValue(documentValues.department);
@@ -668,227 +683,41 @@ getSetOfPermissions(){
                 this.formAboutDocument.get('company').setValue(documentValues.company);
                 this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
                 this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
+                this.formBaseInformation.get('status_id').setValue(documentValues.status_id);
+                this.formBaseInformation.get('status_name').setValue(documentValues.status_name);
+                this.formBaseInformation.get('status_color').setValue(documentValues.status_color);
+                this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
+                this.formBaseInformation.get('is_completed').setValue(documentValues.is_completed);
                 this.creatorId=+documentValues.creator_id;
-                this.searchCagentCtrl.setValue(documentValues.cagent);
-                this.is_completed=documentValues.is_completed;
-                this.getSpravSysEdizm();
+                this.getSettings(); // настройки документа Приёмка
+                this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
+                this.getPriceTypesList();
                 this.loadFilesInfo();
-                this.hideOrShowNdsColumn();
-                this.refreshPermissions();
+                this.getDepartmentsList();//отделения
+                this.getStatusesList();//статусы документа Приёмка
+                this.getLinkedDocs(); //загрузка связанных документов
+                this.refreshPermissions();//пересчитаем права
+                // if(this.acceptanceProductsTableComponent) this.acceptanceProductsTableComponent.showColumns(); //чтобы спрятать столбцы после завершения 
             },
-            error => console.log(error)
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
         );
   }
 
-  getProductTable(){
-    let ProductsTable: TableFields[]=[];
-    const dockId = {"id": this.id};
-          this.http.post('/api/auth/getAcceptanceProductTable', dockId)
-        .subscribe(
-            data => { 
-                ProductsTable=data as any;
-                if(ProductsTable.length>0){
-                  console.log("length>0");
-                  this.myForm = this._fb.group({tableFields: this._fb.array([])});//сбрасываем иначе при сохранении будут прибавляться дубли
-                  const control = <FormArray>this.myForm.controls['tableFields'];
-                  ProductsTable.forEach(row=>{
-                  console.log("row - "+row);
-                  control.push(this.formingProductRowFromApiResponse(row));
-                  });
-                }
-            },
-            error => console.log(error)
-        );
-  }
-
-  calcSumPriceOfProduct(){
-    let switcherNDS:boolean = this.formBaseInformation.get('nds').value;
-    let switcherNDSincluded:boolean = this.formBaseInformation.get('nds_included').value;
-    let selectedNDS:number = this.getNdsMultiplifierBySelectedId(+this.formSearch.get('nds_id').value)
-    
-    this.formSearch.get('product_count').setValue((this.formSearch.get('product_count').value!=null?this.formSearch.get('product_count').value:'').replace(",", "."));
-    this.formSearch.get('product_price').setValue((this.formSearch.get('product_price').value!=null?this.formSearch.get('product_price').value:'').replace(",", "."));
-    
-    this.formSearch.get('product_sumprice').setValue(
-      ((+this.formSearch.get('product_count').value)*(+this.formSearch.get('product_price').value))
-      );
-      //если включён переключатель "НДС", но переключатель "НДС включена" выключен, нужно добавить к цене НДС значение, выбранное в выпадающем списке формы поиска товара
-    if(switcherNDS && !switcherNDSincluded) 
-    {this.formSearch.get('product_sumprice').setValue(+this.formSearch.get('product_sumprice').value*selectedNDS);}
-    this.formSearch.get('product_sumprice').setValue(this.formSearch.get('product_sumprice').value.toFixed(2))
-  }
-
-  getTotalProductCount() {
-    return  (this.myForm.value.tableFields.map(t => +t.product_count).reduce((acc, value) => acc + value, 0)).toFixed(3).replace(".000", "").replace(".00", "");
-  }
-  getTotalSumPrice():number {
-    return  (this.myForm.value.tableFields.map(t => +t.product_sumprice).reduce((acc, value) => acc + value, 0)).toFixed(2);
-  }
-
-  numberOnly(event): boolean {
-    const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
-    if (charCode > 31 && (charCode < 48 || charCode > 57)) { return false; } return true;}
-  numberOnlyPlusDotAndComma(event): boolean {
-    const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
-    // console.log("event - "+event+", charCode - "+charCode);
-    if (charCode > 31 && ((charCode < 48 || charCode > 57) && charCode!=44 && charCode!=46)) { return false; } return true;}
-
-  formingProductRowFromApiResponse(row: TableFields) {
+  formingProductRowFromApiResponse(row: AcceptanceProductTable) {
     return this._fb.group({
-      product_id: [row.product_id],
-      acceptance_id: [row.acceptance_id],
-      name: [row.name],
-      product_count: [row.product_count],
-      edizm: [row.edizm],
-      edizm_id: [row.edizm_id],
-      product_price: [row.product_price],
-      product_sumprice: [row.product_sumprice],
-      product_netcost: [row.product_netcost],
-      nds: [row.nds],
-      nds_id: [row.nds_id],
+      id: new FormControl (row.id,[]),
+      product_id:         new FormControl (row.product_id,[]),
+      acceptance_id:      new FormControl (this.id,[]),
+      nds_id:             new FormControl (row.nds_id,[]),
+      product_count:      new FormControl ((+row.product_count),[]),
+      product_netcost:    new FormControl ((+row.product_netcost).toFixed(2),[]),
+      product_price:      new FormControl ((+row.product_price).toFixed(2),[]),
+      product_sumprice:   new FormControl ((+row.product_count*(+row.product_price)).toFixed(2),[]),
     });
-  }
-
-  formingProductRowFromSearchForm() {
-    return this._fb.group({
-      product_id: [+this.formSearch.get('product_id').value],
-      acceptance_id: [+this.id],
-      name: [this.searchProductCtrl.value],
-      product_count: [+this.formSearch.get('product_count').value],
-      edizm: [this.edizmName],
-      edizm_id: [+this.formSearch.get('edizm_id').value],
-      product_price: [+this.formSearch.get('product_price').value],
-      product_sumprice: [+this.formSearch.get('product_sumprice').value.replace(".00", "")],
-      nds: [this.getNdsNameBySelectedId(+this.formSearch.get('nds_id').value)],
-      nds_id: [+this.formSearch.get('nds_id').value],
-    });
-  }
-
-  getFormIngexByProductId(productId:number):number{
-    let retIndex:number;
-    let formIndex:number=0;
-    this.myForm.value.tableFields.map(i => 
-        {
-        if(+i['product_id']==productId){retIndex=formIndex}
-        formIndex++;
-        });return retIndex;}
-
-  addProductRow() 
-  { 
-  let thereProductInTableWithSameId:boolean=false;
-    this.myForm.value.tableFields.map(i => 
-    {
-      if(+i['product_id']==this.formSearch.get('product_id').value)
-      {//такой товар уже занесён в таблицу товаров ранее, и надо просуммировать показатели уже существующего в таблице и добавляемого в таблицу товара.
-        if(!((+i['product_price'])!=(+this.formSearch.get('product_price').value)))//если у повторно вводимого товара та же цена
-        {//добавляем к тому что есть (кол-во и сумму)
-          i['product_count']=(+i['product_count'])+(+this.formSearch.get('product_count').value);
-          i['product_sumprice']=((+i['product_count'])*(+i['product_price'])).toFixed(2).replace(".00", "");//сумму пересчитываем. 
-          this.resetFormSearch();//подготовка формы поиска к дальнейшему вводу товара
-          //если у повторно вводимого товара другая цена - ругаемся
-        }else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Данный товар уже есть в списке приёмки с другой ценой. Если в поставке есть одинаковые товары с разными ценами, их необходимо вводить в разные документы "Приёмка".',}});
-        thereProductInTableWithSameId=true; 
-      }
-    });
-    if(!thereProductInTableWithSameId){//такого товара еще нет. Добавляем в таблицу (в форму myForm)
-    const control = <FormArray>this.myForm.controls['tableFields'];
-    control.push(this.formingProductRowFromSearchForm());
-    this.productTableRecount();//для подсчета себестоимости, т.к. в форме поиска товара она не рассчитывается
-    this.resetFormSearch();//подготовка формы поиска к дальнейшему вводу товара
-    } 
-  }
-  setPrice(price:number){
-    this.formSearch.get('product_price').setValue(price.toString());
-    this.calcSumPriceOfProduct();
-    
-  }
-  deleteProductRow(product_id: number) {
-    this.removeProductRow(this.getFormIngexByProductId(product_id));
-    this.productTableRecount();//для пересчета себестоимости, т.к. товаров стало меньше - затраты перераспределятся
-  }
-
-  removeProductRow(i: number) {
-      const control = <FormArray>this.myForm.controls['tableFields'];
-      control.removeAt(i);
-  }
-  hideOrShowNdsColumn(){
-    if(this.formBaseInformation.get('nds').value){
-      this.displayedColumns = ['name','product_count','edizm','product_price','product_sumprice','product_netcost','nds','delete'];
-    } else {
-      this.displayedColumns = ['name','product_count','edizm','product_price','product_sumprice','product_netcost','delete'];
-    }
-  }
-  productTableRecount(){
-    //перерасчет НДС в форме поиска
-    if(+this.formSearch.get('product_id').value) this.calcSumPriceOfProduct();
-    this.formBaseInformation.get('overhead').setValue((this.formBaseInformation.get('overhead').value).toString().replace(",", "."));
-    
-    //перерасчет НДС в таблице товаров
-    if(this.myForm.controls['tableFields'].value.length>0){
-      let switcherNDS:boolean = this.formBaseInformation.get('nds').value;
-      let switcherNDSincluded:boolean = this.formBaseInformation.get('nds_included').value;
-      let multiplifierNDS:number = 1;//множитель НДС. Рассчитывается для каждой строки таблицы. Например, для НДС 20% будет 1.2, для 0 или без НДС будет 1
-      let KZ:number = 0; //коэффициент затрат, равер делению расходов на итоговую сумму
-
-      this.myForm.value.tableFields.map(i => 
-        {
-          multiplifierNDS = this.getNdsMultiplifierBySelectedId(+i['nds_id']);
-          if(switcherNDS && !switcherNDSincluded){//если включён переключатель "НДС", но переключатель "НДС включена" выключен,
-          //..к сумме добавляем НДС
-            i['product_sumprice']=((+i['product_count'])*(+i['product_price'])*multiplifierNDS).toFixed(2).toString().replace(".00", "");
-          }else  i['product_sumprice']=((+i['product_count'])*(+i['product_price'])).toFixed(2).toString().replace(".00", "");//..иначе не добавляем, и сумма - это просто произведение количества на цену
-        });
-        //перерасчет себестоимости в таблице товаров (себестоимость не считается в один с НДС проход, т.к. в себестоимости используется итоговая сумма)
-        KZ=+((+this.formBaseInformation.get('overhead').value)/this.getTotalSumPrice());
-        // console.log('KZ='+KZ);
-        this.myForm.value.tableFields.map(i => 
-          {
-            multiplifierNDS = this.getNdsMultiplifierBySelectedId(+i['nds_id']);
-            if(+this.formBaseInformation.get('overhead_netcost_method').value>0){//если расходы распределяются по себестоимости
-              if(switcherNDS && !switcherNDSincluded){//... и при этом в цену не включена НДС
-                i['product_netcost']=+((+i['product_price']*multiplifierNDS*KZ)+(+i['product_price']*multiplifierNDS)).toFixed(2);//..то в себестоимость нужно включить НДС и часть расходов
-              } else {
-                i['product_netcost']=+((+i['product_price']*KZ)+(+i['product_price'])).toFixed(2);}//если в цену включена НДС - в себестоимость включаем только часть расходов
-              }else{ //если расходы НЕ распределяются по себестоимости
-              if(switcherNDS && !switcherNDSincluded){//... и при этом в цену не включена НДС
-                i['product_netcost']=+(+i['product_price']*multiplifierNDS).toFixed(2);//то в себестоимость нужно включить НДС
-              }else  i['product_netcost']=i['product_price'];//если в цену уже включена НДС - себестоимость будет равна цене
-            } 
-        });
-    }
   }
   
-  getProductsList(){ //заполнение Autocomplete для поля Товар
-    try 
-    {
-      if(this.canAutocompleteQuery && this.searchProductCtrl.value.length>1)
-      {
-        this.isProductListLoading  = true;
-        return this.http.get(
-          '/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.formBaseInformation.get('company_id').value+'&departmentId='+this.formBaseInformation.get('department_id').value+'&document_id='+this.id
-          );
-      }else return [];
-    } catch (e) {
-      return [];
-    }
-  }
-  getShortInfoAboutProduct(){
-    this.http.get('/api/auth/getShortInfoAboutProduct?department_id='+this.formBaseInformation.get('department_id').value+'&product_id='+this.formSearch.get('product_id').value)
-      .subscribe(
-          data => { 
-            this.shortInfoAboutProduct=data as any;
-            this.shortInfoAboutProductArray[0]=this.shortInfoAboutProduct.quantity;
-            this.shortInfoAboutProductArray[1]=this.shortInfoAboutProduct.change;
-            this.shortInfoAboutProductArray[2]=this.shortInfoAboutProduct.date_time_created;
-            this.shortInfoAboutProductArray[3]=this.shortInfoAboutProduct.avg_purchase_price;
-            this.shortInfoAboutProductArray[4]=this.shortInfoAboutProduct.avg_netcost_price;
-            this.shortInfoAboutProductArray[5]=this.shortInfoAboutProduct.last_purchase_price;
-          },
-          error => console.log(error)
-      );
-  }
   EditDocNumber(): void {
-    if(this.allowToUpdate && !this.is_completed){
+    if(this.allowToUpdate && +this.id==0){
       const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
         width: '400px',
         data:
@@ -906,39 +735,32 @@ getSetOfPermissions(){
     } 
   }
 
-  clearTable(): void {
-      const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
-        width: '400px',data:{head: 'Очистка списка товаров',warning: 'Вы хотите удалить все товары из списка?',query: ''},});
-      dialogRef.afterClosed().subscribe(result => {
-        if(result==1){this.myForm = this._fb.group({tableFields: this._fb.array([])});}});  
-  }
-  
   checkDocNumberUnical() {
     if(!this.formBaseInformation.get('doc_number').errors)
     {
       let Unic: boolean;
       this.isDocNumberUnicalChecking=true;
-      const body = {
-        "id3": +this.id, 
-        "id1": +this.formBaseInformation.get('company_id').value,
-        "id2": this.formBaseInformation.get('doc_number').value}; 
-      return this.http.post('/api/auth/isAcceptanceNumberUnical',body)
+      return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table=acceptance')
       .subscribe(
           (data) => {   
                       Unic = data as boolean;
                       if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Введённый номер документа не является уникальным.',}});
                       this.isDocNumberUnicalChecking=false;
                   },
-          error => {console.log(error),this.isDocNumberUnicalChecking=false;}
+          error => {console.log(error);this.isDocNumberUnicalChecking=false;}
       );
     }
   }
 
+  //создание нового документа Приёмка
   createNewDocument(){
+    console.log('Создание нового документа Приёмка');
     this.createdDockId=null;
+    this.getProductsTable();
     this.http.post('/api/auth/insertAcceptance', this.formBaseInformation.value)
-            .subscribe(
-                (data) =>   {
+      .subscribe(
+      (data) => {
+                  this.actionsBeforeGetChilds=0;
                   this.createdDockId=data as number;
                   switch(this.createdDockId){
                     case null:{// null возвращает если не удалось создать документ из-за ошибки
@@ -951,67 +773,107 @@ getSetOfPermissions(){
                     }
                     default:{// Приёмка успешно создалась в БД 
                       this.openSnackBar("Документ \"Приёмка\" успешно создан", "Закрыть");
-                      this.afterCreateDocument();
+                      this.afterCreateAcceptance();
                     }
                   }
                 },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-            );
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});},
+      );
   }
 
-  //действия после создания нового документа 
-  afterCreateDocument(){
-    this.id=+this.createdDockId;
-    this._router.navigate(['/ui/acceptancedock', this.id]);
-    this.formBaseInformation.get('id').setValue(this.id);
-    this.getData();
+  //действия после создания нового документа Инвентаризиция
+  afterCreateAcceptance(){
+      this.id=+this.createdDockId;
+      this._router.navigate(['/ui/acceptancedock', this.id]);
+      this.formBaseInformation.get('id').setValue(this.id);
+      this.getData();
   }
 
-  completeDocument(){
-    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
-      width: '400px',data:{
-        head: 'Завершение приёмки',
-        warning: 'Вы хотите завершить приёмку?',
-        query: 'После завершения приёмки документ станет недоступным для редактирования.'},});
-    dialogRef.afterClosed().subscribe(result => {
-      if(result==1){
-        this.updateDocument(true);
-      }
+  completeDocument(notShowDialog?:boolean){
+    if(!notShowDialog){//notShowDialog=false - показывать диалог
+      const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+        width: '400px',data:{
+          head: 'Завершение приёмки',
+          warning: 'Вы хотите завершить данную приёмку?',
+          query: 'После завершения документ станет недоступным для редактирования.'},});
+      dialogRef.afterClosed().subscribe(result => {
+        if(result==1){
+          this.updateDocument(true);
+        }
+      });
+    } else this.updateDocument(true);
+  }
+
+  updateDocument(complete?:boolean){ 
+    this.getProductsTable();    
+    let currentStatus:number=this.formBaseInformation.get('status_id').value;
+    if(complete){
+      this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с завершением - временно устанавливаем true, временно - чтобы это ушло в запросе на сервер, но не повлияло на внешний вид документа, если вернется не true
+      if(this.settingsForm.get('statusOnFinishId').value){//если в настройках есть "Статус при завершении" - временно выставляем его
+        this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);}
+    }
+    this.http.post('/api/auth/updateAcceptance',  this.formBaseInformation.value)
+      .subscribe(
+          (data) => 
+          {   
+            if(complete){
+              this.formBaseInformation.get('is_completed').setValue(false);//если сохранение с завершением - удаляем временную установку признака завершенности, 
+              this.formBaseInformation.get('status_id').setValue(currentStatus);//и возвращаем предыдущий статус
+            }
+            let result:number=data as number;
+            switch(result){
+              case null:{// null возвращает если не удалось создать документ из-за ошибки
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка "+ (complete?"завершения":"сохренения") + " документа \"Приёмка\""}});
+                break;
+              }
+              case -1:{//недостаточно прав
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа \"Приёмка\""}});
+                break;
+              }
+              default:{// Успешно
+                this.openSnackBar("Документ \"Приёмка\" "+ (complete?"завершён.":"сохренён."), "Закрыть");
+                if(complete) {
+                  this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с завершением - окончательно устанавливаем признак завершенности = true
+                  if(this.acceptanceProductsTableComponent){
+                    this.acceptanceProductsTableComponent.showColumns(); //чтобы спрятать столбцы после завершения 
+                    this.acceptanceProductsTableComponent.tableRecount();
+                  }
+                  if(this.settingsForm.get('statusOnFinishId').value){//если в настройках есть "Статус при завершении" - выставим его
+                    this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);}
+                  this.setStatusColor();//чтобы обновился цвет статуса
+                }
+              }
+            }
+          },
+          error => {
+            this.showQueryErrorMessage(error);
+            },
+      );
+  } 
+  clearFormSearchAndProductTable(){
+    this.acceptanceProductsTableComponent.resetFormSearch();
+    this.acceptanceProductsTableComponent.getControlTablefield().clear();
+    this.getTotalSumPrice();//чтобы пересчиталась сумма в чеке
+  }
+  //забирает таблицу товаров из дочернего компонента и помещает ее в основную форму
+  getProductsTable(){
+    const control = <FormArray>this.formBaseInformation.get('acceptanceProductTable');
+    control.clear();
+    this.acceptanceProductsTableComponent.getProductTable().forEach(row=>{
+      control.push(this.formingProductRowFromApiResponse(row));
     });
   }
-
-  updateDocument(complete:boolean){ 
-    const control = <FormArray>this.myForm.controls['tableFields'];
-    const body= {
-      "id":                     this.formBaseInformation.get('id').value,
-      "company_id":             this.formBaseInformation.get('company_id').value,
-      "description":            this.formBaseInformation.get('description').value,
-      "department_id":          this.formBaseInformation.get('department_id').value,
-      "cagent_id":              this.formBaseInformation.get('cagent_id').value,
-      "doc_number":             this.formBaseInformation.get('doc_number').value,
-      "acceptance_date":        this.formBaseInformation.get('acceptance_date').value,
-      "nds":                    this.formBaseInformation.get('nds').value,
-      "nds_included":           this.formBaseInformation.get('nds_included').value,
-      "overhead":               this.formBaseInformation.get('overhead').value,
-      "overhead_netcost_method":this.formBaseInformation.get('overhead_netcost_method').value,
-      "is_completed":           complete,
-      "acceptanceProductTable": control.value,
-    }
-      return this.http.post('/api/auth/updateAcceptance', body)
-        .subscribe(
-            (data) => 
-            {   
-              if (!complete){
-                this.openSnackBar("Документ \"Приёмка\" сохранён", "Закрыть");
-              } else { 
-                this.is_completed =true;//если успешно сохранился и это сохранение при завершении - отмечаемся как завершенный
-                this.openSnackBar("Документ \"Приёмка\" завершён", "Закрыть");
-              }
-                // this.getData();
-            },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-        );
-  } 
+  showQueryErrorMessage(error:any){
+    console.log(error);
+      let errMsg = (error.message) ? error.message : error.status ? `${error.status} - ${error.statusText}` : 'Server error';
+      this.MessageDialog.open(MessageDialog,
+      {
+        width:'400px',
+        data:{
+          head:'Ошибка!',
+          message:errMsg}
+      })
+  }
 
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
@@ -1019,116 +881,201 @@ getSetOfPermissions(){
     });
   }
 
-
-
-  openProductCard(dockId:number) {
-    const dialogRef = this.dialogCreateProduct.open(ProductsDockComponent, {
+  //открывает диалог настроек
+  openDialogSettings() { 
+    const dialogSettings = this.SettingsAcceptanceDialogComponent.open(SettingsAcceptanceDialogComponent, {
       maxWidth: '95vw',
       maxHeight: '95vh',
-      height: '95%',
-      width: '95%',
+      width: '400px', 
+      minHeight: '650px',
       data:
-      { 
-        mode: 'viewInWindow',
-        dockId: dockId
+      { //отправляем в диалог:
+        priceTypesList:   this.receivedPriceTypesList, //список типов цен
+        receivedCompaniesList: this.receivedCompaniesList, //список предприятий
+        receivedDepartmentsList: this.receivedDepartmentsList, //список отделений
+        company_id: this.formBaseInformation.get('company_id').value, // текущее предприятие (нужно для поиска поставщика)
+        allowToCreateAllCompanies: this.allowToCreateAllCompanies,
+        allowToCreateMyCompany: this.allowToCreateMyCompany,
+        allowToCreateMyDepartments: this.allowToCreateMyDepartments,
+        id: this.id, //чтобы понять, новый док или уже созданный
       },
     });
-  }  
-//*****************************************************************************************************************************************/
-//***************************************************    СОЗДАНИЕ НОВОГО ТОВАРА     *******************************************************/
-//*****************************************************************************************************************************************/
+    dialogSettings.afterClosed().subscribe(result => {
+      if(result){
+        //если нажата кнопка Сохранить настройки - вставляем настройки в форму настроек и сохраняем
+        if(result.get('companyId')) this.settingsForm.get('companyId').setValue(result.get('companyId').value);
+        if(result.get('departmentId')) this.settingsForm.get('departmentId').setValue(result.get('departmentId').value);
+        if(result.get('autoAdd')) this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
+        this.settingsForm.get('statusOnFinishId').setValue(result.get('statusOnFinishId').value);
+        this.saveSettingsAcceptance();
+        // если это новый документ, и ещё нет выбранных товаров - применяем настройки 
+        if(+this.id==0 && this.acceptanceProductsTableComponent.getProductTable().length==0)  {
+          this.getData();
+        }
+      }
+    });
+  }
 
-openDialogCreateProduct() {
-  const dialogRef = this.dialogCreateProduct.open(ProductsDockComponent, {
+  productTableRecount(){
+    //т.к. нет флажка "НДС включён" (т.к. он всегда включён в цену, если "НДС"=true), то в таблице товаров ничего пересчитывать не надо - НДС не накидывается к цене, если "НДС включён" !=true
+  }
+  hideOrShowNdsColumn(){
+    setTimeout(() => {this.acceptanceProductsTableComponent.showColumns();}, 1);
+  }
+
+  saveSettingsAcceptance(){
+    return this.http.post('/api/auth/saveSettingsAcceptance', this.settingsForm.value)
+            .subscribe(
+                (data) => {   
+                          this.openSnackBar("Настройки успешно сохранены", "Закрыть");
+                          
+                        },
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+            );
+  }
+
+  getPriceTypesList(){
+    this.receivedPriceTypesList=null;
+    this.loadSpravService.getPriceTypesList(this.formBaseInformation.get('company_id').value)
+    .subscribe(
+      (data) => {
+        this.receivedPriceTypesList=data as any [];
+        this.necessaryActionsBeforeGetChilds();
+      },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+    );
+  }
+
+  //устанавливает цвет статуса (используется для цветовой индикации статусов)
+  setStatusColor():void{
+    this.receivedStatusesList.forEach(m=>
+      {
+        if(m.id==+this.formBaseInformation.get('status_id').value){
+          this.formBaseInformation.get('status_color').setValue(m.color);
+        }
+      });
+  }
+  setDefaultDate(){
+    this.formBaseInformation.get('acceptance_date').setValue(moment());
+  }
+  getCompanyNameById(id:number):string{
+    let name:string;
+    if(this.receivedCompaniesList){
+      this.receivedCompaniesList.forEach(a=>{
+        if(a.id==id) name=a.name;
+      })
+    }
+    return(name);
+  }
+  getDepartmentNameById(id:number):string{
+    let name:string;
+    if(this.receivedDepartmentsList){
+      this.receivedDepartmentsList.forEach(a=>{
+        if(a.id==id) name=a.name;
+      })
+    }
+    return(name);
+  }
+  onChangeProductsTableLengthHandler(){
+    this.setCanEditCompAndDepth();
+  }
+  //товары должны добавляться только для одного предприятия и одного отделения. Если 1й товар уже добавлен, на начальной стадии (когда документ еще не создан, т.е. id = 0) нужно запретить изменять предприятие и отделение
+  setCanEditCompAndDepth(){
+    if(+this.acceptanceProductsTableComponent.formSearch.get('product_id').value>0 ||  this.acceptanceProductsTableComponent.getProductTable().length>0) this.canEditCompAndDepth=false; else this.canEditCompAndDepth=true;
+  }
+
+  onSwitchNds(){
+    this.productTableRecount(); 
+    this.hideOrShowNdsColumn();
+  }
+
+    //принимает от product-search-and-table.component сумму к оплате и никуда ее не передает :-( (атавизм от возврата покупателя, там она передавалась в модуль ККМ)
+    totalSumPriceHandler($event: any) {
+    }  
+
+  //создание нового документа после завершения текущего
+  goToNewDocument(){
+    this._router.navigate(['ui/acceptancedock',0]);
+    this.id=0;
+    this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными товарами
+    
+    // this.formBaseInformation.get('doc_number').setValue('');
+    // this.formBaseInformation.get('description').setValue('');
+    // this.formBaseInformation.get('cagent_id').setValue('');
+    // this.formBaseInformation.get('cagent').setValue('');
+    this.form.resetForm();
+    this.formBaseInformation.get('id').setValue(null);
+    this.formBaseInformation.get('is_completed').setValue(false);
+    this.formBaseInformation.get('nds_included').setValue(true);
+    this.formBaseInformation.get('overhead_netcost_method').setValue(0);
+    this.searchCagentCtrl.reset();
+    this.setDefaultStatus();//устанавливаем статус документа по умолчанию
+    this.setDefaultDate();
+    this.canEditCompAndDepth=true;
+    this.setDefaultInfoOnStart();
+  }
+//*****************************************************************************************************************************************/
+/***********************************************************         ФАЙЛЫ          *******************************************************/
+//*****************************************************************************************************************************************/
+openDialogAddFiles() {
+  const dialogRef = this.dialogAddFiles.open(FilesComponent, {
     maxWidth: '95vw',
     maxHeight: '95vh',
     height: '95%',
     width: '95%',
     data:
     { 
-      mode: 'createForAcceptance',
-      companyId: this.formBaseInformation.get('company_id').value,
+      mode: 'select',
+      companyId: this.formBaseInformation.get('company_id').value
     },
   });
   dialogRef.afterClosed().subscribe(result => {
     console.log(`Dialog result: ${result}`);
-    if(result)this.addProductToDock(result);
+    if(result)this.addFilesToAcceptance(result);
   });
 }
-
-  addProductToDock(product_code: string){
-    // setTimeout(() => { this.nameInput.nativeElement.focus(); }, 300);
-    this.canAutocompleteQuery=true;
-    this.getProductsList();
-    this.searchProductCtrl.setValue(product_code);
-
-
-  }
-//*****************************************************************************************************************************************/
-//***************************************************    добавление файлов          *******************************************************/
-//*****************************************************************************************************************************************/
-
-
-  openDialogAddFiles() {
-    const dialogRef = this.dialogAddFiles.open(FilesComponent, {
-      maxWidth: '95vw',
-      maxHeight: '95vh',
-      height: '95%',
-      width: '95%',
-      data:
-      { 
-        mode: 'select',
-        companyId: this.formBaseInformation.get('company_id').value
-      },
-    });
-    dialogRef.afterClosed().subscribe(result => {
-      console.log(`Dialog result: ${result}`);
-      if(result)this.addFilesToAcceptance(result);
-    });
-  }
-  openFileCard(dockId:number) {
-    const dialogRef = this.dialogAddFiles.open(FilesDockComponent, {
-      maxWidth: '95vw',
-      maxHeight: '95vh',
-      height: '95%',
-      width: '95%',
-      data:
-      { 
-        mode: 'window',
-        dockId: dockId
-      },
-    });
-  }
-  
-  addFilesToAcceptance(filesIds: number[]){
-    const body = {"id1":this.id, "setOfLongs1":filesIds};// передаем id товара и id файлов 
-            return this.http.post('/api/auth/addFilesToAcceptance', body) 
-              .subscribe(
-                  (data) => {  
-                    this.openSnackBar("Файлы добавлены", "Закрыть");
-                    this.loadFilesInfo();
-                            },
-                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-              );
-  }
-  loadFilesInfo(){//                                     загружает информацию по прикрепленным файлам
-    const body = {"id":this.id};
-          return this.http.post('/api/auth/getListOfAcceptanceFiles', body) 
+openFileCard(dockId:number) {
+  const dialogRef = this.dialogAddFiles.open(FilesDockComponent, {
+    maxWidth: '95vw',
+    maxHeight: '95vh',
+    height: '95%',
+    width: '95%',
+    data:
+    { 
+      mode: 'window',
+      dockId: dockId
+    },
+  });
+}
+loadFilesInfo(){//                                     загружает информацию по прикрепленным файлам
+  const body = {"id":this.id};
+        return this.http.post('/api/auth/getListOfAcceptanceFiles', body) 
+          .subscribe(
+              (data) => {  
+                          this.filesInfo = data as any[]; 
+                        },
+              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+          );
+}
+addFilesToAcceptance(filesIds: number[]){
+  const body = {"id1":this.id, "setOfLongs1":filesIds};// передаем id товара и id файлов 
+          return this.http.post('/api/auth/addFilesToAcceptance', body) 
             .subscribe(
                 (data) => {  
-                            this.filesInfo = data as any[]; 
-                            // this.loadMainImage();
+                  this.loadFilesInfo();
+                  this.openSnackBar("Файлы добавлены", "Закрыть");
                           },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
             );
 }
+
 clickBtnDeleteFile(id: number): void {
   const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
     width: '400px',
     data:
     { 
       head: 'Удаление файла',
-      query: 'Удалить файл из приёмки?',
+      query: 'Удалить файл из данного документа?',
       warning: 'Файл не будет удалён безвозвратно, он останется в библиотеке "Файлы".',
     },
   });
@@ -1142,11 +1089,177 @@ deleteFile(id:number){
   return this.http.post('/api/auth/deleteAcceptanceFile',body)
   .subscribe(
       (data) => {   
-                  this.openSnackBar("Успешно удалено", "Закрыть");
                   this.loadFilesInfo();
+                  this.openSnackBar("Успешно удалено", "Закрыть");
               },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
   );  
 }
+//**********************************************************************************************************************************************/  
+//*************************************************          СВЯЗАННЫЕ ДОКУМЕНТЫ          ******************************************************/
+//**********************************************************************************************************************************************/  
 
+  //создание Списания или Оприходования
+  createLinkedDock(dockname:string){// принимает аргументы: Returnsup
+    let canCreateLinkedDock:CanCreateLinkedDock=this.canCreateLinkedDock(dockname); //проверим на возможность создания связанного документа
+    if(canCreateLinkedDock.can){
+      this.formReturnsup.get('acceptance_id').setValue(this.id);
+      this.formReturnsup.get('cagent_id').setValue(this.formBaseInformation.get('cagent_id').value);
+      this.formReturnsup.get('nds').setValue(this.formBaseInformation.get('nds').value);
+      this.formReturnsup.get('company_id').setValue(this.formBaseInformation.get('company_id').value);
+      this.formReturnsup.get('department_id').setValue(this.formBaseInformation.get('department_id').value);
+      this.formReturnsup.get('description').setValue('Создано из приёмки №'+ this.formBaseInformation.get('doc_number').value);
+      this.getProductsTableLinkedDoc(dockname);//формируем таблицу товаров для создаваемого документа
+      this.http.post('/api/auth/insert'+dockname, this.formReturnsup.value)
+      .subscribe(
+      (data) => {
+                  let createdDockId=data as number;
+                
+                  switch(createdDockId){
+                    case null:{// null возвращает если не удалось создать документ из-за ошибки
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа "+(dockname=="Returnsup"?"Возврат поставщику":"")}});
+                      break;
+                    }
+                    case 0:{//недостаточно прав
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа "+(dockname=="Returnsup"?"Возврат поставщику":"")}});
+                      break;
+                    }
+                    default:{// Документ успешно создался в БД 
+                      this.openSnackBar("Документ "+(dockname=='Returnsup'?'Возврат поставщику':'')+" успешно создан", "Закрыть");
+                      this.getLinkedDocsList(dockname.toLowerCase());//обновляем список этого документа
+                    }
+                  }
+                },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});},
+      );
+    } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:canCreateLinkedDock.reason}});
+  }
+  
+// забирает таблицу товаров из дочернего компонента и помещает ее в форму, предназначенную для создания Списания
+  getProductsTableLinkedDoc(dockname:string){
+    let tableName:string;//для маппинга в соответствующие названия сетов в бэкэнде (например private Set<PostingProductForm> postingProductTable;)
+    tableName='returnsupProductTable';
+    const control = <FormArray>this.formReturnsup.get(tableName);
+    control.clear();
+    this.acceptanceProductsTableComponent.getProductTable().forEach(row=>{
+          control.push(this.formingProductRowLinkedDoc(row,dockname));
+    });
+  }
+  formingProductRowLinkedDoc(row: AcceptanceProductTable, dockname:string) {
+    return this._fb.group({
+      product_id: new FormControl (row.product_id,[]),
+      product_count: new FormControl (row.product_count,[]),
+      product_price:  new FormControl (row.product_price,[]),
+      product_sumprice: new FormControl (((row.product_count)*row.product_price).toFixed(2),[]),
+      nds_id:  new FormControl (row.nds_id,[]),
+    });
+  }
+  // можно ли создать связанный документ (да - если есть товары, подходящие для этого, и нет уже завершённого документа)
+  canCreateLinkedDock(dockname:string):CanCreateLinkedDock{
+    if(!(this.acceptanceProductsTableComponent && this.acceptanceProductsTableComponent.getProductTable().length>0)){
+        return {can:false, reason:'Невозможно создать '+(dockname=='Returnsup'?'возврат поставщику':'')+', так как нет товарных позиций'};
+    }else
+      return {can:true, reason:''};
+  }
+  getLinkedDocs(){
+    this.getLinkedDocsList('returnsup');//загрузка связанных возвратов
+  }
+  getLinkedDocsList(docName:string, fromDialog?:boolean){
+    this.http.get('/api/auth/getAcceptanceLinkedDocsList?id='+this.id+'&docName='+docName)
+    .subscribe(
+        (data) => {   
+                      this.linkedDocsReturn=data as LinkedDocs [];
+                  },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+    );
+  }
+  clickButtonDeleteLinkedDock(docName:string,id:number): void {
+      const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+        width: '400px',
+        data:
+        { 
+          head: 'Удаление',
+          warning: 'Удалить '+(docName=='Returnsup'?'возврат поставщику?':''),
+          query: '',
+        },
+      });
+      dialogRef.afterClosed().subscribe(result => {
+        if(result==1){
+          this.deleteLinkedDock(docName,id);
+        }
+      });  
+  }
+  dialogOpenLinkedDoc(id:number) {
+    const dialogRef = this.dialogCreateProduct.open(ReturnsupDockComponent, {
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      height: '95%',
+      width: '95%',
+      data:
+      { 
+        mode: 'window',
+        id: id
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result) this.getLinkedDocsList('returnsup',true);//если вернулось true - значит, возможно, зайдя в Возврат поставщику, его закрыли. Обновим список возвратов.
+  })}
+  deleteLinkedDock(docName:string,id:number){
+    const body = {"checked": id}; 
+        return this.http.post('/api/auth/delete'+docName, body) 
+        .subscribe(
+            (data) => {   
+                        let result=data as boolean;
+                        if(result){
+                          this.openSnackBar("Успешно удалено", "Закрыть");
+                          this.getLinkedDocsList(docName.toLowerCase());//загрузка связанных возвратов
+                        }else
+                          this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав для удаления'}});
+                      },
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+        );
+  }
+//*****************************************************************************************************************************************/
+  //------------------------------------------ COMMON UTILITES -----------------------------------------
+  //Конвертирует число в строку типа 0.00 например 6.40, 99.25
+  numToPrice(price:number,charsAfterDot:number) {
+    //конертим число в строку и отбрасываем лишние нули без округления
+    const reg = new RegExp("^-?\\d+(?:\\.\\d{0," + charsAfterDot + "})?", "g")
+    const a = price.toString().match(reg)[0];
+    //находим положение точки в строке
+    const dot = a.indexOf(".");
+    // если число целое - добавляется точка и нужное кол-во нулей
+    if (dot === -1) { 
+        return a + "." + "0".repeat(charsAfterDot);
+    }
+    //если не целое число
+    const b = charsAfterDot - (a.length - dot) + 1;
+    return b > 0 ? (a + "0".repeat(b)) : a;
+  }
+  getTotalProductCount() {//бежим по столбцу product_count и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
+    this.getProductsTable();
+    return (this.formBaseInformation.value.acceptanceProductTable.map(t => +t.product_count).reduce((acc, value) => acc + value, 0)).toFixed(3).replace(".000", "").replace(".00", "");
+  }
+  getTotalSumPrice() {//бежим по столбцу product_sumprice и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
+    this.getProductsTable();
+    return (this.formBaseInformation.value.acceptanceProductTable.map(t => +t.product_sumprice).reduce((acc, value) => acc + value, 0)).toFixed(2);
+  }
+  numberOnly(event): boolean {
+    const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
+    if (charCode > 31 && (charCode < 48 || charCode > 57)) { return false; } return true;}
+  numberOnlyPlusDotAndComma(event): boolean {
+    const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
+    if (charCode > 31 && ((charCode < 48 || charCode > 57) && charCode!=44 && charCode!=46)) { return false; } return true;}
+  numberOnlyPlusDot(event): boolean {
+    const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
+    if (charCode > 31 && ((charCode < 48 || charCode > 57) && charCode!=46)) { return false; } return true;}
+  getFormIngexByProductId(productId:number):number{
+    let retIndex:number;
+    let formIndex:number=0;
+    this.formBaseInformation.value.acceptanceProductTable.map(i => 
+      {
+      if(+i['product_id']==productId){retIndex=formIndex}
+      formIndex++;
+    });return retIndex;}
 }
+

@@ -10,6 +10,7 @@ export class QueryForm{
     companyId:any;
     departmentId:any;
     searchCategoryString:any;
+    filterOptionsIds: number[];
 
     //получаемые данные
     arrClients: string [];

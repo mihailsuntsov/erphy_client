@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { AcceptanceRoutingModule } from './acceptance-routing.module';
 import { AcceptanceComponent } from './acceptance.component';
 
+import { SettingsAcceptanceDialogModule } from '../../../../modules/settings/settings-acceptance-dialog/settings-acceptance-dialog.module';
 import { FormsModule } from '@angular/forms';
 import { MaterialModule } from '../../../../modules/material.module';
 
@@ -13,6 +14,7 @@ import { MaterialModule } from '../../../../modules/material.module';
     CommonModule,
     AcceptanceRoutingModule,
     
+    SettingsAcceptanceDialogModule,
     FormsModule,
     MaterialModule
   ]

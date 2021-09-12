@@ -47,7 +47,7 @@ export class ReturnsupComponent implements OnInit {
     private queryFormService:   QueryFormService,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
-    private сonfirmDialog: MatDialog,
+    private confirmDialog: MatDialog,
     private http: HttpClient,
     private deleteDialog: MatDialog,
     private MessageDialog: MatDialog,
@@ -409,34 +409,6 @@ export class ReturnsupComponent implements OnInit {
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
       );
     }
-    clickBtnRestore(): void {
-      const dialogRef = this.сonfirmDialog.open(ConfirmDialog, {
-        width: '400px',
-        data:
-        { 
-          head: 'Восстановление',
-          query: 'Восстановить выбранные инвентаризации из удалённых?',
-          warning: '',
-        },
-      });
-      dialogRef.afterClosed().subscribe(result => {
-        if(result==1){this.undeleteDocks();}
-        this.clearCheckboxSelection();
-        this.showOnlyVisBtnAdd();
-      });        
-    }
-    undeleteDocks(){
-      const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
-      this.clearCheckboxSelection();
-        return this.http.post('/api/auth/undeleteReturnsup', body) 
-      .subscribe(
-          (data) => {   
-                      this.getData();
-                      this.openSnackBar("Успешно восстановлено", "Закрыть");
-                    },
-          error => console.log(error),
-      );
-    }  
     openSnackBar(message: string, action: string) {
       this._snackBar.open(message, action, {
         duration: 3000,
@@ -531,7 +503,8 @@ export class ReturnsupComponent implements OnInit {
           (!this.allowToViewAllCompanies && !this.allowToViewMyCompany && !this.allowToViewMyDepartments && this.allowToViewMyDocs)){
         this.receivedDepartmentsList=this.receivedMyDepartmentsList;}
     }
-    
+
+    //*************************************************************   НАСТРОЙКИ   ************************************************************/    
     // открывает диалог настроек
     openDialogSettings() { 
       const dialogSettings = this.SettingsReturnsupDialogComponent.open(SettingsReturnsupDialogComponent, {
@@ -562,6 +535,7 @@ export class ReturnsupComponent implements OnInit {
         }
       });
     }
+    // Сохраняет настройки
     saveSettingsReturnsup(){
       return this.http.post('/api/auth/saveSettingsReturnsup', this.settingsForm.value)
               .subscribe(
@@ -574,10 +548,38 @@ export class ReturnsupComponent implements OnInit {
     }
   
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
+  clickBtnRestore(): void {
+    const dialogRef = this.confirmDialog.open(ConfirmDialog, {
+      width: '400px',
+      data:
+      { 
+        head: 'Восстановление',
+        query: 'Восстановить выбранные инвентаризации из удалённых?',
+        warning: '',
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){this.undeleteDocks();}
+      this.clearCheckboxSelection();
+      this.showOnlyVisBtnAdd();
+    });        
+  }
+  undeleteDocks(){
+    const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
+    this.clearCheckboxSelection();
+      return this.http.post('/api/auth/undeleteReturnsup', body) 
+    .subscribe(
+        (data) => {   
+                    this.getData();
+                    this.openSnackBar("Успешно восстановлено", "Закрыть");
+                  },
+        error => console.log(error),
+    );
+  }  
     resetOptions(){
       this.displayingDeletedDocks=false;
       this.fillOptionsList();//перезаполняем список опций
-      this.selectionFilterOptions.clear;
+      this.selectionFilterOptions.clear();
       this.sendingQueryForm.filterOptionsIds = [];
     }
     fillOptionsList(){

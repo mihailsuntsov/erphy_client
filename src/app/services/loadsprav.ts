@@ -56,8 +56,11 @@ export class LoadSpravService{
                 {id:23, name:'Заказ покупателя'},
                 {id:27, name:'Инвентаризация'},
                 {id:12, name:'Контрагент'},
+                {id:16, name:'Оприходование'},
                 {id:21, name:'Отгрузка'},
+                {id:15, name:'Приёмка'},
                 {id:25, name:'Розничная продажа'},
+                {id:17, name:'Списание'},
             ];
             return dockList; 
         }

@@ -68,6 +68,7 @@ li {list-style: none;}
 
 .sortheader{
     cursor: default;
+    margin: 0 2px 0 2px;
 }
 
 .doc-container {

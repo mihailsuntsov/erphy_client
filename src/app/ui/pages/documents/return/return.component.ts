@@ -47,7 +47,7 @@ export class ReturnComponent implements OnInit {
     private queryFormService:   QueryFormService,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
-    private сonfirmDialog: MatDialog,
+    private confirmDialog: MatDialog,
     private http: HttpClient,
     private deleteDialog: MatDialog,
     private MessageDialog: MatDialog,
@@ -410,7 +410,7 @@ export class ReturnComponent implements OnInit {
       );
     }
     clickBtnRestore(): void {
-      const dialogRef = this.сonfirmDialog.open(ConfirmDialog, {
+      const dialogRef = this.confirmDialog.open(ConfirmDialog, {
         width: '400px',
         data:
         { 
@@ -577,7 +577,7 @@ export class ReturnComponent implements OnInit {
     resetOptions(){
       this.displayingDeletedDocks=false;
       this.fillOptionsList();//перезаполняем список опций
-      this.selectionFilterOptions.clear;
+      this.selectionFilterOptions.clear();
       this.sendingQueryForm.filterOptionsIds = [];
     }
     fillOptionsList(){
