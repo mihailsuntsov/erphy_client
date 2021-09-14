@@ -454,8 +454,7 @@ export class InventoryDockComponent implements OnInit {
       this.checkAnyCases();
     }
   }
-  куа 
-  // проверки на различные случаи
+   // проверки на различные случаи
   checkAnyCases(){
     //проверка на то, что отделение все еще числится в отделениях предприятия (не было удалено и т.д.)
     if(!this.inDepthsId(+this.formBaseInformation.get('department_id').value)){

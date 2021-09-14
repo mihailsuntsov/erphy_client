@@ -359,7 +359,7 @@
                                             style="width:  95%;"
                                             (selectionChange)="onChangeProductNds()" 
                                             [ngClass]="{'table-field-editable':!readonly}"
-                                            [disabled]=false>                          
+                                            [disabled]=readonly>                          
                                                 <mat-option  *ngFor="let rt of spravSysNdsSet" [value]="rt.id">
                                                         {{rt.name}}
                                                 </mat-option> 

@@ -533,7 +533,7 @@ export class ReturnsupDockComponent implements OnInit {
       this.checkAnyCases();
     }
   }
-  куа 
+
   // проверки на различные случаи
   checkAnyCases(){
     //проверка на то, что отделение все еще числится в отделениях предприятия (не было удалено и т.д.)
