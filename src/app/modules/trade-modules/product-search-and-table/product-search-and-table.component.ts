@@ -658,7 +658,7 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
         {
           this.isProductListLoading  = true;
           return this.http.get(
-            '/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.company_id+'&departmentId='+this.formSearch.get('secondaryDepartmentId').value+'&document_id='+this.parentDockId
+            '/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.company_id+'&departmentId='+this.formSearch.get('secondaryDepartmentId').value+'&document_id='+this.parentDockId+'&priceTypeId='+(+this.formSearch.get('price_type_id').value)
             );
         }else return [];
       } catch (e) {

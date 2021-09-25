@@ -74,6 +74,8 @@ export class SettingsAcceptanceDialogComponent implements OnInit {
       statusOnFinishId: new FormControl         ('',[]),
       // автодобавление товара из формы поиска в таблицу
       autoAdd:  new FormControl                 (false,[]),
+      // автовыставление цены (последняя закупочная цена)
+      autoPrice:  new FormControl                 (false,[]),
     });
     this.getSettings();
     
@@ -95,6 +97,7 @@ export class SettingsAcceptanceDialogComponent implements OnInit {
         this.settingsForm.get('statusOnFinishId').setValue(result.statusOnFinishId);
         //данная группа настроек не зависит от предприятия
         this.settingsForm.get('autoAdd').setValue(result.autoAdd);
+        this.settingsForm.get('autoPrice').setValue(result.autoPrice);
         if(+this.settingsForm.get('companyId').value>0){
           this.getDepartmentsList();
           this.getStatusesList();

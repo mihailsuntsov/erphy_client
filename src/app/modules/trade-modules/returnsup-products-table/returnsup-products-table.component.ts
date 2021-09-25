@@ -13,6 +13,7 @@ import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component'
 import { ViewChild } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
+import { CommonUtilitesService } from 'src/app/services/common_utilites.serviсe';
 
 interface ReturnsupProductTable { //интерфейс для товаров, (т.е. для формы, массив из которых будет содержать форма returnsupProductTable, входящая в formBaseInformation)
   id: number;                     // id строки с товаром товара в таблице return_product
@@ -31,12 +32,16 @@ interface ReturnsupProductTable { //интерфейс для товаров, (�
 interface ProductSearchResponse{  // интерфейс получения списка товаров во время поиска товара 
   name: string;                   // наименование товара
   product_id: number;             // id товара
-  // estimated_balance: number;      // остатки
   filename: string;               // картинка товара
   edizm: string;                  // наименование единицы измерения товара
   remains: number;                // остатки 
+  total: number;                  // остатки (те же остатки, просто в одном api они remains, а в другом total. Бардак, да )
   nds_id: number;                 // ндс 
   indivisible: boolean;           // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
+  priceOfTypePrice: number;       // цена по запрошенному id типа цены
+  avgCostPrice: number;           // средняя себестоимость
+  lastPurchasePrice: number;      // последняя закупочная цена
+  avgPurchasePrice : number;      // средняя закупочная цена
 }
 interface ShortInfoAboutProduct{//интерф. для получения инфо о состоянии товара в отделении (кол-во, последняя поставка), и средним ценам (закупочной и себестоимости) товара
   quantity:number;
@@ -61,7 +66,7 @@ interface SpravSysNdsSet{
   selector: 'app-returnsup-products-table',
   templateUrl: './returnsup-products-table.component.html',
   styleUrls: ['./returnsup-products-table.component.css'],
-  providers: [ProductCategoriesSelectComponent]
+  providers: [ProductCategoriesSelectComponent,CommonUtilitesService]
 })
 export class ReturnsupProductsTableComponent implements OnInit {
   formBaseInformation:any;//форма-обёртка для массива форм returnsupProductTable (нужна для вывода таблицы)
@@ -125,11 +130,18 @@ export class ReturnsupProductsTableComponent implements OnInit {
   @Input() autoAdd:boolean;
   @Input() nds:boolean;
   @Input() spravSysNdsSet: SpravSysNdsSet[] = []; //массив имен и id для ндс 
+  @Input() pricingType:string;  // тип расценки. priceType - по типу цены, avgCostPrice - средн. себестоимость, lastPurchasePrice - Последняя закупочная цена, avgPurchasePrice - Средняя закупочная цена, manual - вручную
+  @Input() priceTypeId:number;  // тип цены (дейстует при pricingType = "priceType")
+  @Input() plusMinus:string;
+  @Input() hideTenths:boolean;  
+  @Input() changePrice:number;
+  @Input() changePriceType:string;
   @Output() changeProductsTableLength = new EventEmitter<any>();   //событие изменения таблицы товаров (а именно - количества товаров в ней)
   @Output() totalSumPriceEvent = new EventEmitter<string>();
 
   constructor( private _fb: FormBuilder,
     public MessageDialog: MatDialog,
+    private commonUtilites: CommonUtilitesService,
     public ProductReservesDialogComponent: MatDialog,
     public ConfirmDialog: MatDialog,
     private _snackBar: MatSnackBar,
@@ -156,6 +168,10 @@ export class ReturnsupProductsTableComponent implements OnInit {
       // nds: new FormControl                      (0,[]),                    // НДС в валютном ввыражении
       product_sumprice : new FormControl        (0,[]),                       // суммарная стоимость товара = цена * кол-во
       indivisible: new FormControl              ('',[]),                      // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
+      priceOfTypePrice: new FormControl         ('',[]),                                                              // цена по запрошенному id типа цены
+      avgCostPrice: new FormControl             ('',[]),                                                              // средняя себестоимость
+      lastPurchasePrice: new FormControl        ('',[]),                                                              // последняя закупочная цена
+      avgPurchasePrice : new FormControl        ('',[]),                                                              // средняя закупочная цена
     });
 
     this.doOnInit();
@@ -271,10 +287,16 @@ export class ReturnsupProductsTableComponent implements OnInit {
     {
       if(this.canAutocompleteQuery && this.searchProductCtrl.value.length>1)
       {
-        this.isProductListLoading  = true;
-        return this.http.get(
-          '/api/auth/getReturnsupProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.company_id+'&departmentId='+this.department_id
+        if(this.department_id){
+          this.isProductListLoading  = true;
+          return this.http.get(
+            '/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.company_id+'&departmentId='+this.department_id+'&document_id=0&priceTypeId='+(+this.priceTypeId)
           );
+        } else {
+          this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Сначала необходимо выбрать отделение'}})
+          this.isProductListLoading  = false;
+          return [];
+        }
       }else return [];
     } catch (e) {
       return [];
@@ -288,9 +310,13 @@ export class ReturnsupProductsTableComponent implements OnInit {
     this.formSearch.get('product_count').setValue(0);                                               // кол-во
     this.formSearch.get('edizm').setValue(this.filteredProducts[0].edizm);                          // наименование единицы измерения товара
     this.productImageName = this.filteredProducts[0].filename;                                      // картинка товара
-    this.formSearch.get('remains').setValue(this.filteredProducts[0].remains);                      // остатки - кол-во товара по БД
+    this.formSearch.get('remains').setValue(this.filteredProducts[0].total);                      // остатки - кол-во товара по БД
     this.formSearch.get('nds_id').setValue(this.filteredProducts[0].nds_id);                        // id НДС 
     this.formSearch.get('indivisible').setValue(this.filteredProducts[0].indivisible);              // неделимость (необходимо для проверки правильности ввода кол-ва товара)
+    this.formSearch.get('priceOfTypePrice').setValue(this.filteredProducts[0].priceOfTypePrice);    // цена по запрошенному id типа цены
+    this.formSearch.get('avgCostPrice').setValue(this.filteredProducts[0].avgCostPrice);            // средняя себестоимость
+    this.formSearch.get('lastPurchasePrice').setValue(this.filteredProducts[0].lastPurchasePrice);  // последняя закупочная цена
+    this.formSearch.get('avgPurchasePrice').setValue(this.filteredProducts[0].avgPurchasePrice);    // средняя закупочная цена
     this.afterSelectProduct();
     this.filteredProducts=[];
   }
@@ -301,9 +327,13 @@ export class ReturnsupProductsTableComponent implements OnInit {
     this.formSearch.get('product_count').setValue(0);                                               // кол-во
     this.formSearch.get('edizm').setValue(product.edizm);                          // наименование единицы измерения товара
     this.productImageName = product.filename;                                      // картинка товара
-    this.formSearch.get('remains').setValue(product.remains);                      // остатки - кол-во товара по БД
+    this.formSearch.get('remains').setValue(product.total);                      // остатки - кол-во товара по БД
     this.formSearch.get('nds_id').setValue(product.nds_id);                        // id НДС 
     this.formSearch.get('indivisible').setValue(product.indivisible);              // неделимость (необходимо для проверки правильности ввода кол-ва товара)
+    this.formSearch.get('priceOfTypePrice').setValue(product.priceOfTypePrice);    // цена по запрошенному id типа цены
+    this.formSearch.get('avgCostPrice').setValue(product.avgCostPrice);            // средняя себестоимость
+    this.formSearch.get('lastPurchasePrice').setValue(product.lastPurchasePrice);  // последняя закупочная цена
+    this.formSearch.get('avgPurchasePrice').setValue(product.avgPurchasePrice);    // средняя закупочная цена
     this.canAutocompleteQuery=false;
     this.afterSelectProduct();
   }
@@ -322,7 +352,27 @@ export class ReturnsupProductsTableComponent implements OnInit {
   }
 
   setPrice(){
-        this.formSearch.get('product_price').setValue(0);
+    switch (this.pricingType){
+      case 'priceType':{//по типу цены
+        this.formSearch.get('product_price').setValue(this.commonUtilites.priceFilter(+this.formSearch.get('priceOfTypePrice').value,this.changePrice,this.changePriceType,this.plusMinus,this.hideTenths));
+        break;
+      }
+      case 'avgCostPrice':{//средн. себестоимость
+        this.formSearch.get('product_price').setValue(this.commonUtilites.priceFilter(+this.formSearch.get('avgCostPrice').value,this.changePrice,this.changePriceType,this.plusMinus,this.hideTenths)); 
+        break;
+      }
+      case 'lastPurchasePrice':{//Последняя закупочная цена
+        this.formSearch.get('product_price').setValue(this.commonUtilites.priceFilter(+this.formSearch.get('lastPurchasePrice').value,this.changePrice,this.changePriceType,this.plusMinus,this.hideTenths)); 
+        break;
+      }
+      case 'avgPurchasePrice':{//Средняя закупочная цена
+        this.formSearch.get('product_price').setValue(this.commonUtilites.priceFilter(+this.formSearch.get('avgPurchasePrice').value,this.changePrice,this.changePriceType,this.plusMinus,this.hideTenths));
+        break; 
+      }
+      // case 'manual':{
+        
+      // }
+    }
   }
 
 
@@ -696,13 +746,24 @@ export class ReturnsupProductsTableComponent implements OnInit {
       edizm: new FormControl (row.edizm,[]),
       remains: new FormControl (+row.remains,[]),
       product_count:  new FormControl (1,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
-      product_price:  new FormControl (0,[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      product_price:  new FormControl (this.commonUtilites.priceFilter(this.getPrice(row),this.changePrice,this.changePriceType,this.plusMinus,this.hideTenths),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),/*ValidationService.priceMoreThanZero*/]),
       product_sumprice: new FormControl (0,[]),
       nds_id: new FormControl (row.nds_id,[]),
       indivisible: new FormControl (row.indivisible,[]),
     });
   }
 
+  //в зависимости от политики назначения цены возвращаем одну из цен, содержащихся в передаваемом объекте
+  getPrice(row: ProductSearchResponse):number{
+    let price:number=0;
+    switch (this.pricingType){
+      case 'priceType':return row.priceOfTypePrice;           //по типу цены
+      case 'avgCostPrice':return row.avgCostPrice;            //Средняя себестоимость
+      case 'lastPurchasePrice':return row.lastPurchasePrice;  //Последняя закупочная цена
+      case 'avgPurchasePrice':return row.avgPurchasePrice;    //Средняя закупочная цена
+      default: return 0;
+    }
+  }
 //************************************************************************************* COMMON UTILITES *****************************************************************************************/
   numberOnlyPlusDot(event): boolean {
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which

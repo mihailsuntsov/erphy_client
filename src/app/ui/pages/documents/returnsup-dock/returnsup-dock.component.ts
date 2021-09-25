@@ -261,12 +261,29 @@ export class ReturnsupDockComponent implements OnInit {
     //     writeoffProductTable: new FormArray ([]),
     //     postingProductTable: new FormArray  ([]),
     //   });
+
     // Форма настроек
     this.settingsForm = new FormGroup({
-      companyId: new FormControl                (null,[]),            // предприятие, для которого создаются настройки
-      departmentId: new FormControl             (null,[]),            // id отделения
-      statusOnFinishId: new FormControl         ('',[]),              // статус после завершения документа
-      autoAdd: new FormControl                  (false,[]),            // автодобавление товара из формы поиска в таблицу
+      // предприятие, для которого создаются настройки
+      companyId: new FormControl                (null,[]),
+      // id отделения
+      departmentId: new FormControl             (null,[]),
+      // тип расценки. priceType - по типу цены, avgCostPrice - средн. себестоимость, lastPurchasePrice - Последняя закупочная цена, avgPurchasePrice - Средняя закупочная цена, manual - вручную
+      pricingType: new FormControl              ('lastPurchasePrice',[]), // по умолчанию ставим "Последняя закупочная цена"
+      // тип цены
+      priceTypeId: new FormControl              (null,[]),
+      // наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType
+      changePrice: new FormControl              (0,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]), // по умолчанию "плюс 10%"
+      // Наценка (plus) или скидка (minus)
+      plusMinus: new FormControl                ('plus',[]),
+      // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
+      changePriceType: new FormControl          ('procents',[]),
+      // убрать десятые (копейки)
+      hideTenths: new FormControl               (true,[]),
+      // статус после завершения инвентаризации
+      statusOnFinishId: new FormControl         ('',[]),
+      // автодобавление товара из формы поиска в таблицу
+      autoAdd:  new FormControl                 (false,[]),
     });
 
     if(this.data)//если документ вызывается в окне из другого документа
@@ -624,7 +641,13 @@ export class ReturnsupDockComponent implements OnInit {
             //данная группа настроек зависит от предприятия
             this.settingsForm.get('departmentId').setValue(result.departmentId);
             this.settingsForm.get('statusOnFinishId').setValue(result.statusOnFinishId);
+            this.settingsForm.get('priceTypeId').setValue(result.priceTypeId);
             //данная группа настроек не зависит от предприятия
+            this.settingsForm.get('pricingType').setValue(result.pricingType?result.pricingType:'lastPurchasePrice');
+            this.settingsForm.get('plusMinus').setValue(result.plusMinus?result.plusMinus:'plus');
+            this.settingsForm.get('changePrice').setValue(result.changePrice?result.changePrice:0);
+            this.settingsForm.get('changePriceType').setValue(result.changePriceType?result.changePriceType:'procents');
+            this.settingsForm.get('hideTenths').setValue(result.hideTenths);
             this.settingsForm.get('autoAdd').setValue(result.autoAdd);
             //если предприятия из настроек больше нет в списке предприятий (например, для пользователя урезали права, и выбранное предприятие более недоступно)
             //необходимо сбросить данное предприятие в null 
@@ -902,6 +925,12 @@ export class ReturnsupDockComponent implements OnInit {
         //если нажата кнопка Сохранить настройки - вставляем настройки в форму настроек и сохраняем
         if(result.get('companyId')) this.settingsForm.get('companyId').setValue(result.get('companyId').value);
         if(result.get('departmentId')) this.settingsForm.get('departmentId').setValue(result.get('departmentId').value);
+        if(result.get('pricingType')) this.settingsForm.get('pricingType').setValue(result.get('pricingType').value);
+        if(result.get('priceTypeId')) this.settingsForm.get('priceTypeId').setValue(result.get('priceTypeId').value);
+        if(result.get('plusMinus')) this.settingsForm.get('plusMinus').setValue(result.get('plusMinus').value);
+        if(result.get('changePrice')) this.settingsForm.get('changePrice').setValue(result.get('changePrice').value);
+        if(result.get('changePriceType')) this.settingsForm.get('changePriceType').setValue(result.get('changePriceType').value);
+        this.settingsForm.get('hideTenths').setValue(result.get('hideTenths').value);
         if(result.get('autoAdd')) this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
         // if(result.get('showKkm')) this.settingsForm.get('showKkm').setValue(result.get('showKkm').value);
         this.settingsForm.get('statusOnFinishId').setValue(result.get('statusOnFinishId').value);

@@ -6,6 +6,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { HttpClient } from '@angular/common/http';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { Validators } from '@angular/forms';
 import { LoadSpravService } from './loadsprav';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { QueryFormService } from './get-writeoff-table.service';
@@ -122,17 +123,17 @@ export class WriteoffComponent implements OnInit {
       this.sendingQueryForm.filterOptionsIds = [];
 
       if(Cookie.get('writeoff_companyId')=='undefined' || Cookie.get('writeoff_companyId')==null)     
-      Cookie.set('writeoff_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('writeoff_companyId')=="0"?"0":+Cookie.get('writeoff_companyId'));
+        Cookie.set('writeoff_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('writeoff_companyId')=="0"?"0":+Cookie.get('writeoff_companyId'));
       if(Cookie.get('writeoff_departmentId')=='undefined' || Cookie.get('writeoff_departmentId')==null)  
-      Cookie.set('writeoff_departmentId',this.sendingQueryForm.departmentId); else this.sendingQueryForm.departmentId=(Cookie.get('writeoff_departmentId')=="0"?"0":+Cookie.get('writeoff_departmentId'));
+        Cookie.set('writeoff_departmentId',this.sendingQueryForm.departmentId); else this.sendingQueryForm.departmentId=(Cookie.get('writeoff_departmentId')=="0"?"0":+Cookie.get('writeoff_departmentId'));
       if(Cookie.get('writeoff_sortAsc')=='undefined' || Cookie.get('writeoff_sortAsc')==null)       
-      Cookie.set('writeoff_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('writeoff_sortAsc');
+        Cookie.set('writeoff_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('writeoff_sortAsc');
       if(Cookie.get('writeoff_sortColumn')=='undefined' || Cookie.get('writeoff_sortColumn')==null)    
-      Cookie.set('writeoff_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('writeoff_sortColumn');
+        Cookie.set('writeoff_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('writeoff_sortColumn');
       if(Cookie.get('writeoff_offset')=='undefined' || Cookie.get('writeoff_offset')==null)        
-      Cookie.set('writeoff_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('writeoff_offset');
+        Cookie.set('writeoff_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('writeoff_offset');
       if(Cookie.get('writeoff_result')=='undefined' || Cookie.get('writeoff_result')==null)        
-      Cookie.set('writeoff_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('writeoff_result');
+        Cookie.set('writeoff_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('writeoff_result');
       
       this.fillOptionsList();//заполняем список опций фильтра
       // Форма настроек
@@ -141,10 +142,22 @@ export class WriteoffComponent implements OnInit {
         companyId: new FormControl                (null,[]),
         // id отделения
         departmentId: new FormControl             (null,[]),
-        // статус после завершения 
+        // тип расценки. priceType - по типу цены, avgCostPrice - средн. себестоимость, lastPurchasePrice - Последняя закупочная цена, avgPurchasePrice - Средняя закупочная цена, manual - вручную
+        pricingType: new FormControl              ('avgCostPrice',[]), // по умолчанию ставим "Средняя закупочная цена"
+        // тип цены
+        priceTypeId: new FormControl              (null,[]),
+        // наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType
+        changePrice: new FormControl              (0,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]), // по умолчанию "плюс 10%"
+        // Наценка (plus) или скидка (minus)
+        plusMinus: new FormControl                ('plus',[]),
+        // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
+        changePriceType: new FormControl          ('procents',[]),
+        // убрать десятые (копейки)
+        hideTenths: new FormControl               (true,[]),
+        // статус после завершения инвентаризации
         statusOnFinishId: new FormControl         ('',[]),
         // автодобавление товара из формы поиска в таблицу
-        autoAdd: new FormControl                  (false,[]),  
+        autoAdd:  new FormControl                 (false,[]),
       });
 
       this.getCompaniesList();// 
@@ -238,7 +251,6 @@ export class WriteoffComponent implements OnInit {
     this.displayedColumns.push('is_completed');
     this.displayedColumns.push('description');
     this.displayedColumns.push('creator');
-    this.displayedColumns.push('status');
     this.displayedColumns.push('date_time_created');
   }
 
@@ -539,6 +551,12 @@ export class WriteoffComponent implements OnInit {
           //если нажата кнопка Сохранить настройки - вставляем настройки в форму настроек и сохраняем
           if(result.get('companyId')) this.settingsForm.get('companyId').setValue(result.get('companyId').value);
           if(result.get('departmentId')) this.settingsForm.get('departmentId').setValue(result.get('departmentId').value);
+          if(result.get('pricingType')) this.settingsForm.get('pricingType').setValue(result.get('pricingType').value);
+          if(result.get('priceTypeId')) this.settingsForm.get('priceTypeId').setValue(result.get('priceTypeId').value);
+          if(result.get('plusMinus')) this.settingsForm.get('plusMinus').setValue(result.get('plusMinus').value);
+          if(result.get('changePrice')) this.settingsForm.get('changePrice').setValue(result.get('changePrice').value);
+          if(result.get('changePriceType')) this.settingsForm.get('changePriceType').setValue(result.get('changePriceType').value);
+          this.settingsForm.get('hideTenths').setValue(result.get('hideTenths').value);
           this.settingsForm.get('statusOnFinishId').setValue(result.get('statusOnFinishId').value);
           this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
           this.saveSettingsWriteoff();

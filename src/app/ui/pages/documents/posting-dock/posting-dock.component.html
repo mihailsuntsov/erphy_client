@@ -36,11 +36,11 @@
                 class="button">
                 <i class="material-icons">settings</i>
             </button>
-            <!-- <button 
+            <button 
                 mat-button 
                 [matMenuTriggerFor]="addDockMenu"
                 mat-raised-button 
-                matTooltip='Создать связанные документы, основанные на данном оприходовании'
+                matTooltip='Создать документы'
                 [disabled]="!childFormValid||!formBaseInformation.valid||postingProductsTableComponent.indivisibleErrorOfProductTable" 
                 *ngIf="+id>0 && postingProductsTableComponent"
                 color="primary"
@@ -53,13 +53,9 @@
             <mat-menu #addDockMenu="matMenu" yPosition="below" xPosition="before">
                 <button mat-menu-item (click)="goToNewDocument()">
                     <mat-icon>add_circle_outline</mat-icon>
-                    <span>Списание</span>
+                    <span>Оприходование</span>
                 </button>
-                <button mat-menu-item (click)="createLinkedDock('Returnsup')">
-                    <mat-icon>arrow_back</mat-icon>
-                    <span>Возврат поставщику</span>
-                </button>
-            </mat-menu> -->
+            </mat-menu>
             <button 
                 style="width: 129px;height: 36px;min-width: 38px;"
                 mat-raised-button 
@@ -259,6 +255,12 @@
                                     [department_id]="formBaseInformation.get('department_id').value"
                                     [autoAdd]="settingsForm.get('autoAdd').value"
                                     [readonly]="formBaseInformation.get('is_completed').value"
+                                    [pricingType]="settingsForm.get('pricingType').value"
+                                    [priceTypeId]="settingsForm.get('priceTypeId').value"
+                                    [plusMinus]="settingsForm.get('plusMinus').value"
+                                    [hideTenths]="settingsForm.get('hideTenths').value"
+                                    [changePrice]="settingsForm.get('changePrice').value"
+                                    [changePriceType]="settingsForm.get('changePriceType').value"
                                 ></app-posting-products-table>
                             </div>
                         </div>

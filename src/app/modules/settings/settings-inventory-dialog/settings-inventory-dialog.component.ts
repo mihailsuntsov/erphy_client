@@ -73,7 +73,7 @@ export class SettingsInventoryDialogComponent implements OnInit {
 
     this.settingsForm = new FormGroup({
       // предприятие, для которого создаются настройки
-      companyId: new FormControl                (null,[]),
+      companyId: new FormControl                (null,[Validators.required]),
       // id отделения
       departmentId: new FormControl             (null,[]),
       // наименование инвертаризации по умолчанию

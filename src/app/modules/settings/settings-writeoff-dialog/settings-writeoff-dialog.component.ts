@@ -2,6 +2,7 @@ import { Component, OnInit , Inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { HttpClient } from '@angular/common/http';
 import { FormGroup, FormControl } from '@angular/forms';
+import { Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { LoadSpravService } from '../../../services/loadsprav';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
@@ -22,6 +23,11 @@ interface statusInterface{
   description:string;
   is_default:boolean;
 }
+interface idNameDescription{
+  id: number;
+  name: string;
+  description: string;
+}
 
 @Component({
   selector: 'app-settings-writeoff-dialog',
@@ -32,6 +38,7 @@ interface statusInterface{
 export class SettingsWriteoffDialogComponent implements OnInit {
 
   gettingData:boolean=false;
+  priceTypesList: idNameDescription [] = [];//список типов цен
   settingsForm: any; // форма со всей информацией по настройкам
   receivedCompaniesList: any [] = [];//массив для получения списка предприятий
   receivedDepartmentsList: SecondaryDepartment [] = [];//массив для получения списка отделений
@@ -66,10 +73,21 @@ export class SettingsWriteoffDialogComponent implements OnInit {
 
     this.settingsForm = new FormGroup({
       // предприятие, для которого создаются настройки
-      companyId: new FormControl                (null,[]),
+      companyId: new FormControl                (null,[Validators.required]),
       // id отделения
       departmentId: new FormControl             (null,[]),
-      // наименование инвертаризации по умолчанию
+      // тип расценки. priceType - по типу цены, avgCostPrice - средн. себестоимость, lastPurchasePrice - Последняя закупочная цена, avgPurchasePrice - Средняя закупочная цена, manual - вручную
+      pricingType: new FormControl              ('avgCostPrice',[]), // по умолчанию ставим "Средняя закупочная цена"
+      // тип цены
+      priceTypeId: new FormControl              (null,[]),
+      // наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType
+      changePrice: new FormControl              (0,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]), // по умолчанию "плюс 10%"
+      // Наценка (plus) или скидка (minus)
+      plusMinus: new FormControl                ('plus',[]),
+      // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
+      changePriceType: new FormControl          ('procents',[]),
+      // убрать десятые (копейки)
+      hideTenths: new FormControl               (true,[]),
       // статус после завершения инвентаризации
       statusOnFinishId: new FormControl         ('',[]),
       // автодобавление товара из формы поиска в таблицу
@@ -93,23 +111,60 @@ export class SettingsWriteoffDialogComponent implements OnInit {
         //данная группа настроек зависит от предприятия
         this.settingsForm.get('departmentId').setValue(result.departmentId);
         this.settingsForm.get('statusOnFinishId').setValue(result.statusOnFinishId);
+        this.settingsForm.get('priceTypeId').setValue(result.priceTypeId);
         //данная группа настроек не зависит от предприятия
+        this.settingsForm.get('pricingType').setValue(result.pricingType?result.pricingType:'avgCostPrice');
+        this.settingsForm.get('plusMinus').setValue(result.plusMinus?result.plusMinus:'plus');
+        this.settingsForm.get('changePrice').setValue(result.changePrice?result.changePrice:0);
+        this.settingsForm.get('changePriceType').setValue(result.changePriceType?result.changePriceType:'procents');
+        this.settingsForm.get('hideTenths').setValue(result.hideTenths);
         this.settingsForm.get('autoAdd').setValue(result.autoAdd);
         if(+this.settingsForm.get('companyId').value>0){
           this.getDepartmentsList();
           this.getStatusesList();
+          this.getPriceTypesList();
         }
       },
       error => console.log(error)
     );
   }
 
+  getPriceTypesList(){
+    this.priceTypesList=null;
+    this.loadSpravService.getPriceTypesList(this.settingsForm.get('companyId').value)
+    .subscribe(
+      (data) => {
+        this.priceTypesList=data as any [];
+      },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+    );
+  }
+
+  clickPlusMinus(plusMinus:string){
+    this.settingsForm.get('plusMinus').setValue(plusMinus);
+    this.checkPlusMinus();
+  }
+
+  checkPlusMinus(){
+    switch (this.settingsForm.get('plusMinus').value) {
+      case 'plus': {
+        this.settingsForm.get('plusMinus').setValue('plus');
+        this.priceUpDownFieldName='Наценка';
+        break;}
+      case 'minus': {
+        this. settingsForm.get('plusMinus').setValue('minus');
+        this.priceUpDownFieldName='Скидка';
+        break;}
+    }
+  }
   //при изменении предприятия необходимо загрузить все зависимые от него справочники, удалив выбранные по старому предприятию параметры (отделения, тип цены, статусы)
   onCompanyChange(){
     this.settingsForm.get('departmentId').setValue(null);
     this.settingsForm.get('statusOnFinishId').setValue(null);
+    this.settingsForm.get('priceTypeId').setValue(null);
     this.getDepartmentsList();
     this.getStatusesList();
+    this.getPriceTypesList();
   }
 
   getDepartmentsList(newdock?:boolean){
@@ -188,6 +243,9 @@ export class SettingsWriteoffDialogComponent implements OnInit {
         }
       });
       console.log(' this.status_color = '+ this.status_color);
+  }
+  onPriceTypeSelection(){
+
   }
 
 }

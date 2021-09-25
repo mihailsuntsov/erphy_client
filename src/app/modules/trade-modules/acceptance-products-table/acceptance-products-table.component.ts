@@ -35,9 +35,13 @@ interface ProductSearchResponse{  // интерфейс получения сп�
   // estimated_balance: number;      // остатки
   filename: string;               // картинка товара
   edizm: string;                  // наименование единицы измерения товара
-  total: number;                // остатки 
+  total: number;                  // остатки 
   nds_id: number;                 // ндс 
   indivisible: boolean;           // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
+  priceOfTypePrice: number;       // цена по запрошенному id типа цены
+  avgCostPrice: number;           // средняя себестоимость
+  lastPurchasePrice: number;      // последняя закупочная цена
+  avgPurchasePrice : number;      // средняя закупочная цена
 }
 interface ShortInfoAboutProduct{//интерф. для получения инфо о состоянии товара в отделении (кол-во, последняя поставка), и средним ценам (закупочной и себестоимости) товара
   quantity:number;
@@ -117,6 +121,7 @@ export class AcceptanceProductsTableComponent implements OnInit {
   @Input() department_id:number;
   @Input() readonly:boolean;
   @Input() autoAdd:boolean;
+  @Input() autoPrice:boolean;
   @Input() nds:boolean;
   @Input() nds_included:boolean;
   @Input() overhead:number;      // расходы 
@@ -269,7 +274,7 @@ export class AcceptanceProductsTableComponent implements OnInit {
       {
         this.isProductListLoading  = true;
         return this.http.get(
-          '/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.company_id+'&departmentId='+this.department_id+'&document_id=0'
+          '/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.company_id+'&departmentId='+this.department_id+'&document_id=0&priceTypeId=0'
           );
       }else return [];
     } catch (e) {
@@ -284,9 +289,11 @@ export class AcceptanceProductsTableComponent implements OnInit {
     this.formSearch.get('product_count').setValue(0);                                               // кол-во
     this.formSearch.get('edizm').setValue(this.filteredProducts[0].edizm);                          // наименование единицы измерения товара
     this.productImageName = this.filteredProducts[0].filename;                                      // картинка товара
-    this.formSearch.get('total').setValue(this.filteredProducts[0].total);                      // остатки - кол-во товара по БД
+    this.formSearch.get('total').setValue(this.filteredProducts[0].total);                          // остатки - кол-во товара по БД
     this.formSearch.get('nds_id').setValue(this.filteredProducts[0].nds_id);                        // id НДС 
     this.formSearch.get('indivisible').setValue(this.filteredProducts[0].indivisible);              // неделимость (необходимо для проверки правильности ввода кол-ва товара)
+    if(this.autoPrice)                                                                              // если выбрана опция "Автоцена"
+      this.setPrice(this.filteredProducts[0].lastPurchasePrice);                                    // установка цены из последней закупочной цены
     this.afterSelectProduct();
     this.filteredProducts=[];
   }
@@ -294,18 +301,19 @@ export class AcceptanceProductsTableComponent implements OnInit {
   onSelectProduct(product:ProductSearchResponse){
     this.formSearch.get('product_id').setValue(+product.product_id);               // id товара
     this.searchProductCtrl.setValue(product.name);                                 // наименование товара
-    this.formSearch.get('product_count').setValue(0);                                               // кол-во
+    this.formSearch.get('product_count').setValue(0);                              // кол-во
     this.formSearch.get('edizm').setValue(product.edizm);                          // наименование единицы измерения товара
     this.productImageName = product.filename;                                      // картинка товара
-    this.formSearch.get('total').setValue(product.total);                      // остатки - кол-во товара по БД
+    this.formSearch.get('total').setValue(product.total);                          // остатки - кол-во товара по БД
     this.formSearch.get('nds_id').setValue(product.nds_id);                        // id НДС 
     this.formSearch.get('indivisible').setValue(product.indivisible);              // неделимость (необходимо для проверки правильности ввода кол-ва товара)
+    if(this.autoPrice)                                                             // если выбрана опция "Автоцена"
+      this.setPrice(product.lastPurchasePrice);                                    // установка цены из последней закупочной цены
     this.canAutocompleteQuery=false;
     this.afterSelectProduct();
   }
 
   afterSelectProduct(){
-    this.setPrice(0);
     if(this.autoAdd){
       setTimeout(() => {this.addProductRow();}, 100);
     }else {
@@ -446,7 +454,7 @@ export class AcceptanceProductsTableComponent implements OnInit {
       name:  new FormControl (this.searchProductCtrl.value,[]),
       edizm:  new FormControl (this.formSearch.get('edizm').value,[]),
       product_price: new FormControl (this.formSearch.get('product_price').value,[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),/*ValidationService.priceMoreThanZero*/]),
-      product_count:  new FormControl (this.formSearch.get('product_count').value,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
+      product_count:  new FormControl ((+this.formSearch.get('product_count').value>0?+this.formSearch.get('product_count').value:1),[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
       total: new FormControl (+this.formSearch.get('total').value,[]),
       nds_id: new FormControl (+this.formSearch.get('nds_id').value,[]),
       product_sumprice: new FormControl ((+this.formSearch.get('product_count').value*(+this.formSearch.get('product_price').value)).toFixed(2),[]),
@@ -816,10 +824,11 @@ openDialogCreateProduct() {
       edizm: new FormControl (row.edizm,[]),
       total: new FormControl (+row.total,[]),
       product_count:  new FormControl (1,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
-      product_price:  new FormControl (0,[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      product_price:  new FormControl ((this.autoPrice?+row.lastPurchasePrice:0),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       product_sumprice: new FormControl (0,[]),
       nds_id: new FormControl (row.nds_id,[]),
       indivisible: new FormControl (row.indivisible,[]),
+
     });
   }
 

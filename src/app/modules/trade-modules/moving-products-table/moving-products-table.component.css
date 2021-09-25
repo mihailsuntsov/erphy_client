@@ -1,0 +1,161 @@
+:host{
+    flex-grow: 1;
+    align-items: center;
+    justify-content: center;
+}
+table {width: 100%;}
+
+li {list-style: none;}
+
+.flex{ display: flex; }
+
+.center-align{
+    display: flex;
+    justify-content: center;
+}
+
+.card{
+    width:100%;
+}
+.internal-card{
+    padding: 10px 0 10px;
+    margin: 10px 0 10px 0;
+}
+.invisible{display:none;}
+.card-name{ flex-grow: 1; }
+.button{
+    margin-left: 10px;
+}
+.mat-form-field-100{
+    width:100%
+}
+.input-form{
+    display: flex;
+    flex-direction: column;
+}
+.priceTypeName{
+    position: absolute;
+    left: 56px;
+    top: 15px;
+    flex: 0 0 0%;
+    font-size: 11px;
+    color: gray;
+    z-index: 1000;
+}
+.highlighted{
+    background: rgba(0,0,0,.12);
+}
+tr.mat-footer-row {
+    font-weight: bold;
+}
+
+.form-invalid{
+    color: red;
+}
+.table-form-invalid{
+    color: red;
+    font-size: 11px;
+    line-height: 0.9em;
+    display: block;
+    font-style: italic;
+}
+.table-field-editable{
+    border-bottom: 1px lightgray dotted;
+}
+.div-foto{
+    width: 100%;
+    max-width: 80px;
+    padding-left: 6px;
+    margin-bottom:0px;
+    overflow: hidden;
+}
+.cell-padding{
+    padding: 0px 10px 0 10px;
+}
+.width-60{
+    width: 60px;
+}
+.width-60{
+    width: 80px;
+}
+::ng-deep td  .mat-select-arrow { /*прячем стрелку mat-select НДС в таблице товаров*/
+    border-top: 0px;
+}
+div#status {
+    margin-top: -14px;
+    flex-grow: 20;
+    width: 200px;
+}
+::ng-deep div#status .mat-form-field-underline{
+    height: 0px !important;
+}
+::ng-deep div#status .mat-select-arrow{
+    border-top: 0px !important;
+}
+::ng-deep div#status .mat-form-field-wrapper{
+    padding-bottom: 0;
+}
+::ng-deep div#status .mat-form-field-underline{
+    display:none;
+}
+::ng-deep .statuseslist {
+    min-width: 250px !important;
+}
+::ng-deep .department-list {
+    min-width: 350px !important;
+}
+
+::ng-deep div#pricetype .mat-button-ripple.mat-ripple, .mat-button-focus-overlay {
+    position: relative;
+    left: -12px;
+    top: 5px;
+    flex: 0 0 0%;
+    z-index: 1000;
+}
+.small-padding{
+    padding-right: 3px; 
+    padding-left: 3px;
+}
+.hand
+{
+    cursor: pointer;
+}
+.center {
+    display: flex;
+    justify-content: center;
+}
+.mat-chip-list{
+    position: absolute;
+    right: 5px;
+}
+ .bold {
+    font-weight: bold;
+ }
+.plusMinusEnable{
+    color: black;
+    cursor: pointer;
+    font-size:14px;
+    margin-left: -2px;
+}
+div#costPrice .material-icons {
+    line-height:0 !important;
+    vertical-align: middle;
+}
+div#costPrice input {
+    margin-left: 19px;
+}
+/*-------------- спиннер ---------------------------*/
+.spinner{
+    position: absolute;
+    top: 0%;
+    left: 50%;
+    margin-left: -22px;
+    margin-top: 78px;
+}
+.spinner-kkm{
+    position: absolute;
+    top: 40%; left: 50%;
+    margin-left: -25px;
+    /* margin-top: 100px; */
+    z-index: 1000;
+}

@@ -218,19 +218,19 @@ export class InventoryDockComponent implements OnInit {
       });
     // Форма настроек
     this.settingsForm = new FormGroup({
-      companyId: new FormControl                (null,[]),            // предприятие, для которого создаются настройки
-      departmentId: new FormControl             (null,[]),            // id отделения
-      name:  new FormControl                    ('',[]),              // наименование инвертаризации по умолчанию
-      pricingType: new FormControl              ('avgCostPrice',[]),  // по умолчанию ставим "Средняя закупочная цена"// тип расценки. priceType - по типу цены, avgCostPrice - средн. себестоимость, lastPurchasePrice - Последняя закупочная цена, avgPurchasePrice - Средняя закупочная цена, manual - вручную
-      priceTypeId: new FormControl              (null,[]),            // тип цены
+      companyId: new FormControl                (null,[Validators.required]), // предприятие, для которого создаются настройки
+      departmentId: new FormControl             (null,[]),                    // id отделения
+      name:  new FormControl                    ('',[]),                      // наименование инвертаризации по умолчанию
+      pricingType: new FormControl              ('avgCostPrice',[]),          // по умолчанию ставим "Средняя закупочная цена"// тип расценки. priceType - по типу цены, avgCostPrice - средн. себестоимость, lastPurchasePrice - Последняя закупочная цена, avgPurchasePrice - Средняя закупочная цена, manual - вручную
+      priceTypeId: new FormControl              (null,[Validators.required]), // тип цены
       changePrice: new FormControl              (0,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]), // наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType, по умолчанию "плюс 10%"
-      plusMinus: new FormControl                ('plus',[]),          // Наценка (plus) или скидка (minus)
-      changePriceType: new FormControl          ('procents',[]),      // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
-      hideTenths: new FormControl               (true,[]),            // убрать десятые (копейки)
-      statusOnFinishId: new FormControl         ('',[]),              // статус после завершения инвентаризации
-      defaultActualBalance: new FormControl     ('',[]),              //  фактический баланс по умолчанию. "estimated" - как расчётный, "other" - другой (выбирается в other_actual_balance)
+      plusMinus: new FormControl                ('plus',[]),                  // Наценка (plus) или скидка (minus)
+      changePriceType: new FormControl          ('procents',[]),              // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
+      hideTenths: new FormControl               (true,[]),                    // убрать десятые (копейки)
+      statusOnFinishId: new FormControl         ('',[]),                      // статус после завершения инвентаризации
+      defaultActualBalance: new FormControl     ('',[]),                      //  фактический баланс по умолчанию. "estimated" - как расчётный, "other" - другой (выбирается в other_actual_balance)
       otherActualBalance: new FormControl       (0,[Validators.pattern('^[0-9]{1,6}(?:[.,][0-9]{0,3})?\r?$')]),// "другой" фактический баланс по умолчанию. Например, 1
-      autoAdd: new FormControl                  (false,[]),            // автодобавление товара из формы поиска в таблицу
+      autoAdd: new FormControl                  (false,[]),                   // автодобавление товара из формы поиска в таблицу
     });
 
     //     getSetOfPermissions

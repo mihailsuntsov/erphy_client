@@ -269,7 +269,8 @@ export class AcceptanceDockComponent implements OnInit {
       companyId: new FormControl                (null,[]),            // предприятие, для которого создаются настройки
       departmentId: new FormControl             (null,[]),            // id отделения
       statusOnFinishId: new FormControl         ('',[]),              // статус после завершения документа
-      autoAdd: new FormControl                  (false,[]),            // автодобавление товара из формы поиска в таблицу
+      autoAdd: new FormControl                  (false,[]),           // автодобавление товара из формы поиска в таблицу
+      autoPrice: new FormControl                (false,[]),           // автовыставление цены из последней закупочной цены
     });
 
     if(this.data)//если документ вызывается в окне из другого документа
@@ -629,6 +630,7 @@ export class AcceptanceDockComponent implements OnInit {
             this.settingsForm.get('statusOnFinishId').setValue(result.statusOnFinishId);
             //данная группа настроек не зависит от предприятия
             this.settingsForm.get('autoAdd').setValue(result.autoAdd);
+            this.settingsForm.get('autoPrice').setValue(result.autoPrice);
             //если предприятия из настроек больше нет в списке предприятий (например, для пользователя урезали права, и выбранное предприятие более недоступно)
             //необходимо сбросить данное предприятие в null 
             if(!this.isCompanyInList(+result.companyId)){
@@ -906,6 +908,7 @@ export class AcceptanceDockComponent implements OnInit {
         if(result.get('companyId')) this.settingsForm.get('companyId').setValue(result.get('companyId').value);
         if(result.get('departmentId')) this.settingsForm.get('departmentId').setValue(result.get('departmentId').value);
         if(result.get('autoAdd')) this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
+        if(result.get('autoPrice')) this.settingsForm.get('autoPrice').setValue(result.get('autoPrice').value);
         this.settingsForm.get('statusOnFinishId').setValue(result.get('statusOnFinishId').value);
         this.saveSettingsAcceptance();
         // если это новый документ, и ещё нет выбранных товаров - применяем настройки 

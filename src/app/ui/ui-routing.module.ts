@@ -54,13 +54,12 @@ const routes: Routes = [
       { path: 'return', loadChildren: () => import('./pages/documents/return/return.module').then(m => m.ReturnModule) },
       { path: 'returnsupdock', loadChildren: () => import('./pages/documents/returnsup-dock/returnsup-dock.module').then(m => m.ReturnsupDockModule) },
       { path: 'returnsup', loadChildren: () => import('./pages/documents/returnsup/returnsup.module').then(m => m.ReturnsupModule) },
-      
+      { path: 'moving', loadChildren: () => import('./pages/documents/moving/moving.module').then(m => m.MovingModule) },
+      { path: 'movingdock', loadChildren: () => import('./pages/documents/moving-dock/moving-dock.module').then(m => m.MovingDockModule) },
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
       { path: '**', redirectTo: 'dashboard',pathMatch: 'full' },
     ]  
   },
-  
-  
   
 ]
 

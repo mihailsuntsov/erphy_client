@@ -59,6 +59,7 @@ export class LoadSpravService{
                 {id:16, name:'Оприходование'},
                 {id:21, name:'Отгрузка'},
                 {id:15, name:'Приёмка'},
+                {id:30, name:'Перемещение'},
                 {id:25, name:'Розничная продажа'},
                 {id:17, name:'Списание'},
             ];

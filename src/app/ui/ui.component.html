@@ -70,7 +70,7 @@
           </li>
         </ul>
       </li>
-      <li *ngIf="hasPermission(328)||hasPermission(231)||hasPermission(238)||hasPermission(328)||hasPermission(215)||hasPermission(199)">
+      <li *ngIf="hasPermission(328)||hasPermission(231)||hasPermission(238)||hasPermission(328)||hasPermission(215)||hasPermission(199)||hasPermission(376)">
         <div class="icon-link" (click)="arrowClick($event,1)">
           <a>
             <i class="material-icons unselectable" (click)="arrowClick($event,3)">widgets</i>
@@ -106,6 +106,10 @@
           <li *ngIf="hasPermission(199)">
             <a routerLink="posting">
               <span class="unselectable">Оприходования</span></a>
+          </li>
+          <li *ngIf="hasPermission(376)">
+            <a routerLink="moving">
+              <span class="unselectable">Перемещения</span></a>
           </li>
         </ul>
       </li>

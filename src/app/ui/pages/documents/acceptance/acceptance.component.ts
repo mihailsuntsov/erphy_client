@@ -148,6 +148,8 @@ export class AcceptanceComponent implements OnInit {
         statusOnFinishId: new FormControl         ('',[]),
         // автодобавление товара из формы поиска в таблицу
         autoAdd: new FormControl                  (false,[]),  
+        // автовыставление цены из последней закупочной цены
+        autoPrice: new FormControl                (false,[]),           // автовыставление цены из последней закупочной цены
       });
 
       this.getCompaniesList();// 
@@ -542,6 +544,7 @@ export class AcceptanceComponent implements OnInit {
         if(result.get('departmentId')) this.settingsForm.get('departmentId').setValue(result.get('departmentId').value);
         this.settingsForm.get('statusOnFinishId').setValue(result.get('statusOnFinishId').value);
         this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
+        this.settingsForm.get('autoPrice').setValue(result.get('autoPrice').value);
         this.saveSettingsAcceptance();
       }
     });
@@ -552,7 +555,6 @@ export class AcceptanceComponent implements OnInit {
             .subscribe(
                 (data) => {   
                           this.openSnackBar("Настройки успешно сохранены", "Закрыть");
-                          
                         },
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
             );

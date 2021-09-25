@@ -6,6 +6,7 @@ import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpClient } from '@angular/common/http';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { Validators } from '@angular/forms';
 import { LoadSpravService } from './loadsprav';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { QueryFormService } from './get-posting-table.service';
@@ -141,10 +142,22 @@ export class PostingComponent implements OnInit {
         companyId: new FormControl                (null,[]),
         // id отделения
         departmentId: new FormControl             (null,[]),
-        // статус после завершения
+        // тип расценки. priceType - по типу цены, avgCostPrice - средн. себестоимость, lastPurchasePrice - Последняя закупочная цена, avgPurchasePrice - Средняя закупочная цена, manual - вручную
+        pricingType: new FormControl              ('avgCostPrice',[]), // по умолчанию ставим "Средняя закупочная цена"
+        // тип цены
+        priceTypeId: new FormControl              (null,[]),
+        // наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType
+        changePrice: new FormControl              (0,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]), // по умолчанию "плюс 10%"
+        // Наценка (plus) или скидка (minus)
+        plusMinus: new FormControl                ('plus',[]),
+        // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
+        changePriceType: new FormControl          ('procents',[]),
+        // убрать десятые (копейки)
+        hideTenths: new FormControl               (true,[]),
+        // статус после завершения инвентаризации
         statusOnFinishId: new FormControl         ('',[]),
         // автодобавление товара из формы поиска в таблицу
-        autoAdd: new FormControl                  (false,[]),  
+        autoAdd:  new FormControl                 (false,[]),
       });
 
       this.getCompaniesList();// 
@@ -238,7 +251,6 @@ export class PostingComponent implements OnInit {
     this.displayedColumns.push('is_completed');
     this.displayedColumns.push('description');
     this.displayedColumns.push('creator');
-    this.displayedColumns.push('status');
     this.displayedColumns.push('date_time_created');
   }
 
@@ -534,6 +546,12 @@ export class PostingComponent implements OnInit {
           //если нажата кнопка Сохранить настройки - вставляем настройки в форму настроек и сохраняем
           if(result.get('companyId')) this.settingsForm.get('companyId').setValue(result.get('companyId').value);
           if(result.get('departmentId')) this.settingsForm.get('departmentId').setValue(result.get('departmentId').value);
+          if(result.get('pricingType')) this.settingsForm.get('pricingType').setValue(result.get('pricingType').value);
+          if(result.get('priceTypeId')) this.settingsForm.get('priceTypeId').setValue(result.get('priceTypeId').value);
+          if(result.get('plusMinus')) this.settingsForm.get('plusMinus').setValue(result.get('plusMinus').value);
+          if(result.get('changePrice')) this.settingsForm.get('changePrice').setValue(result.get('changePrice').value);
+          if(result.get('changePriceType')) this.settingsForm.get('changePriceType').setValue(result.get('changePriceType').value);
+          this.settingsForm.get('hideTenths').setValue(result.get('hideTenths').value);
           this.settingsForm.get('statusOnFinishId').setValue(result.get('statusOnFinishId').value);
           this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
           this.saveSettingsPosting();

@@ -13,6 +13,7 @@ import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component'
 import { ViewChild } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
+import { CommonUtilitesService } from 'src/app/services/common_utilites.serviсe';
 
 interface PostingProductTable { //интерфейс для товаров, (т.е. для формы, массив из которых будет содержать форма postingProductTable, входящая в formBaseInformation)
   id: number;                     // id строки с товаром товара в таблице return_product
@@ -34,6 +35,10 @@ interface ProductSearchResponse{  // интерфейс получения сп�
   edizm: string;                  // наименование единицы измерения товара
   total: number;                  // остатки 
   indivisible: boolean;           // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
+  priceOfTypePrice: number;       // цена по запрошенному id типа цены
+  avgCostPrice: number;           // средняя себестоимость
+  lastPurchasePrice: number;      // последняя закупочная цена
+  avgPurchasePrice : number;      // средняя закупочная цена
 }
 interface ShortInfoAboutProduct{//интерф. для получения инфо о состоянии товара в отделении (кол-во, последняя поставка), и средним ценам (закупочной и себестоимости) товара
   quantity:number;
@@ -49,7 +54,8 @@ interface ShortInfoAboutProduct{//интерф. для получения инф
 @Component({
   selector: 'app-posting-products-table',
   templateUrl: './posting-products-table.component.html',
-  styleUrls: ['./posting-products-table.component.css']
+  styleUrls: ['./posting-products-table.component.css'],
+  providers: [CommonUtilitesService]
 })
 export class PostingProductsTableComponent implements OnInit {
   formBaseInformation:any;//форма-обёртка для массива форм postingProductTable (нужна для вывода таблицы)
@@ -102,6 +108,12 @@ export class PostingProductsTableComponent implements OnInit {
   @Input() department_id:number;
   @Input() readonly:boolean;
   @Input() autoAdd:boolean;
+  @Input() pricingType:string;  // тип расценки. priceType - по типу цены, avgCostPrice - средн. себестоимость, lastPurchasePrice - Последняя закупочная цена, avgPurchasePrice - Средняя закупочная цена, manual - вручную
+  @Input() priceTypeId:number;  // тип цены (дейстует при pricingType = "priceType")
+  @Input() plusMinus:string;
+  @Input() hideTenths:boolean;  
+  @Input() changePrice:number;
+  @Input() changePriceType:string;
   @Output() changeProductsTableLength = new EventEmitter<any>();   //событие изменения таблицы товаров (а именно - количества товаров в ней)
   @Output() totalSumPriceEvent = new EventEmitter<string>();
 
@@ -113,6 +125,7 @@ export class PostingProductsTableComponent implements OnInit {
     public ShowImageDialog: MatDialog,
     public PricingDialogComponent: MatDialog,
     public dialogCreateProduct: MatDialog,
+    private commonUtilites: CommonUtilitesService,
     private productCategoriesSelectComponent: MatDialog,
     private http: HttpClient,) { }
 
@@ -131,6 +144,10 @@ export class PostingProductsTableComponent implements OnInit {
       total : new FormControl                   ('',[]),                       // остатки на складе
       product_sumprice : new FormControl        ('',[]),                       // суммарная стоимость товара = цена * кол-во
       indivisible: new FormControl              ('',[]),                       // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
+      priceOfTypePrice: new FormControl         ('',[]),                                                              // цена по запрошенному id типа цены
+      avgCostPrice: new FormControl             ('',[]),                                                              // средняя себестоимость
+      lastPurchasePrice: new FormControl        ('',[]),                                                              // последняя закупочная цена
+      avgPurchasePrice : new FormControl        ('',[]),                                                              // средняя закупочная цена
     });
 
     this.doOnInit();
@@ -243,10 +260,16 @@ export class PostingProductsTableComponent implements OnInit {
     {
       if(this.canAutocompleteQuery && this.searchProductCtrl.value.length>1)
       {
-        this.isProductListLoading  = true;
-        return this.http.get(
-          '/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.company_id+'&departmentId='+this.department_id+'&document_id=0'
+        if(this.department_id){
+          this.isProductListLoading  = true;
+          return this.http.get( 
+          '/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.company_id+'&departmentId='+this.department_id+'&document_id=0&priceTypeId='+(+this.priceTypeId)
           );
+        } else {
+            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Сначала необходимо выбрать отделение'}})
+            this.isProductListLoading  = false;
+            return [];
+          }
       }else return [];
     } catch (e) {
       return [];
@@ -262,6 +285,10 @@ export class PostingProductsTableComponent implements OnInit {
     this.productImageName = this.filteredProducts[0].filename;                                      // картинка товара
     this.formSearch.get('total').setValue(this.filteredProducts[0].total);                      // остатки - кол-во товара по БД
     this.formSearch.get('indivisible').setValue(this.filteredProducts[0].indivisible);              // неделимость (необходимо для проверки правильности ввода кол-ва товара)
+    this.formSearch.get('priceOfTypePrice').setValue(this.filteredProducts[0].priceOfTypePrice);    // цена по запрошенному id типа цены
+    this.formSearch.get('avgCostPrice').setValue(this.filteredProducts[0].avgCostPrice);            // средняя себестоимость
+    this.formSearch.get('lastPurchasePrice').setValue(this.filteredProducts[0].lastPurchasePrice);  // последняя закупочная цена
+    this.formSearch.get('avgPurchasePrice').setValue(this.filteredProducts[0].avgPurchasePrice);    // средняя закупочная цена
     this.afterSelectProduct();
     this.filteredProducts=[];
   }
@@ -274,6 +301,10 @@ export class PostingProductsTableComponent implements OnInit {
     this.productImageName = product.filename;                                      // картинка товара
     this.formSearch.get('total').setValue(product.total);                      // остатки - кол-во товара по БД
     this.formSearch.get('indivisible').setValue(product.indivisible);              // неделимость (необходимо для проверки правильности ввода кол-ва товара)
+    this.formSearch.get('priceOfTypePrice').setValue(product.priceOfTypePrice);    // цена по запрошенному id типа цены
+    this.formSearch.get('avgCostPrice').setValue(product.avgCostPrice);            // средняя себестоимость
+    this.formSearch.get('lastPurchasePrice').setValue(product.lastPurchasePrice);  // последняя закупочная цена
+    this.formSearch.get('avgPurchasePrice').setValue(product.avgPurchasePrice);    // средняя закупочная цена
     this.canAutocompleteQuery=false;
     this.afterSelectProduct();
   }
@@ -295,7 +326,27 @@ export class PostingProductsTableComponent implements OnInit {
   }
 
   setPrice(price:number){
-        this.formSearch.get('product_price').setValue(price);
+    switch (this.pricingType){
+      case 'priceType':{//по типу цены
+        this.formSearch.get('product_price').setValue(this.commonUtilites.priceFilter(+this.formSearch.get('priceOfTypePrice').value,this.changePrice,this.changePriceType,this.plusMinus,this.hideTenths));
+        break;
+      }
+      case 'avgCostPrice':{//средн. себестоимость
+        this.formSearch.get('product_price').setValue(this.commonUtilites.priceFilter(+this.formSearch.get('avgCostPrice').value,this.changePrice,this.changePriceType,this.plusMinus,this.hideTenths)); 
+        break;
+      }
+      case 'lastPurchasePrice':{//Последняя закупочная цена
+        this.formSearch.get('product_price').setValue(this.commonUtilites.priceFilter(+this.formSearch.get('lastPurchasePrice').value,this.changePrice,this.changePriceType,this.plusMinus,this.hideTenths)); 
+        break;
+      }
+      case 'avgPurchasePrice':{//Средняя закупочная цена
+        this.formSearch.get('product_price').setValue(this.commonUtilites.priceFilter(+this.formSearch.get('avgPurchasePrice').value,this.changePrice,this.changePriceType,this.plusMinus,this.hideTenths));
+        break; 
+      }
+      // case 'manual':{
+        
+      // }
+    }
         this.calcSumPriceOfProduct();
   }
 
@@ -489,7 +540,6 @@ export class PostingProductsTableComponent implements OnInit {
       );
   }
 
-    //пересчитывает НДС в таблице товаров
   tableRecount(){
     if(this.formBaseInformation!=undefined){//метод может вызываться из ngOnChanges, а т.к. он стартует до ngOnInit, то formBaseInformation может еще не быть
         this.finishRecount();                                    // подсчёт TOTALS
@@ -708,12 +758,23 @@ openDialogCreateProduct() {
       edizm: new FormControl (row.edizm,[]),
       total: new FormControl (+row.total,[]),
       product_count:  new FormControl (1,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
-      product_price:  new FormControl (0,[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      product_price:  new FormControl (this.commonUtilites.priceFilter(this.getPrice(row),this.changePrice,this.changePriceType,this.plusMinus,this.hideTenths),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),/*ValidationService.priceMoreThanZero*/]),
       product_sumprice: new FormControl (0,[]),
       indivisible: new FormControl (row.indivisible,[]),
     });
   }
 
+  //в зависимости от политики назначения цены возвращаем одну из цен, содержащихся в передаваемом объекте
+  getPrice(row: ProductSearchResponse):number{
+    let price:number=0;
+    switch (this.pricingType){
+      case 'priceType':return row.priceOfTypePrice;           //по типу цены
+      case 'avgCostPrice':return row.avgCostPrice;            //Средняя себестоимость
+      case 'lastPurchasePrice':return row.lastPurchasePrice;  //Последняя закупочная цена
+      case 'avgPurchasePrice':return row.avgPurchasePrice;    //Средняя закупочная цена
+      default: return 0;
+    }
+  }
 //*****************************************************************************************************************************************/
 //***********************************************            COMMON UTILITES        *******************************************************/
 //*****************************************************************************************************************************************/
