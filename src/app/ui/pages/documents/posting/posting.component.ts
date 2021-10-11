@@ -410,13 +410,18 @@ export class PostingComponent implements OnInit {
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
           return this.http.post('/api/auth/deletePosting', body) 
-            .subscribe(
-                (data) => {   
-                            this.getData();
-                          },
-                error => console.log(error),
-            );
+  .subscribe((data) => {   
+    let result=data as any;
+    switch(result.result){
+      case 0:{this.getData();this.openSnackBar("Успешно удалено", "Закрыть");break;} 
+      case 1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе удаления "+(this.checkedList.length>1?"документов":"документа")+" проиошла ошибка")}});break;}
+      case 2:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для операции удаления"}});break;}
+      case 3:{let numbers:string='';
+        for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="/ui/postingdock/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
+        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Удаление невозможно - у следующих номеров документов есть производные (связанные с ними дочерние) документы:'+numbers}});break;}
     }
+  },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+}
     
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {

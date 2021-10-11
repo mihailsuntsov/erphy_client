@@ -10,6 +10,9 @@ import { SettingsPostingDialogComponent } from 'src/app/modules/settings/setting
 import { PostingProductsTableComponent } from 'src/app/modules/trade-modules/posting-products-table/posting-products-table.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { Router } from '@angular/router';
+import { v4 as uuidv4 } from 'uuid';
+import { MatTabChangeEvent } from '@angular/material/tabs';
+import { graphviz }  from 'd3-graphviz';
 import { FilesComponent } from '../files/files.component';
 import { FilesDockComponent } from '../files-dock/files-dock.component';
 import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from '@angular/material/core';
@@ -64,6 +67,7 @@ interface DockResponse {//интерфейс для получения отве�
   status_name: string;
   status_color: string;
   status_description: string;
+  uid:string;
 }
 interface FilesInfo {
   id: string;
@@ -143,6 +147,12 @@ export class PostingDockComponent implements OnInit {
   linkedDocsReturn:LinkedDocs[]=[];
   panelReturnOpenState=false;
 
+  tabIndex=0;// индекс текущего отображаемого таба (вкладки)
+  linkedDocsCount:number = 0; // кол-во документов в группе, ЗА ИСКЛЮЧЕНИЕМ текущего
+  linkedDocsText:string = ''; // схема связанных документов (пример - в самом низу файла inventory-dock.component.ts)
+  loadingDocsScheme:boolean = false; // идет загрузка данных для схемы
+  linkedDocsSchemeDisplayed:boolean = false; //схема была отображена
+
   // Формы
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
   formBaseInformation: FormGroup; //массив форм для накопления информации о Возврате поставщику
@@ -209,7 +219,8 @@ export class PostingDockComponent implements OnInit {
       status_color: new FormControl       ('',[]),
       status_description: new FormControl ('',[]),
       is_completed: new FormControl       (false,[]),
-      postingProductTable: new FormArray([])
+      postingProductTable: new FormArray([]),
+      uid: new FormControl                (uuidv4(),[]),
     });
     this.formAboutDocument = new FormGroup({
       id: new FormControl                       ('',[]),
@@ -622,6 +633,7 @@ export class PostingDockComponent implements OnInit {
                 this.formBaseInformation.get('status_color').setValue(documentValues.status_color);
                 this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
                 this.formBaseInformation.get('is_completed').setValue(documentValues.is_completed);
+                this.formBaseInformation.get('uid').setValue(documentValues.uid);
                 this.creatorId=+documentValues.creator_id;
                 this.getSettings(); // настройки документа Оприходование
                 this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
@@ -629,7 +641,7 @@ export class PostingDockComponent implements OnInit {
                 this.loadFilesInfo();
                 this.getDepartmentsList();//отделения
                 this.getStatusesList();//статусы документа Оприходование
-                // this.getLinkedDocs(); //загрузка связанных документов
+                this.getLinkedDocsScheme(true); //загрузка связанных документов
                 this.refreshPermissions();//пересчитаем права
                 // if(this.postingProductsTableComponent) this.postingProductsTableComponent.showColumns(); //чтобы спрятать столбцы после завершения 
             },
@@ -765,6 +777,7 @@ export class PostingDockComponent implements OnInit {
               default:{// Успешно
                 this.openSnackBar("Документ \"Оприходование\" "+ (complete?"завершён.":"сохренён."), "Закрыть");
                 if(complete) {
+                  this.getLinkedDocsScheme(true);//обновим схему связанных документов )чтобы Проведено сменилось с Нет на Да
                   this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с завершением - окончательно устанавливаем признак завершенности = true
                   if(this.postingProductsTableComponent){
                     this.postingProductsTableComponent.showColumns(); //чтобы спрятать столбцы после завершения 
@@ -1142,7 +1155,65 @@ deleteFile(id:number){
 //         );
 //   }
 //*****************************************************************************************************************************************/
-  //------------------------------------------ COMMON UTILITES -----------------------------------------
+  //------------------------------------------ Диаграммы связей ----------------------------------------
+  myTabFocusChange(changeEvent: MatTabChangeEvent) {
+    console.log('Tab position: ' + changeEvent.tab.position);
+  }  
+  myTabSelectedIndexChange(index: number) {
+    console.log('Selected index: ' + index);
+    this.tabIndex=index;
+  }
+  myTabSelectedTabChange(changeEvent: MatTabChangeEvent) {
+    console.log('Index: ' + changeEvent.index);
+  }  
+  myTabAnimationDone() {
+    console.log('Animation is done.');
+    if(this.tabIndex==1)  {
+      if(!this.linkedDocsSchemeDisplayed) this.loadingDocsScheme=true;
+      setTimeout(() => { this.drawLinkedDocsScheme(); }, 500);
+    }
+  }
+  getLinkedDocsScheme(draw?:boolean){
+    let result:any;
+    this.loadingDocsScheme=true;
+    this.http.get('/api/auth/getLinkedDocsScheme?uid='+this.formBaseInformation.get('uid').value)
+      .subscribe(
+          data => { 
+            result=data as any;
+            
+            if(result==null){
+              this.loadingDocsScheme=false;
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка загрузки связанных документов"}});
+            } else if(result.errorCode==0){//нет результата
+              this.linkedDocsSchemeDisplayed = true;
+              this.loadingDocsScheme=false;
+            } else {
+              this.linkedDocsCount=result.count==0?result.count:result.count-1;// т.к. если документ в группе будет только один (данный) - result.count придёт = 1, т.е. связанных нет. Если документов в группе вообще нет - придет 0.
+              this.linkedDocsText = result.text;
+              if(draw)
+                this.drawLinkedDocsScheme()
+              else
+                this.loadingDocsScheme=false;
+            } 
+        },
+        error => {this.loadingDocsScheme=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+    );
+  }
+
+  drawLinkedDocsScheme(){
+    if(this.tabIndex==1){
+      try{
+        console.log(this.linkedDocsText);
+        graphviz("#graph").renderDot(this.linkedDocsText);
+        this.loadingDocsScheme=false;
+        this.linkedDocsSchemeDisplayed = true;
+      } catch (e){
+        this.loadingDocsScheme=false;
+        console.log(e.message);
+      }
+    } else this.loadingDocsScheme=false;
+  }  
+//------------------------------------------ COMMON UTILITES -----------------------------------------
   //Конвертирует число в строку типа 0.00 например 6.40, 99.25
   numToPrice(price:number,charsAfterDot:number) {
     //конертим число в строку и отбрасываем лишние нули без округления

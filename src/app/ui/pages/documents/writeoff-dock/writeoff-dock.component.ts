@@ -12,6 +12,9 @@ import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { Router } from '@angular/router';
 import { FilesComponent } from '../files/files.component';
 import { FilesDockComponent } from '../files-dock/files-dock.component';
+import { v4 as uuidv4 } from 'uuid';
+import { MatTabChangeEvent } from '@angular/material/tabs';
+import { graphviz }  from 'd3-graphviz';
 import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from '@angular/material/core';
 import { MomentDateAdapter} from '@angular/material-moment-adapter';
 import * as _moment from 'moment';
@@ -66,6 +69,7 @@ interface DockResponse {//интерфейс для получения отве�
   status_name: string;
   status_color: string;
   status_description: string;
+  uid:string;
 }
 interface FilesInfo {
   id: string;
@@ -173,6 +177,12 @@ export class WriteoffDockComponent implements OnInit {
   showOpenDocIcon:boolean=false;
   editability:boolean = false;//редактируемость. true если есть право на создание и документ создаётся, или есть право на редактирование и документ создан
 
+  tabIndex=0;// индекс текущего отображаемого таба (вкладки)
+  linkedDocsCount:number = 0; // кол-во документов в группе, ЗА ИСКЛЮЧЕНИЕМ текущего
+  linkedDocsText:string = ''; // схема связанных документов (пример - в самом низу файла inventory-dock.component.ts)
+  loadingDocsScheme:boolean = false; // идет загрузка данных для схемы
+  linkedDocsSchemeDisplayed:boolean = false; //схема была отображена
+
   isDocNumberUnicalChecking = false;//идёт ли проверка на уникальность номера
   doc_number_isReadOnly=true;
   @ViewChild("doc_number", {static: false}) doc_number; //для редактирования номера документа
@@ -211,7 +221,8 @@ export class WriteoffDockComponent implements OnInit {
       status_color: new FormControl       ('',[]),
       status_description: new FormControl ('',[]),
       is_completed: new FormControl       (false,[]),
-      writeoffProductTable: new FormArray([])
+      writeoffProductTable: new FormArray([]),
+      uid: new FormControl                (uuidv4(),[]),
     });
     this.formAboutDocument = new FormGroup({
       id: new FormControl                       ('',[]),
@@ -624,6 +635,7 @@ export class WriteoffDockComponent implements OnInit {
                 this.formBaseInformation.get('status_color').setValue(documentValues.status_color);
                 this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
                 this.formBaseInformation.get('is_completed').setValue(documentValues.is_completed);
+                this.formBaseInformation.get('uid').setValue(documentValues.uid);
                 this.creatorId=+documentValues.creator_id;
                 this.getSettings(); // настройки документа Списание
                 this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
@@ -631,7 +643,7 @@ export class WriteoffDockComponent implements OnInit {
                 this.loadFilesInfo();
                 this.getDepartmentsList();//отделения
                 this.getStatusesList();//статусы документа Списание
-                // this.getLinkedDocs(); //загрузка связанных документов
+                this.getLinkedDocsScheme(true); //загрузка связанных документов
                 this.refreshPermissions();//пересчитаем права
                 if(this.writeoffProductsTableComponent) this.writeoffProductsTableComponent.showColumns(); //чтобы спрятать столбцы после завершения 
             },
@@ -773,6 +785,7 @@ export class WriteoffDockComponent implements OnInit {
               default:{// Успешно
                 this.openSnackBar("Документ \"Списание\" "+ (complete?"завершён.":"сохренён."), "Закрыть");
                 if(complete) {
+                  this.getLinkedDocsScheme(true);//обновим схему связанных документов )чтобы Проведено сменилось с Нет на Да
                   this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с завершением - окончательно устанавливаем признак завершенности = true
                   if(this.writeoffProductsTableComponent){
                     this.writeoffProductsTableComponent.showColumns(); //чтобы спрятать столбцы после завершения 
@@ -1150,6 +1163,64 @@ deleteFile(id:number){
 //         );
 //   }
 //*****************************************************************************************************************************************/
+  //------------------------------------------ Диаграммы связей ----------------------------------------
+  myTabFocusChange(changeEvent: MatTabChangeEvent) {
+    console.log('Tab position: ' + changeEvent.tab.position);
+  }  
+  myTabSelectedIndexChange(index: number) {
+    console.log('Selected index: ' + index);
+    this.tabIndex=index;
+  }
+  myTabSelectedTabChange(changeEvent: MatTabChangeEvent) {
+    console.log('Index: ' + changeEvent.index);
+  }  
+  myTabAnimationDone() {
+    console.log('Animation is done.');
+    if(this.tabIndex==1)  {
+      if(!this.linkedDocsSchemeDisplayed) this.loadingDocsScheme=true;
+      setTimeout(() => { this.drawLinkedDocsScheme(); }, 500);
+    }
+  }
+  getLinkedDocsScheme(draw?:boolean){
+    let result:any;
+    this.loadingDocsScheme=true;
+    this.http.get('/api/auth/getLinkedDocsScheme?uid='+this.formBaseInformation.get('uid').value)
+      .subscribe(
+          data => { 
+            result=data as any;
+            
+            if(result==null){
+              this.loadingDocsScheme=false;
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка загрузки связанных документов"}});
+            } else if(result.errorCode==0){//нет результата
+              this.linkedDocsSchemeDisplayed = true;
+              this.loadingDocsScheme=false;
+            } else {
+              this.linkedDocsCount=result.count==0?result.count:result.count-1;// т.к. если документ в группе будет только один (данный) - result.count придёт = 1, т.е. связанных нет. Если документов в группе вообще нет - придет 0.
+              this.linkedDocsText = result.text;
+              if(draw)
+                this.drawLinkedDocsScheme()
+              else
+                this.loadingDocsScheme=false;
+            } 
+        },
+        error => {this.loadingDocsScheme=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+    );
+  }
+
+  drawLinkedDocsScheme(){
+    if(this.tabIndex==1){
+      try{
+        console.log(this.linkedDocsText);
+        graphviz("#graph").renderDot(this.linkedDocsText);
+        this.loadingDocsScheme=false;
+        this.linkedDocsSchemeDisplayed = true;
+      } catch (e){
+        this.loadingDocsScheme=false;
+        console.log(e.message);
+      }
+    } else this.loadingDocsScheme=false;
+  }
   //------------------------------------------ COMMON UTILITES -----------------------------------------
   //Конвертирует число в строку типа 0.00 например 6.40, 99.25
   numToPrice(price:number,charsAfterDot:number) {

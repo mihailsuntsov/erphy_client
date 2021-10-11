@@ -394,3 +394,20 @@ div#costPrice input {
 ::ng-deep .mat-expansion-panel-body {
     padding: 0 15px 10px !important;
 }
+
+
+/******* схемы связанности ********/
+.no_linked_docs{
+    position: absolute; 
+    top: 13%;left:calc(50% - 130px);
+    width:260px;height:150px; 
+    border-radius: 10px; 
+    padding-top: 90px;
+    display: flex;
+    text-align:center;
+    line-height: 15pt;
+    padding: 50px 20px;
+    justify-content: center;
+    background-color: #f5f5f5; 
+    border:1px solid rgb(88, 88, 88);
+}

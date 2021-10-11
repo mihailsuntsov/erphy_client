@@ -577,10 +577,16 @@
                                                 style="width:  95%;"
                                                 *ngIf="getControlTablefield().controls[i].get('is_material').value"
                                                 placeholder=""
+                                                (keyup)="onChangeReserves(i)"
                                                 formControlName="reserved_current"
                                             />
                                             <control-messages  class="table-form-invalid" [control]="getControlTablefield().controls[i].get('reserved_current')"></control-messages>
                                             <mat-hint align="start" >
+                                                <i *ngIf="  getControlTablefield().controls[i].get('reserved_current').value !='' && 
+                                                            getControlTablefield().controls[i].get('indivisible').value && 
+                                                            !isInteger(parseFloat(getControlTablefield().controls[i].get('reserved_current').value))"  class="table-form-invalid">
+                                                            Должно быть целым
+                                                </i>
                                                 <i *ngIf="getControlTablefield().controls[i].get('reserved_current').invalid && getControlTablefield().controls[i].get('reserved_current').errors.pattern" class="table-form-invalid">Неправильный формат. Допускается до 7 цифр в целой и до 3 цифр в дробной части</i>
                                             </mat-hint>
                                         <td mat-footer-cell *matFooterCellDef></td>

@@ -242,7 +242,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
       reserve: new FormControl                  (false,[]),//резервировать (да-нет)
       ppr_name_api_atol: new FormControl        ('',[]), //Признак предмета расчета в системе Атол. Невидимое поле. Нужно для передачи в таблицу товаров в качестве тега для чека на ккм Атол
       is_material: new FormControl              ('',[]), //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
-      reserved_current: new FormControl         ('',[]),
+      reserved_current: new FormControl         ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
       indivisible: new FormControl              ('',[]), // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
     });
 
@@ -316,45 +316,45 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
 
 
 // --------------------------------------- *** ЧЕКБОКСЫ *** -------------------------------------
-masterToggle() {
-  this.isThereSelected() ?
-  this.resetSelecion() :
-  this.formBaseInformation.controls.customersOrdersProductTable.value.forEach(row => {
-        if(this.showCheckbox(row)){this.selection.select(row);}//если чекбокс отображаем, значит можно удалять этот документ
-      });
-      this.createCheckedList();
-  this.isAllSelected();
-  this.isThereSelected();
-}
-resetSelecion(){
-  this.selection.clear(); 
-}
-clickTableCheckbox(row){
-  this.selection.toggle(row); 
-  this.createCheckedList();
-  this.isAllSelected();
-  this.isThereSelected();
-}
-createCheckedList(){
-  this.checkedList = [];
-  for (var i = 0; i < this.formBaseInformation.controls.customersOrdersProductTable.value.length; i++) {
-    if(this.selection.isSelected(this.formBaseInformation.controls.customersOrdersProductTable.value[i])){
-      this.checkedList.push(this.formBaseInformation.controls.customersOrdersProductTable.value[i].row_id);
+  masterToggle() {
+    this.isThereSelected() ?
+    this.resetSelecion() :
+    this.formBaseInformation.controls.customersOrdersProductTable.value.forEach(row => {
+          if(this.showCheckbox(row)){this.selection.select(row);}//если чекбокс отображаем, значит можно удалять этот документ
+        });
+        this.createCheckedList();
+    this.isAllSelected();
+    this.isThereSelected();
+  }
+  resetSelecion(){
+    this.selection.clear(); 
+  }
+  clickTableCheckbox(row){
+    this.selection.toggle(row); 
+    this.createCheckedList();
+    this.isAllSelected();
+    this.isThereSelected();
+  }
+  createCheckedList(){
+    this.checkedList = [];
+    for (var i = 0; i < this.formBaseInformation.controls.customersOrdersProductTable.value.length; i++) {
+      if(this.selection.isSelected(this.formBaseInformation.controls.customersOrdersProductTable.value[i])){
+        this.checkedList.push(this.formBaseInformation.controls.customersOrdersProductTable.value[i].row_id);
+      }
     }
   }
-}
-isAllSelected() {//все выбраны
-  const numSelected = this.selection.selected.length;
-  const numRows = this.formBaseInformation.controls.customersOrdersProductTable.value.length;
-  return  numSelected === numRows;//true если все строки выбраны
-}  
-isThereSelected() {//есть выбранные
-  return this.selection.selected.length>0;
-} 
-showCheckbox(row:CustomersOrdersProductTable):boolean{
-  // if(!(+row.shipped>0))return true; else return false;
-  return true;
-}
+  isAllSelected() {//все выбраны
+    const numSelected = this.selection.selected.length;
+    const numRows = this.formBaseInformation.controls.customersOrdersProductTable.value.length;
+    return  numSelected === numRows;//true если все строки выбраны
+  }  
+  isThereSelected() {//есть выбранные
+    return this.selection.selected.length>0;
+  } 
+  showCheckbox(row:CustomersOrdersProductTable):boolean{
+    // if(!(+row.shipped>0))return true; else return false;
+    return true;
+  }
 // --------------------------------------- *** КОНЕЦ ЧЕКБОКСОВ  *** -------------------------------------
 
   getProductsTable(){
@@ -585,6 +585,7 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
   }
   setCurrentTypePrice(){
     // console.log("child department_type_price_id - "+this.department_type_price_id);
+    // alert(this.department_type_price_id+'-'+this.cagent_type_price_id+'-'+this.default_type_price_id)
     switch (this.priorityTypePriceSide) {//проверяем дефолтную приоритетную цену
       case 'sklad': {//если sklad - в поле Тип цены выставляем тип цены склада
         if(this.department_type_price_id>0){
@@ -1011,6 +1012,9 @@ showCheckbox(row:CustomersOrdersProductTable):boolean{
       this.formSearch.get('changePriceType').setValue(this.changePriceType);
       this.formSearch.get('reserve').setValue(this.selected_reserve);
       this.selected_price=0;
+      this.avgCostPrice = 0; // себестоимость найденного и выбранного в форме поиска товара.
+      this.lastPurchasePrice = 0; // последняя закупочная цена найденного и выбранного в форме поиска товара.
+      this.avgPurchasePrice = 0; // средняя закупочная цена найденного и выбранного в форме поиска товара.
       this.calcSumPriceOfProduct();//иначе неправильно будут обрабатываться проверки формы
       this.resetProductCountOfSecondaryDepartmentsList();// сброс кол-ва товара по отделениям (складам)
       this.gotProductCount=false;
@@ -1136,6 +1140,10 @@ onChangeProductPrice(row_index:number){
   this.tableNdsRecount();                                   // пересчёт Суммы оплаты за товар с учётом НДС
   this.finishRecount();                                     // подсчёт TOTALS и отправка суммы в ККМ
 } 
+onChangeReserves(row_index:number){
+  this.commaToDotInTableField(row_index,'reserved_current');// замена запятой на точку
+  this.checkIndivisibleErrorOfProductTable();               // проверка на неделимость товара
+}
 //при изменении Типа цены в таблице товаров
 onChangePriceTypeOfRow(row_index:number){
   const control = this.getControlTablefield();
@@ -1197,18 +1205,23 @@ recountTotals(){
 //------------------------------------------------------------------- Методы для работы с признаком "Неделимость" -----------------------------------------------------------------------------
   // true - ошибка (если введено нецелое кол-во товара, при том что оно должно быть целым)
   checkIndivisibleErrorOfSearchForm(){ 
-    this.indivisibleErrorOfSearchForm=(
-      this.formSearch.get('product_count').value!='' && 
-      +this.formSearch.get('product_id').value>0 && 
-      this.formSearch.get('indivisible').value && // кол-во товара должно быть целым, ...
-      !Number.isInteger(parseFloat(this.formSearch.get('product_count').value))) // но при этом кол-во товара не целое
+    this.indivisibleErrorOfSearchForm=
+      (+this.formSearch.get('product_id').value>0 && //товар выбран
+      this.formSearch.get('indivisible').value) && // кол-во товара, в т.ч. и в резерве, должно быть целым, ...
+      this.formSearch.get('product_count').value!='' &&       
+      !Number.isInteger(parseFloat(this.formSearch.get('product_count').value))// но при этом кол-во товара не целое
   }
+
   checkIndivisibleErrorOfProductTable(){
     let result=false;// ошибки нет
     this.formBaseInformation.value.customersOrdersProductTable.map(t =>{
       if(t['indivisible'] && t['product_count']!='' && !Number.isInteger(parseFloat(t['product_count']))){
         result=true;
-      }})
+      }
+      if(t['indivisible'] && t['reserved_current']!='' && !Number.isInteger(parseFloat(t['reserved_current']))){
+        result=true;
+      }
+    })
     this.indivisibleErrorOfProductTable=result;
   }
 //--------------------------------------------------------------------------- Утилиты ---------------------------------------------------------------------------------------------------------

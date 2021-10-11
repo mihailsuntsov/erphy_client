@@ -11,6 +11,9 @@ import { SettingsReturnDialogComponent } from 'src/app/modules/settings/settings
 import { ReturnProductsTableComponent } from 'src/app/modules/trade-modules/return-products-table/return-products-table.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { Router } from '@angular/router';
+import { v4 as uuidv4 } from 'uuid';
+import { MatTabChangeEvent } from '@angular/material/tabs';
+import { graphviz }  from 'd3-graphviz';
 import { KkmComponent } from 'src/app/modules/trade-modules/kkm/kkm.component';
 import { KkmAtolService } from '../../../../services/kkm_atol';
 import { KkmAtolChequesService } from '../../../../services/kkm_atol_cheques';
@@ -76,6 +79,7 @@ interface DockResponse {//интерфейс для получения отве�
   is_completed: boolean;
   nds: boolean;
   date_return: string;
+  uid:string;
 }
 interface FilesInfo {
   id: string;
@@ -198,6 +202,13 @@ export class ReturnDockComponent implements OnInit {
   showOpenDocIcon:boolean=false;
   editability:boolean = false;//редактируемость. true если есть право на создание и документ создаётся, или есть право на редактирование и документ создан
 
+  //для построения схемы связанности
+  tabIndex=0;// индекс текущего отображаемого таба (вкладки)
+  linkedDocsCount:number = 0; // кол-во документов в группе, ЗА ИСКЛЮЧЕНИЕМ текущего
+  linkedDocsText:string = ''; // схема связанных документов (пример - в самом низу)
+  loadingDocsScheme:boolean = false;
+  linkedDocsSchemeDisplayed:boolean = false;
+
   isDocNumberUnicalChecking = false;//идёт ли проверка на уникальность номера
   doc_number_isReadOnly=true;
   @ViewChild("doc_number", {static: false}) doc_number; //для редактирования номера документа
@@ -241,6 +252,7 @@ export class ReturnDockComponent implements OnInit {
       nds: new FormControl                (false,[]),
       date_return: new FormControl        ('',[Validators.required]),
       returnProductTable: new FormArray([]),
+      uid: new FormControl                (uuidv4(),[]),
     });
     this.formAboutDocument = new FormGroup({
       id: new FormControl                       ('',[]),
@@ -252,7 +264,7 @@ export class ReturnDockComponent implements OnInit {
       date_time_changed: new FormControl        ('',[]),
     });
     
-    // Форма для отправки при создании Списания или Оприходования
+    // Форма для отправки при создании Связанных документов
       this.formWP = new FormGroup({
         return_id: new FormControl       (null,[]),
         posting_date: new FormControl       ('',[]),
@@ -262,6 +274,11 @@ export class ReturnDockComponent implements OnInit {
         description: new FormControl        ('',[]),
         writeoffProductTable: new FormArray ([]),
         postingProductTable: new FormArray  ([]),
+        linked_doc_id: new FormControl      (null,[]),//id связанного документа (в данном случае Инвентаризации)
+        parent_uid: new FormControl         (null,[]),// uid родительского документа
+        child_uid: new FormControl          (null,[]),// uid дочернего документа
+        linked_doc_name: new FormControl    (null,[]),//имя (таблицы) связанного документа
+        uid: new FormControl                ('',[]),
       });
     // Форма настроек
     this.settingsForm = new FormGroup({
@@ -694,6 +711,7 @@ export class ReturnDockComponent implements OnInit {
                 this.formBaseInformation.get('status_color').setValue(documentValues.status_color);
                 this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
                 this.formBaseInformation.get('is_completed').setValue(documentValues.is_completed);
+                this.formBaseInformation.get('uid').setValue(documentValues.uid);
                 this.creatorId=+documentValues.creator_id;
                 this.getSettings(); // настройки документа Возврат покупателя
                 // this.getSpravSysEdizm();//справочник единиц измерения
@@ -702,7 +720,7 @@ export class ReturnDockComponent implements OnInit {
                 this.loadFilesInfo();
                 this.getDepartmentsList();//отделения
                 this.getStatusesList();//статусы документа Возврат покупателя
-                this.getLinkedDocs(); //загрузка связанных документов
+                this.getLinkedDocsScheme(true); //загрузка связанных документов
                 this.refreshPermissions();//пересчитаем права
                 // if(this.returnProductsTableComponent) this.returnProductsTableComponent.showColumns(); //чтобы спрятать столбцы после завершения Инвентаризации
             },
@@ -824,6 +842,7 @@ export class ReturnDockComponent implements OnInit {
       .subscribe(
           (data) => 
           {   
+            this.getLinkedDocsScheme(true);//обновим схему связанных документов )чтобы Проведено сменилось с Нет на Да
             this.setStatusColor();//чтобы обновился цвет статуса
             if(this.returnProductsTableComponent) this.returnProductsTableComponent.showColumns(); //чтобы спрятать столбцы после завершения Инвентаризации
             this.openSnackBar("Документ \"Возврат покупателя\" "+ (complete?"завершён.":"сохренён."), "Закрыть");
@@ -977,14 +996,20 @@ export class ReturnDockComponent implements OnInit {
   }
 
 //*************************************************          СВЯЗАННЫЕ ДОКУМЕНТЫ          ******************************************************/
-  //создание Списания или Оприходования
+  //создание Списания
   createLinkedDock(dockname:string){// принимает аргументы: Writeoff
+    let uid = uuidv4();
     let canCreateLinkedDock:CanCreateLinkedDock=this.canCreateLinkedDock(dockname); //проверим на возможность создания связанного документа
     if(canCreateLinkedDock.can){
       this.formWP.get('return_id').setValue(this.id);
       this.formWP.get('company_id').setValue(this.formBaseInformation.get('company_id').value);
       this.formWP.get('department_id').setValue(this.formBaseInformation.get('department_id').value);
       this.formWP.get('description').setValue('Создано из Возврата покупателя №'+ this.formBaseInformation.get('doc_number').value);
+      this.formWP.get('linked_doc_id').setValue(this.id);//id связанного документа (того, из которого инициируется создание данного документа)
+      this.formWP.get('parent_uid').setValue(this.formBaseInformation.get('uid').value);// uid исходящего (родительского) документа
+      this.formWP.get('child_uid').setValue(uid);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
+      this.formWP.get('linked_doc_name').setValue('return');//имя (таблицы) связанного документа
+      this.formWP.get('uid').setValue(uid);// uid дочернего документа
       this.getProductsTableWP(dockname);//формируем таблицу товаров для создаваемого документа
       this.http.post('/api/auth/insert'+dockname, this.formWP.value)
       .subscribe(
@@ -1002,7 +1027,7 @@ export class ReturnDockComponent implements OnInit {
                     }
                     default:{// Документ успешно создался в БД 
                       this.openSnackBar("Документ "+(dockname=='Writeoff'?'Списание':'')+" успешно создан", "Закрыть");
-                      this.getReturnLinkedDocsList(dockname.toLowerCase());//обновляем список этого документа
+                      this.getLinkedDocsScheme(true);//обновляем схему этого документа
                     }
                   }
                 },
@@ -1010,7 +1035,6 @@ export class ReturnDockComponent implements OnInit {
       );
     } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:canCreateLinkedDock.reason}});
   }
-
   
 // забирает таблицу товаров из дочернего компонента и помещает ее в форму, предназначенную для создания Списания
   getProductsTableWP(dockname:string){
@@ -1044,12 +1068,7 @@ export class ReturnDockComponent implements OnInit {
         if(i.is_completed)
           isThere=true;
       });
-    } else {// 'Posting'       Если Оприходование
-      this.LinkedDocsPosting.map(i=>{
-        if(i.is_completed)
-          isThere=true;
-      });
-    }
+    } 
     return isThere;
   }
   // возвращает количество товаров, подходящих для связанных документов (для возможности создания их при количестве >0) Например, не получится создать Списание, если кол-во товаров с недостачей = 0, т.е списывать нечего
@@ -1070,70 +1089,62 @@ export class ReturnDockComponent implements OnInit {
       reason_id: new FormControl (3,[]), // 3 - Недостачи и потери от порчи ценностей
     });
   }
-
-  getLinkedDocs(){
-    this.getReturnLinkedDocsList('writeoff');//загрузка связанных списаний
+  //------------------------------------------ Диаграммы связей ----------------------------------------
+  myTabFocusChange(changeEvent: MatTabChangeEvent) {
+    console.log('Tab position: ' + changeEvent.tab.position);
+  }  
+  myTabSelectedIndexChange(index: number) {
+    console.log('Selected index: ' + index);
+    this.tabIndex=index;
   }
-
-  getReturnLinkedDocsList(docName:string, fromDialog?:boolean){
-    this.http.get('/api/auth/getReturnLinkedDocsList?id='+this.id+'&docName='+docName)
-    .subscribe(
-        (data) => {   
-                      this.LinkedDocsWriteoff=data as LinkedDocs [];
-                  },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+  myTabSelectedTabChange(changeEvent: MatTabChangeEvent) {
+    console.log('Index: ' + changeEvent.index);
+  }  
+  myTabAnimationDone() {
+    console.log('Animation is done.');
+    if(this.tabIndex==1)  {
+      if(!this.linkedDocsSchemeDisplayed) this.loadingDocsScheme=true;
+      setTimeout(() => { this.drawLinkedDocsScheme(); }, 500);
+    }
+  }
+  getLinkedDocsScheme(draw?:boolean){
+    let result:any;
+    this.loadingDocsScheme=true;
+    this.http.get('/api/auth/getLinkedDocsScheme?uid='+this.formBaseInformation.get('uid').value)
+      .subscribe(
+          data => { 
+            result=data as any;            
+            if(result==null){
+              this.loadingDocsScheme=false;
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка загрузки связанных документов"}});
+            } else if(result.errorCode==0){//нет результата
+              this.linkedDocsSchemeDisplayed = true;
+              this.loadingDocsScheme=false;
+            } else {
+              this.linkedDocsCount=result.count==0?result.count:result.count-1;// т.к. если документ в группе будет только один (данный) - result.count придёт = 1, т.е. связанных нет. Если документов в группе вообще нет - придет 0.
+              this.linkedDocsText = result.text;
+              if(draw)
+                this.drawLinkedDocsScheme()
+              else
+                this.loadingDocsScheme=false;
+            } 
+        },
+        error => {this.loadingDocsScheme=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
     );
   }
-
-
-  clickButtonDeleteLinkedDock(docName:string,id:number): void {
-      const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
-        width: '400px',
-        data:
-        { 
-          head: 'Удаление',
-          warning: 'Удалить данное '+(docName=='Writeoff'?'Списание?':'Оприходование?'),
-          query: '',
-        },
-      });
-      dialogRef.afterClosed().subscribe(result => {
-        if(result==1){
-          this.deleteLinkedDock(docName,id);
-        }
-      });  
+  drawLinkedDocsScheme(){
+    if(this.tabIndex==1){
+      try{
+        console.log(this.linkedDocsText);
+        graphviz("#graph").renderDot(this.linkedDocsText);
+        this.loadingDocsScheme=false;
+        this.linkedDocsSchemeDisplayed = true;
+      } catch (e){
+        this.loadingDocsScheme=false;
+        console.log(e.message);
+      }
+    } else this.loadingDocsScheme=false;
   }
-  dialogOpenWriteoff(id:number) {
-    const dialogRef = this.dialogCreateProduct.open(WriteoffDockComponent, {
-      maxWidth: '95vw',
-      maxHeight: '95vh',
-      height: '95%',
-      width: '95%',
-      data:
-      { 
-        mode: 'window',
-        id: id
-      },
-    });
-    dialogRef.afterClosed().subscribe(result => {
-      if(result) this.getReturnLinkedDocsList('writeoff',true);//если вернулось true - значит, возможно, зайдя в Списание его закрыли. Обновим список списаний. Да, возможно заходили в уже закрытый документ, и запрос на обновление списка документов будет произведен зря
-    });
-  }
-  deleteLinkedDock(docName:string,id:number){
-    const body = {"checked": id}; 
-        return this.http.post('/api/auth/delete'+docName, body) 
-        .subscribe(
-            (data) => {   
-                        let result=data as boolean;
-                        if(result){
-                          this.openSnackBar("Успешно удалено", "Закрыть");
-                          // this.getReturnLinkedDocsList(docName.toLowerCase());
-                        }else
-                          this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав для удаления'}});
-                      },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-        );
-  }
-
 //************************************* ДЛЯ РАБОТЫ С КАССОВЫМ МОДУЛЕМ *********************************************************************/  
   sendingProductsTableHandler() {
     this.kkmComponent.productsTable=[];

@@ -112,7 +112,11 @@
             </button>
         </mat-card-title>
         <mat-card-content> 
-            <mat-tab-group>
+            <mat-tab-group
+            (focusChange)="myTabFocusChange($event)"
+            (selectedIndexChange)="myTabSelectedIndexChange($event)"  
+            (selectedTabChange)="myTabSelectedTabChange($event)"
+            (animationDone)="myTabAnimationDone()">
                 <mat-tab label="Информация">
                     <div class="container-fluid">
                         <div class="row">
@@ -266,11 +270,11 @@
                         </div>
                     </div>  
                 </mat-tab>
-                <!-- <mat-tab *ngIf="+id>0">
+                <mat-tab *ngIf="+id>0"  matTooltip="Связанные документы">
                     <ng-template mat-tab-label>
-                        <div>Связанные</div><div><span [matBadge]="linkedDocsReturn.length" matBadgeOverlap="false">&nbsp;</span></div>
+                        <div>Связанные</div><div><span [matBadge]="linkedDocsCount" matBadgeOverlap="false">&nbsp;</span></div>
                     </ng-template>
-                    <div class="col-xl-5 col-lg-5 col-md-8 col-sm-12">
+                    <div class="col-12">
                         <div class="container-fluid">
                             <div class="row">
                                 <mat-card  style="margin:10px 0 10px;width:100%;">
@@ -278,65 +282,19 @@
                                         <mat-card-title class="card-title">Связанные документы</mat-card-title>
                                     </mat-card-header>
                                     <mat-card-content class="input-form">
-                                        
-                                        <mat-accordion>
-                                            <mat-expansion-panel 
-                                            *ngIf="linkedDocsReturn.length>0"
-                                            (opened)="panelReturnOpenState = true"
-                                            (closed)="panelReturnOpenState = false"
-                                            [expanded]="panelReturnOpenState">
-                                                <mat-expansion-panel-header>
-                                                    <mat-panel-title>
-                                                        Возвраты поставщику ({{linkedDocsReturn.length}})
-                                                    </mat-panel-title>
-                                                    <mat-panel-description *ngIf="!panelReturnOpenState">
-                                                        <div style="display: flex; flex-flow: column;">
-                                                            
-                                                        </div>
-                                                    </mat-panel-description>
-                                                </mat-expansion-panel-header>
-                                                <div class="row">
-
-                                                    <div style="width: 100%;">
-                                                        <ng-container *ngFor="let i of linkedDocsReturn">
-                                                            <div class="filename-row">
-                                                                <div class="file-wrapper" (click)="dialogOpenLinkedDoc(i.id)" matTooltip='Открыть возврат поставщику'>
-                                                                    <span style="cursor: pointer;"> Возврат №{{ i.doc_number }} от {{i.date_time_created}}</span>
-                                                                </div>
-                                                                <div style="min-width:74px;">
-                                                                    <button mat-button 
-                                                                    class="min-heigth"
-                                                                            type="button"
-                                                                            [matTooltip]="i.is_completed?'Завершён':'В работе'"
-                                                                            matSuffix>
-                                                                        <mat-icon *ngIf='i.is_completed'>lock</mat-icon>
-                                                                        <mat-icon *ngIf='!(i.is_completed)'>lock_open</mat-icon>
-                                                                    </button>
-                                                                    <button mat-button 
-                                                                            *ngIf="!i.is_completed && this.allowToUpdate"
-                                                                            class="min-heigth"
-                                                                            type="button"
-                                                                            (click)="clickButtonDeleteLinkedDock('Returnsup',i.id)"
-                                                                            matTooltip='Удалить возврат поставщику'
-                                                                            matSuffix>
-                                                                        <mat-icon>delete_forever</mat-icon>
-                                                                    </button>
-
-                                                                </div>
-                                                            </div>
-                                                        </ng-container>
-                                                    </div>
-                                                </div>
-                                            </mat-expansion-panel>
-                                        </mat-accordion>
-
-
+                                        <mat-spinner *ngIf="loadingDocsScheme" strokeWidth="3" style=" position: absolute; top: 15%;left: calc(50% - 25px)" [diameter]="50"></mat-spinner>
+                                        <div id="graph" style="width:100%; height: 700px; text-align:center; margin-top:50px;"></div>
+                                        <div 
+                                        *ngIf="linkedDocsCount==0 && this.loadingDocsScheme==false"
+                                        class="no_linked_docs">
+                                            <span>Данный документ не имеет связей с другими документами</span>
+                                        </div>
                                     </mat-card-content>
                                 </mat-card> 
                             </div>
                         </div>
                     </div>
-                </mat-tab> -->
+                </mat-tab>
                 <mat-tab *ngIf="+id>0">
                     <ng-template mat-tab-label>
                         <p>

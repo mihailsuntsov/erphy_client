@@ -449,6 +449,8 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
 */
 
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Покупатель"
+
+    this.getSpravSysNds();// загрузка справочника НДС
     this.getSetOfPermissions();//
     
     //   getSetOfPermissions()
@@ -524,6 +526,7 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
   }
 
   refreshPermissions(){
+    // alert(2)
     let documentOfMyCompany:boolean = (this.formBaseInformation.get('company_id').value==this.myCompanyId);
     let documentOfMyDepartments:boolean = (this.inMyDepthsId(+this.formBaseInformation.get('department_id').value));
     this.allowToView=(
@@ -596,10 +599,11 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
   //getDocumentValuesById()-> refreshPermissions()
   //getDocumentValuesById()-> getSettings()*
   //getDocumentValuesById()-> getSpravSysNds()
+  //getDocumentValuesById()-> getSetOfTypePrices() 
   necessaryActionsBeforeGetChilds(){
     this.actionsBeforeGetChilds++;
     //Если набрано необходимое кол-во действий
-    if(this.actionsBeforeGetChilds==4 && +this.id>0){
+    if(this.actionsBeforeGetChilds==5){
       // console.log("company - "+this.formAboutDocument.get('company').value);
       // console.log("default_type_price_id - "+this.default_type_price_id);
       // console.log("priorityTypePriceSide - "+this.settingsForm.get('priorityTypePriceSide').value);
@@ -660,6 +664,7 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
   setDefaultCompany(){
     if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим своё по дефолту
       this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+    this.formAboutDocument.get('company').setValue(this.getCompanyNameById(this.formBaseInformation.get('company_id').value));
     this.getDepartmentsList(); 
     this.getPriceTypesList();
     
@@ -676,11 +681,23 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
     this.searchCagentCtrl.setValue('');
     this.actionsBeforeGetChilds=0;
 
-    // this.getSettings();
+    this.formAboutDocument.get('company').setValue(this.getCompanyNameById(this.formBaseInformation.get('company_id').value));
+
     this.getDepartmentsList();
     this.getPriceTypesList();
     this.formExpansionPanelsString();
   }
+
+  onDepartmentChange(){
+      this.getSetOfTypePrices();
+      this.formBaseInformation.get('department').setValue(this.getDepartmentNameById(this.formBaseInformation.get('department_id').value));
+      this.productSearchAndTableComponent.formSearch.get('secondaryDepartmentId').setValue(this.formBaseInformation.get('department_id').value);
+      if(this.kkmComponent){
+        this.kkmComponent.department_id=this.formBaseInformation.get('department_id').value;
+        this.kkmComponent.getKassaListByDepId();
+      }
+  }
+
 
   resetAddressForm(){
     this.formBaseInformation.get('zip_code').setValue('');         
@@ -714,23 +731,42 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
   }
+
+
   setDefaultDepartment(){
     //если в настройках не было предприятия, и в списке предприятий только одно предприятие - ставим его по дефолту
-    if(+this.formBaseInformation.get('department_id').value==0 && this.receivedDepartmentsList.length==1)
+    if(+this.formBaseInformation.get('department_id').value==0 && this.receivedDepartmentsList.length==1){
       this.formBaseInformation.get('department_id').setValue(this.receivedDepartmentsList[0].id);
+      //Если дочерние компоненты уже загружены - устанавливаем данный склад как склад в форме поиска и добавления товара
+      if(this.canGetChilds){
+        this.productSearchAndTableComponent.formSearch.get('secondaryDepartmentId').setValue(this.formBaseInformation.get('department_id').value);  
+        this.productSearchAndTableComponent.setCurrentTypePrice();//если сменили отделение - нужно проверить, есть ли у него тип цены. И если нет - в вызываемом методе выведется предупреждение для пользователя
+      }
+    }
+    //если отделение было выбрано (через настройки или же в этом методе) - определяем его наименование (оно будет отправляться в дочерние компоненты)
+    if(+this.formBaseInformation.get('department_id').value>0)
+    this.formBaseInformation.get('department').setValue(this.getDepartmentNameById(this.formBaseInformation.get('department_id').value));
+    
+    //загрузка типов цен для покупателя, склада и по умолчанию  
+    this.getSetOfTypePrices();
+    //различные проверки
+    this.checkAnyCases();
+    this.getStatusesList();    
+  }
+
+  // проверки на различные случаи
+  checkAnyCases(){
     //проверка на то, что отделение все еще числится в отделениях предприятия (не было удалено и т.д.)
     if(!this.inDepthsId(+this.formBaseInformation.get('department_id').value)){
-        // alert("inDepthsId")
       this.formBaseInformation.get('department_id').setValue(null);
     }
     //проверка на то, что отделение подходит под ограничения прав (если можно создавать только по своим отделениям, но выбрано отделение, не являющееся своим - устанавливаем null в выбранное id отделения)
     if(!this.allowToCreateAllCompanies && !this.allowToCreateMyCompany && this.allowToCreateMyDepartments){
       if(!this.inMyDepthsId(+this.formBaseInformation.get('department_id').value)){
-        // alert("inMyDepthsId")
         this.formBaseInformation.get('department_id').setValue(null);
       }
     }
-    this.getStatusesList();
+    // if(!this.canGetChilds) this.refreshPermissions();
   }
 
   getStatusesList(){
@@ -831,7 +867,11 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
 
   onSelectCagent(id:number,name:string){
     this.formBaseInformation.get('cagent_id').setValue(+id);
+    this.formBaseInformation.get('cagent').setValue(name);
     this.getCagentValuesById(id);
+    //Загрузим тип цены для этого Покупателя, и 
+    //если в форме поиска товаров приоритет цены выбран Покупатель, то установится тип цены этого покупателя (если конечно он у него есть)
+    this.getSetOfTypePrices();
   }
 
   getCagentValuesById(id:number){
@@ -870,6 +910,7 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
   
   //загрузка настроек
   getSettings(){
+    // alert(3)
     let result:any;
     this.http.get('/api/auth/getSettingsCustomersOrders')
       .subscribe(
@@ -893,18 +934,21 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
             this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.statusIdOnAutocreateOnCheque);
             
             this.necessaryActionsBeforeGetChilds();
-            //вставляем Отделение и Покупателя (вставится только если новый документ)
-            // this.setDefaultInfoOnStart(+result.departmentId,+result.customerId,result.customer,result.name?result.name:'');
-            
-            //если предприятия из настроек больше нет в списке предприятий (например, для пользователя урезали права, и выбранное предприятие более недоступно)
-            //необходимо сбросить данное предприятие в null 
-            if(!this.isCompanyInList(+result.companyId)){
-              this.formBaseInformation.get('company_id').setValue(null);
-            } else { 
-              //вставляем Отделение и Покупателя (вставится только если новый документ)
-              this.setDefaultInfoOnStart(+result.departmentId,+result.customerId,result.customer,result.name?result.name:'');
+
+            // для нового документа
+            if(+this.id==0){
+              //если предприятия из настроек больше нет в списке предприятий (например, для пользователя урезали права, и выбранное предприятие более недоступно)
+              //необходимо сбросить данное предприятие в null 
+              if(!this.isCompanyInList(+result.companyId)){
+                this.formBaseInformation.get('company_id').setValue(null);
+              } else { 
+                //вставляем Отделение и Покупателя (вставится только если новый документ)
+                this.setDefaultInfoOnStart(+result.departmentId,+result.customerId,result.customer,result.name?result.name:'');
+              }
+              this.setDefaultCompany();
             }
-            this.setDefaultCompany();
+            
+            
           },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
@@ -1019,7 +1063,7 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
                 this.is_completed=documentValues.is_completed;
                 this.getSettings(); // настройки документа Заказ покупателя
                 this.getSpravSysEdizm();//справочник единиц измерения
-                this.getSpravSysNds();// загрузка справочника НДС
+                this.getSetOfTypePrices(); //загрузка цен по типам цен для выбранных значений (предприятие, отделение, контрагент)
                 this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
                 this.formExpansionPanelsString();
                 this.getPriceTypesList();
@@ -1171,21 +1215,54 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
     this.createdDockId=null;
     //если отправляем нового контрагента, в cagent_id отправляем null, и backend понимает что нужно создать нового контрагента:
     this.formBaseInformation.get('cagent_id').setValue(this.is_addingNewCagent?null:this.formBaseInformation.get('cagent_id').value);
+    this.getProductsTable();
     this.http.post('/api/auth/insertCustomersOrders', this.formBaseInformation.value)
             .subscribe(
-                (data) =>   {
-                                this.actionsBeforeGetChilds=0;
-                                this.createdDockId=data as string [];
-                                this.id=+this.createdDockId[0];
-                                this.openSnackBar("Документ \"Заказ покупателя\" успешно создан", "Закрыть");
-                                // this._router.navigate(['ui/customersordersdock/'+this.id]);
-                                this._router.navigate(['/ui/customersordersdock', this.id]);
-                                this.formBaseInformation.get('id').setValue(this.id);
-                                this.getData();
-                                this.formBaseInformation.get('cagent_id').enable();//иначе при сохранении он не будет отпраляться
-                                
-                            },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+              (data) =>   {
+                let response=data as any;
+                //создание документа было успешным  
+                if(response.success){
+
+                  this.actionsBeforeGetChilds=0;
+                  this.id=response.id;
+                  this.openSnackBar("Документ \"Заказ покупателя\" успешно создан", "Закрыть");
+                  this._router.navigate(['/ui/customersordersdock', this.id]);
+                  this.formBaseInformation.get('id').setValue(this.id);
+                  this.formBaseInformation.get('cagent_id').enable();//иначе при сохранении он не будет отпраляться
+                  if(response.fail_to_reserve>0){//если у 1 или нескольких позиций резервы при сохранении были отменены
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:
+                    'У некоторых позиций не был сохранён резерв, т.к. он превышал заказываемое либо доступное количество товара'
+                    }});
+                  }
+                  this.productSearchAndTableComponent.parentDockId=response.id;
+                  this.productSearchAndTableComponent.getProductsTable();
+                  this.getData();
+                
+                //создание документа было не успешным
+                } else {
+                  switch(response.errorCode){
+                    case 0: {
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:
+                      'Недостаточно прав для совершения данной операции'
+                      }});
+                      break;
+                    }
+                    case 1: {
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:
+                      'Ошибка сохранения документа'
+                      }});
+                      break;
+                    }
+                    case 2: {
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:
+                      'Ошибка сохранения таблицы товаров'
+                      }});
+                      break;
+                    }
+                  }
+                }
+              },
+              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
             );
   }
 
@@ -1196,28 +1273,58 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
           (data) => 
           {   
             let response=data as any;
-            // if(onChequePrinting) 
+            
+            //сохранение было успешным  
+            if(response.success){
+
+              this.openSnackBar("Документ \"Заказ покупателя\" сохранён", "Закрыть");
+              
+              if(response.fail_to_reserve>0){//если у 1 или нескольких позиций резервы при сохранении были отменены
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:
+                'У некоторых позиций не был сохранён резерв, т.к. он превышал заказываемое либо доступное количество товара'
+                }});
+              }
+              this.productSearchAndTableComponent.getProductsTable();
               this.getData();
-            this.openSnackBar("Документ \"Заказ покупателя\" сохранён", "Закрыть");
-            if(response.fail_to_reserve>0){//если у 1 или нескольких позиций резервы при сохранении были отменены
-              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:
-              'У некоторых позиций не был сохранён резерв, т.к. он превышал заказываемое либо доступное количество товара'
-              }});
+            
+            //сохранение было не успешным
+            } else {
+
+              switch(response.errorCode){
+                case 0: {
+                  this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:
+                  'Недостаточно прав для совершения данной операции'
+                  }});
+                  break;
+                }
+                case 1: {
+                  this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:
+                  'Ошибка сохранения документа'
+                  }});
+                  break;
+                }
+                case 2: {
+                  this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:
+                  'Ошибка сохранения таблицы товаров'
+                  }});
+                  break;
+                }
+              }
+
             }
-            this.productSearchAndTableComponent.getProductsTable();
+            // if(onChequePrinting) 
           },
-          error => {
-            this.showQueryErrorMessage(error);
-            },
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
       );
   } 
   //забирает таблицу товаров из дочернего компонента и помещает ее в основную форму
   getProductsTable(){
     const control = <FormArray>this.formBaseInformation.get('customersOrdersProductTable');
     control.clear();
-    this.productSearchAndTableComponent.getProductTable().forEach(row=>{
-      control.push(this.formingProductRowFromApiResponse(row));
-    });
+    if(this.productSearchAndTableComponent)// т.к. может стоять опция "Автосоздание", и при начальном создании таблицы с товарами еще не будет
+      this.productSearchAndTableComponent.getProductTable().forEach(row=>{
+        control.push(this.formingProductRowFromApiResponse(row));
+      });
   }
   showQueryErrorMessage(error:any){
     console.log(error);
@@ -1302,6 +1409,7 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
             );
   }
   getPriceTypesList(){
+    // alert(1)
     this.receivedPriceTypesList=null;
     this.loadSpravService.getPriceTypesList(this.formBaseInformation.get('company_id').value)
     .subscribe(
@@ -1313,6 +1421,7 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
     );
   }
   getSpravSysNds(){
+    // alert(4)
       this.loadSpravService.getSpravSysNds()
         .subscribe((data) => {
           this.spravSysNdsSet=data as any[];
@@ -1562,6 +1671,53 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
     // this.kkmComponent.productsTable=this.productSearchAndTableComponent.getProductTable();
   }
 
+  
+  getCompanyNameById(id:number):string{
+    let name:string;
+    if(this.receivedCompaniesList){
+      this.receivedCompaniesList.forEach(a=>{
+        if(a.id==id) name=a.name;
+      })
+    }
+    return(name);
+  }
+
+  getDepartmentNameById(id:number):string{
+    let name:string;
+    if(this.receivedDepartmentsList){
+      this.receivedDepartmentsList.forEach(a=>{
+        if(a.id==id) name=a.name;
+      })
+    }
+    return(name);
+  }
+
+  getSetOfTypePrices(){
+    // alert(5)
+    return this.http.get('/api/auth/getSetOfTypePrices?company_id='+this.formBaseInformation.get('company_id').value+
+    '&department_id='+(+this.formBaseInformation.get('department_id').value)+'&cagent_id='+(+this.formBaseInformation.get('cagent_id').value))
+      .subscribe(
+          (data) => {   
+                      const setOfTypePrices=data as any;
+                      this.department_type_price_id=setOfTypePrices.department_type_price_id;
+                      this.cagent_type_price_id=setOfTypePrices.cagent_type_price_id;
+                      this.default_type_price_id=setOfTypePrices.default_type_price_id;
+                      if(this.canGetChilds){
+                        this.productSearchAndTableComponent.department_type_price_id=setOfTypePrices.department_type_price_id;
+                        this.productSearchAndTableComponent.cagent_type_price_id=setOfTypePrices.cagent_type_price_id;
+                        this.productSearchAndTableComponent.default_type_price_id=setOfTypePrices.default_type_price_id;
+                        console.log("parent department_type_price_id - "+this.department_type_price_id);
+                        this.productSearchAndTableComponent.setCurrentTypePrice();//если сменили отделение - нужно проверить, есть ли у него тип цены. И если нет - в вызываемом методе выведется предупреждение для пользователя
+                      } 
+                        
+                      if(!this.canGetChilds && this.id==0) 
+                        this.checkAnyCases();
+
+                      this.necessaryActionsBeforeGetChilds(); 
+                  },
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+      );
+  }
 
     //**************************** КАССОВЫЕ ОПЕРАЦИИ  ******************************/
 

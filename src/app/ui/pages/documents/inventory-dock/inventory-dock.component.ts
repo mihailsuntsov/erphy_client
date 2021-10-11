@@ -12,10 +12,11 @@ import { InventoryProductsTableComponent } from 'src/app/modules/trade-modules/i
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { Router } from '@angular/router';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
-import { WriteoffDockComponent } from '../writeoff-dock/writeoff-dock.component';
-import { PostingDockComponent } from '../posting-dock/posting-dock.component';
 import { FilesComponent } from '../files/files.component';
 import { FilesDockComponent } from '../files-dock/files-dock.component';
+import { v4 as uuidv4 } from 'uuid';
+import { MatTabChangeEvent } from '@angular/material/tabs';
+import { graphviz }  from 'd3-graphviz';
 
 interface InventoryProductTable { //интерфейс для товаров, (т.е. для формы, массив из которых будет содержать форма inventoryProductTable, входящая в formBaseInformation)
   id: number;
@@ -54,6 +55,7 @@ interface DockResponse {//интерфейс для получения отве�
   description : string;
   is_deleted: boolean;
   is_completed: boolean;
+  uid:string;
 }
 interface FilesInfo {
   id: string;
@@ -159,6 +161,36 @@ export class InventoryDockComponent implements OnInit {
 
   isDocNumberUnicalChecking = false;//идёт ли проверка на уникальность номера
   doc_number_isReadOnly=true;
+
+  tabIndex=0;// индекс текущего отображаемого таба (вкладки)
+  linkedDocsCount:number = 0; // кол-во документов в группе, ЗА ИСКЛЮЧЕНИЕМ текущего
+  linkedDocsText:string = ''; // схема связанных документов (пример - в самом низу)
+  loadingDocsScheme:boolean = false;
+  linkedDocsSchemeDisplayed:boolean = false;
+
+//   dotIndex = 0;
+//   dots = [
+//     [
+//         'digraph  {',
+//         '    node [style="filled"]',
+//         '    a [fillcolor="#d62728"]',
+//         '    b [fillcolor="#1f77b4"]',
+//         '    a -> b',
+//         '}'
+//     ],
+//     [
+//         'digraph  {',
+//         '    node [style="filled"]',
+//         '    a [fillcolor="#d62728"]',
+//         '    c [fillcolor="#2ca02c"]',
+//         '    b [fillcolor="#1f77b4"]',
+//         '    a -> b',
+//         '    a -> c',
+//         '}'
+//     ]
+// ];
+
+
   @ViewChild("doc_number", {static: false}) doc_number; //для редактирования номера документа
   @ViewChild(InventoryProductsTableComponent, {static: false}) public inventoryProductsTableComponent:InventoryProductsTableComponent;
 
@@ -180,6 +212,8 @@ export class InventoryDockComponent implements OnInit {
     }
 
   ngOnInit(): void {
+
+
     this.formBaseInformation = new FormGroup({
       id: new FormControl                 (this.id,[]),
       company_id: new FormControl         (null,[Validators.required]),
@@ -193,6 +227,7 @@ export class InventoryDockComponent implements OnInit {
       status_color: new FormControl       ('',[]),
       status_description: new FormControl ('',[]),
       is_completed: new FormControl       (false,[]),
+      uid: new FormControl                (uuidv4(),[]),
       inventoryProductTable: new FormArray([]),
     });
     this.formAboutDocument = new FormGroup({
@@ -207,7 +242,11 @@ export class InventoryDockComponent implements OnInit {
     
     // Форма для отправки при создании Списания или Оприходования
       this.formWP = new FormGroup({
-        inventory_id: new FormControl       (null,[]),
+        linked_doc_id: new FormControl      (null,[]),//id связанного документа (в данном случае Инвентаризации)
+        parent_uid: new FormControl         (null,[]),// uid родительского документа
+        child_uid: new FormControl          (null,[]),// uid дочернего документа
+        linked_doc_name: new FormControl    (null,[]),//имя (таблицы) связанного документа
+        uid: new FormControl                ('',[]),
         posting_date: new FormControl       ('',[]),
         writeoff_date: new FormControl      ('',[]),
         company_id: new FormControl         (null,[Validators.required]),
@@ -215,6 +254,7 @@ export class InventoryDockComponent implements OnInit {
         description: new FormControl        ('',[]),
         writeoffProductTable: new FormArray ([]),
         postingProductTable: new FormArray  ([]),
+
       });
     // Форма настроек
     this.settingsForm = new FormGroup({
@@ -267,6 +307,7 @@ export class InventoryDockComponent implements OnInit {
 
     this.getSetOfPermissions();
   }
+
   //чтобы не было ExpressionChangedAfterItHasBeenCheckedError
   ngAfterContentChecked() {
     this.cdRef.detectChanges();
@@ -611,6 +652,7 @@ export class InventoryDockComponent implements OnInit {
                 this.formBaseInformation.get('status_color').setValue(documentValues.status_color);
                 this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
                 this.formBaseInformation.get('is_completed').setValue(documentValues.is_completed);
+                this.formBaseInformation.get('uid').setValue(documentValues.uid);
                 this.creatorId=+documentValues.creator_id;
                 this.getSettings(); // настройки документа Инвентаризация
                 // this.getSpravSysEdizm();//справочник единиц измерения
@@ -619,8 +661,9 @@ export class InventoryDockComponent implements OnInit {
                 this.loadFilesInfo();
                 this.getDepartmentsList();//отделения
                 this.getStatusesList();//статусы документа Инвентаризация
-                this.getLinkedDocs(); //загрузка связанных документов
+                this.getLinkedDocsScheme(true); //загрузка связанных документов
                 this.refreshPermissions();//пересчитаем права
+
                 // if(this.inventoryProductsTableComponent) this.inventoryProductsTableComponent.showColumns(); //чтобы спрятать столбцы после завершения Инвентаризации
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
@@ -741,6 +784,7 @@ export class InventoryDockComponent implements OnInit {
             this.setStatusColor();//чтобы обновился цвет статуса
             if(this.inventoryProductsTableComponent) this.inventoryProductsTableComponent.showColumns(); //чтобы спрятать столбцы после завершения Инвентаризации
             this.openSnackBar("Документ \"Инвентаризация\" "+ (complete?"завершён.":"сохренён."), "Закрыть");
+            this.getLinkedDocsScheme(true);//обновим схему связанных документов )чтобы Проведено сменилось с Нет на Да
           },
           error => {
             this.showQueryErrorMessage(error);
@@ -883,34 +927,36 @@ export class InventoryDockComponent implements OnInit {
   }
 
 //*************************************************          СВЯЗАННЫЕ ДОКУМЕНТЫ          ******************************************************/
-
-
-
   //создание Списания или Оприходования
-  createLinkedDock(dockname:string){// принимает аргументы: Writeoff или Posting
-    let canCreateLinkedDock:CanCreateLinkedDock=this.canCreateLinkedDock(dockname); //проверим на возможность создания связанного документа
+  createLinkedDock(docname:string){// принимает аргументы: Writeoff или Posting
+    let canCreateLinkedDock:CanCreateLinkedDock=this.canCreateLinkedDock(docname); //проверим на возможность создания связанного документа
     if(canCreateLinkedDock.can){
-      this.formWP.get('inventory_id').setValue(this.id);
+      let uid = uuidv4();
+      this.formWP.get('linked_doc_id').setValue(this.id);//id связанного документа (того, из которого инициируется создание данного документа)
+      this.formWP.get('parent_uid').setValue(this.formBaseInformation.get('uid').value);// uid исходящего (родительского) документа
+      this.formWP.get('child_uid').setValue(uid);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
+      this.formWP.get('linked_doc_name').setValue('inventory');//имя (таблицы) связанного документа
+      this.formWP.get('uid').setValue(uid);// uid дочернего документа
       this.formWP.get('company_id').setValue(this.formBaseInformation.get('company_id').value);
       this.formWP.get('department_id').setValue(this.formBaseInformation.get('department_id').value);
       this.formWP.get('description').setValue('Создано из Инвентаризации №'+ this.formBaseInformation.get('doc_number').value);
-      this.getProductsTableWP(dockname);//формируем таблицу товаров для создаваемого документа
-      this.http.post('/api/auth/insert'+dockname, this.formWP.value)
+      this.getProductsTableWP(docname);//формируем таблицу товаров для создаваемого документа
+      this.http.post('/api/auth/insert'+docname, this.formWP.value)
       .subscribe(
       (data) => {
                   let createdDockId=data as number;
                   switch(createdDockId){
                     case null:{// null возвращает если не удалось создать документ из-за ошибки
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа "+(dockname=="Writeoff"?"Списание":"Оприходование")}});
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа "+(docname=="Writeoff"?"Списание":"Оприходование")}});
                       break;
                     }
                     case 0:{//недостаточно прав
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа "+(dockname=="Writeoff"?"Списание":"Оприходование")}});
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа "+(docname=="Writeoff"?"Списание":"Оприходование")}});
                       break;
                     }
                     default:{// Документ успешно создался в БД 
-                      this.openSnackBar("Документ "+(dockname=='Writeoff'?'Списание':'Оприходование')+" успешно создан", "Закрыть");
-                      this.getInventoryLinkedDocsList(dockname.toLowerCase());//обновляем список этого документа
+                      this.openSnackBar("Документ "+(docname=='Writeoff'?'Списание':'Оприходование')+" успешно создан", "Закрыть");
+                      this.getLinkedDocsScheme(true);//обновляем схему этого документа
                     }
                   }
                 },
@@ -919,39 +965,39 @@ export class InventoryDockComponent implements OnInit {
     } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:canCreateLinkedDock.reason}});
   }
 //забирает таблицу товаров из дочернего компонента и помещает ее в форму, предназначенную для создания Оприходования или Списания
-  getProductsTableWP(dockname:string){
+  getProductsTableWP(docname:string){
     let tableName:string;//для маппинга в соответствующие названия сетов в бэкэнде (например private Set<PostingProductForm> postingProductTable;)
-    if(dockname=='Writeoff') tableName='writeoffProductTable'; else tableName='postingProductTable';
+    if(docname=='Writeoff') tableName='writeoffProductTable'; else tableName='postingProductTable';
     const control = <FormArray>this.formWP.get(tableName);
     control.clear();
     this.inventoryProductsTableComponent.getProductTable().forEach(row=>{
-      if(dockname=='Writeoff'){// Если Списание - отбираем из всего списка только товары с недостачей
+      if(docname=='Writeoff'){// Если Списание - отбираем из всего списка только товары с недостачей
         if((row.actual_balance-row.estimated_balance)<0)
-          control.push(this.formingProductRowWP(row,dockname));
+          control.push(this.formingProductRowWP(row,docname));
       } else { // 'Posting'       Если Оприходование - отбираем из всего списка только товары с избытком 
         if((row.actual_balance-row.estimated_balance)>0)
-          control.push(this.formingProductRowWP(row,dockname));
+          control.push(this.formingProductRowWP(row,docname));
       }
     });
   }
 
   //можно ли создать связанный документ (да - если есть товары, подходящие для этого, и нет уже завершённого документа)
-  canCreateLinkedDock(dockname:string):CanCreateLinkedDock{
-    let isThereCompletedLinkedDocks:boolean = this.isThereCompletedLinkedDocks(dockname);
-    let noProductsToCreateLinkedDock:boolean = this.getProductsCountToLinkedDock(dockname)==0;
+  canCreateLinkedDock(docname:string):CanCreateLinkedDock{
+    let isThereCompletedLinkedDocks:boolean = this.isThereCompletedLinkedDocks(docname);
+    let noProductsToCreateLinkedDock:boolean = this.getProductsCountToLinkedDock(docname)==0;
     if(isThereCompletedLinkedDocks || noProductsToCreateLinkedDock){
       if(isThereCompletedLinkedDocks)
-        return {can:false, reason:'Невозможно создать '+(dockname=='Writeoff'?'Списание':'Оприходование')+', так как уже есть завершенный документ '+(dockname=='Writeoff'?'Списание':'Оприходование')};
+        return {can:false, reason:'Невозможно создать '+(docname=='Writeoff'?'Списание':'Оприходование')+', так как уже есть завершенный документ '+(docname=='Writeoff'?'Списание':'Оприходование')};
       else
-        return {can:false, reason:'Невозможно создать '+(dockname=='Writeoff'?'Списание':'Оприходование')+', так как нет позиций с '+(dockname=='Writeoff'?'отрицательной':'положительной')+' разницей'};
+        return {can:false, reason:'Невозможно создать '+(docname=='Writeoff'?'Списание':'Оприходование')+', так как нет позиций с '+(docname=='Writeoff'?'отрицательной':'положительной')+' разницей'};
     }else
       return {can:true, reason:''};
   }
 
   //есть ли уже завершенный связанный документ (для возможности создания их при их отсутствии) Например, не получится создать Списание, если уже есть завершенные Списания
-  isThereCompletedLinkedDocks(dockname:string):boolean{
+  isThereCompletedLinkedDocks(docname:string):boolean{
     let isThere:boolean=false;
-    if(dockname=='Writeoff'){// Если Списание
+    if(docname=='Writeoff'){// Если Списание
       this.LinkedDocsWriteoff.map(i=>{
         if(i.is_completed)
           isThere=true;
@@ -965,10 +1011,10 @@ export class InventoryDockComponent implements OnInit {
     return isThere;
   }
   //возвращает количество товаров, подходящих для связанных документов (для возможности создания их при количестве >0) Например, не получится создать Списание, если кол-во товаров с недостачей = 0, т.е списывать нечего
-  getProductsCountToLinkedDock(dockname:string):number{
+  getProductsCountToLinkedDock(docname:string):number{
     let count:number=0;
     this.inventoryProductsTableComponent.getProductTable().forEach(row=>{
-      if(dockname=='Writeoff'){// Если Списание - отбираем из всего списка только товары с недостачей
+      if(docname=='Writeoff'){// Если Списание - отбираем из всего списка только товары с недостачей
         if((row.actual_balance-row.estimated_balance)<0)
           count++
       } else { // 'Posting'       Если Оприходование - отбираем из всего списка только товары с избытком 
@@ -978,9 +1024,9 @@ export class InventoryDockComponent implements OnInit {
     });
     return count;
   }
-  formingProductRowWP(row: InventoryProductTable, dockname:string) {
+  formingProductRowWP(row: InventoryProductTable, docname:string) {
     let product_count:number;
-    if(dockname=='Writeoff') product_count=row.estimated_balance-row.actual_balance; else product_count=row.actual_balance-row.estimated_balance;// чтобы в insertWriteoff ушло положительное число
+    if(docname=='Writeoff') product_count=row.estimated_balance-row.actual_balance; else product_count=row.actual_balance-row.estimated_balance;// чтобы в insertWriteoff ушло положительное число
     return this._fb.group({
       product_id: new FormControl (row.product_id,[]),
       product_count: new FormControl (product_count,[]),
@@ -988,28 +1034,6 @@ export class InventoryDockComponent implements OnInit {
       product_sumprice: new FormControl (((product_count)*row.product_price).toFixed(2),[]),
       reason_id: new FormControl (3,[]), // 3 - Недостачи и потери от порчи ценностей
     });
-  }
-
-  getLinkedDocs(){
-    this.getInventoryLinkedDocsList('writeoff');//загрузка связанных списаний
-    this.getInventoryLinkedDocsList('posting'); //загрузка связанных оприходований
-  }
-
-  getInventoryLinkedDocsList(docName:string, fromDialog?:boolean){
-    this.http.get('/api/auth/getInventoryLinkedDocsList?id='+this.id+'&docName='+docName)
-    .subscribe(
-        (data) => {   
-                    if(docName=='writeoff'){
-                      this.LinkedDocsWriteoff=data as LinkedDocs [];
-                    }
-                    else 
-                    {
-                      this.LinkedDocsPosting =data as LinkedDocs [];
-                    }
-                    if(fromDialog) this.offerToComplete();
-                },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-    );
   }
 
   //если после закрытия диалога связанного документа в документе больше нечего делать (всё что можно было - было создано и закрыто) - предложим пользователю завершить Инвентаризацию
@@ -1025,7 +1049,6 @@ export class InventoryDockComponent implements OnInit {
           (thereCompletedPosting && productsCountToWriteoff==0) // есть завершенное Оприходование, и списывать нечего
         )
       )
-
     {// то предложим завершить данную Инвентаризацию
       let warning:string;
       if(thereCompletedWriteoff && thereCompletedPosting) warning='Списание и Оприходование по данной Инвентаризации завершены. ';
@@ -1047,75 +1070,8 @@ export class InventoryDockComponent implements OnInit {
         }
       });  
     }
-
-
   }
 
-  clickButtonDeleteLinkedDock(docName:string,id:number): void {
-      const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
-        width: '400px',
-        data:
-        { 
-          head: 'Удаление',
-          warning: 'Удалить данное '+(docName=='Writeoff'?'Списание?':'Оприходование?'),
-          query: '',
-        },
-      });
-      dialogRef.afterClosed().subscribe(result => {
-        if(result==1){
-          this.deleteLinkedDock(docName,id);
-        }
-      });  
-  }
-  dialogOpenPosting(id:number) {
-    const dialogRef = this.dialogCreateProduct.open(PostingDockComponent, {
-      maxWidth: '95vw',
-      maxHeight: '95vh',
-      height: '95%',
-      width: '95%',
-      data:
-      { 
-        mode: 'window',
-        id: id
-      },
-    });
-    dialogRef.afterClosed().subscribe(result => {
-      // console.log(`Dialog result: ${result}`);
-      if(result) this.getInventoryLinkedDocsList('posting',true);//если вернулось true - значит, возможно, зайдя в Списание его закрыли. Обновим список списаний. Да, возможно заходили в уже закрытый документ, и запрос на обновление списка документов будет произведен зря
-    });
-  }
-  dialogOpenWriteoff(id:number) {
-    const dialogRef = this.dialogCreateProduct.open(WriteoffDockComponent, {
-      maxWidth: '95vw',
-      maxHeight: '95vh',
-      height: '95%',
-      width: '95%',
-      data:
-      { 
-        mode: 'window',
-        id: id
-      },
-    });
-    dialogRef.afterClosed().subscribe(result => {
-      // console.log(`Dialog result: ${result}`);
-      if(result) this.getInventoryLinkedDocsList('writeoff',true);//если вернулось true - значит, возможно, зайдя в Списание его закрыли. Обновим список списаний. Да, возможно заходили в уже закрытый документ, и запрос на обновление списка документов будет произведен зря
-    });
-  }
-  deleteLinkedDock(docName:string,id:number){
-    const body = {"checked": id}; 
-        return this.http.post('/api/auth/delete'+docName, body) 
-        .subscribe(
-            (data) => {   
-                        let result=data as boolean;
-                        if(result){
-                          this.openSnackBar("Успешно удалено", "Закрыть");
-                          this.getInventoryLinkedDocsList(docName.toLowerCase());
-                        }else
-                          this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав для удаления'}});
-                      },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-        );
-  }
 //*****************************************************************************************************************************************/
 /***********************************************************         ФАЙЛЫ          *******************************************************/
 //*****************************************************************************************************************************************/
@@ -1199,6 +1155,90 @@ deleteFile(id:number){
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
   );  
 }
+  //------------------------------------------ Диаграммы связей ----------------------------------------
+    
+  //   render() {
+  //     var dotIndex = 0;
+  //     var dotLines = this.dots[dotIndex];
+  //     var dot = dotLines.join('');
+  //     var graphviz = d3.select("#graph").graphviz()
+  //     .transition(function () {
+  //         return d3.transition("main")
+  //             .ease(d3.easeLinear)
+  //             .delay(500)
+  //             .duration(1500);
+  //     })
+  //     .logEvents(true)
+  //     .on("initEnd", this.render);
+
+
+  //     graphviz
+  //         .renderDot(dot)
+  //         .on("end", function () {
+  //           dotIndex = (dotIndex + 1) % this.dots.length;
+  //           this.render();
+  //         });
+  // }
+    
+  myTabFocusChange(changeEvent: MatTabChangeEvent) {
+    console.log('Tab position: ' + changeEvent.tab.position);
+  }  
+  myTabSelectedIndexChange(index: number) {
+    console.log('Selected index: ' + index);
+    this.tabIndex=index;
+  }
+  myTabSelectedTabChange(changeEvent: MatTabChangeEvent) {
+    console.log('Index: ' + changeEvent.index);
+  }  
+  myTabAnimationDone() {
+    console.log('Animation is done.');
+    if(this.tabIndex==1)  {
+      if(!this.linkedDocsSchemeDisplayed) this.loadingDocsScheme=true;
+      setTimeout(() => { this.drawLinkedDocsScheme(); }, 500);
+    }
+      
+  }
+  getLinkedDocsScheme(draw?:boolean){
+    let result:any;
+    this.loadingDocsScheme=true;
+    this.http.get('/api/auth/getLinkedDocsScheme?uid='+this.formBaseInformation.get('uid').value)
+      .subscribe(
+          data => { 
+            result=data as any;
+            
+            if(result==null){
+              this.loadingDocsScheme=false;
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка загрузки связанных документов"}});
+            } else if(result.errorCode==0){//нет результата
+              this.linkedDocsSchemeDisplayed = true;
+              this.loadingDocsScheme=false;
+            } else {
+              this.linkedDocsCount=result.count==0?result.count:result.count-1;// т.к. если документ в группе будет только один (данный) - result.count придёт = 1, т.е. связанных нет. Если документов в группе вообще нет - придет 0.
+              this.linkedDocsText = result.text;
+              if(draw)
+                this.drawLinkedDocsScheme()
+              else
+                this.loadingDocsScheme=false;
+            } 
+        },
+        error => {this.loadingDocsScheme=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+    );
+  }
+
+  drawLinkedDocsScheme(){
+    if(this.tabIndex==1){
+      try{
+        console.log(this.linkedDocsText);
+        graphviz("#graph").renderDot(this.linkedDocsText);
+        this.loadingDocsScheme=false;
+        this.linkedDocsSchemeDisplayed = true;
+      } catch (e){
+        this.loadingDocsScheme=false;
+        console.log(e.message);
+      }
+    } else this.loadingDocsScheme=false;
+  }
+
   //------------------------------------------ COMMON UTILITES -----------------------------------------
   //Конвертирует число в строку типа 0.00 например 6.40, 99.25
   numToPrice(price:number,charsAfterDot:number) {
@@ -1242,3 +1282,48 @@ deleteFile(id:number){
         });return retIndex;}
 }
 
+
+            // result=`digraph {
+            //   rankdir=UD;
+            //   node [ shape=box;
+            //   margin=0;
+            //   fixedsize = true;
+            //   width=2.3;
+            //   height=1.3;
+            //   fontsize=12
+            //   fontname="Arial";
+            //   style=filled;
+            //   fillcolor="#ededed";
+            //   color="#2b2a2a";
+            //   ];
+            
+            //   struct1 [
+            //     URL="ui/writeoffdock/113";
+            //     label = "Инвентаризация\n№97\n01.10.2021\n1350.00\nПроведено: Да\nОкончена";
+            //     tooltip="Перейти в документ";
+            //   ];
+        
+              
+            //   struct2 [
+            //     URL="ui/writeoffdock/113";
+            //     label = "Списание\n№336\n000231\n23.05.2021\nПроведено: Да\nЗавершено";
+            //     tooltip="Перейти в документ";
+            //   ];
+
+            //   struct3 [
+            //     color="black"
+            //     fillcolor="#acee00";
+            //     URL="ui/writeoffdock/113";
+            //     label = "Оприходование\n №135\n000231\n23.05.2021\nПроведено: Да\nЗавершено";
+            //     tooltip="Перейти в документ";
+            //   ];
+              
+            //   struct4 [
+            //     URL="ui/writeoffdock/113";
+            //     label = "Заказ покупателя\n №15\n000231\n23.05.2021\nПроведено: Да\nДоставлен заказчику";
+            //     tooltip="Перейти в документ";
+            //   ];
+            //   struct1 -> struct2;
+            //   struct1 -> struct3;
+            //   struct4 -> struct3;
+            // }`

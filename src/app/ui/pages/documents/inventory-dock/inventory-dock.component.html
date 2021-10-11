@@ -109,7 +109,11 @@
             </a>
         </mat-card-title>
         <mat-card-content> 
-            <mat-tab-group>
+            <mat-tab-group 
+            (focusChange)="myTabFocusChange($event)"
+            (selectedIndexChange)="myTabSelectedIndexChange($event)"  
+            (selectedTabChange)="myTabSelectedTabChange($event)"
+            (animationDone)="myTabAnimationDone()">
                 <mat-tab label="Информация">
                     <div class="container-fluid">
                         <div class="row">
@@ -237,127 +241,7 @@
                             </div>  
 
                             <div class="col-xl-5 col-md-6 col-sm-12">  
-                                <mat-card class="internal-card" style="padding: 10px 10px 10px;" *ngIf="LinkedDocsWriteoff.length>0||LinkedDocsPosting.length>0">
-                                    <mat-card-header>
-                                        <mat-card-title class="card-title" style="margin-left: -5px;">Связанные документы</mat-card-title>
-                                    </mat-card-header>
-                                    <mat-card-content class="input-form">
-
-                                        <mat-accordion>
-                                            <mat-expansion-panel 
-                                            *ngIf="LinkedDocsWriteoff.length>0"
-                                            (opened)="panelWriteoffOpenState = true"
-                                            (closed)="panelWriteoffOpenState = false"
-                                            [expanded]="panelWriteoffOpenState">
-                                                <mat-expansion-panel-header>
-                                                    <mat-panel-title>
-                                                        Списания
-                                                    </mat-panel-title>
-                                                    <mat-panel-description *ngIf="!panelWriteoffOpenState">
-                                                        <div style="display: flex; flex-flow: column;">
-                                                            
-                                                        </div>
-                                                    </mat-panel-description>
-                                                </mat-expansion-panel-header>
-                                                <div class="row">
-
-                                                    <div style="width: 100%;">
-                                                        <ng-container *ngFor="let i of LinkedDocsWriteoff">
-                                                            <div class="filename-row">
-                                                                <div class="file-wrapper" (click)="dialogOpenWriteoff(i.id)" matTooltip='Открыть списание'>
-                                                                    <span style="cursor: pointer;"> Списание №{{ i.doc_number }} от {{i.date_time_created}}</span>
-                                                                </div>
-                                                                <div style="min-width:74px;">
-                                                                    <button mat-button 
-                                                                    class="min-heigth"
-                                                                            type="button"
-                                                                            [matTooltip]="i.is_completed?'Завершено':'В работе'"
-                                                                            matSuffix>
-                                                                        <mat-icon *ngIf='i.is_completed'>lock</mat-icon>
-                                                                        <mat-icon *ngIf='!(i.is_completed)'>lock_open</mat-icon>
-                                                                    </button>
-                                                                    <!-- <button mat-button 
-                                                                    class="min-heigth"
-                                                                            type="button"
-                                                                            (click)="dialogOpenWriteoff(i.id)"
-                                                                            matTooltip='Открыть списание'
-                                                                            matSuffix>
-                                                                        <mat-icon>launch</mat-icon>
-                                                                    </button> -->
-                                                                    <button mat-button 
-                                                                            *ngIf="!i.is_completed && this.allowToUpdate"
-                                                                            class="min-heigth"
-                                                                            type="button"
-                                                                            (click)="clickButtonDeleteLinkedDock('Writeoff',i.id)"
-                                                                            matTooltip='Удалить списание'
-                                                                            matSuffix>
-                                                                        <mat-icon>delete_forever</mat-icon>
-                                                                    </button>
-
-                                                                </div>
-                                                            </div>
-                                                        </ng-container>
-                                                    </div>
-                                                </div>
-                                            </mat-expansion-panel>
-                                            <mat-expansion-panel 
-                                            *ngIf="LinkedDocsPosting.length>0"
-                                            (opened)="panelPostingOpenState = true"
-                                            (closed)="panelPostingOpenState = false"
-                                            [expanded]="panelPostingOpenState">
-                                                <mat-expansion-panel-header>
-                                                    <mat-panel-title>
-                                                        Оприходования
-                                                    </mat-panel-title>
-                                                    <mat-panel-description *ngIf="!panelPostingOpenState">
-                                                        <div style="display: flex; flex-flow: column;">
-                                                            
-                                                        </div>
-                                                    </mat-panel-description>
-                                                </mat-expansion-panel-header>
-                                                <div class="row">
-
-                                                    <div style="width: 100%;">
-                                                        <ng-container *ngFor="let i of LinkedDocsPosting">
-                                                            <div class="filename-row">
-                                                                <div class="file-wrapper" (click)="dialogOpenPosting(i.id)" matTooltip='Открыть оприходование'>
-                                                                    <span style="cursor: pointer;" > Оприходование №{{ i.doc_number }} от {{i.date_time_created}}</span>
-                                                                </div>
-                                                                <div style="min-width:74px;">
-                                                                    <button mat-button 
-                                                                    class="min-heigth"
-                                                                            type="button"
-                                                                            [matTooltip]="i.is_completed?'Завершено':'В работе'"
-                                                                            matSuffix>
-                                                                        <mat-icon *ngIf='i.is_completed'>lock</mat-icon>
-                                                                        <mat-icon *ngIf='!(i.is_completed)'>lock_open</mat-icon>
-                                                                    </button>
-                                                                    <!-- <button mat-button 
-                                                                    class="min-heigth"
-                                                                            type="button"
-                                                                            (click)="dialogOpenPosting(i.id)"
-                                                                            matTooltip='Открыть оприходование'
-                                                                            matSuffix>
-                                                                        <mat-icon>launch</mat-icon>
-                                                                    </button> -->
-                                                                    <button mat-button 
-                                                                            *ngIf="!i.is_completed && this.allowToUpdate"
-                                                                            class="min-heigth"
-                                                                            type="button"
-                                                                            (click)="clickButtonDeleteLinkedDock('Posting',i.id)"
-                                                                            matTooltip='Удалить оприходование'
-                                                                            matSuffix>
-                                                                        <mat-icon>delete_forever</mat-icon>
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </ng-container>
-                                                    </div>
-                                                </div>
-                                            </mat-expansion-panel>
-                                        </mat-accordion>
-                                    </mat-card-content>
-                                </mat-card> 
+                                
                             </div>
                         </div>  
 <!-- nds_included Parent - {{this.formBaseInformation.get('nds_included').value}}, -->
@@ -393,6 +277,31 @@
                             </div>
                         </div>
                     </div>  
+                </mat-tab>
+                <mat-tab *ngIf="+id>0"  matTooltip="Связанные документы">
+                    <ng-template mat-tab-label>
+                        <div>Связанные</div><div><span [matBadge]="linkedDocsCount" matBadgeOverlap="false">&nbsp;</span></div>
+                    </ng-template>
+                    <div class="col-12">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <mat-card  style="margin:10px 0 10px;width:100%;">
+                                    <mat-card-header>
+                                        <mat-card-title class="card-title">Связанные документы</mat-card-title>
+                                    </mat-card-header>
+                                    <mat-card-content class="input-form">
+                                        <mat-spinner *ngIf="loadingDocsScheme" strokeWidth="3" style=" position: absolute; top: 15%;left: calc(50% - 25px)" [diameter]="50"></mat-spinner>
+                                        <div id="graph" style="width:100%; height: 700px; text-align:center; margin-top:50px;"></div>
+                                        <div 
+                                        *ngIf="linkedDocsCount==0 && this.loadingDocsScheme==false"
+                                        class="no_linked_docs">
+                                            <span>Данный документ не имеет связей с другими документами</span>
+                                        </div>
+                                    </mat-card-content>
+                                </mat-card> 
+                            </div>
+                        </div>
+                    </div>
                 </mat-tab>
                 <mat-tab *ngIf="+id>0">
                     <ng-template mat-tab-label>

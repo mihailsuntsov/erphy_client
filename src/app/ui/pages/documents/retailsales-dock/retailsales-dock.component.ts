@@ -14,12 +14,11 @@ import { SettingsRetailsalesDialogComponent } from 'src/app/modules/settings/set
 import { ProductSearchAndTableComponent } from 'src/app/modules/trade-modules/product-search-and-table/product-search-and-table.component';
 import { KkmComponent } from 'src/app/modules/trade-modules/kkm/kkm.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
-import { MatAccordion } from '@angular/material/expansion';
 import { v4 as uuidv4 } from 'uuid';
-import { ReturnDockComponent } from '../return-dock/return-dock.component';
+import { MatTabChangeEvent } from '@angular/material/tabs';
+import { graphviz }  from 'd3-graphviz';
 import { Router } from '@angular/router';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
-import { Input } from '@angular/core';
 
 interface RetailSalesProductTable { //интерфейс для формы, массив из которых будет содержать форма retailSalesProductTable, входящая в formBaseInformation
   id: number;
@@ -88,6 +87,7 @@ interface DockResponse {//интерфейс для получения отве�
   status_description: string;
   additional_address: string;
   receipt_id: number;
+  uid:string;
 }
 interface FilesInfo {
   id: string;
@@ -219,6 +219,15 @@ export class RetailsalesDockComponent implements OnInit {
   showOpenDocIcon:boolean=false;
   editability:boolean = false;//редактируемость. true если есть право на создание и документ создаётся, или есть право на редактирование и документ создан
 
+  //для построения диаграмм связанности
+  tabIndex=0;// индекс текущего отображаемого таба (вкладки)
+  linkedDocsCount:number = 0; // кол-во документов в группе, ЗА ИСКЛЮЧЕНИЕМ текущего
+  linkedDocsText:string = ''; // схема связанных документов (пример - в самом низу)
+  loadingDocsScheme:boolean = false;
+  linkedDocsSchemeDisplayed:boolean = false;
+
+
+
   //****************************                   Взаимодействие с ККМ                    ************************************
   cheque_nds=false; //нужно ли проставлять НДС в чеке.
 
@@ -300,6 +309,12 @@ export class RetailsalesDockComponent implements OnInit {
       department_id: new FormControl      (null,[Validators.required]),
       description: new FormControl        ('',[]),
       returnProductTable: new FormArray   ([]),
+      linked_doc_id: new FormControl      (null,[]),//id связанного документа (в данном случае Розничная продажа)
+      parent_uid: new FormControl         (null,[]),// uid родительского документа
+      child_uid: new FormControl          (null,[]),// uid дочернего документа
+      linked_doc_name: new FormControl    (null,[]),//имя (таблицы) связанного документа
+      uid: new FormControl                ('',[]),  //uid создаваемого связанного документа
+
     });
     // Форма настроек
     this.settingsForm = new FormGroup({
@@ -553,7 +568,9 @@ export class RetailsalesDockComponent implements OnInit {
     this.formBaseInformation.get('cagent').setValue('');
     this.formBaseInformation.get('status_id').setValue(null);
     this.searchCagentCtrl.setValue('');
+    
     this.actionsBeforeGetChilds=0;
+    this.formAboutDocument.get('company').setValue(this.getCompanyNameById(this.formBaseInformation.get('company_id').value));
     this.getDepartmentsList();
     this.getPriceTypesList();
   }
@@ -562,8 +579,10 @@ export class RetailsalesDockComponent implements OnInit {
       this.getSetOfTypePrices();
       this.formBaseInformation.get('department').setValue(this.getDepartmentNameById(this.formBaseInformation.get('department_id').value));
       this.productSearchAndTableComponent.formSearch.get('secondaryDepartmentId').setValue(this.formBaseInformation.get('department_id').value);
-      this.kkmComponent.department_id=this.formBaseInformation.get('department_id').value;
-      this.kkmComponent.getKassaListByDepId();
+      if(this.kkmComponent){
+        this.kkmComponent.department_id=this.formBaseInformation.get('department_id').value;
+        this.kkmComponent.getKassaListByDepId();
+      }
   }
 
   getDepartmentsList(){
@@ -581,7 +600,7 @@ export class RetailsalesDockComponent implements OnInit {
     //если в настройках не было отделения, и в списке предприятий только одно предприятие - ставим его по дефолту
     if(+this.formBaseInformation.get('department_id').value==0 && this.receivedDepartmentsList.length==1){
       this.formBaseInformation.get('department_id').setValue(this.receivedDepartmentsList[0].id);
-      //Если дочерние компоненты уже загружены - устанавливаем предприятие по дефолту как склад в форме поиска и добавления товара
+      //Если дочерние компоненты уже загружены - устанавливаем данный склад по дефолту как склад в форме поиска и добавления товара
       if(!this.startProcess){
         this.productSearchAndTableComponent.formSearch.get('secondaryDepartmentId').setValue(this.formBaseInformation.get('department_id').value);  
         this.productSearchAndTableComponent.setCurrentTypePrice();//если сменили отделение - нужно проверить, есть ли у него тип цены. И если нет - в вызываемом методе выведется предупреждение для пользователя
@@ -840,6 +859,7 @@ export class RetailsalesDockComponent implements OnInit {
                 this.formBaseInformation.get('status_name').setValue(documentValues.status_name);
                 this.formBaseInformation.get('status_color').setValue(documentValues.status_color);
                 this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
+                this.formBaseInformation.get('uid').setValue(documentValues.uid);
                 this.department_type_price_id=documentValues.department_type_price_id;
                 this.cagent_type_price_id=documentValues.cagent_type_price_id;
                 this.default_type_price_id=documentValues.default_type_price_id;
@@ -853,7 +873,7 @@ export class RetailsalesDockComponent implements OnInit {
                 this.getPriceTypesList();
                 this.getDepartmentsList();//отделения
                 this.getStatusesList();//статусы документа Розничная продажа
-                this.getLinkedDocsList('return'); //загрузка связанных документов
+                this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                 this.hideOrShowNdsColumn();//расчет прятать или показывать колонку НДС
                 this.refreshPermissions();//пересчитаем права
                 this.cheque_nds=documentValues.nds;//нужно ли передавать в кассу (в чек) данные об НДС
@@ -997,7 +1017,6 @@ export class RetailsalesDockComponent implements OnInit {
       if(this.settingsForm.get('statusIdOnAutocreateOnCheque').value)
         this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnAutocreateOnCheque').value);
       this.formBaseInformation.get('uid').setValue(uuidv4());
-      // this.formBaseInformation.get('uid').setValue('f3176720-fded-4ea0-989a-227f8681da37');
       this.http.post('/api/auth/insertRetailSales', this.formBaseInformation.value)
         .subscribe(
         (data) => {
@@ -1224,6 +1243,7 @@ export class RetailsalesDockComponent implements OnInit {
 
   //создание Списания или Оприходования
   createLinkedDock(dockname:string){// принимает аргументы: Return
+    let uid = uuidv4();
     let canCreateLinkedDock:CanCreateLinkedDock=this.canCreateLinkedDock(dockname); //проверим на возможность создания связанного документа
     if(canCreateLinkedDock.can){
       this.formReturn.get('retail_sales_id').setValue(this.id);
@@ -1232,6 +1252,11 @@ export class RetailsalesDockComponent implements OnInit {
       this.formReturn.get('company_id').setValue(this.formBaseInformation.get('company_id').value);
       this.formReturn.get('department_id').setValue(this.formBaseInformation.get('department_id').value);
       this.formReturn.get('description').setValue('Создано из Розничной продажи №'+ this.formBaseInformation.get('doc_number').value);
+      this.formReturn.get('linked_doc_id').setValue(this.id);//id связанного документа (того, из которого инициируется создание данного документа)
+      this.formReturn.get('parent_uid').setValue(this.formBaseInformation.get('uid').value);// uid исходящего (родительского) документа
+      this.formReturn.get('child_uid').setValue(uid);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
+      this.formReturn.get('linked_doc_name').setValue('retail_sales');//имя (таблицы) связанного документа
+      this.formReturn.get('uid').setValue(uid);
       this.getProductsTableLinkedDoc(dockname);//формируем таблицу товаров для создаваемого документа
       this.http.post('/api/auth/insert'+dockname, this.formReturn.value)
       .subscribe(
@@ -1249,7 +1274,7 @@ export class RetailsalesDockComponent implements OnInit {
                     }
                     default:{// Документ успешно создался в БД 
                       this.openSnackBar("Документ "+(dockname=='Return'?'Возврат покупателя':'')+" успешно создан", "Закрыть");
-                      this.getLinkedDocsList(dockname.toLowerCase());//обновляем список этого документа
+                      this.getLinkedDocsScheme(true);//обновляем схему этого документа
                     }
                   }
                 },
@@ -1259,7 +1284,7 @@ export class RetailsalesDockComponent implements OnInit {
   }
 
   
-// забирает таблицу товаров из дочернего компонента и помещает ее в форму, предназначенную для создания Списания
+// забирает таблицу товаров из дочернего компонента и помещает ее в форму, предназначенную для создания дочерних документов
   getProductsTableLinkedDoc(dockname:string){
     let tableName:string;//для маппинга в соответствующие названия сетов в бэкэнде (например private Set<PostingProductForm> postingProductTable;)
     tableName='returnProductTable';
@@ -1285,65 +1310,67 @@ export class RetailsalesDockComponent implements OnInit {
     }else
       return {can:true, reason:''};
   }
-  getLinkedDocs(){
-    this.getLinkedDocsList('return');//загрузка связанных возвратов
+
+//******************************************************** ДИАГРАММА СВЯЗЕЙ ************************************************************/
+myTabFocusChange(changeEvent: MatTabChangeEvent) {
+  console.log('Tab position: ' + changeEvent.tab.position);
+}  
+myTabSelectedIndexChange(index: number) {
+  console.log('Selected index: ' + index);
+  this.tabIndex=index;
+}
+myTabSelectedTabChange(changeEvent: MatTabChangeEvent) {
+  console.log('Index: ' + changeEvent.index);
+}  
+myTabAnimationDone() {
+  console.log('Animation is done.');
+  if(this.tabIndex==1)  {
+    if(!this.linkedDocsSchemeDisplayed) this.loadingDocsScheme=true;
+    setTimeout(() => { this.drawLinkedDocsScheme(); }, 500);
   }
-  getLinkedDocsList(docName:string, fromDialog?:boolean){
-    this.http.get('/api/auth/getRetailSalesLinkedDocsList?id='+this.id+'&docName='+docName)
+    
+}
+getLinkedDocsScheme(draw?:boolean){
+  let result:any;
+  this.loadingDocsScheme=true;
+  this.http.get('/api/auth/getLinkedDocsScheme?uid='+this.formBaseInformation.get('uid').value)
     .subscribe(
-        (data) => {   
-                      this.linkedDocsReturn=data as LinkedDocs [];
-                  },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-    );
-  }
-  clickButtonDeleteLinkedDock(docName:string,id:number): void {
-      const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
-        width: '400px',
-        data:
-        { 
-          head: 'Удаление',
-          warning: 'Удалить '+(docName=='Return'?'возврат покупателя?':''),
-          query: '',
-        },
-      });
-      dialogRef.afterClosed().subscribe(result => {
-        if(result==1){
-          this.deleteLinkedDock(docName,id);
-        }
-      });  
-  }
-  dialogOpenLinkedDoc(id:number) {
-    const dialogRef = this.dialogCreateProduct.open(ReturnDockComponent, {
-      maxWidth: '95vw',
-      maxHeight: '95vh',
-      height: '95%',
-      width: '95%',
-      data:
-      { 
-        mode: 'window',
-        id: id
+        data => { 
+          result=data as any;
+          
+          if(result==null){
+            this.loadingDocsScheme=false;
+            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка загрузки связанных документов"}});
+          } else if(result.errorCode==0){//нет результата
+            this.linkedDocsSchemeDisplayed = true;
+            this.loadingDocsScheme=false;
+          } else {
+            this.linkedDocsCount=result.count==0?result.count:result.count-1;// т.к. если документ в группе будет только один (данный) - result.count придёт = 1, т.е. связанных нет. Если документов в группе вообще нет - придет 0.
+            this.linkedDocsText = result.text;
+            if(draw)
+              this.drawLinkedDocsScheme()
+            else
+              this.loadingDocsScheme=false;
+          } 
       },
-    });
-    dialogRef.afterClosed().subscribe(result => {
-      if(result) this.getLinkedDocsList('return',true);//если вернулось true - значит, возможно, зайдя в Возврат покупателя, его закрыли. Обновим список возвратов.
-  })}
-  deleteLinkedDock(docName:string,id:number){
-    const body = {"checked": id}; 
-        return this.http.post('/api/auth/delete'+docName, body) 
-        .subscribe(
-            (data) => {   
-                        let result=data as boolean;
-                        if(result){
-                          this.openSnackBar("Успешно удалено", "Закрыть");
-                          this.getLinkedDocsList(docName.toLowerCase());//загрузка связанных возвратов
-                        }else
-                          this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав для удаления'}});
-                      },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-        );
-  }
-//*****************************************************************************************************************************************/
+      error => {this.loadingDocsScheme=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+  );
+}
+
+drawLinkedDocsScheme(){
+  if(this.tabIndex==1){
+    try{
+      console.log(this.linkedDocsText);
+      graphviz("#graph").renderDot(this.linkedDocsText);
+      this.loadingDocsScheme=false;
+      this.linkedDocsSchemeDisplayed = true;
+    } catch (e){
+      this.loadingDocsScheme=false;
+      console.log(e.message);
+    }
+  } else this.loadingDocsScheme=false;
+}
+
 //**************************** КАССОВЫЕ ОПЕРАЦИИ  ******************************/
   //принимает от кассового модуля запрос на итоговую цену. цена запрашивается у returnProductsTableComponent и отдаётся в totalSumPriceHandler обратно в кассовый модуль
   getTotalSumPriceHandler() {
@@ -1406,6 +1433,7 @@ export class RetailsalesDockComponent implements OnInit {
     }
     return(name);
   }
+
   getSetOfTypePrices(){
     return this.http.get('/api/auth/getSetOfTypePrices?company_id='+this.formBaseInformation.get('company_id').value+
     '&department_id='+(+this.formBaseInformation.get('department_id').value)+'&cagent_id='+(+this.formBaseInformation.get('cagent_id').value))

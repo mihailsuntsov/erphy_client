@@ -13,6 +13,7 @@ import { SettingsInventoryDialogComponent } from 'src/app/modules/settings/setti
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
+import { YAxisComponent } from '@swimlane/ngx-charts';
 
 export interface CheckBox {
   id: number;
@@ -196,7 +197,7 @@ export class InventoryComponent implements OnInit {
                             this.permissionsSet=data as any [];
                             this.getMyId();
                         },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
             );
   }
 
@@ -415,18 +416,24 @@ export class InventoryComponent implements OnInit {
       this.showOnlyVisBtnAdd();
     });        
   }
+  
   deleteDocks(){
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
-          return this.http.post('/api/auth/deleteInventory', body) 
-            .subscribe(
-                (data) => {   
-                            this.getData();
-                            this.openSnackBar("Успешно удалено", "Закрыть");
-                          },
-                error => console.log(error),
-            );
+    return this.http.post('/api/auth/deleteInventory', body) 
+    .subscribe((data) => {   
+      let result=data as any;
+      switch(result.result){
+        case 0:{this.getData();this.openSnackBar("Успешно удалено", "Закрыть");break;} 
+        case 1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе удаления "+(this.checkedList.length>1?"документов":"документа")+" проиошла ошибка")}});break;}
+        case 2:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для операции удаления"}});break;}
+        case 3:{let numbers:string='';
+          for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="/ui/inventorydock/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
+          this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Удаление невозможно - у следующих номеров документов есть производные (связанные с ними дочерние) документы:'+numbers}});break;}
+      }
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
   }
+
   clickBtnRestore(): void {
     const dialogRef = this.confirmDialog.open(ConfirmDialog, {
       width: '400px',
@@ -452,7 +459,7 @@ export class InventoryComponent implements OnInit {
                     this.getData();
                     this.openSnackBar("Успешно восстановлено", "Закрыть");
                   },
-        error => console.log(error),
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
     );
   }  
   openSnackBar(message: string, action: string) {
