@@ -3,12 +3,17 @@ import { QueryForm } from './query-form';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { HttpClient } from '@angular/common/http';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { Validators } from '@angular/forms';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { QueryFormService } from './get-shipment-table.service';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
+import { FormGroup, FormControl } from '@angular/forms';
+import { SettingsShipmentDialogComponent } from 'src/app/modules/settings/settings-shipment-dialog/settings-shipment-dialog.component';
 
 export interface CheckBox {
   id: number;
@@ -25,7 +30,6 @@ export interface NumRow {//интерфейс для списка количес
   value: string;
   viewValue: string;
 }
-
 
 @Component({
   selector: 'app-shipment',
@@ -71,6 +75,10 @@ export class ShipmentComponent implements OnInit {
 
   showOpenDocIcon:boolean=false;
 
+  gettingTableData:boolean=true;
+  
+  settingsForm: any; // форма с настройками
+
   numRows: NumRow[] = [
     {value: '5', viewValue: '5'},
     {value: '10', viewValue: '10'},
@@ -87,14 +95,20 @@ export class ShipmentComponent implements OnInit {
   visBtnAdd:boolean;
   visBtnCopy = false;
   visBtnDelete = false;
-
+  //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
+  selectionFilterOptions = new SelectionModel<idAndName>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние
+  optionsIds: idAndName [];
+  displayingDeletedDocks:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
+  displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
+  //***********************************************************************************************************************/
   constructor(private queryFormService:   QueryFormService,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
     public universalCategoriesDialog: MatDialog,
-    public ConfirmDialog: MatDialog,
+    private MessageDialog: MatDialog,
+    public confirmDialog: MatDialog,
     private http: HttpClient,
-    private Cookie: Cookie,
+    private settingsShipmentDialogComponent: MatDialog,
     public deleteDialog: MatDialog,
     public dialogRef1: MatDialogRef<ShipmentComponent>,) { }
 
@@ -106,6 +120,7 @@ export class ShipmentComponent implements OnInit {
       this.sendingQueryForm.offset='0';
       this.sendingQueryForm.result='10';
       this.sendingQueryForm.searchCategoryString="";
+      this.sendingQueryForm.filterOptionsIds = [];
 
       if(Cookie.get('shipment_companyId')=='undefined' || Cookie.get('shipment_companyId')==null)     
         Cookie.set('shipment_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('shipment_companyId')=="0"?"0":+Cookie.get('shipment_companyId'));
@@ -119,6 +134,52 @@ export class ShipmentComponent implements OnInit {
         Cookie.set('shipment_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('shipment_offset');
       if(Cookie.get('shipment_result')=='undefined' || Cookie.get('shipment_result')==null)        
         Cookie.set('shipment_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('shipment_result');
+      
+      this.fillOptionsList();//заполняем список опций фильтра
+      // Форма настроек
+    this.settingsForm = new FormGroup({
+      // id отделения
+      departmentId: new FormControl             (null,[]),
+      //покупатель по умолчанию
+      customerId: new FormControl               (null,[]),
+      //наименование покупателя
+      customer: new FormControl                 ('',[]),
+      //наименование заказа по умолчанию
+      // orderName:  new FormControl               ('',[]),
+      // тип расценки. priceType - по типу цены, costPrice - себестоимость, manual - вручную
+      pricingType: new FormControl              ('priceType',[]),
+      //тип цены
+      priceTypeId: new FormControl              (null,[]),
+      //наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType
+      changePrice: new FormControl              (50,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      // Наценка (plus) или скидка (minus)
+      plusMinus: new FormControl                ('plus',[]),
+      // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
+      changePriceType: new FormControl          ('procents',[]),
+      //убрать десятые (копейки)
+      hideTenths: new FormControl               (true,[]),
+      //сохранить настройки
+      saveSettings: new FormControl             (true,[]),
+      //предприятие, для которого создаются настройки
+      companyId: new FormControl                (null,[]),
+      //наименование заказа
+      // name:  new FormControl                    ('',[]),
+      //приоритет типа цены : Склад (sklad) Покупатель (cagent) Цена по-умолчанию (defprice)
+      priorityTypePriceSide: new FormControl    ('defprice',[]),
+      //настройки операций с ККМ
+      //Оплата чека прихода (наличными - nal безналичными - electronically смешанная - mixed)
+      selectedPaymentType:   new FormControl    ('cash',[]),
+      //автосоздание на старте документа, если автозаполнились все поля
+      // autocreateOnStart: new FormControl        (false,[]),
+      //автосоздание нового документа, если в текущем успешно напечатан чек
+      autocreate: new FormControl       (false,[]),
+      //статус после успешного отбития чека, перед созданием нового документа
+      statusIdOnComplete: new FormControl('',[]),
+      // отображать блок работы с онлайн кассой 
+      showKkm:  new FormControl                 (false,[]),
+      // автодобавление товара в таблицу товаров
+      autoAdd:  new FormControl                 (false,[]),
+    });
 
       this.getCompaniesList();// 
       // -> getSetOfPermissions() 
@@ -141,7 +202,7 @@ export class ShipmentComponent implements OnInit {
                             this.permissionsSet=data as any [];
                             this.getMyId();
                         },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
             );
   }
 
@@ -174,11 +235,11 @@ export class ShipmentComponent implements OnInit {
     this.showOpenDocIcon=(this.allowToUpdate||this.allowToView);
     this.visBtnAdd = (this.allowToCreate)?true:false;
     
-    // console.log("allowToView - "+this.allowToView);
-    // console.log("allowToUpdate - "+this.allowToUpdate);
-    // console.log("allowToCreate - "+this.allowToCreate);
-    // console.log("allowToDelete - "+this.allowToDelete);
-    // console.log("allowToDeleteAllCompanies - "+this.allowToDeleteAllCompanies);
+    console.log("allowToView - "+this.allowToView);
+    console.log("allowToUpdate - "+this.allowToUpdate);
+    console.log("allowToCreate - "+this.allowToCreate);
+    console.log("allowToDelete - "+this.allowToDelete);
+    console.log("allowToDeleteAllCompanies - "+this.allowToDeleteAllCompanies);
     return true;
   }
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
@@ -203,12 +264,15 @@ export class ShipmentComponent implements OnInit {
     if(this.allowToDelete) this.displayedColumns.push('select');
     if(this.showOpenDocIcon) this.displayedColumns.push('opendoc');
     this.displayedColumns.push('doc_number');
+    this.displayedColumns.push('cagent');
     this.displayedColumns.push('shipment_date');
     this.displayedColumns.push('company');
     this.displayedColumns.push('department');
+    this.displayedColumns.push('status');
+    this.displayedColumns.push('product_count');
+    this.displayedColumns.push('is_completed');
     this.displayedColumns.push('description');
     this.displayedColumns.push('creator');
-    this.displayedColumns.push('status');
     this.displayedColumns.push('date_time_created');
   }
 
@@ -221,18 +285,20 @@ export class ShipmentComponent implements OnInit {
                 this.pagenum=this.receivedPagesList[1];
                 this.listsize=this.receivedPagesList[2];
                 this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
-                error => console.log(error)
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             ); 
   }
 
   getTable(){
+    this.gettingTableData=true;
     this.queryFormService.getTable(this.sendingQueryForm)
             .subscribe(
                 (data) => {
                   this.dataSource.data = data as any []; 
                   if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
+                  this.gettingTableData=false;
                 },
-                error => console.log(error) 
+                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
             );
   }
 
@@ -272,19 +338,19 @@ export class ShipmentComponent implements OnInit {
 
   createCheckedList(){
     this.checkedList = [];
-    // console.log("1");
+    console.log("1");
     for (var i = 0; i < this.dataSource.data.length; i++) {
-      // console.log("2");
+      console.log("2");
       if(this.selection.isSelected(this.dataSource.data[i]))
-        this.checkedList.push(this.dataSource.data[i].id);
+      this.checkedList.push(this.dataSource.data[i].id);
     }
     if(this.checkedList.length>0){
-      // console.log("3");
+      console.log("3");
         this.hideAllBtns();
         if(this.allowToDelete) this.visBtnDelete = true;
         if(this.checkedList.length==1){this.visBtnCopy = true}
-    }else{console.log("");this.showOnlyVisBtnAdd()}
-    // console.log("checkedList - "+this.checkedList);
+    }else{console.log("4");this.showOnlyVisBtnAdd()}
+    console.log("checkedList - "+this.checkedList);
   }
 
   hideAllBtns(){
@@ -341,12 +407,14 @@ export class ShipmentComponent implements OnInit {
     // console.log('shipment_companyId - '+Cookie.get('shipment_companyId'));
     // console.log('shipment_departmentId - '+Cookie.get('shipment_departmentId'));
     this.sendingQueryForm.departmentId="0"; 
+    this.resetOptions();
     this.getDepartmentsList();
   }
   onDepartmentSelection(){
     Cookie.set('shipment_departmentId',this.sendingQueryForm.departmentId);
     // console.log('shipment_companyId - '+Cookie.get('shipment_companyId'));
     // console.log('shipment_departmentId - '+Cookie.get('shipment_departmentId'));
+    this.resetOptions();
     this.getData();
   }
   clickBtnDelete(): void {
@@ -364,13 +432,18 @@ export class ShipmentComponent implements OnInit {
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
           return this.http.post('/api/auth/deleteShipment', body) 
-            .subscribe(
-                (data) => {   
-                            this.getData();
-                          },
-                error => console.log(error),
-            );
+  .subscribe((data) => {   
+    let result=data as any;
+    switch(result.result){
+      case 0:{this.getData();this.openSnackBar("Успешно удалено", "Закрыть");break;} 
+      case 1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе удаления "+(this.checkedList.length>1?"документов":"документа")+" проиошла ошибка")}});break;}
+      case 2:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для операции удаления"}});break;}
+      case 3:{let numbers:string='';
+        for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="/ui/shipmentdock/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
+        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Удаление невозможно - у следующих номеров документов есть производные (связанные с ними дочерние) документы:'+numbers}});break;}
     }
+  },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+}
     
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
@@ -384,7 +457,7 @@ export class ShipmentComponent implements OnInit {
                 (data) => {this.receivedCompaniesList=data as any [];
                   this.getSetOfPermissions();
                 },
-                error => console.log(error)
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             );
   }
   getMyId(){
@@ -393,7 +466,7 @@ export class ShipmentComponent implements OnInit {
             .subscribe(
                 (data) => {this.myId=data as any;
                   this.getMyCompanyId();},
-                error => console.log(error)
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             );
   }
   getMyCompanyId(){
@@ -401,7 +474,7 @@ export class ShipmentComponent implements OnInit {
       (data) => {
         this.myCompanyId=data as number;
         this.setDefaultCompany();
-      }, error => console.log(error));
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
   }
 
   setDefaultCompany(){
@@ -418,7 +491,7 @@ export class ShipmentComponent implements OnInit {
             .subscribe(
                 (data) => {this.receivedDepartmentsList=data as any [];
                             this.getMyDepartmentsList();},
-                error => console.log(error)
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             );
   }
 
@@ -428,7 +501,7 @@ export class ShipmentComponent implements OnInit {
             .subscribe(
                 (data) => {this.receivedMyDepartmentsList=data as any [];
                   this.setDefaultDepartment();},
-                error => console.log(error)
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             );
   }
 
@@ -475,5 +548,125 @@ export class ShipmentComponent implements OnInit {
         (!this.allowToViewAllCompanies && !this.allowToViewMyCompany && !this.allowToViewMyDepartments && this.allowToViewMyDocs)){
       this.receivedDepartmentsList=this.receivedMyDepartmentsList;}
   }
-
+      //*************************************************************   НАСТРОЙКИ   ************************************************************/    
+    // открывает диалог настроек
+    openDialogSettings() { 
+      const dialogSettings = this.settingsShipmentDialogComponent.open(SettingsShipmentDialogComponent, {
+        maxWidth: '95vw',
+        maxHeight: '95vh',
+        // height: '680px',
+        width: '400px', 
+        minHeight: '650px',
+        data:
+        { //отправляем в диалог:
+          receivedCompaniesList: this.receivedCompaniesList, //список предприятий
+          receivedDepartmentsList: this.receivedDepartmentsList,//список отделений
+          company_id: +this.sendingQueryForm.companyId, //предприятие (нужно для поиска покупателя)
+          department_type_price_id: null,
+          cagent_type_price_id: null,
+          default_type_price_id: null,
+          id: 0, //чтобы понять, новый док или уже созданный
+        },
+      });
+      dialogSettings.afterClosed().subscribe(result => {
+        if(result){
+          //если нажата кнопка Сохранить настройки - вставляем настройки в форму настроек и сохраняем
+        if(result.get('companyId')) this.settingsForm.get('companyId').setValue(result.get('companyId').value);
+        if(result.get('departmentId')) this.settingsForm.get('departmentId').setValue(result.get('departmentId').value);
+        if(result.get('customerId')) this.settingsForm.get('customerId').setValue(result.get('customerId').value);
+        if(result.get('customer')) this.settingsForm.get('customer').setValue(result.get('customer').value);
+        if(result.get('pricingType')) this.settingsForm.get('pricingType').setValue(result.get('pricingType').value);
+        if(result.get('plusMinus')) this.settingsForm.get('plusMinus').setValue(result.get('plusMinus').value);
+        if(result.get('changePrice')) this.settingsForm.get('changePrice').setValue(result.get('changePrice').value);
+        if(result.get('changePriceType')) this.settingsForm.get('changePriceType').setValue(result.get('changePriceType').value);
+        // if(result.get('name')) this.settingsForm.get('name').setValue(result.get('name').value);
+        if(result.get('priorityTypePriceSide')) this.settingsForm.get('priorityTypePriceSide').setValue(result.get('priorityTypePriceSide').value);
+        this.settingsForm.get('hideTenths').setValue(result.get('hideTenths').value);
+        this.settingsForm.get('saveSettings').setValue(result.get('saveSettings').value);
+        this.settingsForm.get('autocreate').setValue(result.get('autocreate').value);
+        this.settingsForm.get('statusIdOnComplete').setValue(result.get('statusIdOnComplete').value);
+        this.settingsForm.get('showKkm').setValue(result.get('showKkm').value);
+        this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
+          this.saveSettingsShipment();
+        }
+      });
+    }
+    // Сохраняет настройки
+    saveSettingsShipment(){
+      return this.http.post('/api/auth/saveSettingsShipment', this.settingsForm.value)
+              .subscribe(
+                  (data) => {   
+                            this.openSnackBar("Настройки успешно сохранены", "Закрыть");
+                            
+                          },
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+              );
+    }
+  //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
+  clickBtnRestore(): void {
+    const dialogRef = this.confirmDialog.open(ConfirmDialog, {
+      width: '400px',
+      data:
+      { 
+        head: 'Восстановление',
+        query: 'Восстановить выбранные отгрузки из удалённых?',
+        warning: '',
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){this.undeleteDocks();}
+      this.clearCheckboxSelection();
+      this.showOnlyVisBtnAdd();
+    });        
+  }
+  undeleteDocks(){
+    const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
+    this.clearCheckboxSelection();
+      return this.http.post('/api/auth/undeleteShipment', body) 
+    .subscribe(
+        (data) => {   
+                    this.getData();
+                    this.openSnackBar("Успешно восстановлено", "Закрыть");
+                  },
+        error => console.log(error),
+    );
+  }  
+  resetOptions(){
+    this.displayingDeletedDocks=false;
+    this.fillOptionsList();//перезаполняем список опций
+    this.selectionFilterOptions.clear();
+    this.sendingQueryForm.filterOptionsIds = [];
+  }
+  fillOptionsList(){
+    this.optionsIds=[{id:1, name:"Показать только удалённые"},];
+  }
+  clickApplyFilters(){
+    let showOnlyDeletedCheckboxIsOn:boolean = false; //присутствует ли включенный чекбокс "Показывать только удалённые"
+    this.selectionFilterOptions.selected.forEach(z=>{
+      if(z.id==1){showOnlyDeletedCheckboxIsOn=true;}
+    })
+    this.displayingDeletedDocks=showOnlyDeletedCheckboxIsOn;
+    this.clearCheckboxSelection();
+    this.sendingQueryForm.offset=0;//сброс пагинации
+    this.getData();
+  }
+  updateSortOptions(){//после определения прав пересматриваем опции на случай, если права не разрешают действия с определенными опциями, и исключаем эти опции
+    let i=0; 
+    this.optionsIds.forEach(z=>{
+      console.log("allowToDelete - "+this.allowToDelete);
+      if(z.id==1 && !this.allowToDelete){this.optionsIds.splice(i,1)}//исключение опции Показывать удаленные, если нет прав на удаление
+      i++;
+    });
+    if (this.optionsIds.length>0) this.displaySelectOptions=true; else this.displaySelectOptions=false;//если опций нет - не показываем меню опций
+  }
+  clickFilterOptionsCheckbox(row){
+    this.selectionFilterOptions.toggle(row); 
+    this.createFilterOptionsCheckedList();
+  } 
+  createFilterOptionsCheckedList(){//this.sendingQueryForm.filterOptionsIds - массив c id выбранных чекбоксов вида "7,5,1,3,6,2,4", который заполняется при нажатии на чекбокс
+    this.sendingQueryForm.filterOptionsIds = [];//                                                     
+    this.selectionFilterOptions.selected.forEach(z=>{
+      this.sendingQueryForm.filterOptionsIds.push(+z.id);
+    });
+  }
 }

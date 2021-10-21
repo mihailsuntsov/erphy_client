@@ -6,12 +6,14 @@ export class QueryForm{
     sortColumn: string;
     offset: any;
     sortAsc: any;
-    result: any;
+    result: any;//количество записей на странице
     companyId:any;
     departmentId:any;
     searchCategoryString:any;
+    filterOptionsIds: number[];
 
     //получаемые данные
+    arrClients: string [];
     htmlPagination: string [];
 
 }

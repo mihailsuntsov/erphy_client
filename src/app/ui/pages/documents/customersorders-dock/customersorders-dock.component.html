@@ -37,11 +37,46 @@
                         class="button">
                         <i class="material-icons">settings</i>
                     </button>
-                    
+                    <button 
+                        mat-button 
+                        [matMenuTriggerFor]="addDockMenu"
+                        mat-raised-button 
+                        matTooltip='Создать связанные документы, основанные на данной отгрузке'
+                        [disabled]="!childFormValid||!formBaseInformation.valid||productSearchAndTableComponent.indivisibleErrorOfProductTable" 
+                        *ngIf="+id>0 && productSearchAndTableComponent"
+                        color="primary"
+                        (submit)="false"
+                        type="button"
+                        class="button"
+                        style="width: 129px;height: 36px;min-width: 38px;">
+                        <i class="material-icons">add</i> Документ<i class="material-icons">arrow_drop_down</i>
+                    </button>
+                    <mat-menu #addDockMenu="matMenu" yPosition="below" xPosition="before">
+                        <button mat-menu-item (click)="goToNewDocument()">
+                            <span>Заказ покупателя</span>
+                        </button>
+                        <button mat-menu-item (click)="createLinkedDock('Shipment')">
+                            <span>Отгрузка</span>
+                        </button>
+                        <button mat-menu-item (click)="createLinkedDock('RetailSales')">
+                            <span>Розничная продажа</span>
+                        </button>
+                    </mat-menu>                    
+                    <button 
+                        style="width: 129px;height: 36px;min-width: 38px;"
+                        mat-raised-button 
+                        *ngIf=" +id>0 && allowToComplete && !is_completed && productSearchAndTableComponent"
+                        [disabled]="!childFormValid||productSearchAndTableComponent.indivisibleErrorOfProductTable" 
+                        (click)="completeDocument()" 
+                        type="button"
+                        color="primary"
+                        class="button">
+                        <i class="material-icons">playlist_add_check</i> Провести
+                    </button>
                     <button 
                         mat-raised-button 
                         style="width: 129px;height: 36px;"
-                        *ngIf="!is_completed && visBtnUpdate && canGetChilds"
+                        *ngIf="!is_completed && allowToUpdate && canGetChilds && +id>0"
                         (click)="updateDocument()"
                         [disabled]="!childFormValid" 
                         color="primary"
@@ -75,7 +110,11 @@
             <p class="subtitle">Покупатель: {{formBaseInformation.get('cagent').value}}</p>
         </mat-card-subtitle> -->
         <mat-card-content> 
-            <mat-tab-group>
+            <mat-tab-group
+            (focusChange)="myTabFocusChange($event)"
+            (selectedIndexChange)="myTabSelectedIndexChange($event)"  
+            (selectedTabChange)="myTabSelectedTabChange($event)"
+            (animationDone)="myTabAnimationDone()">
                     <mat-tab label="Информация">
                         <div class="container-fluid">
                             <div class="row">
@@ -605,12 +644,36 @@
                                         [saveSettings]="settingsForm.get('saveSettings').value"
                                         [receivedPriceTypesList]="receivedPriceTypesList"
                                         [spravSysNdsSet]="spravSysNdsSet"
-                                        [readonly]="false"
-                                        parent_document_id="CustomersOrders"
+                                        [readonly]="is_completed"
                                     ></app-product-search-and-table>
                                 </div>
                             </div>
                         </div>  
+                    </mat-tab>
+                    <mat-tab *ngIf="+id>0"  matTooltip="Связанные документы">
+                        <ng-template mat-tab-label>
+                            <div>Связанные</div><div><span [matBadge]="linkedDocsCount" matBadgeOverlap="false">&nbsp;</span></div>
+                        </ng-template>
+                        <div class="col-12">
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <mat-card  style="margin:10px 0 10px;width:100%;">
+                                        <mat-card-header>
+                                            <mat-card-title class="card-title">Связанные документы</mat-card-title>
+                                        </mat-card-header>
+                                        <mat-card-content class="input-form">
+                                            <mat-spinner *ngIf="loadingDocsScheme" strokeWidth="3" style=" position: absolute; top: 15%;left: calc(50% - 25px)" [diameter]="50"></mat-spinner>
+                                            <div id="graph" style="width:100%; height: 700px; text-align:center; margin-top:50px;"></div>
+                                            <div 
+                                            *ngIf="linkedDocsCount==0 && this.loadingDocsScheme==false"
+                                            class="no_linked_docs">
+                                                <span>Данный документ не имеет связей с другими документами</span>
+                                            </div>
+                                        </mat-card-content>
+                                    </mat-card> 
+                                </div>
+                            </div>
+                        </div>
                     </mat-tab>
                     <mat-tab  *ngIf="visAfterCreatingBlocks"  label="О документе">
                         <form [formGroup]="formAboutDocument">

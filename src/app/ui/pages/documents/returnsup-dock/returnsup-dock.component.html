@@ -45,7 +45,7 @@
                 type="button"
                 color="primary"
                 class="button">
-                <i class="material-icons">playlist_add_check</i> Завершить
+                <i class="material-icons">playlist_add_check</i> Провести
             </button>
             <!-- <button 
                 mat-button 
@@ -111,7 +111,11 @@
             </button>
         </mat-card-title>
         <mat-card-content> 
-            <mat-tab-group>
+            <mat-tab-group
+            (focusChange)="myTabFocusChange($event)"
+            (selectedIndexChange)="myTabSelectedIndexChange($event)"  
+            (selectedTabChange)="myTabSelectedTabChange($event)"
+            (animationDone)="myTabAnimationDone()">
                 <mat-tab label="Информация">
                     <div class="container-fluid">
                         <div class="row">
@@ -332,13 +336,31 @@
                         </div>
                     </div>  
                 </mat-tab>
-                <!-- <mat-tab *ngIf="+id>0"  matTooltip="Связанные документы">
+                <mat-tab *ngIf="+id>0"  matTooltip="Связанные документы">
                     <ng-template mat-tab-label>
-                        <p>
-                            <span [matBadge]="LinkedDocsWriteoff.length" matBadgeOverlap="false">Связанные</span>
-                        </p>
+                        <div>Связанные</div><div><span [matBadge]="linkedDocsCount" matBadgeOverlap="false">&nbsp;</span></div>
                     </ng-template>
-                </mat-tab> -->
+                    <div class="col-12">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <mat-card  style="margin:10px 0 10px;width:100%;">
+                                    <mat-card-header>
+                                        <mat-card-title class="card-title">Связанные документы</mat-card-title>
+                                    </mat-card-header>
+                                    <mat-card-content class="input-form">
+                                        <mat-spinner *ngIf="loadingDocsScheme" strokeWidth="3" style=" position: absolute; top: 15%;left: calc(50% - 25px)" [diameter]="50"></mat-spinner>
+                                        <div id="graph" style="width:100%; height: 700px; text-align:center; margin-top:50px;"></div>
+                                        <div 
+                                        *ngIf="linkedDocsCount==0 && this.loadingDocsScheme==false"
+                                        class="no_linked_docs">
+                                            <span>Данный документ не имеет связей с другими документами</span>
+                                        </div>
+                                    </mat-card-content>
+                                </mat-card> 
+                            </div>
+                        </div>
+                    </div>
+                </mat-tab>
                 <mat-tab *ngIf="+id>0">
                     <ng-template mat-tab-label>
                         <p>

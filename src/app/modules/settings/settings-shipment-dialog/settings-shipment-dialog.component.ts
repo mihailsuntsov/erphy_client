@@ -24,12 +24,12 @@ interface statusInterface{
   is_default:boolean;
 }
 @Component({
-  selector: 'app-settings-rs-dialog',
-  templateUrl: './settings-rs-dialog.component.html',
-  styleUrls: ['./settings-rs-dialog.component.css'],
+  selector: 'app-settings-shipment-dialog',
+  templateUrl: './settings-shipment-dialog.component.html',
+  styleUrls: ['./settings-shipment-dialog.component.css'],
   providers: [LoadSpravService,]
 })
-export class SettingsRetailsalesDialogComponent implements OnInit {
+export class SettingsShipmentDialogComponent implements OnInit {
 
   gettingData:boolean=false;
   settingsForm: any; // форма со всей информацией по настройкам
@@ -57,7 +57,7 @@ export class SettingsRetailsalesDialogComponent implements OnInit {
   id:number; 
 
   constructor(private http: HttpClient,
-    public SettingsDialog: MatDialogRef<SettingsRetailsalesDialogComponent>,
+    public SettingsDialog: MatDialogRef<SettingsShipmentDialogComponent>,
     public MessageDialog: MatDialog,
     private loadSpravService:   LoadSpravService,
     @Inject(MAT_DIALOG_DATA) public data: any,) { }
@@ -105,15 +105,15 @@ export class SettingsRetailsalesDialogComponent implements OnInit {
       //название покупателя по умолчанию
       customer: new FormControl                 ('',[]),
       //наименование заказа
-      name:  new FormControl                    ('',[]),
+      // name:  new FormControl                    ('',[]),
       //приоритет типа цены : Склад (sklad) Покупатель (cagent) Цена по-умолчанию (defprice)
       priorityTypePriceSide: new FormControl    ('defprice',[]),
       //автосоздание на старте документа, если автозаполнились все поля
       // autocreateOnStart: new FormControl        (false,[]),
       //автосоздание нового документа, если в текущем успешно напечатан чек
-      autocreateOnCheque: new FormControl       (false,[]),
+      autocreate: new FormControl       (false,[]),
       //статус после успешного отбития чека, перед созданием нового документа
-      statusIdOnAutocreateOnCheque: new FormControl(null,[]),
+      statusIdOnComplete: new FormControl(null,[]),
       // отображать блок работы с онлайн кассой 
       showKkm:  new FormControl                 (false,[]),
       // автодобавление товара в таблицу товаров
@@ -127,7 +127,7 @@ export class SettingsRetailsalesDialogComponent implements OnInit {
   getSettings(){
     let result:any;
     this.gettingData=true;
-    this.http.get('/api/auth/getSettingsRetailSales').subscribe
+    this.http.get('/api/auth/getSettingsShipment').subscribe
     (
       data => 
       { 
@@ -139,7 +139,7 @@ export class SettingsRetailsalesDialogComponent implements OnInit {
         this.settingsForm.get('customerId').setValue(result.customerId);
         this.settingsForm.get('customer').setValue(result.customer);
         this.searchCustomerCtrl.setValue(result.customer);
-        this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.statusIdOnAutocreateOnCheque);
+        this.settingsForm.get('statusIdOnComplete').setValue(result.statusIdOnComplete);
         //данная группа настроек не зависит от предприятия
         this.settingsForm.get('pricingType').setValue(result.pricingType?result.pricingType:'priceType');
         this.settingsForm.get('plusMinus').setValue(result.plusMinus?result.plusMinus:'plus');
@@ -147,10 +147,9 @@ export class SettingsRetailsalesDialogComponent implements OnInit {
         this.settingsForm.get('changePriceType').setValue(result.changePriceType?result.changePriceType:'procents');
         this.settingsForm.get('hideTenths').setValue(result.hideTenths);
         this.settingsForm.get('saveSettings').setValue(result.saveSettings);
-        this.settingsForm.get('name').setValue(result.name/*?result.name:''*/);
+        // this.settingsForm.get('name').setValue(result.name/*?result.name:''*/);
         this.settingsForm.get('priorityTypePriceSide').setValue(result.priorityTypePriceSide?result.priorityTypePriceSide:'defprice');
-        // this.settingsForm.get('autocreateOnStart').setValue(result.autocreateOnStart);
-        this.settingsForm.get('autocreateOnCheque').setValue(result.autocreateOnCheque);
+        this.settingsForm.get('autocreate').setValue(result.autocreate);
         this.settingsForm.get('showKkm').setValue(result.showKkm);
         this.settingsForm.get('autoAdd').setValue(result.autoAdd);
         
@@ -166,14 +165,13 @@ export class SettingsRetailsalesDialogComponent implements OnInit {
   onCompanyChange(){
     this.settingsForm.get('departmentId').setValue(null);
     this.searchCustomerCtrl.setValue('');
-    this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(null);
+    this.settingsForm.get('statusIdOnComplete').setValue(null);
     this.checkEmptyCagentField();
     this.getDepartmentsList();
     this.getStatusesList();
   }
   getDepartmentsList(newdock?:boolean){
     this.receivedDepartmentsList=null;
-    // this.formBaseInformation.get('department_id').setValue('');
     this.loadSpravService.getDepartmentsListByCompanyId(this.settingsForm.get('companyId').value,false)
             .subscribe(
                 (data) => {this.receivedDepartmentsList=data as any [];
@@ -267,11 +265,11 @@ export class SettingsRetailsalesDialogComponent implements OnInit {
   //------------------------------С Т А Т У С Ы-------------------------------------------------
   getStatusesList(){
     this.receivedStatusesList=null;
-    this.loadSpravService.getStatusList(this.settingsForm.get('companyId').value,25) //25 - id документа из таблицы documents
+    this.loadSpravService.getStatusList(this.settingsForm.get('companyId').value,21) //21 - id документа из таблицы documents
       .subscribe(
           (data) => 
           { this.receivedStatusesList=data as statusInterface[];
-            if(+this.settingsForm.get('statusIdOnAutocreateOnCheque').value==0) this.setDefaultStatus();
+            if(+this.settingsForm.get('statusIdOnComplete').value==0) this.setDefaultStatus();
             this.setStatusColor();
           },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
@@ -283,7 +281,7 @@ export class SettingsRetailsalesDialogComponent implements OnInit {
     {
       this.receivedStatusesList.forEach(a=>{
           if(a.is_default){
-            this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(a.id);
+            this.settingsForm.get('statusIdOnComplete').setValue(a.id);
           }
       });
     }
@@ -292,7 +290,7 @@ export class SettingsRetailsalesDialogComponent implements OnInit {
   setStatusColor():void{
     this.receivedStatusesList.forEach(m=>
       {
-        if(m.id==+this.settingsForm.get('statusIdOnAutocreateOnCheque').value){
+        if(m.id==+this.settingsForm.get('statusIdOnComplete').value){
           this.status_color=m.color;
         }
       });

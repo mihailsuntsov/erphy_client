@@ -115,8 +115,6 @@ export class SettingsCustomersordersDialogComponent implements OnInit {
       priorityTypePriceSide: new FormControl    ('defprice',[]),
       //автосоздание на старте документа, если автозаполнились все поля
       autocreateOnStart: new FormControl        (false,[]),
-      //автосоздание нового документа, если в текущем успешно напечатан чек
-      autocreateOnCheque: new FormControl       (false,[]),
       //статус после успешного отбития чека, перед созданием нового документа
       statusIdOnAutocreateOnCheque: new FormControl(null,[]),
     });
@@ -151,7 +149,6 @@ export class SettingsCustomersordersDialogComponent implements OnInit {
         this.settingsForm.get('name').setValue(result.name/*?result.name:''*/);
         this.settingsForm.get('priorityTypePriceSide').setValue(result.priorityTypePriceSide?result.priorityTypePriceSide:'defprice');
         this.settingsForm.get('autocreateOnStart').setValue(result.autocreateOnStart);
-        this.settingsForm.get('autocreateOnCheque').setValue(result.autocreateOnCheque);
         if(+this.settingsForm.get('companyId').value>0){
           this.getDepartmentsList();
           this.getStatusesList();

@@ -194,8 +194,9 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   @Input() receivedPriceTypesList: idNameDescription[];//массив для получения списка типов цен
   @Input() spravSysNdsSet: SpravSysNdsSet[]; //массив имен и id для ндс 
   @Input() readonly:boolean;
-  @Input() parent_document_id:string;// из какого документа вызывают. Например, CustomersOrders, RetailSales
+  // @Input() parent_document_id:string;// из какого документа вызывают. Например, CustomersOrders, RetailSales
   @Input() autoAdd:boolean;//автодобавление товара из формы поиска товара в таблицу
+  @Input() routedProductsTable:CustomersOrdersProductTable[]; //данные, которые передаем в Розн. продажу при ее создании из Заказа покупателя. Здесь они нужны, чтобы заполнить таблицу товаров
 
   @Output() totalSumPriceEvent = new EventEmitter<string>();
 
@@ -285,7 +286,12 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   doOnInit(){
     this.formSearch.get('secondaryDepartmentId').setValue(this.department_id);
     this.hideOrShowNdsColumn();
-    this.getProductsTable();
+
+    if(!this.routedProductsTable)
+      this.getProductsTable();
+    else
+      this.getRoutedProductsTable();
+
     this.getSpravSysEdizm(); //загрузка единиц измерения.
     this.setCurrentTypePrice();
     this.onProductSearchValueChanges();//отслеживание изменений поля "Поиск товара"
@@ -320,7 +326,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
     this.isThereSelected() ?
     this.resetSelecion() :
     this.formBaseInformation.controls.customersOrdersProductTable.value.forEach(row => {
-          if(this.showCheckbox(row)){this.selection.select(row);}//если чекбокс отображаем, значит можно удалять этот документ
+          if(this.showCheckbox(row)){this.selection.select(row);}
         });
         this.createCheckedList();
     this.isAllSelected();
@@ -352,7 +358,6 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
     return this.selection.selected.length>0;
   } 
   showCheckbox(row:CustomersOrdersProductTable):boolean{
-    // if(!(+row.shipped>0))return true; else return false;
     return true;
   }
 // --------------------------------------- *** КОНЕЦ ЧЕКБОКСОВ  *** -------------------------------------
@@ -410,6 +415,17 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
       indivisible:  new FormControl (row.indivisible,[]),
     });
   }
+
+  getRoutedProductsTable(){
+    const control = <FormArray>this.formBaseInformation.get('customersOrdersProductTable');
+    control.clear();
+    this.routedProductsTable.forEach(row=>{
+      control.push(this.formingProductRowFromApiResponse(row));
+    });
+    this.finishRecount();// подсчёт итогов у таблицы
+  }
+
+
   addProductRow() 
   { 
   let thereProductInTableWithSameId:boolean=false;
@@ -499,8 +515,9 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
 
   hideOrShowNdsColumn(){
     this.displayedColumns=[];
-    if(this.parentDockName=='CustomersOrders')
-      this.displayedColumns.push('select');
+    if(!this.readonly)
+      if(this.parentDockName=='CustomersOrders')
+        this.displayedColumns.push('select');
     this.displayedColumns.push('name','product_count','edizm','product_price','product_sumprice');
     if(this.parentDockName=='CustomersOrders')
       this.displayedColumns.push('reserved_current');
@@ -563,23 +580,25 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
         const control = <FormArray>this.formBaseInformation.get('customersOrdersProductTable');
-        if(+row.id==0){// ещё не сохраненная позиция, можно не удалять с сервера (т.к. ее там нет), а только удалить локально
+        // if(+row.id==0){// ещё не сохраненная позиция, можно не удалять с сервера (т.к. ее там нет), а только удалить локально
           control.removeAt(index);
           this.getTotalSumPrice();//чтобы пересчиталась сумма в чеке
           this.refreshTableColumns();//чтобы глючные input-поля в таблице встали на свои места. Это у Ангуляра такой прикол
           this.finishRecount(); // подсчёт тоталов в таблице
-        }else{ //нужно удалить с сервера и перезагрузить таблицу 
-          this.http.get('/api/auth/deleteCustomersOrdersProductTableRow?id='+row.id)
-          .subscribe(
-              data => { 
-                this.getProductsTable();
-                this.openSnackBar("Товар успешно удалён", "Закрыть");
-                this.finishRecount(); // подсчёт тоталов в таблице
 
-              },
-              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-          );
-        }
+          
+        // }else{ //нужно удалить с сервера и перезагрузить таблицу 
+          // this.http.get('/api/auth/deleteCustomersOrdersProductTableRow?id='+row.id)
+          // .subscribe(
+              // data => { 
+                // this.getProductsTable();
+                // this.openSnackBar("Товар успешно удалён", "Закрыть");
+                // this.finishRecount(); // подсчёт тоталов в таблице
+
+              // },
+              // error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+          // );
+        // }
       }
     }); 
   }
@@ -831,7 +850,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
     this.calcSumPriceOfProduct();
   }
   updateSettings(){
-    return this.http.post('/api/auth/saveSettings'+this.parent_document_id, this.settingsForm.value)
+    return this.http.post('/api/auth/saveSettings'+this.parentDockName, this.settingsForm.value)
             .subscribe(
                 (data) => {   
                           this.openSnackBar("Настройки успешно сохранены", "Закрыть");
@@ -1218,7 +1237,11 @@ recountTotals(){
       if(t['indivisible'] && t['product_count']!='' && !Number.isInteger(parseFloat(t['product_count']))){
         result=true;
       }
-      if(t['indivisible'] && t['reserved_current']!='' && !Number.isInteger(parseFloat(t['reserved_current']))){
+      // console.log('indivisible - '+t['indivisible']+', reserved_current !="" - '+(t['reserved_current']!='')+ ', !is_integer - '+(!Number.isInteger(parseFloat(t['reserved_current']))))
+      // console.log(parseFloat(t['reserved_current'])+' - Это число целое? - '+Number.isInteger(parseFloat(t['reserved_current'])))
+
+      // На целочисленность резервов проверяем только в случае, если данный компонент вызван из Заказа покупателя, т.к. поле Резерв актуально только для данного документа
+      if(this.parentDockName=='CustomersOrders' && t['indivisible'] && t['reserved_current']!='' && !Number.isInteger(parseFloat(t['reserved_current']))){
         result=true;
       }
     })

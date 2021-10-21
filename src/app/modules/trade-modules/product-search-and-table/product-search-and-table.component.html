@@ -7,7 +7,7 @@
                     
                     <div class="flex card" style="padding: 0px 15px; font-size: 20px;">
                         <div class="card-name">
-                            {{readonly?'Реализованные товары':'Поиск и добавление товара'}}
+                            {{(readonly&&parentDockName=='RetailSales')?'Реализованные товары':'Поиск и добавление товара'}}
                         </div>
                         <div>
                             
@@ -431,7 +431,7 @@
                                                                 <mat-form-field 
                                                                 class="mat-form-field-100" 
                                                                 style="margin-top:-9px" 
-                                                                *ngIf="parent_document_id=='CustomersOrders'">
+                                                                *ngIf="parentDockName=='CustomersOrders'">
                                                                     <mat-slide-toggle 
                                                                     formControlName="reserve"
                                                                     (click)="onClickReserveSwitcher()"
@@ -501,7 +501,7 @@
                                         <td mat-cell *matCellDef="let row; let i = index" 
                                         [formGroupName]="i"
                                         [matTooltip]="((getControlTablefield().controls[i].get('product_count').value>(getControlTablefield().controls[i].get('available').value)&&getControlTablefield().controls[i].get('is_material').value)&&!(getControlTablefield().controls[i].get('product_count').invalid && getControlTablefield().controls[i].get('product_count').errors.pattern)) ? 'Количество товара больше доступного количетсва' : ''"
-                                        [ngStyle]="   ((getControlTablefield().controls[i].get('product_count').value>(getControlTablefield().controls[i].get('available').value)&&getControlTablefield().controls[i].get('is_material').value)&&!(getControlTablefield().controls[i].get('product_count').invalid && getControlTablefield().controls[i].get('product_count').errors.pattern))?{'background-color': '#ffe4e1'}:{'background-color': 'white'}">
+                                        [ngStyle]="   ((getControlTablefield().controls[i].get('product_count').value>((getControlTablefield().controls[i].get('available').value)+getControlTablefield().controls[i].get('shipped').value)&&getControlTablefield().controls[i].get('is_material').value)&&!(getControlTablefield().controls[i].get('product_count').invalid && getControlTablefield().controls[i].get('product_count').errors.pattern))?{'background-color': '#ffe4e1'}:{'background-color': 'white'}">
                                             <input matInput 
                                                 class="table-field-editable"
                                                 [ngClass]="{'table-field-editable':!readonly}"
@@ -647,7 +647,11 @@
                                             Отгружено
                                         </span>
                                         </th>
-                                        <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> {{row.shipped}} </td>
+                                        <td mat-cell 
+                                        *matCellDef="let row; let i = index" 
+                                        [formGroupName]="i"
+                                        [ngStyle]="((getControlTablefield().controls[i].get('product_count').value<=(getControlTablefield().controls[i].get('shipped').value)&&getControlTablefield().controls[i].get('is_material').value)&&!(getControlTablefield().controls[i].get('product_count').invalid && getControlTablefield().controls[i].get('product_count').errors.pattern))?{'background-color': '#bbfebc'}:{'background-color': 'white'}"
+                                        > {{row.shipped}} </td>
                                         <td mat-footer-cell *matFooterCellDef></td>
                                     </ng-container>
                                     <ng-container matColumnDef="price_type" [formArrayName]="'customersOrdersProductTable'">

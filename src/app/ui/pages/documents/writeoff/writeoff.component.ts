@@ -7,7 +7,7 @@ import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text
 import { HttpClient } from '@angular/common/http';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Validators } from '@angular/forms';
-import { LoadSpravService } from './loadsprav';
+import { LoadSpravService } from '../../../../services/loadsprav';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { QueryFormService } from './get-writeoff-table.service';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';

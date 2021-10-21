@@ -182,6 +182,10 @@ export class RetailsalesComponent implements OnInit {
       autocreateOnCheque: new FormControl       (false,[]),
       //статус после успешного отбития чека, перед созданием нового документа
       statusIdOnAutocreateOnCheque: new FormControl('',[]),
+      // отображать блок работы с онлайн кассой 
+      showKkm:  new FormControl                 (false,[]),
+      // автодобавление товара в таблицу товаров
+      autoAdd:  new FormControl                 (false,[]),
     });
       this.getCompaniesList();// 
       // -> getSetOfPermissions() 
@@ -596,6 +600,8 @@ export class RetailsalesComponent implements OnInit {
         // this.settingsForm.get('autocreateOnStart').setValue(result.get('autocreateOnStart').value);
         this.settingsForm.get('autocreateOnCheque').setValue(result.get('autocreateOnCheque').value);
         this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.get('statusIdOnAutocreateOnCheque').value);
+        this.settingsForm.get('showKkm').setValue(result.get('showKkm').value);
+        this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
         this.saveSettingsRetailSales();
       }
     });

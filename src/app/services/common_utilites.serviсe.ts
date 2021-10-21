@@ -54,4 +54,32 @@ export class CommonUtilitesService{
     const b = charsAfterDot - (a.length - dot) + 1;
     return b > 0 ? (a + "0".repeat(b)) : a;
   }
+
+  getDocNameByDocAlias(alias: string): string{
+    alias=alias.toLowerCase();
+    switch(alias){
+      case 'return':        {return 'Возврат покупателя';}
+      case 'returnsup':     {return 'Возврат поставщику';}
+      case 'retailsales':   {return 'Розничная продажа';}
+      case 'posting':       {return 'Оприходование';}
+      case 'shipment':      {return 'Отгрузка';}
+      default:               return ('документ');
+    }
+  }
+
+  //Отдает названия методов для маппинга в соответствующие названия сетов в бэкэнде (например для аргумента 'Posting' отдаст 'postingProductTable', который замаппится в этоn сет: private Set<PostingProductForm> postingProductTable;)
+  getMethodNameByDocAlias(alias: string): string{
+    alias=alias.toLowerCase();
+    switch(alias){
+      case 'posting':         {return 'postingProductTable';}
+      case 'shipment':        {return 'shipmentProductTable';}
+      case 'returnsup':       {return 'returnsupProductTable';}
+      case 'return':          {return 'returnProductTable';}
+      case 'retailsales':     {return 'retailSalesProductTable';}
+      default:               return (null);
+    }
+  }
+
+
+
 }

@@ -92,6 +92,8 @@ export class CustomersordersComponent implements OnInit {
 
   showOpenDocIcon:boolean=false;
 
+  gettingTableData:boolean=true;
+
   numRows: NumRow[] = [
     {value: '5', viewValue: '5'},
     {value: '10', viewValue: '10'},
@@ -267,8 +269,11 @@ export class CustomersordersComponent implements OnInit {
     if(this.showOpenDocIcon) this.displayedColumns.push('opendoc');
     this.displayedColumns.push('doc_number');
     this.displayedColumns.push('name');
+    this.displayedColumns.push('cagent');
     this.displayedColumns.push('status');
+    this.displayedColumns.push('product_count');
     this.displayedColumns.push('sum_price');
+    this.displayedColumns.push('is_completed');    
     this.displayedColumns.push('shipment_date');
     // this.displayedColumns.push('description');
     this.displayedColumns.push('company');
@@ -292,14 +297,16 @@ export class CustomersordersComponent implements OnInit {
             ); 
   }
 
-  getTable(){
+  getTable(){    
+    this.gettingTableData=true;
     this.queryFormService.getTable(this.sendingQueryForm)
             .subscribe(
                 (data) => {
                   this.dataSource.data = data as any []; 
                   if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
+                  this.gettingTableData=false;
                 },
-                error => console.log(error) 
+                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
             );
   }
 

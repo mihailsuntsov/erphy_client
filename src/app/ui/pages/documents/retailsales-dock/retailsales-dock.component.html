@@ -391,7 +391,7 @@
                                     [receivedPriceTypesList]="receivedPriceTypesList"
                                     [spravSysNdsSet]="spravSysNdsSet"
                                     [readonly]="+id>0"
-                                    parent_document_id="RetailSales"
+                                    [routedProductsTable] = "routerAdditionalData?routerAdditionalData.retailSalesProductTable:null"
                                 ></app-product-search-and-table>
                             </div>
                         </div>

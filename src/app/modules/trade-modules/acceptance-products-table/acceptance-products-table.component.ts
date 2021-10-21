@@ -175,6 +175,7 @@ export class AcceptanceProductsTableComponent implements OnInit {
     this.onProductSearchValueChanges();//отслеживание изменений поля "Поиск товара"
   }
   showColumns(){
+    
     this.displayedColumns=[];
     // if(!this.readonly)
       // this.displayedColumns.push('select');

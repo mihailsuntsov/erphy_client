@@ -88,6 +88,7 @@ interface DockResponse {//интерфейс для получения отве�
   additional_address: string;
   receipt_id: number;
   uid:string;
+  customers_orders_id:number;
 }
 interface FilesInfo {
   id: string;
@@ -252,6 +253,9 @@ export class RetailsalesDockComponent implements OnInit {
   canCagentAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredCagents: any;
 
+  routerAdditionalData: any;
+
+
   constructor(private activateRoute: ActivatedRoute,
     private cdRef:ChangeDetectorRef,
     private _fb: FormBuilder, //чтобы билдить группу форм retailSalesProductTable
@@ -267,9 +271,14 @@ export class RetailsalesDockComponent implements OnInit {
     { 
       if(activateRoute.snapshot.params['id'])
         this.id = +activateRoute.snapshot.params['id'];
+      // В Розничную продажу можно создать, перейдя в нее из Заказа покупателя. В данном случае необходимо передать в Роз.н продажу все нужные данные, и "поселить" их тут
+      // routerAdditionalData - объект с этими данными. 
+      try{this.routerAdditionalData = this._router.getCurrentNavigation().extras.state.productdetails.queryParams;} catch (e) {this.routerAdditionalData=null;}
     }
 
   ngOnInit() {
+    console.log('--------**************************----------')
+    console.log(this.routerAdditionalData);
     this.formBaseInformation = new FormGroup({
       id: new FormControl                 (this.id,[]),
       company_id: new FormControl         (null,[Validators.required]),
@@ -287,8 +296,13 @@ export class RetailsalesDockComponent implements OnInit {
       status_name: new FormControl        ('',[]),
       status_color: new FormControl       ('',[]),
       status_description: new FormControl ('',[]),
+      customers_orders_id: new FormControl ('',[]),
       new_cagent: new FormControl         ({disabled: true, value: '' },[Validators.required]),
-      uid: new FormControl                ('',[]),//eybr идентификатор для создаваемой розн. продажи, чтобы избежать дублей
+      uid: new FormControl                ('',[]), // uid идентификатор для создаваемой Розн. продажи. Нужен для построения связанности между документами, или например, чтобы избежать дублей при создании
+      linked_doc_id: new FormControl      ('',[]), // id связанного документа (того, из которого инициируется создание данного документа)
+      parent_uid: new FormControl         ('',[]), // uid исходящего (родительского) документа
+      child_uid: new FormControl          ('',[]), // uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
+      linked_doc_name: new FormControl    ('',[]), // имя (таблицы) связанного документа
     });
     this.formAboutDocument = new FormGroup({
       id: new FormControl                       ('',[]),
@@ -786,27 +800,40 @@ export class RetailsalesDockComponent implements OnInit {
 
   //если новый документ - вставляем Отделение и Покупателя (но только если они принадлежат выбранному предприятию, т.е. предприятие в Основной информации и предприятие, для которого были сохранены настройки совпадают)
   setDefaultInfoOnStart(){
-    if(+this.id==0){//документ новый
-      this.formBaseInformation.get('company_id').setValue(this.settingsForm.get('companyId').value)
-      // if(+departmentId>0){
+    if(+this.id==0){//документ новый 
+      if(!this.routerAdditionalData){ // и создается из меню "Розничные продажи" кнопкой "Создать"
+        this.formBaseInformation.get('company_id').setValue(this.settingsForm.get('companyId').value)
         this.formBaseInformation.get('department_id').setValue(this.settingsForm.get('departmentId').value);
-      // }
-      if(+this.settingsForm.get('customerId').value>0){
-        this.searchCagentCtrl.setValue(this.settingsForm.get('customer').value);
-        this.formBaseInformation.get('cagent_id').setValue(this.settingsForm.get('customerId').value);
-        this.formBaseInformation.get('cagent').setValue(this.settingsForm.get('customer').value);
-      } else {
-        this.searchCagentCtrl.setValue(null);
-        this.formBaseInformation.get('cagent_id').setValue(null);
-        this.formBaseInformation.get('cagent').setValue('');
-      }
-      this.formBaseInformation.get('name').setValue(this.settingsForm.get('name').value);
-      
-      if(!this.startProcess){
-        // меняем отделение в модуле "Поиск и добавление товара" и перезапускаем модуль
-        this.productSearchAndTableComponent.department_id=this.formBaseInformation.get('department_id').value;
-        this.productSearchAndTableComponent.doOnInit();
-        // this.afterChangeSettings=false;
+        if(+this.settingsForm.get('customerId').value>0){
+          this.searchCagentCtrl.setValue(this.settingsForm.get('customer').value);
+          this.formBaseInformation.get('cagent_id').setValue(this.settingsForm.get('customerId').value);
+          this.formBaseInformation.get('cagent').setValue(this.settingsForm.get('customer').value);
+        } else {
+          this.searchCagentCtrl.setValue(null);
+          this.formBaseInformation.get('cagent_id').setValue(null);
+          this.formBaseInformation.get('cagent').setValue('');
+        }
+        this.formBaseInformation.get('name').setValue(this.settingsForm.get('name').value);
+        if(!this.startProcess){
+          // меняем отделение в модуле "Поиск и добавление товара" и перезапускаем модуль
+          this.productSearchAndTableComponent.department_id=this.formBaseInformation.get('department_id').value;
+          this.productSearchAndTableComponent.doOnInit();
+        }
+      } else { // создается из другого документа (например, из "Заказа покупателя"), и routerAdditionalData содержит информацию для нового документа Розничная продажа
+        this.formBaseInformation.get('customers_orders_id').setValue(this.routerAdditionalData.customers_orders_id);
+        this.formBaseInformation.get('company_id').setValue(this.routerAdditionalData.company_id);
+        this.formBaseInformation.get('department_id').setValue(this.routerAdditionalData.department_id);
+        this.searchCagentCtrl.setValue(this.routerAdditionalData.cagent);
+        this.formBaseInformation.get('cagent_id').setValue(this.routerAdditionalData.cagent_id);
+        this.formBaseInformation.get('cagent').setValue(this.routerAdditionalData.cagent);
+        this.formBaseInformation.get('name').setValue("Продажа из Заказа покупателя №"+this.routerAdditionalData.doc_number);
+        this.formBaseInformation.get('nds').setValue(this.routerAdditionalData.nds);
+        this.formBaseInformation.get('uid').setValue(this.routerAdditionalData.child_uid);
+        this.formBaseInformation.get('nds_included').setValue(this.routerAdditionalData.nds_included);
+        this.formBaseInformation.get('linked_doc_id').setValue(this.routerAdditionalData.linked_doc_id);//id связанного документа (того, из которого инициируется создание данного документа)
+        this.formBaseInformation.get('parent_uid').setValue(this.routerAdditionalData.parent_uid);// uid исходящего (родительского) документа
+        this.formBaseInformation.get('child_uid').setValue(this.formBaseInformation.get('uid').value);// uid дочернего документа. Дочерний - не всегда тот, которого создают из какого-либо документа. Это документ, который находится ниже по их логической иерархии. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
+        this.formBaseInformation.get('linked_doc_name').setValue('customers_orders');//имя (таблицы) связанного документа (того, ИЗ которого создаём, например Заказа покупателя - customers_orders)
       }
     }
   }
@@ -860,6 +887,7 @@ export class RetailsalesDockComponent implements OnInit {
                 this.formBaseInformation.get('status_color').setValue(documentValues.status_color);
                 this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
                 this.formBaseInformation.get('uid').setValue(documentValues.uid);
+                this.formBaseInformation.get('customers_orders_id').setValue(documentValues.customers_orders_id);
                 this.department_type_price_id=documentValues.department_type_price_id;
                 this.cagent_type_price_id=documentValues.cagent_type_price_id;
                 this.default_type_price_id=documentValues.default_type_price_id;
@@ -1016,7 +1044,8 @@ export class RetailsalesDockComponent implements OnInit {
       //если в настройках есть статус, присваеваемый документу при создании, выставляем его
       if(this.settingsForm.get('statusIdOnAutocreateOnCheque').value)
         this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnAutocreateOnCheque').value);
-      this.formBaseInformation.get('uid').setValue(uuidv4());
+      if(this.formBaseInformation.get('uid').value=='')//uid может быть присвоен при создании Розничной продажи из другого документа, так что тут присваеваем, если uid еще нет
+        this.formBaseInformation.get('uid').setValue(uuidv4());
       this.http.post('/api/auth/insertRetailSales', this.formBaseInformation.value)
         .subscribe(
         (data) => {

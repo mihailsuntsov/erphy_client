@@ -11,7 +11,10 @@ import { SettingsAcceptanceDialogComponent } from 'src/app/modules/settings/sett
 import { AcceptanceProductsTableComponent } from 'src/app/modules/trade-modules/acceptance-products-table/acceptance-products-table.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { Router } from '@angular/router';
-import { ReturnsupDockComponent } from '../returnsup-dock/returnsup-dock.component';
+import { v4 as uuidv4 } from 'uuid';
+import { CommonUtilitesService } from 'src/app/services/common_utilites.serviсe';
+import { MatTabChangeEvent } from '@angular/material/tabs';
+import { graphviz }  from 'd3-graphviz';
 import { FilesComponent } from '../files/files.component';
 import { FilesDockComponent } from '../files-dock/files-dock.component';
 import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from '@angular/material/core';
@@ -74,6 +77,7 @@ interface DockResponse {//интерфейс для получения отве�
   status_name: string;
   status_color: string;
   status_description: string;
+  uid:string;
 }
 interface FilesInfo {
   id: string;
@@ -128,7 +132,7 @@ interface SpravSysNdsSet{
   selector: 'app-acceptance-dock',
   templateUrl: './acceptance-dock.component.html',
   styleUrls: ['./acceptance-dock.component.css'],
-  providers: [LoadSpravService,
+  providers: [LoadSpravService, CommonUtilitesService,
     {provide: MAT_DATE_LOCALE, useValue: 'ru'},
     {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},]
@@ -166,7 +170,7 @@ export class AcceptanceDockComponent implements OnInit {
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
   formBaseInformation: FormGroup; //массив форм для накопления информации о Возврате поставщику
   settingsForm: any; // форма с настройками
-  formReturnsup:any// Форма для отправки при создании Возврата поставщику
+  formLinkedDocs: any;  // Форма для отправки при создании связанных документов
 
   //переменные для управления динамическим отображением элементов
   // visAfterCreatingBlocks = true; //блоки, отображаемые ПОСЛЕ создания документа (id >0)
@@ -176,6 +180,13 @@ export class AcceptanceDockComponent implements OnInit {
   isCagentListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canCagentAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredCagents: any;
+
+  //для построения диаграмм связанности
+  tabIndex=0;// индекс текущего отображаемого таба (вкладки)
+  linkedDocsCount:number = 0; // кол-во документов в группе, ЗА ИСКЛЮЧЕНИЕМ текущего
+  linkedDocsText:string = ''; // схема связанных документов (пример - в самом низу)
+  loadingDocsScheme:boolean = false;
+  linkedDocsSchemeDisplayed:boolean = false;
 
   //переменные прав
   permissionsSet: any[];//сет прав на документ
@@ -208,6 +219,7 @@ export class AcceptanceDockComponent implements OnInit {
     private http: HttpClient,
     public ConfirmDialog: MatDialog,
     public dialogAddFiles: MatDialog,
+    private commonUtilites: CommonUtilitesService,
     public SettingsAcceptanceDialogComponent: MatDialog,
     public dialogCreateProduct: MatDialog,
     @Optional() @Inject(MAT_DIALOG_DATA) public data: any,
@@ -240,7 +252,8 @@ export class AcceptanceDockComponent implements OnInit {
       is_completed: new FormControl       (false,[]),
       overhead: new FormControl      ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       overhead_netcost_method: new FormControl      (0,[]),
-      acceptanceProductTable: new FormArray([])
+      acceptanceProductTable: new FormArray([]),
+      uid: new FormControl                ('',[]),// uuid идентификатор
     });
     this.formAboutDocument = new FormGroup({
       id: new FormControl                       ('',[]),
@@ -252,23 +265,30 @@ export class AcceptanceDockComponent implements OnInit {
       date_time_changed: new FormControl        ('',[]),
     });
 
-    // Форма для отправки при создании Возврата поставщику
-      this.formReturnsup = new FormGroup({
-        acceptance_id: new FormControl      (null,[]),
-        cagent_id: new FormControl          ('',[]),
-        nds: new FormControl                (null,[]),
-        date_return: new FormControl        ('',[]),
-        company_id: new FormControl         (null,[Validators.required]),
-        department_id: new FormControl      (null,[Validators.required]),
-        description: new FormControl        ('',[]),
-        returnsupProductTable: new FormArray ([]),
-      });
+    this.formLinkedDocs = new FormGroup({
+      customers_orders_id: new FormControl    (null,[]),
+      date_return: new FormControl        ('',[]),
+      nds: new FormControl                ('',[]),
+      nds_included: new FormControl       ('',[]),
+      is_completed: new FormControl       (null,[]),
+      cagent_id: new FormControl          (null,[Validators.required]),
+      company_id: new FormControl         (null,[Validators.required]),
+      department_id: new FormControl      (null,[Validators.required]),
+      description: new FormControl        ('',[]),
+      shipment_date: new FormControl      ('',[Validators.required]),
+      returnsupProductTable: new FormArray([]),
+      linked_doc_id: new FormControl      (null,[]),//id связанного документа (в данном случае Отгрузка)
+      parent_uid: new FormControl         (null,[]),// uid родительского документа
+      child_uid: new FormControl          (null,[]),// uid дочернего документа
+      linked_doc_name: new FormControl    (null,[]),//имя (таблицы) связанного документа
+      uid: new FormControl                ('',[]),  //uid создаваемого связанного документа
+    });
 
     // Форма настроек
     this.settingsForm = new FormGroup({
       companyId: new FormControl                (null,[]),            // предприятие, для которого создаются настройки
       departmentId: new FormControl             (null,[]),            // id отделения
-      statusOnFinishId: new FormControl         ('',[]),              // статус после завершения документа
+      statusOnFinishId: new FormControl         ('',[]),              // статус после проведения документа
       autoAdd: new FormControl                  (false,[]),           // автодобавление товара из формы поиска в таблицу
       autoPrice: new FormControl                (false,[]),           // автовыставление цены из последней закупочной цены
     });
@@ -690,6 +710,7 @@ export class AcceptanceDockComponent implements OnInit {
                 this.formBaseInformation.get('status_color').setValue(documentValues.status_color);
                 this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
                 this.formBaseInformation.get('is_completed').setValue(documentValues.is_completed);
+                this.formBaseInformation.get('uid').setValue(documentValues.uid);
                 this.creatorId=+documentValues.creator_id;
                 this.getSettings(); // настройки документа Приёмка
                 this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
@@ -697,9 +718,9 @@ export class AcceptanceDockComponent implements OnInit {
                 this.loadFilesInfo();
                 this.getDepartmentsList();//отделения
                 this.getStatusesList();//статусы документа Приёмка
-                this.getLinkedDocs(); //загрузка связанных документов
+                this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                 this.refreshPermissions();//пересчитаем права
-                // if(this.acceptanceProductsTableComponent) this.acceptanceProductsTableComponent.showColumns(); //чтобы спрятать столбцы после завершения 
+                // if(this.acceptanceProductsTableComponent) this.acceptanceProductsTableComponent.showColumns(); //чтобы спрятать столбцы после проведения 
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
         );
@@ -759,6 +780,7 @@ export class AcceptanceDockComponent implements OnInit {
     console.log('Создание нового документа Приёмка');
     this.createdDockId=null;
     this.getProductsTable();
+    this.formBaseInformation.get('uid').setValue(uuidv4());
     this.http.post('/api/auth/insertAcceptance', this.formBaseInformation.value)
       .subscribe(
       (data) => {
@@ -795,9 +817,9 @@ export class AcceptanceDockComponent implements OnInit {
     if(!notShowDialog){//notShowDialog=false - показывать диалог
       const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
         width: '400px',data:{
-          head: 'Завершение приёмки',
-          warning: 'Вы хотите завершить данную приёмку?',
-          query: 'После завершения документ станет недоступным для редактирования.'},});
+          head: 'Проведение приёмки',
+          warning: 'Вы хотите провести данную приёмку?',
+          query: 'После проведения документ станет недоступным для редактирования.'},});
       dialogRef.afterClosed().subscribe(result => {
         if(result==1){
           this.updateDocument(true);
@@ -810,8 +832,8 @@ export class AcceptanceDockComponent implements OnInit {
     this.getProductsTable();    
     let currentStatus:number=this.formBaseInformation.get('status_id').value;
     if(complete){
-      this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с завершением - временно устанавливаем true, временно - чтобы это ушло в запросе на сервер, но не повлияло на внешний вид документа, если вернется не true
-      if(this.settingsForm.get('statusOnFinishId').value){//если в настройках есть "Статус при завершении" - временно выставляем его
+      this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - временно устанавливаем true, временно - чтобы это ушло в запросе на сервер, но не повлияло на внешний вид документа, если вернется не true
+      if(this.settingsForm.get('statusOnFinishId').value){//если в настройках есть "Статус при проведении" - временно выставляем его
         this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);}
     }
     this.http.post('/api/auth/updateAcceptance',  this.formBaseInformation.value)
@@ -819,13 +841,13 @@ export class AcceptanceDockComponent implements OnInit {
           (data) => 
           {   
             if(complete){
-              this.formBaseInformation.get('is_completed').setValue(false);//если сохранение с завершением - удаляем временную установку признака завершенности, 
+              this.formBaseInformation.get('is_completed').setValue(false);//если сохранение с проведением - удаляем временную установку признака проведенности, 
               this.formBaseInformation.get('status_id').setValue(currentStatus);//и возвращаем предыдущий статус
             }
             let result:number=data as number;
             switch(result){
               case null:{// null возвращает если не удалось создать документ из-за ошибки
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка "+ (complete?"завершения":"сохренения") + " документа \"Приёмка\""}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка "+ (complete?"проведения":"сохренения") + " документа \"Приёмка\""}});
                 break;
               }
               case -1:{//недостаточно прав
@@ -833,14 +855,14 @@ export class AcceptanceDockComponent implements OnInit {
                 break;
               }
               default:{// Успешно
-                this.openSnackBar("Документ \"Приёмка\" "+ (complete?"завершён.":"сохренён."), "Закрыть");
+                this.openSnackBar("Документ \"Приёмка\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
                 if(complete) {
-                  this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с завершением - окончательно устанавливаем признак завершенности = true
+                  this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведённости = true
                   if(this.acceptanceProductsTableComponent){
-                    this.acceptanceProductsTableComponent.showColumns(); //чтобы спрятать столбцы после завершения 
-                    this.acceptanceProductsTableComponent.tableRecount();
+                    this.acceptanceProductsTableComponent.showColumns(); //чтобы спрятать столбцы после проведения 
+                    this.acceptanceProductsTableComponent.getProductsTable();
                   }
-                  if(this.settingsForm.get('statusOnFinishId').value){//если в настройках есть "Статус при завершении" - выставим его
+                  if(this.settingsForm.get('statusOnFinishId').value){//если в настройках есть "Статус при проведении" - выставим его
                     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);}
                   this.setStatusColor();//чтобы обновился цвет статуса
                 }
@@ -849,7 +871,7 @@ export class AcceptanceDockComponent implements OnInit {
           },
           error => {
             this.showQueryErrorMessage(error);
-            },
+          },
       );
   } 
   clearFormSearchAndProductTable(){
@@ -996,7 +1018,7 @@ export class AcceptanceDockComponent implements OnInit {
     totalSumPriceHandler($event: any) {
     }  
 
-  //создание нового документа после завершения текущего
+  //создание нового документа после проведения текущего
   goToNewDocument(){
     this._router.navigate(['ui/acceptancedock',0]);
     this.id=0;
@@ -1011,6 +1033,7 @@ export class AcceptanceDockComponent implements OnInit {
     this.formBaseInformation.get('is_completed').setValue(false);
     this.formBaseInformation.get('nds_included').setValue(true);
     this.formBaseInformation.get('overhead_netcost_method').setValue(0);
+    setTimeout(() => { this.acceptanceProductsTableComponent.showColumns();}, 1000);
     this.searchCagentCtrl.reset();
     this.setDefaultStatus();//устанавливаем статус документа по умолчанию
     this.setDefaultDate();
@@ -1102,34 +1125,41 @@ deleteFile(id:number){
 //*************************************************          СВЯЗАННЫЕ ДОКУМЕНТЫ          ******************************************************/
 //**********************************************************************************************************************************************/  
 
-  //создание Списания или Оприходования
-  createLinkedDock(dockname:string){// принимает аргументы: Returnsup
-    let canCreateLinkedDock:CanCreateLinkedDock=this.canCreateLinkedDock(dockname); //проверим на возможность создания связанного документа
+  //создание связанных документов
+  createLinkedDock(docname:string){// принимает аргументы: Return
+    let uid = uuidv4();
+    let canCreateLinkedDock:CanCreateLinkedDock=this.canCreateLinkedDock(docname); //проверим на возможность создания связанного документа
     if(canCreateLinkedDock.can){
-      this.formReturnsup.get('acceptance_id').setValue(this.id);
-      this.formReturnsup.get('cagent_id').setValue(this.formBaseInformation.get('cagent_id').value);
-      this.formReturnsup.get('nds').setValue(this.formBaseInformation.get('nds').value);
-      this.formReturnsup.get('company_id').setValue(this.formBaseInformation.get('company_id').value);
-      this.formReturnsup.get('department_id').setValue(this.formBaseInformation.get('department_id').value);
-      this.formReturnsup.get('description').setValue('Создано из приёмки №'+ this.formBaseInformation.get('doc_number').value);
-      this.getProductsTableLinkedDoc(dockname);//формируем таблицу товаров для создаваемого документа
-      this.http.post('/api/auth/insert'+dockname, this.formReturnsup.value)
+      
+      this.formLinkedDocs.get('company_id').setValue(this.formBaseInformation.get('company_id').value);
+      this.formLinkedDocs.get('department_id').setValue(this.formBaseInformation.get('department_id').value);
+      this.formLinkedDocs.get('cagent_id').setValue(this.formBaseInformation.get('cagent_id').value);
+      this.formLinkedDocs.get('nds').setValue(this.formBaseInformation.get('nds').value);
+      this.formLinkedDocs.get('nds_included').setValue(this.formBaseInformation.get('nds_included').value);
+      this.formLinkedDocs.get('description').setValue('Создано из Приёмки №'+ this.formBaseInformation.get('doc_number').value);
+      this.formLinkedDocs.get('is_completed').setValue(false);
+      this.formLinkedDocs.get('linked_doc_id').setValue(this.id);//id связанного документа (того, из которого инициируется создание данного документа)
+      this.formLinkedDocs.get('parent_uid').setValue(this.formBaseInformation.get('uid').value);// uid исходящего (родительского) документа
+      this.formLinkedDocs.get('child_uid').setValue(uid);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
+      this.formLinkedDocs.get('linked_doc_name').setValue('acceptance');//имя (таблицы) связанного документа
+      this.formLinkedDocs.get('uid').setValue(uid);
+      this.getProductsTableLinkedDoc(docname);//формируем таблицу товаров для создаваемого документа
+      this.http.post('/api/auth/insert'+docname, this.formLinkedDocs.value)
       .subscribe(
       (data) => {
                   let createdDockId=data as number;
-                
                   switch(createdDockId){
                     case null:{// null возвращает если не удалось создать документ из-за ошибки
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа "+(dockname=="Returnsup"?"Возврат поставщику":"")}});
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа "+(this.commonUtilites.getDocNameByDocAlias(docname))}});
                       break;
                     }
                     case 0:{//недостаточно прав
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа "+(dockname=="Returnsup"?"Возврат поставщику":"")}});
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа "+(this.commonUtilites.getDocNameByDocAlias(docname))}});
                       break;
                     }
                     default:{// Документ успешно создался в БД 
-                      this.openSnackBar("Документ "+(dockname=='Returnsup'?'Возврат поставщику':'')+" успешно создан", "Закрыть");
-                      this.getLinkedDocsList(dockname.toLowerCase());//обновляем список этого документа
+                      this.openSnackBar("Документ "+this.commonUtilites.getDocNameByDocAlias(docname)+" успешно создан", "Закрыть");
+                      this.getLinkedDocsScheme(true);//обновляем схему этого документа
                     }
                   }
                 },
@@ -1137,18 +1167,33 @@ deleteFile(id:number){
       );
     } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:canCreateLinkedDock.reason}});
   }
-  
-// забирает таблицу товаров из дочернего компонента и помещает ее в форму, предназначенную для создания Списания
-  getProductsTableLinkedDoc(dockname:string){
-    let tableName:string;//для маппинга в соответствующие названия сетов в бэкэнде (например private Set<PostingProductForm> postingProductTable;)
-    tableName='returnsupProductTable';
-    const control = <FormArray>this.formReturnsup.get(tableName);
+
+  isRowInCheckedList(rowId):boolean{
+    let result:boolean = false;
+    this.acceptanceProductsTableComponent.checkedList.forEach(i=>{
+      if(i==rowId)
+        result=true;
+    });
+    return result;
+  }
+// забирает таблицу товаров из дочернего компонента и помещает ее в форму, предназначенную для создания дочерних документов
+  getProductsTableLinkedDoc(docname:string){
+    let methodNameProductTable:string;//для маппинга в соответствующие названия сетов в бэкэнде (например private Set<PostingProductForm> postingProductTable;)
+    let canAddRow: boolean;
+    //Получим название метода для маппинга в соответствующее название сета в бэкэнде (например для аргумента 'Posting' отдаст 'postingProductTable', который замаппится в этоn сет: private Set<PostingProductForm> postingProductTable;)
+    methodNameProductTable=this.commonUtilites.getMethodNameByDocAlias(docname);
+    const control = <FormArray>this.formLinkedDocs.get(methodNameProductTable);
     control.clear();
     this.acceptanceProductsTableComponent.getProductTable().forEach(row=>{
-          control.push(this.formingProductRowLinkedDoc(row,dockname));
+      if(this.acceptanceProductsTableComponent.checkedList.length>0){  //если есть выделенные чекбоксами позиции - надо взять только их, иначе берем все позиции
+        canAddRow=this.isRowInCheckedList(row.row_id)
+      }
+      else canAddRow=true;
+      if(canAddRow)
+          control.push(this.formingProductRowLinkedDoc(row));
     });
   }
-  formingProductRowLinkedDoc(row: AcceptanceProductTable, dockname:string) {
+  formingProductRowLinkedDoc(row: AcceptanceProductTable) {
     return this._fb.group({
       product_id: new FormControl (row.product_id,[]),
       product_count: new FormControl (row.product_count,[]),
@@ -1157,71 +1202,73 @@ deleteFile(id:number){
       nds_id:  new FormControl (row.nds_id,[]),
     });
   }
-  // можно ли создать связанный документ (да - если есть товары, подходящие для этого, и нет уже завершённого документа)
-  canCreateLinkedDock(dockname:string):CanCreateLinkedDock{
+  // можно ли создать связанный документ (да - если есть товары, подходящие для этого)
+  canCreateLinkedDock(docname:string):CanCreateLinkedDock{
     if(!(this.acceptanceProductsTableComponent && this.acceptanceProductsTableComponent.getProductTable().length>0)){
-        return {can:false, reason:'Невозможно создать '+(dockname=='Returnsup'?'возврат поставщику':'')+', так как нет товарных позиций'};
+        return {can:false, reason:'Невозможно создать '+this.commonUtilites.getDocNameByDocAlias(docname)+', так как нет товарных позиций'};
     }else
       return {can:true, reason:''};
   }
-  getLinkedDocs(){
-    this.getLinkedDocsList('returnsup');//загрузка связанных возвратов
+
+//******************************************************** ДИАГРАММА СВЯЗЕЙ ************************************************************/
+myTabFocusChange(changeEvent: MatTabChangeEvent) {
+  console.log('Tab position: ' + changeEvent.tab.position);
+}  
+myTabSelectedIndexChange(index: number) {
+  console.log('Selected index: ' + index);
+  this.tabIndex=index;
+}
+myTabSelectedTabChange(changeEvent: MatTabChangeEvent) {
+  console.log('Index: ' + changeEvent.index);
+}  
+myTabAnimationDone() {
+  console.log('Animation is done.');
+  if(this.tabIndex==1)  {
+    if(!this.linkedDocsSchemeDisplayed) this.loadingDocsScheme=true;
+    setTimeout(() => { this.drawLinkedDocsScheme(); }, 500);
   }
-  getLinkedDocsList(docName:string, fromDialog?:boolean){
-    this.http.get('/api/auth/getAcceptanceLinkedDocsList?id='+this.id+'&docName='+docName)
+    
+}
+getLinkedDocsScheme(draw?:boolean){
+  let result:any;
+  this.loadingDocsScheme=true;
+  this.http.get('/api/auth/getLinkedDocsScheme?uid='+this.formBaseInformation.get('uid').value)
     .subscribe(
-        (data) => {   
-                      this.linkedDocsReturn=data as LinkedDocs [];
-                  },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-    );
-  }
-  clickButtonDeleteLinkedDock(docName:string,id:number): void {
-      const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
-        width: '400px',
-        data:
-        { 
-          head: 'Удаление',
-          warning: 'Удалить '+(docName=='Returnsup'?'возврат поставщику?':''),
-          query: '',
-        },
-      });
-      dialogRef.afterClosed().subscribe(result => {
-        if(result==1){
-          this.deleteLinkedDock(docName,id);
-        }
-      });  
-  }
-  dialogOpenLinkedDoc(id:number) {
-    const dialogRef = this.dialogCreateProduct.open(ReturnsupDockComponent, {
-      maxWidth: '95vw',
-      maxHeight: '95vh',
-      height: '95%',
-      width: '95%',
-      data:
-      { 
-        mode: 'window',
-        id: id
+        data => { 
+          result=data as any;
+          
+          if(result==null){
+            this.loadingDocsScheme=false;
+            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка загрузки связанных документов"}});
+          } else if(result.errorCode==0){//нет результата
+            this.linkedDocsSchemeDisplayed = true;
+            this.loadingDocsScheme=false;
+          } else {
+            this.linkedDocsCount=result.count==0?result.count:result.count-1;// т.к. если документ в группе будет только один (данный) - result.count придёт = 1, т.е. связанных нет. Если документов в группе вообще нет - придет 0.
+            this.linkedDocsText = result.text;
+            if(draw)
+              this.drawLinkedDocsScheme()
+            else
+              this.loadingDocsScheme=false;
+          } 
       },
-    });
-    dialogRef.afterClosed().subscribe(result => {
-      if(result) this.getLinkedDocsList('returnsup',true);//если вернулось true - значит, возможно, зайдя в Возврат поставщику, его закрыли. Обновим список возвратов.
-  })}
-  deleteLinkedDock(docName:string,id:number){
-    const body = {"checked": id}; 
-        return this.http.post('/api/auth/delete'+docName, body) 
-        .subscribe(
-            (data) => {   
-                        let result=data as boolean;
-                        if(result){
-                          this.openSnackBar("Успешно удалено", "Закрыть");
-                          this.getLinkedDocsList(docName.toLowerCase());//загрузка связанных возвратов
-                        }else
-                          this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав для удаления'}});
-                      },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-        );
-  }
+      error => {this.loadingDocsScheme=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+  );
+}
+
+drawLinkedDocsScheme(){
+  if(this.tabIndex==1){
+    try{
+      console.log(this.linkedDocsText);
+      graphviz("#graph").renderDot(this.linkedDocsText);
+      this.loadingDocsScheme=false;
+      this.linkedDocsSchemeDisplayed = true;
+    } catch (e){
+      this.loadingDocsScheme=false;
+      console.log(e.message);
+    }
+  } else this.loadingDocsScheme=false;
+}
 //*****************************************************************************************************************************************/
   //------------------------------------------ COMMON UTILITES -----------------------------------------
   //Конвертирует число в строку типа 0.00 например 6.40, 99.25

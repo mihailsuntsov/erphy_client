@@ -11,9 +11,10 @@ import { SettingsReturnsupDialogComponent } from 'src/app/modules/settings/setti
 import { ReturnsupProductsTableComponent } from 'src/app/modules/trade-modules/returnsup-products-table/returnsup-products-table.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { Router } from '@angular/router';
-// import { KkmComponent } from 'src/app/modules/trade-modules/kkm/kkm.component';
-// import { KkmAtolService } from '../../../../services/kkm_atol';
-// import { KkmAtolChequesService } from '../../../../services/kkm_atol_cheques';
+import { v4 as uuidv4 } from 'uuid';
+import { CommonUtilitesService } from 'src/app/services/common_utilites.serviсe';
+import { MatTabChangeEvent } from '@angular/material/tabs';
+import { graphviz }  from 'd3-graphviz';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 // import { WriteoffDockComponent } from '../writeoff-dock/writeoff-dock.component';
 import { FilesComponent } from '../files/files.component';
@@ -74,6 +75,7 @@ interface DockResponse {//интерфейс для получения отве�
   is_completed: boolean;
   nds: boolean;
   date_return: string;
+  uid:string;
 }
 interface FilesInfo {
   id: string;
@@ -127,7 +129,7 @@ interface SpravSysNdsSet{
   selector: 'app-returnsup-dock',
   templateUrl: './returnsup-dock.component.html',
   styleUrls: ['./returnsup-dock.component.css'],
-  providers: [LoadSpravService, Cookie,
+  providers: [LoadSpravService, Cookie, CommonUtilitesService,
     {provide: MAT_DATE_LOCALE, useValue: 'ru'},
     {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},]
@@ -167,6 +169,7 @@ export class ReturnsupDockComponent implements OnInit {
   formBaseInformation: FormGroup; //массив форм для накопления информации о Возврате поставщику
   settingsForm: any; // форма с настройками
   formWP:any// Форма для отправки при создании Списания или Оприходования
+  formLinkedDocs: any;  // Форма для отправки при создании связанных документов
 
   //переменные для управления динамическим отображением элементов
   // visAfterCreatingBlocks = true; //блоки, отображаемые ПОСЛЕ создания документа (id >0)
@@ -176,6 +179,13 @@ export class ReturnsupDockComponent implements OnInit {
   isCagentListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canCagentAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredCagents: any;
+
+  //для построения диаграмм связанности
+  tabIndex=0;// индекс текущего отображаемого таба (вкладки)
+  linkedDocsCount:number = 0; // кол-во документов в группе, ЗА ИСКЛЮЧЕНИЕМ текущего
+  linkedDocsText:string = ''; // схема связанных документов (пример - в самом низу)
+  loadingDocsScheme:boolean = false;
+  linkedDocsSchemeDisplayed:boolean = false;
 
   //переменные прав
   permissionsSet: any[];//сет прав на документ
@@ -207,6 +217,7 @@ export class ReturnsupDockComponent implements OnInit {
     private _fb: FormBuilder, //чтобы билдить группу форм returnsupProductTable
     private http: HttpClient,
     public ConfirmDialog: MatDialog,
+    private commonUtilites: CommonUtilitesService,
     public dialogAddFiles: MatDialog,
     public SettingsReturnsupDialogComponent: MatDialog,
     public dialogCreateProduct: MatDialog,
@@ -239,6 +250,7 @@ export class ReturnsupDockComponent implements OnInit {
       nds: new FormControl                (false,[]),
       date_return: new FormControl        ('',[Validators.required]),
       returnsupProductTable: new FormArray([]),
+      uid: new FormControl                ('',[]),// uuid идентификатор
     });
     this.formAboutDocument = new FormGroup({
       id: new FormControl                       ('',[]),
@@ -250,17 +262,24 @@ export class ReturnsupDockComponent implements OnInit {
       date_time_changed: new FormControl        ('',[]),
     });
     
-    // // Форма для отправки при создании Списания или Оприходования
-    //   this.formWP = new FormGroup({
-    //     return_id: new FormControl       (null,[]),
-    //     posting_date: new FormControl       ('',[]),
-    //     writeoff_date: new FormControl      ('',[]),
-    //     company_id: new FormControl         (null,[Validators.required]),
-    //     department_id: new FormControl      (null,[Validators.required]),
-    //     description: new FormControl        ('',[]),
-    //     writeoffProductTable: new FormArray ([]),
-    //     postingProductTable: new FormArray  ([]),
-    //   });
+    this.formLinkedDocs = new FormGroup({
+      customers_orders_id: new FormControl    (null,[]),
+      date_return: new FormControl        ('',[]),
+      nds: new FormControl                ('',[]),
+      nds_included: new FormControl       ('',[]),
+      is_completed: new FormControl       (null,[]),
+      cagent_id: new FormControl          (null,[Validators.required]),
+      company_id: new FormControl         (null,[Validators.required]),
+      department_id: new FormControl      (null,[Validators.required]),
+      description: new FormControl        ('',[]),
+      shipment_date: new FormControl      ('',[Validators.required]),
+      returnsupProductTable: new FormArray([]),
+      linked_doc_id: new FormControl      (null,[]),//id связанного документа (в данном случае Отгрузка)
+      parent_uid: new FormControl         (null,[]),// uid родительского документа
+      child_uid: new FormControl          (null,[]),// uid дочернего документа
+      linked_doc_name: new FormControl    (null,[]),//имя (таблицы) связанного документа
+      uid: new FormControl                ('',[]),  //uid создаваемого связанного документа
+    });
 
     // Форма настроек
     this.settingsForm = new FormGroup({
@@ -280,7 +299,7 @@ export class ReturnsupDockComponent implements OnInit {
       changePriceType: new FormControl          ('procents',[]),
       // убрать десятые (копейки)
       hideTenths: new FormControl               (true,[]),
-      // статус после завершения инвентаризации
+      // статус после проведения инвентаризации
       statusOnFinishId: new FormControl         ('',[]),
       // автодобавление товара из формы поиска в таблицу
       autoAdd:  new FormControl                 (false,[]),
@@ -706,6 +725,7 @@ export class ReturnsupDockComponent implements OnInit {
                 this.formBaseInformation.get('status_color').setValue(documentValues.status_color);
                 this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
                 this.formBaseInformation.get('is_completed').setValue(documentValues.is_completed);
+                this.formBaseInformation.get('uid').setValue(documentValues.uid);
                 this.creatorId=+documentValues.creator_id;
                 this.getSettings(); // настройки документа Возврат поставщику
                 // this.getSpravSysEdizm();//справочник единиц измерения
@@ -714,9 +734,9 @@ export class ReturnsupDockComponent implements OnInit {
                 this.loadFilesInfo();
                 this.getDepartmentsList();//отделения
                 this.getStatusesList();//статусы документа Возврат поставщику
-                // this.getLinkedDocs(); //загрузка связанных документов
+                this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                 this.refreshPermissions();//пересчитаем права
-                // if(this.returnsupProductsTableComponent) this.returnsupProductsTableComponent.showColumns(); //чтобы спрятать столбцы после завершения Инвентаризации
+                // if(this.returnsupProductsTableComponent) this.returnsupProductsTableComponent.showColumns(); //чтобы спрятать столбцы после проведения Инвентаризации
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
         );
@@ -776,6 +796,7 @@ export class ReturnsupDockComponent implements OnInit {
     console.log('Создание нового документа Возврат поставщику');
     this.createdDockId=null;
     this.getProductsTable();
+    this.formBaseInformation.get('uid').setValue(uuidv4());
     this.http.post('/api/auth/insertReturnsup', this.formBaseInformation.value)
       .subscribe(
       (data) => {
@@ -812,9 +833,9 @@ export class ReturnsupDockComponent implements OnInit {
     if(!notShowDialog){//notShowDialog=false - показывать диалог
       const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
         width: '400px',data:{
-          head: 'Завершение возврата поставщику',
-          warning: 'Вы хотите завершить данный возврат поставщику?',
-          query: 'После завершения документ станет недоступным для редактирования.'},});
+          head: 'Проведение возврата поставщику',
+          warning: 'Вы хотите провести данный возврат поставщику?',
+          query: 'После проведения документ станет недоступным для редактирования.'},});
       dialogRef.afterClosed().subscribe(result => {
         if(result==1){
           this.updateDocument(true);
@@ -827,8 +848,8 @@ export class ReturnsupDockComponent implements OnInit {
     this.getProductsTable();    
     let currentStatus:number=this.formBaseInformation.get('status_id').value;
     if(complete){
-      this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с завершением - временно устанавливаем true, временно - чтобы это ушло в запросе на сервер, но не повлияло на внешний вид документа, если вернется не true
-      if(this.settingsForm.get('statusOnFinishId').value){//если в настройках есть "Статус при завершении" - временно выставляем его
+      this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - временно устанавливаем true, временно - чтобы это ушло в запросе на сервер, но не повлияло на внешний вид документа, если вернется не true
+      if(this.settingsForm.get('statusOnFinishId').value){//если в настройках есть "Статус при проведении" - временно выставляем его
         this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);}
     }
     this.http.post('/api/auth/updateReturnsup',  this.formBaseInformation.value)
@@ -836,13 +857,13 @@ export class ReturnsupDockComponent implements OnInit {
           (data) => 
           {   
             if(complete){
-              this.formBaseInformation.get('is_completed').setValue(false);//если сохранение с завершением - удаляем временную установку признака завершенности, 
+              this.formBaseInformation.get('is_completed').setValue(false);//если сохранение с проведением - удаляем временную установку признака проведенности, 
               this.formBaseInformation.get('status_id').setValue(currentStatus);//и возвращаем предыдущий статус
             }
             let result:number=data as number;
             switch(result){
               case null:{// null возвращает если не удалось создать документ из-за ошибки
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка "+ (complete?"завершения":"сохренения") + " документа \"Возврат поставщику\""}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка "+ (complete?"проведения":"сохренения") + " документа \"Возврат поставщику\""}});
                 break;
               }
               case -1:{//недостаточно прав
@@ -854,11 +875,11 @@ export class ReturnsupDockComponent implements OnInit {
                 break;
               }
               default:{// Успешно
-                this.openSnackBar("Документ \"Возврат поставщику\" "+ (complete?"завершён.":"сохренён."), "Закрыть");
+                this.openSnackBar("Документ \"Возврат поставщику\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
                 if(complete) {
-                  this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с завершением - окончательно устанавливаем признак завершенности = true
-                  if(this.returnsupProductsTableComponent) this.returnsupProductsTableComponent.showColumns(); //чтобы спрятать столбцы после завершения 
-                  if(this.settingsForm.get('statusOnFinishId').value){//если в настройках есть "Статус при завершении" - выставим его
+                  this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведенности = true
+                  if(this.returnsupProductsTableComponent) this.returnsupProductsTableComponent.showColumns(); //чтобы спрятать столбцы после проведения 
+                  if(this.settingsForm.get('statusOnFinishId').value){//если в настройках есть "Статус при проведении" - выставим его
                     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);}
                   this.setStatusColor();//чтобы обновился цвет статуса
                 }
@@ -1021,9 +1042,155 @@ export class ReturnsupDockComponent implements OnInit {
     totalSumPriceHandler($event: any) {
     }  
 
-//*************************************************          СВЯЗАННЫЕ ДОКУМЕНТЫ          ******************************************************/
-//  пока таковых нет
 
+//**********************************************************************************************************************************************/  
+//*************************************************          СВЯЗАННЫЕ ДОКУМЕНТЫ          ******************************************************/
+//**********************************************************************************************************************************************/  
+
+  //создание связанных документов
+  createLinkedDock(docname:string){// принимает аргументы: Return
+    let uid = uuidv4();
+    let canCreateLinkedDock:CanCreateLinkedDock=this.canCreateLinkedDock(docname); //проверим на возможность создания связанного документа
+    if(canCreateLinkedDock.can){
+      
+      this.formLinkedDocs.get('company_id').setValue(this.formBaseInformation.get('company_id').value);
+      this.formLinkedDocs.get('department_id').setValue(this.formBaseInformation.get('department_id').value);
+      this.formLinkedDocs.get('cagent_id').setValue(this.formBaseInformation.get('cagent_id').value);
+      this.formLinkedDocs.get('nds').setValue(this.formBaseInformation.get('nds').value);
+      this.formLinkedDocs.get('nds_included').setValue(this.formBaseInformation.get('nds_included').value);
+      this.formLinkedDocs.get('description').setValue('Создано из Возврата поставщику №'+ this.formBaseInformation.get('doc_number').value);
+      this.formLinkedDocs.get('is_completed').setValue(false);
+      this.formLinkedDocs.get('linked_doc_id').setValue(this.id);//id связанного документа (того, из которого инициируется создание данного документа)
+      this.formLinkedDocs.get('parent_uid').setValue(this.formBaseInformation.get('uid').value);// uid исходящего (родительского) документа
+      this.formLinkedDocs.get('child_uid').setValue(uid);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
+      this.formLinkedDocs.get('linked_doc_name').setValue('returnsup');//имя (таблицы) связанного документа
+      this.formLinkedDocs.get('uid').setValue(uid);
+      this.getProductsTableLinkedDoc(docname);//формируем таблицу товаров для создаваемого документа
+      this.http.post('/api/auth/insert'+docname, this.formLinkedDocs.value)
+      .subscribe(
+      (data) => {
+                  let createdDockId=data as number;
+                  switch(createdDockId){
+                    case null:{// null возвращает если не удалось создать документ из-за ошибки
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа "+(this.commonUtilites.getDocNameByDocAlias(docname))}});
+                      break;
+                    }
+                    case 0:{//недостаточно прав
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа "+(this.commonUtilites.getDocNameByDocAlias(docname))}});
+                      break;
+                    }
+                    default:{// Документ успешно создался в БД 
+                      this.openSnackBar("Документ "+this.commonUtilites.getDocNameByDocAlias(docname)+" успешно создан", "Закрыть");
+                      this.getLinkedDocsScheme(true);//обновляем схему этого документа
+                    }
+                  }
+                },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});},
+      );
+    } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:canCreateLinkedDock.reason}});
+  }
+
+  isRowInCheckedList(rowId):boolean{
+    let result:boolean = false;
+    this.returnsupProductsTableComponent.checkedList.forEach(i=>{
+      if(i==rowId)
+        result=true;
+    });
+    return result;
+  }
+// забирает таблицу товаров из дочернего компонента и помещает ее в форму, предназначенную для создания дочерних документов
+  getProductsTableLinkedDoc(docname:string){
+    let methodNameProductTable:string;//для маппинга в соответствующие названия сетов в бэкэнде (например private Set<PostingProductForm> postingProductTable;)
+    let canAddRow: boolean;
+    //Получим название метода для маппинга в соответствующее название сета в бэкэнде (например для аргумента 'Posting' отдаст 'postingProductTable', который замаппится в этоn сет: private Set<PostingProductForm> postingProductTable;)
+    methodNameProductTable=this.commonUtilites.getMethodNameByDocAlias(docname);
+    const control = <FormArray>this.formLinkedDocs.get(methodNameProductTable);
+    control.clear();
+    this.returnsupProductsTableComponent.getProductTable().forEach(row=>{
+      if(this.returnsupProductsTableComponent.checkedList.length>0){  //если есть выделенные чекбоксами позиции - надо взять только их, иначе берем все позиции
+        canAddRow=this.isRowInCheckedList(row.row_id)
+      }
+      else canAddRow=true;
+      if(canAddRow)
+          control.push(this.formingProductRowLinkedDoc(row));
+    });
+  }
+  formingProductRowLinkedDoc(row: ReturnsupProductTable) {
+    return this._fb.group({
+      product_id: new FormControl (row.product_id,[]),
+      product_count: new FormControl (row.product_count,[]),
+      product_price:  new FormControl (row.product_price,[]),
+      product_sumprice: new FormControl (((row.product_count)*row.product_price).toFixed(2),[]),
+      nds_id:  new FormControl (row.nds_id,[]),
+    });
+  }
+  // можно ли создать связанный документ (да - если есть товары, подходящие для этого)
+  canCreateLinkedDock(docname:string):CanCreateLinkedDock{
+    if(!(this.returnsupProductsTableComponent && this.returnsupProductsTableComponent.getProductTable().length>0)){
+        return {can:false, reason:'Невозможно создать '+this.commonUtilites.getDocNameByDocAlias(docname)+', так как нет товарных позиций'};
+    }else
+      return {can:true, reason:''};
+  }
+
+//******************************************************** ДИАГРАММА СВЯЗЕЙ ************************************************************/
+myTabFocusChange(changeEvent: MatTabChangeEvent) {
+  console.log('Tab position: ' + changeEvent.tab.position);
+}  
+myTabSelectedIndexChange(index: number) {
+  console.log('Selected index: ' + index);
+  this.tabIndex=index;
+}
+myTabSelectedTabChange(changeEvent: MatTabChangeEvent) {
+  console.log('Index: ' + changeEvent.index);
+}  
+myTabAnimationDone() {
+  console.log('Animation is done.');
+  if(this.tabIndex==1)  {
+    if(!this.linkedDocsSchemeDisplayed) this.loadingDocsScheme=true;
+    setTimeout(() => { this.drawLinkedDocsScheme(); }, 500);
+  }
+    
+}
+getLinkedDocsScheme(draw?:boolean){
+  let result:any;
+  this.loadingDocsScheme=true;
+  this.http.get('/api/auth/getLinkedDocsScheme?uid='+this.formBaseInformation.get('uid').value)
+    .subscribe(
+        data => { 
+          result=data as any;
+          
+          if(result==null){
+            this.loadingDocsScheme=false;
+            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка загрузки связанных документов"}});
+          } else if(result.errorCode==0){//нет результата
+            this.linkedDocsSchemeDisplayed = true;
+            this.loadingDocsScheme=false;
+          } else {
+            this.linkedDocsCount=result.count==0?result.count:result.count-1;// т.к. если документ в группе будет только один (данный) - result.count придёт = 1, т.е. связанных нет. Если документов в группе вообще нет - придет 0.
+            this.linkedDocsText = result.text;
+            if(draw)
+              this.drawLinkedDocsScheme()
+            else
+              this.loadingDocsScheme=false;
+          } 
+      },
+      error => {this.loadingDocsScheme=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+  );
+}
+
+drawLinkedDocsScheme(){
+  if(this.tabIndex==1){
+    try{
+      console.log(this.linkedDocsText);
+      graphviz("#graph").renderDot(this.linkedDocsText);
+      this.loadingDocsScheme=false;
+      this.linkedDocsSchemeDisplayed = true;
+    } catch (e){
+      this.loadingDocsScheme=false;
+      console.log(e.message);
+    }
+  } else this.loadingDocsScheme=false;
+}
 //*****************************************************************************************************************************************/
 /***********************************************************         ФАЙЛЫ          *******************************************************/
 //*****************************************************************************************************************************************/

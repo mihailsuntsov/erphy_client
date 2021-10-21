@@ -17,6 +17,10 @@ import { MatDialog } from '@angular/material/dialog';
 import { ValidationService } from './validation.service';
 import { ProductReservesDialogComponent } from 'src/app/ui/dialogs/product-reserves-dialog/product-reserves-dialog.component';
 import { PricingDialogComponent } from 'src/app/ui/dialogs/pricing-dialog/pricing-dialog.component';
+import { v4 as uuidv4 } from 'uuid';
+import { CommonUtilitesService } from 'src/app/services/common_utilites.serviсe';
+import { MatTabChangeEvent } from '@angular/material/tabs';
+import { graphviz }  from 'd3-graphviz';
 import { SettingsCustomersordersDialogComponent } from 'src/app/modules/settings/settings-customersorders-dialog/settings-customersorders-dialog.component';
 import { ProductSearchAndTableComponent } from 'src/app/modules/trade-modules/product-search-and-table/product-search-and-table.component';
 import { KkmComponent } from 'src/app/modules/trade-modules/kkm/kkm.component';
@@ -24,7 +28,7 @@ import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/materia
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatAccordion } from '@angular/material/expansion';
 import { DelCookiesService } from './del-cookies.service';
-import { Router } from '@angular/router';
+import { Router, NavigationExtras  } from '@angular/router';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { Input } from '@angular/core';
 import * as _moment from 'moment';
@@ -43,6 +47,26 @@ export const MY_FORMATS = {
     monthYearA11yLabel: 'MMMM YYYY',
   },
 };
+interface RetailSalesProductTable {
+  product_id: any,
+  department_id: any,
+  product_count: any,
+  product_price: any,
+  price_type_id: any,
+  is_material: boolean,
+  product_price_of_type_price: any,
+  product_sumprice: any,
+  nds_id: any,
+  edizm: string,
+  ppr_name_api_atol: string,
+  name: string,
+  available: any,
+  reserved: any,
+  total: any,
+  priority_type_price: string,
+  shipped: any,
+  reserved_current: any,
+}
 interface CustomersOrdersProductTable { //интерфейс для формы, массив из которых будет содержать форма customersOrdersProductTable, входящая в formBaseInformation, которая будет включаться в formBaseInformation
   id: number;
   row_id: number;
@@ -82,6 +106,10 @@ interface SpravSysNdsSet{
   name_api_atol: string;
   is_active: string;
   calculated: string;
+}
+interface CanCreateLinkedDock{//интерфейс ответа на запрос о возможности создания связанного документа
+  can:boolean;
+  reason:string;
 }
 interface Region{
   id: number;
@@ -130,6 +158,7 @@ interface dockResponse {//интерфейс для получения отве�
   status_name: string;
   status_color: string;
   status_description: string;
+  uid:string;
   fio: string;
   email: string;
   telephone: string;
@@ -190,7 +219,7 @@ interface statusInterface{
   selector: 'app-customersorders-dock',
   templateUrl: './customersorders-dock.component.html',
   styleUrls: ['./customersorders-dock.component.css'],
-  providers: [LoadSpravService,KkmAtolService,KkmAtolChequesService,Cookie,DelCookiesService,ProductSearchAndTableComponent,KkmComponent,
+  providers: [LoadSpravService,KkmAtolService,KkmAtolChequesService,Cookie,DelCookiesService,ProductSearchAndTableComponent,KkmComponent,CommonUtilitesService,
     {provide: MAT_DATE_LOCALE, useValue: 'ru'},
     {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},]
@@ -219,7 +248,7 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
   canCreateNewDock: boolean=false;// можно ли создавать новый документ (true если выполнились все необходимые для создания действия)
   canGetChilds: boolean=false; //можно ли грузить дочерние модули
   actionsBeforeCreateNewDock:number=0;// количество выполненных действий, необходимых чтобы создать новый документ
-  actionsBeforeGetChilds:number=0;// количество выполненных действий, необходимых чтобы загрузить дочерние модули (кассу и форму товаров)
+  actionsBeforeGetChilds:number=0;// количество выполненных действий, необходимых чтобы загрузить дочерние модули (форму товаров)
   // productsTableIsValid=false;
   // Расценка (все настройки здесь - по умолчанию. После первого же сохранения настроек данные настройки будут заменяться в методе getSettings() )
   productPrice:number=0; //Цена найденного и выбранного в форме поиска товара.
@@ -259,6 +288,7 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
   formBaseInformation: FormGroup; //массив форм для накопления информации о Заказе покупателя
   settingsForm: any; // форма с настройками
+  formLinkedDocs:any// Форма для отправки при создании Возврата покупателя
 
   //переменные для управления динамическим отображением элементов
   visBeforeCreatingBlocks = true; //блоки, отображаемые ДО создания документа (до получения id)
@@ -267,6 +297,13 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
   visBtnAdd:boolean;
   visBtnCopy = false;
   visBtnDelete = false;
+
+  //для построения диаграмм связанности
+  tabIndex=0;// индекс текущего отображаемого таба (вкладки)
+  linkedDocsCount:number = 0; // кол-во документов в группе, ЗА ИСКЛЮЧЕНИЕМ текущего
+  linkedDocsText:string = ''; // схема связанных документов (пример - в самом низу)
+  loadingDocsScheme:boolean = false;
+  linkedDocsSchemeDisplayed:boolean = false;
 
   //переменные прав
   permissionsSet: any[];//сет прав на документ
@@ -281,9 +318,14 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
   allowToCreateMyCompany:boolean = false;
   allowToCreateAllCompanies:boolean = false;
   allowToCreateMyDepartments:boolean = false;
+  allowToCompleteAllCompanies:boolean = false;
+  allowToCompleteMyCompany:boolean = false;
+  allowToCompleteMyDepartments:boolean = false;
+  allowToCompleteMyDocs:boolean = false;
   allowToView:boolean = false;
   allowToUpdate:boolean = false;
   allowToCreate:boolean = false;
+  allowToComplete:boolean = false;
   showOpenDocIcon:boolean=false;
   editability:boolean = false;//редактируемость. true если есть право на создание и документ создаётся, или есть право на редактирование и документ создан
 
@@ -312,12 +354,14 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
   canCagentAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredCagents: any;
 
-  constructor(private activateRoute: ActivatedRoute,
+  constructor(
+    private activateRoute: ActivatedRoute,
     private cdRef:ChangeDetectorRef,
     private _fb: FormBuilder, //чтобы билдить группу форм customersOrdersProductTable
     private http: HttpClient,
     public ShowImageDialog: MatDialog,
     public ConfirmDialog: MatDialog,
+    private commonUtilites: CommonUtilitesService,
     public dialogAddFiles: MatDialog,
     public ProductReservesDialogComponent: MatDialog,
     public PricingDialogComponent: MatDialog,
@@ -369,8 +413,27 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
       home:  new FormControl              ('',[Validators.maxLength(16)]),
       flat:  new FormControl              ('',[Validators.maxLength(8)]),
       discount_card:   new FormControl    ('',[Validators.maxLength(30)]),
-
-
+      uid: new FormControl                ('',[]),// uuid идентификатор для создаваемой отгрузки
+    });
+    // Форма для отправки при создании связанных документов
+    this.formLinkedDocs = new FormGroup({
+      customers_orders_id: new FormControl    (null,[]),
+      date_return: new FormControl        ('',[]),
+      nds: new FormControl                ('',[]),
+      nds_included: new FormControl       ('',[]),
+      is_completed: new FormControl       (null,[]),
+      cagent_id: new FormControl          (null,[Validators.required]),
+      company_id: new FormControl         (null,[Validators.required]),
+      department_id: new FormControl      (null,[Validators.required]),
+      description: new FormControl        ('',[]),
+      shipment_date: new FormControl      ('',[Validators.required]),
+      retailSalesProductTable: new FormArray([]),
+      shipmentProductTable: new FormArray   ([]),
+      linked_doc_id: new FormControl      (null,[]),//id связанного документа (в данном случае Отгрузка)
+      parent_uid: new FormControl         (null,[]),// uid родительского документа
+      child_uid: new FormControl          (null,[]),// uid дочернего документа
+      linked_doc_name: new FormControl    (null,[]),//имя (таблицы) связанного документа
+      uid: new FormControl                ('',[]),  //uid создаваемого связанного документа
     });
     this.formAboutDocument = new FormGroup({
       id: new FormControl                       ('',[]),
@@ -417,9 +480,7 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
       selectedPaymentType:   new FormControl    ('cash',[]),
       //автосоздание на старте документа, если автозаполнились все поля
       autocreateOnStart: new FormControl        (false,[]),
-      //автосоздание нового документа, если в текущем успешно напечатан чек
-      autocreateOnCheque: new FormControl       (false,[]),
-      //статус после успешного отбития чека, перед созданием нового документа
+      //статус при проведении
       statusIdOnAutocreateOnCheque: new FormControl(null,[]),
     });
 
@@ -514,6 +575,10 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
     this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==292)});
     this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==293)});
     this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==294)});
+    this.allowToCompleteAllCompanies = permissionsSet.some(       function(e){return(e==400)});
+    this.allowToCompleteMyCompany = permissionsSet.some(          function(e){return(e==401)});
+    this.allowToCompleteMyDepartments = permissionsSet.some(      function(e){return(e==402)});
+    this.allowToCompleteMyDocs = permissionsSet.some(             function(e){return(e==403)});
     if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;this.allowToCreateMyDepartments=true}
     if(this.allowToCreateMyCompany)this.allowToCreateMyDepartments=true;
     if(this.allowToViewAllCompanies){this.allowToViewMyCompany=true;this.allowToViewMyDepartments=true;this.allowToViewMyDocs=true}
@@ -522,6 +587,9 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
     if(this.allowToUpdateAllCompanies){this.allowToUpdateMyCompany=true;this.allowToUpdateMyDepartments=true;this.allowToUpdateMyDocs=true;}
     if(this.allowToUpdateMyCompany){this.allowToUpdateMyDepartments=true;this.allowToUpdateMyDocs=true;}
     if(this.allowToUpdateMyDepartments)this.allowToUpdateMyDocs=true;
+    if(this.allowToCompleteAllCompanies){this.allowToCompleteMyCompany=true;this.allowToCompleteMyDepartments=true;this.allowToCompleteMyDocs=true;}
+    if(this.allowToCompleteMyCompany){this.allowToCompleteMyDepartments=true;this.allowToCompleteMyDocs=true;}
+    if(this.allowToCompleteMyDepartments)this.allowToCompleteMyDocs=true;
     this.getData();
   }
 
@@ -540,6 +608,12 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
       (this.allowToUpdateMyCompany&&documentOfMyCompany)||
       (this.allowToUpdateMyDepartments&&documentOfMyCompany&&documentOfMyDepartments)||
       (this.allowToUpdateMyDocs&&documentOfMyCompany&&documentOfMyDepartments&&(this.myId==this.creatorId))
+    )?true:false;
+    this.allowToComplete=(
+      (this.allowToCompleteAllCompanies)||
+      (this.allowToCompleteMyCompany&&documentOfMyCompany)||
+      (this.allowToCompleteMyDepartments&&documentOfMyCompany&&documentOfMyDepartments)||
+      (this.allowToCompleteMyDocs&&documentOfMyCompany&&documentOfMyDepartments&&(this.myId==this.creatorId))
     )?true:false;
     this.allowToCreate=(this.allowToCreateAllCompanies || this.allowToCreateMyCompany||this.allowToCreateMyDepartments)?true:false;
     
@@ -930,11 +1004,9 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
             this.settingsForm.get('name').setValue(result.name?result.name:'');
             this.settingsForm.get('priorityTypePriceSide').setValue(result.priorityTypePriceSide?result.priorityTypePriceSide:'defprice');
             this.settingsForm.get('autocreateOnStart').setValue(result.autocreateOnStart);
-            this.settingsForm.get('autocreateOnCheque').setValue(result.autocreateOnCheque);
             this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.statusIdOnAutocreateOnCheque);
             
             this.necessaryActionsBeforeGetChilds();
-
             // для нового документа
             if(+this.id==0){
               //если предприятия из настроек больше нет в списке предприятий (например, для пользователя урезали права, и выбранное предприятие более недоступно)
@@ -966,6 +1038,9 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
           this.searchCagentCtrl.setValue(customer);
           this.formBaseInformation.get('cagent_id').setValue(customerId);
           this.getCagentValuesById(customerId);
+        } else {
+          this.searchCagentCtrl.setValue('');
+          this.formBaseInformation.get('cagent_id').setValue(null);
         }
         if(this.formBaseInformation.get('name').value=='')
           this.formBaseInformation.get('name').setValue(name);
@@ -1044,6 +1119,7 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
                 this.formBaseInformation.get('country').setValue(documentValues.country);
                 this.formBaseInformation.get('region').setValue(documentValues.region);
                 this.formBaseInformation.get('city').setValue(documentValues.city);
+                this.formBaseInformation.get('uid').setValue(documentValues.uid);
                 this.searchRegionCtrl.setValue(documentValues.region);
                 this.area=documentValues.area;
                 this.searchCityCtrl.setValue(this.area!=''?(documentValues.city+' ('+this.area+')'):documentValues.city);
@@ -1067,6 +1143,7 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
                 this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
                 this.formExpansionPanelsString();
                 this.getPriceTypesList();
+                this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                 this.getDepartmentsList();//отделения
                 this.getStatusesList();//статусы документа Заказ покупателя
                 this.getSpravSysCountries();//Страны
@@ -1215,6 +1292,7 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
     this.createdDockId=null;
     //если отправляем нового контрагента, в cagent_id отправляем null, и backend понимает что нужно создать нового контрагента:
     this.formBaseInformation.get('cagent_id').setValue(this.is_addingNewCagent?null:this.formBaseInformation.get('cagent_id').value);
+    this.formBaseInformation.get('uid').setValue(uuidv4());
     this.getProductsTable();
     this.http.post('/api/auth/insertCustomersOrders', this.formBaseInformation.value)
             .subscribe(
@@ -1266,23 +1344,61 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
             );
   }
 
-  updateDocument(onChequePrinting?:boolean){ 
+  completeDocument(notShowDialog?:boolean){
+    if(!notShowDialog){//notShowDialog=false - показывать диалог
+      const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+        width: '400px',data:{
+          head: 'Проведение заказа покупателя',
+          warning: 'Вы хотите провести данный заказ покупателя?',
+          query: 'После проведения документ станет недоступным для редактирования.'},});
+      dialogRef.afterClosed().subscribe(result => {
+        if(result==1){
+          this.updateDocument(true);
+        }
+      });
+    } else this.updateDocument(true);
+  }
+
+  updateDocument(complete?:boolean){ 
     this.getProductsTable();    
+    let currentStatus:number=this.formBaseInformation.get('status_id').value;
+    if(complete){
+      this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с завершением - временно устанавливаем true, временно - чтобы это ушло в запросе на сервер, но не повлияло на внешний вид документа, если вернется не true
+      if(this.settingsForm.get('statusIdOnAutocreateOnCheque').value){//если в настройках есть "Статус при проведении" - временно выставляем его
+        this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnAutocreateOnCheque').value);}
+    }
     return this.http.post('/api/auth/updateCustomersOrders',  this.formBaseInformation.value)
       .subscribe(
           (data) => 
           {   
+            if(complete){
+              this.formBaseInformation.get('is_completed').setValue(false);//если сохранение с завершением - удаляем временную установку признака завершенности, 
+              this.formBaseInformation.get('status_id').setValue(currentStatus);//и возвращаем предыдущий статус
+            }
+
             let response=data as any;
             
             //сохранение было успешным  
             if(response.success){
 
-              this.openSnackBar("Документ \"Заказ покупателя\" сохранён", "Закрыть");
-              
+              this.openSnackBar("Документ \"Заказ покупателя\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
+              this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов - чтобы обновился "Проведён Да/Нет" и статус
               if(response.fail_to_reserve>0){//если у 1 или нескольких позиций резервы при сохранении были отменены
                 this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:
                 'У некоторых позиций не был сохранён резерв, т.к. он превышал заказываемое либо доступное количество товара'
                 }});
+              }
+              if(complete) {
+                this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с завершением - окончательно устанавливаем признак завершенности = true
+                this.is_completed=true;
+                if(this.productSearchAndTableComponent){
+                  this.productSearchAndTableComponent.readonly=true;// иначе эта переменная не успеет измениться через @Input и следующие 2 строки не выполнятся                  
+                  this.productSearchAndTableComponent.hideOrShowNdsColumn(); //чтобы спрятать столбцы чекбоксов и удаления строк в таблице товаров
+                  this.productSearchAndTableComponent.tableNdsRecount();
+                }
+                if(this.settingsForm.get('statusIdOnAutocreateOnCheque').value){//если в настройках есть "Статус при завершении" - выставим его
+                  this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnAutocreateOnCheque').value);}
+                this.setStatusColor();//чтобы обновился цвет статуса
               }
               this.productSearchAndTableComponent.getProductsTable();
               this.getData();
@@ -1383,16 +1499,22 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
         this.settingsForm.get('hideTenths').setValue(result.get('hideTenths').value);
         this.settingsForm.get('saveSettings').setValue(result.get('saveSettings').value);
         this.settingsForm.get('autocreateOnStart').setValue(result.get('autocreateOnStart').value);
-        this.settingsForm.get('autocreateOnCheque').setValue(result.get('autocreateOnCheque').value);
         this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.get('statusIdOnAutocreateOnCheque').value);
         this.saveSettingsCustomersOrders();
         //вставляем Отделение,Покупателя и Наименование заказа (вставится только если новый документ)
-        this.setDefaultInfoOnStart(
-          (result.get('departmentId')?result.get('departmentId').value:null),
-          (+result.get('customerId').value>0?result.get('customerId').value:null),
-          (+result.get('customerId').value>0?result.get('customer').value:null),
-          (result.get('name')?result.get('name').value:''),
-          );
+        // this.setDefaultInfoOnStart(
+        //   (result.get('departmentId')?result.get('departmentId').value:null),
+        //   (+result.get('customerId').value>0?result.get('customerId').value:null),
+        //   (+result.get('customerId').value>0?result.get('customer').value:null),
+        //   (result.get('name')?result.get('name').value:''),
+        //   );
+        // //чтобы настройки применились к модулю Поиск и добавление товара"
+        // this.productSearchAndTableComponent.applySettings(result);
+
+        // если это новый документ, и ещё нет выбранных товаров - применяем настройки 
+        if(+this.id==0 && this.productSearchAndTableComponent.getProductTable().length==0)  {
+          this.getData();
+        }
         //чтобы настройки применились к модулю Поиск и добавление товара"
         this.productSearchAndTableComponent.applySettings(result);
       }
@@ -1719,21 +1841,265 @@ export class CustomersordersDockComponent implements OnInit/*, OnChanges */{
       );
   }
 
+  //создание нового документа Заказ покупателя
+  goToNewDocument(){
+    this._router.navigate(['ui/customersordersdock',0]);
+    this.id=0;
+    this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными на продажу товарами
+    this.setDefaultStatus();//устанавливаем статус документа по умолчанию
+    this.formBaseInformation.get('id').setValue(null);
+    this.formBaseInformation.get('doc_number').setValue('');
+    this.formBaseInformation.get('description').setValue('');
+    this.formBaseInformation.get('is_completed').setValue(false);
+    this.formBaseInformation.get('cagent_id').setValue(null);
+    this.formBaseInformation.get('uid').setValue('');
+    this.formBaseInformation.get('cagent').setValue('');
+    this.actionsBeforeGetChilds=0;
+    this.actionsBeforeCreateNewDock=0;
+    this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+    this.resetAddressForm();
+    this.resetContactsForm();
+    this.formExpansionPanelsString();
+    this.is_completed=false;
+    this.refreshShowAllTabs();
+    this.getData();
+  }
+  clearFormSearchAndProductTable(){
+    this.productSearchAndTableComponent.resetFormSearch();
+    this.productSearchAndTableComponent.getControlTablefield().clear();
+  }
+
+//**********************************************************************************************************************************************/  
+//*************************************************          СВЯЗАННЫЕ ДОКУМЕНТЫ          ******************************************************/
+//**********************************************************************************************************************************************/  
+
+  //создание связанных документов
+  createLinkedDock(docname:string){// принимает аргументы: Return
+    let uid = uuidv4();
+    let canCreateLinkedDock:CanCreateLinkedDock=this.canCreateLinkedDock(docname); //проверим на возможность создания связанного документа
+    if(canCreateLinkedDock.can){
+      
+      this.formLinkedDocs.get('company_id').setValue(this.formBaseInformation.get('company_id').value);
+      this.formLinkedDocs.get('department_id').setValue(this.formBaseInformation.get('department_id').value);
+      this.formLinkedDocs.get('cagent_id').setValue(this.formBaseInformation.get('cagent_id').value);
+      this.formLinkedDocs.get('nds').setValue(this.formBaseInformation.get('nds').value);
+      this.formLinkedDocs.get('nds_included').setValue(this.formBaseInformation.get('nds_included').value);
+      this.formLinkedDocs.get('shipment_date').setValue(this.formBaseInformation.get('shipment_date').value?moment(this.formBaseInformation.get('shipment_date').value,'DD.MM.YYYY'):"");
+      this.formLinkedDocs.get('description').setValue('Создано из Заказа покупателя №'+ this.formBaseInformation.get('doc_number').value);
+      this.formLinkedDocs.get('is_completed').setValue(false);
+      this.formLinkedDocs.get('linked_doc_id').setValue(this.id);//id связанного документа (того, из которого инициируется создание данного документа)
+      this.formLinkedDocs.get('parent_uid').setValue(this.formBaseInformation.get('uid').value);// uid исходящего (родительского) документа
+      this.formLinkedDocs.get('child_uid').setValue(uid);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
+      this.formLinkedDocs.get('linked_doc_name').setValue('customers_orders');//имя (таблицы) связанного документа
+      this.formLinkedDocs.get('customers_orders_id').setValue(this.id);
+      this.formLinkedDocs.get('uid').setValue(uid);
+      this.getProductsTableLinkedDoc(docname);//формируем таблицу товаров для создаваемого документа
+      if(docname=='RetailSales'){// т.к. Розничная продажа проводится по факту ее создания, то мы не можем просто создать ее, как это делаем с другими связанными документами. Нужно только открыть ее страницу и передать туда все данные из Заказа покупателя.
+        let retailSalesProductTable: Array <RetailSalesProductTable> =this.getRetailSalesProductsTable();
+        let objToSend: NavigationExtras = //NavigationExtras - спец. объект, в котором можно передавать данные в процессе роутинга
+        {
+          queryParams: {
+            company_id:               this.formBaseInformation.get('company_id').value,
+            department_id:            this.formBaseInformation.get('department_id').value,
+            cagent_id:                this.formBaseInformation.get('cagent_id').value,
+            cagent:                   this.formBaseInformation.get('cagent').value,
+            nds:                      this.formBaseInformation.get('nds').value,
+            nds_included:             this.formBaseInformation.get('nds_included').value,
+            linked_doc_id:            this.id,
+            parent_uid:               this.formBaseInformation.get('uid').value,
+            doc_number:               this.formBaseInformation.get('doc_number').value,
+            child_uid:                uid,
+            linked_doc_name:          'customers_orders',
+            customers_orders_id:      this.id,
+            uid:                      uid,
+            retailSalesProductTable:  retailSalesProductTable
+          },
+          skipLocationChange: false,
+          fragment: 'top' 
+        };
+
+        this._router.navigate(['ui/retailsalesdock'], { 
+          state: { productdetails: objToSend }
+        });
+      }else
+        this.http.post('/api/auth/insert'+docname, this.formLinkedDocs.value)
+        .subscribe(
+        (data) => {
+                    let createdDockId=data as number;
+                    switch(createdDockId){
+                      case null:{// null возвращает если не удалось создать документ из-за ошибки
+                        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа "+(this.commonUtilites.getDocNameByDocAlias(docname))}});
+                        break;
+                      }
+                      case 0:{//недостаточно прав
+                        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа "+(this.commonUtilites.getDocNameByDocAlias(docname))}});
+                        break;
+                      }
+                      default:{// Документ успешно создался в БД 
+                        this.openSnackBar("Документ "+this.commonUtilites.getDocNameByDocAlias(docname)+" успешно создан", "Закрыть");
+                        this.getLinkedDocsScheme(true);//обновляем схему этого документа
+                      }
+                    }
+                  },
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});},
+        );
+    } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:canCreateLinkedDock.reason}});
+  }
+
+  // забирает таблицу товаров из дочернего компонента и помещает ее в массив, предназначенный для передачи в дочернюю розничную продажу
+  getRetailSalesProductsTable(){
+    let retailSalesProductTable: Array <RetailSalesProductTable> =[];
+    let canAddRow: boolean;
+    this.productSearchAndTableComponent.getProductTable().forEach(row=>{
+      if(this.productSearchAndTableComponent.checkedList.length>0){  //если есть выделенные чекбоксами позиции - надо взять только их, иначе берем все позиции
+        canAddRow=this.isRowInCheckedList(row.row_id)
+      }
+      else canAddRow=true;
+      if(canAddRow)
+        retailSalesProductTable.push({
+          product_id:                   row.product_id, 
+          department_id:                row.department_id,
+          product_count:                (row.product_count-row.shipped)>=0?row.product_count-row.shipped:0,
+          product_price:                row.product_price,
+          price_type_id:                row.price_type_id,
+          is_material:                  row.is_material,
+          product_price_of_type_price:  row.product_price_of_type_price,
+          product_sumprice:             ((row.product_count)*row.product_price).toFixed(2),
+          nds_id:                       row.nds_id,
+          edizm:                        row.edizm,
+          ppr_name_api_atol:            row.ppr_name_api_atol,
+          name:                         row.name,
+          available:                    row.available,
+          reserved:                     row.reserved,
+          total:                        row.total,
+          priority_type_price:          row.priority_type_price,
+          shipped:                      row.shipped,
+          reserved_current:             row.reserved_current,
+        });
+    });
+    return retailSalesProductTable;
+  }
+  isRowInCheckedList(rowId):boolean{
+    let result:boolean = false;
+    this.productSearchAndTableComponent.checkedList.forEach(i=>{
+      if(i==rowId)
+        result=true;
+    });
+    return result;
+  }
+// забирает таблицу товаров из дочернего компонента и помещает ее в форму, предназначенную для создания дочерних документов
+  getProductsTableLinkedDoc(docname:string){
+    let methodNameProductTable:string;//для маппинга в соответствующие названия сетов в бэкэнде (например private Set<PostingProductForm> postingProductTable;)
+    let canAddRow: boolean;
+    //Получим название метода для маппинга в соответствующее название сета в бэкэнде (например для аргумента 'Posting' отдаст 'postingProductTable', который замаппится в этоn сет: private Set<PostingProductForm> postingProductTable;)
+    methodNameProductTable=this.commonUtilites.getMethodNameByDocAlias(docname);
+    const control = <FormArray>this.formLinkedDocs.get(methodNameProductTable);
+    control.clear();
+    this.productSearchAndTableComponent.getProductTable().forEach(row=>{
+      if(this.productSearchAndTableComponent.checkedList.length>0){  //если есть выделенные чекбоксами позиции - надо взять только их, иначе берем все позиции
+        canAddRow=this.isRowInCheckedList(row.row_id)
+      }
+      else canAddRow=true;
+      if(canAddRow)
+          control.push(this.formingProductRowLinkedDoc(row));
+    });
+  }
+  formingProductRowLinkedDoc(row: CustomersOrdersProductTable) {
+    return this._fb.group({
+      product_id: new FormControl (row.product_id,[]),
+      department_id: new FormControl (row.department_id,[]),
+      product_count: new FormControl ((row.product_count-row.shipped)>=0?row.product_count-row.shipped:0,[]),
+      product_price:  new FormControl (row.product_price,[]),
+      price_type_id:  new FormControl (row.price_type_id,[]),
+      is_material:  new FormControl (row.is_material,[]),
+      product_price_of_type_price:  new FormControl (row.product_price_of_type_price,[]),
+      product_sumprice: new FormControl (((row.product_count)*row.product_price).toFixed(2),[]),
+      nds_id:  new FormControl (row.nds_id,[]),
+    });
+  }
+  // можно ли создать связанный документ (да - если есть товары, подходящие для этого)
+  canCreateLinkedDock(docname:string):CanCreateLinkedDock{
+    if(!(this.productSearchAndTableComponent && this.productSearchAndTableComponent.getProductTable().length>0)){
+        return {can:false, reason:'Невозможно создать '+this.commonUtilites.getDocNameByDocAlias(docname)+', так как нет товарных позиций'};
+    }else
+      return {can:true, reason:''};
+  }
+
+//******************************************************** ДИАГРАММА СВЯЗЕЙ ************************************************************/
+myTabFocusChange(changeEvent: MatTabChangeEvent) {
+  console.log('Tab position: ' + changeEvent.tab.position);
+}  
+myTabSelectedIndexChange(index: number) {
+  console.log('Selected index: ' + index);
+  this.tabIndex=index;
+}
+myTabSelectedTabChange(changeEvent: MatTabChangeEvent) {
+  console.log('Index: ' + changeEvent.index);
+}  
+myTabAnimationDone() {
+  console.log('Animation is done.');
+  if(this.tabIndex==1)  {
+    if(!this.linkedDocsSchemeDisplayed) this.loadingDocsScheme=true;
+    setTimeout(() => { this.drawLinkedDocsScheme(); }, 500);
+  }
+    
+}
+getLinkedDocsScheme(draw?:boolean){
+  let result:any;
+  this.loadingDocsScheme=true;
+  this.http.get('/api/auth/getLinkedDocsScheme?uid='+this.formBaseInformation.get('uid').value)
+    .subscribe(
+        data => { 
+          result=data as any;
+          
+          if(result==null){
+            this.loadingDocsScheme=false;
+            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка загрузки связанных документов"}});
+          } else if(result.errorCode==0){//нет результата
+            this.linkedDocsSchemeDisplayed = true;
+            this.loadingDocsScheme=false;
+          } else {
+            this.linkedDocsCount=result.count==0?result.count:result.count-1;// т.к. если документ в группе будет только один (данный) - result.count придёт = 1, т.е. связанных нет. Если документов в группе вообще нет - придет 0.
+            this.linkedDocsText = result.text;
+            if(draw)
+              this.drawLinkedDocsScheme()
+            else
+              this.loadingDocsScheme=false;
+          } 
+      },
+      error => {this.loadingDocsScheme=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+  );
+}
+
+drawLinkedDocsScheme(){
+  if(this.tabIndex==1){
+    try{
+      console.log(this.linkedDocsText);
+      graphviz("#graph").renderDot(this.linkedDocsText);
+      this.loadingDocsScheme=false;
+      this.linkedDocsSchemeDisplayed = true;
+    } catch (e){
+      this.loadingDocsScheme=false;
+      console.log(e.message);
+    }
+  } else this.loadingDocsScheme=false;
+}
+
     //**************************** КАССОВЫЕ ОПЕРАЦИИ  ******************************/
 
   //обработчик события успешной печати чека - в Заказе покупателя это выставление статуса документа, сохранение и создание нового.  
-  onSuccesfulChequePrintingHandler(){
-    //установим статус из настроек при автосоздании перед сохранением
-    if(this.settingsForm.get('autocreateOnCheque').value) 
-      this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnAutocreateOnCheque').value);
-    //потом сохраним:
-    if(this.updateDocument(true)){
-      //если стоит чекбокс Автосоздание нового после печати чека:
-      if(this.settingsForm.get('autocreateOnCheque').value){
-        this._router.navigate(['ui/customersordersdock']);
-        this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnAutocreateOnCheque').value);
-      }
-      this.openSnackBar("Чек был успешно напечатан. Создание нового Заказа покупателя", "Закрыть");
-    }
-  }
+  // onSuccesfulChequePrintingHandler(){
+  //   //установим статус из настроек при автосоздании перед сохранением
+  //   if(this.settingsForm.get('autocreateOnCheque').value) 
+  //     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnAutocreateOnCheque').value);
+  //   //потом сохраним:
+  //   if(this.updateDocument(true)){
+  //     //если стоит чекбокс Автосоздание нового после печати чека:
+  //     if(this.settingsForm.get('autocreateOnCheque').value){
+  //       this._router.navigate(['ui/customersordersdock']);
+  //       this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnAutocreateOnCheque').value);
+  //     }
+  //     this.openSnackBar("Чек был успешно напечатан. Создание нового Заказа покупателя", "Закрыть");
+  //   }
+  // }
 }
