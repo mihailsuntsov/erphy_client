@@ -473,7 +473,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
       shipped: new FormControl (0,[]),// ведь еще ничего не отгрузили
       ppr_name_api_atol:  new FormControl (this.formSearch.get('ppr_name_api_atol').value,[]), //Признак предмета расчета в системе Атол
       is_material:  new FormControl (this.formSearch.get('is_material').value,[]), //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
-      reserved_current:  new FormControl (this.formSearch.get('reserved_current').value,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),// зарезервировано единиц товара в отделении (складе) в ЭТОМ (текущем) Заказе покупателя
+      reserved_current:  new FormControl (this.formSearch.get('reserve').value?this.formSearch.get('product_count').value:0,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),// зарезервировано единиц товара в отделении (складе) в ЭТОМ (текущем) Заказе покупателя
       indivisible:  new FormControl (this.formSearch.get('indivisible').value,[]),
     });
   }
