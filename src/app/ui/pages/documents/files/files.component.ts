@@ -515,13 +515,13 @@ viewMode:string = "grid"; // способ отображения файлов - 
         width: '300px',
       });
       dialogRef.afterClosed().subscribe(result => {
-        if(result==1){this.deleteDocks();}
+        if(result==1){this.deleteDocs();}
         this.clearCheckboxSelection();
         this.showOnlyVisBtnAdd();
       });        
     }
 
-    deleteDocks(){
+    deleteDocs(){
       const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
       this.clearCheckboxSelection();
         return this.http.post('/api/auth/deleteFiles', body) 
@@ -650,7 +650,7 @@ viewMode:string = "grid"; // способ отображения файлов - 
           parentCategoryId: +this.sendingQueryForm.selectedNodeId,
           title:"Создание категории",
           companyId:+this.sendingQueryForm.companyId,
-          dockName:"File"
+          docName:"File"
         },
       });
       dialogRef.afterClosed().subscribe(result => {
@@ -668,7 +668,7 @@ viewMode:string = "grid"; // способ отображения файлов - 
           categoryName: this.sendingQueryForm.selectedNodeName , 
           categoryId: +this.sendingQueryForm.selectedNodeId,
           title:"Редактирование категории",
-          dockName:"File"
+          docName:"File"
         },
       });
       dialogRef.afterClosed().subscribe(result => {
@@ -697,7 +697,7 @@ viewMode:string = "grid"; // способ отображения файлов - 
           parentCategoryId: +this.sendingQueryForm.selectedNodeId,
           title:"Изменение порядка вывода",
           companyId: +this.sendingQueryForm.companyId,
-          dockName:"File"
+          docName:"File"
         },
       });
       dialogRef.afterClosed().subscribe(result => {

@@ -7,7 +7,7 @@
                     
                     <div class="flex card" style="padding: 0px 15px; font-size: 20px;">
                         <div class="card-name">
-                            {{(readonly&&parentDockName=='RetailSales')?'Реализованные товары':'Поиск и добавление товара'}}
+                            {{(readonly&&parentDocName=='RetailSales')?'Реализованные товары':'Поиск и добавление товара'}}
                         </div>
                         <div>
                             
@@ -431,7 +431,7 @@
                                                                 <mat-form-field 
                                                                 class="mat-form-field-100" 
                                                                 style="margin-top:-9px" 
-                                                                *ngIf="parentDockName=='CustomersOrders'">
+                                                                *ngIf="parentDocName=='CustomersOrders'">
                                                                     <mat-slide-toggle 
                                                                     formControlName="reserve"
                                                                     (click)="onClickReserveSwitcher()"

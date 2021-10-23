@@ -48,8 +48,8 @@ export class LoadSpravService{
         
     //формирование списка документов с id и названием (и то и другое - в таблице documents)
     getDocumentsList(){
-            let dockList: idAndName [] = [];
-            dockList = [
+            let docList: idAndName [] = [];
+            docList = [
                 // {id:3, name:'Предприятия'},
                 {id:28, name:'Возврат покупателя'},
                 {id:29, name:'Возврат поставщику'},
@@ -63,7 +63,7 @@ export class LoadSpravService{
                 {id:25, name:'Розничная продажа'},
                 {id:17, name:'Списание'},
             ];
-            return dockList; 
+            return docList; 
         }
     //загружается список статусов документа по его id (таблица documents) и id предприятия
     getStatusList(companyId: number, documentId:number){

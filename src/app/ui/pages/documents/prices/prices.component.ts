@@ -24,7 +24,7 @@ interface ExampleFlatNode {
   name: string;
   level: number;
 }
-export interface DockTable {
+export interface DocTable {
   id: number;
 }
 export interface TableAndPagesData {//для получения в одном объекте и номеров страниц для пагинации, и самих данных для таблицы
@@ -54,10 +54,10 @@ interface idNameDescription{ //универсалный интерфейс дл�
 export class PricesComponent implements OnInit {
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
   receivedPagesList: string [];//массив для получения данных пагинации
-  receivedMatTable: DockTable [] = [];//массив для получения данных для материал таблицы
-  dataSource = new MatTableDataSource<DockTable>(this.receivedMatTable); //источник данных для материал таблицы
+  receivedMatTable: DocTable [] = [];//массив для получения данных для материал таблицы
+  dataSource = new MatTableDataSource<DocTable>(this.receivedMatTable); //источник данных для материал таблицы
   displayedColumns: string[]=[];//массив отображаемых столбцов таблицы
-  selection = new SelectionModel<DockTable>(true, []);//Class to be used to power selecting one or more options from a list.
+  selection = new SelectionModel<DocTable>(true, []);//Class to be used to power selecting one or more options from a list.
   selectionFilterOptions = new SelectionModel<idAndName>(true, []);//Class to be used to power selecting one or more options from a list.
   receivedCompaniesList: any [];//массив для получения списка предприятий
   receivedPriceTypesList: idNameDescription [] = [];//массив для получения списка типов цен
@@ -337,7 +337,7 @@ export class PricesComponent implements OnInit {
   }
   
   /** The label for the checkbox on the passed row */
-  checkboxLabel(row?: DockTable): string {
+  checkboxLabel(row?: DocTable): string {
     if (!row) {
       return `${this.isAllSelected() ? 'select' : 'deselect'} all`;
     }

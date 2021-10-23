@@ -9,7 +9,7 @@ import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { ValidationService } from './validation.service';
 import { HttpClient } from '@angular/common/http';
-import { ProductsDockComponent } from 'src/app/ui/pages/documents/products-dock/products-dock.component';
+import { ProductsDocComponent } from 'src/app/ui/pages/documents/products-doc/products-doc.component';
 import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component';
 import { ViewChild } from '@angular/core';
 import { PricingDialogComponent } from 'src/app/ui/dialogs/pricing-dialog/pricing-dialog.component';
@@ -171,8 +171,8 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   @ViewChild("productSearchFieldValue", {static: false}) productSearchFieldValue;
   // @ViewChild(MatTable, {static: false}) table_:MatTable<CustomersOrdersProductTable>; 
 
-  @Input() parentDockId:number;
-  @Input() parentDockName:string; // Идентификатор документа, в который вызывается данный компонент. Например, CustomersOrders, RetailSales и т.д.
+  @Input() parentDocId:number;
+  @Input() parentDocName:string; // Идентификатор документа, в который вызывается данный компонент. Например, CustomersOrders, RetailSales и т.д.
   @Input() nds:boolean;
   @Input() nds_included:boolean;
   @Input() priorityTypePriceSide:string;
@@ -296,7 +296,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
     this.setCurrentTypePrice();
     this.onProductSearchValueChanges();//отслеживание изменений поля "Поиск товара"
     console.log('-----------------------------------------------------');
-    console.log("parentDockId-"+this.parentDockId);
+    console.log("parentDocId-"+this.parentDocId);
     console.log("nds-"+this.nds);
     console.log("nds_included-"+this.nds_included);
     console.log("priorityTypePriceSide-"+this.priorityTypePriceSide);
@@ -368,7 +368,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
     const control = <FormArray>this.formBaseInformation.get('customersOrdersProductTable');
     this.gettingTableData=true;
     control.clear();
-    this.http.get('/api/auth/get'+this.parentDockName+'ProductTable?id='+this.parentDockId)
+    this.http.get('/api/auth/get'+this.parentDocName+'ProductTable?id='+this.parentDocId)
         .subscribe(
             data => { 
                 this.gettingTableData=false;
@@ -389,7 +389,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
       id: new FormControl (row.id,[]),
       row_id: [this.getRowId()],// row_id нужен для идентифицирования строк у которых нет id (например из только что создали и не сохранили)
       product_id: new FormControl (row.product_id,[]),
-      customers_orders_id: new FormControl (this.parentDockId,[]),
+      customers_orders_id: new FormControl (this.parentDocId,[]),
       name: new FormControl (row.name,[]),
       product_count: new FormControl (row.product_count,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$'), ValidationService.countMoreThanZero]),
       edizm: new FormControl (row.edizm,[]),
@@ -451,7 +451,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
       row_id: [this.getRowId()],
       // bik: new FormControl ('',[Validators.required,Validators.pattern('^[0-9]{9}$')]),
       product_id:  new FormControl (+this.formSearch.get('product_id').value,[]),
-      customers_orders_id:  new FormControl (+this.parentDockId,[]),
+      customers_orders_id:  new FormControl (+this.parentDocId,[]),
       name:  new FormControl (this.searchProductCtrl.value,[]),
       product_count:  new FormControl (+this.formSearch.get('product_count').value,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$'), ValidationService.countMoreThanZero]),
       edizm:  new FormControl (this.edizmName,[]),
@@ -516,13 +516,13 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   hideOrShowNdsColumn(){
     this.displayedColumns=[];
     if(!this.readonly)
-      if(this.parentDockName=='CustomersOrders')
+      if(this.parentDocName=='CustomersOrders')
         this.displayedColumns.push('select');
     this.displayedColumns.push('name','product_count','edizm','product_price','product_sumprice');
-    if(this.parentDockName=='CustomersOrders')
+    if(this.parentDocName=='CustomersOrders')
       this.displayedColumns.push('reserved_current');
     this.displayedColumns.push('available','total','reserved');
-    if(this.parentDockName=='CustomersOrders')
+    if(this.parentDocName=='CustomersOrders')
       this.displayedColumns.push('shipped');
     this.displayedColumns.push('price_type');
     if(this.nds)
@@ -536,8 +536,8 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
     const control = <FormArray>this.formBaseInformation.get('customersOrdersProductTable');
     return control;
   }
-  openProductCard(dockId:number) {
-    this.dialogCreateProduct.open(ProductsDockComponent, {
+  openProductCard(docId:number) {
+    this.dialogCreateProduct.open(ProductsDocComponent, {
       maxWidth: '95vw',
       maxHeight: '95vh',
       height: '95%',
@@ -545,7 +545,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
       data:
       { 
         mode: 'viewInWindow',
-        dockId: dockId
+        docId: docId
       },
     });
   } 
@@ -559,7 +559,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
       data:
       { 
         companyId: this.company_id,
-        documentId: +this.parentDockId,
+        documentId: +this.parentDocId,
         productId: productId,
         departmentId:departmentId,
       },
@@ -678,7 +678,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
         {
           this.isProductListLoading  = true;
           return this.http.get(
-            '/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.company_id+'&departmentId='+this.formSearch.get('secondaryDepartmentId').value+'&document_id='+this.parentDockId+'&priceTypeId='+(+this.formSearch.get('price_type_id').value)
+            '/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.company_id+'&departmentId='+this.formSearch.get('secondaryDepartmentId').value+'&document_id='+this.parentDocId+'&priceTypeId='+(+this.formSearch.get('price_type_id').value)
             );
         }else return [];
       } catch (e) {
@@ -801,7 +801,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
       data:
       { //отправляем в диалог:
         companyId:        this.company_id, //id предприятия
-        documentId:       this.parentDockId, //id документа
+        documentId:       this.parentDocId, //id документа
         productId:        product_id, // id товара 
         departmentId:     secondaryDepartmentId, //id отделения
         priceTypeId:      price_type_id, //id типа цены
@@ -850,7 +850,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
     this.calcSumPriceOfProduct();
   }
   updateSettings(){
-    return this.http.post('/api/auth/saveSettings'+this.parentDockName, this.settingsForm.value)
+    return this.http.post('/api/auth/saveSettings'+this.parentDocName, this.settingsForm.value)
             .subscribe(
                 (data) => {   
                           this.openSnackBar("Настройки успешно сохранены", "Закрыть");
@@ -911,7 +911,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
      let result:any;
      let price_type_id:number;
      price_type_id=(+this.formSearch.get('price_type_id').value==0?0:this.formSearch.get('price_type_id').value);
-     this.http.get('/api/auth/getProductsPriceAndRemains?department_id='+this.formSearch.get('secondaryDepartmentId').value+'&product_id='+this.formSearch.get('product_id').value+'&price_type_id='+price_type_id+'&document_id='+this.parentDockId)
+     this.http.get('/api/auth/getProductsPriceAndRemains?department_id='+this.formSearch.get('secondaryDepartmentId').value+'&product_id='+this.formSearch.get('product_id').value+'&price_type_id='+price_type_id+'&document_id='+this.parentDocId)
       .subscribe(
           data => { 
             result=data as any;
@@ -1065,7 +1065,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
 getProductCount(){
   if(+this.formSearch.get('product_id').value>0 && !this.gotProductCount){//если товар выбран в поиске товара и инфу о количестве этого товара в отделениях еще не получали
     this.gettingProductCount=true;
-    this.http.get('/api/auth/getProductCount?product_id='+this.formSearch.get('product_id').value+'&company_id='+this.company_id+'&document_id='+this.parentDockId)
+    this.http.get('/api/auth/getProductCount?product_id='+this.formSearch.get('product_id').value+'&company_id='+this.company_id+'&document_id='+this.parentDocId)
     .subscribe(
       data => { 
       this.productCountByDepartments=data as idAndCount[];
@@ -1241,7 +1241,7 @@ recountTotals(){
       // console.log(parseFloat(t['reserved_current'])+' - Это число целое? - '+Number.isInteger(parseFloat(t['reserved_current'])))
 
       // На целочисленность резервов проверяем только в случае, если данный компонент вызван из Заказа покупателя, т.к. поле Резерв актуально только для данного документа
-      if(this.parentDockName=='CustomersOrders' && t['indivisible'] && t['reserved_current']!='' && !Number.isInteger(parseFloat(t['reserved_current']))){
+      if(this.parentDocName=='CustomersOrders' && t['indivisible'] && t['reserved_current']!='' && !Number.isInteger(parseFloat(t['reserved_current']))){
         result=true;
       }
     })

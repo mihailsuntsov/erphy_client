@@ -26,7 +26,7 @@ interface ExampleFlatNode {
   name: string;
   level: number;
 }
-export interface DockTable {
+export interface DocTable {
   id: number;
 }
 export interface TableAndPagesData {//для получения в одном объекте и номеров страниц для пагинации, и самих данных для таблицы
@@ -51,10 +51,10 @@ interface idAndName{ //универсалный интерфейс для выб
 export class RemainsComponent implements OnInit {
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
   receivedPagesList: string [];//массив для получения данных пагинации
-  receivedMatTable: DockTable [] = [] ;//массив для получения данных для материал таблицы
-  dataSource = new MatTableDataSource<DockTable>(this.receivedMatTable); //источник данных для материал таблицы
+  receivedMatTable: DocTable [] = [] ;//массив для получения данных для материал таблицы
+  dataSource = new MatTableDataSource<DocTable>(this.receivedMatTable); //источник данных для материал таблицы
   displayedColumns: string[]=[];//массив отображаемых столбцов таблицы
-  selection = new SelectionModel<DockTable>(true, []);//Class to be used to power selecting one or more options from a list.
+  selection = new SelectionModel<DocTable>(true, []);//Class to be used to power selecting one or more options from a list.
   selectionFilterOptions = new SelectionModel<idAndName>(true, []);//Class to be used to power selecting one or more options from a list.
   receivedCompaniesList: any [];//массив для получения списка предприятий
   receivedDepartmentsList: idAndName [] = [];//массив для получения списка отделений
@@ -324,7 +324,7 @@ export class RemainsComponent implements OnInit {
   }
   
   /** The label for the checkbox on the passed row */
-  checkboxLabel(row?: DockTable): string {
+  checkboxLabel(row?: DocTable): string {
     if (!row) {
       return `${this.isAllSelected() ? 'select' : 'deselect'} all`;
     }
@@ -474,7 +474,7 @@ export class RemainsComponent implements OnInit {
       { 
         actionType:"changeOrder",
         parentCategoryId: +this.sendingQueryForm.selectedNodeId,
-        dockName:"Изменение порядка вывода",
+        docName:"Изменение порядка вывода",
         companyId: +this.sendingQueryForm.companyId
       },
     });
@@ -525,7 +525,7 @@ export class RemainsComponent implements OnInit {
         departmentId:+this.sendingQueryForm.departmentId,//выбранное отделение. если отправится 0 то будет уже отрабатывать departmentsList
         departmentsList: this.receivedDepartmentsList,//здесь надо будет сделать в зависимости от прав - слать только свои отделения или все отделения предприятия
         productsIds: this.checkedList,
-        dockName:"Минимальный остаток для товаров",
+        docName:"Минимальный остаток для товаров",
       },
     });
     dialogRef.afterClosed().subscribe(result => {

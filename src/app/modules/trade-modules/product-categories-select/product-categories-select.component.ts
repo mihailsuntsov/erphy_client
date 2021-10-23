@@ -20,7 +20,7 @@ interface ExampleFlatNode {
   name: string;
   level: number;
 }
-export interface DockTable {
+export interface DocTable {
   id: number;
 }
 interface IdAndName {// интерфейс для выбранных объектов (категории или товары)
@@ -41,8 +41,8 @@ export interface NumRow {//интерфейс для списка количес
 export class ProductCategoriesSelectComponent implements OnInit {
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
   receivedPagesList: string [];//массив для получения данных пагинации
-  receivedMatTable: DockTable []=[] ;//массив для получения данных для материал таблицы
-  dataSource = new MatTableDataSource<DockTable>(this.receivedMatTable); //источник данных для материал таблицы
+  receivedMatTable: DocTable []=[] ;//массив для получения данных для материал таблицы
+  dataSource = new MatTableDataSource<DocTable>(this.receivedMatTable); //источник данных для материал таблицы
   displayedColumns: string[]=[];//массив отображаемых столбцов таблицы
   myCompanyId:number=0;//
   TREE_DATA: FoodNode[]=[];

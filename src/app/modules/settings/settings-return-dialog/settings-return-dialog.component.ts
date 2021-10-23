@@ -115,7 +115,7 @@ export class SettingsReturnDialogComponent implements OnInit {
     this.getStatusesList();
   }
 
-  getDepartmentsList(newdock?:boolean){
+  getDepartmentsList(newdoc?:boolean){
     this.receivedDepartmentsList=null;
     this.loadSpravService.getDepartmentsListByCompanyId(this.settingsForm.get('companyId').value,false)
             .subscribe(

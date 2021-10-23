@@ -8,7 +8,7 @@ import { ProductCategoriesSelectComponent } from 'src/app/modules/trade-modules/
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { HttpClient } from '@angular/common/http';
-import { ProductsDockComponent } from 'src/app/ui/pages/documents/products-dock/products-dock.component';
+import { ProductsDocComponent } from 'src/app/ui/pages/documents/products-doc/products-doc.component';
 import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component';
 import { ViewChild } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -114,8 +114,8 @@ export class WriteoffProductsTableComponent implements OnInit {
   @ViewChild("form", {static: false}) form; // связь с формой <form #form="ngForm" ...
   @ViewChild("productSearchField", {static: false}) productSearchField;
 
-  @Input() parentDockId:number;   //id родительского документа 
-  @Input() parentDockName:string; // Идентификатор документа, в который вызывается данный компонент. Например, Writeoff и т.д.
+  @Input() parentDocId:number;   //id родительского документа 
+  @Input() parentDocName:string; // Идентификатор документа, в который вызывается данный компонент. Например, Writeoff и т.д.
   @Input() company_id:number;
   @Input() department_id:number;
   @Input() readonly:boolean;
@@ -379,8 +379,8 @@ export class WriteoffProductsTableComponent implements OnInit {
       duration: 3000,
     });
   }
-  openProductCard(dockId:number) {
-    this.dialogCreateProduct.open(ProductsDockComponent, {
+  openProductCard(docId:number) {
+    this.dialogCreateProduct.open(ProductsDocComponent, {
       maxWidth: '95vw',
       maxHeight: '95vh',
       height: '95%',
@@ -388,7 +388,7 @@ export class WriteoffProductsTableComponent implements OnInit {
       data:
       { 
         mode: 'viewInWindow',
-        dockId: dockId
+        docId: docId
       },});} 
 
   showImage(name:string){
@@ -426,7 +426,7 @@ export class WriteoffProductsTableComponent implements OnInit {
     this.gettingTableData=true;
     control.clear();
     this.row_id=0;
-    this.http.get('/api/auth/getWriteoffProductTable?id='+this.parentDockId)
+    this.http.get('/api/auth/getWriteoffProductTable?id='+this.parentDocId)
         .subscribe(
             data => { 
                 this.gettingTableData=false;
@@ -683,7 +683,7 @@ export class WriteoffProductsTableComponent implements OnInit {
 //*****************************************************************************************************************************************/
 
 openDialogCreateProduct() {
-  const dialogRef = this.dialogCreateProduct.open(ProductsDockComponent, {
+  const dialogRef = this.dialogCreateProduct.open(ProductsDocComponent, {
     maxWidth: '95vw',
     maxHeight: '95vh',
     height: '95%',
@@ -695,11 +695,11 @@ openDialogCreateProduct() {
     },
   });
   dialogRef.afterClosed().subscribe(result => {
-    if(result)this.addProductToDock(result);
+    if(result)this.addProductToDoc(result);
   });
 }
 
-  addProductToDock(product_code: string){
+  addProductToDoc(product_code: string){
     this.canAutocompleteQuery=true;
     this.getProductsList();
     this.searchProductCtrl.setValue(product_code);

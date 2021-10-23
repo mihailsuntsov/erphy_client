@@ -6,8 +6,8 @@ class="spinner"
 ></mat-spinner>
 <mat-card class="card">
     <mat-card-title class="flex" style="height: 30px;">
-        <div *ngIf="!displayingDeletedDocks" class="emptyspace">Перемещения</div>
-        <div *ngIf="displayingDeletedDocks" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> перемещения</div>
+        <div *ngIf="!displayingDeletedDocs" class="emptyspace">Перемещения</div>
+        <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> перемещения</div>
         <button 
             mat-raised-button 
             style="width: 36px;height: 36px;min-width: 38px;padding: 0px;"
@@ -18,15 +18,15 @@ class="spinner"
             class="button">
             <i class="material-icons">settings</i>
         </button>
-        <div [style.display]="(visBtnAdd==true&&!displayingDeletedDocks)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
-            <a [routerLink]="['../../movingdock', '']">
+        <div [style.display]="(visBtnAdd==true&&!displayingDeletedDocs)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
+            <a [routerLink]="['../../movingdoc', '']">
                 <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> Создать</button>
             </a>   
         </div>
-        <div [style.display]="(!displayingDeletedDocks&&visBtnDelete)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
+        <div [style.display]="(!displayingDeletedDocs&&visBtnDelete)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
                 <button mat-raised-button (click)="clickBtnDelete()" color="warn"><i class="material-icons">delete_forever</i> Удалить</button>
         </div>
-        <div *ngIf="displayingDeletedDocks && visBtnDelete" class="col-sm-auto justify-content-center" style="margin:0px 10px 10px 0px">
+        <div *ngIf="displayingDeletedDocs && visBtnDelete" class="col-sm-auto justify-content-center" style="margin:0px 10px 10px 0px">
             <button mat-raised-button (click)="clickBtnRestore()" color="accent"><i class="material-icons">restore_from_trash</i> Восстановить</button>
         </div>
     </mat-card-title>
@@ -156,7 +156,7 @@ class="spinner"
                         <ng-container matColumnDef="opendoc">
                             <th mat-header-cell *matHeaderCellDef></th>
                             <td mat-cell *matCellDef="let row" class="table-launch-icon">
-                                <a class="inactive" [routerLink]="['../../movingdock', row.id ]">
+                                <a class="inactive" [routerLink]="['../../movingdoc', row.id ]">
                                     <mat-icon>launch</mat-icon>
                                 </a>
                             </td>   

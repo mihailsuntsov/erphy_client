@@ -34,7 +34,7 @@ export class UniversalCategoriesDialogComponent implements OnInit {
     console.log("data.actionType:"+this.data.actionType);
     console.log("data.parentCategoryName:"+this.data.parentCategoryName);
     console.log("data.parentCategoryId:"+this.data.parentCategoryId);
-    console.log("data.dockName:"+this.data.dockName);
+    console.log("data.docName:"+this.data.docName);
 
     this.formBaseInformation = new FormGroup({
       parentCategoryId: new FormControl(+this.data.parentCategoryId,[]),//id РОДИТЕЛЬСКОЙ категории для создаваемой категории (ПУСТО - КОРНЕВАЯ БУДЕТ)
@@ -45,7 +45,7 @@ export class UniversalCategoriesDialogComponent implements OnInit {
     });
 
     if(this.data.actionType=='changeOrder'){
-      if(this.data.parentCategoryId==0){this.url="/api/auth/getRoot"+this.data.dockName+"Categories"} else {this.url="/api/auth/getChildrens"+this.data.dockName+"Categories"}
+      if(this.data.parentCategoryId==0){this.url="/api/auth/getRoot"+this.data.docName+"Categories"} else {this.url="/api/auth/getChildrens"+this.data.docName+"Categories"}
       return this.http.post(this.url, this.formBaseInformation.value)
             .subscribe(
                 (data) => {   
@@ -63,7 +63,7 @@ export class UniversalCategoriesDialogComponent implements OnInit {
   }
 
   updateCategory(){
-    return this.http.post('/api/auth/update'+this.data.dockName+'Category', this.formBaseInformation.value)
+    return this.http.post('/api/auth/update'+this.data.docName+'Category', this.formBaseInformation.value)
             .subscribe(
                 (data) => {   
                           this.openSnackBar("Категория сохранена", "Закрыть");
@@ -74,7 +74,7 @@ export class UniversalCategoriesDialogComponent implements OnInit {
   }
 
   createCategory(){
-    return this.http.post('/api/auth/insert'+this.data.dockName+'Category', this.formBaseInformation.value)
+    return this.http.post('/api/auth/insert'+this.data.docName+'Category', this.formBaseInformation.value)
     .subscribe(
         (data) => {   
                   this.data.categoryId=data as number;
@@ -110,7 +110,7 @@ export class UniversalCategoriesDialogComponent implements OnInit {
       order++;
     });
 
-    return this.http.post('/api/auth/saveChange'+this.data.dockName+'CategoriesOrder', this.orderCategories)
+    return this.http.post('/api/auth/saveChange'+this.data.docName+'CategoriesOrder', this.orderCategories)
             .subscribe(
                 (data) => {   
                             this.openSnackBar("Порядок категорий успешно сохранён", "Закрыть");

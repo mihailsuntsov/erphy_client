@@ -3,7 +3,7 @@
     <mat-card-title class="flex" style="height: 30px;">
         <div class="emptyspace">Единицы измерения</div>
         <div [style.display]="visBtnAdd==true?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
-            <a [routerLink]="['../../edizmdock', '']">
+            <a [routerLink]="['../../edizmdoc', '']">
                 <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> Создать</button>
             </a>   
         </div>
@@ -100,7 +100,7 @@
                                 <ng-container matColumnDef="opendoc">
                                     <th mat-header-cell *matHeaderCellDef></th>
                                     <td mat-cell *matCellDef="let row" class="table-launch-icon">
-                                        <a class="inactive" [routerLink]="['../../edizmdock', row.id ]">
+                                        <a class="inactive" [routerLink]="['../../edizmdoc', row.id ]">
                                             <mat-icon>launch</mat-icon>
                                         </a>
                                     </td>   

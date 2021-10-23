@@ -1,6 +1,6 @@
 <mat-card *ngIf="data.actionType=='create' || data.actionType=='update'" class="card">
     <mat-card-title class="flex">
-        <div class="card-name">{{data.dockName}}</div>
+        <div class="card-name">{{data.docName}}</div>
         <button 
             mat-raised-button 
             [style.display]="data.actionType=='create'?'block':'none'"
@@ -48,7 +48,7 @@
 
 <mat-card *ngIf="data.actionType=='changeOrder'" class="card">
     <mat-card-title class="flex">
-        <div class="card-name">{{data.dockName}}</div>
+        <div class="card-name">{{data.docName}}</div>
         <button 
             mat-raised-button 
             (click)="saveChangeCategoriesOrder()"

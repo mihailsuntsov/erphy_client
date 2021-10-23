@@ -166,7 +166,7 @@ export class SettingsCustomersordersDialogComponent implements OnInit {
     this.getDepartmentsList();
     this.getStatusesList();
   }
-  getDepartmentsList(newdock?:boolean){
+  getDepartmentsList(newdoc?:boolean){
     this.receivedDepartmentsList=null;
     // this.formBaseInformation.get('department_id').setValue('');
     this.loadSpravService.getDepartmentsListByCompanyId(this.settingsForm.get('companyId').value,false)

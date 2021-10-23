@@ -1,0 +1,168 @@
+<mat-card class="card">
+  
+    <mat-card-title class="flex">
+        <div class="card-name">Статус документа <span [ngClass]="{invisible: visBeforeCreatingBlocks}"> "{{formBaseInformation.get('doc').value}}"</span></div>
+                <button 
+                    mat-raised-button 
+                    [style.display]="visAfterCreatingBlocks==true?'none':'block'"
+                    (click)="createNewDocument()" 
+                    [disabled]="!formBaseInformation.valid" 
+                    color="primary"
+                    class="button">
+                    <i class="material-icons">add_circle_outline</i> Создать
+                </button>
+                <button 
+                    mat-raised-button 
+                    [style.display]="visBtnUpdate==true?'block':'none'"
+                    (click)="updateDocument(false)"
+                    [disabled]="!formBaseInformation.valid" 
+                    color="primary"
+                    class="button">
+                    <i class="material-icons">done</i> Сохранить
+                </button>
+                <a routerLink="../../statuses">
+                    <button 
+                        mat-raised-button 
+                        color="accent"
+                        class="button">
+                        <i class="material-icons">close</i> {{id>0?'Выйти':'Отмена'}}
+                    </button>
+                </a>
+    </mat-card-title>
+    <mat-card-subtitle [ngClass]="{invisible: visBeforeCreatingBlocks}">Предприятие: {{formAboutDocument.get('company').value}}</mat-card-subtitle>
+    <mat-card-content> 
+        <mat-tab-group>
+                <mat-tab label="Информация">
+
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-lg-6  col-xl-6 col-md-12">  
+
+                                <mat-card class="internal-card">
+                                    <mat-card-header>
+                                        <mat-card-title class="card-title">Основная информация</mat-card-title>
+                                    </mat-card-header>
+                                    <mat-card-content class="input-form">
+                                        <form [formGroup]="formBaseInformation">
+                                            <div class="container-fluid">
+                                                <div class="row">
+                                                    <div class="col-12">    
+                                                        <mat-form-field style="display: none">
+                                                            <input  matInput
+                                                                    placeholder="id"
+                                                                    formControlName="id"/>
+                                                        </mat-form-field>
+                                                        <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: visAfterCreatingBlocks}">
+                                                            <mat-label>Предприятие</mat-label>
+                                                            <mat-select  formControlName="company_id">                          
+                                                                <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
+                                                                        {{rt.name}}
+                                                                </mat-option> 
+                                                            </mat-select>
+                                                        </mat-form-field>
+                                                        <mat-form-field  class="mat-form-field-100" [ngClass]="{invisible: visAfterCreatingBlocks}">
+                                                            <mat-label>Документ{{formBaseInformation.get('doc_id').value==''?'*':''}}</mat-label>
+                                                            <mat-select formControlName="doc_id">
+                                                                <mat-option *ngFor="let rt of receivedDocumentsList" 
+                                                                            [value]="rt.id">
+                                                                            {{rt.name}}
+                                                                </mat-option>
+                                                            </mat-select>
+                                                            <mat-hint  align="start" *ngIf="formBaseInformation.get('doc_id').touched && formBaseInformation.get('doc_id').invalid">
+                                                                <i class="form-invalid">Документ не выбран.</i>
+                                                            </mat-hint>
+                                                        </mat-form-field>
+                                                        <mat-form-field class="mat-form-field-100">
+                                                            <input   matInput
+                                                                    placeholder="Наименование"
+                                                                    formControlName="name"/>
+                                                        </mat-form-field>
+                                                        <mat-form-field class="mat-form-field-100">
+                                                            <label class="mat-form-field-label" style="display: block;top:-1.3em;font-size:11px;"><span>Цвет</span></label>
+                                                            <input type="color" formControlName="color" name="color1">
+                                                            <input matInput hidden/>
+                                                        </mat-form-field>
+
+                                                        <mat-form-field class="mat-form-field-100">
+                                                            <mat-label>Тип статуса</mat-label>
+                                                            <mat-select formControlName="status_type">
+                                                                <mat-option [value]="1">Обычный</mat-option>
+                                                                <mat-option [value]="2">Конечный положительный</mat-option>
+                                                                <mat-option [value]="3">Конечный отрицательный</mat-option>
+                                                            </mat-select>
+                                                        </mat-form-field>
+                                                        <mat-form-field  class="mat-form-field-100">
+                                                            <textarea   matInput
+                                                                        maxlength="2000"
+                                                                        #description
+                                                                        placeholder="Дополнительная информация"
+                                                                        formControlName="description">
+                                                            </textarea>
+                                                            <mat-hint align="end" *ngIf="description.value.length>500">{{description.value.length}} / 2000</mat-hint>
+                                                        </mat-form-field>
+                                                    </div>
+                                                </div>
+                                            </div>  
+                                        </form>
+                                    </mat-card-content>
+                                </mat-card>
+                            </div>
+                            <div class="col-lg-6  col-xl-6 col-md-12" *ngIf="statusesList.length>1">  
+                                <mat-card class="internal-card" style = "padding: 16px;"> 
+                                    <mat-card-header>
+                                        <mat-card-title class="card-title" style="margin-left: -16px;">Порядок вывода статусов</mat-card-title>
+                                    </mat-card-header>
+                                    <div class="box-list" cdkDropList (cdkDropListDropped)="dropCagent($event)">
+                                        <ng-container *ngFor="let status of statusesList">
+                                            <div class="field-box-drag" cdkDrag style="cursor:move;">
+                                                <div style="display: table; width: 100%">
+                                                    <div class="img-wrapper" style="cursor:move; ">
+                                                        <div class="vertical-center">{{status.name}}</div><p *cdkDragPreview></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </ng-container>
+                                    </div>
+                                </mat-card>
+                            </div>
+                        </div>  
+                    </div>  
+                </mat-tab>
+                
+                <mat-tab  *ngIf="visAfterCreatingBlocks"  label="О документе">
+                    <form [formGroup]="formAboutDocument">
+                        <mat-card class="internal-card">
+                            <mat-card-content class="input-form">
+                                    <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                        <input  matInput
+                                                placeholder="Предприятие"
+                                                formControlName="company" [readonly]=true/>
+                                    </mat-form-field>
+                                    <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                        <input  matInput
+                                                placeholder="Создатель"
+                                                formControlName="creator" [readonly]=true/>
+                                    </mat-form-field>
+                                    <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                        <input  matInput
+                                                placeholder="Дата создания"
+                                                formControlName="date_time_created" [readonly]=true/>
+                                    </mat-form-field>
+                                    <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                        <input  matInput
+                                                placeholder="Изменение"
+                                                formControlName="changer" [readonly]=true/>
+                                    </mat-form-field>
+                                    <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                        <input  matInput
+                                                placeholder="Дата изменения"
+                                                formControlName="date_time_changed" [readonly]=true/>
+                                    </mat-form-field>
+                            </mat-card-content>
+                        </mat-card>  
+                    </form>  
+                </mat-tab>
+        </mat-tab-group>
+    </mat-card-content> 
+</mat-card>
+

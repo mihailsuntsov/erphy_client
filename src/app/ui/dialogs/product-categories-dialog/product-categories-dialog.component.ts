@@ -18,7 +18,7 @@ interface categoriesOrderResponse {//интерфейс для получени�
 export class ProductCategoriesDialogComponent implements OnInit {
 
   formBaseInformation:any;//форма для основной информации, содержащейся в документе
-  createdDockId: number;//массив для получение id созданного объекта
+  createdDocId: number;//массив для получение id созданного объекта
   receivedSetsOfCategories: any [] = [] ;//массив для получения сетов категорий для изменения их порядка вывода
   orderCategories: categoriesOrderResponse[] = [];// массив для отправки очередности категорий [{id категории,order},{id категории,order},...]
   url: string; 
@@ -36,7 +36,7 @@ export class ProductCategoriesDialogComponent implements OnInit {
     // console.log("data.actionType:"+this.data.actionType);
     // console.log("data.parentCategoryName:"+this.data.parentCategoryName);
     // console.log("data.parentCategoryId:"+this.data.parentCategoryId);
-    // console.log("data.dockName:"+this.data.dockName);
+    // console.log("data.docName:"+this.data.docName);
 
     this.formBaseInformation = new FormGroup({
       parentCategoryId: new FormControl(+this.data.parentCategoryId,[]),//id РОДИТЕЛЬСКОЙ категории для создаваемой категории (ПУСТО - КОРНЕВАЯ БУДЕТ)

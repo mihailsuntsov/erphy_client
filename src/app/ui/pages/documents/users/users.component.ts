@@ -9,7 +9,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { LoadSpravService } from './loadsprav';
 
 
-export interface DockTable {
+export interface DocTable {
   id: number;
   name: string;
   creator_id: number;
@@ -31,11 +31,11 @@ export class UsersComponent implements OnInit {
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
   donePagesList: boolean = false;
   receivedPagesList: string [];//массив для получения данных пагинации
-  receivedMatTable: DockTable []=[] ;//массив для получения данных для материал таблицы
-  resultTable: DockTable [];//массив для формирования таблицы с родителями и детьми
-  dataSource = new MatTableDataSource<DockTable>(this.receivedMatTable); //источник данных для материал таблицы
+  receivedMatTable: DocTable []=[] ;//массив для получения данных для материал таблицы
+  resultTable: DocTable [];//массив для формирования таблицы с родителями и детьми
+  dataSource = new MatTableDataSource<DocTable>(this.receivedMatTable); //источник данных для материал таблицы
   displayedColumns: string[]=[];//массив отображаемых столбцов таблицы//displayedColumns: string[] = ['select', 'opendoc','name', 'status_account','creator', 'date_time_created'];//массив отображаемых столбцов таблицы
-  selection = new SelectionModel<DockTable>(true, []);//Class to be used to power selecting one or more options from a list.
+  selection = new SelectionModel<DocTable>(true, []);//Class to be used to power selecting one or more options from a list.
   receivedCompaniesList: any [];//массив для получения списка документов
  
   //переменные прав
@@ -46,7 +46,7 @@ export class UsersComponent implements OnInit {
   allowToUpdateAll:boolean = false;
   allowToViewMy:boolean = false;
   allowToViewAll:boolean = false;
-  isItMyDock:boolean = false;
+  isItMyDoc:boolean = false;
  
   numRows: NumRow[] = [
     {value: '5', viewValue: '5'},
@@ -169,7 +169,7 @@ getTableHeaderTitles(){
     }
    
     /** The label for the checkbox on the passed row */
-    checkboxLabel(row?: DockTable): string {
+    checkboxLabel(row?: DocTable): string {
       if (!row) {
         return `${this.isAllSelected() ? 'select' : 'deselect'} all`;
       }
@@ -246,13 +246,13 @@ getTableHeaderTitles(){
         width: '300px',
       });
       dialogRef.afterClosed().subscribe(result => {
-        if(result==1){this.deleteDocks();}
+        if(result==1){this.deleteDocs();}
         this.clearCheckboxSelection();
         this.showOnlyVisBtnAdd();
       });        
     }
 
-    deleteDocks(){
+    deleteDocs(){
       const body = {"checked": this.checkedList};
       this.clearCheckboxSelection();
         return this.http.post('/api/auth/deleteUsers', body) 

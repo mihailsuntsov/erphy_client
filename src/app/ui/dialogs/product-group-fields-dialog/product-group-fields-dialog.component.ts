@@ -13,7 +13,7 @@ export class ProductGroupFieldsDialogComponent implements OnInit {
 
   //Формы
   formBaseInformation:any;//форма для основной информации, содержащейся в документе
-  createdDockId: string[];//массив для получение id созданного документа
+  createdDocId: string[];//массив для получение id созданного документа
   //updateDocumentResponse: string;//массив для получения данных
 
   constructor(

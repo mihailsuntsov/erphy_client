@@ -3,7 +3,7 @@
     <mat-card-title class="flex" style="height: 30px;">
         <div class="emptyspace">Группы пользователей</div>
         <div [style.display]="visBtnAdd==true?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
-            <a [routerLink]="['../../usergroupdock', '']">
+            <a [routerLink]="['../../usergroupdoc', '']">
                 <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> Создать</button>
             </a>   
         </div>
@@ -108,7 +108,7 @@
                                 <ng-container matColumnDef="opendoc">
                                     <th mat-header-cell *matHeaderCellDef></th>
                                     <td mat-cell *matCellDef="let row" class="table-launch-icon">
-                                        <a class="inactive" [routerLink]="['../../usergroupdock', row.id ]">
+                                        <a class="inactive" [routerLink]="['../../usergroupdoc', row.id ]">
                                             <mat-icon>launch</mat-icon>
                                         </a>
                                     </td>   

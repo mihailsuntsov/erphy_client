@@ -102,7 +102,7 @@
 
                         <button 
                         mat-button 
-                        [matMenuTriggerFor]="addDockMenu"
+                        [matMenuTriggerFor]="addDocMenu"
                         mat-raised-button 
                         matTooltip='Действия над выбранными товарами и услугами'
                         
@@ -114,13 +114,13 @@
                         style="width: 142px;height: 36px;min-width: 38px;">
                         <i class="material-icons">add_task</i>&nbsp;&nbsp;Действия<i class="material-icons">arrow_drop_down</i>
                         </button>
-                        <mat-menu #addDockMenu="matMenu" yPosition="below" xPosition="before">
+                        <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
                             <button mat-menu-item *ngIf="allowToCreate && selection.selected.length==1" (click)="clickBtnDuplicateProduct()" matTooltip='Дублировать выбранный товар'><mat-icon>control_point_duplicate</mat-icon><span>Дублировать</span></button>
                             <button mat-menu-item *ngIf="allowToUpdate && selection.selected.length>0" (click)="openDialogProductCategoriesSelect()" matTooltip='Изменить категории у выбранных товаров'><mat-icon>rule</mat-icon><span>Категории</span></button>
                             <button mat-menu-item *ngIf="allowToDelete && selection.selected.length>0" (click)="clickBtnDelete()" matTooltip='Удалить выбранные товары'><mat-icon>delete_forever</mat-icon><span>Удалить</span></button>
                         </mat-menu>
                         <div [style.display]="visBtnAdd==true?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
-                            <a [routerLink]="['../../productsdock', '']">
+                            <a [routerLink]="['../../productsdoc', '']">
                                 <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> Создать</button>
                             </a>   
                         </div>
@@ -234,7 +234,7 @@
                                                 <ng-container matColumnDef="opendoc">
                                                     <th mat-header-cell *matHeaderCellDef></th>
                                                     <td mat-cell *matCellDef="let row" class="table-launch-icon">
-                                                        <a class="inactive" [routerLink]="['../../productsdock', row.id ]">
+                                                        <a class="inactive" [routerLink]="['../../productsdoc', row.id ]">
                                                             <mat-icon>launch</mat-icon>
                                                         </a>
                                                     </td>   

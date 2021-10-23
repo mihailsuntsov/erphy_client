@@ -30,7 +30,7 @@ export class ProductCagentsDialogComponent implements OnInit {
     this.formBaseInformation = new FormGroup({
       cagentArticle: new FormControl(this.data.cagentArticle,[]),// артикул товара у поставщика
       cagentAdditional: new FormControl(this.data.cagentAdditional,[]),// примечание (дополнительная информация)
-      dockName: new FormControl(this.data.dockName,[]),// 
+      docName: new FormControl(this.data.docName,[]),// 
     });
   }
   

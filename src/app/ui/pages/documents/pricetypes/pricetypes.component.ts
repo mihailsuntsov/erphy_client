@@ -9,7 +9,7 @@ import { MatDialog } from '@angular/material/dialog';
 // import { LoadSpravService } from './loadsprav';
 import { QueryFormService } from './get-pricetypes-table.service';
 import { LoadSpravService } from '../../../../services/loadsprav';
-export interface DockTable {
+export interface DocTable {
   id: number;
   company_id: number;
   is_default: boolean;
@@ -31,10 +31,10 @@ export class PricetypesComponent implements OnInit {
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
   donePagesList: boolean = false;
   receivedPagesList: string [];//массив для получения данных пагинации
-  receivedMatTable: DockTable [] =[];//массив для получения данных для материал таблицы
-  dataSource = new MatTableDataSource<DockTable>(this.receivedMatTable); //источник данных для материал таблицы
+  receivedMatTable: DocTable [] =[];//массив для получения данных для материал таблицы
+  dataSource = new MatTableDataSource<DocTable>(this.receivedMatTable); //источник данных для материал таблицы
   displayedColumns: string[]=[];//массив отображаемых столбцов таблицы
-  selection = new SelectionModel<DockTable>(true, []);//Class to be used to power selecting one or more options from a list.
+  selection = new SelectionModel<DocTable>(true, []);//Class to be used to power selecting one or more options from a list.
   receivedCompaniesList: any [];//массив для получения списка предприятий
   receivedSpravSysPriceRole: any [];//Справочник роли цены (Основная, Скидочная)
   myCompanyId:number=0;
@@ -172,7 +172,7 @@ getTableHeaderTitles(){
     }
    
     /** The label for the checkbox on the passed row */
-    checkboxLabel(row?: DockTable): string {
+    checkboxLabel(row?: DocTable): string {
       if (!row) {
         return `${this.isAllSelected() ? 'select' : 'deselect'} all`;
       }
@@ -246,13 +246,13 @@ getTableHeaderTitles(){
         width: '300px',
       });
       dialogRef.afterClosed().subscribe(result => {
-        if(result==1){this.deleteDocks();}
+        if(result==1){this.deleteDocs();}
         this.clearCheckboxSelection();
         this.showOnlyVisBtnAdd();
       });        
     }
 
-    deleteDocks(){
+    deleteDocs(){
       const body = {"checked": this.checkedList};
       this.clearCheckboxSelection();
         return this.http.post('/api/auth/deleteTypePrices', body) 

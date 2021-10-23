@@ -114,7 +114,7 @@ export class ReturnsupComponent implements OnInit {
     //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
     selectionFilterOptions = new SelectionModel<idAndName>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние
     optionsIds: idAndName [];
-    displayingDeletedDocks:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
+    displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
     displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
     //***********************************************************************************************************************/
   
@@ -401,12 +401,12 @@ export class ReturnsupComponent implements OnInit {
         width: '300px',
       });
       dialogRef.afterClosed().subscribe(result => {
-        if(result==1){this.deleteDocks();}
+        if(result==1){this.deleteDocs();}
         this.clearCheckboxSelection();
         this.showOnlyVisBtnAdd();
       });        
     }
-    deleteDocks(){
+    deleteDocs(){
       const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
       this.clearCheckboxSelection();
             return this.http.post('/api/auth/deleteReturnsup', body) 
@@ -578,12 +578,12 @@ export class ReturnsupComponent implements OnInit {
       },
     });
     dialogRef.afterClosed().subscribe(result => {
-      if(result==1){this.undeleteDocks();}
+      if(result==1){this.undeleteDocs();}
       this.clearCheckboxSelection();
       this.showOnlyVisBtnAdd();
     });        
   }
-  undeleteDocks(){
+  undeleteDocs(){
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
       return this.http.post('/api/auth/undeleteReturnsup', body) 
@@ -596,7 +596,7 @@ export class ReturnsupComponent implements OnInit {
     );
   }  
     resetOptions(){
-      this.displayingDeletedDocks=false;
+      this.displayingDeletedDocs=false;
       this.fillOptionsList();//перезаполняем список опций
       this.selectionFilterOptions.clear();
       this.sendingQueryForm.filterOptionsIds = [];
@@ -609,7 +609,7 @@ export class ReturnsupComponent implements OnInit {
       this.selectionFilterOptions.selected.forEach(z=>{
         if(z.id==1){showOnlyDeletedCheckboxIsOn=true;}
       })
-      this.displayingDeletedDocks=showOnlyDeletedCheckboxIsOn;
+      this.displayingDeletedDocs=showOnlyDeletedCheckboxIsOn;
       this.clearCheckboxSelection();
       this.sendingQueryForm.offset=0;//сброс пагинации
       this.getData();

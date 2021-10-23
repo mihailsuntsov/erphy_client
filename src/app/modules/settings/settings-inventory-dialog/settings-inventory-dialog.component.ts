@@ -149,7 +149,7 @@ export class SettingsInventoryDialogComponent implements OnInit {
     this.getPriceTypesList();
   }
 
-  getDepartmentsList(newdock?:boolean){
+  getDepartmentsList(newdoc?:boolean){
     this.receivedDepartmentsList=null;
     this.loadSpravService.getDepartmentsListByCompanyId(this.settingsForm.get('companyId').value,false)
             .subscribe(

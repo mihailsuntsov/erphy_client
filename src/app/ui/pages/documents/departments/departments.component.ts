@@ -62,7 +62,7 @@ export class DepartmentsComponent implements OnInit {
   allowToUpdateAll:boolean = false;
   allowToViewMy:boolean = false;
   allowToViewAll:boolean = false;
-  isItMyDock:boolean = false;
+  isItMyDoc:boolean = false;
  
   numRows: NumRow[] = [
     {value: '5', viewValue: '5'},
@@ -315,13 +315,13 @@ getTableHeaderTitles(){
       width: '300px',
     });
     dialogRef.afterClosed().subscribe(result => {
-      if(result==1){this.deleteDocks();}
+      if(result==1){this.deleteDocs();}
       this.clearCheckboxSelection();
       this.showOnlyVisBtnAdd();
     });        
   }
 
-  deleteDocks(){
+  deleteDocs(){
     const body = {"checked": this.checkedList};
     this.clearCheckboxSelection();
         return this.http.post('/api/auth/deleteDepartments', body) 

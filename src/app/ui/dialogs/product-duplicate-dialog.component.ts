@@ -132,7 +132,7 @@ formBaseInformation:any;//форма для основной информаци�
         id3: new FormControl(1,[]), // код: 1-оставить пустым, 2-как в оригинале, 3-присвоить новый
         id4: new FormControl(1,[]), // штрих-код: 1-оставить пустым, 2-как в оригинале
         // cagentAdditional: new FormControl(this.data.cagentAdditional,[]),// примечание (дополнительная информация)
-        // dockName: new FormControl(this.data.dockName,[]),// 
+        // docName: new FormControl(this.data.docName,[]),// 
     });
     }
 

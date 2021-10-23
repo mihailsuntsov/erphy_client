@@ -8,7 +8,7 @@ import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
-import { QueryFormService } from './get-statusdocks-table.service';
+import { QueryFormService } from './get-statusdocs-table.service';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
 
 export interface CheckBox {
@@ -82,7 +82,7 @@ export class StatusesComponent implements OnInit {
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
   selectionFilterOptions = new SelectionModel<idAndName>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние
   optionsIds: idAndName [];
-  displayingDeletedDocks:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
+  displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
   //***********************************************************************************************************************/
   constructor(private queryFormService:   QueryFormService,
@@ -105,18 +105,18 @@ export class StatusesComponent implements OnInit {
       this.sendingQueryForm.searchCategoryString="";
       this.sendingQueryForm.filterOptionsIds = [];
 
-      if(Cookie.get('satusdock_companyId')=='undefined' || Cookie.get('satusdock_companyId')==null)     
-        Cookie.set('satusdock_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('satusdock_companyId')=="0"?"0":+Cookie.get('satusdock_companyId'));
-      if(Cookie.get('satusdock_documentId')=='undefined' || Cookie.get('satusdock_documentId')==null)  
-        Cookie.set('satusdock_documentId',this.sendingQueryForm.documentId); else this.sendingQueryForm.documentId=(Cookie.get('satusdock_documentId')=="0"?"0":+Cookie.get('satusdock_documentId'));
-      if(Cookie.get('satusdock_sortAsc')=='undefined' || Cookie.get('satusdock_sortAsc')==null)       
-        Cookie.set('satusdock_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('satusdock_sortAsc');
-      if(Cookie.get('satusdock_sortColumn')=='undefined' || Cookie.get('satusdock_sortColumn')==null)    
-        Cookie.set('satusdock_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('satusdock_sortColumn');
-      if(Cookie.get('satusdock_offset')=='undefined' || Cookie.get('satusdock_offset')==null)        
-        Cookie.set('satusdock_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('satusdock_offset');
-      if(Cookie.get('satusdock_result')=='undefined' || Cookie.get('satusdock_result')==null)        
-        Cookie.set('satusdock_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('satusdock_result');
+      if(Cookie.get('satusdoc_companyId')=='undefined' || Cookie.get('satusdoc_companyId')==null)     
+        Cookie.set('satusdoc_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('satusdoc_companyId')=="0"?"0":+Cookie.get('satusdoc_companyId'));
+      if(Cookie.get('satusdoc_documentId')=='undefined' || Cookie.get('satusdoc_documentId')==null)  
+        Cookie.set('satusdoc_documentId',this.sendingQueryForm.documentId); else this.sendingQueryForm.documentId=(Cookie.get('satusdoc_documentId')=="0"?"0":+Cookie.get('satusdoc_documentId'));
+      if(Cookie.get('satusdoc_sortAsc')=='undefined' || Cookie.get('satusdoc_sortAsc')==null)       
+        Cookie.set('satusdoc_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('satusdoc_sortAsc');
+      if(Cookie.get('satusdoc_sortColumn')=='undefined' || Cookie.get('satusdoc_sortColumn')==null)    
+        Cookie.set('satusdoc_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('satusdoc_sortColumn');
+      if(Cookie.get('satusdoc_offset')=='undefined' || Cookie.get('satusdoc_offset')==null)        
+        Cookie.set('satusdoc_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('satusdoc_offset');
+      if(Cookie.get('satusdoc_result')=='undefined' || Cookie.get('satusdoc_result')==null)        
+        Cookie.set('satusdoc_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('satusdoc_result');
 
       this.fillOptionsList();//заполняем список опций фильтра
       this.getCompaniesList();// 
@@ -282,7 +282,7 @@ export class StatusesComponent implements OnInit {
     this.clearCheckboxSelection();
     this.createCheckedList();
     this.sendingQueryForm.offset=0;
-    Cookie.set('satusdock_result',this.sendingQueryForm.result);
+    Cookie.set('satusdoc_result',this.sendingQueryForm.result);
     this.getData();
   }
 
@@ -290,7 +290,7 @@ export class StatusesComponent implements OnInit {
   {
     this.clearCheckboxSelection();
     this.sendingQueryForm.offset=value;
-    Cookie.set('satusdock_offset',value);
+    Cookie.set('satusdoc_offset',value);
     this.getData();
   }
 
@@ -309,23 +309,23 @@ export class StatusesComponent implements OnInit {
           } else {  
               this.sendingQueryForm.sortAsc="asc"
           }
-      Cookie.set('satusdock_sortAsc',this.sendingQueryForm.sortAsc);
+      Cookie.set('satusdoc_sortAsc',this.sendingQueryForm.sortAsc);
       } else {
           this.sendingQueryForm.sortColumn=valueSortColumn;
           this.sendingQueryForm.sortAsc="asc";
-          Cookie.set('satusdock_sortAsc',"asc");
-          Cookie.set('satusdock_sortColumn',valueSortColumn);
+          Cookie.set('satusdoc_sortAsc',"asc");
+          Cookie.set('satusdoc_sortColumn',valueSortColumn);
       }
       this.getData();
   }
   onCompanySelection(){
-    Cookie.set('satusdock_companyId',this.sendingQueryForm.companyId);
+    Cookie.set('satusdoc_companyId',this.sendingQueryForm.companyId);
     this.sendingQueryForm.documentId="0"; 
     this.resetOptions();
     this.getDocumentsList();
   }
   onDocumentSelection(){
-    Cookie.set('satusdock_documentId',this.sendingQueryForm.documentId);
+    Cookie.set('satusdoc_documentId',this.sendingQueryForm.documentId);
     this.getData();
   }
   clickBtnDelete(): void {
@@ -333,7 +333,7 @@ export class StatusesComponent implements OnInit {
       width: '300px',
     });
     dialogRef.afterClosed().subscribe(result => {
-      if(result==1){this.deleteDocks();}
+      if(result==1){this.deleteDocs();}
       this.clearCheckboxSelection();
       this.showOnlyVisBtnAdd();
     });        
@@ -349,15 +349,15 @@ export class StatusesComponent implements OnInit {
       },
     });
     dialogRef.afterClosed().subscribe(result => {
-      if(result==1){this.undeleteDocks();}
+      if(result==1){this.undeleteDocs();}
       this.clearCheckboxSelection();
       this.showOnlyVisBtnAdd();
     });        
   }
-  undeleteDocks(){
+  undeleteDocs(){
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
-      return this.http.post('/api/auth/undeleteSpravStatusDocks', body) 
+      return this.http.post('/api/auth/undeleteSpravStatusDocs', body) 
     .subscribe(
         (data) => {   
                     this.getData();
@@ -366,10 +366,10 @@ export class StatusesComponent implements OnInit {
         error => console.log(error),
     );
   }
-  deleteDocks(){
+  deleteDocs(){
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
-          return this.http.post('/api/auth/deleteSpravStatusDocks', body) 
+          return this.http.post('/api/auth/deleteSpravStatusDocs', body) 
             .subscribe(
                 (data) => {   
                             this.getData();
@@ -411,9 +411,9 @@ export class StatusesComponent implements OnInit {
   }
 
   setDefaultCompany(){
-    if(Cookie.get('satusdock_companyId')=='0'){
+    if(Cookie.get('satusdoc_companyId')=='0'){
       this.sendingQueryForm.companyId=this.myCompanyId;
-      Cookie.set('satusdock_companyId',this.sendingQueryForm.companyId);
+      Cookie.set('satusdoc_companyId',this.sendingQueryForm.companyId);
     }
       this.getDocumentsList();
   }
@@ -427,10 +427,10 @@ export class StatusesComponent implements OnInit {
     console.log('Document length = '+this.receivedDocumentsList.length);
     if(this.receivedDocumentsList.length>1)
     {
-      this.sendingQueryForm.documentId=(Cookie.get('satusdock_documentId')=="0"?this.receivedDocumentsList[0].id:+Cookie.get('satusdock_documentId'))
+      this.sendingQueryForm.documentId=(Cookie.get('satusdoc_documentId')=="0"?this.receivedDocumentsList[0].id:+Cookie.get('satusdoc_documentId'))
     } else {
       this.sendingQueryForm.documentId=+this.receivedDocumentsList[0].id;
-      Cookie.set('satusdock_documentId',this.sendingQueryForm.documentId);
+      Cookie.set('satusdoc_documentId',this.sendingQueryForm.documentId);
     }
   this.getCRUD_rights(this.permissionsSet);
   }
@@ -456,7 +456,7 @@ export class StatusesComponent implements OnInit {
   onClickRadioBtn(id:number, name:string){
     const body = {"id": this.sendingQueryForm.companyId, "id2":this.sendingQueryForm.documentId, "id3":id}; 
     this.clearCheckboxSelection();
-      return this.http.post('/api/auth/setDefaultStatusDock', body) 
+      return this.http.post('/api/auth/setDefaultStatusDoc', body) 
     .subscribe(
         (data) => {   
           this.getData();
@@ -467,7 +467,7 @@ export class StatusesComponent implements OnInit {
   }
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
   resetOptions(){
-    this.displayingDeletedDocks=false;
+    this.displayingDeletedDocs=false;
     this.fillOptionsList();//перезаполняем список опций
     this.selectionFilterOptions.clear();
     this.sendingQueryForm.filterOptionsIds = [];
@@ -480,7 +480,7 @@ export class StatusesComponent implements OnInit {
     this.selectionFilterOptions.selected.forEach(z=>{
       if(z.id==1){showOnlyDeletedCheckboxIsOn=true;}
     })
-    this.displayingDeletedDocks=showOnlyDeletedCheckboxIsOn;
+    this.displayingDeletedDocs=showOnlyDeletedCheckboxIsOn;
     this.clearCheckboxSelection();
     this.sendingQueryForm.offset=0;//сброс пагинации
     this.getData();

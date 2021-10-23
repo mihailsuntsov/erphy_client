@@ -96,8 +96,8 @@
     <div class="categories-sidenav-content">
         <mat-card class="card">
                 <mat-card-title class="flex" style="height: 30px;">
-                        <div *ngIf="!displayingDeletedDocks" class="emptyspace">Контрагенты</div>
-                        <div *ngIf="displayingDeletedDocks" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> контрагенты</div>
+                        <div *ngIf="!displayingDeletedDocs" class="emptyspace">Контрагенты</div>
+                        <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> контрагенты</div>
                         <div [style.display]="(checkedList.length>0 && mode=='select')?'block':'none'" style="margin:0px 0px 10px 10px">
                             <button  mat-raised-button [mat-dialog-close]=checkedList cdkFocusInitial color="primary"><i class="material-icons">done</i>
                                 <span> Выбрать</span>
@@ -108,19 +108,19 @@
                                 <span> Отмена</span>
                             </button>
                         </div>
-                        <div [style.display]="(visBtnAdd==true && mode=='standart' && !displayingDeletedDocks)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
-                            <a [routerLink]="['../../cagentsdock', '']">
+                        <div [style.display]="(visBtnAdd==true && mode=='standart' && !displayingDeletedDocs)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
+                            <a [routerLink]="['../../cagentsdoc', '']">
                                 <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> Создать</button>
                             </a>   
                         </div>
                         <!-- <div  [style.display]="(visBtnCopy==true && checkedList.length==1  && mode=='standart')?'block':'none'" class="col-sm-auto justify-content-center" style="margin:0px 10px 10px 0px"> -->
                                     <!-- <button mat-raised-button (click)="clickBtnCopy()" color="primary"><i class="material-icons">control_point_duplicate</i> Дублировать</button> -->
                             <!-- </div> -->
-                             <!-- {{displayingDeletedDocks}} && {{visBtnDelete}} && {{mode}} -->
-                        <div *ngIf="!displayingDeletedDocks && visBtnDelete && mode=='standart'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
+                             <!-- {{displayingDeletedDocs}} && {{visBtnDelete}} && {{mode}} -->
+                        <div *ngIf="!displayingDeletedDocs && visBtnDelete && mode=='standart'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
                             <button mat-raised-button (click)="clickBtnDelete()" color="warn"><i class="material-icons">delete_forever</i> Удалить</button>
                         </div>
-                        <div *ngIf="displayingDeletedDocks && visBtnDelete && mode=='standart'" class="col-sm-auto justify-content-center" style="margin:0px 10px 10px 0px">
+                        <div *ngIf="displayingDeletedDocs && visBtnDelete && mode=='standart'" class="col-sm-auto justify-content-center" style="margin:0px 10px 10px 0px">
                             <button mat-raised-button (click)="clickBtnRestore()" color="accent"><i class="material-icons">restore_from_trash</i> Восстановить</button>
                         </div>
                     </mat-card-title>
@@ -257,7 +257,7 @@
                                                 <ng-container matColumnDef="opendoc" >
                                                     <th mat-header-cell *matHeaderCellDef></th>
                                                     <td mat-cell *matCellDef="let row" class="table-launch-icon">
-                                                        <a class="inactive" [routerLink]="['../../cagentsdock', row.id ]">
+                                                        <a class="inactive" [routerLink]="['../../cagentsdoc', row.id ]">
                                                             <mat-icon>launch</mat-icon>
                                                         </a>
                                                     </td>   

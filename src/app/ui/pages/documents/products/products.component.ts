@@ -27,7 +27,7 @@ interface ExampleFlatNode {
   name: string;
   level: number;
 }
-export interface DockTable {
+export interface DocTable {
   id: number;
 }
 export interface NumRow {//интерфейс для списка количества строк
@@ -48,10 +48,10 @@ interface IdAndName {
 export class ProductsComponent implements OnInit {
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
   receivedPagesList: string [];//массив для получения данных пагинации
-  receivedMatTable: DockTable []=[] ;//массив для получения данных для материал таблицы
-  dataSource = new MatTableDataSource<DockTable>(this.receivedMatTable); //источник данных для материал таблицы
+  receivedMatTable: DocTable []=[] ;//массив для получения данных для материал таблицы
+  dataSource = new MatTableDataSource<DocTable>(this.receivedMatTable); //источник данных для материал таблицы
   displayedColumns: string[]=[];//массив отображаемых столбцов таблицы
-  selection = new SelectionModel<DockTable>(true, []);//Class to be used to power selecting one or more options from a list.
+  selection = new SelectionModel<DocTable>(true, []);//Class to be used to power selecting one or more options from a list.
   receivedCompaniesList: any [];//массив для получения списка предприятий
   myCompanyId:number=0;//
   TREE_DATA: FoodNode[]=[];
@@ -308,7 +308,7 @@ export class ProductsComponent implements OnInit {
   }
   
   /** The label for the checkbox on the passed row */
-  checkboxLabel(row?: DockTable): string {
+  checkboxLabel(row?: DocTable): string {
     if (!row) {
       return `${this.isAllSelected() ? 'select' : 'deselect'} all`;
     }
@@ -420,13 +420,13 @@ export class ProductsComponent implements OnInit {
       width: '300px',
     });
     dialogRef.afterClosed().subscribe(result => {
-      if(result==1){this.deleteDocks();}
+      if(result==1){this.deleteDocs();}
       this.clearCheckboxSelection();
       this.showOnlyVisBtnAdd();
     });        
   }
 
-  deleteDocks(){
+  deleteDocs(){
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
         return this.http.post('/api/auth/deleteProducts', body) 
@@ -481,7 +481,7 @@ export class ProductsComponent implements OnInit {
         actionType:"create",
         parentCategoryName: this.sendingQueryForm.selectedNodeName , 
         parentCategoryId: +this.sendingQueryForm.selectedNodeId,
-        dockName:"Создание категории",
+        docName:"Создание категории",
         companyId:+this.sendingQueryForm.companyId
       },
     });
@@ -499,7 +499,7 @@ export class ProductsComponent implements OnInit {
         actionType:"update",
         categoryName: this.sendingQueryForm.selectedNodeName , 
         categoryId: +this.sendingQueryForm.selectedNodeId,
-        dockName:"Редактирование категории",
+        docName:"Редактирование категории",
       },
     });
     dialogRef.afterClosed().subscribe(result => {
@@ -524,7 +524,7 @@ export class ProductsComponent implements OnInit {
       { 
         actionType:"changeOrder",
         parentCategoryId: +this.sendingQueryForm.selectedNodeId,
-        dockName:"Изменение порядка вывода",
+        docName:"Изменение порядка вывода",
         companyId: +this.sendingQueryForm.companyId
       },
     });

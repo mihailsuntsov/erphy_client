@@ -98,7 +98,7 @@ export class ShipmentComponent implements OnInit {
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
   selectionFilterOptions = new SelectionModel<idAndName>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние
   optionsIds: idAndName [];
-  displayingDeletedDocks:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
+  displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
   //***********************************************************************************************************************/
   constructor(private queryFormService:   QueryFormService,
@@ -422,13 +422,13 @@ export class ShipmentComponent implements OnInit {
       width: '300px',
     });
     dialogRef.afterClosed().subscribe(result => {
-      if(result==1){this.deleteDocks();}
+      if(result==1){this.deleteDocs();}
       this.clearCheckboxSelection();
       this.showOnlyVisBtnAdd();
     });        
   }
 
-  deleteDocks(){
+  deleteDocs(){
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
           return this.http.post('/api/auth/deleteShipment', body) 
@@ -439,7 +439,7 @@ export class ShipmentComponent implements OnInit {
       case 1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе удаления "+(this.checkedList.length>1?"документов":"документа")+" проиошла ошибка")}});break;}
       case 2:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для операции удаления"}});break;}
       case 3:{let numbers:string='';
-        for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="/ui/shipmentdock/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
+        for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="/ui/shipmentdoc/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
         this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Удаление невозможно - у следующих номеров документов есть производные (связанные с ними дочерние) документы:'+numbers}});break;}
     }
   },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
@@ -614,12 +614,12 @@ export class ShipmentComponent implements OnInit {
       },
     });
     dialogRef.afterClosed().subscribe(result => {
-      if(result==1){this.undeleteDocks();}
+      if(result==1){this.undeleteDocs();}
       this.clearCheckboxSelection();
       this.showOnlyVisBtnAdd();
     });        
   }
-  undeleteDocks(){
+  undeleteDocs(){
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
       return this.http.post('/api/auth/undeleteShipment', body) 
@@ -632,7 +632,7 @@ export class ShipmentComponent implements OnInit {
     );
   }  
   resetOptions(){
-    this.displayingDeletedDocks=false;
+    this.displayingDeletedDocs=false;
     this.fillOptionsList();//перезаполняем список опций
     this.selectionFilterOptions.clear();
     this.sendingQueryForm.filterOptionsIds = [];
@@ -645,7 +645,7 @@ export class ShipmentComponent implements OnInit {
     this.selectionFilterOptions.selected.forEach(z=>{
       if(z.id==1){showOnlyDeletedCheckboxIsOn=true;}
     })
-    this.displayingDeletedDocks=showOnlyDeletedCheckboxIsOn;
+    this.displayingDeletedDocs=showOnlyDeletedCheckboxIsOn;
     this.clearCheckboxSelection();
     this.sendingQueryForm.offset=0;//сброс пагинации
     this.getData();

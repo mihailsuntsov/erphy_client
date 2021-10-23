@@ -9,7 +9,7 @@ import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatDialog } from '@angular/material/dialog';
 // import { ValidationService } from './validation.service';
 import { HttpClient } from '@angular/common/http';
-import { ProductsDockComponent } from 'src/app/ui/pages/documents/products-dock/products-dock.component';
+import { ProductsDocComponent } from 'src/app/ui/pages/documents/products-doc/products-doc.component';
 import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component';
 import { ViewChild } from '@angular/core';
 import { PricingDialogComponent } from 'src/app/ui/dialogs/pricing-dialog/pricing-dialog.component';
@@ -122,8 +122,8 @@ export class InventoryProductsTableComponent implements OnInit {
   @ViewChild("form", {static: false}) form; // связь с формой <form #form="ngForm" ...
   @ViewChild("productSearchField", {static: false}) productSearchField;
 
-  @Input() parentDockId:number;   //id родительского документа 
-  @Input() parentDockName:string; // Идентификатор документа, в который вызывается данный компонент. Например, Inventory и т.д.
+  @Input() parentDocId:number;   //id родительского документа 
+  @Input() parentDocName:string; // Идентификатор документа, в который вызывается данный компонент. Например, Inventory и т.д.
   @Input() company_id:number;
   @Input() department_id:number;
   @Input() pricingType:string;  // тип расценки. priceType - по типу цены, avgCostPrice - средн. себестоимость, lastPurchasePrice - Последняя закупочная цена, avgPurchasePrice - Средняя закупочная цена, manual - вручную
@@ -432,7 +432,7 @@ export class InventoryProductsTableComponent implements OnInit {
       data:
       { //отправляем в диалог:
         companyId:        this.company_id, //id предприятия
-        documentId:       this.parentDockId, //id документа
+        documentId:       this.parentDocId, //id документа
         productId:        this.formSearch.get('product_id').value, // id товара 
         departmentId:     this.department_id, //id отделения
         priceTypeId:      this.priceTypeId, //id типа цены
@@ -493,8 +493,8 @@ export class InventoryProductsTableComponent implements OnInit {
       duration: 3000,
     });
   }
-  openProductCard(dockId:number) {
-    this.dialogCreateProduct.open(ProductsDockComponent, {
+  openProductCard(docId:number) {
+    this.dialogCreateProduct.open(ProductsDocComponent, {
       maxWidth: '95vw',
       maxHeight: '95vh',
       height: '95%',
@@ -502,7 +502,7 @@ export class InventoryProductsTableComponent implements OnInit {
       data:
       { 
         mode: 'viewInWindow',
-        dockId: dockId
+        docId: docId
       },});} 
 
   showImage(name:string){
@@ -540,7 +540,7 @@ export class InventoryProductsTableComponent implements OnInit {
     this.gettingTableData=true;
     control.clear();
     this.row_id=0;
-    this.http.get('/api/auth/get'+this.parentDockName+'ProductTable?id='+this.parentDockId)
+    this.http.get('/api/auth/get'+this.parentDocName+'ProductTable?id='+this.parentDocId)
         .subscribe(
             data => { 
                 this.gettingTableData=false;
@@ -609,7 +609,7 @@ export class InventoryProductsTableComponent implements OnInit {
       id: new FormControl (null,[]),
       row_id: [this.getRowId()],
       product_id:  new FormControl (+this.formSearch.get('product_id').value,[]),
-      inventory_id:  new FormControl (+this.parentDockId,[]),
+      inventory_id:  new FormControl (+this.parentDocId,[]),
       name:  new FormControl (this.searchProductCtrl.value,[]),
       estimated_balance:  new FormControl (+this.formSearch.get('estimated_balance').value,[]),
       actual_balance:  new FormControl (actualBalance,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),

@@ -25,7 +25,7 @@ export const MY_FORMATS = {
   },
 };
 
-export interface DockTable {
+export interface DocTable {
   id: number;
 }
 
@@ -41,9 +41,9 @@ export interface DockTable {
 })
 export class TraderesultsReportComponent implements OnInit {
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы
-  receivedMatTable: DockTable []=[] ;//массив для получения данных для материал таблицы
+  receivedMatTable: DocTable []=[] ;//массив для получения данных для материал таблицы
   receivedSumByPeriod: any;//массив для получения данных по суммам показателей за месяц
-  dataSource = new MatTableDataSource<DockTable>(this.receivedMatTable); //источник данных для материал таблицы
+  dataSource = new MatTableDataSource<DocTable>(this.receivedMatTable); //источник данных для материал таблицы
   displayedColumns: string[]=[];//массив отображаемых столбцов таблицы
   receivedCompaniesList: any [];//массив для получения списка предприятий
   receivedDepartmentsList: any [];//массив для получения списка отделений

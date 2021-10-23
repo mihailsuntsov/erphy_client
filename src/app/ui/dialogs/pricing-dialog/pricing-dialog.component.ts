@@ -26,7 +26,7 @@ export class PricingDialogComponent implements OnInit {
   resultPrice:number=0; // конечная цена
   priceUpDownFieldName:string = 'Наценка'; // Наименование поля с наценкой-скидкой
   finalPriceToShow:string='0.00';// конечная цена в формате с 2 знаками после запятой, типа 44.99 или 15.00
-  // parentDockName:string=''; //наименование родительского документа (Розничная продажа = retailSale, инвентаризация = inventory). От него зависит вид выбора типа расценки pricingType: для розничной продажи это радиокнопки, для 
+  // parentDocName:string=''; //наименование родительского документа (Розничная продажа = retailSale, инвентаризация = inventory). От него зависит вид выбора типа расценки pricingType: для розничной продажи это радиокнопки, для 
 
   constructor(
     private http: HttpClient,
@@ -40,7 +40,7 @@ export class PricingDialogComponent implements OnInit {
   ngOnInit(): void {
     this.priceTypesList=this.data.priceTypesList;
     this.changePrice=this.data.changePrice;
-    // this.parentDockName=this.data.parentDockName;
+    // this.parentDocName=this.data.parentDocName;
     this.pricingForm = new FormGroup({
       //тип расценки (радиокнопки: 1. Тип цены (priceType), 2. Себестоимость (costPrice) 3. Вручную (manual))
       pricingType: new FormControl              (this.data.pricingType,[]),

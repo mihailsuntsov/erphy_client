@@ -92,7 +92,7 @@ export class CompaniesComponent {
 //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
   selectionFilterOptions = new SelectionModel<idAndName>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние
   optionsIds: idAndName [] = [{id:"1", name:"Показать только удалённые"},]
-  displayingDeletedDocks:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
+  displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
 //***********************************************************************************************************************/
 
@@ -357,7 +357,7 @@ export class CompaniesComponent {
         this.selectionFilterOptions.selected.forEach(z=>{
           if(z.id=='1'){showOnlyDeletedCheckboxIsOn=true;}
         })
-        this.displayingDeletedDocks=showOnlyDeletedCheckboxIsOn;
+        this.displayingDeletedDocs=showOnlyDeletedCheckboxIsOn;
         this.clearCheckboxSelection();
         this.sendingQueryForm.offset=0;//сброс пагинации
         this.getData();

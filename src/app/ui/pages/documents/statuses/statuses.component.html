@@ -1,18 +1,18 @@
 <mat-card class="card">
     <mat-card-title class="flex" style="height: 30px;">
-        <div *ngIf="!displayingDeletedDocks" class="card-name">Статусы документов</div>
-        <div *ngIf="displayingDeletedDocks" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> статусы документов</div>
-        <div [style.display]="(visBtnAdd  && !displayingDeletedDocks)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
-            <a [routerLink]="['../../statusesdock', '']">
+        <div *ngIf="!displayingDeletedDocs" class="card-name">Статусы документов</div>
+        <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> статусы документов</div>
+        <div [style.display]="(visBtnAdd  && !displayingDeletedDocs)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
+            <a [routerLink]="['../../statusesdoc', '']">
                 <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> Создать</button>
             </a>   
         </div>
 
-        <div [style.display]="(!displayingDeletedDocks && visBtnDelete)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
+        <div [style.display]="(!displayingDeletedDocs && visBtnDelete)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
             <button mat-raised-button (click)="clickBtnDelete()" color="warn"><i class="material-icons">delete_forever</i> Удалить</button>
         </div>
 
-        <div *ngIf="displayingDeletedDocks && visBtnDelete" class="col-sm-auto justify-content-center" style="margin:0px 10px 10px 0px">
+        <div *ngIf="displayingDeletedDocs && visBtnDelete" class="col-sm-auto justify-content-center" style="margin:0px 10px 10px 0px">
             <button mat-raised-button (click)="clickBtnRestore()" color="accent"><i class="material-icons">restore_from_trash</i> Восстановить</button>
         </div>
 
@@ -132,7 +132,7 @@
                         <ng-container matColumnDef="opendoc">
                             <th mat-header-cell *matHeaderCellDef></th>
                             <td mat-cell *matCellDef="let row" class="table-launch-icon">
-                                <a class="inactive" [routerLink]="['../../statusesdock', row.id ]">
+                                <a class="inactive" [routerLink]="['../../statusesdoc', row.id ]">
                                     <mat-icon style="padding: 5px 5px 0 0">launch</mat-icon>
                                 </a>
                             </td>   

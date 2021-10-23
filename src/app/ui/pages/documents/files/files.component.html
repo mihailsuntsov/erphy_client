@@ -245,7 +245,7 @@
                                                         <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='extention'" class="material-icons sortarrow">arrow_downward</i>
                                                     </span>
                                                     <td mat-cell *matCellDef="let row">
-                                                            <a  [routerLink]="['../../filesdock', row.id ]">
+                                                            <a  [routerLink]="['../../filesdoc', row.id ]">
                                                                 <img class="file_icon" src="../../../../../../assets/images/ext_icons/{{getIcon(row.extention)}}.png" width=40>
                                                             </a>
                                                     </td>
@@ -323,14 +323,14 @@
                                             <div *ngFor="let block of files; let i = index"  class="card-block">
                                                     <mat-card class="grid-card">
                                                         <div class="iconArea" *ngIf="block.extention.toUpperCase() != '.PNG' && block.extention.toUpperCase() != '.JPG' && block.extention.toUpperCase() != '.JPEG'; else other_content">
-                                                            <a *ngIf="mode!='select'" [routerLink]="['../../filesdock', block.id ]">
+                                                            <a *ngIf="mode!='select'" [routerLink]="['../../filesdoc', block.id ]">
                                                                 <img class="file_icon" src="../../../../../../assets/images/ext_icons/{{getIcon(block.extention)}}.png" width=120>
                                                             </a>
                                                             <img *ngIf="mode=='select'" class="file_icon" src="../../../../../../assets/images/ext_icons/{{getIcon(block.extention)}}.png" width=120>
                                                         </div>
                                                         <ng-template #other_content>
                                                             <div class="iconArea">
-                                                                    <a *ngIf="mode!='select'" [routerLink]="['../../filesdock', block.id ]"><img class="file_icon" [src]="block.image" width=120></a>
+                                                                    <a *ngIf="mode!='select'" [routerLink]="['../../filesdoc', block.id ]"><img class="file_icon" [src]="block.image" width=120></a>
                                                                     <img *ngIf="mode=='select'" class="file_icon" [src]="block.image" width=120>
                                                             </div>
                                                         </ng-template>
