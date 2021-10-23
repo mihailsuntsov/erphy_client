@@ -28,7 +28,7 @@
           </li>
         </ul>
       </li>
-      <li *ngIf="hasPermission(344)||hasPermission(279)||hasPermission(252)">
+      <li *ngIf="hasPermission(344)||hasPermission(279)||hasPermission(252)||hasPermission(404)">
         <div class="icon-link" (click)="arrowClick($event,1)">
           <a>
             <i class="material-icons unselectable" (click)="arrowClick($event,3)">payments</i>
@@ -52,6 +52,10 @@
           <li *ngIf="hasPermission(252)">
             <a routerLink="shipment">
               <span class="unselectable">Отгрузки</span></a>
+          </li>
+          <li *ngIf="hasPermission(404)">
+            <a routerLink="invoiceout">
+              <span class="unselectable">Счета покупателям</span></a>
           </li>
         </ul>
       </li>
