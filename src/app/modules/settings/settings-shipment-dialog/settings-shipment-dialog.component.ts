@@ -134,12 +134,15 @@ export class SettingsShipmentDialogComponent implements OnInit {
         result=data as any;
         this.gettingData=false;
         //вставляем настройки в форму настроек
-        this.settingsForm.get('companyId').setValue(result.companyId);
-        this.settingsForm.get('departmentId').setValue(result.departmentId);
-        this.settingsForm.get('customerId').setValue(result.customerId);
-        this.settingsForm.get('customer').setValue(result.customer);
-        this.searchCustomerCtrl.setValue(result.customer);
-        this.settingsForm.get('statusIdOnComplete').setValue(result.statusIdOnComplete);
+        if(this.isCompanyInList(+result.companyId)){
+          //данная группа настроек зависит от предприятия
+          this.settingsForm.get('companyId').setValue(result.companyId);
+          this.settingsForm.get('departmentId').setValue(result.departmentId);
+          this.settingsForm.get('customerId').setValue(result.customerId);
+          this.settingsForm.get('customer').setValue(result.customer);
+          this.searchCustomerCtrl.setValue(result.customer);
+          this.settingsForm.get('statusIdOnComplete').setValue(result.statusIdOnComplete);
+        }
         //данная группа настроек не зависит от предприятия
         this.settingsForm.get('pricingType').setValue(result.pricingType?result.pricingType:'priceType');
         this.settingsForm.get('plusMinus').setValue(result.plusMinus?result.plusMinus:'plus');
@@ -161,7 +164,12 @@ export class SettingsShipmentDialogComponent implements OnInit {
       error => console.log(error)
     );
   }
-
+  //определяет, есть ли предприятие в загруженном списке предприятий
+  isCompanyInList(companyId:number):boolean{
+    let inList:boolean=false;
+    if(this.receivedCompaniesList) this.receivedCompaniesList.map(i=>{if(i.id==companyId) inList=true;});
+    return inList;
+  }
   onCompanyChange(){
     this.settingsForm.get('departmentId').setValue(null);
     this.searchCustomerCtrl.setValue('');

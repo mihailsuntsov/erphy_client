@@ -63,6 +63,7 @@ export class CommonUtilitesService{
       case 'retailsales':   {return 'Розничная продажа';}
       case 'posting':       {return 'Оприходование';}
       case 'shipment':      {return 'Отгрузка';}
+      case 'acceptance':    {return 'Приёмка';}
       default:               return ('документ');
     }
   }
@@ -76,6 +77,7 @@ export class CommonUtilitesService{
       case 'returnsup':       {return 'returnsupProductTable';}
       case 'return':          {return 'returnProductTable';}
       case 'retailsales':     {return 'retailSalesProductTable';}
+      case 'acceptance':      {return 'acceptanceProductTable';}
       default:               return (null);
     }
   }

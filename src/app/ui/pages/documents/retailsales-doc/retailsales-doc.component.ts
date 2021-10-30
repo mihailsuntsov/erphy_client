@@ -89,6 +89,7 @@ interface DocResponse {//интерфейс для получения ответ
   receipt_id: number;
   uid:string;
   customers_orders_id:number;
+  is_completed: boolean;
 }
 interface FilesInfo {
   id: string;
@@ -294,6 +295,7 @@ export class RetailsalesDocComponent implements OnInit {
       name: new FormControl               ('',[]),
       status_id: new FormControl          ('',[]),
       status_name: new FormControl        ('',[]),
+      is_completed: new FormControl       (false,[]),
       status_color: new FormControl       ('',[]),
       status_description: new FormControl ('',[]),
       customers_orders_id: new FormControl ('',[]),
@@ -332,6 +334,8 @@ export class RetailsalesDocComponent implements OnInit {
     });
     // Форма настроек
     this.settingsForm = new FormGroup({
+      //предприятие, для которого создаются настройки
+      companyId: new FormControl                (null,[]),
       // id отделения
       departmentId: new FormControl             (null,[]),
       //покупатель по умолчанию
@@ -339,7 +343,7 @@ export class RetailsalesDocComponent implements OnInit {
       //наименование покупателя
       customer: new FormControl                 ('',[]),
       //наименование заказа по умолчанию
-      orderName:  new FormControl               ('',[]),
+      // orderName:  new FormControl               ('',[]),
       // тип расценки. priceType - по типу цены, costPrice - себестоимость, manual - вручную
       pricingType: new FormControl              ('priceType',[]),
       //тип цены
@@ -354,8 +358,7 @@ export class RetailsalesDocComponent implements OnInit {
       hideTenths: new FormControl               (true,[]),
       //сохранить настройки
       saveSettings: new FormControl             (true,[]),
-      //предприятие, для которого создаются настройки
-      companyId: new FormControl                (null,[]),
+      
       //наименование заказа
       name:  new FormControl                    ('',[]),
       //приоритет типа цены : Склад (sklad) Покупатель (cagent) Цена по-умолчанию (defprice)
@@ -560,20 +563,9 @@ export class RetailsalesDocComponent implements OnInit {
           {
             this.receivedCompaniesList=data as any [];
             this.doFilterCompaniesList();
-            if(+this.id==0)
-              this.getSettings();
           },                      
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
-  }
-
-  setDefaultCompany(){
-    if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим своё по дефолту
-      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
-    this.formAboutDocument.get('company').setValue(this.getCompanyNameById(this.formBaseInformation.get('company_id').value));
-    this.getDepartmentsList(); 
-    this.getPriceTypesList();
-    
   }
 
   onCompanyChange(){
@@ -685,6 +677,7 @@ export class RetailsalesDocComponent implements OnInit {
       this.receivedCompaniesList=[];
       this.receivedCompaniesList.push(myCompany);
     }
+    this.getSettings(); // настройки документа Розничная продажа
   }
   doFilterDepartmentsList(){
     if(!this.allowToCreateAllCompanies && !this.allowToCreateMyCompany && this.allowToCreateMyDepartments){
@@ -756,10 +749,7 @@ export class RetailsalesDocComponent implements OnInit {
           data => { 
             result=data as any;
             //вставляем настройки в форму настроек
-            this.settingsForm.get('companyId').setValue(result.companyId);
-            this.settingsForm.get('departmentId').setValue(result.departmentId);
-            this.settingsForm.get('customerId').setValue(result.customerId);
-            this.settingsForm.get('customer').setValue(result.customer);
+            
             this.settingsForm.get('pricingType').setValue(result.pricingType?result.pricingType:'priceType');
             this.settingsForm.get('plusMinus').setValue(result.plusMinus?result.plusMinus:'plus');
             this.settingsForm.get('changePrice').setValue(result.changePrice?result.changePrice:50);
@@ -776,18 +766,24 @@ export class RetailsalesDocComponent implements OnInit {
 
             //если предприятия из настроек больше нет в списке предприятий (например, для пользователя урезали права, и выбранное предприятие более недоступно)
             //необходимо сбросить данное предприятие в null 
-            if(!this.isCompanyInList(+result.companyId)){
-              // alert('Не в листе')
-              this.formBaseInformation.get('company_id').setValue(null);
-            } else { 
-              // alert('В листе')
-              //вставляем Отделение и Покупателя (вставится только если новый документ)
-              this.setDefaultInfoOnStart();
-            }
+            if(this.isCompanyInList(+result.companyId)){
+              this.settingsForm.get('companyId').setValue(result.companyId);
+              this.settingsForm.get('departmentId').setValue(result.departmentId);
+              this.settingsForm.get('customerId').setValue(result.customerId);
+              this.settingsForm.get('customer').setValue(result.customer);
+            } 
+            this.setDefaultInfoOnStart();
             this.setDefaultCompany();
           },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
+  }
+
+  setDefaultCompany(){
+    if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим своё по дефолту
+      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+    this.getDepartmentsList(); 
+    this.getPriceTypesList();
   }
 
   //определяет, есть ли предприятие в загруженном списке предприятий
@@ -888,13 +884,13 @@ export class RetailsalesDocComponent implements OnInit {
                 this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
                 this.formBaseInformation.get('uid').setValue(documentValues.uid);
                 this.formBaseInformation.get('customers_orders_id').setValue(documentValues.customers_orders_id);
+                this.formBaseInformation.get('is_completed').setValue(true);// на данный момент существующая розн. продажа всегда проведена
                 this.department_type_price_id=documentValues.department_type_price_id;
                 this.cagent_type_price_id=documentValues.cagent_type_price_id;
                 this.default_type_price_id=documentValues.default_type_price_id;
                 this.creatorId=+documentValues.creator_id;
                 this.searchCagentCtrl.setValue(documentValues.cagent);
                 this.receipt_id = documentValues.receipt_id; //id чека этой розничной продажи (0 - чека нет)
-                this.getSettings(); // настройки документа Розничная продажа
                 this.getSpravSysEdizm();//справочник единиц измерения
                 this.getSpravSysNds();// загрузка справочника НДС
                 this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
@@ -1044,6 +1040,7 @@ export class RetailsalesDocComponent implements OnInit {
       //если в настройках есть статус, присваеваемый документу при создании, выставляем его
       if(this.settingsForm.get('statusIdOnAutocreateOnCheque').value)
         this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnAutocreateOnCheque').value);
+
       if(this.formBaseInformation.get('uid').value=='')//uid может быть присвоен при создании Розничной продажи из другого документа, так что тут присваеваем, если uid еще нет
         this.formBaseInformation.get('uid').setValue(uuidv4());
       this.http.post('/api/auth/insertRetailSales', this.formBaseInformation.value)
@@ -1190,6 +1187,9 @@ export class RetailsalesDocComponent implements OnInit {
         this.saveSettingsRetailSales();
         // если это новый документ, и ещё нет выбранных товаров - применяем настройки 
         if(+this.id==0 && this.productSearchAndTableComponent.getProductTable().length==0)  {
+          //если в настройках сменили предприятие - нужно сбросить статусы, чтобы статус от предыдущего предприятия не прописался в актуальное
+          if(+this.settingsForm.get('companyId').value!= +this.formBaseInformation.get('company_id').value) 
+            this.resetStatus();
           this.getData();
         }
         //чтобы настройки применились к модулю Поиск и добавление товара"
@@ -1256,16 +1256,38 @@ export class RetailsalesDocComponent implements OnInit {
   goToNewDocument(){
       this._router.navigate(['ui/retailsalesdoc',0]);
       this.id=0;
-      this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными на продажу товарами
-      this.setDefaultStatus();//устанавливаем статус документа по умолчанию
+      this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными товарами
       this.formBaseInformation.get('id').setValue(null);
+      this.formBaseInformation.get('uid').setValue('');
+      this.formBaseInformation.get('is_completed').setValue(false);
+      this.formBaseInformation.get('nds').setValue(false);
+      this.formBaseInformation.get('nds_included').setValue(true);
+      this.formBaseInformation.get('company_id').setValue(null);
+      this.formBaseInformation.get('department_id').setValue(null);
+      this.formBaseInformation.get('cagent_id').setValue(null);
       this.formBaseInformation.get('doc_number').setValue('');
+      this.formBaseInformation.get('cagent').setValue('');
       this.formBaseInformation.get('description').setValue('');
+      this.searchCagentCtrl.reset();
+  
+         
+      this.resetStatus();
+      this.getLinkedDocsScheme(true);
+      this.actionsBeforeGetChilds=0;
+      this.startProcess=true;
+  
+      this.getData();
+      this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными на продажу товарами
       this.refreshShowAllTabs();
-      // this.getSettings();
       this.kkmComponent.clearFields(); //сбрасываем поля "К оплате", "Наличными" и "Сдача" кассового блока
   }
-
+  resetStatus(){
+    this.formBaseInformation.get('status_id').setValue(null);
+    this.formBaseInformation.get('status_name').setValue('');
+    this.formBaseInformation.get('status_color').setValue('ff0000');
+    this.formBaseInformation.get('status_description').setValue('');
+    this.receivedStatusesList = [];
+  }
 //**********************************************************************************************************************************************/  
 //*************************************************          СВЯЗАННЫЕ ДОКУМЕНТЫ          ******************************************************/
 //**********************************************************************************************************************************************/  
@@ -1361,6 +1383,8 @@ myTabAnimationDone() {
 }
 getLinkedDocsScheme(draw?:boolean){
   let result:any;
+  this.loadingDocsScheme=true;
+  this.linkedDocsText ='';
   this.loadingDocsScheme=true;
   this.http.get('/api/auth/getLinkedDocsScheme?uid='+this.formBaseInformation.get('uid').value)
     .subscribe(

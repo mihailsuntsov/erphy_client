@@ -45,7 +45,7 @@
                 type="button"
                 color="primary"
                 class="button">
-                <i class="material-icons">playlist_add_check</i> Завершить
+                <i class="material-icons">playlist_add_check</i> Провести
             </button>
             <button 
                 mat-button 
@@ -60,13 +60,13 @@
                 <i class="material-icons">add</i> Документ<i class="material-icons">arrow_drop_down</i>
             </button>
             <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
+                <button mat-menu-item (click)="goToNewDocument()">
+                    <span>Инвентаризация</span>
+                </button>
                 <button mat-menu-item (click)="createLinkedDoc('Writeoff')">
-                    <mat-icon>cancel_presentation</mat-icon>
                     <span>Списание</span>
-                    
                 </button>
                 <button mat-menu-item (click)="createLinkedDoc('Posting')">
-                    <mat-icon>library_add</mat-icon>
                     <span>Оприходование</span></button>
             </mat-menu>
             <button 

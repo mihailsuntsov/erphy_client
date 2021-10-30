@@ -250,7 +250,7 @@ export class PostingDocComponent implements OnInit {
       changePriceType: new FormControl          ('procents',[]),
       // убрать десятые (копейки)
       hideTenths: new FormControl               (true,[]),
-      // статус после завершения инвентаризации
+      // статус после проведения инвентаризации
       statusOnFinishId: new FormControl         ('',[]),
       // автодобавление товара из формы поиска в таблицу
       autoAdd:  new FormControl                 (false,[]),
@@ -425,18 +425,9 @@ export class PostingDocComponent implements OnInit {
           {
             this.receivedCompaniesList=data as any [];
             this.doFilterCompaniesList();
-            if(+this.id==0)
-              this.getSettings();
           },                      
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
-  }
-
-  setDefaultCompany(){
-    if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим своё по дефолту
-      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
-    this.getDepartmentsList(); 
-    this.getPriceTypesList();
   }
 
   onCompanyChange(){
@@ -535,6 +526,7 @@ export class PostingDocComponent implements OnInit {
       this.receivedCompaniesList=[];
       this.receivedCompaniesList.push(myCompany);
     }
+    this.getSettings(); // настройки документа Оприходование
   }
   doFilterDepartmentsList(){
     if(!this.allowToCreateAllCompanies && !this.allowToCreateMyCompany && this.allowToCreateMyDepartments){
@@ -568,11 +560,6 @@ export class PostingDocComponent implements OnInit {
           data => { 
             result=data as any;
             //вставляем настройки в форму настроек
-            this.settingsForm.get('companyId').setValue(result.companyId);
-            //данная группа настроек зависит от предприятия
-            this.settingsForm.get('departmentId').setValue(result.departmentId);
-            this.settingsForm.get('statusOnFinishId').setValue(result.statusOnFinishId);
-            this.settingsForm.get('priceTypeId').setValue(result.priceTypeId);
             //данная группа настроек не зависит от предприятия
             this.settingsForm.get('pricingType').setValue(result.pricingType?result.pricingType:'avgCostPrice');
             this.settingsForm.get('plusMinus').setValue(result.plusMinus?result.plusMinus:'plus');
@@ -581,19 +568,27 @@ export class PostingDocComponent implements OnInit {
             this.settingsForm.get('hideTenths').setValue(result.hideTenths);
             this.settingsForm.get('autoAdd').setValue(result.autoAdd);
             //если предприятия из настроек больше нет в списке предприятий (например, для пользователя урезали права, и выбранное предприятие более недоступно)
-            //необходимо сбросить данное предприятие в null 
-            if(!this.isCompanyInList(+result.companyId)){
-              this.formBaseInformation.get('company_id').setValue(null);
-            } else { 
-              //вставляем Отделение и Покупателя (вставится только если новый документ)
-              this.setDefaultInfoOnStart();
+            //необходимо не загружать эти настройки 
+            if(this.isCompanyInList(+result.companyId)){
+              //данная группа настроек зависит от предприятия
+              this.settingsForm.get('companyId').setValue(result.companyId);
+              this.settingsForm.get('departmentId').setValue(result.departmentId);
+              this.settingsForm.get('statusOnFinishId').setValue(result.statusOnFinishId);
+              this.settingsForm.get('priceTypeId').setValue(result.priceTypeId);
             }
+            this.setDefaultInfoOnStart();
             this.setDefaultCompany();
           },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
   }
 
+  setDefaultCompany(){
+    if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим своё по дефолту
+      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+    this.getDepartmentsList(); 
+    this.getPriceTypesList();
+  }
   //определяет, есть ли предприятие в загруженном списке предприятий
   isCompanyInList(companyId:number):boolean{
     let inList:boolean=false;
@@ -635,7 +630,6 @@ export class PostingDocComponent implements OnInit {
                 this.formBaseInformation.get('is_completed').setValue(documentValues.is_completed);
                 this.formBaseInformation.get('uid').setValue(documentValues.uid);
                 this.creatorId=+documentValues.creator_id;
-                this.getSettings(); // настройки документа Оприходование
                 this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
                 this.getPriceTypesList();
                 this.loadFilesInfo();
@@ -643,7 +637,7 @@ export class PostingDocComponent implements OnInit {
                 this.getStatusesList();//статусы документа Оприходование
                 this.getLinkedDocsScheme(true); //загрузка связанных документов
                 this.refreshPermissions();//пересчитаем права
-                // if(this.postingProductsTableComponent) this.postingProductsTableComponent.showColumns(); //чтобы спрятать столбцы после завершения 
+                // if(this.postingProductsTableComponent) this.postingProductsTableComponent.showColumns(); //чтобы спрятать столбцы после проведения 
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
         );
@@ -737,9 +731,9 @@ export class PostingDocComponent implements OnInit {
     if(!notShowDialog){//notShowDialog=false - показывать диалог
       const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
         width: '400px',data:{
-          head: 'Завершение оприходования',
-          warning: 'Вы хотите завершить данное оприходование?',
-          query: 'После завершения документ станет недоступным для редактирования.'},});
+          head: 'Проведение оприходования',
+          warning: 'Вы хотите провести данное оприходование?',
+          query: 'После проведения документ станет недоступным для редактирования.'},});
       dialogRef.afterClosed().subscribe(result => {
         if(result==1){
           this.updateDocument(true);
@@ -752,8 +746,8 @@ export class PostingDocComponent implements OnInit {
     this.getProductsTable();    
     let currentStatus:number=this.formBaseInformation.get('status_id').value;
     if(complete){
-      this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с завершением - временно устанавливаем true, временно - чтобы это ушло в запросе на сервер, но не повлияло на внешний вид документа, если вернется не true
-      if(this.settingsForm.get('statusOnFinishId').value){//если в настройках есть "Статус при завершении" - временно выставляем его
+      this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - временно устанавливаем true, временно - чтобы это ушло в запросе на сервер, но не повлияло на внешний вид документа, если вернется не true
+      if(this.settingsForm.get('statusOnFinishId').value){//если в настройках есть "Статус при проведении" - временно выставляем его
         this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);}
     }
     this.http.post('/api/auth/updatePosting',  this.formBaseInformation.value)
@@ -761,13 +755,13 @@ export class PostingDocComponent implements OnInit {
           (data) => 
           {   
             if(complete){
-              this.formBaseInformation.get('is_completed').setValue(false);//если сохранение с завершением - удаляем временную установку признака завершенности, 
+              this.formBaseInformation.get('is_completed').setValue(false);//если сохранение с проведением - удаляем временную установку признака проведённости, 
               this.formBaseInformation.get('status_id').setValue(currentStatus);//и возвращаем предыдущий статус
             }
             let result:number=data as number;
             switch(result){
               case null:{// null возвращает если не удалось создать документ из-за ошибки
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка "+ (complete?"завершения":"сохренения") + " документа \"Оприходование\""}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка "+ (complete?"проведения":"сохренения") + " документа \"Оприходование\""}});
                 break;
               }
               case -1:{//недостаточно прав
@@ -775,15 +769,15 @@ export class PostingDocComponent implements OnInit {
                 break;
               }
               default:{// Успешно
-                this.openSnackBar("Документ \"Оприходование\" "+ (complete?"завершён.":"сохренён."), "Закрыть");
+                this.openSnackBar("Документ \"Оприходование\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
                 if(complete) {
                   this.getLinkedDocsScheme(true);//обновим схему связанных документов )чтобы Проведено сменилось с Нет на Да
-                  this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с завершением - окончательно устанавливаем признак завершенности = true
+                  this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведённости = true
                   if(this.postingProductsTableComponent){
-                    this.postingProductsTableComponent.showColumns(); //чтобы спрятать столбцы после завершения 
+                    this.postingProductsTableComponent.showColumns(); //чтобы спрятать столбцы после проведения 
                     this.postingProductsTableComponent.tableRecount();
                   }
-                  if(this.settingsForm.get('statusOnFinishId').value){//если в настройках есть "Статус при завершении" - выставим его
+                  if(this.settingsForm.get('statusOnFinishId').value){//если в настройках есть "Статус при проведении" - выставим его
                     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);}
                   this.setStatusColor();//чтобы обновился цвет статуса
                 }
@@ -861,7 +855,10 @@ export class PostingDocComponent implements OnInit {
         this.saveSettingsPosting();
         // если это новый документ, и ещё нет выбранных товаров - применяем настройки 
         if(+this.id==0 && this.postingProductsTableComponent.getProductTable().length==0)  {
-          this.getData();
+           //если в настройках сменили предприятие - нужно сбросить статусы, чтобы статус от предыдущего предприятия не прописался в актуальное
+           if(+this.settingsForm.get('companyId').value!= +this.formBaseInformation.get('company_id').value) 
+           this.resetStatus();
+         this.getData();
         }
       }
     });
@@ -936,19 +933,39 @@ export class PostingDocComponent implements OnInit {
     totalSumPriceHandler($event: any) {
     }  
 
-  //создание нового документа после завершения текущего
+  //создание нового документа после проведения текущего
   goToNewDocument(){
     this._router.navigate(['ui/postingdoc',0]);
     this.id=0;
+
     this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными товарами
-    this.form.resetForm();
     this.formBaseInformation.get('id').setValue(null);
+    this.formBaseInformation.get('uid').setValue('');
     this.formBaseInformation.get('is_completed').setValue(false);
-    this.setDefaultStatus();//устанавливаем статус документа по умолчанию
-    this.setDefaultDate();
-    this.canEditCompAndDepth=true;
-    this.setDefaultInfoOnStart();
+    this.formBaseInformation.get('company_id').setValue(null);
+    this.formBaseInformation.get('department_id').setValue(null);
+    this.formBaseInformation.get('doc_number').setValue('');
+    this.formBaseInformation.get('posting_date').setValue('');
+    this.formBaseInformation.get('description').setValue('');
+
+    setTimeout(() => { this.postingProductsTableComponent.showColumns();}, 1000);
+    this.setCanEditCompAndDepth();
+    this.form.resetForm();
+    this.resetStatus();
+    this.getLinkedDocsScheme(true);
+    this.actionsBeforeGetChilds=0;
+    this.startProcess=true;
+    this.getData();
   }
+  
+  resetStatus(){
+    this.formBaseInformation.get('status_id').setValue(null);
+    this.formBaseInformation.get('status_name').setValue('');
+    this.formBaseInformation.get('status_color').setValue('ff0000');
+    this.formBaseInformation.get('status_description').setValue('');
+    this.receivedStatusesList = [];
+  }
+
 //*****************************************************************************************************************************************/
 /***********************************************************         ФАЙЛЫ          *******************************************************/
 //*****************************************************************************************************************************************/
@@ -1089,7 +1106,7 @@ deleteFile(id:number){
 //       nds_id:  new FormControl (row.nds_id,[]),
 //     });
 //   }
-//   // можно ли создать связанный документ (да - если есть товары, подходящие для этого, и нет уже завершённого документа)
+//   // можно ли создать связанный документ (да - если есть товары, подходящие для этого, и нет уже проведённого документа)
 //   canCreateLinkedDoc(docname:string):CanCreateLinkedDoc{
 //     if(!(this.postingProductsTableComponent && this.postingProductsTableComponent.getProductTable().length>0)){
 //         return {can:false, reason:'Невозможно создать '+(docname=='Returnsup'?'возврат поставщику':'')+', так как нет товарных позиций'};
@@ -1175,6 +1192,8 @@ deleteFile(id:number){
   }
   getLinkedDocsScheme(draw?:boolean){
     let result:any;
+    this.loadingDocsScheme=true;
+    this.linkedDocsText ='';
     this.loadingDocsScheme=true;
     this.http.get('/api/auth/getLinkedDocsScheme?uid='+this.formBaseInformation.get('uid').value)
       .subscribe(

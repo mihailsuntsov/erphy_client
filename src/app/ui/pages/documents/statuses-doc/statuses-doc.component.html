@@ -4,7 +4,7 @@
         <div class="card-name">Статус документа <span [ngClass]="{invisible: visBeforeCreatingBlocks}"> "{{formBaseInformation.get('doc').value}}"</span></div>
                 <button 
                     mat-raised-button 
-                    [style.display]="visAfterCreatingBlocks==true?'none':'block'"
+                    [style.display]="id>0?'none':'block'"
                     (click)="createNewDocument()" 
                     [disabled]="!formBaseInformation.valid" 
                     color="primary"
@@ -12,8 +12,27 @@
                     <i class="material-icons">add_circle_outline</i> Создать
                 </button>
                 <button 
+                    mat-button 
+                    [matMenuTriggerFor]="addDocMenu"
                     mat-raised-button 
-                    [style.display]="visBtnUpdate==true?'block':'none'"
+                    matTooltip='Создать документы, основанные на данном'
+                    [disabled]="!formBaseInformation.valid" 
+                    *ngIf="+id>0"
+                    color="primary"
+                    (submit)="false"
+                    type="button"
+                    class="button"
+                    style="width: 129px;height: 36px;min-width: 38px;">
+                    <i class="material-icons">add</i> Документ <i class="material-icons">arrow_drop_down</i>
+                </button>
+                <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
+                    <button mat-menu-item (click)="goToNewDocument()">
+                        <span>Статус документа</span>
+                    </button>
+                </mat-menu>
+                <button 
+                    mat-raised-button 
+                    [style.display]="id>0?'block':'none'"
                     (click)="updateDocument(false)"
                     [disabled]="!formBaseInformation.valid" 
                     color="primary"
@@ -73,8 +92,8 @@
                                                             </mat-hint>
                                                         </mat-form-field>
                                                         <mat-form-field class="mat-form-field-100">
-                                                            <input   matInput
-                                                                    placeholder="Наименование"
+                                                            <mat-label>Наименование <span *ngIf="formBaseInformation.get('name').value==''" class="star">*</span></mat-label>
+                                                            <input  matInput
                                                                     formControlName="name"/>
                                                         </mat-form-field>
                                                         <mat-form-field class="mat-form-field-100">

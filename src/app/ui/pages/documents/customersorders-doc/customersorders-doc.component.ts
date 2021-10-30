@@ -6,17 +6,17 @@ import { KkmAtolChequesService } from '../../../../services/kkm_atol_cheques';
 import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component';
-import { SelectionModel } from '@angular/cdk/collections';
+// import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component';
+// import { SelectionModel } from '@angular/cdk/collections';
 import { Observable } from 'rxjs';
 import { map, startWith, debounceTime, tap, switchMap, mergeMap, concatMap  } from 'rxjs/operators';
 import { MomentDateAdapter} from '@angular/material-moment-adapter';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
-import { ProductsDocComponent } from '../products-doc/products-doc.component';
+// import { ProductsDocComponent } from '../products-doc/products-doc.component';
 import { MatDialog } from '@angular/material/dialog';
 import { ValidationService } from './validation.service';
-import { ProductReservesDialogComponent } from 'src/app/ui/dialogs/product-reserves-dialog/product-reserves-dialog.component';
-import { PricingDialogComponent } from 'src/app/ui/dialogs/pricing-dialog/pricing-dialog.component';
+// import { ProductReservesDialogComponent } from 'src/app/ui/dialogs/product-reserves-dialog/product-reserves-dialog.component';
+// import { PricingDialogComponent } from 'src/app/ui/dialogs/pricing-dialog/pricing-dialog.component';
 import { v4 as uuidv4 } from 'uuid';
 import { CommonUtilitesService } from 'src/app/services/common_utilites.serviсe';
 import { MatTabChangeEvent } from '@angular/material/tabs';
@@ -729,19 +729,9 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
           {
             this.receivedCompaniesList=data as any [];
             this.doFilterCompaniesList();
-            if(+this.id==0)
-              this.getSettings();
           },                      
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
-  }
-  setDefaultCompany(){
-    if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим своё по дефолту
-      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
-    this.formAboutDocument.get('company').setValue(this.getCompanyNameById(this.formBaseInformation.get('company_id').value));
-    this.getDepartmentsList(); 
-    this.getPriceTypesList();
-    
   }
 
   onCompanyChange(){
@@ -887,6 +877,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
       this.receivedCompaniesList=[];
       this.receivedCompaniesList.push(myCompany);
     }
+    this.getSettings(); // настройки документа Заказ покупателя
   }
   doFilterDepartmentsList(){
     // console.log('doFilterDepartmentsList');
@@ -991,10 +982,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
           data => { 
             result=data as any;
             //вставляем настройки в форму настроек
-            this.settingsForm.get('companyId').setValue(result.companyId);
-            this.settingsForm.get('departmentId').setValue(result.departmentId);
-            this.settingsForm.get('customerId').setValue(result.customerId);
-            this.settingsForm.get('customer').setValue(result.customer);
+           
             this.settingsForm.get('pricingType').setValue(result.pricingType?result.pricingType:'priceType');
             this.settingsForm.get('plusMinus').setValue(result.plusMinus?result.plusMinus:'plus');
             this.settingsForm.get('changePrice').setValue(result.changePrice?result.changePrice:50);
@@ -1004,19 +992,21 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
             this.settingsForm.get('name').setValue(result.name?result.name:'');
             this.settingsForm.get('priorityTypePriceSide').setValue(result.priorityTypePriceSide?result.priorityTypePriceSide:'defprice');
             this.settingsForm.get('autocreateOnStart').setValue(result.autocreateOnStart);
-            this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.statusIdOnAutocreateOnCheque);
             
             this.necessaryActionsBeforeGetChilds();
             // для нового документа
             if(+this.id==0){
               //если предприятия из настроек больше нет в списке предприятий (например, для пользователя урезали права, и выбранное предприятие более недоступно)
-              //необходимо сбросить данное предприятие в null 
-              if(!this.isCompanyInList(+result.companyId)){
-                this.formBaseInformation.get('company_id').setValue(null);
-              } else { 
-                //вставляем Отделение и Покупателя (вставится только если новый документ)
-                this.setDefaultInfoOnStart(+result.departmentId,+result.customerId,result.customer,result.name?result.name:'');
+              //необходимо не загружать эти настройки
+              if(this.isCompanyInList(+result.companyId)){
+                this.settingsForm.get('companyId').setValue(result.companyId);
+                this.settingsForm.get('departmentId').setValue(result.departmentId);
+                this.settingsForm.get('customerId').setValue(result.customerId);
+                this.settingsForm.get('customer').setValue(result.customer);
+                this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.statusIdOnAutocreateOnCheque);
               }
+                //вставляем Отделение и Покупателя (вставится только если новый документ)
+              this.setDefaultInfoOnStart(+result.departmentId,+result.customerId,result.customer,result.name?result.name:'');
               this.setDefaultCompany();
             }
             
@@ -1025,7 +1015,12 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
   }
-
+  setDefaultCompany(){
+    if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим своё по дефолту
+      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+    this.getDepartmentsList(); 
+    this.getPriceTypesList();
+  }
   //если новый документ - вставляем Отделение и Покупателя (но только если они принадлежат выбранному предприятию, т.е. предприятие в Основной информации и предприятие, для которого были сохранены настройки совпадают)
   setDefaultInfoOnStart(departmentId:number, customerId:number, customer:string, name:string){
     if(+this.id==0){//документ новый
@@ -1137,7 +1132,6 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
                 this.creatorId=+documentValues.creator_id;
                 this.searchCagentCtrl.setValue(documentValues.cagent);
                 this.is_completed=documentValues.is_completed;
-                this.getSettings(); // настройки документа Заказ покупателя
                 this.getSpravSysEdizm();//справочник единиц измерения
                 this.getSetOfTypePrices(); //загрузка цен по типам цен для выбранных значений (предприятие, отделение, контрагент)
                 this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
@@ -1501,18 +1495,12 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
         this.settingsForm.get('autocreateOnStart').setValue(result.get('autocreateOnStart').value);
         this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.get('statusIdOnAutocreateOnCheque').value);
         this.saveSettingsCustomersOrders();
-        //вставляем Отделение,Покупателя и Наименование заказа (вставится только если новый документ)
-        // this.setDefaultInfoOnStart(
-        //   (result.get('departmentId')?result.get('departmentId').value:null),
-        //   (+result.get('customerId').value>0?result.get('customerId').value:null),
-        //   (+result.get('customerId').value>0?result.get('customer').value:null),
-        //   (result.get('name')?result.get('name').value:''),
-        //   );
-        // //чтобы настройки применились к модулю Поиск и добавление товара"
-        // this.productSearchAndTableComponent.applySettings(result);
-
+ 
         // если это новый документ, и ещё нет выбранных товаров - применяем настройки 
         if(+this.id==0 && this.productSearchAndTableComponent.getProductTable().length==0)  {
+            //если в настройках сменили предприятие - нужно сбросить статусы, чтобы статус от предыдущего предприятия не прописался в актуальное
+            if(+this.settingsForm.get('companyId').value!= +this.formBaseInformation.get('company_id').value) 
+            this.resetStatus();
           this.getData();
         }
         //чтобы настройки применились к модулю Поиск и добавление товара"
@@ -1858,6 +1846,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
     this.actionsBeforeCreateNewDoc=0;
     this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
     this.resetAddressForm();
+    this.resetStatus();
     this.resetContactsForm();
     this.formExpansionPanelsString();
     this.is_completed=false;
@@ -1868,7 +1857,13 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
     this.productSearchAndTableComponent.resetFormSearch();
     this.productSearchAndTableComponent.getControlTablefield().clear();
   }
-
+  resetStatus(){
+    this.formBaseInformation.get('status_id').setValue(null);
+    this.formBaseInformation.get('status_name').setValue('');
+    this.formBaseInformation.get('status_color').setValue('ff0000');
+    this.formBaseInformation.get('status_description').setValue('');
+    this.receivedStatusesList = [];
+  }
 //**********************************************************************************************************************************************/  
 //*************************************************          СВЯЗАННЫЕ ДОКУМЕНТЫ          ******************************************************/
 //**********************************************************************************************************************************************/  
@@ -2046,6 +2041,8 @@ myTabAnimationDone() {
 }
 getLinkedDocsScheme(draw?:boolean){
   let result:any;
+  this.loadingDocsScheme=true;
+  this.linkedDocsText ='';
   this.loadingDocsScheme=true;
   this.http.get('/api/auth/getLinkedDocsScheme?uid='+this.formBaseInformation.get('uid').value)
     .subscribe(

@@ -500,18 +500,9 @@ export class AcceptanceDocComponent implements OnInit {
           {
             this.receivedCompaniesList=data as any [];
             this.doFilterCompaniesList();
-            if(+this.id==0)
-              this.getSettings();
-          },                      
+           },                      
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
-  }
-
-  setDefaultCompany(){
-    if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим своё по дефолту
-      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
-    this.getDepartmentsList(); 
-    this.getPriceTypesList();
   }
 
   onCompanyChange(){
@@ -611,11 +602,11 @@ export class AcceptanceDocComponent implements OnInit {
       this.receivedCompaniesList=[];
       this.receivedCompaniesList.push(myCompany);
     }
+    this.getSettings(); // настройки документа Приёмка
   }
   doFilterDepartmentsList(){
     if(!this.allowToCreateAllCompanies && !this.allowToCreateMyCompany && this.allowToCreateMyDepartments){
       this.receivedDepartmentsList=this.receivedMyDepartmentsList;}
-    // this.secondaryDepartments=this.receivedDepartmentsList;
   }
   inMyDepthsId(id:number):boolean{//проверяет, состоит ли присланный id в группе id отделений пользователя
     let inMyDepthsId:boolean = false;
@@ -644,33 +635,30 @@ export class AcceptanceDocComponent implements OnInit {
           data => { 
             result=data as any;
             //вставляем настройки в форму настроек
-            this.settingsForm.get('companyId').setValue(result.companyId);
-            //данная группа настроек зависит от предприятия
-            this.settingsForm.get('departmentId').setValue(result.departmentId);
-            this.settingsForm.get('statusOnFinishId').setValue(result.statusOnFinishId);
             //данная группа настроек не зависит от предприятия
             this.settingsForm.get('autoAdd').setValue(result.autoAdd);
             this.settingsForm.get('autoPrice').setValue(result.autoPrice);
             //если предприятия из настроек больше нет в списке предприятий (например, для пользователя урезали права, и выбранное предприятие более недоступно)
-            //необходимо сбросить данное предприятие в null 
-            if(!this.isCompanyInList(+result.companyId)){
-              this.formBaseInformation.get('company_id').setValue(null);
-            } else { 
-              //вставляем Отделение и Покупателя (вставится только если новый документ)
-              this.setDefaultInfoOnStart();
+            //настройки не принимаем 
+            if(this.isCompanyInList(+result.companyId)){
+              this.settingsForm.get('companyId').setValue(result.companyId);
+              //данная группа настроек зависит от предприятия
+              this.settingsForm.get('departmentId').setValue(result.departmentId);
+              this.settingsForm.get('statusOnFinishId').setValue(result.statusOnFinishId);
             }
+              //вставляем Отделение и Покупателя (вставится только если новый документ)
+            this.setDefaultInfoOnStart();
             this.setDefaultCompany();
           },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
   }
 
-  //определяет, есть ли предприятие в загруженном списке предприятий
-  isCompanyInList(companyId:number):boolean{
-    let inList:boolean=false;
-    if(this.receivedCompaniesList) // иначе если док создан (id>0), т.е. списка предприятий нет, и => ERROR TypeError: Cannot read property 'map' of null
-      this.receivedCompaniesList.map(i=>{if(i.id==companyId) inList=true;});
-    return inList;
+  setDefaultCompany(){
+    if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим своё по дефолту
+      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+    this.getDepartmentsList(); 
+    this.getPriceTypesList();
   }
 
   //если новый документ
@@ -679,6 +667,14 @@ export class AcceptanceDocComponent implements OnInit {
       this.formBaseInformation.get('company_id').setValue(this.settingsForm.get('companyId').value)
       this.formBaseInformation.get('department_id').setValue(this.settingsForm.get('departmentId').value);
     }
+  }
+
+  //определяет, есть ли предприятие в загруженном списке предприятий
+  isCompanyInList(companyId:number):boolean{
+    let inList:boolean=false;
+    if(this.receivedCompaniesList) // иначе если док создан (id>0), т.е. списка предприятий нет, и => ERROR TypeError: Cannot read property 'map' of null
+      this.receivedCompaniesList.map(i=>{if(i.id==companyId) inList=true;});
+    return inList;
   }
 
   getDocumentValuesById(){
@@ -712,7 +708,6 @@ export class AcceptanceDocComponent implements OnInit {
                 this.formBaseInformation.get('is_completed').setValue(documentValues.is_completed);
                 this.formBaseInformation.get('uid').setValue(documentValues.uid);
                 this.creatorId=+documentValues.creator_id;
-                this.getSettings(); // настройки документа Приёмка
                 this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
                 this.getPriceTypesList();
                 this.loadFilesInfo();
@@ -935,6 +930,9 @@ export class AcceptanceDocComponent implements OnInit {
         this.saveSettingsAcceptance();
         // если это новый документ, и ещё нет выбранных товаров - применяем настройки 
         if(+this.id==0 && this.acceptanceProductsTableComponent.getProductTable().length==0)  {
+          //если в настройках сменили предприятие - нужно сбросить статусы, чтобы статус от предыдущего предприятия не прописался в актуальное
+          if(+this.settingsForm.get('companyId').value!= +this.formBaseInformation.get('company_id').value) 
+            this.resetStatus();
           this.getData();
         }
       }
@@ -1023,22 +1021,40 @@ export class AcceptanceDocComponent implements OnInit {
     this._router.navigate(['ui/acceptancedoc',0]);
     this.id=0;
     this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными товарами
-    
-    // this.formBaseInformation.get('doc_number').setValue('');
-    // this.formBaseInformation.get('description').setValue('');
-    // this.formBaseInformation.get('cagent_id').setValue('');
-    // this.formBaseInformation.get('cagent').setValue('');
     this.form.resetForm();
-    this.formBaseInformation.get('id').setValue(null);
+    this.formBaseInformation.get('uid').setValue('');
     this.formBaseInformation.get('is_completed').setValue(false);
+    this.formBaseInformation.get('nds').setValue(false);
     this.formBaseInformation.get('nds_included').setValue(true);
-    this.formBaseInformation.get('overhead_netcost_method').setValue(0);
-    setTimeout(() => { this.acceptanceProductsTableComponent.showColumns();}, 1000);
+    this.formBaseInformation.get('company_id').setValue(null);
+    this.formBaseInformation.get('doc_number').setValue('');
+    this.formBaseInformation.get('department_id').setValue(null);
+    this.formBaseInformation.get('cagent_id').setValue(null);
+    this.formBaseInformation.get('cagent').setValue('');
+    this.formBaseInformation.get('acceptance_date').setValue('');
+    this.formBaseInformation.get('description').setValue('');
     this.searchCagentCtrl.reset();
+
+    setTimeout(() => { this.acceptanceProductsTableComponent.showColumns();}, 1000);
+    
+    this.resetStatus();
     this.setDefaultStatus();//устанавливаем статус документа по умолчанию
+    this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
     this.setDefaultDate();
+
     this.canEditCompAndDepth=true;
-    this.setDefaultInfoOnStart();
+    this.actionsBeforeGetChilds=0;
+    this.startProcess=true;
+    
+    this.getData();
+  }
+
+  resetStatus(){
+    this.formBaseInformation.get('status_id').setValue(null);
+    this.formBaseInformation.get('status_name').setValue('');
+    this.formBaseInformation.get('status_color').setValue('ff0000');
+    this.formBaseInformation.get('status_description').setValue('');
+    this.receivedStatusesList = [];
   }
 //*****************************************************************************************************************************************/
 /***********************************************************         ФАЙЛЫ          *******************************************************/
@@ -1231,6 +1247,8 @@ myTabAnimationDone() {
 }
 getLinkedDocsScheme(draw?:boolean){
   let result:any;
+  this.loadingDocsScheme=true;
+  this.linkedDocsText ='';
   this.loadingDocsScheme=true;
   this.http.get('/api/auth/getLinkedDocsScheme?uid='+this.formBaseInformation.get('uid').value)
     .subscribe(

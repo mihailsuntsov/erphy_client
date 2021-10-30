@@ -55,11 +55,9 @@
             </button>
             <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
                 <button mat-menu-item (click)="goToNewDocument()">
-                    <mat-icon>add_circle_outline</mat-icon>
                     <span>Розничная продажа</span>
                 </button>
                 <button mat-menu-item (click)="createLinkedDoc('Return')">
-                    <mat-icon>sentiment_very_dissatisfied</mat-icon>
                     <span>Возврат покупателя</span>
                 </button>
             </mat-menu>
@@ -380,6 +378,7 @@
                                     [default_type_price_id]="default_type_price_id"
                                     [cagent]="formBaseInformation.get('cagent').value"
                                     [secondaryDepartments]="receivedDepartmentsList"
+                                    
                                     [pricingType]="settingsForm.get('pricingType').value"
                                     [plusMinus]="settingsForm.get('plusMinus').value"
                                     [priorityTypePriceSide]="settingsForm.get('priorityTypePriceSide').value"

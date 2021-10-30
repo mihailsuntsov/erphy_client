@@ -194,6 +194,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   @Input() receivedPriceTypesList: idNameDescription[];//массив для получения списка типов цен
   @Input() spravSysNdsSet: SpravSysNdsSet[]; //массив имен и id для ндс 
   @Input() readonly:boolean;
+  
   // @Input() parent_document_id:string;// из какого документа вызывают. Например, CustomersOrders, RetailSales
   @Input() autoAdd:boolean;//автодобавление товара из формы поиска товара в таблицу
   @Input() routedProductsTable:CustomersOrdersProductTable[]; //данные, которые передаем в Розн. продажу при ее создании из Заказа покупателя. Здесь они нужны, чтобы заполнить таблицу товаров
@@ -850,10 +851,10 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
     this.calcSumPriceOfProduct();
   }
   updateSettings(){
-    return this.http.post('/api/auth/saveSettings'+this.parentDocName, this.settingsForm.value)
+    return this.http.post('/api/auth/savePricingSettings'+this.parentDocName, this.settingsForm.value)
             .subscribe(
                 (data) => {   
-                          this.openSnackBar("Настройки успешно сохранены", "Закрыть");
+                          this.openSnackBar("Настройки расценки успешно сохранены", "Закрыть");
                           
                         },
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},

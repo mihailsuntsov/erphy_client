@@ -267,7 +267,7 @@ export class InventoryDocComponent implements OnInit {
       plusMinus: new FormControl                ('plus',[]),                  // Наценка (plus) или скидка (minus)
       changePriceType: new FormControl          ('procents',[]),              // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
       hideTenths: new FormControl               (true,[]),                    // убрать десятые (копейки)
-      statusOnFinishId: new FormControl         ('',[]),                      // статус после завершения инвентаризации
+      statusOnFinishId: new FormControl         ('',[]),                      // статус после проведения инвентаризации
       defaultActualBalance: new FormControl     ('',[]),                      //  фактический баланс по умолчанию. "estimated" - как расчётный, "other" - другой (выбирается в other_actual_balance)
       otherActualBalance: new FormControl       (0,[Validators.pattern('^[0-9]{1,6}(?:[.,][0-9]{0,3})?\r?$')]),// "другой" фактический баланс по умолчанию. Например, 1
       autoAdd: new FormControl                  (false,[]),                   // автодобавление товара из формы поиска в таблицу
@@ -438,18 +438,9 @@ export class InventoryDocComponent implements OnInit {
           {
             this.receivedCompaniesList=data as any [];
             this.doFilterCompaniesList();
-            if(+this.id==0)
-              this.getSettings();
           },                      
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
-  }
-
-  setDefaultCompany(){
-    if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим своё по дефолту
-      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
-    this.getDepartmentsList(); 
-    this.getPriceTypesList();
   }
 
   onCompanyChange(){
@@ -548,6 +539,7 @@ export class InventoryDocComponent implements OnInit {
       this.receivedCompaniesList=[];
       this.receivedCompaniesList.push(myCompany);
     }
+    this.getSettings(); // настройки документа Инвентаризация
   }
   doFilterDepartmentsList(){
     if(!this.allowToCreateAllCompanies && !this.allowToCreateMyCompany && this.allowToCreateMyDepartments){
@@ -596,21 +588,27 @@ export class InventoryDocComponent implements OnInit {
             this.settingsForm.get('defaultActualBalance').setValue(result.defaultActualBalance);
             this.settingsForm.get('otherActualBalance').setValue(result.otherActualBalance);
             this.settingsForm.get('autoAdd').setValue(result.autoAdd);
-            
-            //если предприятия из настроек больше нет в списке предприятий (например, для пользователя урезали права, и выбранное предприятие более недоступно)
-            //необходимо сбросить данное предприятие в null 
-            if(!this.isCompanyInList(+result.companyId)){
-              this.formBaseInformation.get('company_id').setValue(null);
-            } else { 
-              //вставляем Отделение и Покупателя (вставится только если новый документ)
-              this.setDefaultInfoOnStart();
+           //если предприятия из настроек больше нет в списке предприятий (например, для пользователя урезали права, и выбранное предприятие более недоступно)
+            //необходимо не загружать эти настройки
+            if(this.isCompanyInList(+result.companyId)){
+              this.settingsForm.get('companyId').setValue(result.companyId);
+              //данная группа настроек зависит от предприятия
+              this.settingsForm.get('departmentId').setValue(result.departmentId);
+              this.settingsForm.get('statusOnFinishId').setValue(result.statusOnFinishId);
             }
+            this.setDefaultInfoOnStart();
             this.setDefaultCompany();
           },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
   }
 
+  setDefaultCompany(){
+    if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим своё по дефолту
+      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+    this.getDepartmentsList(); 
+    this.getPriceTypesList();
+  }
   //определяет, есть ли предприятие в загруженном списке предприятий
   isCompanyInList(companyId:number):boolean{
     let inList:boolean=false;
@@ -654,7 +652,6 @@ export class InventoryDocComponent implements OnInit {
                 this.formBaseInformation.get('is_completed').setValue(documentValues.is_completed);
                 this.formBaseInformation.get('uid').setValue(documentValues.uid);
                 this.creatorId=+documentValues.creator_id;
-                this.getSettings(); // настройки документа Инвентаризация
                 // this.getSpravSysEdizm();//справочник единиц измерения
                 this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
                 this.getPriceTypesList();
@@ -664,7 +661,7 @@ export class InventoryDocComponent implements OnInit {
                 this.getLinkedDocsScheme(true); //загрузка связанных документов
                 this.refreshPermissions();//пересчитаем права
 
-                // if(this.inventoryProductsTableComponent) this.inventoryProductsTableComponent.showColumns(); //чтобы спрятать столбцы после завершения Инвентаризации
+                // if(this.inventoryProductsTableComponent) this.inventoryProductsTableComponent.showColumns(); //чтобы спрятать столбцы после проведения Инвентаризации
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
         );
@@ -722,6 +719,7 @@ export class InventoryDocComponent implements OnInit {
   createNewDocument(){
     this.createdDocId=null;
     this.getProductsTable();
+    this.formBaseInformation.get('uid').setValue(uuidv4());
     this.http.post('/api/auth/insertInventory', this.formBaseInformation.value)
       .subscribe(
       (data) => {
@@ -759,9 +757,9 @@ export class InventoryDocComponent implements OnInit {
     if(!notShowDialog){//notShowDialog=false - показывать диалог
       const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
         width: '400px',data:{
-          head: 'Завершение инвентаризации',
-          warning: 'Вы хотите завершить инвентаризацию?',
-          query: 'После завершения документ станет недоступным для редактирования.'},});
+          head: 'Проведение инвентаризации',
+          warning: 'Вы хотите провести инвентаризацию?',
+          query: 'После проведения документ станет недоступным для редактирования.'},});
       dialogRef.afterClosed().subscribe(result => {
         if(result==1){
           this.updateDocument(true);
@@ -773,17 +771,17 @@ export class InventoryDocComponent implements OnInit {
   updateDocument(complete?:boolean){ 
     this.getProductsTable();    
     if(complete) {
-      if(this.settingsForm.get('statusOnFinishId').value)//если в настройках есть "Статус при завершении" - выставим его
+      if(this.settingsForm.get('statusOnFinishId').value)//если в настройках есть "Статус при проведении" - выставим его
         this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);
-      this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с завершением
+      this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением
     }
     return this.http.post('/api/auth/updateInventory',  this.formBaseInformation.value)
       .subscribe(
           (data) => 
           {   
             this.setStatusColor();//чтобы обновился цвет статуса
-            if(this.inventoryProductsTableComponent) this.inventoryProductsTableComponent.showColumns(); //чтобы спрятать столбцы после завершения Инвентаризации
-            this.openSnackBar("Документ \"Инвентаризация\" "+ (complete?"завершён.":"сохренён."), "Закрыть");
+            if(this.inventoryProductsTableComponent) this.inventoryProductsTableComponent.showColumns(); //чтобы спрятать столбцы после проведения Инвентаризации
+            this.openSnackBar("Документ \"Инвентаризация\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
             this.getLinkedDocsScheme(true);//обновим схему связанных документов )чтобы Проведено сменилось с Нет на Да
           },
           error => {
@@ -861,6 +859,9 @@ export class InventoryDocComponent implements OnInit {
         
         // если это новый документ, и ещё нет выбранных товаров - применяем настройки 
         if(+this.id==0 && this.inventoryProductsTableComponent.getProductTable().length==0)  {
+          //если в настройках сменили предприятие - нужно сбросить статусы, чтобы статус от предыдущего предприятия не прописался в актуальное
+          if(+this.settingsForm.get('companyId').value!= +this.formBaseInformation.get('company_id').value) 
+            this.resetStatus();
           this.getData();
         }
       }
@@ -926,7 +927,9 @@ export class InventoryDocComponent implements OnInit {
     if(this.inventoryProductsTableComponent.getProductTable().length>0) this.canEditCompAndDepth=false; else this.canEditCompAndDepth=true;
   }
 
+//**********************************************************************************************************************************************/  
 //*************************************************          СВЯЗАННЫЕ ДОКУМЕНТЫ          ******************************************************/
+//**********************************************************************************************************************************************/ 
   //создание Списания или Оприходования
   createLinkedDoc(docname:string){// принимает аргументы: Writeoff или Posting
     let canCreateLinkedDoc:CanCreateLinkedDoc=this.canCreateLinkedDoc(docname); //проверим на возможность создания связанного документа
@@ -981,20 +984,20 @@ export class InventoryDocComponent implements OnInit {
     });
   }
 
-  //можно ли создать связанный документ (да - если есть товары, подходящие для этого, и нет уже завершённого документа)
+  //можно ли создать связанный документ (да - если есть товары, подходящие для этого, и нет уже проведённого документа)
   canCreateLinkedDoc(docname:string):CanCreateLinkedDoc{
     let isThereCompletedLinkedDocs:boolean = this.isThereCompletedLinkedDocs(docname);
     let noProductsToCreateLinkedDoc:boolean = this.getProductsCountToLinkedDoc(docname)==0;
     if(isThereCompletedLinkedDocs || noProductsToCreateLinkedDoc){
       if(isThereCompletedLinkedDocs)
-        return {can:false, reason:'Невозможно создать '+(docname=='Writeoff'?'Списание':'Оприходование')+', так как уже есть завершенный документ '+(docname=='Writeoff'?'Списание':'Оприходование')};
+        return {can:false, reason:'Невозможно создать '+(docname=='Writeoff'?'Списание':'Оприходование')+', так как уже есть проведённый документ '+(docname=='Writeoff'?'Списание':'Оприходование')};
       else
         return {can:false, reason:'Невозможно создать '+(docname=='Writeoff'?'Списание':'Оприходование')+', так как нет позиций с '+(docname=='Writeoff'?'отрицательной':'положительной')+' разницей'};
     }else
       return {can:true, reason:''};
   }
 
-  //есть ли уже завершенный связанный документ (для возможности создания их при их отсутствии) Например, не получится создать Списание, если уже есть завершенные Списания
+  //есть ли уже проведённый связанный документ (для возможности создания их при их отсутствии) Например, не получится создать Списание, если уже есть проведённые Списания
   isThereCompletedLinkedDocs(docname:string):boolean{
     let isThere:boolean=false;
     if(docname=='Writeoff'){// Если Списание
@@ -1036,42 +1039,72 @@ export class InventoryDocComponent implements OnInit {
     });
   }
 
-  //если после закрытия диалога связанного документа в документе больше нечего делать (всё что можно было - было создано и закрыто) - предложим пользователю завершить Инвентаризацию
+  //если после закрытия диалога связанного документа в документе больше нечего делать (всё что можно было - было создано и закрыто) - предложим пользователю провести Инвентаризацию
   offerToComplete(){
     let thereCompletedWriteoff=this.isThereCompletedLinkedDocs('Writeoff');
     let thereCompletedPosting=this.isThereCompletedLinkedDocs('Posting');
     let productsCountToWriteoff=this.getProductsCountToLinkedDoc('Writeoff');
     let productsCountToPosting=this.getProductsCountToLinkedDoc('Posting');
-    if(!this.formBaseInformation.get('is_completed').value && // если инвентаризация еще не завершена и...
+    if(!this.formBaseInformation.get('is_completed').value && // если инвентаризация еще не проведена и...
         (
-          (thereCompletedWriteoff && thereCompletedPosting) || //если есть завершенные Списание и Оприходование или...
-          (thereCompletedWriteoff && productsCountToPosting==0) || // есть завершенное Списание, и оприходовать нечего или...
-          (thereCompletedPosting && productsCountToWriteoff==0) // есть завершенное Оприходование, и списывать нечего
+          (thereCompletedWriteoff && thereCompletedPosting) || //если есть проведённые Списание и Оприходование или...
+          (thereCompletedWriteoff && productsCountToPosting==0) || // есть проведённое Списание, и оприходовать нечего или...
+          (thereCompletedPosting && productsCountToWriteoff==0) // есть проведённое Оприходование, и списывать нечего
         )
       )
-    {// то предложим завершить данную Инвентаризацию
+    {// то предложим провести данную Инвентаризацию
       let warning:string;
-      if(thereCompletedWriteoff && thereCompletedPosting) warning='Списание и Оприходование по данной Инвентаризации завершены. ';
-      if(thereCompletedWriteoff && productsCountToPosting==0) warning='Списание по данной Инвентаризации завершено. Товарных позиций для Оприходования нет. ';
-      if(thereCompletedPosting && productsCountToWriteoff==0) warning='Оприходование по данной Инвентаризации завершено. Товарных позиций для Списания нет. ';
-      warning=warning+'Инвентаризацию можно завершить.';
+      if(thereCompletedWriteoff && thereCompletedPosting) warning='Списание и Оприходование по данной Инвентаризации проведены. ';
+      if(thereCompletedWriteoff && productsCountToPosting==0) warning='Списание по данной Инвентаризации проведено. Товарных позиций для Оприходования нет. ';
+      if(thereCompletedPosting && productsCountToWriteoff==0) warning='Оприходование по данной Инвентаризации проведено. Товарных позиций для Списания нет. ';
+      warning=warning+'Инвентаризацию можно провести.';
       const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
         width: '400px',
         data:
         { 
           head: 'Внимание',
           query: warning,
-          warning: 'Завершить эту Инвентаризацию?',
+          warning: 'Провести эту Инвентаризацию?',
         },
       });
       dialogRef.afterClosed().subscribe(result => {
         if(result==1){
-          this.completeDocument(true);//завершаем Инвентаризацию без дополнительного диалога, т.к. пользователь уже дал согласие
+          this.completeDocument(true);//проводим Инвентаризацию без дополнительного диалога, т.к. пользователь уже дал согласие
         }
       });  
     }
   }
+  
+  //создание нового документа
+  goToNewDocument(){
+    this._router.navigate(['ui/inventorydoc',0]);
+    this.id=0;
+    this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными товарами
+    this.formBaseInformation.get('uid').setValue('');
+    this.formBaseInformation.get('is_completed').setValue(false);
+    this.formBaseInformation.get('company_id').setValue(null);
+    this.formBaseInformation.get('department_id').setValue(null);
+    this.formBaseInformation.get('doc_number').setValue('');
+    this.formBaseInformation.get('description').setValue('');
 
+    setTimeout(() => { this.inventoryProductsTableComponent.showColumns();}, 1000);
+       
+    this.resetStatus();
+    this.getLinkedDocsScheme(true);
+    this.canEditCompAndDepth=true;
+    this.actionsBeforeGetChilds=0;
+    this.startProcess=true;
+
+    this.getData();
+  }
+
+  resetStatus(){
+    this.formBaseInformation.get('status_id').setValue(null);
+    this.formBaseInformation.get('status_name').setValue('');
+    this.formBaseInformation.get('status_color').setValue('ff0000');
+    this.formBaseInformation.get('status_description').setValue('');
+    this.receivedStatusesList = [];
+  }
 //*****************************************************************************************************************************************/
 /***********************************************************         ФАЙЛЫ          *******************************************************/
 //*****************************************************************************************************************************************/
@@ -1201,6 +1234,8 @@ deleteFile(id:number){
   getLinkedDocsScheme(draw?:boolean){
     let result:any;
     this.loadingDocsScheme=true;
+    this.linkedDocsText ='';
+    this.loadingDocsScheme=true;
     this.http.get('/api/auth/getLinkedDocsScheme?uid='+this.formBaseInformation.get('uid').value)
       .subscribe(
           data => { 
@@ -1306,7 +1341,7 @@ deleteFile(id:number){
               
             //   struct2 [
             //     URL="ui/writeoffdoc/113";
-            //     label = "Списание\n№336\n000231\n23.05.2021\nПроведено: Да\nЗавершено";
+            //     label = "Списание\n№336\n000231\n23.05.2021\nПроведено: Да\nПроведено";
             //     tooltip="Перейти в документ";
             //   ];
 
@@ -1314,7 +1349,7 @@ deleteFile(id:number){
             //     color="black"
             //     fillcolor="#acee00";
             //     URL="ui/writeoffdoc/113";
-            //     label = "Оприходование\n №135\n000231\n23.05.2021\nПроведено: Да\nЗавершено";
+            //     label = "Оприходование\n №135\n000231\n23.05.2021\nПроведено: Да\nПроведено";
             //     tooltip="Перейти в документ";
             //   ];
               

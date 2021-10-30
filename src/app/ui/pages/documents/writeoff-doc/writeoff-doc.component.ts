@@ -252,7 +252,7 @@ export class WriteoffDocComponent implements OnInit {
       changePriceType: new FormControl          ('procents',[]),
       // убрать десятые (копейки)
       hideTenths: new FormControl               (true,[]),
-      // статус после завершения инвентаризации
+      // статус после проведения инвентаризации
       statusOnFinishId: new FormControl         ('',[]),
       // автодобавление товара из формы поиска в таблицу
       autoAdd:  new FormControl                 (false,[]),
@@ -427,18 +427,9 @@ export class WriteoffDocComponent implements OnInit {
           {
             this.receivedCompaniesList=data as any [];
             this.doFilterCompaniesList();
-            if(+this.id==0)
-              this.getSettings();
           },                      
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
-  }
-
-  setDefaultCompany(){
-    if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим своё по дефолту
-      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
-    this.getDepartmentsList(); 
-    this.getPriceTypesList();
   }
 
   onCompanyChange(){
@@ -537,6 +528,7 @@ export class WriteoffDocComponent implements OnInit {
       this.receivedCompaniesList=[];
       this.receivedCompaniesList.push(myCompany);
     }
+    this.getSettings(); // настройки документа Списание
   }
   doFilterDepartmentsList(){
     if(!this.allowToCreateAllCompanies && !this.allowToCreateMyCompany && this.allowToCreateMyDepartments){
@@ -570,11 +562,6 @@ export class WriteoffDocComponent implements OnInit {
           data => {  
             result=data as any;
             //вставляем настройки в форму настроек
-            this.settingsForm.get('companyId').setValue(result.companyId);
-            //данная группа настроек зависит от предприятия
-            this.settingsForm.get('departmentId').setValue(result.departmentId);
-            this.settingsForm.get('statusOnFinishId').setValue(result.statusOnFinishId);
-            this.settingsForm.get('priceTypeId').setValue(result.priceTypeId);
             //данная группа настроек не зависит от предприятия
             this.settingsForm.get('pricingType').setValue(result.pricingType?result.pricingType:'lastPurchasePrice');
             this.settingsForm.get('plusMinus').setValue(result.plusMinus?result.plusMinus:'plus');
@@ -583,17 +570,26 @@ export class WriteoffDocComponent implements OnInit {
             this.settingsForm.get('hideTenths').setValue(result.hideTenths);
             this.settingsForm.get('autoAdd').setValue(result.autoAdd);
             //если предприятия из настроек больше нет в списке предприятий (например, для пользователя урезали права, и выбранное предприятие более недоступно)
-            //необходимо сбросить данное предприятие в null 
-            if(!this.isCompanyInList(+result.companyId)){
-              this.formBaseInformation.get('company_id').setValue(null);
-            } else { 
-              //вставляем Отделение и Покупателя (вставится только если новый документ)
-              this.setDefaultInfoOnStart();
+            //необходимо не загружать эти настройки 
+            if(this.isCompanyInList(+result.companyId)){
+              //данная группа настроек зависит от предприятия
+              this.settingsForm.get('companyId').setValue(result.companyId);
+              this.settingsForm.get('departmentId').setValue(result.departmentId);
+              this.settingsForm.get('statusOnFinishId').setValue(result.statusOnFinishId);
+              this.settingsForm.get('priceTypeId').setValue(result.priceTypeId);
             }
+            this.setDefaultInfoOnStart();
             this.setDefaultCompany();
           },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
+  }
+
+  setDefaultCompany(){
+    if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим своё по дефолту
+      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+    this.getDepartmentsList(); 
+    this.getPriceTypesList();
   }
 
   //определяет, есть ли предприятие в загруженном списке предприятий
@@ -637,7 +633,6 @@ export class WriteoffDocComponent implements OnInit {
                 this.formBaseInformation.get('is_completed').setValue(documentValues.is_completed);
                 this.formBaseInformation.get('uid').setValue(documentValues.uid);
                 this.creatorId=+documentValues.creator_id;
-                this.getSettings(); // настройки документа Списание
                 this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
                 this.getPriceTypesList();
                 this.loadFilesInfo();
@@ -645,7 +640,7 @@ export class WriteoffDocComponent implements OnInit {
                 this.getStatusesList();//статусы документа Списание
                 this.getLinkedDocsScheme(true); //загрузка связанных документов
                 this.refreshPermissions();//пересчитаем права
-                if(this.writeoffProductsTableComponent) this.writeoffProductsTableComponent.showColumns(); //чтобы спрятать столбцы после завершения 
+                if(this.writeoffProductsTableComponent) this.writeoffProductsTableComponent.showColumns(); //чтобы спрятать столбцы после проведения 
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
         );
@@ -705,6 +700,7 @@ export class WriteoffDocComponent implements OnInit {
     console.log('Создание нового документа Списание');
     this.createdDocId=null;
     this.getProductsTable();
+    this.formBaseInformation.get('uid').setValue(uuidv4());
     this.http.post('/api/auth/insertWriteoff', this.formBaseInformation.value)
       .subscribe(
       (data) => {
@@ -741,9 +737,9 @@ export class WriteoffDocComponent implements OnInit {
     if(!notShowDialog){//notShowDialog=false - показывать диалог
       const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
         width: '400px',data:{
-          head: 'Завершение списания',
-          warning: 'Вы хотите завершить данное списание?',
-          query: 'После завершения документ станет недоступным для редактирования.'},});
+          head: 'Проведение списание',
+          warning: 'Вы хотите провести данное списание?',
+          query: 'После проведения документ станет недоступным для редактирования.'},});
       dialogRef.afterClosed().subscribe(result => {
         if(result==1){
           this.updateDocument(true);
@@ -756,8 +752,8 @@ export class WriteoffDocComponent implements OnInit {
     this.getProductsTable();    
     let currentStatus:number=this.formBaseInformation.get('status_id').value;
     if(complete){
-      this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с завершением - временно устанавливаем true, временно - чтобы это ушло в запросе на сервер, но не повлияло на внешний вид документа, если вернется не true
-      if(this.settingsForm.get('statusOnFinishId').value){//если в настройках есть "Статус при завершении" - временно выставляем его
+      this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - временно устанавливаем true, временно - чтобы это ушло в запросе на сервер, но не повлияло на внешний вид документа, если вернется не true
+      if(this.settingsForm.get('statusOnFinishId').value){//если в настройках есть "Статус при проведении" - временно выставляем его
         this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);}
     }
     this.http.post('/api/auth/updateWriteoff',  this.formBaseInformation.value)
@@ -765,13 +761,13 @@ export class WriteoffDocComponent implements OnInit {
           (data) => 
           {   
             if(complete){
-              this.formBaseInformation.get('is_completed').setValue(false);//если сохранение с завершением - удаляем временную установку признака завершенности, 
+              this.formBaseInformation.get('is_completed').setValue(false);//если сохранение с проведением - удаляем временную установку признака проведённости, 
               this.formBaseInformation.get('status_id').setValue(currentStatus);//и возвращаем предыдущий статус
             }
             let result:number=data as number;
             switch(result){
               case null:{// null возвращает если не удалось создать документ из-за ошибки
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка "+ (complete?"завершения":"сохренения") + " документа \"Списание\""}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка "+ (complete?"проведения":"сохренения") + " документа \"Списание\""}});
                 break;
               }
               case 0:{//недостаточно товара на складе
@@ -783,15 +779,15 @@ export class WriteoffDocComponent implements OnInit {
                 break;
               }
               default:{// Успешно
-                this.openSnackBar("Документ \"Списание\" "+ (complete?"завершён.":"сохренён."), "Закрыть");
+                this.openSnackBar("Документ \"Списание\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
                 if(complete) {
                   this.getLinkedDocsScheme(true);//обновим схему связанных документов )чтобы Проведено сменилось с Нет на Да
-                  this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с завершением - окончательно устанавливаем признак завершенности = true
+                  this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведённости = true
                   if(this.writeoffProductsTableComponent){
-                    this.writeoffProductsTableComponent.showColumns(); //чтобы спрятать столбцы после завершения 
+                    this.writeoffProductsTableComponent.showColumns(); //чтобы спрятать столбцы после проведения 
                     this.writeoffProductsTableComponent.tableRecount();
                   }
-                  if(this.settingsForm.get('statusOnFinishId').value){//если в настройках есть "Статус при завершении" - выставим его
+                  if(this.settingsForm.get('statusOnFinishId').value){//если в настройках есть "Статус при проведении" - выставим его
                     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);}
                   this.setStatusColor();//чтобы обновился цвет статуса
                 }
@@ -869,6 +865,9 @@ export class WriteoffDocComponent implements OnInit {
         this.saveSettingsWriteoff();
         // если это новый документ, и ещё нет выбранных товаров - применяем настройки 
         if(+this.id==0 && this.writeoffProductsTableComponent.getProductTable().length==0)  {
+          //если в настройках сменили предприятие - нужно сбросить статусы, чтобы статус от предыдущего предприятия не прописался в актуальное
+          if(+this.settingsForm.get('companyId').value!= +this.formBaseInformation.get('company_id').value) 
+            this.resetStatus();
           this.getData();
         }
       }
@@ -944,19 +943,39 @@ export class WriteoffDocComponent implements OnInit {
     totalSumPriceHandler($event: any) {
     }  
 
-  //создание нового документа после завершения текущего
+  //создание нового документа после проведения текущего
   goToNewDocument(){
     this._router.navigate(['ui/writeoffdoc',0]);
     this.id=0;
+
     this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными товарами
-    this.form.resetForm();
     this.formBaseInformation.get('id').setValue(null);
+    this.formBaseInformation.get('uid').setValue('');
     this.formBaseInformation.get('is_completed').setValue(false);
-    this.setDefaultStatus();//устанавливаем статус документа по умолчанию
-    this.setDefaultDate();
-    this.canEditCompAndDepth=true;
-    this.setDefaultInfoOnStart();
+    this.formBaseInformation.get('company_id').setValue(null);
+    this.formBaseInformation.get('department_id').setValue(null);
+    this.formBaseInformation.get('doc_number').setValue('');
+    this.formBaseInformation.get('writeoff_date').setValue('');
+    this.formBaseInformation.get('description').setValue('');
+
+    setTimeout(() => { this.writeoffProductsTableComponent.showColumns();}, 1000);
+    this.setCanEditCompAndDepth();
+    this.form.resetForm();
+    this.resetStatus();
+    this.getLinkedDocsScheme(true);
+    this.actionsBeforeGetChilds=0;
+    this.startProcess=true;
+    this.getData();
   }
+
+  resetStatus(){
+    this.formBaseInformation.get('status_id').setValue(null);
+    this.formBaseInformation.get('status_name').setValue('');
+    this.formBaseInformation.get('status_color').setValue('ff0000');
+    this.formBaseInformation.get('status_description').setValue('');
+    this.receivedStatusesList = [];
+  }
+
 //*****************************************************************************************************************************************/
 /***********************************************************         ФАЙЛЫ          *******************************************************/
 //*****************************************************************************************************************************************/
@@ -1097,7 +1116,7 @@ deleteFile(id:number){
 //       nds_id:  new FormControl (row.nds_id,[]),
 //     });
 //   }
-//   // можно ли создать связанный документ (да - если есть товары, подходящие для этого, и нет уже завершённого документа)
+//   // можно ли создать связанный документ (да - если есть товары, подходящие для этого, и нет уже проведённого документа)
 //   canCreateLinkedDoc(docname:string):CanCreateLinkedDoc{
 //     if(!(this.writeoffProductsTableComponent && this.writeoffProductsTableComponent.getProductTable().length>0)){
 //         return {can:false, reason:'Невозможно создать '+(docname=='Returnsup'?'возврат поставщику':'')+', так как нет товарных позиций'};
@@ -1184,6 +1203,8 @@ deleteFile(id:number){
   getLinkedDocsScheme(draw?:boolean){
     let result:any;
     this.loadingDocsScheme=true;
+    this.linkedDocsText ='';
+    this.linkedDocsCount=0;
     this.http.get('/api/auth/getLinkedDocsScheme?uid='+this.formBaseInformation.get('uid').value)
       .subscribe(
           data => { 

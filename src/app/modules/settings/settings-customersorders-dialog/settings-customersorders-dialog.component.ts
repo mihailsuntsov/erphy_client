@@ -86,7 +86,7 @@ export class SettingsCustomersordersDialogComponent implements OnInit {
     this.settingsForm = new FormGroup({
       
       //наименование заказа по умолчанию
-      orderName:  new FormControl               ('',[]),
+      // orderName:  new FormControl               ('',[]),
       //тип расценки (радиокнопки: 1. Тип цены (priceType), 2. Себестоимость (costPrice) 3. Вручную (manual))
       pricingType: new FormControl              ('priceType',[]),
       //тип цены
@@ -133,12 +133,15 @@ export class SettingsCustomersordersDialogComponent implements OnInit {
         result=data as any;
         this.gettingData=false;
         //вставляем настройки в форму настроек
-        this.settingsForm.get('companyId').setValue(result.companyId);
-        this.settingsForm.get('departmentId').setValue(result.departmentId);
-        this.settingsForm.get('customerId').setValue(result.customerId);
-        this.settingsForm.get('customer').setValue(result.customer);
-        this.searchCustomerCtrl.setValue(result.customer);
-        this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.statusIdOnAutocreateOnCheque);
+        if(this.isCompanyInList(+result.companyId)){
+          //данная группа настроек зависит от предприятия
+          this.settingsForm.get('companyId').setValue(result.companyId);
+          this.settingsForm.get('departmentId').setValue(result.departmentId);
+          this.settingsForm.get('customerId').setValue(result.customerId);
+          this.settingsForm.get('customer').setValue(result.customer);
+          this.searchCustomerCtrl.setValue(result.customer);
+          this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.statusIdOnAutocreateOnCheque);
+        }
         //данная группа настроек не зависит от предприятия
         this.settingsForm.get('pricingType').setValue(result.pricingType?result.pricingType:'priceType');
         this.settingsForm.get('plusMinus').setValue(result.plusMinus?result.plusMinus:'plus');
@@ -157,7 +160,12 @@ export class SettingsCustomersordersDialogComponent implements OnInit {
       error => console.log(error)
     );
   }
-
+  //определяет, есть ли предприятие в загруженном списке предприятий
+  isCompanyInList(companyId:number):boolean{
+    let inList:boolean=false;
+    if(this.receivedCompaniesList) this.receivedCompaniesList.map(i=>{if(i.id==companyId) inList=true;});
+    return inList;
+  }
   onCompanyChange(){
     this.settingsForm.get('departmentId').setValue(null);
     this.searchCustomerCtrl.setValue('');

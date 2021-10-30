@@ -37,6 +37,28 @@
                 <i class="material-icons">settings</i>
             </button>
             <button 
+                mat-button 
+                [matMenuTriggerFor]="addDocMenu"
+                mat-raised-button 
+                matTooltip='Создать связанные документы, основанные на данной приёмке'
+                [disabled]="!childFormValid||!formBaseInformation.valid||returnsupProductsTableComponent.indivisibleErrorOfProductTable" 
+                *ngIf="+id>0 && returnsupProductsTableComponent"
+                color="primary"
+                (submit)="false"
+                type="button"
+                class="button"
+                style="width: 129px;height: 36px;min-width: 38px;">
+                <i class="material-icons">add</i> Документ<i class="material-icons">arrow_drop_down</i>
+            </button>
+            <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
+                <button mat-menu-item (click)="goToNewDocument()">
+                    <span>Возврат поставщику</span>
+                </button>
+                <!-- <button mat-menu-item (click)="createLinkedDoc('Returnsup')">
+                    <span>Возврат поставщику</span>
+                </button> -->
+            </mat-menu>
+            <button 
                 style="width: 129px;height: 36px;min-width: 38px;"
                 mat-raised-button 
                 *ngIf=" +id>0 && !formBaseInformation.get('is_completed').value && returnsupProductsTableComponent"

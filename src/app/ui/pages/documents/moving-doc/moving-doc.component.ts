@@ -12,6 +12,9 @@ import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { Router } from '@angular/router';
 import { FilesComponent } from '../files/files.component';
 import { FilesDocComponent } from '../files-doc/files-doc.component';
+import { v4 as uuidv4 } from 'uuid';
+import { MatTabChangeEvent } from '@angular/material/tabs';
+import { graphviz }  from 'd3-graphviz';
 import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from '@angular/material/core';
 import { MomentDateAdapter} from '@angular/material-moment-adapter';
 import * as _moment from 'moment';
@@ -70,6 +73,7 @@ interface DocResponse {//интерфейс для получения ответ
   status_description: string;
   overhead: string;
   overhead_netcost_method: number;
+  uid:string;
 }
 interface FilesInfo {
   id: string;
@@ -224,6 +228,7 @@ export class MovingDocComponent implements OnInit {
       is_completed: new FormControl       (false,[]),
       overhead: new FormControl           ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       overhead_netcost_method: new FormControl      (0,[]),
+      uid: new FormControl                ('',[]),
       movingProductTable: new FormArray   ([])
     });
     this.formAboutDocument = new FormGroup({
@@ -444,18 +449,9 @@ export class MovingDocComponent implements OnInit {
           {
             this.receivedCompaniesList=data as any [];
             this.doFilterCompaniesList();
-            if(+this.id==0)
-              this.getSettings();
           },                      
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
-  }
-
-  setDefaultCompany(){
-    if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим своё по дефолту
-      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
-    this.getDepartmentsList(); 
-    this.getPriceTypesList();
   }
 
   onCompanyChange(){
@@ -573,6 +569,7 @@ export class MovingDocComponent implements OnInit {
       this.receivedCompaniesList=[];
       this.receivedCompaniesList.push(myCompany);
     }
+    this.getSettings(); // настройки документа Перемещение   
   }
   doFilterDepartmentsList(){
     if(!this.allowToCreateAllCompanies && !this.allowToCreateMyCompany && this.allowToCreateMyDepartments){
@@ -605,12 +602,7 @@ export class MovingDocComponent implements OnInit {
           data => { 
             result=data as any;
             //вставляем настройки в форму настроек
-            this.settingsForm.get('companyId').setValue(result.companyId);
-            //данная группа настроек зависит от предприятия
-            this.settingsForm.get('departmentFromId').setValue(result.departmentFromId);
-            this.settingsForm.get('departmentToId').setValue(result.departmentToId);
-            this.settingsForm.get('statusOnFinishId').setValue(result.statusOnFinishId);
-            this.settingsForm.get('priceTypeId').setValue(result.priceTypeId);
+            
             //данная группа настроек не зависит от предприятия
             this.settingsForm.get('pricingType').setValue(result.pricingType?result.pricingType:'avgCostPrice');
             this.settingsForm.get('plusMinus').setValue(result.plusMinus?result.plusMinus:'plus');
@@ -619,17 +611,26 @@ export class MovingDocComponent implements OnInit {
             this.settingsForm.get('hideTenths').setValue(result.hideTenths);
             this.settingsForm.get('autoAdd').setValue(result.autoAdd);
             //если предприятия из настроек больше нет в списке предприятий (например, для пользователя урезали права, и выбранное предприятие более недоступно)
-            //необходимо сбросить данное предприятие в null 
-            if(!this.isCompanyInList(+result.companyId)){
-              this.formBaseInformation.get('company_id').setValue(null);
-            } else { 
-              //вставляем Отделение и Покупателя (вставится только если новый документ)
-              this.setDefaultInfoOnStart();
+            //необходимо их не загружать
+            if(this.isCompanyInList(+result.companyId)){
+              //данная группа настроек зависит от предприятия
+              this.settingsForm.get('companyId').setValue(result.companyId);
+              this.settingsForm.get('departmentFromId').setValue(result.departmentFromId);
+              this.settingsForm.get('departmentToId').setValue(result.departmentToId);
+              this.settingsForm.get('statusOnFinishId').setValue(result.statusOnFinishId);
+              this.settingsForm.get('priceTypeId').setValue(result.priceTypeId);
             }
+            this.setDefaultInfoOnStart();
             this.setDefaultCompany();
           },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
+  }
+  setDefaultCompany(){
+    if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим своё по дефолту
+      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+    this.getDepartmentsList(); 
+    this.getPriceTypesList();
   }
 
   //определяет, есть ли предприятие в загруженном списке предприятий
@@ -676,8 +677,8 @@ export class MovingDocComponent implements OnInit {
                 this.formBaseInformation.get('status_color').setValue(documentValues.status_color);
                 this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
                 this.formBaseInformation.get('is_completed').setValue(documentValues.is_completed);
+                this.formBaseInformation.get('uid').setValue(documentValues.uid);
                 this.creatorId=+documentValues.creator_id;
-                this.getSettings(); // настройки документа Перемещение
                 this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
                 this.getPriceTypesList();
                 this.loadFilesInfo();
@@ -743,6 +744,7 @@ export class MovingDocComponent implements OnInit {
   createNewDocument(){
     console.log('Создание нового документа Перемещение');
     this.createdDocId=null;
+    this.formBaseInformation.get('uid').setValue(uuidv4());
     this.getProductsTable();
     this.http.post('/api/auth/insertMoving', this.formBaseInformation.value)
       .subscribe(
@@ -908,6 +910,9 @@ export class MovingDocComponent implements OnInit {
         this.saveSettingsMoving();
         // если это новый документ, и ещё нет выбранных товаров - применяем настройки 
         if(+this.id==0 && this.movingProductsTableComponent.getProductTable().length==0)  {
+          //если в настройках сменили предприятие - нужно сбросить статусы, чтобы статус от предыдущего предприятия не прописался в актуальное
+          if(+this.settingsForm.get('companyId').value!= +this.formBaseInformation.get('company_id').value) 
+            this.resetStatus();
           this.getData();
         }
       }
@@ -987,16 +992,35 @@ export class MovingDocComponent implements OnInit {
   goToNewDocument(){
     this._router.navigate(['ui/movingdoc',0]);
     this.id=0;
+
     this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными товарами
-    this.form.resetForm();
     this.formBaseInformation.get('id').setValue(null);
+    this.formBaseInformation.get('uid').setValue('');
     this.formBaseInformation.get('is_completed').setValue(false);
+    this.formBaseInformation.get('company_id').setValue(null);
+    this.formBaseInformation.get('department_from_id').setValue(null);
+    this.formBaseInformation.get('department_to_id').setValue(null);
+    this.formBaseInformation.get('doc_number').setValue('');
+    this.formBaseInformation.get('description').setValue('');
     this.formBaseInformation.get('overhead_netcost_method').setValue(0);
-    this.setDefaultStatus();//устанавливаем статус документа по умолчанию
-    // this.setDefaultDate();
-    this.canEditCompAndDepth=true;
-    this.setDefaultInfoOnStart();
+    this.formBaseInformation.get('overhead').setValue('');
+    setTimeout(() => { this.movingProductsTableComponent.showColumns();}, 1000);
+    this.setCanEditCompAndDepth();
+    this.form.resetForm();
+    this.resetStatus();
+    // this.getLinkedDocsScheme(true);
+    this.actionsBeforeGetChilds=0;
+    this.startProcess=true;
+    this.getData();
   }
+  resetStatus(){
+    this.formBaseInformation.get('status_id').setValue(null);
+    this.formBaseInformation.get('status_name').setValue('');
+    this.formBaseInformation.get('status_color').setValue('ff0000');
+    this.formBaseInformation.get('status_description').setValue('');
+    this.receivedStatusesList = [];
+  }
+
 //*****************************************************************************************************************************************/
 /***********************************************************         ФАЙЛЫ          *******************************************************/
 //*****************************************************************************************************************************************/

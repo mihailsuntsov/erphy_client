@@ -2,7 +2,7 @@
     <form #formBI="ngForm" [formGroup]="formBaseInformation">
         <div class="top-bar-plug"></div>
         <mat-card-title class="flex top-bar">
-            <div class="card-name">Возврат покупателя <span [ngClass]="{invisible: +id==0}"> №{{formBaseInformation.get('doc_number').value}}</span></div>
+            <div class="card-name">Возврат покупателя <span [ngClass]="{invisible: +id==0}"> №{{formBaseInformation.get('doc_number').value}} </span></div>
             <div  id="status" style=" font-size: 15px;"> 
                 <div class = "circle-in-selected" *ngIf="+formBaseInformation.get('status_id').value>0" [style.background-color]="formBaseInformation.get('status_color').value"></div>
                 <mat-form-field  class="mat-form-field-100" style="margin-top: -25px;">
@@ -45,7 +45,7 @@
                 type="button"
                 color="primary"
                 class="button">
-                <i class="material-icons">playlist_add_check</i> Завершить
+                <i class="material-icons">playlist_add_check</i> Провести
             </button>
             <button 
                 mat-button 
@@ -59,10 +59,12 @@
                 <i class="material-icons">add</i> Документ<i class="material-icons">arrow_drop_down</i>
             </button>
             <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
+                <button mat-menu-item (click)="goToNewDocument()">
+                    <span>Возврат покупателя</span>
+                </button>
                 <button mat-menu-item 
                         (click)="createLinkedDoc('Writeoff')" 
                         matTooltip='Создать документ "Списание", основанный на данном документе "Возврат покупателя"'>
-                    <mat-icon>cancel_presentation</mat-icon>
                     <span>Списание</span>
                 </button>
             </mat-menu>

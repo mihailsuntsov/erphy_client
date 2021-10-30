@@ -179,8 +179,6 @@ export class CustomersordersComponent implements OnInit {
       selectedPaymentType:   new FormControl    ('cash',[]),
       //автосоздание на старте документа, если автозаполнились все поля
       autocreateOnStart: new FormControl        (false,[]),
-      //автосоздание нового документа, если в текущем успешно напечатан чек
-      autocreateOnCheque: new FormControl       (false,[]),
       //статус после успешного отбития чека, перед созданием нового документа
       statusIdOnAutocreateOnCheque: new FormControl('',[]),
     });
@@ -615,7 +613,6 @@ export class CustomersordersComponent implements OnInit {
         this.settingsForm.get('hideTenths').setValue(result.get('hideTenths').value);
         this.settingsForm.get('saveSettings').setValue(result.get('saveSettings').value);
         this.settingsForm.get('autocreateOnStart').setValue(result.get('autocreateOnStart').value);
-        this.settingsForm.get('autocreateOnCheque').setValue(result.get('autocreateOnCheque').value);
         this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.get('statusIdOnAutocreateOnCheque').value);
         this.saveSettingsCustomersOrders();
       }

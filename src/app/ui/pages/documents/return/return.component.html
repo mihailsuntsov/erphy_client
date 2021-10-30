@@ -233,7 +233,7 @@
                         </ng-container>
                         <ng-container matColumnDef="is_completed">
                             <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('is_completed')" class="sortheader"> Завершён
+                            <span (click)="setSort('is_completed')" class="sortheader"> Проведён
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='is_completed'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='is_completed'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
@@ -241,13 +241,13 @@
                                 <mat-chip-list>
                                     <mat-chip 
                                     *ngIf="row.is_completed==false" 
-                                    matTooltip="Возврат покупателя не завершён"
+                                    matTooltip="Возврат покупателя не проведён"
                                     style="color:red">
                                         Нет
                                     </mat-chip>
                                     <mat-chip 
                                     *ngIf="row.is_completed==true"
-                                    matTooltip="Возврат покупателя завершён"
+                                    matTooltip="Возврат покупателя проведён"
                                     style="color:green"
                                     >
                                         Да

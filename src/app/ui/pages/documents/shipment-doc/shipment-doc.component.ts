@@ -596,21 +596,11 @@ export class ShipmentDocComponent implements OnInit {
             this.receivedCompaniesList=data as any [];
             this.doFilterCompaniesList();
             if(+this.id==0){
-              this.getSettings();
               this.setDefaultDate();
             }
           },                      
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
-  }
-
-  setDefaultCompany(){
-    if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим своё по дефолту
-      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
-    this.formAboutDocument.get('company').setValue(this.getCompanyNameById(this.formBaseInformation.get('company_id').value));
-    this.getDepartmentsList(); 
-    this.getPriceTypesList();
-    
   }
 
   onCompanyChange(){
@@ -724,6 +714,7 @@ export class ShipmentDocComponent implements OnInit {
       this.receivedCompaniesList=[];
       this.receivedCompaniesList.push(myCompany);
     }
+    this.getSettings();
   }
   doFilterDepartmentsList(){
     if(!this.allowToCreateAllCompanies && !this.allowToCreateMyCompany && this.allowToCreateMyDepartments){
@@ -795,10 +786,7 @@ export class ShipmentDocComponent implements OnInit {
           data => { 
             result=data as any;
             //вставляем настройки в форму настроек
-            this.settingsForm.get('companyId').setValue(result.companyId);
-            this.settingsForm.get('departmentId').setValue(result.departmentId);
-            this.settingsForm.get('customerId').setValue(result.customerId);
-            this.settingsForm.get('customer').setValue(result.customer);
+            
             this.settingsForm.get('pricingType').setValue(result.pricingType?result.pricingType:'priceType');
             this.settingsForm.get('plusMinus').setValue(result.plusMinus?result.plusMinus:'plus');
             this.settingsForm.get('changePrice').setValue(result.changePrice?result.changePrice:50);
@@ -814,18 +802,24 @@ export class ShipmentDocComponent implements OnInit {
 
             //если предприятия из настроек больше нет в списке предприятий (например, для пользователя урезали права, и выбранное предприятие более недоступно)
             //необходимо сбросить данное предприятие в null 
-            if(!this.isCompanyInList(+result.companyId)){
-              // alert('Не в листе')
-              this.formBaseInformation.get('company_id').setValue(null);
-            } else { 
-              // alert('В листе')
-              //вставляем Отделение и Покупателя (вставится только если новый документ)
-              this.setDefaultInfoOnStart();
-            }
+            if(this.isCompanyInList(+result.companyId)){
+              this.settingsForm.get('companyId').setValue(result.companyId);
+              this.settingsForm.get('departmentId').setValue(result.departmentId);
+              this.settingsForm.get('customerId').setValue(result.customerId);
+              this.settingsForm.get('customer').setValue(result.customer);
+            } 
+            this.setDefaultInfoOnStart();
             this.setDefaultCompany();
           },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
+  }
+
+  setDefaultCompany(){
+    if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим своё по дефолту
+      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+    this.getDepartmentsList(); 
+    this.getPriceTypesList();
   }
 
   //определяет, есть ли предприятие в загруженном списке предприятий
@@ -921,7 +915,6 @@ export class ShipmentDocComponent implements OnInit {
                 this.searchCagentCtrl.setValue(documentValues.cagent);
                 // this.receipt_id = documentValues.receipt_id; //id чека этой отгрузки (0 - чека нет)
                 if(!onlyBaseInformation){
-                  this.getSettings(); // настройки документа Отгрузка
                   this.getSpravSysEdizm();//справочник единиц измерения
                   this.getSpravSysNds();// загрузка справочника НДС
                   this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
@@ -1265,6 +1258,9 @@ export class ShipmentDocComponent implements OnInit {
         this.saveSettingsShipment();
         // если это новый документ, и ещё нет выбранных товаров - применяем настройки 
         if(+this.id==0 && this.productSearchAndTableComponent.getProductTable().length==0)  {
+          //если в настройках сменили предприятие - нужно сбросить статусы, чтобы статус от предыдущего предприятия не прописался в актуальное
+          if(+this.settingsForm.get('companyId').value!= +this.formBaseInformation.get('company_id').value) 
+            this.resetStatus();
           this.getData();
         }
         //чтобы настройки применились к модулю Поиск и добавление товара"
@@ -1331,24 +1327,39 @@ export class ShipmentDocComponent implements OnInit {
   goToNewDocument(){
       this._router.navigate(['ui/shipmentdoc',0]);
       this.id=0;
-      this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными на продажу товарами
-      this.setDefaultStatus();//устанавливаем статус документа по умолчанию
+      this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными товарами
       this.formBaseInformation.get('id').setValue(null);
-      this.formBaseInformation.get('doc_number').setValue('');
-      this.formBaseInformation.get('description').setValue('');
-      this.formBaseInformation.get('is_completed').setValue(false);
-      
       this.formBaseInformation.get('uid').setValue('');
-      this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
-      this.actionsBeforeGetChilds=0;
-      
+      this.formBaseInformation.get('is_completed').setValue(false);
+      this.formBaseInformation.get('nds').setValue(false);
+      this.formBaseInformation.get('company_id').setValue(null);
+      this.formBaseInformation.get('department_id').setValue(null);
+      this.formBaseInformation.get('cagent_id').setValue(null);
+      this.formBaseInformation.get('doc_number').setValue('');
+      this.formBaseInformation.get('cagent').setValue('');
+      this.formBaseInformation.get('shipment_date').setValue('');
+      this.formBaseInformation.get('description').setValue('');
+      this.searchCagentCtrl.reset();
       this.is_completed=false;
+      
+      this.resetStatus();
+      this.getLinkedDocsScheme(true);
+      this.actionsBeforeGetChilds=0;
+      this.startProcess=true;
+  
+      this.getData();
+      this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными на продажу товарами
       this.refreshShowAllTabs();
-      // this.getSettings();
-      if(this.kkmComponent)
-        this.kkmComponent.clearFields(); //сбрасываем поля "К оплате", "Наличными" и "Сдача" кассового блока
+      this.kkmComponent.clearFields(); //сбрасываем поля "К оплате", "Наличными" и "Сдача" кассового блока
   }
 
+  resetStatus(){
+    this.formBaseInformation.get('status_id').setValue(null);
+    this.formBaseInformation.get('status_name').setValue('');
+    this.formBaseInformation.get('status_color').setValue('ff0000');
+    this.formBaseInformation.get('status_description').setValue('');
+    this.receivedStatusesList = [];
+  }
 //**********************************************************************************************************************************************/  
 //*************************************************          СВЯЗАННЫЕ ДОКУМЕНТЫ          ******************************************************/
 //**********************************************************************************************************************************************/  
@@ -1444,6 +1455,8 @@ myTabAnimationDone() {
 }
 getLinkedDocsScheme(draw?:boolean){
   let result:any;
+  this.loadingDocsScheme=true;
+  this.linkedDocsText ='';
   this.loadingDocsScheme=true;
   this.http.get('/api/auth/getLinkedDocsScheme?uid='+this.formBaseInformation.get('uid').value)
     .subscribe(

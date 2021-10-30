@@ -30,7 +30,7 @@
                 mat-raised-button 
                 style="width: 36px;height: 36px;min-width: 38px;padding: 0px;"
                 color="primary"
-                matTooltip='Настройки документа "Оприходование"'
+                matTooltip='Настройки документа "Перемещение"'
                 (click)="openDialogSettings()"
                 type="button"
                 class="button">
@@ -52,7 +52,6 @@
             </button>
             <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
                 <button mat-menu-item (click)="goToNewDocument()">
-                    <mat-icon>add_circle_outline</mat-icon>
                     <span>Перемещение</span>
                 </button>
             </mat-menu>

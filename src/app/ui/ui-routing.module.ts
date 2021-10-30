@@ -58,13 +58,13 @@ const routes: Routes = [
       { path: 'movingdoc', loadChildren: () => import('./pages/documents/moving-doc/moving-doc.module').then(m => m.MovingDocModule) },
       { path: 'invoiceout', loadChildren: () => import('./pages/documents/invoiceout/invoiceout.module').then(m => m.InvoiceoutModule) },
       { path: 'invoiceoutdoc', loadChildren: () => import('./pages/documents/invoiceout-doc/invoiceout-doc.module').then(m => m.InvoiceoutDocModule) },
-      
+      { path: 'ordersupdoc', loadChildren: () => import('./pages/documents/ordersup-doc/ordersup-doc.module').then(m => m.OrdersupDocModule) },
+      { path: 'ordersup', loadChildren: () => import('./pages/documents/ordersup/ordersup.module').then(m => m.OrdersupModule) },
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
       { path: '**', redirectTo: 'dashboard',pathMatch: 'full' },
     ]  
   },
-  { path: 'invoiceout', loadChildren: () => import('./pages/documents/invoiceout/invoiceout.module').then(m => m.InvoiceoutModule) },
-  { path: 'invoiceoutdoc', loadChildren: () => import('./pages/documents/invoiceout-doc/invoiceout-doc.module').then(m => m.InvoiceoutDocModule) },
+
   
 ]
 

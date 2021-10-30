@@ -512,18 +512,9 @@ export class ReturnsupDocComponent implements OnInit {
           {
             this.receivedCompaniesList=data as any [];
             this.doFilterCompaniesList();
-            if(+this.id==0)
-              this.getSettings();
           },                      
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
-  }
-
-  setDefaultCompany(){
-    if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим своё по дефолту
-      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
-    this.getDepartmentsList(); 
-    this.getPriceTypesList();
   }
 
   onCompanyChange(){
@@ -623,6 +614,7 @@ export class ReturnsupDocComponent implements OnInit {
       this.receivedCompaniesList=[];
       this.receivedCompaniesList.push(myCompany);
     }
+    this.getSettings(); // настройки документа
   }
   doFilterDepartmentsList(){
     if(!this.allowToCreateAllCompanies && !this.allowToCreateMyCompany && this.allowToCreateMyDepartments){
@@ -656,11 +648,6 @@ export class ReturnsupDocComponent implements OnInit {
           data => { 
             result=data as any;
             //вставляем настройки в форму настроек
-            this.settingsForm.get('companyId').setValue(result.companyId);
-            //данная группа настроек зависит от предприятия
-            this.settingsForm.get('departmentId').setValue(result.departmentId);
-            this.settingsForm.get('statusOnFinishId').setValue(result.statusOnFinishId);
-            this.settingsForm.get('priceTypeId').setValue(result.priceTypeId);
             //данная группа настроек не зависит от предприятия
             this.settingsForm.get('pricingType').setValue(result.pricingType?result.pricingType:'lastPurchasePrice');
             this.settingsForm.get('plusMinus').setValue(result.plusMinus?result.plusMinus:'plus');
@@ -669,17 +656,33 @@ export class ReturnsupDocComponent implements OnInit {
             this.settingsForm.get('hideTenths').setValue(result.hideTenths);
             this.settingsForm.get('autoAdd').setValue(result.autoAdd);
             //если предприятия из настроек больше нет в списке предприятий (например, для пользователя урезали права, и выбранное предприятие более недоступно)
-            //необходимо сбросить данное предприятие в null 
-            if(!this.isCompanyInList(+result.companyId)){
-              this.formBaseInformation.get('company_id').setValue(null);
-            } else { 
-              //вставляем Отделение и Покупателя (вставится только если новый документ)
-              this.setDefaultInfoOnStart();
+            //необходимо не загружать эти настройки
+            if(this.isCompanyInList(+result.companyId)){
+              this.settingsForm.get('companyId').setValue(result.companyId);
+              //данная группа настроек зависит от предприятия
+              this.settingsForm.get('departmentId').setValue(result.departmentId);
+              this.settingsForm.get('statusOnFinishId').setValue(result.statusOnFinishId);
+              this.settingsForm.get('priceTypeId').setValue(result.priceTypeId);
             }
+            this.setDefaultInfoOnStart();
             this.setDefaultCompany();
           },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
+  }
+
+  setDefaultCompany(){
+    if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим своё по дефолту
+      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+    this.getDepartmentsList(); 
+    this.getPriceTypesList();
+  }
+  //если новый документ
+  setDefaultInfoOnStart(){
+    if(+this.id==0){//документ новый
+      this.formBaseInformation.get('company_id').setValue(this.settingsForm.get('companyId').value)
+      this.formBaseInformation.get('department_id').setValue(this.settingsForm.get('departmentId').value);
+    }
   }
 
   //определяет, есть ли предприятие в загруженном списке предприятий
@@ -690,13 +693,7 @@ export class ReturnsupDocComponent implements OnInit {
     return inList;
   }
 
-  //если новый документ
-  setDefaultInfoOnStart(){
-    if(+this.id==0){//документ новый
-      this.formBaseInformation.get('company_id').setValue(this.settingsForm.get('companyId').value)
-      this.formBaseInformation.get('department_id').setValue(this.settingsForm.get('departmentId').value);
-    }
-  }
+
 
   getDocumentValuesById(){
     this.http.get('/api/auth/getReturnsupValuesById?id='+ this.id)
@@ -727,8 +724,6 @@ export class ReturnsupDocComponent implements OnInit {
                 this.formBaseInformation.get('is_completed').setValue(documentValues.is_completed);
                 this.formBaseInformation.get('uid').setValue(documentValues.uid);
                 this.creatorId=+documentValues.creator_id;
-                this.getSettings(); // настройки документа Возврат поставщику
-                // this.getSpravSysEdizm();//справочник единиц измерения
                 this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
                 this.getPriceTypesList();
                 this.loadFilesInfo();
@@ -958,6 +953,9 @@ export class ReturnsupDocComponent implements OnInit {
         this.saveSettingsReturnsup();
         // если это новый документ, и ещё нет выбранных товаров - применяем настройки 
         if(+this.id==0 && this.returnsupProductsTableComponent.getProductTable().length==0)  {
+          //если в настройках сменили предприятие - нужно сбросить статусы, чтобы статус от предыдущего предприятия не прописался в актуальное
+          if(+this.settingsForm.get('companyId').value!= +this.formBaseInformation.get('company_id').value) 
+            this.resetStatus();
           this.getData();
         }
       }
@@ -1154,6 +1152,8 @@ myTabAnimationDone() {
 getLinkedDocsScheme(draw?:boolean){
   let result:any;
   this.loadingDocsScheme=true;
+  this.linkedDocsText ='';
+  this.loadingDocsScheme=true;
   this.http.get('/api/auth/getLinkedDocsScheme?uid='+this.formBaseInformation.get('uid').value)
     .subscribe(
         data => { 
@@ -1191,6 +1191,42 @@ drawLinkedDocsScheme(){
     }
   } else this.loadingDocsScheme=false;
 }
+
+  //создание нового документа
+  goToNewDocument(){
+    this._router.navigate(['ui/returnsupdoc',0]);
+    this.id=0;
+    this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными товарами
+    this.formBaseInformation.get('uid').setValue('');
+    this.formBaseInformation.get('is_completed').setValue(false);
+    this.formBaseInformation.get('nds').setValue(false);
+    this.formBaseInformation.get('company_id').setValue(null);
+    this.formBaseInformation.get('department_id').setValue(null);
+    this.formBaseInformation.get('cagent_id').setValue(null);
+    this.formBaseInformation.get('doc_number').setValue('');
+    this.formBaseInformation.get('cagent').setValue('');
+    this.formBaseInformation.get('date_return').setValue('');
+    this.formBaseInformation.get('description').setValue('');
+    this.searchCagentCtrl.reset();
+
+    setTimeout(() => { this.returnsupProductsTableComponent.showColumns();}, 1000);
+       
+    this.resetStatus();
+    this.getLinkedDocsScheme(true);
+    this.canEditCompAndDepth=true;
+    this.actionsBeforeGetChilds=0;
+    this.startProcess=true;
+
+    this.getData();
+  }
+
+  resetStatus(){
+    this.formBaseInformation.get('status_id').setValue(null);
+    this.formBaseInformation.get('status_name').setValue('');
+    this.formBaseInformation.get('status_color').setValue('ff0000');
+    this.formBaseInformation.get('status_description').setValue('');
+    this.receivedStatusesList = [];
+  }
 //*****************************************************************************************************************************************/
 /***********************************************************         ФАЙЛЫ          *******************************************************/
 //*****************************************************************************************************************************************/

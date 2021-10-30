@@ -91,10 +91,12 @@ export class SettingsAcceptanceDialogComponent implements OnInit {
         result=data as any;
         this.gettingData=false;
         //вставляем настройки в форму настроек
-        this.settingsForm.get('companyId').setValue(result.companyId);
-        //данная группа настроек зависит от предприятия
-        this.settingsForm.get('departmentId').setValue(result.departmentId);
-        this.settingsForm.get('statusOnFinishId').setValue(result.statusOnFinishId);
+        if(this.isCompanyInList(+result.companyId)){
+          //данная группа настроек зависит от предприятия
+          this.settingsForm.get('companyId').setValue(result.companyId);
+          this.settingsForm.get('departmentId').setValue(result.departmentId);
+          this.settingsForm.get('statusOnFinishId').setValue(result.statusOnFinishId);
+        }
         //данная группа настроек не зависит от предприятия
         this.settingsForm.get('autoAdd').setValue(result.autoAdd);
         this.settingsForm.get('autoPrice').setValue(result.autoPrice);
@@ -106,7 +108,12 @@ export class SettingsAcceptanceDialogComponent implements OnInit {
       error => console.log(error)
     );
   }
-
+  //определяет, есть ли предприятие в загруженном списке предприятий
+  isCompanyInList(companyId:number):boolean{
+    let inList:boolean=false;
+    if(this.receivedCompaniesList) this.receivedCompaniesList.map(i=>{if(i.id==companyId) inList=true;});
+    return inList;
+  }
   //при изменении предприятия необходимо загрузить все зависимые от него справочники, удалив выбранные по старому предприятию параметры (отделения, тип цены, статусы)
   onCompanyChange(){
     this.settingsForm.get('departmentId').setValue(null);

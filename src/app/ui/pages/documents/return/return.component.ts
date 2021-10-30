@@ -153,6 +153,8 @@ export class ReturnComponent implements OnInit {
         statusOnFinishId: new FormControl         ('',[]),
         // автодобавление товара из формы поиска в таблицу
         autoAdd: new FormControl                  (false,[]),  
+        // отображать блок работы с онлайн кассой 
+        showKkm:  new FormControl                 (false,[]),
       });
       
         this.getCompaniesList();// 
@@ -558,6 +560,7 @@ export class ReturnComponent implements OnInit {
           if(result.get('departmentId')) this.settingsForm.get('departmentId').setValue(result.get('departmentId').value);
           this.settingsForm.get('statusOnFinishId').setValue(result.get('statusOnFinishId').value);
           this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
+          this.settingsForm.get('showKkm').setValue(result.get('showKkm').value);
           this.saveSettingsReturn();
         }
       });

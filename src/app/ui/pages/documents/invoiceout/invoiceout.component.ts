@@ -208,7 +208,7 @@ export class InvoiceoutComponent implements OnInit {
     this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==406)});
     this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==407)});
     this.allowToDeleteAllCompanies = permissionsSet.some(         function(e){return(e==408)});
-    this.allowToDeleteMyCompany = permissionsSet.some(            function(e){return(e==408)});
+    this.allowToDeleteMyCompany = permissionsSet.some(            function(e){return(e==409)});
     this.allowToDeleteMyDepartments = permissionsSet.some(        function(e){return(e==410)});
     this.allowToDeleteMyDocs = permissionsSet.some(               function(e){return(e==411)});
     this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==412)});

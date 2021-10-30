@@ -108,11 +108,13 @@ export class SettingsPostingDialogComponent implements OnInit {
         console.log(this.settingsForm.value)
         this.gettingData=false;
         //вставляем настройки в форму настроек
-        this.settingsForm.get('companyId').setValue(result.companyId);
-        //данная группа настроек зависит от предприятия
-        this.settingsForm.get('departmentId').setValue(result.departmentId);
-        this.settingsForm.get('statusOnFinishId').setValue(result.statusOnFinishId);
-        this.settingsForm.get('priceTypeId').setValue(result.priceTypeId);
+        if(this.isCompanyInList(+result.companyId)){
+          //данная группа настроек зависит от предприятия
+          this.settingsForm.get('companyId').setValue(result.companyId);
+          this.settingsForm.get('departmentId').setValue(result.departmentId);
+          this.settingsForm.get('statusOnFinishId').setValue( result.statusOnFinishId );
+          this.settingsForm.get('priceTypeId').setValue(result.priceTypeId);
+        }
         //данная группа настроек не зависит от предприятия
         this.settingsForm.get('pricingType').setValue(result.pricingType?result.pricingType:'avgCostPrice');
         this.settingsForm.get('plusMinus').setValue(result.plusMinus?result.plusMinus:'plus');
@@ -129,6 +131,12 @@ export class SettingsPostingDialogComponent implements OnInit {
       },
       error => console.log(error)
     );
+  }
+  //определяет, есть ли предприятие в загруженном списке предприятий
+  isCompanyInList(companyId:number):boolean{
+    let inList:boolean=false;
+    if(this.receivedCompaniesList) this.receivedCompaniesList.map(i=>{if(i.id==companyId) inList=true;});
+    return inList;
   }
 
   getPriceTypesList(){

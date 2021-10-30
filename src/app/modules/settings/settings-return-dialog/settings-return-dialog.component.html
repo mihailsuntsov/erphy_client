@@ -63,8 +63,8 @@
                     <div class="row" style="margin-top:10px">
                         <div class="col-12"> 
                             <div class = "circle-in-selected" [style.background-color]="status_color" *ngIf="settingsForm.get('statusOnFinishId').value!=null"></div>
-                            <mat-form-field  class="mat-form-field-100"  matTooltip="Присваеваемый статус при завершении инвентаризации">
-                                <mat-label>Статус при завершении</mat-label>
+                            <mat-form-field  class="mat-form-field-100"  matTooltip="Автоматически присваеваемый статус при проведении возврата">
+                                <mat-label>Статус при проведении</mat-label>
                                 <mat-select     [ngStyle]="(settingsForm.get('statusOnFinishId').value!=null)?{'padding': '5px 0 5px 25px'}:{}"
                                                 formControlName="statusOnFinishId"
                                                 (selectionChange)="setStatusColor();">

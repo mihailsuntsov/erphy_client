@@ -4,6 +4,7 @@ import { LoadSpravService } from '../../../../services/loadsprav';
 import { FormGroup, Validators, FormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { MatDialog } from '@angular/material/dialog';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
@@ -87,6 +88,7 @@ export class StatusesDocComponent implements OnInit {
     private http: HttpClient,
     private MessageDialog: MatDialog,
     private loadSpravService:   LoadSpravService,
+    private _router:Router,
     private _snackBar: MatSnackBar) { 
       this.id = +activateRoute.snapshot.params['id'];// +null returns 0
     }
@@ -296,7 +298,7 @@ getSetOfPermissions(){
                                 this.createdDocId=data as string [];
                                 this.id=+this.createdDocId[0];
                                 this.formBaseInformation.get('id').setValue(this.id);
-                                this.getData();
+                                this.afterCreateDoc();
                                 this.openSnackBar("Статус документа успешно создан", "Закрыть");
                             },
                 error => console.log(error),
@@ -361,5 +363,26 @@ getSetOfPermissions(){
   dropCagent(event: CdkDragDrop<string[]>) {
     moveItemInArray(this.statusesList, event.previousIndex, event.currentIndex);
   }
+
+  
+  // Действия после создания нового документа Счёт покупателю (это самый последний этап).
+  afterCreateDoc(){// с true запрос придет при отбиваемом в данный момент чеке
+    // Сначала обживаем текущий документ:
+    this.id=+this.createdDocId;
+    this._router.navigate(['/ui/statusesdoc', this.id]);
+    this.formBaseInformation.get('id').setValue(this.id);
+    this.getData();
+  }
+
+  //создание нового документа
+  goToNewDocument(){
+    this._router.navigate(['ui/statusesdoc',0]);
+    this.id=0;
+    this.formBaseInformation.get('id').setValue(null);
+    this.formBaseInformation.get('name').setValue('');
+    this.formBaseInformation.get('color').setValue('#d0d0d0');
+    this.formBaseInformation.get('status_type').setValue(1);
+}
+
 
 }
