@@ -243,7 +243,7 @@ export class OrdersupDocComponent implements OnInit {
       department_id: new FormControl            ('',[Validators.required]),
       cagent_id: new FormControl                ('',[Validators.required]),
       doc_number: new FormControl               ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
-      ordersup_date: new FormControl            ('',[Validators.required]),
+      ordersup_date: new FormControl            ('',[]),
       description: new FormControl              ('',[]),
       department: new FormControl               ('',[]),
       cagent: new FormControl                   ('',[]),
@@ -272,6 +272,7 @@ export class OrdersupDocComponent implements OnInit {
       customers_orders_id: new FormControl    (null,[]),
       date_return: new FormControl        ('',[]),
       nds: new FormControl                ('',[]),
+      name: new FormControl               ('',[]),
       nds_included: new FormControl       ('',[]),
       is_completed: new FormControl       (null,[]),
       cagent_id: new FormControl          (null,[Validators.required]),
@@ -280,6 +281,7 @@ export class OrdersupDocComponent implements OnInit {
       description: new FormControl        ('',[]),
       shipment_date: new FormControl      ('',[Validators.required]),
       returnsupProductTable: new FormArray([]),
+      invoiceinProductTable: new FormArray([]),
       acceptanceProductTable: new FormArray([]),
       linked_doc_id: new FormControl      (null,[]),//id связанного документа (в данном случае Отгрузка)
       parent_uid: new FormControl         (null,[]),// uid родительского документа
@@ -1209,6 +1211,7 @@ deleteFile(id:number){
       this.formLinkedDocs.get('cagent_id').setValue(this.formBaseInformation.get('cagent_id').value);
       this.formLinkedDocs.get('nds').setValue(this.formBaseInformation.get('nds').value);
       this.formLinkedDocs.get('nds_included').setValue(this.formBaseInformation.get('nds_included').value);
+      this.formLinkedDocs.get('name').setValue(this.formBaseInformation.get('name').value);
       this.formLinkedDocs.get('description').setValue('Создано из Заказа поставщику №'+ this.formBaseInformation.get('doc_number').value);
       this.formLinkedDocs.get('is_completed').setValue(false);
       this.formLinkedDocs.get('linked_doc_id').setValue(this.id);//id связанного документа (того, из которого инициируется создание данного документа)

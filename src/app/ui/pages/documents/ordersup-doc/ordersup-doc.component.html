@@ -54,6 +54,9 @@
                 <button mat-menu-item (click)="goToNewDocument()">
                     <span>Заказ поставщику</span>
                 </button>
+                <button mat-menu-item (click)="createLinkedDoc('Invoicein')">
+                    <span>Счёт поставщика</span>
+                </button>
                 <button mat-menu-item (click)="createLinkedDoc('Acceptance')">
                     <span>Приёмка</span>
                 </button>
@@ -65,7 +68,7 @@
                 style="width: 129px;height: 36px;min-width: 38px;"
                 mat-raised-button 
                 *ngIf=" +id>0 && !formBaseInformation.get('is_completed').value && ordersupProductsTableComponent"
-                [disabled]="!childFormValid||ordersupProductsTableComponent.indivisibleErrorOfProductTable" 
+                [disabled]="!childFormValid||!formBaseInformation.valid||ordersupProductsTableComponent.indivisibleErrorOfProductTable" 
                 (click)="completeDocument()" 
                 type="button"
                 color="primary"
@@ -78,7 +81,7 @@
                 *ngIf="+id>0 && allowToUpdate && canGetChilds && !formBaseInformation.get('is_completed').value && ordersupProductsTableComponent"
                 matTooltip='Сохранить документ'
                 (click)="updateDocument()"
-                [disabled]="!childFormValid||ordersupProductsTableComponent.indivisibleErrorOfProductTable" 
+                [disabled]="!childFormValid||!formBaseInformation.valid||ordersupProductsTableComponent.indivisibleErrorOfProductTable" 
                 color="primary"
                 type="button"
                 class="button">

@@ -7,7 +7,6 @@ import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SettingsOrdersupDialogModule } from '../../../../modules/settings/settings-ordersup-dialog/settings-ordersup-dialog.module';
 import { OrdersupProductsTableModule } from 'src/app/modules/trade-modules/ordersup-products-table/ordersup-products-table.module';
-import { KkmModule } from 'src/app/modules/trade-modules/kkm/kkm.module';
 
 @NgModule({
   declarations: [OrdersupDocComponent, /*ControlMessagesComponent*/],
@@ -16,7 +15,6 @@ import { KkmModule } from 'src/app/modules/trade-modules/kkm/kkm.module';
     OrdersupDocRoutingModule,
     SettingsOrdersupDialogModule,
     OrdersupProductsTableModule,
-    KkmModule,
 
     MaterialModule,
     FormsModule,

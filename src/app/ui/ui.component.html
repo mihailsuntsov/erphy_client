@@ -5,7 +5,7 @@
       <a href="/ui/dashboard"><span class="logo-name">ДОКИО</span></a>
     </div>
     <ul class="nav-links">
-      <li *ngIf="hasPermission(183)||hasPermission(360)||hasPermission(424)">
+      <li *ngIf="hasPermission(183)||hasPermission(360)||hasPermission(424)||hasPermission(444)">
         <div class="icon-link" (click)="arrowClick($event,1)">
           <a>
             <i class="material-icons unselectable" (click)="arrowClick($event,3)">add_shopping_cart</i>
@@ -18,17 +18,21 @@
             <a class="link-name">
               <span class="unselectable">Закупки</span></a>
           </li>
+          <li *ngIf="hasPermission(360)">
+            <a routerLink="returnsup">
+              <span class="unselectable">Возвраты поставщикам</span></a>
+          </li>
           <li *ngIf="hasPermission(424)">
             <a routerLink="ordersup">
-              <span class="unselectable">Заказы поставщику</span></a>
+              <span class="unselectable">Заказы поставщикам</span></a>
+          </li>
+          <li *ngIf="hasPermission(444)">
+            <a routerLink="invoicein">
+              <span class="unselectable">Счета поставщиков</span></a>
           </li>
           <li *ngIf="hasPermission(183)">
             <a routerLink="acceptance">
               <span class="unselectable">Приёмки</span></a>
-          </li>
-          <li *ngIf="hasPermission(360)">
-            <a routerLink="returnsup">
-              <span class="unselectable">Возврат поставщику</span></a>
           </li>
         </ul>
       </li>

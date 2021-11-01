@@ -64,6 +64,15 @@ export class CommonUtilitesService{
       case 'posting':       {return 'Оприходование';}
       case 'shipment':      {return 'Отгрузка';}
       case 'acceptance':    {return 'Приёмка';}
+      case 'ordersup':      {return 'Заказ поставщику';}
+      case 'invoiceout':    {return 'Счёт покупателю';}
+      case 'invoicein':     {return 'Счёт поставщика';}
+      case 'paymentin':     {return 'Входящий платёж';}
+      case 'paymentout':    {return 'Исходящий платёж';}
+      case 'orderin':       {return 'Приходный ордер';}
+      case 'orderout':      {return 'Расходный ордер';}
+      case 'vatinvoiceout': {return 'Счёт-фактура выданный';}
+      case 'vatinvoicein':  {return 'Счет-фактура полученный';}
       default:               return ('документ');
     }
   }
@@ -75,9 +84,18 @@ export class CommonUtilitesService{
       case 'posting':         {return 'postingProductTable';}
       case 'shipment':        {return 'shipmentProductTable';}
       case 'returnsup':       {return 'returnsupProductTable';}
+      case 'ordersup':        {return 'ordersupProductTable';}
       case 'return':          {return 'returnProductTable';}
       case 'retailsales':     {return 'retailSalesProductTable';}
       case 'acceptance':      {return 'acceptanceProductTable';}
+      case 'invoiceout':      {return 'invoiceoutProductTable';}
+      case 'invoicein':       {return 'invoiceinProductTable';}
+      case 'paymentin':       {return 'paymentinProductTable';}
+      case 'paymentout':      {return 'paymentoutProductTable';}
+      case 'orderin':         {return 'orderinProductTable';}
+      case 'orderout':        {return 'orderoutProductTable';}
+      case 'vatinvoiceout':   {return 'vatinvoiceoutProductTable';}
+      case 'vatinvoicein':    {return 'vatinvoiceinProductTable';}
       default:               return (null);
     }
   }

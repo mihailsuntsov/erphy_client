@@ -215,7 +215,7 @@ export class ShipmentDocComponent implements OnInit {
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
   formBaseInformation: FormGroup; //массив форм для накопления информации о Заказе покупателя
   settingsForm: any; // форма с настройками
-  formReturn:any// Форма для отправки при создании Возврата покупателя
+  formLinkedDocs:any// Форма для отправки при создании Возврата покупателя
 
   //переменные для управления динамическим отображением элементов
   visBeforeCreatingBlocks = true; //блоки, отображаемые ДО создания документа (до получения id)
@@ -336,7 +336,7 @@ export class ShipmentDocComponent implements OnInit {
     });
 
     // Форма для отправки при создании связанных документов
-    this.formReturn = new FormGroup({
+    this.formLinkedDocs = new FormGroup({
       retail_sales_id: new FormControl    (null,[]),
       date_return: new FormControl        ('',[]),
       nds: new FormControl                ('',[]),
@@ -344,6 +344,7 @@ export class ShipmentDocComponent implements OnInit {
       company_id: new FormControl         (null,[Validators.required]),
       department_id: new FormControl      (null,[Validators.required]),
       description: new FormControl        ('',[]),
+      invoiceoutProductTable: new FormArray  ([]),
       returnProductTable: new FormArray   ([]),
       linked_doc_id: new FormControl      (null,[]),//id связанного документа (в данном случае Отгрузка)
       parent_uid: new FormControl         (null,[]),// uid родительского документа
@@ -1369,19 +1370,26 @@ export class ShipmentDocComponent implements OnInit {
     let uid = uuidv4();
     let canCreateLinkedDoc:CanCreateLinkedDoc=this.canCreateLinkedDoc(docname); //проверим на возможность создания связанного документа
     if(canCreateLinkedDoc.can){
-      // this.formReturn.get('retail_sales_id').setValue(this.id);
-      this.formReturn.get('cagent_id').setValue(this.formBaseInformation.get('cagent_id').value);
-      this.formReturn.get('nds').setValue(this.formBaseInformation.get('nds').value);
-      this.formReturn.get('company_id').setValue(this.formBaseInformation.get('company_id').value);
-      this.formReturn.get('department_id').setValue(this.formBaseInformation.get('department_id').value);
-      this.formReturn.get('description').setValue('Создано из Отгрузки №'+ this.formBaseInformation.get('doc_number').value);
-      this.formReturn.get('linked_doc_id').setValue(this.id);//id связанного документа (того, из которого инициируется создание данного документа)
-      this.formReturn.get('parent_uid').setValue(this.formBaseInformation.get('uid').value);// uid исходящего (родительского) документа
-      this.formReturn.get('child_uid').setValue(uid);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
-      this.formReturn.get('linked_doc_name').setValue('shipment');//имя (таблицы) связанного документа
-      this.formReturn.get('uid').setValue(uid);
+      // this.formLinkedDocs.get('retail_sales_id').setValue(this.id);
+      this.formLinkedDocs.get('cagent_id').setValue(this.formBaseInformation.get('cagent_id').value);
+      this.formLinkedDocs.get('nds').setValue(this.formBaseInformation.get('nds').value);
+      this.formLinkedDocs.get('company_id').setValue(this.formBaseInformation.get('company_id').value);
+      this.formLinkedDocs.get('department_id').setValue(this.formBaseInformation.get('department_id').value);
+      this.formLinkedDocs.get('description').setValue('Создано из Отгрузки №'+ this.formBaseInformation.get('doc_number').value);
+      this.formLinkedDocs.get('linked_doc_id').setValue(this.id);//id связанного документа (того, из которого инициируется создание данного документа)
+     
+      this.formLinkedDocs.get('linked_doc_name').setValue('shipment');//имя (таблицы) связанного документа
+      this.formLinkedDocs.get('uid').setValue(uid);
+      
+      if(docname=='Invoiceout'){// Счёт покупателю для Отгрузки является родительским, но может быть создан из Отгрузки (Счёт покупателю будет выше по иерархии в диаграмме связей)
+        this.formLinkedDocs.get('parent_uid').setValue(uid);// uid исходящего (родительского) документа
+        this.formLinkedDocs.get('child_uid').setValue(this.formBaseInformation.get('uid').value);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
+      } else {
+        this.formLinkedDocs.get('parent_uid').setValue(this.formBaseInformation.get('uid').value);// uid исходящего (родительского) документа
+        this.formLinkedDocs.get('child_uid').setValue(uid);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
+      }
       this.getProductsTableLinkedDoc(docname);//формируем таблицу товаров для создаваемого документа
-      this.http.post('/api/auth/insert'+docname, this.formReturn.value)
+      this.http.post('/api/auth/insert'+docname, this.formLinkedDocs.value)
       .subscribe(
       (data) => {
                   let createdDocId=data as number;
@@ -1407,33 +1415,48 @@ export class ShipmentDocComponent implements OnInit {
   }
 
   
+  isRowInCheckedList(rowId):boolean{
+    let result:boolean = false;
+    this.productSearchAndTableComponent.checkedList.forEach(i=>{
+      if(i==rowId)
+        result=true;
+    });
+    return result;
+  }
 // забирает таблицу товаров из дочернего компонента и помещает ее в форму, предназначенную для создания дочерних документов
   getProductsTableLinkedDoc(docname:string){
-    let tableName:string;//для маппинга в соответствующие названия сетов в бэкэнде (например private Set<PostingProductForm> postingProductTable;)
-    tableName='returnProductTable';
-    const control = <FormArray>this.formReturn.get(tableName);
+    let methodNameProductTable:string;//для маппинга в соответствующие названия сетов в бэкэнде (например private Set<PostingProductForm> postingProductTable;)
+    let canAddRow: boolean;
+    //Получим название метода для маппинга в соответствующее название сета в бэкэнде (например для аргумента 'Posting' отдаст 'postingProductTable', который замаппится в этоn сет: private Set<PostingProductForm> postingProductTable;)
+    methodNameProductTable=this.commonUtilites.getMethodNameByDocAlias(docname);
+    const control = <FormArray>this.formLinkedDocs.get(methodNameProductTable);
     control.clear();
     this.productSearchAndTableComponent.getProductTable().forEach(row=>{
-          control.push(this.formingProductRowLinkedDoc(row,docname));
+      if(this.productSearchAndTableComponent.checkedList.length>0){  //если есть выделенные чекбоксами позиции - надо взять только их, иначе берем все позиции
+        canAddRow=this.isRowInCheckedList(row.row_id)
+      }
+      else canAddRow=true;
+      if(canAddRow)
+          control.push(this.formingProductRowLinkedDoc(row));
     });
   }
-  formingProductRowLinkedDoc(row: ShipmentProductTable, docname:string) {
+  formingProductRowLinkedDoc(row: ShipmentProductTable) {
     return this._fb.group({
       product_id: new FormControl (row.product_id,[]),
+      department_id: new FormControl (row.department_id,[]),
       product_count: new FormControl (row.product_count,[]),
       product_price:  new FormControl (row.product_price,[]),
       product_sumprice: new FormControl (((row.product_count)*row.product_price).toFixed(2),[]),
       nds_id:  new FormControl (row.nds_id,[]),
     });
   }
-  // можно ли создать связанный документ (да - если есть товары, подходящие для этого, и нет уже завершённого документа)
+  // можно ли создать связанный документ (да - если есть товары, подходящие для этого)
   canCreateLinkedDoc(docname:string):CanCreateLinkedDoc{
     if(!(this.productSearchAndTableComponent && this.productSearchAndTableComponent.getProductTable().length>0)){
         return {can:false, reason:'Невозможно создать '+this.commonUtilites.getDocNameByDocAlias(docname)+', так как нет товарных позиций'};
     }else
       return {can:true, reason:''};
   }
-
 //******************************************************** ДИАГРАММА СВЯЗЕЙ ************************************************************/
 myTabFocusChange(changeEvent: MatTabChangeEvent) {
   console.log('Tab position: ' + changeEvent.tab.position);

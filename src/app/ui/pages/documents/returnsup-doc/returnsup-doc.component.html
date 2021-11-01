@@ -62,7 +62,7 @@
                 style="width: 129px;height: 36px;min-width: 38px;"
                 mat-raised-button 
                 *ngIf=" +id>0 && !formBaseInformation.get('is_completed').value && returnsupProductsTableComponent"
-                [disabled]="!childFormValid||returnsupProductsTableComponent.indivisibleErrorOfProductTable" 
+                [disabled]="!childFormValid||!formBaseInformation.valid||returnsupProductsTableComponent.indivisibleErrorOfProductTable" 
                 (click)="completeDocument()" 
                 type="button"
                 color="primary"
@@ -94,7 +94,7 @@
                 *ngIf="+id>0 && allowToUpdate && canGetChilds && !formBaseInformation.get('is_completed').value && returnsupProductsTableComponent"
                 matTooltip='Сохранить документ'
                 (click)="updateDocument()"
-                [disabled]="!childFormValid||returnsupProductsTableComponent.indivisibleErrorOfProductTable" 
+                [disabled]="!childFormValid||!formBaseInformation.valid||returnsupProductsTableComponent.indivisibleErrorOfProductTable" 
                 color="primary"
                 type="button"
                 class="button">
