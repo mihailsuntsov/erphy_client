@@ -419,6 +419,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
     this.formLinkedDocs = new FormGroup({
       customers_orders_id: new FormControl    (null,[]),
       date_return: new FormControl        ('',[]),
+      summ: new FormControl               ('',[]),
       nds: new FormControl                ('',[]),
       nds_included: new FormControl       ('',[]),
       is_completed: new FormControl       (null,[]),
@@ -547,6 +548,16 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
     //если нет ошибок в форме, включая отсутствие дробного количества у неделимых товаров
       return (this.productSearchAndTableComponent.getControlTablefield().valid && !this.productSearchAndTableComponent.indivisibleErrorOfProductTable);
     else return true;    //чтобы не было ExpressionChangedAfterItHasBeenCheckedError. Т.к. форма создается пустая и с .valid=true, а потом уже при заполнении проверяется еще раз.
+  }
+  get sumPrice() {
+    if(this.productSearchAndTableComponent!=undefined){
+      return this.productSearchAndTableComponent.totalProductSumm;
+    } else return 0;
+  }
+  get sumNds() {
+    if(this.productSearchAndTableComponent!=undefined){
+      return this.productSearchAndTableComponent.getTotalNds();
+    } else return 0;
   }
   //---------------------------------------------------------------------------------------------------------------------------------------                            
   // ----------------------------------------------------- *** ПРАВА *** ------------------------------------------------------------------
@@ -1873,22 +1884,34 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
     let uid = uuidv4();
     let canCreateLinkedDoc:CanCreateLinkedDoc=this.canCreateLinkedDoc(docname); //проверим на возможность создания связанного документа
     if(canCreateLinkedDoc.can){
-      
+      switch (docname){
+        case 'Paymentin':{
+          this.formLinkedDocs.get('summ').setValue(this.sumPrice); 
+          this.formLinkedDocs.get('nds').setValue(this.sumNds); 
+          break;
+        }
+        default:{
+          this.formLinkedDocs.get('department_id').setValue(this.formBaseInformation.get('department_id').value);
+          this.formLinkedDocs.get('nds').setValue(this.formBaseInformation.get('nds').value);
+          this.formLinkedDocs.get('nds_included').setValue(this.formBaseInformation.get('nds_included').value);
+          this.formLinkedDocs.get('shipment_date').setValue(this.formBaseInformation.get('shipment_date').value?moment(this.formBaseInformation.get('shipment_date').value,'DD.MM.YYYY'):"");
+          this.formLinkedDocs.get('description').setValue('Создано из Заказа покупателя №'+ this.formBaseInformation.get('doc_number').value);
+          this.formLinkedDocs.get('customers_orders_id').setValue(this.id);
+          this.getProductsTableLinkedDoc(docname);//формируем таблицу товаров для создаваемого документа
+        }
+      }
+
       this.formLinkedDocs.get('company_id').setValue(this.formBaseInformation.get('company_id').value);
-      this.formLinkedDocs.get('department_id').setValue(this.formBaseInformation.get('department_id').value);
       this.formLinkedDocs.get('cagent_id').setValue(this.formBaseInformation.get('cagent_id').value);
-      this.formLinkedDocs.get('nds').setValue(this.formBaseInformation.get('nds').value);
-      this.formLinkedDocs.get('nds_included').setValue(this.formBaseInformation.get('nds_included').value);
-      this.formLinkedDocs.get('shipment_date').setValue(this.formBaseInformation.get('shipment_date').value?moment(this.formBaseInformation.get('shipment_date').value,'DD.MM.YYYY'):"");
-      this.formLinkedDocs.get('description').setValue('Создано из Заказа покупателя №'+ this.formBaseInformation.get('doc_number').value);
-      this.formLinkedDocs.get('is_completed').setValue(false);
+      this.formLinkedDocs.get('uid').setValue(uid);
       this.formLinkedDocs.get('linked_doc_id').setValue(this.id);//id связанного документа (того, из которого инициируется создание данного документа)
       this.formLinkedDocs.get('parent_uid').setValue(this.formBaseInformation.get('uid').value);// uid исходящего (родительского) документа
       this.formLinkedDocs.get('child_uid').setValue(uid);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
       this.formLinkedDocs.get('linked_doc_name').setValue('customers_orders');//имя (таблицы) связанного документа
-      this.formLinkedDocs.get('customers_orders_id').setValue(this.id);
-      this.formLinkedDocs.get('uid').setValue(uid);
-      this.getProductsTableLinkedDoc(docname);//формируем таблицу товаров для создаваемого документа
+      this.formLinkedDocs.get('is_completed').setValue(false);
+      
+      
+      
       if(docname=='RetailSales'){// т.к. Розничная продажа проводится по факту ее создания, то мы не можем просто создать ее, как это делаем с другими связанными документами. Нужно только открыть ее страницу и передать туда все данные из Заказа покупателя.
         let retailSalesProductTable: Array <RetailSalesProductTable> =this.getRetailSalesProductsTable();
         let objToSend: NavigationExtras = //NavigationExtras - спец. объект, в котором можно передавать данные в процессе роутинга

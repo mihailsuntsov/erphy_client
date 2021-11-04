@@ -39,7 +39,7 @@
       <li *ngIf="hasPermission(344)||hasPermission(279)||hasPermission(252)||hasPermission(404)">
         <div class="icon-link" (click)="arrowClick($event,1)">
           <a>
-            <i class="material-icons unselectable" (click)="arrowClick($event,3)">payments</i>
+            <i class="material-icons unselectable" (click)="arrowClick($event,3)">credit_card</i>
             <span class="link_name unselectable" (click)="arrowClick($event,3)">Продажи</span>
           </a>
           <i class="material-icons arrow unselectable" (click)="arrowClick($event,2)">arrow_drop_down</i>
@@ -70,7 +70,7 @@
       <li *ngIf="hasPermission(308)||hasPermission(70)">
         <div class="icon-link" (click)="arrowClick($event,1)">
           <a>
-            <i class="material-icons unselectable" (click)="arrowClick($event,3)">card_travel</i>
+            <i class="material-icons unselectable" (click)="arrowClick($event,3)">shopping_bag</i>
             <span class="link_name unselectable" (click)="arrowClick($event,3)">Розница</span>
           </a>
           <i class="material-icons arrow unselectable" (click)="arrowClick($event,2)">arrow_drop_down</i>
@@ -130,6 +130,25 @@
           <li *ngIf="hasPermission(376)">
             <a routerLink="moving">
               <span class="unselectable">Перемещения</span></a>
+          </li>
+        </ul>
+      </li>
+      <li *ngIf="hasPermission(464)">
+        <div class="icon-link" (click)="arrowClick($event,1)">
+          <a>
+            <i class="material-icons unselectable" (click)="arrowClick($event,3)">payments</i>
+            <span class="link_name unselectable" (click)="arrowClick($event,3)">Деньги</span>
+          </a>
+          <i class="material-icons arrow unselectable" (click)="arrowClick($event,2)">arrow_drop_down</i>
+        </div>
+        <ul class="sub-menu">
+          <li>
+            <a class="link-name">
+              <span class="unselectable">Деньги</span></a>
+          </li>
+          <li *ngIf="hasPermission(464)">
+            <a routerLink="paymentin">
+              <span class="unselectable">Входящие платежи</span></a>
           </li>
         </ul>
       </li>

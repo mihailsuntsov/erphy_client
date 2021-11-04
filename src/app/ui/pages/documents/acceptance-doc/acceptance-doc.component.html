@@ -40,7 +40,7 @@
                 mat-button 
                 [matMenuTriggerFor]="addDocMenu"
                 mat-raised-button 
-                matTooltip='Создать связанные документы, основанные на данной приёмке'
+                matTooltip='Создать связанные документы'
                 [disabled]="!childFormValid||!formBaseInformation.valid||acceptanceProductsTableComponent.indivisibleErrorOfProductTable" 
                 *ngIf="+id>0 && acceptanceProductsTableComponent"
                 color="primary"
@@ -311,8 +311,7 @@
                                                                             (input)="acceptanceProductsTableComponent.onChangeOverhead()"
                                                                             (change)="acceptanceProductsTableComponent.onChangeOverhead()"
                                                                             formControlName="overhead"
-                                                                            (keypress)="numberOnlyPlusDotAndComma($event)"
-                                                                            [readonly]="false"/>
+                                                                            (keypress)="numberOnlyPlusDotAndComma($event)"/>
                                                                     <mat-hint  align="start" *ngIf="formBaseInformation.get('overhead').touched && formBaseInformation.get('overhead').invalid">
                                                                         <i *ngIf="formBaseInformation.get('overhead').errors.pattern" class="form-invalid">Неправильный формат. Допускается до 9 цифр в целой и до 2 цифр в дробной части</i>
                                                                     </mat-hint>

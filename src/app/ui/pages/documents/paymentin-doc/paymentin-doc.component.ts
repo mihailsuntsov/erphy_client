@@ -7,8 +7,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { SettingsInvoiceinDialogComponent } from 'src/app/modules/settings/settings-invoicein-dialog/settings-invoicein-dialog.component';
-import { InvoiceinProductsTableComponent } from 'src/app/modules/trade-modules/invoicein-products-table/invoicein-products-table.component';
+import { SettingsPaymentinDialogComponent } from 'src/app/modules/settings/settings-paymentin-dialog/settings-paymentin-dialog.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { Router } from '@angular/router';
 import { v4 as uuidv4 } from 'uuid';
@@ -33,27 +32,11 @@ export const MY_FORMATS = {
     monthYearA11yLabel: 'MMMM YYYY',
   },
 };
-interface InvoiceinProductTable { //интерфейс для товаров, (т.е. для формы, массив из которых будет содержать форма invoiceinProductTable, входящая в formBaseInformation)
-  id: number;                     // id строки с товаром товара в таблице return_product
-  row_id: number;                 // id строки 
-  product_id: number;             // id товара 
-  name: string;                   // наименование товара
-  edizm: string;                  // наименование единицы измерения
-  product_price: number;          // цена товара
-  product_count: number;          // кол-во товара
-  product_netcost: number;        // себестоимость  товара
-  department_id: number;          // склад
-  remains: number;                // остаток на складе
-  nds_id: number;                 // id ставки НДС
-  product_sumprice: number;       // сумма как product_count * product_price (высчитываем сумму и пихем ее в БД, чтобы потом на бэкэнде в SQL запросах ее не высчитывать)
-}
 
-interface DocResponse {//интерфейс для получения ответа в методе getInvoiceinValuesById
+interface DocResponse {//интерфейс для получения ответа в методе getPaymentinValuesById
   id: number;
   company: string;
   company_id: string;
-  department: string;
-  department_id: string;
   creator: string;
   creator_id: string;
   cagent: string;
@@ -64,13 +47,11 @@ interface DocResponse {//интерфейс для получения ответ
   changer:string;
   changer_id: string;
   doc_number: string;
-  nds: boolean;
-  nds_included: boolean;
-  invoicein_date: string;
+  nds: number;
+  summ:number;
   date_time_changed: string;
   date_time_created: string;
   description : string;
-  name: string;
   is_archive: boolean;
   status_id: number;
   status_name: string;
@@ -130,25 +111,22 @@ interface SpravSysNdsSet{
 }
 
 @Component({
-  selector: 'app-invoicein-doc',
-  templateUrl: './invoicein-doc.component.html',
-  styleUrls: ['./invoicein-doc.component.css'],
+  selector: 'app-paymentin-doc',
+  templateUrl: './paymentin-doc.component.html',
+  styleUrls: ['./paymentin-doc.component.css'],
   providers: [LoadSpravService, CommonUtilitesService,
     {provide: MAT_DATE_LOCALE, useValue: 'ru'},
     {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},]
 })
-export class InvoiceinDocComponent implements OnInit {
+export class PaymentinDocComponent implements OnInit {
 
   id: number = 0;// id документа
   createdDocId: number;//получение id созданного документа
   receivedCompaniesList: IdAndName [];//массив для получения списка предприятий
-  receivedDepartmentsList: IdAndName [] = [];//массив для получения списка отделений
   receivedStatusesList: StatusInterface [] = []; // массив для получения статусов
-  receivedMyDepartmentsList: IdAndName [] = [];//массив для получения списка отделений
   myCompanyId:number=0;
   myId:number=0;
-  // allFields: any[][] = [];//[номер строки начиная с 0][объект - вся инфо о товаре (id,кол-во, цена... )] - массив товаров
   filesInfo : FilesInfo [] = []; //массив для получения информации по прикрепленным к документу файлам 
   creatorId:number=0;
   startProcess: boolean=true; // идеут стартовые запросы. после того как все запросы пройдут - будет false.
@@ -156,10 +134,7 @@ export class InvoiceinDocComponent implements OnInit {
   actionsBeforeGetChilds:number=0;// количество выполненных действий, необходимых чтобы загрузить дочерние модули (кассу и форму товаров)
   spravSysEdizmOfProductAll: IdAndNameAndShortname[] = [];// массив, куда будут грузиться все единицы измерения товара
   receivedPriceTypesList: IdNameDescription [] = [];//массив для получения списка типов цен
-  displayedColumns:string[];//отображаемые колонки таблицы с товарами
   canEditCompAndDepth=true;
-  panelWriteoffOpenState=false;
-  panelPostingOpenState=false;
   spravSysNdsSet: SpravSysNdsSet[] = []; //массив имен и id для ндс 
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
 
@@ -172,9 +147,6 @@ export class InvoiceinDocComponent implements OnInit {
   formBaseInformation: FormGroup; //массив форм для накопления информации о Возврате поставщику
   settingsForm: any; // форма с настройками
   formLinkedDocs: any;  // Форма для отправки при создании связанных документов
-
-  //переменные для управления динамическим отображением элементов
-  // visAfterCreatingBlocks = true; //блоки, отображаемые ПОСЛЕ создания документа (id >0)
 
   //для поиска контрагента (поставщика) по подстроке
   searchCagentCtrl = new FormControl();//поле для поиска
@@ -193,19 +165,12 @@ export class InvoiceinDocComponent implements OnInit {
   permissionsSet: any[];//сет прав на документ
   allowToViewAllCompanies:boolean = false;
   allowToViewMyCompany:boolean = false;
-  allowToViewMyDepartments:boolean = false;
-  allowToViewMyDocs:boolean = false;
   allowToUpdateAllCompanies:boolean = false;
   allowToUpdateMyCompany:boolean = false;
-  allowToUpdateMyDepartments:boolean = false;
-  allowToUpdateMyDocs:boolean = false;
   allowToCreateMyCompany:boolean = false;
   allowToCreateAllCompanies:boolean = false;
-  allowToCreateMyDepartments:boolean = false;
   allowToCompleteAllCompanies:boolean = false;
   allowToCompleteMyCompany:boolean = false;
-  allowToCompleteMyDepartments:boolean = false;
-  allowToCompleteMyDocs:boolean = false;
   allowToView:boolean = false;
   allowToUpdate:boolean = false;
   allowToCreate:boolean = false;
@@ -217,17 +182,15 @@ export class InvoiceinDocComponent implements OnInit {
   doc_number_isReadOnly=true;
   @ViewChild("doc_number", {static: false}) doc_number; //для редактирования номера документа
   @ViewChild("form", {static: false}) form; // связь с формой <form #form="ngForm" ...
-  @ViewChild(InvoiceinProductsTableComponent, {static: false}) public invoiceinProductsTableComponent:InvoiceinProductsTableComponent;
 
   constructor(private activateRoute: ActivatedRoute,
     private cdRef:ChangeDetectorRef,
-    private _fb: FormBuilder, //чтобы билдить группу форм invoiceinProductTable
+    private _fb: FormBuilder, //чтобы билдить группу форм paymentinProductTable    
+    public SettingsPaymentinDialogComponent: MatDialog,
     private http: HttpClient,
     public ConfirmDialog: MatDialog,
     public dialogAddFiles: MatDialog,
     private commonUtilites: CommonUtilitesService,
-    public SettingsInvoiceinDialogComponent: MatDialog,
-    public dialogCreateProduct: MatDialog,
     @Optional() @Inject(MAT_DIALOG_DATA) public data: any,
     public MessageDialog: MatDialog,
     private loadSpravService:   LoadSpravService,
@@ -242,22 +205,18 @@ export class InvoiceinDocComponent implements OnInit {
     this.formBaseInformation = new FormGroup({
       id: new FormControl      (this.id,[]),
       company_id: new FormControl               ('',[Validators.required]),
-      department_id: new FormControl            ('',[Validators.required]),
       cagent_id: new FormControl                ('',[Validators.required]),
       doc_number: new FormControl               ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
-      invoicein_date: new FormControl           ('',[]),//на дату валидаторы не вешаются, у нее свой валидатор
       description: new FormControl              ('',[]),
-      department: new FormControl               ('',[]),
       cagent: new FormControl                   ('',[]),
-      nds: new FormControl                      (false,[]),
-      nds_included: new FormControl             (true,[]),
+      nds: new FormControl                      ('0.00',[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      summ: new FormControl                     ('',[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       status_id: new FormControl                ('',[]),
       status_name: new FormControl              ('',[]),
       status_color: new FormControl             ('',[]),
       status_description: new FormControl       ('',[]),
       is_completed: new FormControl             (false,[]),
-      name: new FormControl                     ('',[]),
-      invoiceinProductTable: new FormArray      ([]),
+      paymentinProductTable: new FormArray      ([]),
       income_number: new FormControl            ('',[]),
       income_number_date: new FormControl       ('',[]),//на дату валидаторы не вешаются, у нее свой валидатор
       uid: new FormControl                      ('',[]),// uuid идентификатор
@@ -273,19 +232,11 @@ export class InvoiceinDocComponent implements OnInit {
     });
 
     this.formLinkedDocs = new FormGroup({
-      customers_orders_id: new FormControl    (null,[]),
-      date_return: new FormControl        ('',[]),
       nds: new FormControl                ('',[]),
-      nds_included: new FormControl       ('',[]),
-      is_completed: new FormControl       (null,[]),
+      // nds_included: new FormControl       ('',[]),
+      // is_completed: new FormControl       (null,[]),
       cagent_id: new FormControl          (null,[Validators.required]),
       company_id: new FormControl         (null,[Validators.required]),
-      department_id: new FormControl      (null,[Validators.required]),
-      description: new FormControl        ('',[]),
-      shipment_date: new FormControl      ('',[Validators.required]),
-      ordersupProductTable:  new FormArray([]),
-      returnsupProductTable: new FormArray([]),
-      acceptanceProductTable: new FormArray([]),
       linked_doc_id: new FormControl      (null,[]),//id связанного документа (в данном случае Отгрузка)
       parent_uid: new FormControl         (null,[]),// uid родительского документа
       child_uid: new FormControl          (null,[]),// uid дочернего документа
@@ -295,24 +246,14 @@ export class InvoiceinDocComponent implements OnInit {
 
     // Форма настроек
     this.settingsForm = new FormGroup({
-      // id отделения
-      departmentId: new FormControl             (null,[]),
       //покупатель по умолчанию
       cagentId: new FormControl                 (null,[]),
       //наименование покупателя
       cagent: new FormControl                   ('',[]),
-      // //наименование заказа по умолчанию
-      // name:  new FormControl               ('',[]),
       //предприятие, для которого создаются настройки
       companyId: new FormControl                (null,[]),
-      //автосоздание нового документа, если все поля заполнены
-      autocreate: new FormControl               (false,[]),
       //статус после успешного отбития чека, перед созданием нового документа
       statusIdOnComplete: new FormControl       ('',[]),
-      // автодобавление товара в таблицу товаров
-      autoAdd:  new FormControl                 (false,[]),
-      // автовыставление цены (последняя закупочная цена)
-      autoPrice:  new FormControl               (false,[]),
     });
 
     if(this.data)//если документ вызывается в окне из другого документа
@@ -327,28 +268,23 @@ export class InvoiceinDocComponent implements OnInit {
     //     |
     //     getMyCompanyId
     //     |
-    //     getMyDepartmentsList
-    //     |
     //     getCRUD_rights
     //     |
     //     getData(------>(если созданный док)--> [getDocumentValuesById] --> refreshPermissions 
     //     |
     //     (если новый док):
-    //     [getCompaniesList ]
+    //     getCompaniesList
     //     |
-    //     [getSettings, doFilterCompaniesList]
+    //     doFilterCompaniesList
     //     |
-    //     setDefaultInfoOnStart
+    //     getSettings
     //     |
-    //     setDefaultCompany 
-    //     |
-    //     [getDepartmentsList, getPriceTypesList*] 
-    //     |
-    //     [setDefaultDepartment, doFilterDepartmentsList]
-    //     | (если идет стартовая загрузка):
-    //     getStatusesList,       checkAnyCases
-    //     |        		          |
-    //     setDefaultStatus       refreshPermissions*  
+    //     [setDefaultCompany, setDefaultInfoOnStart]
+    //         |
+    //         | (если идет стартовая загрузка):
+    //     getStatusesList, refreshPermissions
+    //     |        		          
+    //     setDefaultStatus         
     //     |
     //     setStatusColor, getSpravSysEdizm
     // *необходимое действие для загрузки дочерних компонентов 
@@ -363,10 +299,7 @@ export class InvoiceinDocComponent implements OnInit {
   }
   //чтобы "на лету" чекать валидность таблицы с товарами
   get childFormValid() {
-    // проверяем, чтобы не было ExpressionChangedAfterItHasBeenCheckedError. Т.к. форма создается пустая и с .valid=true, а потом уже при заполнении проверяется еще раз.
-    if(this.invoiceinProductsTableComponent!=undefined) 
-      return this.invoiceinProductsTableComponent.getControlTablefield().valid;
-    else return true;    
+    return true;    
   }
 
   //---------------------------------------------------------------------------------------------------------------------------------------                            
@@ -374,7 +307,7 @@ export class InvoiceinDocComponent implements OnInit {
   //---------------------------------------------------------------------------------------------------------------------------------------
 
   getSetOfPermissions(){
-    return this.http.get('/api/auth/getMyPermissions?id=39')
+    return this.http.get('/api/auth/getMyPermissions?id=33')
       .subscribe(
           (data) => {   
                       this.permissionsSet=data as any [];
@@ -386,26 +319,19 @@ export class InvoiceinDocComponent implements OnInit {
 
   refreshPermissions(){
     let documentOfMyCompany:boolean = (this.formBaseInformation.get('company_id').value==this.myCompanyId);
-    let documentOfMyDepartments:boolean = (this.inMyDepthsId(+this.formBaseInformation.get('department_id').value));
     this.allowToView=(
       (this.allowToViewAllCompanies)||
-      (this.allowToViewMyCompany&&documentOfMyCompany)||
-      (this.allowToViewMyDepartments&&documentOfMyCompany&&documentOfMyDepartments)||
-      (this.allowToViewMyDocs&&documentOfMyCompany&&documentOfMyDepartments&&(this.myId==this.creatorId))
+      (this.allowToViewMyCompany&&documentOfMyCompany)
     )?true:false;
     this.allowToUpdate=(
       (this.allowToUpdateAllCompanies)||
-      (this.allowToUpdateMyCompany&&documentOfMyCompany)||
-      (this.allowToUpdateMyDepartments&&documentOfMyCompany&&documentOfMyDepartments)||
-      (this.allowToUpdateMyDocs&&documentOfMyCompany&&documentOfMyDepartments&&(this.myId==this.creatorId))
+      (this.allowToUpdateMyCompany&&documentOfMyCompany)
     )?true:false;
     this.allowToComplete=(
       (this.allowToCompleteAllCompanies)||
-      (this.allowToCompleteMyCompany&&documentOfMyCompany)||
-      (this.allowToCompleteMyDepartments&&documentOfMyCompany&&documentOfMyDepartments)||
-      (this.allowToCompleteMyDocs&&documentOfMyCompany&&documentOfMyDepartments&&(this.myId==this.creatorId))
+      (this.allowToCompleteMyCompany&&documentOfMyCompany)
     )?true:false;
-    this.allowToCreate=(this.allowToCreateAllCompanies || this.allowToCreateMyCompany||this.allowToCreateMyDepartments)?true:false;
+    this.allowToCreate=(this.allowToCreateAllCompanies || this.allowToCreateMyCompany)?true:false;
     this.editability=((this.allowToCreate && +this.id==0)||(this.allowToUpdate && this.id>0));
     // console.log("myCompanyId - "+this.myCompanyId);
     // console.log("documentOfMyCompany - "+documentOfMyCompany);
@@ -451,20 +377,18 @@ export class InvoiceinDocComponent implements OnInit {
 //-------------------------------------------------------------------------------
   //нужно загруить всю необходимую информацию, прежде чем вызывать детей (Поиск и добавление товара, Кассовый модуль), иначе их ngOnInit выполнится быстрее, чем загрузится вся информация в родителе
   //вызовы из:
-  //getPriceTypesList()*
   //getSpravSysNds()
   //refreshPermissions()
   necessaryActionsBeforeGetChilds(){
     this.actionsBeforeGetChilds++;
     //Если набрано необходимое кол-во действий для отображения модуля Формы поиска и добавления товара
-    if(this.actionsBeforeGetChilds==2){
+    if(this.actionsBeforeGetChilds==1){
       this.canGetChilds=true;
       this.startProcess=false;// все стартовые запросы прошли
     }
   }
   
   getMyId(){
-    this.receivedMyDepartmentsList=null;
     this.loadSpravService.getMyId()
             .subscribe(
                 (data) => {this.myId=data as any;
@@ -472,54 +396,34 @@ export class InvoiceinDocComponent implements OnInit {
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             );
   }
+
   getMyCompanyId(){
     this.loadSpravService.getMyCompanyId().subscribe(
       (data) => {
         this.myCompanyId=data as number;
-        this.getMyDepartmentsList();
+        this.getCRUD_rights(this.permissionsSet);
       }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
   }
-  getMyDepartmentsList(){
-    this.receivedMyDepartmentsList=null;
-    this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
-            .subscribe(
-                (data) => {this.receivedMyDepartmentsList=data as any [];
-                  this.getCRUD_rights(this.permissionsSet);},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-            );
-  }
+
   getSpravSysNds(){
         this.loadSpravService.getSpravSysNds()
         .subscribe((data) => {this.spravSysNdsSet=data as any[];},
         error => console.log(error));}
+
   getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==425)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==426)});
-    this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==427)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==432)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==433)});
-    this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==434)});
-    this.allowToViewMyDocs = permissionsSet.some(                 function(e){return(e==435)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==436)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==437)});
-    this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==438)});
-    this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==439)});
-    this.allowToCompleteAllCompanies = permissionsSet.some(       function(e){return(e==440)});
-    this.allowToCompleteMyCompany = permissionsSet.some(          function(e){return(e==441)});
-    this.allowToCompleteMyDepartments = permissionsSet.some(      function(e){return(e==442)});
-    this.allowToCompleteMyDocs = permissionsSet.some(             function(e){return(e==443)});
+    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==465)});
+    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==466)});
+    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==469)});
+    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==470)});
+    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==471)});
+    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==472)});
+    this.allowToCompleteAllCompanies = permissionsSet.some(       function(e){return(e==473)});
+    this.allowToCompleteMyCompany = permissionsSet.some(          function(e){return(e==474)});
    
-    if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;this.allowToCreateMyDepartments=true}
-    if(this.allowToCreateMyCompany)this.allowToCreateMyDepartments=true;
-    if(this.allowToViewAllCompanies){this.allowToViewMyCompany=true;this.allowToViewMyDepartments=true;this.allowToViewMyDocs=true}
-    if(this.allowToViewMyCompany){this.allowToViewMyDepartments=true;this.allowToViewMyDocs=true}
-    if(this.allowToViewMyDepartments)this.allowToViewMyDocs=true;
-    if(this.allowToUpdateAllCompanies){this.allowToUpdateMyCompany=true;this.allowToUpdateMyDepartments=true;this.allowToUpdateMyDocs=true;}
-    if(this.allowToUpdateMyCompany){this.allowToUpdateMyDepartments=true;this.allowToUpdateMyDocs=true;}
-    if(this.allowToUpdateMyDepartments)this.allowToUpdateMyDocs=true;
-    if(this.allowToCompleteAllCompanies){this.allowToCompleteMyCompany=true;this.allowToCompleteMyDepartments=true;this.allowToCompleteMyDocs=true;}
-    if(this.allowToCompleteMyCompany){this.allowToCompleteMyDepartments=true;this.allowToCompleteMyDocs=true;}
-    if(this.allowToCompleteMyDepartments)this.allowToCompleteMyDocs=true;
+    if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;}
+    if(this.allowToViewAllCompanies){this.allowToViewMyCompany=true;}
+    if(this.allowToUpdateAllCompanies){this.allowToUpdateMyCompany=true;}
+    if(this.allowToCompleteAllCompanies){this.allowToCompleteMyCompany=true;}
     this.getData();
   }
 
@@ -528,7 +432,6 @@ export class InvoiceinDocComponent implements OnInit {
       this.getDocumentValuesById();
     }else {
       this.getCompaniesList(); 
-      this.setDefaultDate();
     }
   }
 
@@ -547,70 +450,21 @@ export class InvoiceinDocComponent implements OnInit {
   }
 
 
-
   onCompanyChange(){
-    this.formBaseInformation.get('department_id').setValue(null);
     this.formBaseInformation.get('status_id').setValue(null);
     this.formBaseInformation.get('cagent_id').setValue(null);
     this.searchCagentCtrl.reset();
     this.actionsBeforeGetChilds=0;
-    this.getDepartmentsList();
-    this.getPriceTypesList();
-  }
-
-  onDepartmentChange(){
-      this.formBaseInformation.get('department').setValue(this.getDepartmentNameById(this.formBaseInformation.get('department_id').value));
-  }
-
-  getDepartmentsList(){
-    this.receivedDepartmentsList=null;
-    this.loadSpravService.getDepartmentsListByCompanyId(this.formBaseInformation.get('company_id').value,false)
-      .subscribe(
-          (data) => {this.receivedDepartmentsList=data as any [];
-            this.doFilterDepartmentsList();
-            if(+this.id==0) this.setDefaultDepartment();
-          },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-      );
-  }
-  setDefaultDepartment(){
-    //если в настройках не было отделения, и в списке предприятий только одно предприятие - ставим его по дефолту
-    if(+this.formBaseInformation.get('department_id').value==0 && this.receivedDepartmentsList.length==1){
-      this.formBaseInformation.get('department_id').setValue(this.receivedDepartmentsList[0].id);
-      //Если дочерние компоненты уже загружены - устанавливаем предприятие по дефолту как склад в форме поиска и добавления товара !!!!!!!!
-      // if(!this.startProcess){
-      //   this.invoiceinProductsTableComponent.formSearch.get('secondaryDepartmentId').setValue(this.formBaseInformation.get('department_id').value);  
-      //   this.invoiceinProductsTableComponent.setCurrentTypePrice();//если сменили отделение - нужно проверить, есть ли у него тип цены. И если нет - в вызываемом методе выведется предупреждение для пользователя
-      // }
-    }
-    //если отделение было выбрано (через настройки или же в этом методе) - определяем его наименование (оно будет отправляться в дочерние компоненты)
-    if(+this.formBaseInformation.get('department_id').value>0)
-      this.formBaseInformation.get('department').setValue(this.getDepartmentNameById(this.formBaseInformation.get('department_id').value));
-
     //если идет стартовая прогрузка - продолжаем цепочку запросов. Если это была, например, просто смена предприятия - продолжать далее текущего метода смысла нет
     if(this.startProcess) {
       this.getStatusesList();
-      this.checkAnyCases();
+      this.refreshPermissions();
     }
   }
 
-  // проверки на различные случаи
-  checkAnyCases(){
-    //проверка на то, что отделение все еще числится в отделениях предприятия (не было удалено и т.д.)
-    if(!this.inDepthsId(+this.formBaseInformation.get('department_id').value)){
-      this.formBaseInformation.get('department_id').setValue(null);
-    }
-    //проверка на то, что отделение подходит под ограничения прав (если можно создавать только по своим отделениям, но выбрано отделение, не являющееся своим - устанавливаем null в выбранное id отделения)
-    if(!this.allowToCreateAllCompanies && !this.allowToCreateMyCompany && this.allowToCreateMyDepartments){
-      if(!this.inMyDepthsId(+this.formBaseInformation.get('department_id').value)){
-        this.formBaseInformation.get('department_id').setValue(null);
-      }
-    }
-    if(this.startProcess) this.refreshPermissions();
-  }
   getStatusesList(){
     this.receivedStatusesList=null;
-    this.loadSpravService.getStatusList(this.formBaseInformation.get('company_id').value,32) //32 - id документа из таблицы documents
+    this.loadSpravService.getStatusList(this.formBaseInformation.get('company_id').value,33) //33 - id документа из таблицы documents
             .subscribe(
                 (data) => {this.receivedStatusesList=data as StatusInterface[];
                   if(+this.id==0){this.setDefaultStatus();}},
@@ -628,15 +482,6 @@ export class InvoiceinDocComponent implements OnInit {
       });
     }
     this.setStatusColor();
-    this.getSpravSysEdizm(); //загрузка единиц измерения. Загружаем тут, т.к. нужно чтобы сначала определилось предприятие, его id нужен для загрузки
-  }
-
-  getSpravSysEdizm():void {    
-    let companyId=+this.formBaseInformation.get('company_id').value;
-    this.http.post('/api/auth/getSpravSysEdizm', {id1: companyId, string1:"(1,2,3,4,5)"})  // все типы ед. измерения
-    .subscribe((data) => {this.spravSysEdizmOfProductAll = data as any[];
-            },
-    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
   }
 
   doFilterCompaniesList(){
@@ -647,53 +492,24 @@ export class InvoiceinDocComponent implements OnInit {
       this.receivedCompaniesList=[];
       this.receivedCompaniesList.push(myCompany);
     }
-    this.getSettings(); // настройки документа Счёт поставщика
-
-  }
-  doFilterDepartmentsList(){
-    if(!this.allowToCreateAllCompanies && !this.allowToCreateMyCompany && this.allowToCreateMyDepartments){
-      this.receivedDepartmentsList=this.receivedMyDepartmentsList;}
-    // this.secondaryDepartments=this.receivedDepartmentsList;
-  }
-  inMyDepthsId(id:number):boolean{//проверяет, состоит ли присланный id в группе id отделений пользователя
-    let inMyDepthsId:boolean = false;
-    this.receivedMyDepartmentsList.forEach(myDepth =>{
-      myDepth.id==id?inMyDepthsId=true:null;
-    });
-  return inMyDepthsId;
-  }
-  inDepthsId(id:number):boolean{//проверяет, состоит ли присланный id в группе id отделений предприятия
-    let inDepthsId:boolean = false;
-    
-    this.receivedDepartmentsList.forEach(depth =>{
-      console.log("depth.id - "+depth.id+", id - "+id)
-      depth.id==id?inDepthsId=true:null;
-      console.log("inDepthsId - "+inDepthsId);
-    });
-    console.log("returning inDepthsId - "+inDepthsId);
-  return inDepthsId;
+    this.getSettings(); // настройки документа Входящий платёж
   }
 
   //загрузка настроек
   getSettings(){
     let result:any;
-    this.http.get('/api/auth/getSettingsInvoicein')
+    this.http.get('/api/auth/getSettingsPaymentin')
       .subscribe(
           data => { 
             result=data as any;
             //вставляем настройки в форму настроек
-            
             //данная группа настроек не зависит от предприятия
-            this.settingsForm.get('autoAdd').setValue(result.autoAdd);
-            this.settingsForm.get('autoPrice').setValue(result.auto_price);
-            this.settingsForm.get('autocreate').setValue(result.autocreate);
-            // this.settingsForm.get('name').setValue(result.name);
+            // (этой группы тут нет)
             //если предприятия из настроек больше нет в списке предприятий (например, для пользователя урезали права, и выбранное предприятие более недоступно)
             //настройки не принимаем 
             if(this.isCompanyInList(+result.companyId)){
               this.settingsForm.get('companyId').setValue(result.companyId);
               //данная группа настроек зависит от предприятия
-              this.settingsForm.get('departmentId').setValue(result.departmentId);
               this.settingsForm.get('cagentId').setValue(result.cagentId);
               this.settingsForm.get('cagent').setValue(result.cagent);
               this.settingsForm.get('statusIdOnComplete').setValue(result.statusIdOnComplete);
@@ -707,9 +523,10 @@ export class InvoiceinDocComponent implements OnInit {
   setDefaultCompany(){
     if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим своё по дефолту
       this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
-    this.getDepartmentsList(); 
-    this.getPriceTypesList();
+    this.getStatusesList();
+    this.refreshPermissions();
   }
+  
   //определяет, есть ли предприятие в загруженном списке предприятий
   isCompanyInList(companyId:number):boolean{
 
@@ -723,8 +540,6 @@ export class InvoiceinDocComponent implements OnInit {
   setDefaultInfoOnStart(){
     if(+this.id==0){//документ новый
       this.formBaseInformation.get('company_id').setValue(this.settingsForm.get('companyId').value)
-      this.formBaseInformation.get('department_id').setValue(this.settingsForm.get('departmentId').value);
-      // this.formBaseInformation.get('name').setValue(this.settingsForm.get('name').value);
       if(+this.settingsForm.get('cagentId').value>0){
         this.searchCagentCtrl.setValue(this.settingsForm.get('cagent').value);
         this.formBaseInformation.get('cagent_id').setValue(this.settingsForm.get('cagentId').value);
@@ -738,22 +553,18 @@ export class InvoiceinDocComponent implements OnInit {
   }
 
   getDocumentValuesById(){
-    this.http.get('/api/auth/getInvoiceinValuesById?id='+ this.id)
+    this.http.get('/api/auth/getPaymentinValuesById?id='+ this.id)
         .subscribe(
             data => { 
                 let documentValues: DocResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
                 this.formBaseInformation.get('id').setValue(+documentValues.id);
                 this.formBaseInformation.get('company_id').setValue(documentValues.company_id);
-                this.formBaseInformation.get('department_id').setValue(documentValues.department_id);
-                this.formBaseInformation.get('department').setValue(documentValues.department);
                 this.formBaseInformation.get('cagent_id').setValue(documentValues.cagent_id);
                 this.formBaseInformation.get('cagent').setValue(documentValues.cagent);
-                this.formBaseInformation.get('invoicein_date').setValue(documentValues.invoicein_date?moment(documentValues.invoicein_date,'DD.MM.YYYY'):"");
                 this.formBaseInformation.get('doc_number').setValue(documentValues.doc_number);
                 this.formBaseInformation.get('nds').setValue(documentValues.nds);
-                this.formBaseInformation.get('nds_included').setValue(documentValues.nds_included);
+                this.formBaseInformation.get('summ').setValue(documentValues.summ);
                 this.formBaseInformation.get('description').setValue(documentValues.description);
-                this.formBaseInformation.get('name').setValue(documentValues.name);//расходы на доставку, накладные расходы
                 this.formAboutDocument.get('master').setValue(documentValues.master);
                 this.formAboutDocument.get('creator').setValue(documentValues.creator);
                 this.formAboutDocument.get('changer').setValue(documentValues.changer);
@@ -770,31 +581,14 @@ export class InvoiceinDocComponent implements OnInit {
                 this.formBaseInformation.get('uid').setValue(documentValues.uid);
                 this.creatorId=+documentValues.creator_id;
                 this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
-                this.getPriceTypesList();
                 this.loadFilesInfo();
-                this.getDepartmentsList();//отделения
-                this.getStatusesList();//статусы документа Счёт поставщика
+                this.getStatusesList();//статусы документа Входящий платёж
                 this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
-                this.refreshPermissions();//пересчитаем права
-                // if(this.invoiceinProductsTableComponent) this.invoiceinProductsTableComponent.showColumns(); //чтобы спрятать столбцы после проведения 
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
         );
   }
 
-  formingProductRowFromApiResponse(row: InvoiceinProductTable) {
-    return this._fb.group({
-      id: new FormControl (row.id,[]),
-      product_id:         new FormControl (row.product_id,[]),
-      invoicein_id:      new FormControl (this.id,[]),
-      nds_id:             new FormControl (row.nds_id,[]),
-      product_count:      new FormControl ((+row.product_count),[]),
-      product_netcost:    new FormControl ((+row.product_netcost).toFixed(2),[]),
-      product_price:      new FormControl ((+row.product_price).toFixed(2),[]),
-      product_sumprice:   new FormControl ((+row.product_count*(+row.product_price)).toFixed(2),[]),
-    });
-  }
-  
   EditDocNumber(): void {
     if(this.allowToUpdate && +this.id==0){
       const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
@@ -819,7 +613,7 @@ export class InvoiceinDocComponent implements OnInit {
     {
       let Unic: boolean;
       this.isDocNumberUnicalChecking=true;
-      return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table=invoicein')
+      return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table=paymentin')
       .subscribe(
           (data) => {   
                       Unic = data as boolean;
@@ -831,29 +625,27 @@ export class InvoiceinDocComponent implements OnInit {
     }
   }
 
-  //создание нового документа Счёт поставщика
+  //создание нового документа Входящий платёж
   createNewDocument(){
-    console.log('Создание нового документа Счёт поставщика');
     this.createdDocId=null;
-    this.getProductsTable();
     this.formBaseInformation.get('uid').setValue(uuidv4());
-    this.http.post('/api/auth/insertInvoicein', this.formBaseInformation.value)
+    this.http.post('/api/auth/insertPaymentin', this.formBaseInformation.value)
       .subscribe(
       (data) => {
                   this.actionsBeforeGetChilds=0;
                   this.createdDocId=data as number;
                   switch(this.createdDocId){
                     case null:{// null возвращает если не удалось создать документ из-за ошибки
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа Счёт поставщика"}});
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа Входящий платёж"}});
                       break;
                     }
                     case -1:{//недостаточно прав
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа Счёт поставщика"}});
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа Входящий платёж"}});
                       break;
                     }
-                    default:{// Счёт поставщика успешно создалась в БД 
-                      this.openSnackBar("Документ \"Счёт поставщика\" успешно создан", "Закрыть");
-                      this.afterCreateInvoicein();
+                    default:{// Входящий платёж успешно создалась в БД 
+                      this.openSnackBar("Документ \"Входящий платёж\" успешно создан", "Закрыть");
+                      this.afterCreatePaymentin();
                     }
                   }
                 },
@@ -862,9 +654,9 @@ export class InvoiceinDocComponent implements OnInit {
   }
 
   //действия после создания нового документа Инвентаризиция
-  afterCreateInvoicein(){
+  afterCreatePaymentin(){
       this.id=+this.createdDocId;
-      this._router.navigate(['/ui/invoiceindoc', this.id]);
+      this._router.navigate(['/ui/paymentindoc', this.id]);
       this.formBaseInformation.get('id').setValue(this.id);
       this.getData();
   }
@@ -873,8 +665,8 @@ export class InvoiceinDocComponent implements OnInit {
     if(!notShowDialog){//notShowDialog=false - показывать диалог
       const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
         width: '400px',data:{
-          head: 'Проведение счёта поставщика',
-          warning: 'Вы хотите провести данный счёт поставщика?',
+          head: 'Проведение входящего платежа',
+          warning: 'Вы хотите провести данный входящий платёж?',
           query: 'После проведения документ станет недоступным для редактирования.'},});
       dialogRef.afterClosed().subscribe(result => {
         if(result==1){
@@ -885,14 +677,13 @@ export class InvoiceinDocComponent implements OnInit {
   }
 
   updateDocument(complete?:boolean){ 
-    this.getProductsTable();    
     let currentStatus:number=this.formBaseInformation.get('status_id').value;
     if(complete){
       this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - временно устанавливаем true, временно - чтобы это ушло в запросе на сервер, но не повлияло на внешний вид документа, если вернется не true
       if(this.settingsForm.get('statusIdOnComplete').value){//если в настройках есть "Статус при проведении" - временно выставляем его
         this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
     }
-    this.http.post('/api/auth/updateInvoicein',  this.formBaseInformation.value)
+    this.http.post('/api/auth/updatePaymentin',  this.formBaseInformation.value)
       .subscribe(
           (data) => 
           {   
@@ -903,21 +694,17 @@ export class InvoiceinDocComponent implements OnInit {
             let result:number=data as number;
             switch(result){
               case null:{// null возвращает если не удалось создать документ из-за ошибки
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка "+ (complete?"проведения":"сохренения") + " документа \"Счёт поставщика\""}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка "+ (complete?"проведения":"сохренения") + " документа \"Входящий платёж\""}});
                 break;
               }
               case -1:{//недостаточно прав
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа \"Счёт поставщика\""}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа \"Входящий платёж\""}});
                 break;
               }
               default:{// Успешно
-                this.openSnackBar("Документ \"Счёт поставщика\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
+                this.openSnackBar("Документ \"Входящий платёж\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
                 if(complete) {
                   this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведённости = true
-                  if(this.invoiceinProductsTableComponent){
-                    this.invoiceinProductsTableComponent.showColumns(); //чтобы спрятать столбцы после проведения 
-                    this.invoiceinProductsTableComponent.getProductsTable();
-                  }
                   if(this.settingsForm.get('statusIdOnComplete').value){//если в настройках есть "Статус при проведении" - выставим его
                     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
                   this.setStatusColor();//чтобы обновился цвет статуса
@@ -930,19 +717,7 @@ export class InvoiceinDocComponent implements OnInit {
           },
       );
   } 
-  clearFormSearchAndProductTable(){
-    this.invoiceinProductsTableComponent.resetFormSearch();
-    this.invoiceinProductsTableComponent.getControlTablefield().clear();
-    this.getTotalSumPrice();//чтобы пересчиталась сумма в чеке
-  }
-  //забирает таблицу товаров из дочернего компонента и помещает ее в основную форму
-  getProductsTable(){
-    const control = <FormArray>this.formBaseInformation.get('invoiceinProductTable');
-    control.clear();
-    this.invoiceinProductsTableComponent.getProductTable().forEach(row=>{
-      control.push(this.formingProductRowFromApiResponse(row));
-    });
-  }
+
   showQueryErrorMessage(error:any){
     console.log(error);
       let errMsg = (error.message) ? error.message : error.status ? `${error.status} - ${error.statusText}` : 'Server error';
@@ -963,7 +738,7 @@ export class InvoiceinDocComponent implements OnInit {
 
   //открывает диалог настроек
   openDialogSettings() { 
-    const dialogSettings = this.SettingsInvoiceinDialogComponent.open(SettingsInvoiceinDialogComponent, {
+    const dialogSettings = this.SettingsPaymentinDialogComponent.open(SettingsPaymentinDialogComponent, {
       maxWidth: '95vw',
       maxHeight: '95vh',
       width: '400px', 
@@ -972,11 +747,9 @@ export class InvoiceinDocComponent implements OnInit {
       { //отправляем в диалог:
         priceTypesList:   this.receivedPriceTypesList, //список типов цен
         receivedCompaniesList: this.receivedCompaniesList, //список предприятий
-        receivedDepartmentsList: this.receivedDepartmentsList, //список отделений
         company_id: this.formBaseInformation.get('company_id').value, // текущее предприятие (нужно для поиска поставщика)
         allowToCreateAllCompanies: this.allowToCreateAllCompanies,
         allowToCreateMyCompany: this.allowToCreateMyCompany,
-        allowToCreateMyDepartments: this.allowToCreateMyDepartments,
         id: this.id, //чтобы понять, новый док или уже созданный
       },
     });
@@ -984,16 +757,12 @@ export class InvoiceinDocComponent implements OnInit {
       if(result){
         //если нажата кнопка Сохранить настройки - вставляем настройки в форму настроек и сохраняем
         if(result.get('companyId')) this.settingsForm.get('companyId').setValue(result.get('companyId').value);
-        if(result.get('departmentId')) this.settingsForm.get('departmentId').setValue(result.get('departmentId').value);
         if(result.get('cagentId')) this.settingsForm.get('cagentId').setValue(result.get('cagentId').value);
         if(result.get('cagent')) this.settingsForm.get('cagent').setValue(result.get('cagent').value);
-        this.settingsForm.get('autocreate').setValue(result.get('autocreate').value);
         this.settingsForm.get('statusIdOnComplete').setValue(result.get('statusIdOnComplete').value);
-        this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
-        this.settingsForm.get('autoPrice').setValue(result.get('autoPrice').value);
-        this.saveSettingsInvoicein();
-        // если это новый документ, и ещё нет выбранных товаров - применяем настройки 
-        if(+this.id==0 && this.invoiceinProductsTableComponent.getProductTable().length==0)  {
+        this.saveSettingsPaymentin();
+        // если это новый документ - применяем настройки 
+        if(+this.id==0)  {
           //если в настройках сменили предприятие - нужно сбросить статусы, чтобы статус от предыдущего предприятия не прописался в актуальное
           if(+this.settingsForm.get('companyId').value!= +this.formBaseInformation.get('company_id').value) 
             this.resetStatus();
@@ -1003,12 +772,8 @@ export class InvoiceinDocComponent implements OnInit {
     });
   }
 
-  hideOrShowNdsColumn(){
-    setTimeout(() => {this.invoiceinProductsTableComponent.showColumns();}, 1);
-  }
-
-  saveSettingsInvoicein(){
-    return this.http.post('/api/auth/saveSettingsInvoicein', this.settingsForm.value)
+  saveSettingsPaymentin(){
+    return this.http.post('/api/auth/saveSettingsPaymentin', this.settingsForm.value)
             .subscribe(
                 (data) => {   
                           this.openSnackBar("Настройки успешно сохранены", "Закрыть");
@@ -1016,18 +781,6 @@ export class InvoiceinDocComponent implements OnInit {
                         },
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
             );
-  }
-
-  getPriceTypesList(){
-    this.receivedPriceTypesList=null;
-    this.loadSpravService.getPriceTypesList(this.formBaseInformation.get('company_id').value)
-    .subscribe(
-      (data) => {
-        this.receivedPriceTypesList=data as any [];
-        this.necessaryActionsBeforeGetChilds();
-      },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-    );
   }
 
   //устанавливает цвет статуса (используется для цветовой индикации статусов)
@@ -1039,9 +792,7 @@ export class InvoiceinDocComponent implements OnInit {
         }
       });
   }
-  setDefaultDate(){
-    this.formBaseInformation.get('invoicein_date').setValue(moment());
-  }
+
   getCompanyNameById(id:number):string{
     let name:string;
     if(this.receivedCompaniesList){
@@ -1051,59 +802,29 @@ export class InvoiceinDocComponent implements OnInit {
     }
     return(name);
   }
-  getDepartmentNameById(id:number):string{
-    let name:string;
-    if(this.receivedDepartmentsList){
-      this.receivedDepartmentsList.forEach(a=>{
-        if(a.id==id) name=a.name;
-      })
-    }
-    return(name);
-  }
-  onChangeProductsTableLengthHandler(){
-    this.setCanEditCompAndDepth();
-  }
-  //товары должны добавляться только для одного предприятия и одного отделения. Если 1й товар уже добавлен, на начальной стадии (когда документ еще не создан, т.е. id = 0) нужно запретить изменять предприятие и отделение
-  setCanEditCompAndDepth(){
-    if(+this.invoiceinProductsTableComponent.formSearch.get('product_id').value>0 ||  this.invoiceinProductsTableComponent.getProductTable().length>0) this.canEditCompAndDepth=false; else this.canEditCompAndDepth=true;
-  }
-
-  onSwitchNds(){
-    this.hideOrShowNdsColumn();
-  }
-
-    //принимает от product-search-and-table.component сумму к оплате и никуда ее не передает :-( (атавизм от возврата покупателя, там она передавалась в модуль ККМ)
-    totalSumPriceHandler($event: any) {
-    }  
 
   //создание нового документа
   goToNewDocument(){
-    this._router.navigate(['ui/invoiceindoc',0]);
+    this._router.navigate(['ui/paymentindoc',0]);
     this.id=0;
-    this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными товарами
     this.form.resetForm();
     this.formBaseInformation.get('uid').setValue('');
     this.formBaseInformation.get('is_completed').setValue(false);
-    this.formBaseInformation.get('nds').setValue(false);
-    this.formBaseInformation.get('nds_included').setValue(true);
-    this.formBaseInformation.get('name').setValue('');
+    this.formBaseInformation.get('nds').setValue('0.00');
+    this.formBaseInformation.get('summ').setValue('');
     this.formBaseInformation.get('company_id').setValue(null);
     this.formBaseInformation.get('doc_number').setValue('');
-    this.formBaseInformation.get('department_id').setValue(null);
     this.formBaseInformation.get('cagent_id').setValue(null);
     this.formBaseInformation.get('cagent').setValue('');
-    this.formBaseInformation.get('invoicein_date').setValue('');
     this.formBaseInformation.get('income_number').setValue('');
     this.formBaseInformation.get('income_number_date').setValue('');
     this.formBaseInformation.get('description').setValue('');
-    this.formBaseInformation.get('status_id').setValue(null);
+    this.formBaseInformation.get('status_id').setValue(null);    
     this.searchCagentCtrl.reset();
     this.resetStatus();
 
-    setTimeout(() => { this.invoiceinProductsTableComponent.showColumns();}, 1000);
     this.setDefaultStatus();//устанавливаем статус документа по умолчанию
     this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
-    this.setDefaultDate();
 
     this.canEditCompAndDepth=true;
     this.actionsBeforeGetChilds=0;
@@ -1111,6 +832,7 @@ export class InvoiceinDocComponent implements OnInit {
     
     this.getData();
   }
+
   resetStatus(){
     this.formBaseInformation.get('status_id').setValue(null);
     this.formBaseInformation.get('status_name').setValue('');
@@ -1135,7 +857,7 @@ openDialogAddFiles() {
   });
   dialogRef.afterClosed().subscribe(result => {
     console.log(`Dialog result: ${result}`);
-    if(result)this.addFilesToInvoicein(result);
+    if(result)this.addFilesToPaymentin(result);
   });
 }
 openFileCard(docId:number) {
@@ -1152,7 +874,7 @@ openFileCard(docId:number) {
   });
 }
 loadFilesInfo(){//                                     загружает информацию по прикрепленным файлам
-    return this.http.get('/api/auth/getListOfInvoiceinFiles?id='+this.id) 
+    return this.http.get('/api/auth/getListOfPaymentinFiles?id='+this.id) 
           .subscribe(
               (data) => {  
                           this.filesInfo = data as any[]; 
@@ -1160,9 +882,9 @@ loadFilesInfo(){//                                     загружает инф
               error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
           );
 }
-addFilesToInvoicein(filesIds: number[]){
+addFilesToPaymentin(filesIds: number[]){
   const body = {"id1":this.id, "setOfLongs1":filesIds};// передаем id товара и id файлов 
-          return this.http.post('/api/auth/addFilesToInvoicein', body) 
+          return this.http.post('/api/auth/addFilesToPaymentin', body) 
             .subscribe(
                 (data) => {  
                   this.loadFilesInfo();
@@ -1189,7 +911,7 @@ clickBtnDeleteFile(id: number): void {
 
 deleteFile(id:number){
   const body = {id: id, any_id:this.id}; 
-  return this.http.post('/api/auth/deleteInvoiceinFile',body)
+  return this.http.post('/api/auth/deletePaymentinFile',body)
   .subscribe(
       (data) => {   
                   this.loadFilesInfo();
@@ -1209,18 +931,17 @@ deleteFile(id:number){
     if(canCreateLinkedDoc.can){
       
       this.formLinkedDocs.get('company_id').setValue(this.formBaseInformation.get('company_id').value);
-      this.formLinkedDocs.get('department_id').setValue(this.formBaseInformation.get('department_id').value);
       this.formLinkedDocs.get('cagent_id').setValue(this.formBaseInformation.get('cagent_id').value);
       this.formLinkedDocs.get('nds').setValue(this.formBaseInformation.get('nds').value);
-      this.formLinkedDocs.get('nds_included').setValue(this.formBaseInformation.get('nds_included').value);
-      this.formLinkedDocs.get('description').setValue('Создано из Счёта поставщика №'+ this.formBaseInformation.get('doc_number').value);
+      this.formLinkedDocs.get('summ').setValue(this.formBaseInformation.get('summ').value);
+      this.formLinkedDocs.get('description').setValue('Создано из Входящиего платежа №'+ this.formBaseInformation.get('doc_number').value);
       this.formLinkedDocs.get('is_completed').setValue(false);
       this.formLinkedDocs.get('uid').setValue(uid);
       
       this.formLinkedDocs.get('linked_doc_id').setValue(this.id);//id связанного документа (того, из которого инициируется создание данного документа)
-      this.formLinkedDocs.get('linked_doc_name').setValue('invoicein');//имя (таблицы) связанного документа
+      this.formLinkedDocs.get('linked_doc_name').setValue('paymentin');//имя (таблицы) связанного документа
 
-      if(docname=='Ordersup'){// Заказ поставщику для Счёта поставщика является родительским, но может быть создан из Счёта поставщика (Заказ поставщику будет выше по иерархии в диаграмме связей)
+      if(docname=='Ordersup'){// Заказ поставщику для Входящиего платежа является родительским, но может быть создан из Входящиего платежа (Заказ поставщику будет выше по иерархии в диаграмме связей)
         this.formLinkedDocs.get('parent_uid').setValue(uid);// uid исходящего (родительского) документа
         this.formLinkedDocs.get('child_uid').setValue(this.formBaseInformation.get('uid').value);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
       } else {
@@ -1228,10 +949,6 @@ deleteFile(id:number){
         this.formLinkedDocs.get('child_uid').setValue(uid);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
       }
       
-      
-
-      
-      this.getProductsTableLinkedDoc(docname);//формируем таблицу товаров для создаваемого документа
       this.http.post('/api/auth/insert'+docname, this.formLinkedDocs.value)
       .subscribe(
       (data) => {
@@ -1256,109 +973,71 @@ deleteFile(id:number){
     } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:canCreateLinkedDoc.reason}});
   }
 
-  isRowInCheckedList(rowId):boolean{
-    let result:boolean = false;
-    this.invoiceinProductsTableComponent.checkedList.forEach(i=>{
-      if(i==rowId)
-        result=true;
-    });
-    return result;
-  }
-// забирает таблицу товаров из дочернего компонента и помещает ее в форму, предназначенную для создания дочерних документов
-  getProductsTableLinkedDoc(docname:string){
-    let methodNameProductTable:string;//для маппинга в соответствующие названия сетов в бэкэнде (например private Set<PostingProductForm> postingProductTable;)
-    let canAddRow: boolean;
-    //Получим название метода для маппинга в соответствующее название сета в бэкэнде (например для аргумента 'Posting' отдаст 'postingProductTable', который замаппится в этоn сет: private Set<PostingProductForm> postingProductTable;)
-    methodNameProductTable=this.commonUtilites.getMethodNameByDocAlias(docname);
-    const control = <FormArray>this.formLinkedDocs.get(methodNameProductTable);
-    control.clear();
-    this.invoiceinProductsTableComponent.getProductTable().forEach(row=>{
-      if(this.invoiceinProductsTableComponent.checkedList.length>0){  //если есть выделенные чекбоксами позиции - надо взять только их, иначе берем все позиции
-        canAddRow=this.isRowInCheckedList(row.row_id)
-      }
-      else canAddRow=true;
-      if(canAddRow)
-          control.push(this.formingProductRowLinkedDoc(row));
-    });
-  }
-  formingProductRowLinkedDoc(row: InvoiceinProductTable) {
-    return this._fb.group({
-      product_id: new FormControl (row.product_id,[]),
-      product_count: new FormControl (row.product_count,[]),
-      product_price:  new FormControl (row.product_price,[]),
-      product_sumprice: new FormControl (((row.product_count)*row.product_price).toFixed(2),[]),
-      nds_id:  new FormControl (row.nds_id,[]),
-    });
-  }
-  // можно ли создать связанный документ (да - если есть товары, подходящие для этого)
+  // можно ли создать связанный документ 
   canCreateLinkedDoc(docname:string):CanCreateLinkedDoc{
-    if(!(this.invoiceinProductsTableComponent && this.invoiceinProductsTableComponent.getProductTable().length>0)){
-        return {can:false, reason:'Невозможно создать '+this.commonUtilites.getDocNameByDocAlias(docname)+', так как нет товарных позиций'};
-    }else
       return {can:true, reason:''};
   }
 
-//******************************************************** ДИАГРАММА СВЯЗЕЙ ************************************************************/
-myTabFocusChange(changeEvent: MatTabChangeEvent) {
-  console.log('Tab position: ' + changeEvent.tab.position);
-}  
-myTabSelectedIndexChange(index: number) {
-  console.log('Selected index: ' + index);
-  this.tabIndex=index;
-}
-myTabSelectedTabChange(changeEvent: MatTabChangeEvent) {
-  console.log('Index: ' + changeEvent.index);
-}  
-myTabAnimationDone() {
-  console.log('Animation is done.');
-  if(this.tabIndex==1)  {
-    if(!this.linkedDocsSchemeDisplayed) this.loadingDocsScheme=true;
-    setTimeout(() => { this.drawLinkedDocsScheme(); }, 500);
+  //******************************************************** ДИАГРАММА СВЯЗЕЙ ************************************************************/
+  myTabFocusChange(changeEvent: MatTabChangeEvent) {
+    console.log('Tab position: ' + changeEvent.tab.position);
+  }  
+  myTabSelectedIndexChange(index: number) {
+    console.log('Selected index: ' + index);
+    this.tabIndex=index;
   }
-    
-}
-getLinkedDocsScheme(draw?:boolean){
-  let result:any;
-  this.loadingDocsScheme=true;
-  this.linkedDocsText ='';
-  this.loadingDocsScheme=true;
-  this.http.get('/api/auth/getLinkedDocsScheme?uid='+this.formBaseInformation.get('uid').value)
-    .subscribe(
-        data => { 
-          result=data as any;
-          
-          if(result==null){
-            this.loadingDocsScheme=false;
-            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка загрузки связанных документов"}});
-          } else if(result.errorCode==0){//нет результата
-            this.linkedDocsSchemeDisplayed = true;
-            this.loadingDocsScheme=false;
-          } else {
-            this.linkedDocsCount=result.count==0?result.count:result.count-1;// т.к. если документ в группе будет только один (данный) - result.count придёт = 1, т.е. связанных нет. Если документов в группе вообще нет - придет 0.
-            this.linkedDocsText = result.text;
-            if(draw)
-              this.drawLinkedDocsScheme()
-            else
-              this.loadingDocsScheme=false;
-          } 
-      },
-      error => {this.loadingDocsScheme=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-  );
-}
-
-drawLinkedDocsScheme(){
-  if(this.tabIndex==1){
-    try{
-      console.log(this.linkedDocsText);
-      graphviz("#graph").renderDot(this.linkedDocsText);
-      this.loadingDocsScheme=false;
-      this.linkedDocsSchemeDisplayed = true;
-    } catch (e){
-      this.loadingDocsScheme=false;
-      console.log(e.message);
+  myTabSelectedTabChange(changeEvent: MatTabChangeEvent) {
+    console.log('Index: ' + changeEvent.index);
+  }  
+  myTabAnimationDone() {
+    console.log('Animation is done.');
+    if(this.tabIndex==1)  {
+      if(!this.linkedDocsSchemeDisplayed) this.loadingDocsScheme=true;
+      setTimeout(() => { this.drawLinkedDocsScheme(); }, 500);
     }
-  } else this.loadingDocsScheme=false;
-}
+  }
+  getLinkedDocsScheme(draw?:boolean){
+    let result:any;
+    this.loadingDocsScheme=true;
+    this.linkedDocsText ='';
+    this.loadingDocsScheme=true;
+    this.http.get('/api/auth/getLinkedDocsScheme?uid='+this.formBaseInformation.get('uid').value)
+      .subscribe(
+          data => { 
+            result=data as any;
+            
+            if(result==null){
+              this.loadingDocsScheme=false;
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка загрузки связанных документов"}});
+            } else if(result.errorCode==0){//нет результата
+              this.linkedDocsSchemeDisplayed = true;
+              this.loadingDocsScheme=false;
+            } else {
+              this.linkedDocsCount=result.count==0?result.count:result.count-1;// т.к. если документ в группе будет только один (данный) - result.count придёт = 1, т.е. связанных нет. Если документов в группе вообще нет - придет 0.
+              this.linkedDocsText = result.text;
+              if(draw)
+                this.drawLinkedDocsScheme()
+              else
+                this.loadingDocsScheme=false;
+            } 
+        },
+        error => {this.loadingDocsScheme=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+    );
+  }
+
+  drawLinkedDocsScheme(){
+    if(this.tabIndex==1){
+      try{
+        console.log(this.linkedDocsText);
+        graphviz("#graph").renderDot(this.linkedDocsText);
+        this.loadingDocsScheme=false;
+        this.linkedDocsSchemeDisplayed = true;
+      } catch (e){
+        this.loadingDocsScheme=false;
+        console.log(e.message);
+      }
+    } else this.loadingDocsScheme=false;
+  }
 //*****************************************************************************************************************************************/
   //------------------------------------------ COMMON UTILITES -----------------------------------------
   //Конвертирует число в строку типа 0.00 например 6.40, 99.25
@@ -1376,14 +1055,6 @@ drawLinkedDocsScheme(){
     const b = charsAfterDot - (a.length - dot) + 1;
     return b > 0 ? (a + "0".repeat(b)) : a;
   }
-  getTotalProductCount() {//бежим по столбцу product_count и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
-    this.getProductsTable();
-    return (this.formBaseInformation.value.invoiceinProductTable.map(t => +t.product_count).reduce((acc, value) => acc + value, 0)).toFixed(3).replace(".000", "").replace(".00", "");
-  }
-  getTotalSumPrice() {//бежим по столбцу product_sumprice и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
-    this.getProductsTable();
-    return (this.formBaseInformation.value.invoiceinProductTable.map(t => +t.product_sumprice).reduce((acc, value) => acc + value, 0)).toFixed(2);
-  }
   numberOnly(event): boolean {
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
     if (charCode > 31 && (charCode < 48 || charCode > 57)) { return false; } return true;}
@@ -1396,7 +1067,7 @@ drawLinkedDocsScheme(){
   getFormIngexByProductId(productId:number):number{
     let retIndex:number;
     let formIndex:number=0;
-    this.formBaseInformation.value.invoiceinProductTable.map(i => 
+    this.formBaseInformation.value.paymentinProductTable.map(i => 
       {
       if(+i['product_id']==productId){retIndex=formIndex}
       formIndex++;

@@ -118,7 +118,8 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   displayedColumns:string[] = [];//отображаемые колонки таблицы товаров
   gettingTableData: boolean;//идет загрузка товарных позиций
   // totalProductCount:number=0;//всего кол-во товаров
-  totalProductSumm:number=0;//всего разница
+  totalProductSumm:number=0;//всего (итоговая цена)
+  totalNds:number=0;//всего НДС
   indivisibleErrorOfSearchForm:boolean; // дробное кол-во товара при неделимом товаре в форме поиска
   indivisibleErrorOfProductTable:boolean;// дробное кол-во товара при неделимом товаре в таблице товаров
 
@@ -1118,6 +1119,7 @@ tableNdsRecount(nds_included?:boolean){
     if(+this.formSearch.get('product_id').value) this.calcSumPriceOfProduct();
     //перерасчет НДС в таблице товаров
     if(this.formBaseInformation.controls['customersOrdersProductTable'].value.length>0){
+      this.totalNds=0;
       let switcherNDS:boolean = this.nds;
       let switcherNDSincluded:boolean = this.nds_included;
       let multiplifierNDS:number = 1;//множитель НДС. Рассчитывается для каждой строки таблицы. Например, для НДС 20% будет 1.2, для 0 или без НДС будет 1
@@ -1128,6 +1130,7 @@ tableNdsRecount(nds_included?:boolean){
           //..к сумме добавляем НДС
             i['product_sumprice']=this.numToPrice(+(+i['product_count']*(+i['product_price'])*multiplifierNDS).toFixed(2),2);
           }else i['product_sumprice']=this.numToPrice(+((+i['product_count'])*(+i['product_price'])).toFixed(2),2);//..иначе не добавляем, и сумма - это просто произведение количества на цену
+        this.totalNds=+this.numToPrice(+(+i['product_count']*(+i['product_price'])*(multiplifierNDS-1)).toFixed(2),2);//суммируем общую НДС
         })}}
 }
 
@@ -1211,6 +1214,10 @@ setRowSumPrice(row_index:number){
 // }
 getTotalSumPrice() {//бежим по столбцу product_sumprice и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
   return  (this.formBaseInformation.value.customersOrdersProductTable.map(t => +t.product_sumprice).reduce((acc, value) => acc + value, 0)).toFixed(2);
+}
+getTotalNds() {//возвращает общую НДС
+  this.tableNdsRecount();
+  return (this.totalNds);
 }
 // подсчёт TOTALS и отправка суммы в ККМ
 finishRecount(){

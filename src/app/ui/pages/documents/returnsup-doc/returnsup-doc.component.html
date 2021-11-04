@@ -40,7 +40,7 @@
                 mat-button 
                 [matMenuTriggerFor]="addDocMenu"
                 mat-raised-button 
-                matTooltip='Создать связанные документы, основанные на данной приёмке'
+                matTooltip='Создать связанные документы'
                 [disabled]="!childFormValid||!formBaseInformation.valid||returnsupProductsTableComponent.indivisibleErrorOfProductTable" 
                 *ngIf="+id>0 && returnsupProductsTableComponent"
                 color="primary"

@@ -40,7 +40,7 @@
                 mat-button 
                 [matMenuTriggerFor]="addDocMenu"
                 mat-raised-button 
-                matTooltip='Создать связанные документы, основанные на данной приёмке'
+                matTooltip='Создать связанные документы'
                 [disabled]="!childFormValid||!formBaseInformation.valid||invoiceinProductsTableComponent.indivisibleErrorOfProductTable" 
                 *ngIf="+id>0 && invoiceinProductsTableComponent"
                 color="primary"
@@ -357,21 +357,7 @@
 
                         <div class="row">
                             <div class="col-12" style="padding-right: 0px; padding-left: 0px;">
-                                <app-invoicein-products-table 
-                                    *ngIf="canGetChilds"
-                                    (totalSumPriceEvent)="totalSumPriceHandler($event)"
-                                    (changeProductsTableLength)="onChangeProductsTableLengthHandler()"
-                                    [parentDocId]="id" 
-                                    [parentDocName]="'invoicein'"
-                                    [company_id]="formBaseInformation.get('company_id').value"
-                                    [department_id]="formBaseInformation.get('department_id').value"
-                                    [autoAdd]="settingsForm.get('autoAdd').value"
-                                    [autoPrice]="settingsForm.get('autoPrice').value"
-                                    [readonly]="formBaseInformation.get('is_completed').value"
-                                    [nds]="formBaseInformation.get('nds').value"
-                                    [nds_included]="formBaseInformation.get('nds_included').value"
-                                    [spravSysNdsSet]="spravSysNdsSet"
-                                ></app-invoicein-products-table>
+
                             </div>
                         </div>
                     </div>  
