@@ -64,6 +64,8 @@ const routes: Routes = [
       { path: 'invoicein', loadChildren: () => import('./pages/documents/invoicein/invoicein.module').then(m => m.InvoiceinModule) },
       { path: 'paymentindoc', loadChildren: () => import('./pages/documents/paymentin-doc/paymentin-doc.module').then(m => m.PaymentinDocModule) },
       { path: 'paymentin', loadChildren: () => import('./pages/documents/paymentin/paymentin.module').then(m => m.PaymentinModule) },
+      { path: 'orderindoc', loadChildren: () => import('./pages/documents/orderin-doc/orderin-doc.module').then(m => m.OrderinDocModule) },
+      { path: 'orderin', loadChildren: () => import('./pages/documents/orderin/orderin.module').then(m => m.OrderinModule) },
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
       { path: '**', redirectTo: 'dashboard',pathMatch: 'full' },
     ]  

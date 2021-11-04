@@ -2,7 +2,7 @@
     <form #form="ngForm" [formGroup]="formBaseInformation">
         <div class="top-bar-plug"></div>
         <mat-card-title class="flex top-bar">
-            <div class="card-name">Входящий платёж <span [ngClass]="{invisible: +id==0}"> №{{formBaseInformation.get('doc_number').value}}</span></div>
+            <div class="card-name">Приходный ордер <span [ngClass]="{invisible: +id==0}"> №{{formBaseInformation.get('doc_number').value}}</span></div>
             <div  id="status" style=" font-size: 15px;"> 
                 <div class = "circle-in-selected" *ngIf="+formBaseInformation.get('status_id').value>0" [style.background-color]="formBaseInformation.get('status_color').value"></div>
                 <mat-form-field  class="mat-form-field-100" style="margin-top: -25px;">
@@ -30,7 +30,7 @@
                 mat-raised-button 
                 style="width: 36px;height: 36px;min-width: 38px;padding: 0px;"
                 color="primary"
-                matTooltip='Настройки документа "Входящий платёж"'
+                matTooltip='Настройки документа "Приходный ордер"'
                 (click)="openDialogSettings()"
                 type="button"
                 class="button">
@@ -52,7 +52,7 @@
             </button>
             <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
                 <button mat-menu-item (click)="goToNewDocument()">
-                    <span>Входящий платёж</span>
+                    <span>Приходный ордер</span>
                 </button>
                 <!-- <button mat-menu-item (click)="createLinkedDoc('Returnsup')">
                     <span>Возврат поставщику</span>
@@ -93,7 +93,7 @@
                 class="button">
                 <i class="material-icons">done</i> Создать
             </button>
-            <a routerLink="../../paymentin"  [style.display]="(mode=='standart')?'block':'none'">
+            <a routerLink="../../orderin"  [style.display]="(mode=='standart')?'block':'none'">
                 <button 
                     style="width: 129px;height: 36px;min-width: 38px;"
                     mat-raised-button 
@@ -257,10 +257,10 @@
                                                                 <mat-form-field  class="mat-form-field-100">
                                                                     <textarea   matInput
                                                                                 maxlength="2000"
-                                                                                [rows]="2"
                                                                                 [readonly]="this.formBaseInformation.get('is_completed').value"
+                                                                                [rows]="2"
                                                                                 #description
-                                                                                placeholder="Назначение платежа"
+                                                                                placeholder="Основание"
                                                                                 formControlName="description">
                                                                     </textarea>
                                                                     <mat-hint align="end" *ngIf="description.value.length>500 && !formBaseInformation.get('is_completed').value">{{description.value.length}} / 2000</mat-hint>
@@ -269,35 +269,6 @@
                                                         </div> 
                                                         <div class="row">
                                                             
-                                                        </div>
-                                                        <div class="row">
-                                                            <div class="col-lg-6  col-md-12"> 
-                                                                <mat-form-field class="mat-form-field-100">                                                               
-                                                                    <input  matInput
-                                                                            maxlength="60"
-                                                                            placeholder="Вход. номер документа"
-                                                                            #income_number
-                                                                            formControlName="income_number"
-                                                                            [readonly]="formBaseInformation.get('is_completed').value"/>
-                                                                </mat-form-field>
-                                                                <mat-hint align="end" *ngIf="income_number.value.length>50 && !formBaseInformation.get('is_completed').value">{{income_number.value.length}} / 60</mat-hint>
-                                                            </div>
-                                                            <div class="col-lg-6  col-md-12"> 
-                                                                <mat-form-field  class="mat-form-field-100">
-                                                                    <input  matInput 
-                                                                            placeholder="Вход. дата документа"
-                                                                            [readonly]="this.formBaseInformation.get('is_completed').value"
-                                                                            formControlName="income_number_date"
-                                                                            #income_number_date
-                                                                            [ngClass]="{'is-invalid':formBaseInformation.get('income_number_date').invalid}"
-                                                                            [matDatepicker]="dp2"/>
-                                                                            <mat-datepicker-toggle matSuffix [for]="dp2" *ngIf="!this.formBaseInformation.get('is_completed').value"></mat-datepicker-toggle>
-                                                                    <mat-datepicker #dp2></mat-datepicker>
-                                                                    <mat-hint *ngIf="formBaseInformation.get('income_number_date').touched && formBaseInformation.get('income_number_date').invalid" class="invalid-feedback">
-                                                                        <i>Формат даты не верный</i>
-                                                                    </mat-hint>
-                                                                </mat-form-field>
-                                                            </div>
                                                         </div>
                                                     </div> 
                                                 </div> 
