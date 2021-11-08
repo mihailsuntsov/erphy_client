@@ -66,6 +66,8 @@ const routes: Routes = [
       { path: 'paymentin', loadChildren: () => import('./pages/documents/paymentin/paymentin.module').then(m => m.PaymentinModule) },
       { path: 'orderindoc', loadChildren: () => import('./pages/documents/orderin-doc/orderin-doc.module').then(m => m.OrderinDocModule) },
       { path: 'orderin', loadChildren: () => import('./pages/documents/orderin/orderin.module').then(m => m.OrderinModule) },
+      { path: 'vatinvoiceoutdoc', loadChildren: () => import('./pages/documents/vatinvoiceout-doc/vatinvoiceout-doc.module').then(m => m.VatinvoiceoutDocModule) },
+      { path: 'vatinvoiceout', loadChildren: () => import('./pages/documents/vatinvoiceout/vatinvoiceout.module').then(m => m.VatinvoiceoutModule) },
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
       { path: '**', redirectTo: 'dashboard',pathMatch: 'full' },
     ]  

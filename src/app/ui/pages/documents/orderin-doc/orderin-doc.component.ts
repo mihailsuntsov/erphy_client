@@ -207,7 +207,7 @@ export class OrderinDocComponent implements OnInit {
       doc_number: new FormControl               ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
       description: new FormControl              ('',[]),
       cagent: new FormControl                   ('',[]),
-      nds: new FormControl                      ('0.00',[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      nds: new FormControl                      (0,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       summ: new FormControl                     ('',[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       status_id: new FormControl                ('',[]),
       status_name: new FormControl              ('',[]),
@@ -228,8 +228,10 @@ export class OrderinDocComponent implements OnInit {
 
     this.formLinkedDocs = new FormGroup({
       nds: new FormControl                ('',[]),
-      // nds_included: new FormControl       ('',[]),
-      // is_completed: new FormControl       (null,[]),
+      description: new FormControl        ('',[]),
+      parent_tablename: new FormControl   ('',[]), //для счёта фактуры выданного
+      orderin_id: new FormControl         ('',[]), //для счёта фактуры выданного
+      is_completed: new FormControl       (null,[]),
       cagent_id: new FormControl          (null,[Validators.required]),
       company_id: new FormControl         (null,[Validators.required]),
       linked_doc_id: new FormControl      (null,[]),//id связанного документа (в данном случае Отгрузка)
@@ -924,13 +926,17 @@ deleteFile(id:number){
       this.formLinkedDocs.get('company_id').setValue(this.formBaseInformation.get('company_id').value);
       this.formLinkedDocs.get('cagent_id').setValue(this.formBaseInformation.get('cagent_id').value);
       this.formLinkedDocs.get('nds').setValue(this.formBaseInformation.get('nds').value);
-      this.formLinkedDocs.get('summ').setValue(this.formBaseInformation.get('summ').value);
+      // this.formLinkedDocs.get('summ').setValue(this.formBaseInformation.get('summ').value);
       this.formLinkedDocs.get('description').setValue('Создано из Приходного ордера №'+ this.formBaseInformation.get('doc_number').value);
       this.formLinkedDocs.get('is_completed').setValue(false);
       this.formLinkedDocs.get('uid').setValue(uid);
       
       this.formLinkedDocs.get('linked_doc_id').setValue(this.id);//id связанного документа (того, из которого инициируется создание данного документа)
       this.formLinkedDocs.get('linked_doc_name').setValue('orderin');//имя (таблицы) связанного документа
+
+      //поля для счёта-фактуры выданного
+      this.formLinkedDocs.get('parent_tablename').setValue('orderin');
+      this.formLinkedDocs.get('orderin_id').setValue(this.id);
 
       if(docname=='Ordersup'){// Заказ поставщику для Приходного ордера является родительским, но может быть создан из Приходного ордера (Заказ поставщику будет выше по иерархии в диаграмме связей)
         this.formLinkedDocs.get('parent_uid').setValue(uid);// uid исходящего (родительского) документа

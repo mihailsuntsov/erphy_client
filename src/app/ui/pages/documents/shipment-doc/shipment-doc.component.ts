@@ -340,6 +340,8 @@ export class ShipmentDocComponent implements OnInit {
       retail_sales_id: new FormControl    (null,[]),
       date_return: new FormControl        ('',[]),
       nds: new FormControl                ('',[]),
+      parent_tablename: new FormControl   ('',[]), //для счёта фактуры выданного
+      shipment_id: new FormControl        ('',[]), //для счёта фактуры выданного
       cagent_id: new FormControl          (null,[Validators.required]),
       company_id: new FormControl         (null,[Validators.required]),
       department_id: new FormControl      (null,[Validators.required]),
@@ -1381,6 +1383,10 @@ export class ShipmentDocComponent implements OnInit {
       this.formLinkedDocs.get('linked_doc_name').setValue('shipment');//имя (таблицы) связанного документа
       this.formLinkedDocs.get('uid').setValue(uid);
       
+      //поля для счёта-фактуры выданного
+      this.formLinkedDocs.get('parent_tablename').setValue('shipment');
+      this.formLinkedDocs.get('shipment_id').setValue(this.id);
+
       if(docname=='Invoiceout'){// Счёт покупателю для Отгрузки является родительским, но может быть создан из Отгрузки (Счёт покупателю будет выше по иерархии в диаграмме связей)
         this.formLinkedDocs.get('parent_uid').setValue(uid);// uid исходящего (родительского) документа
         this.formLinkedDocs.get('child_uid').setValue(this.formBaseInformation.get('uid').value);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
@@ -1388,7 +1394,10 @@ export class ShipmentDocComponent implements OnInit {
         this.formLinkedDocs.get('parent_uid').setValue(this.formBaseInformation.get('uid').value);// uid исходящего (родительского) документа
         this.formLinkedDocs.get('child_uid').setValue(uid);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
       }
-      this.getProductsTableLinkedDoc(docname);//формируем таблицу товаров для создаваемого документа
+
+      if(docname!=='Vatinvoiceout')
+        this.getProductsTableLinkedDoc(docname);//формируем таблицу товаров для создаваемого документа
+      
       this.http.post('/api/auth/insert'+docname, this.formLinkedDocs.value)
       .subscribe(
       (data) => {
