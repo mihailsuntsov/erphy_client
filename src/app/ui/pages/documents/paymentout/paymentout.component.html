@@ -6,29 +6,35 @@ class="spinner"
 ></mat-spinner>
 <mat-card class="card">
     <mat-card-title class="flex" style="height: 30px;">
-        <div *ngIf="!displayingDeletedDocs" class="card-name">Статусы документов</div>
-        <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> статусы документов</div>
-        <div [style.display]="(visBtnAdd  && !displayingDeletedDocs)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
-            <a [routerLink]="['../../statusesdoc', '']">
+        <div *ngIf="!displayingDeletedDocs" class="emptyspace">Исходящие платежи</div>
+        <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> исходящие платежи</div>
+        <button 
+            mat-raised-button 
+            style="width: 36px;height: 36px;min-width: 38px;padding: 0px;"
+            color="primary"
+            matTooltip='Настройки документа "Исходящий платёж"'
+            (click)="openDialogSettings()"
+            type="button"
+            class="button">
+            <i class="material-icons">settings</i>
+        </button>
+        <div [style.display]="(visBtnAdd==true&&!displayingDeletedDocs)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
+            <a [routerLink]="['../../paymentoutdoc', '']">
                 <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> Создать</button>
             </a>   
         </div>
-
-        <div [style.display]="(!displayingDeletedDocs && visBtnDelete)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
+        <div [style.display]="(!displayingDeletedDocs&&visBtnDelete)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
             <button mat-raised-button (click)="clickBtnDelete()" color="warn"><i class="material-icons">delete_forever</i> Удалить</button>
         </div>
-
         <div *ngIf="displayingDeletedDocs && visBtnDelete" class="col-sm-auto justify-content-center" style="margin:0px 10px 10px 0px">
             <button mat-raised-button (click)="clickBtnRestore()" color="accent"><i class="material-icons">restore_from_trash</i> Восстановить</button>
         </div>
-
     </mat-card-title>
     <mat-card-content>
         <div class="card  w-100">
             <div class="card-body">
                 <form  class="form-horizontal" id="formControl" method="post" action="" style="margin-bottom: 0px;">
                     <div id="hidden" style="display: none;" class="row">
-                        <!-- <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/> -->
                         <div class="form-group">
                             <label class="control-label col-sm-2" for="offset">offset</label>
                             <input [(ngModel)]="sendingQueryForm.offset" value="" type="text" class="form-control" id="offset" name="offSet">
@@ -44,15 +50,15 @@ class="spinner"
                         </div>
                     </div>
                     <div class="flex">
-                        <mat-form-field style="width:80px;" class="num-of-rows">
-                            <mat-label>Строк в таблице</mat-label>
+                        <mat-form-field style="width:50px;" class="num-of-rows">
+                            <mat-label>Строк</mat-label>
                             <mat-select [(value)]="sendingQueryForm.result" (selectionChange)="setNumOfPages()" class="form-control" id="selectRowsPerPage" name="result">                           
                                 <mat-option  *ngFor="let num of numRows" [value]="num.value">
                                         {{num.viewValue}}
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
-                        <mat-form-field class="company-select" style="margin-left: 10px">
+                        <mat-form-field class="company-select" style="margin-left: 10px; max-width: 250px;">
                             <mat-label>Предприятие</mat-label>
                             <mat-select  [(value)]="sendingQueryForm.companyId" 
                             (selectionChange)="onCompanySelection()">                          
@@ -61,48 +67,41 @@ class="spinner"
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
-                        <mat-form-field class="company-select" style="margin-left: 10px">
-                            <mat-label>Документ</mat-label>
-                            <mat-select  [(value)]="sendingQueryForm.documentId" (selectionChange)="onDocumentSelection();">                          
-                                <!--mat-option value="0" selected>---</mat-option-->
-                                <mat-option  *ngFor="let rdl of receivedDocumentsList" [value]="rdl.id">
-                                        {{rdl.name}}
-                                </mat-option>
-                            </mat-select>
-                        </mat-form-field>
                         <span  class="emptyspace"></span>
-                        <span  class="card-name"></span>
-                            <button mat-button
-                                *ngIf="displaySelectOptions"
-                                class="options-button"
-                                [matMenuTriggerFor]="oper"
-                                type="button"
-                                matTooltip='Выбрать опции для фильтра'
-                                matSuffix mat-icon-button>
-                                <mat-icon>list_alt</mat-icon>
-                            </button>
-                            <mat-menu #oper="matMenu" xPosition="before">
-                                <div style="width: 300px;">
-                                    <ul>
-                                        <li *ngFor="let row of optionsIds">
-                                            <mat-checkbox
-                                            (click)="$event.stopPropagation()"
-                                            (change)="$event ? clickFilterOptionsCheckbox(row) : null"
-                                            [checked]="selectionFilterOptions.isSelected(row)"
-                                            >{{row.name}}</mat-checkbox>
-                                        </li>
-                                    </ul>
+                        <button mat-button
+                            *ngIf="displaySelectOptions"
+                            class="options-button"
+                            [matMenuTriggerFor]="oper"
+                            type="button"
+                            matTooltip='Выбрать опции для фильтра'
+                            matSuffix mat-icon-button>
+                            <mat-icon>list_alt</mat-icon>
+                        </button>
+                        <mat-menu #oper="matMenu" xPosition="before">
+                            <div style="width: 300px;">
+                                <ul>
+                                    <li *ngFor="let row of optionsIds">
+                                        <mat-checkbox
+                                        (click)="$event.stopPropagation()"
+                                        (change)="$event ? clickFilterOptionsCheckbox(row) : null"
+                                        [checked]="selectionFilterOptions.isSelected(row)"
+                                        >{{row.name}}</mat-checkbox>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="div-100"> 
+                                <div style="width:100%; height: 38px; padding-bottom: 15px;">
+                                    <button matTooltip="Применить фильтры" 
+                                            mat-mini-fab 
+                                            color="primary" 
+                                            (click)="clickApplyFilters()">
+                                        <mat-icon>done</mat-icon>
+                                    </button>
                                 </div>
-                                <div class="div-100"> 
-                                    <div style="width:100%; height: 38px; padding-bottom: 15px;">
-                                        <button matTooltip="Применить фильтры" mat-mini-fab color="primary" (click)="clickApplyFilters()">
-                                            <mat-icon>done</mat-icon>
-                                        </button>
-                                    </div>
-                                </div> 
-                            </mat-menu>
+                            </div> 
+                        </mat-menu>
                         <span  class="emptyspace" style="display: none"></span>
-                        <div class="flex">
+                        <div class="flex">     
                             <mat-form-field class="emptyspace">
                                     <input matInput 
                                     placeholder="Поиск..." 
@@ -138,8 +137,8 @@ class="spinner"
                         <ng-container matColumnDef="opendoc">
                             <th mat-header-cell *matHeaderCellDef></th>
                             <td mat-cell *matCellDef="let row" class="table-launch-icon">
-                                <a class="inactive" [routerLink]="['../../statusesdoc', row.id ]">
-                                    <mat-icon style="padding: 5px 5px 0 0">launch</mat-icon>
+                                <a class="inactive" [routerLink]="['../../paymentoutdoc', row.id ]">
+                                    <mat-icon>launch</mat-icon>
                                 </a>
                             </td>   
                         </ng-container>
@@ -155,35 +154,25 @@ class="spinner"
                             </span>
                             <td mat-cell *matCellDef="let row"> {{row.creator}} </td>
                         </ng-container>
-                        <ng-container matColumnDef="name">
+                        <ng-container matColumnDef="doc_number">
                             <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('name')" class="sortheader"> Название 
-                                <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='name'" class="material-icons sortarrow">arrow_upward</i>
-                                <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='name'" class="material-icons sortarrow">arrow_downward</i>
+                            <span (click)="setSort('doc_number')" class="sortheader"> № док. 
+                                <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='doc_number'" class="material-icons sortarrow">arrow_upward</i>
+                                <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='doc_number'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
-                            <td mat-cell *matCellDef="let row"> {{row.name}} </td>
+                            <td mat-cell *matCellDef="let row"> {{row.doc_number}} </td>
                         </ng-container>
-                        <ng-container matColumnDef="output_order">
+                        <ng-container matColumnDef="cagent">
                             <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('output_order')" class="sortheader"> Порядок 
-                                <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='output_order'" class="material-icons sortarrow">arrow_upward</i>
-                                <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='output_order'" class="material-icons sortarrow">arrow_downward</i>
+                            <span (click)="setSort('cagent')" class="sortheader"> Контрагент 
+                                <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='cagent'" class="material-icons sortarrow">arrow_upward</i>
+                                <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='cagent'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
-                            <td mat-cell *matCellDef="let row"> {{row.output_order}} </td>
-                        </ng-container>
-                        <ng-container matColumnDef="is_default">
-                            <th mat-header-cell *matHeaderCellDef>
-                            <span class="sortheader"> По-умолчанию </span>
-                            <td mat-cell *matCellDef="let row">
-                                <mat-radio-group [value]=row.is_default
-                                        style="display: flex; flex-direction: column; padding: 4px 0;">
-                                    <mat-radio-button [value]=true (click)="onClickRadioBtn(row.id,row.name)" style="padding: 2px 0;"></mat-radio-button>
-                                </mat-radio-group>
-                            </td>
+                            <td mat-cell *matCellDef="let row"> {{row.cagent}} </td>
                         </ng-container>
                         <ng-container matColumnDef="description">
-                            <th mat-header-cell *matHeaderCellDef style="width:300px;">
-                            <span (click)="setSort('description')" class="sortheader"> Доп. инфо. 
+                            <th mat-header-cell *matHeaderCellDef>
+                            <span (click)="setSort('description')" class="sortheader"> Назначение 
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='description'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='description'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
@@ -205,6 +194,64 @@ class="spinner"
                             </span>
                             <td mat-cell *matCellDef="let row"> {{row.date_time_created}} </td>
                         </ng-container>
+                        <ng-container matColumnDef="summ">
+                            <th mat-header-cell *matHeaderCellDef style="width:70px;">
+                            <span (click)="setSort('summ')" class="sortheader"> Сумма 
+                                <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='summ'" class="material-icons sortarrow">arrow_upward</i>
+                                <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='summ'" class="material-icons sortarrow">arrow_downward</i>
+                            </span>
+                            <td mat-cell *matCellDef="let row"><p style="margin: 5px">{{row.summ}}</p></td>
+                        </ng-container>                        
+                        <ng-container matColumnDef="expenditure">
+                            <th mat-header-cell *matHeaderCellDef style="width:70px;">
+                            <span (click)="setSort('expenditure')" class="sortheader">Статья<br>расходов 
+                                <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='expenditure'" class="material-icons sortarrow">arrow_upward</i>
+                                <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='expenditure'" class="material-icons sortarrow">arrow_downward</i>
+                            </span>
+                            <td mat-cell *matCellDef="let row"><p style="margin: 5px">{{row.expenditure}}</p></td>
+                        </ng-container>
+                        <ng-container matColumnDef="status">
+                            <th mat-header-cell *matHeaderCellDef>
+                            <span (click)="setSort('status_name')" class="sortheader"> Статус 
+                                <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='status_name'" class="material-icons sortarrow">arrow_upward</i>
+                                <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='status_name'" class="material-icons sortarrow">arrow_downward</i>
+                            </span>
+                            <td mat-cell *matCellDef="let row"> 
+                                <div [style.border-color]="row.status_color"  *ngIf="row.status_name!=null && row.status_name!=''" 
+                                style="
+                                    border-width: 3px;
+                                    text-align: center;
+                                    height: 31px;
+                                    border-radius: 15px;
+                                    border-style: solid;">
+                                        <p class="status-name">{{row.status_name}}</p>
+                                </div>
+                            </td>
+                        </ng-container>
+                        <ng-container matColumnDef="is_completed">
+                            <th mat-header-cell *matHeaderCellDef>
+                            <span (click)="setSort('is_completed')" class="sortheader"> Проведён
+                                <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='is_completed'" class="material-icons sortarrow">arrow_upward</i>
+                                <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='is_completed'" class="material-icons sortarrow">arrow_downward</i>
+                            </span>
+                            <td mat-cell *matCellDef="let row"> 
+                                <mat-chip-list>
+                                    <mat-chip 
+                                    *ngIf="row.is_completed==false" 
+                                    matTooltip="Исxодящий платёж проведён"
+                                    style="color:red">
+                                        Нет
+                                    </mat-chip>
+                                    <mat-chip 
+                                    *ngIf="row.is_completed==true"
+                                    matTooltip="Исxодящий платёж не проведён"
+                                    style="color:green"
+                                    >
+                                        Да
+                                    </mat-chip>
+                                </mat-chip-list>
+                            </td>
+                        </ng-container>
                         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                         <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
                         <!-- Блок "Данные не найдены" -->
@@ -219,7 +266,7 @@ class="spinner"
                         <tr mat-footer-row 
                         *matFooterRowDef="[dataSource.data.length==0?'data_not_found':'nocolumn']" 
                         [ngStyle]="(dataSource.data.length==0 && !gettingTableData)?{}:{'display': 'none'}"></tr>
-                        <!-- Конец блока "Данные не найдены" -->
+                        <!-- Конец блока "Данные не найдены" -->        
                     </table>
               
                     <div class="flex">
@@ -269,4 +316,3 @@ class="spinner"
         </div>
     </mat-card-content>
 </mat-card>
-                                                                        

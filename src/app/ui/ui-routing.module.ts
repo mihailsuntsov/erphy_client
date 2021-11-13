@@ -68,6 +68,10 @@ const routes: Routes = [
       { path: 'orderin', loadChildren: () => import('./pages/documents/orderin/orderin.module').then(m => m.OrderinModule) },
       { path: 'vatinvoiceoutdoc', loadChildren: () => import('./pages/documents/vatinvoiceout-doc/vatinvoiceout-doc.module').then(m => m.VatinvoiceoutDocModule) },
       { path: 'vatinvoiceout', loadChildren: () => import('./pages/documents/vatinvoiceout/vatinvoiceout.module').then(m => m.VatinvoiceoutModule) },
+      { path: 'expenditure', loadChildren: () => import('./pages/documents/expenditure/expenditure.module').then(m => m.ExpenditureModule) },
+      { path: 'expendituredoc', loadChildren: () => import('./pages/documents/expenditure-doc/expenditure-doc.module').then(m => m.ExpenditureDocModule) },
+      { path: 'paymentout', loadChildren: () => import('./pages/documents/paymentout/paymentout.module').then(m => m.PaymentoutModule) },
+      { path: 'paymentoutdoc', loadChildren: () => import('./pages/documents/paymentout-doc/paymentout-doc.module').then(m => m.PaymentoutDocModule) },
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
       { path: '**', redirectTo: 'dashboard',pathMatch: 'full' },
     ]  

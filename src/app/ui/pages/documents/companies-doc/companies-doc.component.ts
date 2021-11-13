@@ -938,8 +938,7 @@ constructor(private activateRoute: ActivatedRoute,
 //-------------------------- Б А Н К О В С К И Е   Р Е К В И З И Т Ы  -------------------------------
   getCompaniesPaymentAccounts(){
     let resultContainer: any[];
-    const body = {"id": this.id};
-    return this.http.post('/api/auth/getCompaniesPaymentAccounts', body).subscribe(
+    return this.http.get('/api/auth/getCompaniesPaymentAccounts?id='+this.id).subscribe(
         (data) => { resultContainer=data as any [];
                     this.fillPaymentAccountsArray(resultContainer);
                 },

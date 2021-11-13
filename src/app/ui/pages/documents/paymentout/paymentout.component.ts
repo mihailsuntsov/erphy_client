@@ -3,20 +3,23 @@ import { QueryForm } from './query-form';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { HttpClient } from '@angular/common/http';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { LoadSpravService } from '../../../../services/loadsprav';
-import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
-import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
-import { QueryFormService } from './get-statusdocs-table.service';
+import { QueryFormService } from './get-paymentout-table.service';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
+import { FormGroup, FormControl } from '@angular/forms';
+import { SettingsPaymentoutDialogComponent } from 'src/app/modules/settings/settings-paymentout-dialog/settings-paymentout-dialog.component';
 
 export interface CheckBox {
   id: number;
+  is_completed:boolean;
   company_id: number;
-  is_default: boolean;
-  name: string;
+  department_id: number;
+  creator_id: number;
 }
 export interface idAndName {
   id: number;
@@ -28,20 +31,18 @@ export interface NumRow {//интерфейс для списка количес
 }
 
 @Component({
-  selector: 'app-statuses',
-  templateUrl: './statuses.component.html',
-  styleUrls: ['./statuses.component.css'],
+  selector: 'app-paymentout',
+  templateUrl: './paymentout.component.html',
+  styleUrls: ['./paymentout.component.css'],
   providers: [QueryFormService,LoadSpravService,Cookie]
 })
-export class StatusesComponent implements OnInit {
+export class PaymentoutComponent implements OnInit {
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
   receivedPagesList: string [] ;//массив для получения данных пагинации
   dataSource = new MatTableDataSource<CheckBox>(); //массив данных для таблицы и чекбоксов (чекбоксы берут из него id, таблица -всё)
   displayedColumns: string[] = [];//массив отображаемых столбцов таблицы
   selection = new SelectionModel<CheckBox>(true, []);//Class to be used to power selecting one or more options from a list.
   receivedCompaniesList: idAndName [] = [];//массив для получения списка предприятий
-  receivedDocumentsList: idAndName [] = [];//массив для получения списка отделений
-  receivedMyDepartmentsList: idAndName [] = [];//массив для получения списка СВОИХ отделений
   myCompanyId:number=0;//
   myId:number=0;
   checkedList:number[]=[]; //строка для накапливания id чекбоксов вида [2,5,27...]
@@ -54,8 +55,8 @@ export class StatusesComponent implements OnInit {
   allowToUpdateMyCompany:boolean = false;
   allowToCreateMyCompany:boolean = false;
   allowToCreateAllCompanies:boolean = false;
-  allowToDeleteMyCompany:boolean = false;
   allowToDeleteAllCompanies:boolean = false;
+  allowToDeleteMyCompany:boolean = false;
 
   allowToView:boolean = false;
   allowToUpdate:boolean = false;
@@ -63,6 +64,10 @@ export class StatusesComponent implements OnInit {
   allowToDelete:boolean = false;
 
   showOpenDocIcon:boolean=false;
+
+  gettingTableData:boolean=true;
+  
+  settingsForm: any; // форма с настройками
 
   numRows: NumRow[] = [
     {value: '5', viewValue: '5'},
@@ -75,13 +80,9 @@ export class StatusesComponent implements OnInit {
   pagenum: any;  // - Страница, которая сейчас выбрана в пагинаторе
   maxpage: any;  // - Последняя страница в пагинаторe (т.е. maxpage=8 при пагинаторе [345678])
   listsize: any; // - Последняя страница в пагинации (но не в пагинаторе. т.е. в пагинаторе может быть [12345] а listsize =10)
-
-  gettingTableData:boolean=true;
-
-  //переменные для управления динамическим отображением элементов
-  visBtnAdd:boolean;
-  visBtnCopy = false;
-  visBtnDelete = false;
+ //переменные для управления динамическим отображением элементов
+ visBtnAdd:boolean;
+ visBtnDelete = false;
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
   selectionFilterOptions = new SelectionModel<idAndName>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние
   optionsIds: idAndName [];
@@ -92,44 +93,52 @@ export class StatusesComponent implements OnInit {
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
     public universalCategoriesDialog: MatDialog,
-    public ConfirmDialog: MatDialog,
     private MessageDialog: MatDialog,
+    public confirmDialog: MatDialog,
     private http: HttpClient,
-    private Cookie: Cookie,
+    private settingsPaymentoutDialogComponent: MatDialog,
     public deleteDialog: MatDialog,
-    public dialogRef1: MatDialogRef<StatusesComponent>,) { }
+    public dialogRef1: MatDialogRef<PaymentoutComponent>,) { }
 
     ngOnInit() {
       this.sendingQueryForm.companyId='0';
-      this.sendingQueryForm.documentId='0';
-      this.sendingQueryForm.sortAsc='asc';
-      this.sendingQueryForm.sortColumn='output_order';
+      this.sendingQueryForm.departmentId='0';
+      this.sendingQueryForm.sortAsc='desc';
+      this.sendingQueryForm.sortColumn='date_time_created_sort';
       this.sendingQueryForm.offset='0';
       this.sendingQueryForm.result='10';
       this.sendingQueryForm.searchCategoryString="";
       this.sendingQueryForm.filterOptionsIds = [];
 
-      if(Cookie.get('satusdoc_companyId')=='undefined' || Cookie.get('satusdoc_companyId')==null)     
-        Cookie.set('satusdoc_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('satusdoc_companyId')=="0"?"0":+Cookie.get('satusdoc_companyId'));
-      if(Cookie.get('satusdoc_documentId')=='undefined' || Cookie.get('satusdoc_documentId')==null)  
-        Cookie.set('satusdoc_documentId',this.sendingQueryForm.documentId); else this.sendingQueryForm.documentId=(Cookie.get('satusdoc_documentId')=="0"?"0":+Cookie.get('satusdoc_documentId'));
-      if(Cookie.get('satusdoc_sortAsc')=='undefined' || Cookie.get('satusdoc_sortAsc')==null)       
-        Cookie.set('satusdoc_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('satusdoc_sortAsc');
-      if(Cookie.get('satusdoc_sortColumn')=='undefined' || Cookie.get('satusdoc_sortColumn')==null)    
-        Cookie.set('satusdoc_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('satusdoc_sortColumn');
-      if(Cookie.get('satusdoc_offset')=='undefined' || Cookie.get('satusdoc_offset')==null)        
-        Cookie.set('satusdoc_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('satusdoc_offset');
-      if(Cookie.get('satusdoc_result')=='undefined' || Cookie.get('satusdoc_result')==null)        
-        Cookie.set('satusdoc_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('satusdoc_result');
-
+      if(Cookie.get('paymentout_companyId')=='undefined' || Cookie.get('paymentout_companyId')==null)     
+        Cookie.set('paymentout_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('paymentout_companyId')=="0"?"0":+Cookie.get('paymentout_companyId'));
+      if(Cookie.get('paymentout_sortAsc')=='undefined' || Cookie.get('paymentout_sortAsc')==null)       
+        Cookie.set('paymentout_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('paymentout_sortAsc');
+      if(Cookie.get('paymentout_sortColumn')=='undefined' || Cookie.get('paymentout_sortColumn')==null)    
+        Cookie.set('paymentout_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('paymentout_sortColumn');
+      if(Cookie.get('paymentout_offset')=='undefined' || Cookie.get('paymentout_offset')==null)        
+        Cookie.set('paymentout_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('paymentout_offset');
+      if(Cookie.get('paymentout_result')=='undefined' || Cookie.get('paymentout_result')==null)        
+        Cookie.set('paymentout_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('paymentout_result');
+      
       this.fillOptionsList();//заполняем список опций фильтра
+      // Форма настроек
+    this.settingsForm = new FormGroup({
+      //покупатель по умолчанию
+      cagentId: new FormControl                 (null,[]),
+      //наименование покупателя
+      cagent: new FormControl                   ('',[]),
+      //предприятие, для которого создаются настройки
+      companyId: new FormControl                (null,[]),
+      //статус после успешного отбития чека, перед созданием нового документа
+      statusIdOnComplete: new FormControl       ('',[]),
+    });
+
       this.getCompaniesList();// 
       // -> getSetOfPermissions() 
       // -> getMyId()
       // -> getMyCompanyId() 
       // -> setDefaultCompany() 
-      // -> getDocumentsList()
-      // -> setDefaultDocument()
       // -> getCRUD_rights() 
       // -> getData() 
       //API: getCompaniesList         giveMeMyPermissions      getMyCompanyId
@@ -137,30 +146,29 @@ export class StatusesComponent implements OnInit {
 
     // -------------------------------------- *** ПРАВА *** ------------------------------------
    getSetOfPermissions(){
-    return this.http.get('/api/auth/getMyPermissions?id=22')
+    return this.http.get('/api/auth/getMyPermissions?id=34')
             .subscribe(
                 (data) => {   
                             this.permissionsSet=data as any [];
                             this.getMyId();
                         },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
             );
   }
 
   getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==271)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==272)});
-    this.allowToDeleteAllCompanies = permissionsSet.some(         function(e){return(e==273)});
-    this.allowToDeleteMyCompany = permissionsSet.some(            function(e){return(e==274)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==275)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==276)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==277)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==278)});
+    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==507)});
+    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==508)});
+    this.allowToDeleteAllCompanies = permissionsSet.some(         function(e){return(e==509)});
+    this.allowToDeleteMyCompany = permissionsSet.some(            function(e){return(e==510)});
+    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==511)});
+    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==512)});
+    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==513)});
+    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==514)});
     this.getData();
   }
 
   refreshPermissions():boolean{
-    let documentOfMyCompany:boolean = (this.sendingQueryForm.companyId==this.myCompanyId);
     this.allowToView=(this.allowToViewAllCompanies||this.allowToViewMyCompany)?true:false;
     this.allowToUpdate=(this.allowToUpdateAllCompanies||this.allowToUpdateMyCompany)?true:false;
     this.allowToCreate=(this.allowToCreateAllCompanies||this.allowToCreateMyCompany)?true:false;
@@ -168,43 +176,44 @@ export class StatusesComponent implements OnInit {
     this.showOpenDocIcon=(this.allowToUpdate||this.allowToView);
     this.visBtnAdd = (this.allowToCreate)?true:false;
     
-    // console.log("allowToView - "+this.allowToView);
-    // console.log("allowToUpdate - "+this.allowToUpdate);
-    // console.log("allowToCreate - "+this.allowToCreate);
-    // console.log("allowToDelete - "+this.allowToDelete);
-    // console.log("allowToDeleteAllCompanies - "+this.allowToDeleteAllCompanies);
+    console.log("allowToView - "+this.allowToView);
+    console.log("allowToUpdate - "+this.allowToUpdate);
+    console.log("allowToCreate - "+this.allowToCreate);
+    console.log("allowToDelete - "+this.allowToDelete);
+    console.log("allowToDeleteAllCompanies - "+this.allowToDeleteAllCompanies);
     return true;
   }
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
+
+
+
   getData(){
-    // console.log('before if!');
     if(this.refreshPermissions() && this.allowToView)
     {
-      // console.log('after if!');
-      this.updateSortOptions();
       this.doFilterCompaniesList(); //если нет просмотра по всем предприятиям - фильтруем список предприятий до своего предприятия
       this.getTableHeaderTitles();
-      this.updateSortOptions();
       this.getPagesList();
       this.getTable();
-    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
+    } else {this.gettingTableData=false;;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
   }
 
   getTableHeaderTitles(){
     this.displayedColumns=[];
     if(this.allowToDelete) this.displayedColumns.push('select');
     if(this.showOpenDocIcon) this.displayedColumns.push('opendoc');
-    this.displayedColumns.push('name');
-    this.displayedColumns.push('output_order');
-    this.displayedColumns.push('is_default');
+    this.displayedColumns.push('doc_number');
+    this.displayedColumns.push('cagent');
     this.displayedColumns.push('company');
+    this.displayedColumns.push('status');
+    this.displayedColumns.push('is_completed');
+    this.displayedColumns.push('summ');
+    this.displayedColumns.push('expenditure');
     this.displayedColumns.push('description');
     this.displayedColumns.push('creator');
     this.displayedColumns.push('date_time_created');
   }
 
   getPagesList(){
-    // this.receivedPagesList=null;
     this.queryFormService.getPagesList(this.sendingQueryForm)
             .subscribe(
                 data => {this.receivedPagesList=data as string [];
@@ -212,7 +221,7 @@ export class StatusesComponent implements OnInit {
                 this.pagenum=this.receivedPagesList[1];
                 this.listsize=this.receivedPagesList[2];
                 this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
-                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             ); 
   }
 
@@ -244,6 +253,7 @@ export class StatusesComponent implements OnInit {
     this.isThereSelected() ?
     this.resetSelecion() :
         this.dataSource.data.forEach(row => {
+          // if(!row.is_completed){this.selection.select(row);}
           if(this.showCheckbox(row)){this.selection.select(row);}//если чекбокс отображаем, значит можно удалять этот документ
         });
         this.createCheckedList();
@@ -264,15 +274,18 @@ export class StatusesComponent implements OnInit {
 
   createCheckedList(){
     this.checkedList = [];
+    console.log("1");
     for (var i = 0; i < this.dataSource.data.length; i++) {
+      console.log("2");
       if(this.selection.isSelected(this.dataSource.data[i]))
-        this.checkedList.push(this.dataSource.data[i].id);
+      this.checkedList.push(this.dataSource.data[i].id);
     }
     if(this.checkedList.length>0){
+      console.log("3");
         this.hideAllBtns();
         if(this.allowToDelete) this.visBtnDelete = true;
-        if(this.checkedList.length==1){this.visBtnCopy = true}
-    }else{this.showOnlyVisBtnAdd()}
+    }else{console.log("4");this.showOnlyVisBtnAdd()}
+    console.log("checkedList - "+this.checkedList);
   }
 
   hideAllBtns(){
@@ -288,7 +301,7 @@ export class StatusesComponent implements OnInit {
     this.clearCheckboxSelection();
     this.createCheckedList();
     this.sendingQueryForm.offset=0;
-    Cookie.set('satusdoc_result',this.sendingQueryForm.result);
+    Cookie.set('paymentout_result',this.sendingQueryForm.result);
     this.getData();
   }
 
@@ -296,13 +309,12 @@ export class StatusesComponent implements OnInit {
   {
     this.clearCheckboxSelection();
     this.sendingQueryForm.offset=value;
-    Cookie.set('satusdoc_offset',value);
+    Cookie.set('paymentout_offset',value);
     this.getData();
   }
 
   clearCheckboxSelection(){
     this.selection.clear();
-    this.createCheckedList();//тут перерасчитывается vizBtnDelete
     this.dataSource.data.forEach(row => this.selection.deselect(row));
   }
 
@@ -315,23 +327,18 @@ export class StatusesComponent implements OnInit {
           } else {  
               this.sendingQueryForm.sortAsc="asc"
           }
-      Cookie.set('satusdoc_sortAsc',this.sendingQueryForm.sortAsc);
+      Cookie.set('paymentout_sortAsc',this.sendingQueryForm.sortAsc);
       } else {
           this.sendingQueryForm.sortColumn=valueSortColumn;
           this.sendingQueryForm.sortAsc="asc";
-          Cookie.set('satusdoc_sortAsc',"asc");
-          Cookie.set('satusdoc_sortColumn',valueSortColumn);
+          Cookie.set('paymentout_sortAsc',"asc");
+          Cookie.set('paymentout_sortColumn',valueSortColumn);
       }
       this.getData();
   }
   onCompanySelection(){
-    Cookie.set('satusdoc_companyId',this.sendingQueryForm.companyId);
-    this.sendingQueryForm.documentId="0"; 
+    Cookie.set('paymentout_companyId',this.sendingQueryForm.companyId);
     this.resetOptions();
-    this.getDocumentsList();
-  }
-  onDocumentSelection(){
-    Cookie.set('satusdoc_documentId',this.sendingQueryForm.documentId);
     this.getData();
   }
   clickBtnDelete(): void {
@@ -344,45 +351,23 @@ export class StatusesComponent implements OnInit {
       this.showOnlyVisBtnAdd();
     });        
   }
-  clickBtnRestore(): void {
-    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
-      width: '400px',
-      data:
-      { 
-        head: 'Восстановление',
-        query: 'Восстановить выбранные статусы из удалённых?',
-        warning: '',
-      },
-    });
-    dialogRef.afterClosed().subscribe(result => {
-      if(result==1){this.undeleteDocs();}
-      this.clearCheckboxSelection();
-      this.showOnlyVisBtnAdd();
-    });        
-  }
-  undeleteDocs(){
-    const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
-    this.clearCheckboxSelection();
-      return this.http.post('/api/auth/undeleteSpravStatusDocs', body) 
-    .subscribe(
-        (data) => {   
-                    this.getData();
-                    this.openSnackBar("Успешно восстановлено", "Закрыть");
-                  },
-        error => console.log(error),
-    );
-  }
+
   deleteDocs(){
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
-          return this.http.post('/api/auth/deleteSpravStatusDocs', body) 
-            .subscribe(
-                (data) => {   
-                            this.getData();
-                          },
-                error => console.log(error),
-            );
+          return this.http.post('/api/auth/deletePaymentout', body) 
+  .subscribe((data) => {   
+    let result=data as any;
+    switch(result.result){
+      case 0:{this.getData();this.openSnackBar("Успешно удалено", "Закрыть");break;} 
+      case 1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе удаления "+(this.checkedList.length>1?"документов":"документа")+" проиошла ошибка")}});break;}
+      case 2:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для операции удаления"}});break;}
+      case 3:{let numbers:string='';
+        for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="/ui/paymentoutdoc/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
+        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Удаление невозможно - у следующих номеров документов есть производные (связанные с ними дочерние) документы:'+numbers}});break;}
     }
+  },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+}
     
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
@@ -396,16 +381,15 @@ export class StatusesComponent implements OnInit {
                 (data) => {this.receivedCompaniesList=data as any [];
                   this.getSetOfPermissions();
                 },
-                error => console.log(error)
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             );
   }
   getMyId(){
-    this.receivedMyDepartmentsList=null;
     this.loadSpravService.getMyId()
             .subscribe(
                 (data) => {this.myId=data as any;
                   this.getMyCompanyId();},
-                error => console.log(error)
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             );
   }
   getMyCompanyId(){
@@ -413,40 +397,22 @@ export class StatusesComponent implements OnInit {
       (data) => {
         this.myCompanyId=data as number;
         this.setDefaultCompany();
-      }, error => console.log(error));
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
   }
 
   setDefaultCompany(){
-    if(Cookie.get('satusdoc_companyId')=='0'){
+    if(Cookie.get('paymentout_companyId')=='0'){
       this.sendingQueryForm.companyId=this.myCompanyId;
-      Cookie.set('satusdoc_companyId',this.sendingQueryForm.companyId);
+      Cookie.set('paymentout_companyId',this.sendingQueryForm.companyId);
     }
-      this.getDocumentsList();
-  }
-
-  getDocumentsList(){
-    this.receivedDocumentsList=this.loadSpravService.getDocumentsList();
-    this.setDefaultDocument();
-  }
-
-  setDefaultDocument(){
-    console.log('Document length = '+this.receivedDocumentsList.length);
-    if(this.receivedDocumentsList.length>1)
-    {
-      this.sendingQueryForm.documentId=(Cookie.get('satusdoc_documentId')=="0"?this.receivedDocumentsList[0].id:+Cookie.get('satusdoc_documentId'))
-    } else {
-      this.sendingQueryForm.documentId=+this.receivedDocumentsList[0].id;
-      Cookie.set('satusdoc_documentId',this.sendingQueryForm.documentId);
-    }
-  this.getCRUD_rights(this.permissionsSet);
+    this.getCRUD_rights(this.permissionsSet);
   }
 
   showCheckbox(row:CheckBox):boolean{
-    if(
-        (this.allowToDeleteAllCompanies)||
-        (this.allowToDeleteMyCompany && row.company_id==this.myCompanyId)
-      )
-      return true; else return false;
+    if(!row.is_completed && (
+      (this.allowToDeleteAllCompanies)||
+      (this.allowToDeleteMyCompany && row.company_id==this.myCompanyId))
+      )return true; else return false;
     }
 
   doFilterCompaniesList(){
@@ -459,19 +425,73 @@ export class StatusesComponent implements OnInit {
     }
   }
 
-  onClickRadioBtn(id:number, name:string){
-    const body = {"id": this.sendingQueryForm.companyId, "id2":this.sendingQueryForm.documentId, "id3":id}; 
+      //*************************************************************   НАСТРОЙКИ   ************************************************************/    
+    // открывает диалог настроек
+    openDialogSettings() { 
+      const dialogSettings = this.settingsPaymentoutDialogComponent.open(SettingsPaymentoutDialogComponent, {
+        maxWidth: '95vw',
+        maxHeight: '95vh',
+        // height: '680px',
+        width: '400px', 
+        minHeight: '650px',
+        data:
+        { //отправляем в диалог:
+          receivedCompaniesList: this.receivedCompaniesList, //список предприятий
+          company_id: +this.sendingQueryForm.companyId, //предприятие (нужно для поиска покупателя)
+          id: 0, //чтобы понять, новый док или уже созданный
+        },
+      });
+      dialogSettings.afterClosed().subscribe(result => {
+        if(result){
+          //если нажата кнопка Сохранить настройки - вставляем настройки в форму настроек и сохраняем
+          if(result.get('companyId')) this.settingsForm.get('companyId').setValue(result.get('companyId').value);
+          if(result.get('cagentId')) this.settingsForm.get('cagentId').setValue(result.get('cagentId').value);
+          if(result.get('cagent')) this.settingsForm.get('cagent').setValue(result.get('cagent').value);
+          this.settingsForm.get('statusIdOnComplete').setValue(result.get('statusIdOnComplete').value);
+          this.saveSettingsPaymentout();
+        }
+      });
+    }
+    // Сохраняет настройки
+    saveSettingsPaymentout(){
+      return this.http.post('/api/auth/saveSettingsPaymentout', this.settingsForm.value)
+              .subscribe(
+                  (data) => {   
+                            this.openSnackBar("Настройки успешно сохранены", "Закрыть");
+                            
+                          },
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+              );
+    }
+  //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
+  clickBtnRestore(): void {
+    const dialogRef = this.confirmDialog.open(ConfirmDialog, {
+      width: '400px',
+      data:
+      { 
+        head: 'Восстановление',
+        query: 'Восстановить выбранные счета покупателям из удалённых?',
+        warning: '',
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){this.undeleteDocs();}
+      this.clearCheckboxSelection();
+      this.showOnlyVisBtnAdd();
+    });        
+  }
+  undeleteDocs(){
+    const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
-      return this.http.post('/api/auth/setDefaultStatusDoc', body) 
+      return this.http.post('/api/auth/undeletePaymentout', body) 
     .subscribe(
         (data) => {   
-          this.getData();
-                    this.openSnackBar("Статус "+name+" успешно установлен по-умолчанию", "Закрыть");
+                    this.getData();
+                    this.openSnackBar("Успешно восстановлено", "Закрыть");
                   },
-        error => {this.openSnackBar("Недостаточно прав!", "Закрыть"); console.log(error);this.getData();},
+        error => console.log(error),
     );
-  }
-  //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
+  }  
   resetOptions(){
     this.displayingDeletedDocs=false;
     this.fillOptionsList();//перезаполняем список опций

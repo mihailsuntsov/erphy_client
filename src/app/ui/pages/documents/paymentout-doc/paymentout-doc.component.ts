@@ -7,7 +7,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { SettingsPaymentinDialogComponent } from 'src/app/modules/settings/settings-paymentin-dialog/settings-paymentin-dialog.component';
+import { SettingsPaymentoutDialogComponent } from 'src/app/modules/settings/settings-paymentout-dialog/settings-paymentout-dialog.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { Router } from '@angular/router';
 import { v4 as uuidv4 } from 'uuid';
@@ -33,7 +33,7 @@ export const MY_FORMATS = {
   },
 };
 
-interface DocResponse {//интерфейс для получения ответа в методе getPaymentinValuesById
+interface DocResponse {//интерфейс для получения ответа в методе getPaymentoutValuesById
   id: number;
   company: string;
   company_id: string;
@@ -42,6 +42,8 @@ interface DocResponse {//интерфейс для получения ответ
   cagent: string;
   cagent_id: string;
   master: string;
+  expenditure_id: number;
+  expenditure: string;
   master_id: string;
   is_completed: boolean;
   changer:string;
@@ -59,8 +61,8 @@ interface DocResponse {//интерфейс для получения ответ
   status_name: string;
   status_color: string;
   status_description: string;
-  income_number:string;
-  income_number_date:string;
+  // income_number:string;
+  // income_number_date:string;
   uid:string;
 }
 interface FilesInfo {
@@ -113,15 +115,15 @@ interface SpravSysNdsSet{
 }
 
 @Component({
-  selector: 'app-paymentin-doc',
-  templateUrl: './paymentin-doc.component.html',
-  styleUrls: ['./paymentin-doc.component.css'],
+  selector: 'app-paymentout-doc',
+  templateUrl: './paymentout-doc.component.html',
+  styleUrls: ['./paymentout-doc.component.css'],
   providers: [LoadSpravService, CommonUtilitesService,
     {provide: MAT_DATE_LOCALE, useValue: 'ru'},
     {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},]
 })
-export class PaymentinDocComponent implements OnInit {
+export class PaymentoutDocComponent implements OnInit {
 
   id: number = 0;// id документа
   createdDocId: number;//получение id созданного документа
@@ -138,7 +140,8 @@ export class PaymentinDocComponent implements OnInit {
   receivedPriceTypesList: IdNameDescription [] = [];//массив для получения списка типов цен
   canEditCompAndDepth=true;
   spravSysNdsSet: SpravSysNdsSet[] = []; //массив имен и id для ндс 
-  paymentAccounts:any[]=[];  // список расчётных счетов предприятия
+  paymentAccounts:any[]=[];// список расчётных счетов предприятия
+  expenditureItems:any[]=[]; // список статей расходов
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
 
   //для загрузки связанных документов
@@ -188,8 +191,8 @@ export class PaymentinDocComponent implements OnInit {
 
   constructor(private activateRoute: ActivatedRoute,
     private cdRef:ChangeDetectorRef,
-    private _fb: FormBuilder, //чтобы билдить группу форм paymentinProductTable    
-    public SettingsPaymentinDialogComponent: MatDialog,
+    private _fb: FormBuilder, //чтобы билдить группу форм paymentoutProductTable    
+    public SettingsPaymentoutDialogComponent: MatDialog,
     private http: HttpClient,
     public ConfirmDialog: MatDialog,
     public dialogAddFiles: MatDialog,
@@ -215,15 +218,17 @@ export class PaymentinDocComponent implements OnInit {
       nds: new FormControl                      (0,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       summ: new FormControl                     ('',[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       status_id: new FormControl                ('',[]),
-      status_name: new FormControl              ('',[]),
+      status_name: new FormControl              ('',[]), 
       status_color: new FormControl             ('',[]),
       payment_account_id: new FormControl       ('',[Validators.required]),
       payment_account: new FormControl          ('',[]),
       status_description: new FormControl       ('',[]),
+      expenditure_id: new FormControl           ('',[Validators.required]),
+      expenditure: new FormControl              ('',[]),
       is_completed: new FormControl             (false,[]),
-      paymentinProductTable: new FormArray      ([]),
-      income_number: new FormControl            ('',[]),
-      income_number_date: new FormControl       ('',[]),//на дату валидаторы не вешаются, у нее свой валидатор
+      paymentoutProductTable: new FormArray      ([]),
+      // income_number: new FormControl            ('',[]),
+      // income_number_date: new FormControl       ('',[]),//на дату валидаторы не вешаются, у нее свой валидатор
       uid: new FormControl                      ('',[]),// uuid идентификатор
     });
     this.formAboutDocument = new FormGroup({
@@ -243,7 +248,7 @@ export class PaymentinDocComponent implements OnInit {
       summ: new FormControl               ('',[]), 
       description: new FormControl        ('',[]), 
       parent_tablename: new FormControl   ('',[]), //для счёта фактуры выданного
-      paymentin_id: new FormControl       ('',[]), //для счёта фактуры выданного
+      paymentout_id: new FormControl       ('',[]), //для счёта фактуры выданного
       cagent_id: new FormControl          (null,[Validators.required]),
       company_id: new FormControl         (null,[Validators.required]),
       linked_doc_id: new FormControl      (null,[]),//id связанного документа (в данном случае Отгрузка)
@@ -316,7 +321,7 @@ export class PaymentinDocComponent implements OnInit {
   //---------------------------------------------------------------------------------------------------------------------------------------
 
   getSetOfPermissions(){
-    return this.http.get('/api/auth/getMyPermissions?id=33')
+    return this.http.get('/api/auth/getMyPermissions?id=34')
       .subscribe(
           (data) => {   
                       this.permissionsSet=data as any [];
@@ -420,14 +425,14 @@ export class PaymentinDocComponent implements OnInit {
         error => console.log(error));}
 
   getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==465)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==466)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==469)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==470)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==471)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==472)});
-    this.allowToCompleteAllCompanies = permissionsSet.some(       function(e){return(e==473)});
-    this.allowToCompleteMyCompany = permissionsSet.some(          function(e){return(e==474)});
+    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==507)});
+    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==508)});
+    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==511)});
+    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==512)});
+    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==513)});
+    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==514)});
+    this.allowToCompleteAllCompanies = permissionsSet.some(       function(e){return(e==515)});
+    this.allowToCompleteMyCompany = permissionsSet.some(          function(e){return(e==516)});
    
     if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;}
     if(this.allowToViewAllCompanies){this.allowToViewMyCompany=true;}
@@ -467,6 +472,7 @@ export class PaymentinDocComponent implements OnInit {
     this.actionsBeforeGetChilds=0;
     this.getStatusesList();
     this.getCompaniesPaymentAccounts();
+    this.getExpenditureItemsList();
     //если идет стартовая прогрузка - продолжаем цепочку запросов. Если это была, например, просто смена предприятия - продолжать далее текущего метода смысла нет
     if(this.startProcess) {
       this.refreshPermissions();
@@ -475,7 +481,7 @@ export class PaymentinDocComponent implements OnInit {
 
   getStatusesList(){
     this.receivedStatusesList=null;
-    this.loadSpravService.getStatusList(this.formBaseInformation.get('company_id').value,33) //33 - id документа из таблицы documents
+    this.loadSpravService.getStatusList(this.formBaseInformation.get('company_id').value,34) //34 - id документа из таблицы documents
             .subscribe(
                 (data) => {this.receivedStatusesList=data as StatusInterface[];
                   if(+this.id==0){this.setDefaultStatus();}},
@@ -503,13 +509,13 @@ export class PaymentinDocComponent implements OnInit {
       this.receivedCompaniesList=[];
       this.receivedCompaniesList.push(myCompany);
     }
-    this.getSettings(); // настройки документа Входящий платёж
+    this.getSettings(); // настройки документа Исходящий платёж
   }
 
   //загрузка настроек
   getSettings(){
     let result:any;
-    this.http.get('/api/auth/getSettingsPaymentin')
+    this.http.get('/api/auth/getSettingsPaymentout')
       .subscribe(
           data => { 
             result=data as any;
@@ -536,6 +542,7 @@ export class PaymentinDocComponent implements OnInit {
       this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
     this.getStatusesList();    
     this.getCompaniesPaymentAccounts();
+    this.getExpenditureItemsList();
     this.refreshPermissions();
   }
   
@@ -565,7 +572,7 @@ export class PaymentinDocComponent implements OnInit {
   }
 
   getDocumentValuesById(){
-    this.http.get('/api/auth/getPaymentinValuesById?id='+ this.id)
+    this.http.get('/api/auth/getPaymentoutValuesById?id='+ this.id)
         .subscribe(
             data => { 
                 let documentValues: DocResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
@@ -579,6 +586,8 @@ export class PaymentinDocComponent implements OnInit {
                 this.formBaseInformation.get('description').setValue(documentValues.description);
                 this.formBaseInformation.get('payment_account').setValue(documentValues.payment_account);
                 this.formBaseInformation.get('payment_account_id').setValue(documentValues.payment_account_id);
+                this.formBaseInformation.get('expenditure').setValue(documentValues.expenditure);
+                this.formBaseInformation.get('expenditure_id').setValue(documentValues.expenditure_id);
                 this.formAboutDocument.get('master').setValue(documentValues.master);
                 this.formAboutDocument.get('creator').setValue(documentValues.creator);
                 this.formAboutDocument.get('changer').setValue(documentValues.changer);
@@ -590,13 +599,13 @@ export class PaymentinDocComponent implements OnInit {
                 this.formBaseInformation.get('status_color').setValue(documentValues.status_color);
                 this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
                 this.formBaseInformation.get('is_completed').setValue(documentValues.is_completed);
-                this.formBaseInformation.get('income_number').setValue(documentValues.income_number);
-                this.formBaseInformation.get('income_number_date').setValue(documentValues.income_number_date?moment(documentValues.income_number_date,'DD.MM.YYYY'):"");
+                // this.formBaseInformation.get('income_number').setValue(documentValues.income_number);
+                // this.formBaseInformation.get('income_number_date').setValue(documentValues.income_number_date?moment(documentValues.income_number_date,'DD.MM.YYYY'):"");
                 this.formBaseInformation.get('uid').setValue(documentValues.uid);
                 this.creatorId=+documentValues.creator_id;
                 this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
                 this.loadFilesInfo();
-                this.getStatusesList();//статусы документа Входящий платёж
+                this.getStatusesList();//статусы документа Исходящий платёж
                 this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
@@ -623,6 +632,7 @@ export class PaymentinDocComponent implements OnInit {
   }
 
   getCompaniesPaymentAccounts(){
+    let resultContainer: any[];
     return this.http.get('/api/auth/getCompaniesPaymentAccounts?id='+this.formBaseInformation.get('company_id').value).subscribe(
         (data) => { 
           this.paymentAccounts=data as any [];
@@ -637,12 +647,22 @@ export class PaymentinDocComponent implements OnInit {
       this.formBaseInformation.get('payment_account_id').setValue(this.paymentAccounts[0].id);
   }
 
+  getExpenditureItemsList(){
+    return this.http.get('/api/auth/getExpenditureItems?id='+this.formBaseInformation.get('company_id').value).subscribe(
+        (data) => { 
+          this.expenditureItems=data as any [];
+          // this.setDefaultExpenditureItem();
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+    );
+  }
+
   checkDocNumberUnical() {
     if(!this.formBaseInformation.get('doc_number').errors)
     {
       let Unic: boolean;
       this.isDocNumberUnicalChecking=true;
-      return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table=paymentin')
+      return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table=paymentout')
       .subscribe(
           (data) => {   
                       Unic = data as boolean;
@@ -654,27 +674,27 @@ export class PaymentinDocComponent implements OnInit {
     }
   }
 
-  //создание нового документа Входящий платёж
+  //создание нового документа Исходящий платёж
   createNewDocument(){
     this.createdDocId=null;
     this.formBaseInformation.get('uid').setValue(uuidv4());
-    this.http.post('/api/auth/insertPaymentin', this.formBaseInformation.value)
+    this.http.post('/api/auth/insertPaymentout', this.formBaseInformation.value)
       .subscribe(
       (data) => {
                   this.actionsBeforeGetChilds=0;
                   this.createdDocId=data as number;
                   switch(this.createdDocId){
                     case null:{// null возвращает если не удалось создать документ из-за ошибки
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа Входящий платёж"}});
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа Исходящий платёж"}});
                       break;
                     }
                     case -1:{//недостаточно прав
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа Входящий платёж"}});
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа Исходящий платёж"}});
                       break;
                     }
-                    default:{// Входящий платёж успешно создалась в БД 
-                      this.openSnackBar("Документ \"Входящий платёж\" успешно создан", "Закрыть");
-                      this.afterCreatePaymentin();
+                    default:{// Исходящий платёж успешно создалась в БД 
+                      this.openSnackBar("Документ \"Исходящий платёж\" успешно создан", "Закрыть");
+                      this.afterCreatePaymentout();
                     }
                   }
                 },
@@ -683,9 +703,9 @@ export class PaymentinDocComponent implements OnInit {
   }
 
   //действия после создания нового документа Инвентаризиция
-  afterCreatePaymentin(){
+  afterCreatePaymentout(){
       this.id=+this.createdDocId;
-      this._router.navigate(['/ui/paymentindoc', this.id]);
+      this._router.navigate(['/ui/paymentoutdoc', this.id]);
       this.formBaseInformation.get('id').setValue(this.id);
       this.getData();
   }
@@ -694,8 +714,8 @@ export class PaymentinDocComponent implements OnInit {
     if(!notShowDialog){//notShowDialog=false - показывать диалог
       const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
         width: '400px',data:{
-          head: 'Проведение входящего платежа',
-          warning: 'Вы хотите провести данный входящий платёж?',
+          head: 'Проведение исходящего платежа',
+          warning: 'Вы хотите провести данный исходящий платёж?',
           query: 'После проведения документ станет недоступным для редактирования.'},});
       dialogRef.afterClosed().subscribe(result => {
         if(result==1){
@@ -712,7 +732,7 @@ export class PaymentinDocComponent implements OnInit {
       if(this.settingsForm.get('statusIdOnComplete').value){//если в настройках есть "Статус при проведении" - временно выставляем его
         this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
     }
-    this.http.post('/api/auth/updatePaymentin',  this.formBaseInformation.value)
+    this.http.post('/api/auth/updatePaymentout',  this.formBaseInformation.value)
       .subscribe(
           (data) => 
           {   
@@ -723,15 +743,15 @@ export class PaymentinDocComponent implements OnInit {
             let result:number=data as number;
             switch(result){
               case null:{// null возвращает если не удалось создать документ из-за ошибки
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка "+ (complete?"проведения":"сохренения") + " документа \"Входящий платёж\""}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка "+ (complete?"проведения":"сохренения") + " документа \"Исходящий платёж\""}});
                 break;
               }
               case -1:{//недостаточно прав
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа \"Входящий платёж\""}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа \"Исходящий платёж\""}});
                 break;
               }
               default:{// Успешно
-                this.openSnackBar("Документ \"Входящий платёж\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
+                this.openSnackBar("Документ \"Исходящий платёж\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
                 if(complete) {
                   this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведённости = true
                   if(this.settingsForm.get('statusIdOnComplete').value){//если в настройках есть "Статус при проведении" - выставим его
@@ -767,7 +787,7 @@ export class PaymentinDocComponent implements OnInit {
 
   //открывает диалог настроек
   openDialogSettings() { 
-    const dialogSettings = this.SettingsPaymentinDialogComponent.open(SettingsPaymentinDialogComponent, {
+    const dialogSettings = this.SettingsPaymentoutDialogComponent.open(SettingsPaymentoutDialogComponent, {
       maxWidth: '95vw',
       maxHeight: '95vh',
       width: '400px', 
@@ -789,7 +809,7 @@ export class PaymentinDocComponent implements OnInit {
         if(result.get('cagentId')) this.settingsForm.get('cagentId').setValue(result.get('cagentId').value);
         if(result.get('cagent')) this.settingsForm.get('cagent').setValue(result.get('cagent').value);
         this.settingsForm.get('statusIdOnComplete').setValue(result.get('statusIdOnComplete').value);
-        this.saveSettingsPaymentin();
+        this.saveSettingsPaymentout();
         // если это новый документ - применяем настройки 
         if(+this.id==0)  {
           //если в настройках сменили предприятие - нужно сбросить статусы, чтобы статус от предыдущего предприятия не прописался в актуальное
@@ -801,8 +821,8 @@ export class PaymentinDocComponent implements OnInit {
     });
   }
 
-  saveSettingsPaymentin(){
-    return this.http.post('/api/auth/saveSettingsPaymentin', this.settingsForm.value)
+  saveSettingsPaymentout(){
+    return this.http.post('/api/auth/saveSettingsPaymentout', this.settingsForm.value)
             .subscribe(
                 (data) => {   
                           this.openSnackBar("Настройки успешно сохранены", "Закрыть");
@@ -834,7 +854,7 @@ export class PaymentinDocComponent implements OnInit {
 
   //создание нового документа
   goToNewDocument(){
-    this._router.navigate(['ui/paymentindoc',0]);
+    this._router.navigate(['ui/paymentoutdoc',0]);
     this.id=0;
     this.form.resetForm();
     this.formBaseInformation.get('uid').setValue('');
@@ -845,11 +865,12 @@ export class PaymentinDocComponent implements OnInit {
     this.formBaseInformation.get('doc_number').setValue('');
     this.formBaseInformation.get('cagent_id').setValue(null);
     this.formBaseInformation.get('cagent').setValue('');
-    this.formBaseInformation.get('income_number').setValue('');
-    this.formBaseInformation.get('income_number_date').setValue('');
+    // this.formBaseInformation.get('income_number').setValue('');
+    // this.formBaseInformation.get('income_number_date').setValue('');
     this.formBaseInformation.get('description').setValue('');
     this.formBaseInformation.get('status_id').setValue(null);    
     this.formBaseInformation.get('payment_account_id').setValue(null);
+    this.formBaseInformation.get('expenditure_id').setValue(null);
     this.searchCagentCtrl.reset();
     this.resetStatus();
 
@@ -887,7 +908,7 @@ openDialogAddFiles() {
   });
   dialogRef.afterClosed().subscribe(result => {
     console.log(`Dialog result: ${result}`);
-    if(result)this.addFilesToPaymentin(result);
+    if(result)this.addFilesToPaymentout(result);
   });
 }
 openFileCard(docId:number) {
@@ -904,7 +925,7 @@ openFileCard(docId:number) {
   });
 }
 loadFilesInfo(){//                                     загружает информацию по прикрепленным файлам
-    return this.http.get('/api/auth/getListOfPaymentinFiles?id='+this.id) 
+    return this.http.get('/api/auth/getListOfPaymentoutFiles?id='+this.id) 
           .subscribe(
               (data) => {  
                           this.filesInfo = data as any[]; 
@@ -912,9 +933,9 @@ loadFilesInfo(){//                                     загружает инф
               error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
           );
 }
-addFilesToPaymentin(filesIds: number[]){
+addFilesToPaymentout(filesIds: number[]){
   const body = {"id1":this.id, "setOfLongs1":filesIds};// передаем id товара и id файлов 
-          return this.http.post('/api/auth/addFilesToPaymentin', body) 
+          return this.http.post('/api/auth/addFilesToPaymentout', body) 
             .subscribe(
                 (data) => {  
                   this.loadFilesInfo();
@@ -941,7 +962,7 @@ clickBtnDeleteFile(id: number): void {
 
 deleteFile(id:number){
   const body = {id: id, any_id:this.id}; 
-  return this.http.post('/api/auth/deletePaymentinFile',body)
+  return this.http.post('/api/auth/deletePaymentoutFile',body)
   .subscribe(
       (data) => {   
                   this.loadFilesInfo();
@@ -964,18 +985,18 @@ deleteFile(id:number){
       this.formLinkedDocs.get('cagent_id').setValue(this.formBaseInformation.get('cagent_id').value);
       this.formLinkedDocs.get('nds').setValue(this.formBaseInformation.get('nds').value);
       this.formLinkedDocs.get('summ').setValue(this.formBaseInformation.get('summ').value);
-      this.formLinkedDocs.get('description').setValue('Создано из Входящего платежа №'+ this.formBaseInformation.get('doc_number').value);
+      this.formLinkedDocs.get('description').setValue('Создано из Исходящего платежа №'+ this.formBaseInformation.get('doc_number').value);
       this.formLinkedDocs.get('is_completed').setValue(false);
       this.formLinkedDocs.get('uid').setValue(uid);
       
       this.formLinkedDocs.get('linked_doc_id').setValue(this.id);//id связанного документа (того, из которого инициируется создание данного документа)
-      this.formLinkedDocs.get('linked_doc_name').setValue('paymentin');//имя (таблицы) связанного документа
+      this.formLinkedDocs.get('linked_doc_name').setValue('paymentout');//имя (таблицы) связанного документа
 
       //поля для счёта-фактуры выданного
-      this.formLinkedDocs.get('parent_tablename').setValue('paymentin');
-      this.formLinkedDocs.get('paymentin_id').setValue(this.id);
+      this.formLinkedDocs.get('parent_tablename').setValue('paymentout');
+      this.formLinkedDocs.get('paymentout_id').setValue(this.id);
 
-      if(docname=='Ordersup'){// Заказ поставщику для Входящего платежа является родительским, но может быть создан из Входящего платежа (Заказ поставщику будет выше по иерархии в диаграмме связей)
+      if(docname=='Ordersup'){// Заказ поставщику для Исходящего платежа является родительским, но может быть создан из Исходящего платежа (Заказ поставщику будет выше по иерархии в диаграмме связей)
         this.formLinkedDocs.get('parent_uid').setValue(uid);// uid исходящего (родительского) документа
         this.formLinkedDocs.get('child_uid').setValue(this.formBaseInformation.get('uid').value);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
       } else {
@@ -1075,10 +1096,7 @@ deleteFile(id:number){
 //*****************************************************************************************************************************************/
   //------------------------------------------ COMMON UTILITES -----------------------------------------
   // костыли из-за глюка ангуляра, когда при сравнении поля с '' ноль присвоенный полю так же приравнивается к ''
-  setNdsNullIfEmpty(){
-    if(this.formBaseInformation.get('nds').value=='')
-      this.formBaseInformation.get('nds').setValue(null)
-  }
+  setNdsNullIfEmpty(){if(this.formBaseInformation.get('nds').value=='') this.formBaseInformation.get('nds').setValue(null)}
   //Конвертирует число в строку типа 0.00 например 6.40, 99.25
   numToPrice(price:number,charsAfterDot:number) {
     //конертим число в строку и отбрасываем лишние нули без округления
@@ -1106,7 +1124,7 @@ deleteFile(id:number){
   getFormIngexByProductId(productId:number):number{
     let retIndex:number;
     let formIndex:number=0;
-    this.formBaseInformation.value.paymentinProductTable.map(i => 
+    this.formBaseInformation.value.paymentoutProductTable.map(i => 
       {
       if(+i['product_id']==productId){retIndex=formIndex}
       formIndex++;

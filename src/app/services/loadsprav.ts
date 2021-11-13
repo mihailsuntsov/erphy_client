@@ -2,7 +2,7 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 export interface idAndName {
-    id: number;
+    id: any;
     name:string;
   }
   
@@ -74,6 +74,18 @@ export class LoadSpravService{
             ];
             return docList; 
         }
+    //формирование списка расходов с id и названием
+    getExpenditureList(){
+        let docList: idAndName [] = [];
+        docList = [
+            {id:'return', name:'Возврат'},
+            {id:'purchases', name:'Закупки'},
+            {id:'taxes', name:'Налоги и сборы'},
+            {id:'moving', name:'Перемещение между кассами'},
+            {id:'other_opex', name:'Другие операционные расходы'},
+        ];
+        return docList; 
+    }    
     //загружается список статусов документа по его id (таблица documents) и id предприятия
     getStatusList(companyId: number, documentId:number){
         const body = {companyId: companyId, documentId: documentId};

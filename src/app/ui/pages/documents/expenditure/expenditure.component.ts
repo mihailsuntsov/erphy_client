@@ -9,7 +9,7 @@ import { LoadSpravService } from '../../../../services/loadsprav';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
-import { QueryFormService } from './get-statusdocs-table.service';
+import { QueryFormService } from './get-expenditure-table.service';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
 
 export interface CheckBox {
@@ -19,7 +19,7 @@ export interface CheckBox {
   name: string;
 }
 export interface idAndName {
-  id: number;
+  id: any;
   name:string;
 }
 export interface NumRow {//интерфейс для списка количества строк
@@ -28,20 +28,19 @@ export interface NumRow {//интерфейс для списка количес
 }
 
 @Component({
-  selector: 'app-statuses',
-  templateUrl: './statuses.component.html',
-  styleUrls: ['./statuses.component.css'],
+  selector: 'app-expenditure',
+  templateUrl: './expenditure.component.html',
+  styleUrls: ['./expenditure.component.css'],
   providers: [QueryFormService,LoadSpravService,Cookie]
 })
-export class StatusesComponent implements OnInit {
+export class ExpenditureComponent implements OnInit {
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
   receivedPagesList: string [] ;//массив для получения данных пагинации
   dataSource = new MatTableDataSource<CheckBox>(); //массив данных для таблицы и чекбоксов (чекбоксы берут из него id, таблица -всё)
   displayedColumns: string[] = [];//массив отображаемых столбцов таблицы
   selection = new SelectionModel<CheckBox>(true, []);//Class to be used to power selecting one or more options from a list.
   receivedCompaniesList: idAndName [] = [];//массив для получения списка предприятий
-  receivedDocumentsList: idAndName [] = [];//массив для получения списка отделений
-  receivedMyDepartmentsList: idAndName [] = [];//массив для получения списка СВОИХ отделений
+  receivedExpenditureList: idAndName [] = [];//массив для получения списка расходов
   myCompanyId:number=0;//
   myId:number=0;
   checkedList:number[]=[]; //строка для накапливания id чекбоксов вида [2,5,27...]
@@ -97,30 +96,27 @@ export class StatusesComponent implements OnInit {
     private http: HttpClient,
     private Cookie: Cookie,
     public deleteDialog: MatDialog,
-    public dialogRef1: MatDialogRef<StatusesComponent>,) { }
+    public dialogRef1: MatDialogRef<ExpenditureComponent>,) { }
 
     ngOnInit() {
       this.sendingQueryForm.companyId='0';
-      this.sendingQueryForm.documentId='0';
       this.sendingQueryForm.sortAsc='asc';
-      this.sendingQueryForm.sortColumn='output_order';
+      this.sendingQueryForm.sortColumn='name';
       this.sendingQueryForm.offset='0';
       this.sendingQueryForm.result='10';
       this.sendingQueryForm.searchCategoryString="";
       this.sendingQueryForm.filterOptionsIds = [];
 
-      if(Cookie.get('satusdoc_companyId')=='undefined' || Cookie.get('satusdoc_companyId')==null)     
-        Cookie.set('satusdoc_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('satusdoc_companyId')=="0"?"0":+Cookie.get('satusdoc_companyId'));
-      if(Cookie.get('satusdoc_documentId')=='undefined' || Cookie.get('satusdoc_documentId')==null)  
-        Cookie.set('satusdoc_documentId',this.sendingQueryForm.documentId); else this.sendingQueryForm.documentId=(Cookie.get('satusdoc_documentId')=="0"?"0":+Cookie.get('satusdoc_documentId'));
-      if(Cookie.get('satusdoc_sortAsc')=='undefined' || Cookie.get('satusdoc_sortAsc')==null)       
-        Cookie.set('satusdoc_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('satusdoc_sortAsc');
-      if(Cookie.get('satusdoc_sortColumn')=='undefined' || Cookie.get('satusdoc_sortColumn')==null)    
-        Cookie.set('satusdoc_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('satusdoc_sortColumn');
-      if(Cookie.get('satusdoc_offset')=='undefined' || Cookie.get('satusdoc_offset')==null)        
-        Cookie.set('satusdoc_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('satusdoc_offset');
-      if(Cookie.get('satusdoc_result')=='undefined' || Cookie.get('satusdoc_result')==null)        
-        Cookie.set('satusdoc_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('satusdoc_result');
+      if(Cookie.get('expenditure_companyId')=='undefined' || Cookie.get('expenditure_companyId')==null)     
+        Cookie.set('expenditure_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('expenditure_companyId')=="0"?"0":+Cookie.get('expenditure_companyId'));
+      if(Cookie.get('expenditure_sortAsc')=='undefined' || Cookie.get('expenditure_sortAsc')==null)       
+        Cookie.set('expenditure_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('expenditure_sortAsc');
+      if(Cookie.get('expenditure_sortColumn')=='undefined' || Cookie.get('expenditure_sortColumn')==null)    
+        Cookie.set('expenditure_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('expenditure_sortColumn');
+      if(Cookie.get('expenditure_offset')=='undefined' || Cookie.get('expenditure_offset')==null)        
+        Cookie.set('expenditure_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('expenditure_offset');
+      if(Cookie.get('expenditure_result')=='undefined' || Cookie.get('expenditure_result')==null)        
+        Cookie.set('expenditure_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('expenditure_result');
 
       this.fillOptionsList();//заполняем список опций фильтра
       this.getCompaniesList();// 
@@ -137,7 +133,7 @@ export class StatusesComponent implements OnInit {
 
     // -------------------------------------- *** ПРАВА *** ------------------------------------
    getSetOfPermissions(){
-    return this.http.get('/api/auth/getMyPermissions?id=22')
+    return this.http.get('/api/auth/getMyPermissions?id=40')
             .subscribe(
                 (data) => {   
                             this.permissionsSet=data as any [];
@@ -148,14 +144,14 @@ export class StatusesComponent implements OnInit {
   }
 
   getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==271)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==272)});
-    this.allowToDeleteAllCompanies = permissionsSet.some(         function(e){return(e==273)});
-    this.allowToDeleteMyCompany = permissionsSet.some(            function(e){return(e==274)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==275)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==276)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==277)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==278)});
+    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==498)});
+    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==499)});
+    this.allowToDeleteAllCompanies = permissionsSet.some(         function(e){return(e==500)});
+    this.allowToDeleteMyCompany = permissionsSet.some(            function(e){return(e==501)});
+    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==502)});
+    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==503)});
+    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==504)});
+    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==505)});
     this.getData();
   }
 
@@ -195,10 +191,8 @@ export class StatusesComponent implements OnInit {
     if(this.allowToDelete) this.displayedColumns.push('select');
     if(this.showOpenDocIcon) this.displayedColumns.push('opendoc');
     this.displayedColumns.push('name');
-    this.displayedColumns.push('output_order');
-    this.displayedColumns.push('is_default');
+    this.displayedColumns.push('type');
     this.displayedColumns.push('company');
-    this.displayedColumns.push('description');
     this.displayedColumns.push('creator');
     this.displayedColumns.push('date_time_created');
   }
@@ -288,7 +282,7 @@ export class StatusesComponent implements OnInit {
     this.clearCheckboxSelection();
     this.createCheckedList();
     this.sendingQueryForm.offset=0;
-    Cookie.set('satusdoc_result',this.sendingQueryForm.result);
+    Cookie.set('expenditure_result',this.sendingQueryForm.result);
     this.getData();
   }
 
@@ -296,7 +290,7 @@ export class StatusesComponent implements OnInit {
   {
     this.clearCheckboxSelection();
     this.sendingQueryForm.offset=value;
-    Cookie.set('satusdoc_offset',value);
+    Cookie.set('expenditure_offset',value);
     this.getData();
   }
 
@@ -315,25 +309,21 @@ export class StatusesComponent implements OnInit {
           } else {  
               this.sendingQueryForm.sortAsc="asc"
           }
-      Cookie.set('satusdoc_sortAsc',this.sendingQueryForm.sortAsc);
+      Cookie.set('expenditure_sortAsc',this.sendingQueryForm.sortAsc);
       } else {
           this.sendingQueryForm.sortColumn=valueSortColumn;
           this.sendingQueryForm.sortAsc="asc";
-          Cookie.set('satusdoc_sortAsc',"asc");
-          Cookie.set('satusdoc_sortColumn',valueSortColumn);
+          Cookie.set('expenditure_sortAsc',"asc");
+          Cookie.set('expenditure_sortColumn',valueSortColumn);
       }
       this.getData();
   }
   onCompanySelection(){
-    Cookie.set('satusdoc_companyId',this.sendingQueryForm.companyId);
-    this.sendingQueryForm.documentId="0"; 
+    Cookie.set('expenditure_companyId',this.sendingQueryForm.companyId);
     this.resetOptions();
-    this.getDocumentsList();
+    this.getExpenditureList();
   }
-  onDocumentSelection(){
-    Cookie.set('satusdoc_documentId',this.sendingQueryForm.documentId);
-    this.getData();
-  }
+
   clickBtnDelete(): void {
     const dialogRef = this.deleteDialog.open(DeleteDialog, {
       width: '300px',
@@ -344,6 +334,16 @@ export class StatusesComponent implements OnInit {
       this.showOnlyVisBtnAdd();
     });        
   }
+  
+  getExpenditureNameById(id:string):string{
+    let name:string = 'Не установлен';
+    if(this.receivedExpenditureList){
+      this.receivedExpenditureList.forEach(a=>{
+        if(a.id==id) name=a.name;
+      })}
+    return(name);
+  }
+
   clickBtnRestore(): void {
     const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
       width: '400px',
@@ -363,7 +363,7 @@ export class StatusesComponent implements OnInit {
   undeleteDocs(){
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
-      return this.http.post('/api/auth/undeleteSpravStatusDocs', body) 
+      return this.http.post('/api/auth/undeleteExpenditure', body) 
     .subscribe(
         (data) => {   
                     this.getData();
@@ -375,7 +375,7 @@ export class StatusesComponent implements OnInit {
   deleteDocs(){
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
-          return this.http.post('/api/auth/deleteSpravStatusDocs', body) 
+          return this.http.post('/api/auth/deleteExpenditure', body) 
             .subscribe(
                 (data) => {   
                             this.getData();
@@ -400,7 +400,6 @@ export class StatusesComponent implements OnInit {
             );
   }
   getMyId(){
-    this.receivedMyDepartmentsList=null;
     this.loadSpravService.getMyId()
             .subscribe(
                 (data) => {this.myId=data as any;
@@ -417,28 +416,16 @@ export class StatusesComponent implements OnInit {
   }
 
   setDefaultCompany(){
-    if(Cookie.get('satusdoc_companyId')=='0'){
+    if(Cookie.get('expenditure_companyId')=='0'){
       this.sendingQueryForm.companyId=this.myCompanyId;
-      Cookie.set('satusdoc_companyId',this.sendingQueryForm.companyId);
+      Cookie.set('expenditure_companyId',this.sendingQueryForm.companyId);
     }
-      this.getDocumentsList();
+      this.getExpenditureList();
   }
 
-  getDocumentsList(){
-    this.receivedDocumentsList=this.loadSpravService.getDocumentsList();
-    this.setDefaultDocument();
-  }
-
-  setDefaultDocument(){
-    console.log('Document length = '+this.receivedDocumentsList.length);
-    if(this.receivedDocumentsList.length>1)
-    {
-      this.sendingQueryForm.documentId=(Cookie.get('satusdoc_documentId')=="0"?this.receivedDocumentsList[0].id:+Cookie.get('satusdoc_documentId'))
-    } else {
-      this.sendingQueryForm.documentId=+this.receivedDocumentsList[0].id;
-      Cookie.set('satusdoc_documentId',this.sendingQueryForm.documentId);
-    }
-  this.getCRUD_rights(this.permissionsSet);
+  getExpenditureList(){
+    this.receivedExpenditureList=this.loadSpravService.getExpenditureList();
+    this.getCRUD_rights(this.permissionsSet);
   }
 
   showCheckbox(row:CheckBox):boolean{
@@ -459,18 +446,6 @@ export class StatusesComponent implements OnInit {
     }
   }
 
-  onClickRadioBtn(id:number, name:string){
-    const body = {"id": this.sendingQueryForm.companyId, "id2":this.sendingQueryForm.documentId, "id3":id}; 
-    this.clearCheckboxSelection();
-      return this.http.post('/api/auth/setDefaultStatusDoc', body) 
-    .subscribe(
-        (data) => {   
-          this.getData();
-                    this.openSnackBar("Статус "+name+" успешно установлен по-умолчанию", "Закрыть");
-                  },
-        error => {this.openSnackBar("Недостаточно прав!", "Закрыть"); console.log(error);this.getData();},
-    );
-  }
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
   resetOptions(){
     this.displayingDeletedDocs=false;

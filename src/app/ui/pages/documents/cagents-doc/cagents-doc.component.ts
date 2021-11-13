@@ -1114,7 +1114,7 @@ constructor(private activateRoute: ActivatedRoute,
   getCagentsContacts(){
     let resultContainer: any[];
     const body = {"id": this.id};
-    return this.http.post('/api/auth/getCagentsContacts', body).subscribe(
+    return this.http.get('/api/auth/getCagentsContacts?id='+this.id).subscribe(
         (data) => { resultContainer=data as any [];
                     this.fillContactsArray(resultContainer);
                 },
@@ -1201,8 +1201,7 @@ constructor(private activateRoute: ActivatedRoute,
 //-------------------------- Б А Н К О В С К И Е   Р Е К В И З И Т Ы  -------------------------------
   getCagentsPaymentAccounts(){
     let resultContainer: any[];
-    const body = {"id": this.id};
-    return this.http.post('/api/auth/getCagentsPaymentAccounts', body).subscribe(
+    return this.http.get('/api/auth/getCagentsPaymentAccounts?id='+this.id).subscribe(
         (data) => { resultContainer=data as any [];
                     this.fillPaymentAccountsArray(resultContainer);
                 },

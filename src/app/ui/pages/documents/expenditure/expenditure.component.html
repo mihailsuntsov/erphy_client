@@ -6,10 +6,10 @@ class="spinner"
 ></mat-spinner>
 <mat-card class="card">
     <mat-card-title class="flex" style="height: 30px;">
-        <div *ngIf="!displayingDeletedDocs" class="card-name">Статусы документов</div>
-        <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> статусы документов</div>
+        <div *ngIf="!displayingDeletedDocs" class="card-name">Статьи расходов</div>
+        <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> статьи расходов</div>
         <div [style.display]="(visBtnAdd  && !displayingDeletedDocs)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
-            <a [routerLink]="['../../statusesdoc', '']">
+            <a [routerLink]="['../../expendituredoc', '']">
                 <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> Создать</button>
             </a>   
         </div>
@@ -28,7 +28,6 @@ class="spinner"
             <div class="card-body">
                 <form  class="form-horizontal" id="formControl" method="post" action="" style="margin-bottom: 0px;">
                     <div id="hidden" style="display: none;" class="row">
-                        <!-- <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/> -->
                         <div class="form-group">
                             <label class="control-label col-sm-2" for="offset">offset</label>
                             <input [(ngModel)]="sendingQueryForm.offset" value="" type="text" class="form-control" id="offset" name="offSet">
@@ -58,15 +57,6 @@ class="spinner"
                             (selectionChange)="onCompanySelection()">                          
                                 <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
                                         {{rt.name}}
-                                </mat-option>
-                            </mat-select>
-                        </mat-form-field>
-                        <mat-form-field class="company-select" style="margin-left: 10px">
-                            <mat-label>Документ</mat-label>
-                            <mat-select  [(value)]="sendingQueryForm.documentId" (selectionChange)="onDocumentSelection();">                          
-                                <!--mat-option value="0" selected>---</mat-option-->
-                                <mat-option  *ngFor="let rdl of receivedDocumentsList" [value]="rdl.id">
-                                        {{rdl.name}}
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
@@ -138,8 +128,8 @@ class="spinner"
                         <ng-container matColumnDef="opendoc">
                             <th mat-header-cell *matHeaderCellDef></th>
                             <td mat-cell *matCellDef="let row" class="table-launch-icon">
-                                <a class="inactive" [routerLink]="['../../statusesdoc', row.id ]">
-                                    <mat-icon style="padding: 5px 5px 0 0">launch</mat-icon>
+                                <a class="inactive" [routerLink]="['../../expendituredoc', row.id ]">
+                                    <mat-icon style="padding: 0 5px 0 0">launch</mat-icon>
                                 </a>
                             </td>   
                         </ng-container>
@@ -155,7 +145,7 @@ class="spinner"
                             </span>
                             <td mat-cell *matCellDef="let row"> {{row.creator}} </td>
                         </ng-container>
-                        <ng-container matColumnDef="name">
+                        <ng-container matColumnDef="name">`
                             <th mat-header-cell *matHeaderCellDef>
                             <span (click)="setSort('name')" class="sortheader"> Название 
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='name'" class="material-icons sortarrow">arrow_upward</i>
@@ -163,31 +153,13 @@ class="spinner"
                             </span>
                             <td mat-cell *matCellDef="let row"> {{row.name}} </td>
                         </ng-container>
-                        <ng-container matColumnDef="output_order">
-                            <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('output_order')" class="sortheader"> Порядок 
-                                <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='output_order'" class="material-icons sortarrow">arrow_upward</i>
-                                <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='output_order'" class="material-icons sortarrow">arrow_downward</i>
+                        <ng-container matColumnDef="type">
+                            <th mat-header-cell *matHeaderCellDef> 
+                            <span (click)="setSort('type')" class="sortheader"> Тип 
+                                <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='type'" class="material-icons sortarrow">arrow_upward</i>
+                                <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='type'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
-                            <td mat-cell *matCellDef="let row"> {{row.output_order}} </td>
-                        </ng-container>
-                        <ng-container matColumnDef="is_default">
-                            <th mat-header-cell *matHeaderCellDef>
-                            <span class="sortheader"> По-умолчанию </span>
-                            <td mat-cell *matCellDef="let row">
-                                <mat-radio-group [value]=row.is_default
-                                        style="display: flex; flex-direction: column; padding: 4px 0;">
-                                    <mat-radio-button [value]=true (click)="onClickRadioBtn(row.id,row.name)" style="padding: 2px 0;"></mat-radio-button>
-                                </mat-radio-group>
-                            </td>
-                        </ng-container>
-                        <ng-container matColumnDef="description">
-                            <th mat-header-cell *matHeaderCellDef style="width:300px;">
-                            <span (click)="setSort('description')" class="sortheader"> Доп. инфо. 
-                                <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='description'" class="material-icons sortarrow">arrow_upward</i>
-                                <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='description'" class="material-icons sortarrow">arrow_downward</i>
-                            </span>
-                            <td mat-cell *matCellDef="let row"> {{row.description}} </td>
+                            <td mat-cell *matCellDef="let row"> {{getExpenditureNameById(row.type)}} </td>
                         </ng-container>
                         <ng-container matColumnDef="company">
                             <th mat-header-cell *matHeaderCellDef>
