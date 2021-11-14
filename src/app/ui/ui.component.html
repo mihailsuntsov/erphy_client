@@ -5,7 +5,7 @@
       <a href="/ui/dashboard"><span class="logo-name">ДОКИО</span></a>
     </div>
     <ul class="nav-links">
-      <li *ngIf="hasPermission(183)||hasPermission(360)||hasPermission(424)||hasPermission(444)">
+      <li *ngIf="hasPermission(183)||hasPermission(360)||hasPermission(424)||hasPermission(444)||hasPermission(528)">
         <div class="icon-link" (click)="arrowClick($event,1)">
           <a>
             <i class="material-icons unselectable" (click)="arrowClick($event,3)">add_shopping_cart</i>
@@ -26,17 +26,21 @@
             <a routerLink="ordersup">
               <span class="unselectable">Заказы поставщикам</span></a>
           </li>
-          <li *ngIf="hasPermission(444)">
-            <a routerLink="invoicein">
-              <span class="unselectable">Счета поставщиков</span></a>
-          </li>
           <li *ngIf="hasPermission(183)">
             <a routerLink="acceptance">
               <span class="unselectable">Приёмки</span></a>
           </li>
+          <li *ngIf="hasPermission(444)">
+            <a routerLink="invoicein">
+              <span class="unselectable">Счета поставщиков</span></a>
+          </li>
+          <li *ngIf="hasPermission(528)">
+            <a routerLink="vatinvoicein">
+              <span class="unselectable">Счета-фактуры полученные</span></a>
+          </li>
         </ul>
       </li>
-      <li *ngIf="hasPermission(344)||hasPermission(279)||hasPermission(252)||hasPermission(404)">
+      <li *ngIf="hasPermission(344)||hasPermission(279)||hasPermission(252)||hasPermission(404)||hasPermission(486)">
         <div class="icon-link" (click)="arrowClick($event,1)">
           <a>
             <i class="material-icons unselectable" (click)="arrowClick($event,3)">credit_card</i>
@@ -64,6 +68,10 @@
           <li *ngIf="hasPermission(404)">
             <a routerLink="invoiceout">
               <span class="unselectable">Счета покупателям</span></a>
+          </li>
+          <li *ngIf="hasPermission(486)">
+            <a routerLink="vatinvoiceout">
+              <span class="unselectable">Счета-фактуры выданные</span></a>
           </li>
         </ul>
       </li>
@@ -133,7 +141,7 @@
           </li>
         </ul>
       </li>
-      <li *ngIf="hasPermission(464)||hasPermission(475)||hasPermission(486)||hasPermission(506)||hasPermission(517)">
+      <li *ngIf="hasPermission(464)||hasPermission(475)||hasPermission(506)||hasPermission(517)">
         <div class="icon-link" (click)="arrowClick($event,1)">
           <a>
             <i class="material-icons unselectable" (click)="arrowClick($event,3)">payments</i>
@@ -161,10 +169,6 @@
           <li *ngIf="hasPermission(517)">
             <a routerLink="orderout">
               <span class="unselectable">Расходный ордер</span></a>
-          </li>
-          <li *ngIf="hasPermission(486)">
-            <a routerLink="vatinvoiceout">
-              <span class="unselectable">Счет-фактура выданный</span></a>
           </li>
         </ul>
       </li>

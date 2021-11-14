@@ -90,12 +90,12 @@ export class CommonUtilitesService{
       case 'acceptance':      {return 'acceptanceProductTable';}
       case 'invoiceout':      {return 'invoiceoutProductTable';}
       case 'invoicein':       {return 'invoiceinProductTable';}
-      case 'paymentin':       {return 'paymentinProductTable';}
-      case 'paymentout':      {return 'paymentoutProductTable';}
-      case 'orderin':         {return 'orderinProductTable';}
-      case 'orderout':        {return 'orderoutProductTable';}
-      case 'vatinvoiceout':   {return 'vatinvoiceoutProductTable';}
-      case 'vatinvoicein':    {return 'vatinvoiceinProductTable';}
+      case 'paymentin':       {return '';}//данные документы не содержат в себе списка номенклатуры
+      case 'paymentout':      {return '';}
+      case 'orderin':         {return '';}
+      case 'orderout':        {return '';}
+      case 'vatinvoiceout':   {return '';}
+      case 'vatinvoicein':    {return '';}
       default:               return (null);
     }
   }

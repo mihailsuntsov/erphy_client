@@ -2,7 +2,7 @@
     <form #form="ngForm" [formGroup]="formBaseInformation">
         <div class="top-bar-plug"></div>
         <mat-card-title class="flex top-bar">
-            <div class="card-name">Исходящий платёж <span [ngClass]="{invisible: +id==0}"> №{{formBaseInformation.get('doc_number').value}}</span></div>
+            <div class="card-name">Расходный ордер <span [ngClass]="{invisible: +id==0}"> №{{formBaseInformation.get('doc_number').value}}</span></div>
             <div  id="status" style=" font-size: 15px;"> 
                 <div class = "circle-in-selected" *ngIf="+formBaseInformation.get('status_id').value>0" [style.background-color]="formBaseInformation.get('status_color').value"></div>
                 <mat-form-field  class="mat-form-field-100" style="margin-top: -25px;">
@@ -30,7 +30,7 @@
                 mat-raised-button 
                 style="width: 36px;height: 36px;min-width: 38px;padding: 0px;"
                 color="primary"
-                matTooltip='Настройки документа "Исходящий платёж"'
+                matTooltip='Настройки документа "Расходный ордер"'
                 (click)="openDialogSettings()"
                 type="button"
                 class="button">
@@ -52,14 +52,11 @@
             </button>
             <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
                 <button mat-menu-item (click)="goToNewDocument()">
-                    <span>Исходящий платёж</span>
+                    <span>Расходный ордер</span>
                 </button>
                 <button mat-menu-item (click)="createLinkedDoc('Vatinvoicein')">
                     <span>Счёт-фактура полученный</span>
                 </button>
-                <!-- <button mat-menu-item (click)="createLinkedDoc('Returnsup')">
-                    <span>Возврат поставщику</span>
-                </button> -->
             </mat-menu>
             <button 
                 style="width: 129px;height: 36px;min-width: 38px;"
@@ -96,7 +93,7 @@
                 class="button">
                 <i class="material-icons">done</i> Создать
             </button>
-            <a routerLink="../../paymentout"  [style.display]="(mode=='standart')?'block':'none'">
+            <a routerLink="../../orderout"  [style.display]="(mode=='standart')?'block':'none'">
                 <button 
                     style="width: 129px;height: 36px;min-width: 38px;"
                     mat-raised-button 
@@ -162,25 +159,7 @@
                                                                             [ngModel]="formAboutDocument.get('company').value" [ngModelOptions]="{standalone: true}"/>
                                                                 </mat-form-field>
                                                             </div>
-                                                            <div class="col-12">    
-                                                                <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: formBaseInformation.get('is_completed').value}">
-                                                                    <mat-label>Расчётный счёт <span *ngIf="+formBaseInformation.get('payment_account_id').value==0" class="star">*</span></mat-label>
-                                                                    <mat-select formControlName="payment_account_id" 
-                                                                                >                          
-                                                                        <mat-option  *ngFor="let rt of paymentAccounts" [value]="rt.id" 
-                                                                        matTooltip='{{rt.payment_account}} ({{rt.name}})'>
-                                                                                {{rt.payment_account}} ({{rt.name}})
-                                                                        </mat-option> 
-                                                                    </mat-select>
-                                                                </mat-form-field>
-                                                                <mat-form-field class="mat-form-field-100" *ngIf="formBaseInformation.get('is_completed').value">
-                                                                    <mat-label>Расчётный счёт</mat-label>
-                                                                    <input  matInput [readonly]="true" 
-                                                                    matTooltip="{{formBaseInformation.get('payment_account').value}}"
-                                                                            [ngModel]="formBaseInformation.get('payment_account').value" [ngModelOptions]="{standalone: true}"/>
-                                                                </mat-form-field>
-                                                            </div>
-                                                            
+
                                                             <div class="col-12">    
                                                                 <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: formBaseInformation.get('is_completed').value}">
                                                                     <mat-label>Статья расходов <span *ngIf="+formBaseInformation.get('expenditure_id').value==0" class="star">*</span></mat-label>
@@ -247,16 +226,15 @@
                                                             </div>
                                                             <div class="col-12"> 
                                                                 <mat-form-field   class="mat-form-field-100">
-                                                                    <mat-label>В том числе НДС <span *ngIf="formBaseInformation.get('nds').value==null" class="star">*</span></mat-label>
+                                                                    <mat-label>В том числе НДС <span *ngIf="formBaseInformation.get('nds').value==''&& formBaseInformation.get('nds').invalid" class="star">*</span></mat-label>
                                                                     <input  matInput
                                                                             [readonly]="this.formBaseInformation.get('is_completed').value"
                                                                             maxlength="15"
                                                                             formControlName="nds"
-                                                                            (keyup)="setNdsNullIfEmpty();"
-                                                                            (keypress)="numberOnlyPlusDotAndComma($event);"/>
+                                                                            (keypress)="numberOnlyPlusDotAndComma($event)"/>
                                                                             <mat-hint  align="start" *ngIf="formBaseInformation.get('nds').touched && formBaseInformation.get('nds').invalid">
                                                                                 <i *ngIf="formBaseInformation.get('nds').errors.pattern" class="form-invalid">Неправильный формат. Допускается до 9 цифр в целой и до 2 цифр в дробной части</i>
-                                                                                <i *ngIf="formBaseInformation.get('nds').value==null" class="form-invalid">Поле не заполнено</i>
+                                                                                <i *ngIf="formBaseInformation.get('nds').value==''" class="form-invalid">Поле не заполнено</i>
                                                                             </mat-hint>
                                                                 </mat-form-field>
                                                             </div>
@@ -296,10 +274,10 @@
                                                                 <mat-form-field  class="mat-form-field-100">
                                                                     <textarea   matInput
                                                                                 maxlength="2000"
-                                                                                [rows]="2"
                                                                                 [readonly]="this.formBaseInformation.get('is_completed').value"
+                                                                                [rows]="2"
                                                                                 #description
-                                                                                placeholder="Назначение платежа"
+                                                                                placeholder="Основание"
                                                                                 formControlName="description">
                                                                     </textarea>
                                                                     <mat-hint align="end" *ngIf="description.value.length>500 && !formBaseInformation.get('is_completed').value">{{description.value.length}} / 2000</mat-hint>
