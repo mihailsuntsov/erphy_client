@@ -81,8 +81,17 @@ export class LoadSpravService{
             {id:'return', name:'Возврат'},
             {id:'purchases', name:'Закупки'},
             {id:'taxes', name:'Налоги и сборы'},
-            {id:'moving', name:'Перемещение между кассами'},
+            {id:'moving', name:'Внутреннее пермещение'},
             {id:'other_opex', name:'Другие операционные расходы'},
+        ];
+        return docList; 
+    }    
+    //формирование списка типов перемещений: на кассу - boxoffice, на счёт - account 
+    getMovingTypeList(){
+        let docList: idAndName [] = [];
+        docList = [
+            {id:'boxoffice', name:'В кассу предприятия'},
+            {id:'account', name:'На расчётный счёт'},
         ];
         return docList; 
     }    

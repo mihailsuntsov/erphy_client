@@ -57,6 +57,10 @@ interface DocResponse {//интерфейс для получения ответ
   is_archive: boolean;
   status_id: number;
   payment_account_id:number;
+  payment_account_to_id:number;
+  boxoffice_id:number;
+  boxoffice:string;
+  moving_type:string; //перемещение на: кассу - boxoffice, счёт - account 
   payment_account:string;
   status_name: string;
   status_color: string;
@@ -141,7 +145,10 @@ export class PaymentoutDocComponent implements OnInit {
   canEditCompAndDepth=true;
   spravSysNdsSet: SpravSysNdsSet[] = []; //массив имен и id для ндс 
   paymentAccounts:any[]=[];// список расчётных счетов предприятия
+  boxoffices:any[]=[];// список касс предприятия (не путать с ККМ!!!)
   expenditureItems:any[]=[]; // список статей расходов
+  movingTypes:any[]=[]; // список типов перемещений: на кассу - boxoffice, на счёт - account 
+  expenditureType:string='';// тип статьи расходов (return (возврат),  purchases (закупки товаров), taxes (налоги и сборы), moving (перемещение меж. своими счетами или кассами), other_opex (другие операционные))
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
 
   //для загрузки связанных документов
@@ -211,7 +218,7 @@ export class PaymentoutDocComponent implements OnInit {
     this.formBaseInformation = new FormGroup({
       id: new FormControl      (this.id,[]),
       company_id: new FormControl               ('',[Validators.required]),
-      cagent_id: new FormControl                ('',[Validators.required]),
+      cagent_id: new FormControl                ('',[]),
       doc_number: new FormControl               ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
       description: new FormControl              ('',[]),
       cagent: new FormControl                   ('',[]),
@@ -222,6 +229,10 @@ export class PaymentoutDocComponent implements OnInit {
       status_color: new FormControl             ('',[]),
       payment_account_id: new FormControl       ('',[Validators.required]),
       payment_account: new FormControl          ('',[]),
+      boxoffice_id: new FormControl             ('',[]),
+      payment_account_to_id: new FormControl    ('',[]),
+      boxoffice: new FormControl                ('',[]),
+      moving_type: new FormControl              ('',[]),
       status_description: new FormControl       ('',[]),
       expenditure_id: new FormControl           ('',[Validators.required]),
       expenditure: new FormControl              ('',[]),
@@ -468,9 +479,14 @@ export class PaymentoutDocComponent implements OnInit {
     this.formBaseInformation.get('status_id').setValue(null);
     this.formBaseInformation.get('cagent_id').setValue(null);
     this.formBaseInformation.get('payment_account_id').setValue(null);
+    this.formBaseInformation.get('expenditure_id').setValue(null);
+    this.formBaseInformation.get('boxoffice_id').setValue(null);
+    this.formBaseInformation.get('payment_account_to_id').setValue(null);
+    this.expenditureType='';
     this.searchCagentCtrl.reset();
     this.actionsBeforeGetChilds=0;
-    this.getStatusesList();
+    this.getStatusesList();  
+    this.getBoxofficesList();
     this.getCompaniesPaymentAccounts();
     this.getExpenditureItemsList();
     //если идет стартовая прогрузка - продолжаем цепочку запросов. Если это была, например, просто смена предприятия - продолжать далее текущего метода смысла нет
@@ -540,7 +556,9 @@ export class PaymentoutDocComponent implements OnInit {
   setDefaultCompany(){
     if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим своё по дефолту
       this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
-    this.getStatusesList();    
+    this.getStatusesList(); 
+    this.getBoxofficesList();   
+    this.getMovingTypesList();
     this.getCompaniesPaymentAccounts();
     this.getExpenditureItemsList();
     this.refreshPermissions();
@@ -580,6 +598,7 @@ export class PaymentoutDocComponent implements OnInit {
                 this.formBaseInformation.get('company_id').setValue(documentValues.company_id);
                 this.formBaseInformation.get('cagent_id').setValue(documentValues.cagent_id);
                 this.formBaseInformation.get('cagent').setValue(documentValues.cagent);
+                this.searchCagentCtrl.setValue(documentValues.cagent);
                 this.formBaseInformation.get('doc_number').setValue(documentValues.doc_number);
                 this.formBaseInformation.get('nds').setValue(documentValues.nds);
                 this.formBaseInformation.get('summ').setValue(documentValues.summ);
@@ -588,6 +607,10 @@ export class PaymentoutDocComponent implements OnInit {
                 this.formBaseInformation.get('payment_account_id').setValue(documentValues.payment_account_id);
                 this.formBaseInformation.get('expenditure').setValue(documentValues.expenditure);
                 this.formBaseInformation.get('expenditure_id').setValue(documentValues.expenditure_id);
+                this.formBaseInformation.get('boxoffice_id').setValue(documentValues.boxoffice_id);
+                this.formBaseInformation.get('boxoffice').setValue(documentValues.boxoffice);
+                this.formBaseInformation.get('moving_type').setValue(documentValues.moving_type);
+                this.formBaseInformation.get('payment_account_to_id').setValue(documentValues.payment_account_to_id);
                 this.formAboutDocument.get('master').setValue(documentValues.master);
                 this.formAboutDocument.get('creator').setValue(documentValues.creator);
                 this.formAboutDocument.get('changer').setValue(documentValues.changer);
@@ -603,9 +626,12 @@ export class PaymentoutDocComponent implements OnInit {
                 // this.formBaseInformation.get('income_number_date').setValue(documentValues.income_number_date?moment(documentValues.income_number_date,'DD.MM.YYYY'):"");
                 this.formBaseInformation.get('uid').setValue(documentValues.uid);
                 this.creatorId=+documentValues.creator_id;
+                this.getExpenditureItemsList();
                 this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
                 this.loadFilesInfo();
                 this.getStatusesList();//статусы документа Исходящий платёж
+                this.getBoxofficesList();   // кассы предприятия
+                this.getMovingTypesList();  // типы внутреннего перемещения
                 this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
@@ -632,7 +658,6 @@ export class PaymentoutDocComponent implements OnInit {
   }
 
   getCompaniesPaymentAccounts(){
-    let resultContainer: any[];
     return this.http.get('/api/auth/getCompaniesPaymentAccounts?id='+this.formBaseInformation.get('company_id').value).subscribe(
         (data) => { 
           this.paymentAccounts=data as any [];
@@ -646,17 +671,92 @@ export class PaymentoutDocComponent implements OnInit {
     if(+this.formBaseInformation.get('payment_account_id').value==0 && this.paymentAccounts.length>0)// - ставим по дефолту самый верхний расчётный счёт
       this.formBaseInformation.get('payment_account_id').setValue(this.paymentAccounts[0].id);
   }
+  setDefaultPaymentToAccount(){
+    if(+this.formBaseInformation.get('payment_account_to_id').value==0 && this.paymentAccounts.length>0)// - ставим по дефолту самый верхний расчётный счёт
+      this.formBaseInformation.get('payment_account_to_id').setValue(this.paymentAccounts[0].id);
+  }
+  getBoxofficesList(){
+    return this.http.get('/api/auth/getBoxofficesList?id='+this.formBaseInformation.get('company_id').value).subscribe(
+        (data) => { 
+          this.boxoffices=data as any [];
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+    );
+  }  
+  getBoxofficeNameById(id:string):string{
+    let name:string = 'Не установлен';
+    if(this.boxoffices){
+      this.boxoffices.forEach(a=>{
+        if(a.id==id) name=a.name;
+      })}
+    return(name);
+  }
+  setDefaultBoxoffice(){
+    if(+this.formBaseInformation.get('boxoffice_id').value==0 && this.boxoffices.length>0)// - ставим по дефолту самую первую кассу (т.к. она главная)
+      this.formBaseInformation.get('boxoffice_id').setValue(this.boxoffices[0].id);
+  }
 
   getExpenditureItemsList(){
     return this.http.get('/api/auth/getExpenditureItems?id='+this.formBaseInformation.get('company_id').value).subscribe(
         (data) => { 
           this.expenditureItems=data as any [];
-          // this.setDefaultExpenditureItem();
+          this.onExpenditureChange();
         },
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
     );
   }
-
+  getMovingTypesList(){
+    this.movingTypes=this.loadSpravService.getMovingTypeList();
+    this.setDefaultMovingType();
+  }
+  setDefaultMovingType(){
+    if((this.formBaseInformation.get('moving_type').value=='' || this.formBaseInformation.get('moving_type').value==null) && this.movingTypes.length>0){// - ставим по дефолту 1й тип, т.к. чаще всего будут переводить в кассу предприятия
+      this.formBaseInformation.get('moving_type').setValue(this.movingTypes[0].id);
+    }
+  }  
+  getPaymentAccountNameById(id:string):string{
+    let name:string = 'Не установлен';
+    if(this.paymentAccounts){
+      this.paymentAccounts.forEach(a=>{
+        if(a.id==id) name=a.name;
+      })}
+    return(name);
+  }
+  getMovingTypeNameById(id:string):string{
+    let name:string = 'Не установлен';
+    if(this.movingTypes){
+      this.movingTypes.forEach(a=>{
+        if(a.id==id) name=a.name;
+      })}
+    return(name);
+  }
+  // при смене статьи расходов проверяем, если она имеет тип "внутреннее перемещение .." то в этом случае контрагент не нужен, выбираем свои счёт или кассу
+  onExpenditureChange(){
+    this.expenditureType=this.getExpenditureTypeById(this.formBaseInformation.get('expenditure_id').value);
+    if(this.expenditureType=='moving'){
+      this.formBaseInformation.get('cagent_id').setValue(null);
+      this.searchCagentCtrl.setValue(null);
+      this.onMovingChange();
+    } else {
+      this.formBaseInformation.get('boxoffice_id').setValue(null);
+      this.formBaseInformation.get('payment_account_to_id').setValue(null);
+    }
+  }
+  getExpenditureTypeById(id:number):string{
+    let type:string='';
+    if(this.expenditureItems)this.expenditureItems.map(i=>{if(i.id==id)type=i.type;});
+    return type;
+  }
+  onMovingChange(){
+    if(this.formBaseInformation.get('moving_type').value=='account'){
+      this.formBaseInformation.get('boxoffice_id').setValue(null);
+      this.setDefaultPaymentToAccount();
+    } else {// moving_type = 'boxoffice'
+      this.formBaseInformation.get('payment_account_to_id').setValue(null);
+      this.setDefaultBoxoffice();
+    }
+  }
+  
   checkDocNumberUnical() {
     if(!this.formBaseInformation.get('doc_number').errors)
     {
@@ -754,6 +854,7 @@ export class PaymentoutDocComponent implements OnInit {
                 this.openSnackBar("Документ \"Исходящий платёж\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
                 if(complete) {
                   this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведённости = true
+                  this.formBaseInformation.get('cagent').setValue(this.searchCagentCtrl.value); // иначе после проведения пропадёт наименование контрагента
                   if(this.settingsForm.get('statusIdOnComplete').value){//если в настройках есть "Статус при проведении" - выставим его
                     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
                   this.setStatusColor();//чтобы обновился цвет статуса
