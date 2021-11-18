@@ -62,6 +62,7 @@ interface DocResponse {//интерфейс для получения ответ
   income_number:string;
   income_number_date:string;
   uid:string;
+  internal: boolean; // внутренний платеж
 }
 interface FilesInfo {
   id: string;
@@ -208,7 +209,7 @@ export class PaymentinDocComponent implements OnInit {
     this.formBaseInformation = new FormGroup({
       id: new FormControl      (this.id,[]),
       company_id: new FormControl               ('',[Validators.required]),
-      cagent_id: new FormControl                ('',[Validators.required]),
+      cagent_id: new FormControl                ('',[]),
       doc_number: new FormControl               ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
       description: new FormControl              ('',[]),
       cagent: new FormControl                   ('',[]),
@@ -222,6 +223,7 @@ export class PaymentinDocComponent implements OnInit {
       status_description: new FormControl       ('',[]),
       is_completed: new FormControl             (false,[]),
       paymentinProductTable: new FormArray      ([]),
+      internal: new FormControl                 (false,[]), // внутренний платеж
       income_number: new FormControl            ('',[]),
       income_number_date: new FormControl       ('',[]),//на дату валидаторы не вешаются, у нее свой валидатор
       uid: new FormControl                      ('',[]),// uuid идентификатор
@@ -579,6 +581,8 @@ export class PaymentinDocComponent implements OnInit {
                 this.formBaseInformation.get('description').setValue(documentValues.description);
                 this.formBaseInformation.get('payment_account').setValue(documentValues.payment_account);
                 this.formBaseInformation.get('payment_account_id').setValue(documentValues.payment_account_id);
+                this.formBaseInformation.get('internal').setValue(documentValues.internal);
+                this.searchCagentCtrl.setValue(documentValues.cagent);
                 this.formAboutDocument.get('master').setValue(documentValues.master);
                 this.formAboutDocument.get('creator').setValue(documentValues.creator);
                 this.formAboutDocument.get('changer').setValue(documentValues.changer);
@@ -870,6 +874,12 @@ export class PaymentinDocComponent implements OnInit {
     this.formBaseInformation.get('status_description').setValue('');
     this.receivedStatusesList = [];
   }
+  
+  onSwitchInternal(){
+    this.formBaseInformation.get('cagent_id').setValue(null);
+    this.searchCagentCtrl.setValue('');
+  }
+
 //*****************************************************************************************************************************************/
 /***********************************************************         ФАЙЛЫ          *******************************************************/
 //*****************************************************************************************************************************************/
@@ -992,7 +1002,7 @@ deleteFile(id:number){
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа "+(this.commonUtilites.getDocNameByDocAlias(docname))}});
                       break;
                     }
-                    case 0:{//недостаточно прав
+                    case -1:{//недостаточно прав
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа "+(this.commonUtilites.getDocNameByDocAlias(docname))}});
                       break;
                     }
@@ -1012,6 +1022,12 @@ deleteFile(id:number){
       return {can:true, reason:''};
   }
 
+  OnClickVatInvoiceOut(){
+    if(+this.formBaseInformation.get('cagent_id').value==0)
+      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Невозможно создать данный документ, так как контрагент не выбран',}});
+    else
+      this.createLinkedDoc('Vatinvoiceout');
+  }
   //******************************************************** ДИАГРАММА СВЯЗЕЙ ************************************************************/
   myTabFocusChange(changeEvent: MatTabChangeEvent) {
     console.log('Tab position: ' + changeEvent.tab.position);

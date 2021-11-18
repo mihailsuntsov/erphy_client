@@ -259,6 +259,11 @@ export class OrderoutDocComponent implements OnInit {
       child_uid: new FormControl          (null,[]),// uid дочернего документа
       linked_doc_name: new FormControl    (null,[]),//имя (таблицы) связанного документа
       uid: new FormControl                ('',[]),  //uid создаваемого связанного документа
+      // параметры для входящих ордеров и платежей
+      payment_account_id: new FormControl ('',[]),//id расчтёного счёта      
+      boxoffice_id: new FormControl       ('',[]), // касса предприятия
+      internal: new FormControl           ('',[]), // внутренний платеж     
+      summ: new FormControl               ('',[]), // сумма   
     });
 
     // Форма настроек
@@ -930,6 +935,13 @@ export class OrderoutDocComponent implements OnInit {
     }
   }
   
+  OnClickVatInvoiceIn(){
+    if(+this.formBaseInformation.get('cagent_id').value==0)
+      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Невозможно создать данный документ, так как контрагент не выбран',}});
+    else
+      this.createLinkedDoc('Vatinvoicein');
+  }
+
   getCompaniesPaymentAccounts(){
     return this.http.get('/api/auth/getCompaniesPaymentAccounts?id='+this.formBaseInformation.get('company_id').value).subscribe(
         (data) => { 
@@ -976,6 +988,7 @@ export class OrderoutDocComponent implements OnInit {
     this.formBaseInformation.get('status_description').setValue('');
     this.receivedStatusesList = [];
   }
+
 //*****************************************************************************************************************************************/
 /***********************************************************         ФАЙЛЫ          *******************************************************/
 //*****************************************************************************************************************************************/
@@ -1069,13 +1082,20 @@ deleteFile(id:number){
       this.formLinkedDocs.get('company_id').setValue(this.formBaseInformation.get('company_id').value);
       this.formLinkedDocs.get('cagent_id').setValue(this.formBaseInformation.get('cagent_id').value);
       this.formLinkedDocs.get('nds').setValue(this.formBaseInformation.get('nds').value);
-      // this.formLinkedDocs.get('summ').setValue(this.formBaseInformation.get('summ').value);
+      this.formLinkedDocs.get('summ').setValue(this.formBaseInformation.get('summ').value);
       this.formLinkedDocs.get('description').setValue('Создано из Расходного ордера №'+ this.formBaseInformation.get('doc_number').value);
       this.formLinkedDocs.get('is_completed').setValue(false);
       this.formLinkedDocs.get('uid').setValue(uid);
       
       this.formLinkedDocs.get('linked_doc_id').setValue(this.id);//id связанного документа (того, из которого инициируется создание данного документа)
       this.formLinkedDocs.get('linked_doc_name').setValue('orderout');//имя (таблицы) связанного документа
+
+      // параметры для входящих ордеров и платежей (Paymentin, Orderin)
+      if(docname=='Paymentin'||docname=='Orderin'){
+        this.formLinkedDocs.get('payment_account_id').setValue(this.formBaseInformation.get('payment_account_to_id').value);//id расчтёного счёта      
+        this.formLinkedDocs.get('boxoffice_id').setValue(this.formBaseInformation.get('boxoffice_id').value);
+        this.formLinkedDocs.get('internal').setValue(this.expenditureType=='moving');
+      }
 
       //поля для счёта-фактуры
       this.formLinkedDocs.get('parent_tablename').setValue('orderout');
@@ -1098,7 +1118,7 @@ deleteFile(id:number){
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа "+(this.commonUtilites.getDocNameByDocAlias(docname))}});
                       break;
                     }
-                    case 0:{//недостаточно прав
+                    case -1:{//недостаточно прав
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа "+(this.commonUtilites.getDocNameByDocAlias(docname))}});
                       break;
                     }

@@ -57,6 +57,8 @@ interface DocResponse {//интерфейс для получения ответ
   status_name: string;
   status_color: string;
   status_description: string;
+  boxoffice_id:number;// id кассы в которую перемещаем ден. средства
+  internal: boolean; // внутренний платеж
   uid:string;
 }
 interface FilesInfo {
@@ -135,6 +137,7 @@ export class OrderinDocComponent implements OnInit {
   canEditCompAndDepth=true;
   spravSysNdsSet: SpravSysNdsSet[] = []; //массив имен и id для ндс 
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
+  boxoffices:any[]=[];// список касс предприятия (не путать с ККМ!!!)
 
   //для загрузки связанных документов
   linkedDocsReturn:LinkedDocs[]=[];
@@ -203,7 +206,7 @@ export class OrderinDocComponent implements OnInit {
     this.formBaseInformation = new FormGroup({
       id: new FormControl                       (this.id,[]),
       company_id: new FormControl               ('',[Validators.required]),
-      cagent_id: new FormControl                ('',[Validators.required]),
+      cagent_id: new FormControl                ('',[]),
       doc_number: new FormControl               ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
       description: new FormControl              ('',[]),
       cagent: new FormControl                   ('',[]),
@@ -214,6 +217,8 @@ export class OrderinDocComponent implements OnInit {
       status_color: new FormControl             ('',[]),
       status_description: new FormControl       ('',[]),
       is_completed: new FormControl             (false,[]),
+      boxoffice_id: new FormControl             ('',[Validators.required]),// id кассы в которую перемещаем ден. средства
+      internal: new FormControl                 (false,[]), // внутренний платеж
       uid: new FormControl                      ('',[]),// uuid идентификатор
     });
     this.formAboutDocument = new FormGroup({
@@ -452,6 +457,8 @@ export class OrderinDocComponent implements OnInit {
     this.formBaseInformation.get('cagent_id').setValue(null);
     this.searchCagentCtrl.reset();
     this.actionsBeforeGetChilds=0;
+    this.formBaseInformation.get('boxoffice_id').setValue(null);
+    this.getBoxofficesList();
     //если идет стартовая прогрузка - продолжаем цепочку запросов. Если это была, например, просто смена предприятия - продолжать далее текущего метода смысла нет
     if(this.startProcess) {
       this.getStatusesList();
@@ -521,6 +528,7 @@ export class OrderinDocComponent implements OnInit {
     if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим своё по дефолту
       this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
     this.getStatusesList();
+    this.getBoxofficesList();  
     this.refreshPermissions();
   }
   
@@ -562,6 +570,9 @@ export class OrderinDocComponent implements OnInit {
                 this.formBaseInformation.get('nds').setValue(documentValues.nds);
                 this.formBaseInformation.get('summ').setValue(documentValues.summ);
                 this.formBaseInformation.get('description').setValue(documentValues.description);
+                this.formBaseInformation.get('internal').setValue(documentValues.internal);
+                this.formBaseInformation.get('boxoffice_id').setValue(documentValues.boxoffice_id);
+                this.searchCagentCtrl.setValue(documentValues.cagent);
                 this.formAboutDocument.get('master').setValue(documentValues.master);
                 this.formAboutDocument.get('creator').setValue(documentValues.creator);
                 this.formAboutDocument.get('changer').setValue(documentValues.changer);
@@ -577,6 +588,7 @@ export class OrderinDocComponent implements OnInit {
                 this.creatorId=+documentValues.creator_id;
                 this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
                 this.loadFilesInfo();
+                this.getBoxofficesList();  
                 this.getStatusesList();//статусы документа Приходный ордер
                 this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
             },
@@ -833,6 +845,32 @@ export class OrderinDocComponent implements OnInit {
     this.formBaseInformation.get('status_description').setValue('');
     this.receivedStatusesList = [];
   }
+
+  onSwitchInternal(){
+    this.formBaseInformation.get('cagent_id').setValue(null);
+    this.searchCagentCtrl.setValue('');
+  }
+  getBoxofficesList(){
+    return this.http.get('/api/auth/getBoxofficesList?id='+this.formBaseInformation.get('company_id').value).subscribe(
+        (data) => { 
+          this.boxoffices=data as any [];
+          this.setDefaultBoxoffice();
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+    );
+  }
+  setDefaultBoxoffice(){
+    if(+this.formBaseInformation.get('boxoffice_id').value==0 && this.boxoffices.length>0)// - ставим по дефолту самую первую кассу (т.к. она главная)
+      this.formBaseInformation.get('boxoffice_id').setValue(this.boxoffices[0].id);
+  }
+  getBoxofficeNameById(id:string):string{
+    let name:string = 'Не установлен';
+    if(this.boxoffices){
+      this.boxoffices.forEach(a=>{
+        if(a.id==id) name=a.name;
+      })}
+    return(name);
+  }
 //*****************************************************************************************************************************************/
 /***********************************************************         ФАЙЛЫ          *******************************************************/
 //*****************************************************************************************************************************************/
@@ -955,7 +993,7 @@ deleteFile(id:number){
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа "+(this.commonUtilites.getDocNameByDocAlias(docname))}});
                       break;
                     }
-                    case 0:{//недостаточно прав
+                    case -1:{//недостаточно прав
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа "+(this.commonUtilites.getDocNameByDocAlias(docname))}});
                       break;
                     }
@@ -975,6 +1013,12 @@ deleteFile(id:number){
       return {can:true, reason:''};
   }
 
+  OnClickVatInvoiceOut(){
+    if(+this.formBaseInformation.get('cagent_id').value==0)
+      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Невозможно создать данный документ, так как контрагент не выбран',}});
+    else
+      this.createLinkedDoc('Vatinvoiceout');
+  }
   //******************************************************** ДИАГРАММА СВЯЗЕЙ ************************************************************/
   myTabFocusChange(changeEvent: MatTabChangeEvent) {
     console.log('Tab position: ' + changeEvent.tab.position);

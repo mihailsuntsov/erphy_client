@@ -259,7 +259,7 @@ export class PaymentoutDocComponent implements OnInit {
       summ: new FormControl               ('',[]), 
       description: new FormControl        ('',[]), 
       parent_tablename: new FormControl   ('',[]), //для счёта фактуры выданного
-      paymentout_id: new FormControl       ('',[]), //для счёта фактуры выданного
+      paymentout_id: new FormControl      ('',[]), //для счёта фактуры выданного
       cagent_id: new FormControl          (null,[Validators.required]),
       company_id: new FormControl         (null,[Validators.required]),
       linked_doc_id: new FormControl      (null,[]),//id связанного документа (в данном случае Отгрузка)
@@ -267,6 +267,10 @@ export class PaymentoutDocComponent implements OnInit {
       child_uid: new FormControl          (null,[]),// uid дочернего документа
       linked_doc_name: new FormControl    (null,[]),//имя (таблицы) связанного документа
       uid: new FormControl                ('',[]),  //uid создаваемого связанного документа
+      // параметры для входящих ордеров и платежей
+      payment_account_id: new FormControl ('',[]),//id расчтёного счёта      
+      boxoffice_id: new FormControl       ('',[]), // внутренний платеж
+      internal: new FormControl           ('',[]), // внутренний платеж     
     });
 
     // Форма настроек
@@ -756,7 +760,14 @@ export class PaymentoutDocComponent implements OnInit {
       this.setDefaultBoxoffice();
     }
   }
-  
+
+  OnClickVatInvoiceIn(){
+    if(+this.formBaseInformation.get('cagent_id').value==0)
+      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Невозможно создать данный документ, так как контрагент не выбран',}});
+    else
+      this.createLinkedDoc('Vatinvoicein');
+  }
+
   checkDocNumberUnical() {
     if(!this.formBaseInformation.get('doc_number').errors)
     {
@@ -1093,6 +1104,13 @@ deleteFile(id:number){
       this.formLinkedDocs.get('linked_doc_id').setValue(this.id);//id связанного документа (того, из которого инициируется создание данного документа)
       this.formLinkedDocs.get('linked_doc_name').setValue('paymentout');//имя (таблицы) связанного документа
 
+      // параметры для входящих ордеров и платежей (Paymentin, Orderin)
+      if(docname=='Paymentin'||docname=='Orderin'){
+        this.formLinkedDocs.get('payment_account_id').setValue(this.formBaseInformation.get('payment_account_id').value);//id расчтёного счёта      
+        this.formLinkedDocs.get('boxoffice_id').setValue(this.formBaseInformation.get('boxoffice_id').value);
+        this.formLinkedDocs.get('internal').setValue(this.expenditureType=='moving');
+      }
+
       //поля для счёта-фактуры выданного
       this.formLinkedDocs.get('parent_tablename').setValue('paymentout');
       this.formLinkedDocs.get('paymentout_id').setValue(this.id);
@@ -1114,7 +1132,7 @@ deleteFile(id:number){
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа "+(this.commonUtilites.getDocNameByDocAlias(docname))}});
                       break;
                     }
-                    case 0:{//недостаточно прав
+                    case -1:{//недостаточно прав
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа "+(this.commonUtilites.getDocNameByDocAlias(docname))}});
                       break;
                     }
