@@ -8,6 +8,8 @@ import { LoadSpravService } from './loadsprav';
 import { Validators, FormGroup, FormControl} from '@angular/forms';
 import {HttpClient} from '@angular/common/http';
 import {MatSnackBar} from '@angular/material/snack-bar';
+import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 
 interface docResponse {//интерфейс для получения ответа в методе getDepartmentValuesById
     id: number;
@@ -27,6 +29,8 @@ interface docResponse {//интерфейс для получения ответ
     date_time_created: string;
     date_time_changed: string;
     additional: string;
+    payment_account_id:number;
+    boxoffice_id:number;
 }
 interface idNameDescription{ //универсалный интерфейс для выбора из справочников
   id: string;
@@ -47,6 +51,8 @@ export class DepartmentsDocComponent implements OnInit {
   receivedCompaniesList: any [];//массив для получения списка предприятий
   receivedDepartmentsList: any [];//массив для получения списка отеделний
   receivedPriceTypesList: idNameDescription [] = [];//массив для получения списка типов цен
+  paymentAccounts:any[]=[];// список расчётных счетов предприятия
+  boxoffices:any[]=[];// список касс предприятия (не путать с ККМ!!!)
 
   visBtnUpdate = false;
 
@@ -75,44 +81,45 @@ export class DepartmentsDocComponent implements OnInit {
     private activateRoute: ActivatedRoute,
     private http: HttpClient,
     private loadSpravService:   LoadSpravService,
+    public MessageDialog: MatDialog,
     private _snackBar: MatSnackBar
     ){
-    console.log(this.activateRoute);
     this.id = +activateRoute.snapshot.params['id'];// +null returns 0
   }
 
 
   ngOnInit() {
     this.formBaseInformation = new FormGroup({
-      id: new FormControl      (this.id,[]),
-      name: new FormControl      ('',[Validators.required]),
-      company_id: new FormControl      ('',[Validators.required]),
-      parent_id: new FormControl      ('',[]),
-      price_id: new FormControl      ('',[]),
-      address: new FormControl      ('',[]),
-      additional: new FormControl      ('',[]),
+      id: new FormControl                       (this.id,[]),
+      name: new FormControl                     ('',[Validators.required]),
+      company_id: new FormControl               ('',[Validators.required]),
+      parent_id: new FormControl                ('',[]),
+      price_id: new FormControl                 ('',[]),
+      address: new FormControl                  ('',[]),
+      additional: new FormControl               ('',[]),
+      boxoffice_id: new FormControl             ('',[]), // касса предприятия, к которой относится отделение
+      payment_account_id: new FormControl       ('',[]), // расч. счёт по умолчанию
     });
     this.formAboutDocument = new FormGroup({
-      id: new FormControl      ('',[]),
-      owner: new FormControl      ('',[]),
-      creator: new FormControl      ('',[]),
-      changer: new FormControl      ('',[]),
-      parent: new FormControl      ('',[]),
-      company: new FormControl      ('',[]),
-      date_time_created: new FormControl      ('',[]),
-      date_time_changed: new FormControl      ('',[]),
+      id: new FormControl                       ('',[]),
+      owner: new FormControl                    ('',[]),
+      creator: new FormControl                  ('',[]),
+      changer: new FormControl                  ('',[]),
+      parent: new FormControl                   ('',[]),
+      company: new FormControl                  ('',[]),
+      date_time_created: new FormControl        ('',[]),
+      date_time_changed: new FormControl        ('',[]),
     });
     this.getCompaniesList();
     this.getSetOfPermissions();
   }
 
   getData(){
-    console.log("('company_id').value->"+this.formBaseInformation.get('company_id').value+"<-")
-    if(+this.id==0 && this.formBaseInformation.get('company_id').value!='' && this.formBaseInformation.get('company_id').value!=0)
+    if(+this.id==0 && +this.formBaseInformation.get('company_id').value!=0)
     {
-       console.log("goingTo Get Depth List at creating doc");
       this.formBaseInformation.get('parent_id').setValue(0);
       this.getDepartmentsList();
+      this.getPriceTypesList(); 
     };
     if(+this.id>0){this.getDocumentValuesById();}
 
@@ -206,18 +213,19 @@ export class DepartmentsDocComponent implements OnInit {
     });
   }
   getDocumentValuesById(){
-    console.log("we re in  GetDocumentValuesById");
     const docId = {"id": this.id};
         this.http.post('/api/auth/getDepartmentValuesById', docId)
         .subscribe(
             data => {  let documentResponse: docResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
                 //Заполнение формы из интерфейса documentResponse:
                 this.formBaseInformation.get('name').setValue(documentResponse.name);
-                this.formBaseInformation.get('company_id').setValue(+documentResponse.company_id);
-                this.formBaseInformation.get('parent_id').setValue(+documentResponse.parent_id);
-                this.formBaseInformation.get('price_id').setValue(+documentResponse.price_id);
+                this.formBaseInformation.get('company_id').setValue(documentResponse.company_id);
+                this.formBaseInformation.get('parent_id').setValue(documentResponse.parent_id);
+                this.formBaseInformation.get('price_id').setValue(documentResponse.price_id);
                 this.formBaseInformation.get('address').setValue(documentResponse.address);
                 this.formBaseInformation.get('additional').setValue(documentResponse.additional);
+                this.formBaseInformation.get('boxoffice_id').setValue(documentResponse.boxoffice_id);
+                this.formBaseInformation.get('payment_account_id').setValue(documentResponse.payment_account_id);
                 this.formAboutDocument.get('id').setValue(+documentResponse.id);
                 this.formAboutDocument.get('owner').setValue(documentResponse.owner);
                 this.formAboutDocument.get('creator').setValue(documentResponse.creator);
@@ -227,6 +235,9 @@ export class DepartmentsDocComponent implements OnInit {
                 this.formAboutDocument.get('date_time_created').setValue(documentResponse.date_time_created);
                 this.formAboutDocument.get('date_time_changed').setValue(documentResponse.date_time_changed);
 
+                
+                this.getBoxofficesList();
+                this.getCompaniesPaymentAccounts();
                 this.getDepartmentsList();  // если отделения и типы цен грузить не здесь, а в месте где вызывалась getDocumentValuesById,
                 this.getPriceTypesList();   // то из-за асинхронной передачи данных company_id будет еще null, 
                                             // и запрашиваемые списки не загрузятся
@@ -262,6 +273,52 @@ export class DepartmentsDocComponent implements OnInit {
                 error => console.log(error)
             );
   }
+  
+  getCompaniesPaymentAccounts(){
+    return this.http.get('/api/auth/getCompaniesPaymentAccounts?id='+this.formBaseInformation.get('company_id').value).subscribe(
+        (data) => { 
+          this.paymentAccounts=data as any [];
+          // this.setDefaultPaymentAccount();
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+    );
+  }
+  getBoxofficesList(){
+    return this.http.get('/api/auth/getBoxofficesList?id='+this.formBaseInformation.get('company_id').value).subscribe(
+        (data) => { 
+          this.boxoffices=data as any [];
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+    );
+  }
+  getBoxofficeNameById(id:string):string{
+    let name:string = 'Не установлен';
+    if(this.boxoffices){
+      this.boxoffices.forEach(a=>{
+        if(a.id==id) name=a.name;
+      })}
+    return(name);
+  }
+  getPaymentAccountNameById(id:string):string{
+    let name:string = 'Не установлен';
+    if(this.paymentAccounts){
+      this.paymentAccounts.forEach(a=>{
+        if(a.id==id) name=a.payment_account||' ('||a.name||')';
+      })}
+    return(name);
+  }
+
+
+  onCompanyChange(){
+    this.formBaseInformation.get('payment_account_id').setValue(null);
+    this.formBaseInformation.get('boxoffice_id').setValue(null);
+    this.formBaseInformation.get('price_id').setValue(null);
+    this.getBoxofficesList();
+    this.getCompaniesPaymentAccounts();
+    this.getDepartmentsList();
+    this.getPriceTypesList(); 
+  }
+
   refreshShowAllTabs(){
     console.log("Id of company = "+this.id);
     if(this.id>0){//если в документе есть id

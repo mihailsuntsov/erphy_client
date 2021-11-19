@@ -353,6 +353,11 @@ export class ShipmentDocComponent implements OnInit {
       child_uid: new FormControl          (null,[]),// uid дочернего документа
       linked_doc_name: new FormControl    (null,[]),//имя (таблицы) связанного документа
       uid: new FormControl                ('',[]),  //uid создаваемого связанного документа
+      // параметры для входящих ордеров и платежей
+      payment_account_id: new FormControl ('',[]),//id расчтёного счёта      
+      boxoffice_id: new FormControl       ('',[]), // касса предприятия или обособленного подразделения
+      internal: new FormControl           (false,[]), // внутренний платеж     
+      summ:     new FormControl           ('',[]),
     });
 
     // Форма настроек
@@ -1382,6 +1387,14 @@ export class ShipmentDocComponent implements OnInit {
      
       this.formLinkedDocs.get('linked_doc_name').setValue('shipment');//имя (таблицы) связанного документа
       this.formLinkedDocs.get('uid').setValue(uid);
+
+      // параметры для входящих ордеров и платежей (Paymentin, Orderin)
+      if(docname=='Paymentin'||docname=='Orderin'){
+        this.formLinkedDocs.get('payment_account_id').setValue(null);//id расчтёного счёта      
+        this.formLinkedDocs.get('boxoffice_id').setValue(1);
+        this.formLinkedDocs.get('summ').setValue(this.productSearchAndTableComponent.totalProductSumm)
+        this.formLinkedDocs.get('nds').setValue(this.productSearchAndTableComponent.getTotalNds());
+      }
       
       //поля для счёта-фактуры выданного
       this.formLinkedDocs.get('parent_tablename').setValue('shipment');
@@ -1395,7 +1408,7 @@ export class ShipmentDocComponent implements OnInit {
         this.formLinkedDocs.get('child_uid').setValue(uid);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
       }
 
-      if(docname!=='Vatinvoiceout')
+      if(docname!=='Vatinvoiceout'&&docname!=='Paymentin'&&docname!=='Orderin')
         this.getProductsTableLinkedDoc(docname);//формируем таблицу товаров для создаваемого документа
       
       this.http.post('/api/auth/insert'+docname, this.formLinkedDocs.value)

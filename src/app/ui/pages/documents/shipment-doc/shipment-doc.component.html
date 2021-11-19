@@ -60,6 +60,12 @@
                 <button mat-menu-item (click)="createLinkedDoc('Invoiceout')">
                     <span>Счёт покупателю</span>
                 </button>
+                <button mat-menu-item (click)="createLinkedDoc('Paymentin')" matTooltip='Создать входящий платёж'>
+                    <span>Входящий платёж</span>
+                </button>
+                <button mat-menu-item (click)="createLinkedDoc('Orderin')" matTooltip='Создать приходный ордер'>
+                    <span>Приходный ордер</span>
+                </button>
                 <button mat-menu-item (click)="createLinkedDoc('Return')">
                     <span>Возврат покупателя</span>
                 </button>
