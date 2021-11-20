@@ -76,6 +76,8 @@ const routes: Routes = [
       { path: 'orderout', loadChildren: () => import('./pages/documents/orderout/orderout.module').then(m => m.OrderoutModule) },
       { path: 'vatinvoiceindoc', loadChildren: () => import('./pages/documents/vatinvoicein-doc/vatinvoicein-doc.module').then(m => m.VatinvoiceinDocModule) },
       { path: 'vatinvoicein', loadChildren: () => import('./pages/documents/vatinvoicein/vatinvoicein.module').then(m => m.VatinvoiceinModule) },
+      { path: 'boxoffice', loadChildren: () => import('./pages/documents/boxoffice/boxoffice.module').then(m => m.BoxofficeModule) },
+      { path: 'boxofficedoc', loadChildren: () => import('./pages/documents/boxoffice-doc/boxoffice-doc.module').then(m => m.BoxofficeDocModule) },
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
       { path: '**', redirectTo: 'dashboard',pathMatch: 'full' },
     ]  

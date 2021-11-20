@@ -217,14 +217,6 @@ export class ShipmentDocComponent implements OnInit {
   settingsForm: any; // форма с настройками
   formLinkedDocs:any// Форма для отправки при создании Возврата покупателя
 
-  //переменные для управления динамическим отображением элементов
-  visBeforeCreatingBlocks = true; //блоки, отображаемые ДО создания документа (до получения id)
-  visAfterCreatingBlocks = true; //блоки, отображаемые ПОСЛЕ создания документа (id >0)
-  visBtnUpdate = false;
-  visBtnAdd:boolean;
-  visBtnCopy = false;
-  visBtnDelete = false;
-
   //переменные прав
   permissionsSet: any[];//сет прав на документ
   allowToViewAllCompanies:boolean = false;
@@ -489,8 +481,6 @@ export class ShipmentDocComponent implements OnInit {
       (this.allowToCompleteMyDocs&&documentOfMyCompany&&documentOfMyDepartments&&(this.myId==this.creatorId))
     )?true:false;
     this.allowToCreate=(this.allowToCreateAllCompanies || this.allowToCreateMyCompany||this.allowToCreateMyDepartments)?true:false;
-    
-    this.refreshShowAllTabs();
     this.editability=((this.allowToCreate && +this.id==0)||(this.allowToUpdate && this.id>0));
     // console.log("myCompanyId - "+this.myCompanyId);
     // console.log("documentOfMyCompany - "+documentOfMyCompany);
@@ -512,17 +502,6 @@ export class ShipmentDocComponent implements OnInit {
     if(this.actionsBeforeGetChilds==3){
       this.canGetChilds=true;
       this.startProcess=false;// все стартовые запросы прошли
-    }
-  }
-  
-  refreshShowAllTabs(){
-    if(this.id>0){//если в документе есть id
-      this.visAfterCreatingBlocks = true;
-      this.visBeforeCreatingBlocks = false;
-      this.visBtnUpdate = this.allowToUpdate;
-    }else{
-      this.visAfterCreatingBlocks = false;
-      this.visBeforeCreatingBlocks = true;
     }
   }
 
@@ -1357,7 +1336,6 @@ export class ShipmentDocComponent implements OnInit {
   
       this.getData();
       this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными на продажу товарами
-      this.refreshShowAllTabs();
       this.kkmComponent.clearFields(); //сбрасываем поля "К оплате", "Наличными" и "Сдача" кассового блока
   }
 
@@ -1391,7 +1369,7 @@ export class ShipmentDocComponent implements OnInit {
       // параметры для входящих ордеров и платежей (Paymentin, Orderin)
       if(docname=='Paymentin'||docname=='Orderin'){
         this.formLinkedDocs.get('payment_account_id').setValue(null);//id расчтёного счёта      
-        this.formLinkedDocs.get('boxoffice_id').setValue(1);
+        this.formLinkedDocs.get('boxoffice_id').setValue(null);
         this.formLinkedDocs.get('summ').setValue(this.productSearchAndTableComponent.totalProductSumm)
         this.formLinkedDocs.get('nds').setValue(this.productSearchAndTableComponent.getTotalNds());
       }
@@ -1415,14 +1393,21 @@ export class ShipmentDocComponent implements OnInit {
       .subscribe(
       (data) => {
                   let createdDocId=data as number;
-                
                   switch(createdDocId){
                     case null:{// null возвращает если не удалось создать документ из-за ошибки
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа "+(this.commonUtilites.getDocNameByDocAlias(docname))}});
                       break;
                     }
-                    case 0:{//недостаточно прав
+                    case -1:{//недостаточно прав
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа "+(this.commonUtilites.getDocNameByDocAlias(docname))}});
+                      break;
+                    }
+                    case -20:{//расчётный счёт не определен
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Не удалось определить расчётный счёт для создаваемого документа "+(this.commonUtilites.getDocNameByDocAlias(docname))}});
+                      break;
+                    }
+                    case -21:{//касса не определена
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Не удалось определить кассу для создаваемого документа "+(this.commonUtilites.getDocNameByDocAlias(docname))}});
                       break;
                     }
                     default:{// Документ успешно создался в БД 

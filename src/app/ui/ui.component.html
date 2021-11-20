@@ -176,7 +176,7 @@
           </li>
         </ul>
       </li>
-      <li *ngIf="hasPermission(108)||hasPermission(117)||hasPermission(126)||hasPermission(295)||hasPermission(497)">
+      <li *ngIf="hasPermission(108)||hasPermission(117)||hasPermission(126)||hasPermission(295)||hasPermission(497)||hasPermission(550)">
         <div class="icon-link" (click)="arrowClick($event,1)">
           <a>
             <i class="material-icons unselectable" (click)="arrowClick($event,3)">menu_book</i>
@@ -197,13 +197,17 @@
             <a routerLink="edizm">
               <span class="unselectable">Единицы измерения</span></a>
           </li>
-          <li *ngIf="hasPermission(126)">
-            <a routerLink="cagents">
-              <span class="unselectable">Контрагенты</span></a>
-          </li>
           <li *ngIf="hasPermission(295)">
             <a routerLink="kassa">
               <span class="unselectable">Кассы онлайн</span></a>
+          </li>
+          <li *ngIf="hasPermission(550)">
+            <a routerLink="boxoffice">
+              <span class="unselectable">Кассы предприятия</span></a>
+          </li>
+          <li *ngIf="hasPermission(126)">
+            <a routerLink="cagents">
+              <span class="unselectable">Контрагенты</span></a>
           </li>
           <li *ngIf="hasPermission(268)">
             <a routerLink="statuses">

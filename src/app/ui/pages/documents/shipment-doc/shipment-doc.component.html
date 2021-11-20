@@ -3,7 +3,7 @@
         <div class="top-bar-plug"></div>
         <mat-card-title class="flex top-bar">
             
-            <div class="card-name">Отгрузка<span [ngClass]="{invisible: visBeforeCreatingBlocks}"> №{{formBaseInformation.get('doc_number').value}}</span></div>
+            <div class="card-name">Отгрузка<span [ngClass]="{invisible: +id==0}"> №{{formBaseInformation.get('doc_number').value}}</span></div>
             <div  id="status" style=" font-size: 15px;"> 
                 <div class = "circle-in-selected" *ngIf="+formBaseInformation.get('status_id').value>0" [style.background-color]="formBaseInformation.get('status_color').value"></div>
                 <mat-form-field  class="mat-form-field-100" style="margin-top: -25px;">
@@ -98,7 +98,7 @@
             </button>
             <button 
                 mat-raised-button 
-                [style.display]="visAfterCreatingBlocks==true?'none':'block'"
+                [style.display]="+id>0?'none':'block'"
                 (click)="createNewDocument(false)" 
                 (submit)="false"
                 *ngIf="allowToCreate && +id==0"
@@ -459,31 +459,31 @@
                         </div>
                     </div>
                 </mat-tab>
-                <mat-tab  *ngIf="visAfterCreatingBlocks"  label="О документе">
+                <mat-tab  *ngIf="+id>0"  label="О документе">
                     <form [formGroup]="formAboutDocument">
                         <mat-card class="internal-card">
                             <mat-card-content class="input-form">
-                                    <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                    <mat-form-field [ngClass]="{invisible: +id==0}">
                                         <input  matInput
                                                 placeholder="Предприятие"
                                                 formControlName="company" [readonly]=true/>
                                     </mat-form-field>
-                                    <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                    <mat-form-field [ngClass]="{invisible: +id==0}">
                                         <input  matInput
                                                 placeholder="Создатель"
                                                 formControlName="creator" [readonly]=true/>
                                     </mat-form-field>
-                                    <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                    <mat-form-field [ngClass]="{invisible: +id==0}">
                                         <input  matInput
                                                 placeholder="Дата создания"
                                                 formControlName="date_time_created" [readonly]=true/>
                                     </mat-form-field>
-                                    <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                    <mat-form-field [ngClass]="{invisible: +id==0}">
                                         <input  matInput
                                                 placeholder="Изменение"
                                                 formControlName="changer" [readonly]=true/>
                                     </mat-form-field>
-                                    <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                    <mat-form-field [ngClass]="{invisible: +id==0}">
                                         <input  matInput
                                                 placeholder="Дата изменения"
                                                 formControlName="date_time_changed" [readonly]=true/>
