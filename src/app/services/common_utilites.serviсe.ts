@@ -100,6 +100,8 @@ export class CommonUtilitesService{
     }
   }
 
-
+  getAbs(num:number){
+    return Math.abs(num);
+  }
 
 }

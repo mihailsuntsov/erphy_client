@@ -57,9 +57,15 @@
                 <button mat-menu-item (click)="goToNewDocument()">
                     <span>Счёт покупателю</span>
                 </button>
-                <!-- <button mat-menu-item (click)="createLinkedDoc('Return')">
-                    <span>Возврат покупателя</span>
-                </button> -->
+                <button mat-menu-item (click)="createLinkedDoc('Paymentin')" matTooltip='Создать входящий платёж'>
+                    <span>Входящий платёж</span>
+                </button>
+                <button mat-menu-item (click)="createLinkedDoc('Orderin')" matTooltip='Создать приходный ордер'>
+                    <span>Приходный ордер</span>
+                </button>
+                <button mat-menu-item (click)="createLinkedDoc('Shipment')" matTooltip='Создать отгрузку'>
+                    <span>Отгрузка</span>
+                </button>
             </mat-menu>
             <button 
                 style="width: 129px;height: 36px;min-width: 38px;"

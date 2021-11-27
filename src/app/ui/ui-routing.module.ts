@@ -78,6 +78,8 @@ const routes: Routes = [
       { path: 'vatinvoicein', loadChildren: () => import('./pages/documents/vatinvoicein/vatinvoicein.module').then(m => m.VatinvoiceinModule) },
       { path: 'boxoffice', loadChildren: () => import('./pages/documents/boxoffice/boxoffice.module').then(m => m.BoxofficeModule) },
       { path: 'boxofficedoc', loadChildren: () => import('./pages/documents/boxoffice-doc/boxoffice-doc.module').then(m => m.BoxofficeDocModule) },
+      { path: 'correction', loadChildren: () => import('./pages/documents/correction/correction.module').then(m => m.CorrectionModule) },
+      { path: 'correctiondoc', loadChildren: () => import('./pages/documents/correction-doc/correction-doc.module').then(m => m.CorrectionDocModule) },
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
       { path: '**', redirectTo: 'dashboard',pathMatch: 'full' },
     ]  

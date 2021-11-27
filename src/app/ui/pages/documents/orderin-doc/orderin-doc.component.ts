@@ -210,8 +210,8 @@ export class OrderinDocComponent implements OnInit {
       doc_number: new FormControl               ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
       description: new FormControl              ('',[]),
       cagent: new FormControl                   ('',[]),
-      nds: new FormControl                      (0,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
-      summ: new FormControl                     ('',[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      nds: new FormControl                      (0,[Validators.required, Validators.pattern('^[0-9]{1,9}(?:[.,][0-9]{0,2})?\r?$')]),
+      summ: new FormControl                     ('',[Validators.required, Validators.pattern('^[0-9]{1,9}(?:[.,][0-9]{0,2})?\r?$')]),
       status_id: new FormControl                ('',[]),
       status_name: new FormControl              ('',[]),
       status_color: new FormControl             ('',[]),
@@ -1020,6 +1020,9 @@ deleteFile(id:number){
       this.createLinkedDoc('Vatinvoiceout');
   }
   //******************************************************** ДИАГРАММА СВЯЗЕЙ ************************************************************/
+  commaToDot(fieldName:string){
+    this.formBaseInformation.get(fieldName).setValue(this.formBaseInformation.get(fieldName).value.replace(",", "."));
+  }
   myTabFocusChange(changeEvent: MatTabChangeEvent) {
     console.log('Tab position: ' + changeEvent.tab.position);
   }  

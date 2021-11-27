@@ -238,12 +238,7 @@
                             </span>
                             <td mat-cell *matCellDef="let row"> 
                                 <div [style.border-color]="row.status_color"  *ngIf="row.status_name!=null && row.status_name!=''" 
-                                style="
-                                    border-width: 3px;
-                                    text-align: center;
-                                    height: 31px;
-                                    border-radius: 15px;
-                                    border-style: solid;">
+                                class="status">
                                 
                                         <p class="status-name">{{row.status_name}}</p>
                                 </div>

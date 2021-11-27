@@ -59,6 +59,7 @@ export class LoadSpravService{
                 {id:27, name:'Инвентаризация'},
                 {id:34, name:'Исходящий платеж'},
                 {id:12, name:'Контрагент'},
+                {id:41, name:'Корректировка'},
                 {id:16, name:'Оприходование'},
                 {id:21, name:'Отгрузка'},
                 {id:30, name:'Перемещение'},
@@ -83,6 +84,16 @@ export class LoadSpravService{
             {id:'taxes', name:'Налоги и сборы'},
             {id:'moving', name:'Внутреннее пермещение'},
             {id:'other_opex', name:'Другие операционные расходы'},
+        ];
+        return docList; 
+    }    
+    //формирование списка коррекций с id и названием
+    getCorrectionTypesList(){
+        let docList: idAndName [] = [];
+        docList = [
+            {id:'boxoffice', name:'Касса предприятия'},
+            {id:'account', name:'Расчётный счёт'},
+            {id:'cagent', name:'Баланс контрагента'},
         ];
         return docList; 
     }    

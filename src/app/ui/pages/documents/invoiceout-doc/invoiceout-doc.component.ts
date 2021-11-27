@@ -213,7 +213,7 @@ export class InvoiceoutDocComponent implements OnInit {
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
   formBaseInformation: FormGroup; //массив форм для накопления информации о Заказе покупателя
   settingsForm: any; // форма с настройками
-  formReturn:any// Форма для отправки при создании Возврата покупателя
+  formLinkedDocs:any// Форма для отправки при создании Возврата покупателя
 
   //переменные прав
   permissionsSet: any[];//сет прав на документ
@@ -325,7 +325,7 @@ export class InvoiceoutDocComponent implements OnInit {
     });
 
     // Форма для отправки при создании связанных документов
-    this.formReturn = new FormGroup({
+    this.formLinkedDocs = new FormGroup({
       retail_sales_id: new FormControl    (null,[]),
       date_return: new FormControl        ('',[]),
       nds: new FormControl                ('',[]),
@@ -339,6 +339,14 @@ export class InvoiceoutDocComponent implements OnInit {
       child_uid: new FormControl          (null,[]),// uid дочернего документа
       linked_doc_name: new FormControl    (null,[]),//имя (таблицы) связанного документа
       uid: new FormControl                ('',[]),  //uid создаваемого связанного документа
+      // параметры для входящих ордеров и платежей
+      payment_account_id: new FormControl ('',[]),//id расчтёного счёта      
+      boxoffice_id: new FormControl       ('',[]), // касса предприятия или обособленного подразделения
+      internal: new FormControl           (false,[]), // внутренний платеж     
+      summ:     new FormControl           ('',[]),
+      // параметры для Отгрузки
+      shipment_date: new FormControl      ('',[]), // планируемая дата отгрузки
+      shipmentProductTable:  new FormArray   ([]),
     });
 
     // Форма настроек
@@ -775,7 +783,7 @@ export class InvoiceoutDocComponent implements OnInit {
               this.settingsForm.get('companyId').setValue(result.companyId);
               //данная группа настроек зависит от предприятия
               this.settingsForm.get('departmentId').setValue(result.departmentId);
-              this.settingsForm.get('statusOnFinishId').setValue(result.statusOnFinishId);
+              this.settingsForm.get('statusIdOnComplete').setValue(result.statusIdOnComplete);
               this.settingsForm.get('priceTypeId').setValue(result.priceTypeId);
             }
             this.setDefaultInfoOnStart();
@@ -1315,19 +1323,32 @@ export class InvoiceoutDocComponent implements OnInit {
     let uid = uuidv4();
     let canCreateLinkedDoc:CanCreateLinkedDoc=this.canCreateLinkedDoc(docname); //проверим на возможность создания связанного документа
     if(canCreateLinkedDoc.can){
-      // this.formReturn.get('retail_sales_id').setValue(this.id);
-      this.formReturn.get('cagent_id').setValue(this.formBaseInformation.get('cagent_id').value);
-      this.formReturn.get('nds').setValue(this.formBaseInformation.get('nds').value);
-      this.formReturn.get('company_id').setValue(this.formBaseInformation.get('company_id').value);
-      this.formReturn.get('department_id').setValue(this.formBaseInformation.get('department_id').value);
-      this.formReturn.get('description').setValue('Создано из Счета покупателю №'+ this.formBaseInformation.get('doc_number').value);
-      this.formReturn.get('linked_doc_id').setValue(this.id);//id связанного документа (того, из которого инициируется создание данного документа)
-      this.formReturn.get('parent_uid').setValue(this.formBaseInformation.get('uid').value);// uid исходящего (родительского) документа
-      this.formReturn.get('child_uid').setValue(uid);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
-      this.formReturn.get('linked_doc_name').setValue('invoiceout');//имя (таблицы) связанного документа
-      this.formReturn.get('uid').setValue(uid);
+      // this.formLinkedDocs.get('retail_sales_id').setValue(this.id);
+      this.formLinkedDocs.get('cagent_id').setValue(this.formBaseInformation.get('cagent_id').value);
+      this.formLinkedDocs.get('nds').setValue(this.formBaseInformation.get('nds').value);
+      this.formLinkedDocs.get('company_id').setValue(this.formBaseInformation.get('company_id').value);
+      this.formLinkedDocs.get('department_id').setValue(this.formBaseInformation.get('department_id').value);
+      this.formLinkedDocs.get('description').setValue('Создано из Счета покупателю №'+ this.formBaseInformation.get('doc_number').value);
+      this.formLinkedDocs.get('linked_doc_id').setValue(this.id);//id связанного документа (того, из которого инициируется создание данного документа)
+      this.formLinkedDocs.get('parent_uid').setValue(this.formBaseInformation.get('uid').value);// uid исходящего (родительского) документа
+      this.formLinkedDocs.get('child_uid').setValue(uid);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
+      this.formLinkedDocs.get('linked_doc_name').setValue('invoiceout');//имя (таблицы) связанного документа
+      this.formLinkedDocs.get('uid').setValue(uid);
+
+      // параметры для входящих ордеров и платежей (Paymentin, Orderin)
+      if(docname=='Paymentin'||docname=='Orderin'){
+        this.formLinkedDocs.get('payment_account_id').setValue(null);//id расчтёного счёта      
+        this.formLinkedDocs.get('boxoffice_id').setValue(null);
+        this.formLinkedDocs.get('summ').setValue(this.productSearchAndTableComponent.totalProductSumm)
+        this.formLinkedDocs.get('nds').setValue(this.productSearchAndTableComponent.getTotalNds());
+      }
+      // параметры для Отгрузки (Shipment)
+      if(docname=='Shipment'){ 
+        this.formLinkedDocs.get('shipment_date').setValue(moment());
+      }
+
       this.getProductsTableLinkedDoc(docname);//формируем таблицу товаров для создаваемого документа
-      this.http.post('/api/auth/insert'+docname, this.formReturn.value)
+      this.http.post('/api/auth/insert'+docname, this.formLinkedDocs.value)
       .subscribe(
       (data) => {
                   let createdDocId=data as number;
@@ -1337,7 +1358,7 @@ export class InvoiceoutDocComponent implements OnInit {
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа "+(this.commonUtilites.getDocNameByDocAlias(docname))}});
                       break;
                     }
-                    case 0:{//недостаточно прав
+                    case -1:{//недостаточно прав
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа "+(this.commonUtilites.getDocNameByDocAlias(docname))}});
                       break;
                     }
@@ -1356,8 +1377,8 @@ export class InvoiceoutDocComponent implements OnInit {
 // забирает таблицу товаров из дочернего компонента и помещает ее в форму, предназначенную для создания дочерних документов
   getProductsTableLinkedDoc(docname:string){
     let tableName:string;//для маппинга в соответствующие названия сетов в бэкэнде (например private Set<PostingProductForm> postingProductTable;)
-    tableName='returnProductTable';
-    const control = <FormArray>this.formReturn.get(tableName);
+    if(docname=='Shipment') tableName='shipmentProductTable'; else tableName='postingProductTable';
+    const control = <FormArray>this.formLinkedDocs.get(tableName);
     control.clear();
     this.productSearchAndTableComponent.getProductTable().forEach(row=>{
           control.push(this.formingProductRowLinkedDoc(row,docname));
@@ -1365,8 +1386,12 @@ export class InvoiceoutDocComponent implements OnInit {
   }
   formingProductRowLinkedDoc(row: InvoiceoutProductTable, docname:string) {
     return this._fb.group({
+      department_id: new FormControl (row.department_id,[]),
       product_id: new FormControl (row.product_id,[]),
+      price_type_id:  new FormControl (row.price_type_id,[]),
       product_count: new FormControl (row.product_count,[]),
+      is_material:  new FormControl (row.is_material,[]),
+      product_price_of_type_price:  new FormControl (row.product_price_of_type_price,[]),
       product_price:  new FormControl (row.product_price,[]),
       product_sumprice: new FormControl (((row.product_count)*row.product_price).toFixed(2),[]),
       nds_id:  new FormControl (row.nds_id,[]),

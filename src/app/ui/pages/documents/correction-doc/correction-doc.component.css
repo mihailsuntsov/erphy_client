@@ -1,0 +1,413 @@
+:host{
+    flex-grow: 1;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+}
+
+table {width: 100%;}
+
+li {list-style: none;}
+
+.flex{ display: flex; }
+
+.center-align{
+    display: flex;
+    justify-content: center;
+}
+
+.card{
+    width:100%;
+}
+.subtitle{
+    margin-top:-10px;
+}
+.internal-card{
+    padding: 10px 0 10px;
+    margin: 10px 0 10px 0;
+}
+.expansion-card-top{
+    margin: 10px 0 10px 0;
+}
+.invisible{display:none;}
+
+.card-name{ flex-grow: 1; }
+
+.button{
+    margin-left: 10px;
+}
+
+.mat-form-field-100{
+    width:100%
+}
+
+.input-form{
+    display: flex;
+    flex-direction: column;
+}
+
+.add-cagent {
+    cursor: pointer;
+    position: absolute;
+    top: 0px;
+    right: -1px;
+    color: #585858;
+    z-index: 1000;
+}
+.priceTypeName{
+    position: absolute;
+    left: 56px;
+    top: 15px;
+    flex: 0 0 0%;
+    font-size: 11px;
+    color: gray;
+    z-index: 1000;
+}
+.slideWidth100{
+    width:100%;
+    /* margin:-8.5px 0 0 0; */
+}
+.highlighted{
+    background: rgba(0,0,0,.12);
+}
+.field-name {
+    position: absolute;
+    cursor: pointer;
+    top: -12px;
+    left: 0px;
+    color: rgba(0,0,0,.54);
+    font-size: 11px;
+    z-index: 1000;
+}
+
+.slideWidth50left{
+    width:50%; 
+    padding-right: 10px;
+}
+.slideWidth50right{
+    width:50%; 
+    padding-left: 10px;
+}
+tr.mat-footer-row {
+    font-weight: bold;
+}
+
+.form-invalid{
+    color: red;
+}
+.table-form-invalid{
+    color: red;
+    font-size: 11px;
+    line-height: 0.9em;
+    display: block;
+    font-style: italic;
+}
+.table-field-editable{
+    border-bottom: 1px lightgray dotted;
+}
+.div-foto{
+    width: 100%;
+    max-width: 80px;
+    padding-left: 6px;
+    margin-bottom:0px;
+    overflow: hidden;
+}
+
+
+
+
+
+::ng-deep td  .mat-select-arrow { /*прячем стрелку mat-select НДС в таблице товаров*/
+    border-top: 0px;
+}
+
+/* div#status {
+    margin-top: -14px;
+    flex-grow: 20;
+    width: 200px;
+} */
+::ng-deep div#status .mat-form-field-underline{
+    height: 0px !important;
+}
+::ng-deep div#status .mat-select-arrow{
+    border-top: 0px !important;
+}
+::ng-deep div#status .mat-form-field-wrapper{
+    padding-bottom: 0;
+}
+::ng-deep div#status .mat-form-field-underline{
+    display:none;
+}
+::ng-deep .statuseslist {
+    min-width: 250px !important;
+}
+::ng-deep .department-list {
+    min-width: 350px !important;
+}
+
+::ng-deep div#pricetype .mat-button-ripple.mat-ripple, .mat-button-focus-overlay {
+    position: relative;
+    left: -12px;
+    top: 5px;
+    flex: 0 0 0%;
+    z-index: 1000;
+}
+
+.small-padding{
+    padding-right: 3px; 
+    padding-left: 3px;
+}
+
+.hand
+{
+    cursor: pointer;
+}
+
+.file-wrapper{
+    flex-grow: 1; 
+    max-width: 70%;
+    display: table-cell; 
+    vertical-align: middle;
+    height: 25px;border: 1px solid white;
+}
+
+.center {
+    display: flex;
+    justify-content: center;
+}
+.right {
+    display: flex;
+    justify-content: flex-end;
+}
+.filename-row {
+    width:100%; 
+    margin-bottom: 10px;
+    height:25px;
+    display: flex;
+    justify-content: space-between;
+    padding-left: 10px;
+}
+
+.inactive{
+    color: rgba(0,0,0,.54);
+    text-decoration: none;
+}
+
+.min-heigth{
+    line-height: 22px;
+    height: 22px;
+    min-width: 35px;
+    padding: 0px;
+    color:rgb(100, 100, 100);
+}
+
+.e-radio-group {
+    display: flex;
+    flex-direction: column;
+    margin: 0px 0 0 -6px;
+} 
+
+.e-radio-button {
+    margin: 5px;
+}
+
+.mat-chip-list{
+    position: absolute;
+    right: 5px;
+}
+ .bold {
+    font-weight: bold;
+ }
+.plusMinusEnable{
+    color: black;
+    cursor: pointer;
+    font-size:14px;
+    margin-left: -2px;
+}
+
+div#costPrice .material-icons {
+    line-height:0 !important;
+    vertical-align: middle;
+}
+div#costPrice input {
+    margin-left: 19px;
+}
+
+/*-------------- Блок ККТ --------------------------*/
+.icon-panel {
+    cursor: default;
+    position: absolute;
+    top: 6px;
+    right: 10px;
+    width: 20px;
+    height: 20px;
+    color: #585858;
+    z-index: 1000;
+}
+.operation_name{
+    position: absolute;
+    left: 18px;
+    top: 37px;
+    flex: 0 0 0%;
+    font-size: 15px;
+    font-weight: bold;
+    color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+}
+::ng-deep .mat-card-actions {
+    margin: 0px 5px -8px !important;
+    padding: 0px 0 !important;
+    font-size: x-small !important;
+    color: rgba(0,0,0,.8);
+    position: absolute;
+    bottom: 12px;
+}
+.paytype-button-row {
+    display: table-cell;
+    width: 100%px;
+    margin: 8px 8px 8px 0;
+  }
+::ng-deep .mat-stroked-button{
+    line-height: 20px !important;
+    width: 33.33%;
+    font-size: 12px !important;
+    margin: 0 2px !important;
+    overflow: hidden !important;
+}
+.selectedPaymentType{
+    background-color: #673ab745;
+    border-color: rgba(0,0,0,.54);
+}
+.prices_input{
+    font-size: x-large;
+    margin: -9px 0 -3px 0;
+}
+.smallBlock{
+    min-height: 270px;
+}
+.mediumBlock{
+    min-height: 450px;
+}
+.settingsBlock{
+    min-height: 535px;
+}
+.operation_block{
+    padding: 0 20px;
+}
+.operation_block_name{
+    font-size: 15px;
+    font-weight: bold;
+    padding-bottom: 10px;
+    color: rgba(0, 0, 0, 0.7);
+}
+.test-result-header{
+    font-weight: bold;
+}
+.test-result-row{
+    font-weight:normal;
+    display:block;
+}
+.test-result-block{
+    text-align: left;
+    margin:10px;
+}
+.conn-test-result{
+    text-align: center; 
+    margin:-10px 0 10px;
+    color: rgba(0, 0, 0, 0.7);
+}
+.cashier-fio{
+    position: absolute;
+    left: 18px;
+    top: 34px;
+    flex: 0 0 0%;
+    color: rgba(0,0,0,.54);
+    font-size: 11px;
+    z-index: 1000;
+}
+/*-------------- спиннер ---------------------------*/
+.spinner{
+    position: absolute;
+    top: 0%;
+    left: 50%;
+    margin-left: -22px;
+    margin-top: 78px;
+}
+.spinner-kkm{
+    position: absolute;
+    top: 40%; left: 50%;
+    margin-left: -25px;
+    /* margin-top: 100px; */
+    z-index: 1000;
+}
+/*--------------- стили для статуса------------------*/
+/*для цветного круга в статусах*/
+.circle-wrapper {
+    width: 30px;
+    height: 100%;
+    vertical-align: middle;
+    text-align: center;
+    display: inline-block;
+}
+
+.circle-in-list {
+    width: 20px;
+    height: 20px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+} 
+
+.circle-in-selected{
+    width: 20px;
+    height: 20px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    position: relative;
+    top: 18px;
+}
+
+/*название статуса*/
+.status-name {
+    display: inline-block;
+    line-height: 20px;
+} 
+
+::ng-deep .mat-expansion-panel-header{
+    display: flex;
+    /* flex-direction: row; */
+    font-size: 12px !important;
+    align-items: baseline !important;
+    padding: 0 12px !important;
+}
+  
+::ng-deep .mat-expansion-panel-header-title{
+    font-size: 20px !important;
+    margin-top: 10px;
+    flex-grow: 0 !important;
+}
+::ng-deep .mat-expansion-panel-header-description{
+    margin: 5px 0 5px;
+    flex-grow: 1 !important;
+}
+::ng-deep .mat-expansion-panel-body {
+    padding: 0 15px 10px !important;
+}
+
+
+/******* схемы связанности ********/
+.no_linked_docs{
+    position: absolute; 
+    top: 13%;left:calc(50% - 130px);
+    width:260px;height:150px; 
+    border-radius: 10px; 
+    padding-top: 90px;
+    display: flex;
+    text-align:center;
+    line-height: 15pt;
+    padding: 50px 20px;
+    justify-content: center;
+    background-color: #f5f5f5; 
+    border:1px solid rgb(88, 88, 88);
+}

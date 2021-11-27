@@ -58,6 +58,15 @@ body {
     vertical-align:sub;
   }
 
+  .status{
+    border-width: 3px;
+    text-align: center;
+    height: 95%;
+    border-radius: 15px;
+    border-style: solid;
+    margin: 0px 5px;
+  }
+
   .icon-button{
     padding: 0px !important; 
     min-width: 38px !important;
@@ -65,4 +74,41 @@ body {
 
   .nodetable{
     border: 1px solid black;
+}
+/*для поля ввода номера документа*/
+#cardname .nowrap .mat-form-field-appearance-legacy .mat-form-field-infix {
+  padding: 0 !important;
+}
+.docnumber{
+  width:70px; margin-top:-30px
+}
+/*спиннеры*/
+.field-spinner{
+  position: absolute !important;
+  top: 0%;
+  right: 1px;
+  margin-left: -12px;
+}
+.nowrap{
+  white-space: nowrap; /* Переносов в тексте нет */
+}
+#status{/*Для блока статусов документа*/
+  padding-left: 10px;
+  flex-grow: 40;
+  margin-top: -14px;
+  width: 150px;
+}
+#topBlock .button{/*Для кнопок верхней панели*/
+  margin: 0 5px 5px 0 !important;
+}
+.separator{
+  flex-grow: 1;
+}
+.balance{/*Вывод баланса (Контрагента, кассы, р. счёта)*/
+  position: absolute !important;
+  border-radius: 0 0 4px 4px !important;
+  top: 27px;
+  right: -2px;
+  width: 200px !important;
+  cursor: default !important;
 }

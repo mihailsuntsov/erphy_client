@@ -33,6 +33,7 @@ import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { Input } from '@angular/core';
 import * as _moment from 'moment';
 import {default as _rollupMoment} from 'moment';
+import { getLocaleNumberSymbol } from '@angular/common';
 const moment = _rollupMoment || _moment;
 moment.defaultFormat = "DD.MM.YYYY";
 moment.fn.toJSON = function() { return this.format('DD.MM.YYYY'); }
@@ -249,6 +250,8 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
   canGetChilds: boolean=false; //можно ли грузить дочерние модули
   actionsBeforeCreateNewDoc:number=0;// количество выполненных действий, необходимых чтобы создать новый документ
   actionsBeforeGetChilds:number=0;// количество выполненных действий, необходимых чтобы загрузить дочерние модули (форму товаров)
+  balanceLoading: boolean=false; // идет загрузка баланса
+  cagentBalance: number=null; // баланс контрагента
   // productsTableIsValid=false;
   // Расценка (все настройки здесь - по умолчанию. После первого же сохранения настроек данные настройки будут заменяться в методе getSettings() )
   productPrice:number=0; //Цена найденного и выбранного в форме поиска товара.
@@ -288,6 +291,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
   formBaseInformation: FormGroup; //массив форм для накопления информации о Заказе покупателя
   settingsForm: any; // форма с настройками
+  globalSettingsForm: any; // форма с общими настройками
   formLinkedDocs:any// Форма для отправки при создании Возврата покупателя
 
   //переменные для управления динамическим отображением элементов
@@ -361,7 +365,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
     private http: HttpClient,
     public ShowImageDialog: MatDialog,
     public ConfirmDialog: MatDialog,
-    private commonUtilites: CommonUtilitesService,
+    public commonUtilites: CommonUtilitesService,
     public dialogAddFiles: MatDialog,
     public ProductReservesDialogComponent: MatDialog,
     public PricingDialogComponent: MatDialog,
@@ -445,6 +449,13 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
       date_time_created: new FormControl        ('',[]),
       date_time_changed: new FormControl        ('',[]),
     });
+
+    // // Форма настроек
+    // this.settingsForm = new FormGroup({
+    //   // Валюта (краткое наименование)
+    //   currShortName: new FormControl             (null,[]),
+    // });
+
 
     // Форма настроек
     this.settingsForm = new FormGroup({
@@ -749,6 +760,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
     this.formBaseInformation.get('department_id').setValue(null);
     this.formBaseInformation.get('cagent_id').setValue(null);
     this.formBaseInformation.get('cagent').setValue('');
+    this.cagentBalance=null;
     
     this.resetAddressForm();
     this.resetContactsForm();
@@ -945,6 +957,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
     this.formBaseInformation.get('cagent_id').setValue(+id);
     this.formBaseInformation.get('cagent').setValue(name);
     this.getCagentValuesById(id);
+    this.getBalance(id);// загрузка баланса нашего предприятия с контрагентом
     //Загрузим тип цены для этого Покупателя, и 
     //если в форме поиска товаров приоритет цены выбран Покупатель, то установится тип цены этого покупателя (если конечно он у него есть)
     this.getSetOfTypePrices();
@@ -1043,6 +1056,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
         if(+customerId>0){
           this.searchCagentCtrl.setValue(customer);
           this.formBaseInformation.get('cagent_id').setValue(customerId);
+          this.getBalance(customerId);// загрузка баланса нашего предприятия с контрагентом
           this.getCagentValuesById(customerId);
         } else {
           this.searchCagentCtrl.setValue('');
@@ -1159,7 +1173,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
         );
   }
-
+  
   formExpansionPanelsString(){
     this.addressString='';
     if(this.formBaseInformation.get('zip_code').value!='') this.addressString+=this.formBaseInformation.get('zip_code').value+' ';
@@ -1875,6 +1889,24 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
     this.formBaseInformation.get('status_description').setValue('');
     this.receivedStatusesList = [];
   }
+  //возвращает баланс по кассе, р.счёту или контрагенту %%%%
+  getBalance(id:number){
+    this.balanceLoading=true;
+    this.cagentBalance=null;
+    this.http.get('/api/auth/getCagentBalance?companyId='+this.formBaseInformation.get('company_id').value+'&typeId='+id) 
+      .subscribe(
+          (data) => 
+          {  
+            if(data!=null){
+              this.balanceLoading=false;
+              this.cagentBalance=parseFloat(data.toString()); 
+            } else {
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Ошибка запроса баланса'}})
+            }
+          },
+          error => {this.balanceLoading=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+      );
+  }
 //**********************************************************************************************************************************************/  
 //*************************************************          СВЯЗАННЫЕ ДОКУМЕНТЫ          ******************************************************/
 //**********************************************************************************************************************************************/  
@@ -1949,7 +1981,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
                         this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа "+(this.commonUtilites.getDocNameByDocAlias(docname))}});
                         break;
                       }
-                      case 0:{//недостаточно прав
+                      case -1:{//недостаточно прав
                         this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа "+(this.commonUtilites.getDocNameByDocAlias(docname))}});
                         break;
                       }
