@@ -12,6 +12,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ValidationService } from './validation.service';
 import { SettingsRetailsalesDialogComponent } from 'src/app/modules/settings/settings-retailsales-dialog/settings-rs-dialog.component';
 import { ProductSearchAndTableComponent } from 'src/app/modules/trade-modules/product-search-and-table/product-search-and-table.component';
+import { BalanceCagentComponent } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.component';
 import { KkmComponent } from 'src/app/modules/trade-modules/kkm/kkm.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { v4 as uuidv4 } from 'uuid';
@@ -142,7 +143,7 @@ interface LinkedDocs {//интерфейс для загрузки связан�
   selector: 'app-retailsales-doc',
   templateUrl: './retailsales-doc.component.html',
   styleUrls: ['./retailsales-doc.component.css'],
-  providers: [LoadSpravService,KkmAtolService,KkmAtolChequesService,Cookie,ProductSearchAndTableComponent,KkmComponent]
+  providers: [LoadSpravService,KkmAtolService,KkmAtolChequesService,Cookie,ProductSearchAndTableComponent,BalanceCagentComponent,KkmComponent]
 })
 export class RetailsalesDocComponent implements OnInit {
 
@@ -243,6 +244,7 @@ export class RetailsalesDocComponent implements OnInit {
   @ViewChild("doc_number", {static: false}) doc_number; //для редактирования номера документа
   @ViewChild(ProductSearchAndTableComponent, {static: false}) public productSearchAndTableComponent:ProductSearchAndTableComponent;
   @ViewChild(KkmComponent, {static: false}) public kkmComponent:KkmComponent;
+  @ViewChild(BalanceCagentComponent, {static: false}) public balanceCagentComponent:BalanceCagentComponent;
   
 
   isDocNumberUnicalChecking = false;//идёт ли проверка на уникальность номера
@@ -1082,6 +1084,7 @@ export class RetailsalesDocComponent implements OnInit {
     this.setStatusColor();//чтобы обновился цвет статуса
     this.formBaseInformation.get('cagent_id').enable();//иначе при сохранении он не будет отпраляться
     this.productSearchAndTableComponent.hideOrShowNdsColumn();//чтобы убрать столбцы выбора и удаления товара из таблицы
+    this.balanceCagentComponent.getBalance();//пересчитаем баланс покупателя (в данный момент тут это не имеет смысла, т.к. в сейчас в РП происходит обмен 100% товара на 100% денег)
     // this.getData();
 
     //если чек не отбивается, и стоит чекбокс Автосоздание нового после создания Розничной продажи:

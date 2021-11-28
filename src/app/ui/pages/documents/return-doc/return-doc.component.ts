@@ -9,6 +9,7 @@ import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { SettingsReturnDialogComponent } from 'src/app/modules/settings/settings-return-dialog/settings-return-dialog.component';
 import { ReturnProductsTableComponent } from 'src/app/modules/trade-modules/return-products-table/return-products-table.component';
+import { BalanceCagentComponent } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { Router } from '@angular/router';
 import { v4 as uuidv4 } from 'uuid';
@@ -133,7 +134,7 @@ interface SpravSysNdsSet{
   selector: 'app-return-doc',
   templateUrl: './return-doc.component.html',
   styleUrls: ['./return-doc.component.css'],
-  providers: [LoadSpravService, Cookie, KkmComponent, KkmAtolService, KkmAtolChequesService, 
+  providers: [LoadSpravService, Cookie, KkmComponent, KkmAtolService, KkmAtolChequesService, BalanceCagentComponent,
     {provide: MAT_DATE_LOCALE, useValue: 'ru'},
     {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},]
@@ -214,6 +215,7 @@ export class ReturnDocComponent implements OnInit {
   @ViewChild("doc_number", {static: false}) doc_number; //для редактирования номера документа
   @ViewChild(ReturnProductsTableComponent, {static: false}) public returnProductsTableComponent:ReturnProductsTableComponent;
   @ViewChild(KkmComponent, {static: false}) public kkmComponent:KkmComponent;
+  @ViewChild(BalanceCagentComponent, {static: false}) public balanceCagentComponent:BalanceCagentComponent;
 
   constructor(private activateRoute: ActivatedRoute,
     private cdRef:ChangeDetectorRef,
@@ -828,27 +830,75 @@ export class ReturnDocComponent implements OnInit {
     } else this.updateDocument(true);
   }
 
+  // updateDocument_old(complete?:boolean){ 
+  //   this.getProductsTable();    
+  //   if(complete) {
+  //     if(this.settingsForm.get('statusOnFinishId').value)//если в настройках есть "Статус при проведении" - выставим его
+  //       this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);
+  //     this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением
+  //   }
+  //   return this.http.post('/api/auth/updateReturn',  this.formBaseInformation.value)
+  //     .subscribe(
+  //         (data) => 
+  //         {   
+  //           this.getLinkedDocsScheme(true);//обновим схему связанных документов )чтобы Проведено сменилось с Нет на Да
+  //           this.setStatusColor();//чтобы обновился цвет статуса
+  //           if(this.returnProductsTableComponent) this.returnProductsTableComponent.showColumns(); //чтобы спрятать столбцы после проведения
+  //           this.openSnackBar("Документ \"Возврат покупателя\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
+  //         },
+  //         error => {
+  //           this.showQueryErrorMessage(error);
+  //           },
+  //     );
+  // } 
+
   updateDocument(complete?:boolean){ 
     this.getProductsTable();    
-    if(complete) {
-      if(this.settingsForm.get('statusOnFinishId').value)//если в настройках есть "Статус при проведении" - выставим его
-        this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);
-      this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением
+    let currentStatus:number=this.formBaseInformation.get('status_id').value;
+    if(complete){
+      this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - временно устанавливаем true, временно - чтобы это ушло в запросе на сервер, но не повлияло на внешний вид документа, если вернется не true
+      if(this.settingsForm.get('statusOnFinishId').value){//если в настройках есть "Статус при проведении" - временно выставляем его
+        this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);}
     }
-    return this.http.post('/api/auth/updateReturn',  this.formBaseInformation.value)
+    this.http.post('/api/auth/updateReturn',  this.formBaseInformation.value)
       .subscribe(
           (data) => 
           {   
-            this.getLinkedDocsScheme(true);//обновим схему связанных документов )чтобы Проведено сменилось с Нет на Да
-            this.setStatusColor();//чтобы обновился цвет статуса
-            if(this.returnProductsTableComponent) this.returnProductsTableComponent.showColumns(); //чтобы спрятать столбцы после проведения
-            this.openSnackBar("Документ \"Возврат покупателя\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
+            if(complete){
+              this.formBaseInformation.get('is_completed').setValue(false);//если сохранение с проведением - удаляем временную установку признака проведенности, 
+              this.formBaseInformation.get('status_id').setValue(currentStatus);//и возвращаем предыдущий статус
+            }
+            let result:number=data as number;
+            switch(result){
+              case null:{// null возвращает если не удалось создать документ из-за ошибки
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка "+ (complete?"проведения":"сохренения") + " документа \"Возврат покупателя\""}});
+                break;
+              }
+              case -1:{//недостаточно прав
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для сохранения или проведения документа \"Возврат покупателя\""}});
+                break;
+              }
+              default:{// Успешно
+                this.openSnackBar("Документ \"Возврат покупателя\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
+                this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+                if(complete) {
+                  this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведенности = true
+                  this.balanceCagentComponent.getBalance();//пересчитаем баланс покупателя, ведь мы взяли у него товар, и теперь мы должны ему больше (или он меньше)
+                  if(this.returnProductsTableComponent) this.returnProductsTableComponent.showColumns(); //чтобы спрятать столбцы после проведения
+                  if(this.settingsForm.get('statusOnFinishId').value){//если в настройках есть "Статус при проведении" - выставим его
+                    this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);}
+                  this.setStatusColor();//чтобы обновился цвет статуса
+                }
+              }
+            }
           },
           error => {
             this.showQueryErrorMessage(error);
             },
       );
   } 
+
+
   clearFormSearchAndProductTable(){
     this.returnProductsTableComponent.resetFormSearch();
     this.returnProductsTableComponent.getControlTablefield().clear();
@@ -1005,7 +1055,7 @@ export class ReturnDocComponent implements OnInit {
       this.formWP.get('description').setValue('Создано из Возврата покупателя №'+ this.formBaseInformation.get('doc_number').value);
       this.formWP.get('linked_doc_id').setValue(this.id);//id связанного документа (того, из которого инициируется создание данного документа)
       this.formWP.get('parent_uid').setValue(this.formBaseInformation.get('uid').value);// uid исходящего (родительского) документа
-      this.formWP.get('child_uid').setValue(uid);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
+      this.formWP.get('child_uid').setValue(uid);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Возврат покупателя будет дочерней для него.
       this.formWP.get('linked_doc_name').setValue('return');//имя (таблицы) связанного документа
       this.formWP.get('uid').setValue(uid);// uid дочернего документа
       this.getProductsTableWP(docname);//формируем таблицу товаров для создаваемого документа

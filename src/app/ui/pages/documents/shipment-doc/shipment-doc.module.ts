@@ -7,6 +7,7 @@ import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SettingsShipmentDialogModule } from '../../../../modules/settings/settings-shipment-dialog/settings-shipment-dialog.module';
 import { ProductSearchAndTableModule } from 'src/app/modules/trade-modules/product-search-and-table/product-search-and-table.module';
+import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.module';
 import { KkmModule } from 'src/app/modules/trade-modules/kkm/kkm.module';
 
 @NgModule({
@@ -16,6 +17,7 @@ import { KkmModule } from 'src/app/modules/trade-modules/kkm/kkm.module';
     ShipmentDocRoutingModule,
     SettingsShipmentDialogModule,
     ProductSearchAndTableModule,
+    BalanceCagentModule,
     KkmModule,
 
     MaterialModule,

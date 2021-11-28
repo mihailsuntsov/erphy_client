@@ -6,6 +6,7 @@ import { ValidationService } from './validation.service';
 import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SettingsPaymentoutDialogModule } from '../../../../modules/settings/settings-paymentout-dialog/settings-paymentout-dialog.module';
+import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.module';
 
 @NgModule({
   declarations: [PaymentoutDocComponent, /*ControlMessagesComponent*/],
@@ -13,6 +14,7 @@ import { SettingsPaymentoutDialogModule } from '../../../../modules/settings/set
     CommonModule,
     PaymentoutDocRoutingModule,
     SettingsPaymentoutDialogModule,
+    BalanceCagentModule,
 
     MaterialModule,
     FormsModule,

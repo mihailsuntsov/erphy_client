@@ -8,6 +8,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SettingsReturnDialogModule } from '../../../../modules/settings/settings-return-dialog/settings-return-dialog.module';
 import { ReturnProductsTableModule } from 'src/app/modules/trade-modules/return-products-table/return-products-table.module';
 import { KkmModule } from 'src/app/modules/trade-modules/kkm/kkm.module';
+import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.module';
 
 @NgModule({
   declarations: [ReturnDocComponent],
@@ -17,6 +18,7 @@ import { KkmModule } from 'src/app/modules/trade-modules/kkm/kkm.module';
     SettingsReturnDialogModule,
     ReturnProductsTableModule,
     KkmModule,
+    BalanceCagentModule,
     
     MaterialModule,
     FormsModule,

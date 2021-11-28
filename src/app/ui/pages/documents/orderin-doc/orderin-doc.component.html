@@ -177,11 +177,11 @@
                                                                 </mat-form-field>
                                                             </div>
 
-                                                            <div class="col-12">
+                                                            <div class="col-12" *ngIf="+id==0 || (+id>0 && formBaseInformation.get('internal').value)">
                                                                 <mat-form-field class="mat-form-field-100" style="margin-top: -8px;">
                                                                     <mat-slide-toggle 
                                                                     formControlName="internal"
-                                                                    [disabled]="this.formBaseInformation.get('is_completed').value"
+                                                                    [disabled]="formBaseInformation.get('is_completed').value || (+id>0 && formBaseInformation.get('internal').value)"
                                                                     (change)="onSwitchInternal()"
                                                                     matTooltip='Включите, если это перевод внутри предприятия'
                                                                     >Перевод внутри предприятия</mat-slide-toggle>
@@ -194,13 +194,18 @@
                                                                             placeholder="cagent_id"
                                                                             formControlName="cagent_id"/>
                                                                 </mat-form-field>
-                                                                <mat-form-field  class="mat-form-field-100" [ngClass]="{invisible: formBaseInformation.get('is_completed').value || formBaseInformation.get('internal').value}"> 
+                                                                <mat-form-field  class="mat-form-field-100"  *ngIf="!formBaseInformation.get('is_completed').value && !formBaseInformation.get('internal').value"> 
                                                                     <mat-label>Контрагент <span *ngIf="+formBaseInformation.get('cagent_id').value==0" class="star">*</span></mat-label>
                                                                     <input  matInput 
-                                                                    [matAutocomplete]="auto4" 
-                                                                    [formControl]="searchCagentCtrl"
-                                                                    (input)="canCagentAutocompleteQuery=true; checkEmptyCagentField();"
-                                                                    (change)="canCagentAutocompleteQuery=false; checkEmptyCagentField();">
+                                                                        [matAutocomplete]="auto4" 
+                                                                        [formControl]="searchCagentCtrl"
+                                                                        (input)="canCagentAutocompleteQuery=true; checkEmptyCagentField();"
+                                                                        (change)="canCagentAutocompleteQuery=false; checkEmptyCagentField();">
+                                                                    <app-balance-cagent 
+                                                                        [company_id]="formBaseInformation.get('company_id').value"
+                                                                        [cagent_id]="formBaseInformation.get('cagent_id').value"
+                                                                        [currency]="'руб.'">
+                                                                    </app-balance-cagent>
                                                                     <mat-autocomplete #auto4="matAutocomplete">
                                                                     <ng-container *ngIf="!isCagentListLoading" style="width:320px;">
                                                                         <mat-option style="padding:0px" *ngFor="let value of filteredCagents" [value]="value.name">
@@ -215,10 +220,15 @@
                                                                     </mat-hint>
                                                                 </mat-form-field>
                                                                 <mat-progress-bar *ngIf="isCagentListLoading" mode="indeterminate"></mat-progress-bar>
-                                                                <mat-form-field  class="mat-form-field-100" [ngClass]="{invisible: !formBaseInformation.get('is_completed').value || formBaseInformation.get('internal').value}">
+                                                                <mat-form-field  class="mat-form-field-100" *ngIf="formBaseInformation.get('is_completed').value && !formBaseInformation.get('internal').value">
                                                                     <input  matInput
                                                                             placeholder="Контрагент"
                                                                             formControlName="cagent" [readonly]=true/>
+                                                                    <app-balance-cagent 
+                                                                        [company_id]="formBaseInformation.get('company_id').value"
+                                                                        [cagent_id]="formBaseInformation.get('cagent_id').value"
+                                                                        [currency]="'руб.'">
+                                                                    </app-balance-cagent>
                                                                 </mat-form-field>
                                                             </div>
                                                             <div class="col-12"> 

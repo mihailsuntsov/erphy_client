@@ -106,9 +106,16 @@ body {
 }
 .balance{/*Вывод баланса (Контрагента, кассы, р. счёта)*/
   position: absolute !important;
-  border-radius: 0 0 4px 4px !important;
-  top: 27px;
+  border-radius: 8px 8px 8px 8px !important;
+  background-color: white;
+  border-width: 0px !important;
+  top: -15px;
   right: -2px;
-  width: 200px !important;
+  width: 175px !important;
   cursor: default !important;
+  height: 20px;
+  font-size:12px;
+  line-height: 21px !important;
+  margin: 0 2px !important;
+  overflow: hidden !important;
 }

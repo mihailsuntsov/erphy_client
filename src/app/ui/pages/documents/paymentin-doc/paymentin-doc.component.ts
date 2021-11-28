@@ -8,6 +8,7 @@ import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { SettingsPaymentinDialogComponent } from 'src/app/modules/settings/settings-paymentin-dialog/settings-paymentin-dialog.component';
+import { BalanceCagentComponent } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { Router } from '@angular/router';
 import { v4 as uuidv4 } from 'uuid';
@@ -117,7 +118,7 @@ interface SpravSysNdsSet{
   selector: 'app-paymentin-doc',
   templateUrl: './paymentin-doc.component.html',
   styleUrls: ['./paymentin-doc.component.css'],
-  providers: [LoadSpravService, CommonUtilitesService,
+  providers: [LoadSpravService, CommonUtilitesService,BalanceCagentComponent,
     {provide: MAT_DATE_LOCALE, useValue: 'ru'},
     {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},]
@@ -186,6 +187,7 @@ export class PaymentinDocComponent implements OnInit {
   doc_number_isReadOnly=true;
   @ViewChild("doc_number", {static: false}) doc_number; //для редактирования номера документа
   @ViewChild("form", {static: false}) form; // связь с формой <form #form="ngForm" ...
+  @ViewChild(BalanceCagentComponent, {static: false}) public balanceCagentComponent:BalanceCagentComponent;
 
   constructor(private activateRoute: ActivatedRoute,
     private cdRef:ChangeDetectorRef,
@@ -736,11 +738,13 @@ export class PaymentinDocComponent implements OnInit {
               }
               default:{// Успешно
                 this.openSnackBar("Документ \"Входящий платёж\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
+                this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                 if(complete) {
                   this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведённости = true
                   if(this.settingsForm.get('statusIdOnComplete').value){//если в настройках есть "Статус при проведении" - выставим его
                     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
                   this.setStatusColor();//чтобы обновился цвет статуса
+                  this.balanceCagentComponent.getBalance();//пересчитаем баланс контрагента, ведь он произвел платеж в наш адрес, и баланс поменялся
                 }
               }
             }

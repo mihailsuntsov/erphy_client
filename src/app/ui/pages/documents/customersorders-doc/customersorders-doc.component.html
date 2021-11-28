@@ -196,12 +196,15 @@
                                                                         [formControl]="searchCagentCtrl"
                                                                         (input)="canCagentAutocompleteQuery=true; checkEmptyCagentField();"
                                                                         (change)="canCagentAutocompleteQuery=false; checkEmptyCagentField();">
-                                                                        <button mat-stroked-button
-                                                                                [color]="cagentBalance>0?'primary':(cagentBalance<0?'warn':'')" 
-                                                                                class="balance"
-                                                                                matTooltip='Баланс с контрагентом.'
-                                                                                *ngIf="cagentBalance!=null && +formBaseInformation.get('cagent_id').value>0"
-                                                                         >{{cagentBalance>0?'Вы должны ':(cagentBalance<0?'Вам должны ':'Баланс: ')}}{{commonUtilites.getAbs(cagentBalance)}} {{'руб.'}}</button>
+
+
+
+                                                                        <app-balance-cagent 
+                                                                        [company_id]="formBaseInformation.get('company_id').value"
+                                                                        [cagent_id]="formBaseInformation.get('cagent_id').value"
+                                                                        [currency]="'руб.'">
+                                                                        </app-balance-cagent>
+
                                                                         <mat-autocomplete #auto4="matAutocomplete">
                                                                         <ng-container *ngIf="!isCagentListLoading" style="width:320px;">
                                                                             <mat-option style="padding:0px" *ngFor="let value of filteredCagents" [value]="value.name">
@@ -220,6 +223,11 @@
                                                                         <input  matInput
                                                                                 placeholder="Покупатель"
                                                                                 formControlName="cagent" [readonly]=true/>
+                                                                        <app-balance-cagent 
+                                                                        [company_id]="formBaseInformation.get('company_id').value"
+                                                                        [cagent_id]="formBaseInformation.get('cagent_id').value"
+                                                                        [currency]="'руб.'">
+                                                                        </app-balance-cagent>
                                                                     </mat-form-field>
                                                                 </div>
                                                                 <div class="col-12"> 

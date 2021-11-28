@@ -7,7 +7,8 @@ import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SettingsInvoiceoutDialogModule } from '../../../../modules/settings/settings-invoiceout-dialog/settings-invoiceout-dialog.module';
 import { ProductSearchAndTableModule } from 'src/app/modules/trade-modules/product-search-and-table/product-search-and-table.module';
-import { KkmModule } from 'src/app/modules/trade-modules/kkm/kkm.module';
+// import { KkmModule } from 'src/app/modules/trade-modules/kkm/kkm.module';
+import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.module';
 
 @NgModule({
   declarations: [InvoiceoutDocComponent, /*ControlMessagesComponent*/],
@@ -16,7 +17,8 @@ import { KkmModule } from 'src/app/modules/trade-modules/kkm/kkm.module';
     InvoiceoutDocRoutingModule,
     SettingsInvoiceoutDialogModule,
     ProductSearchAndTableModule,
-    KkmModule,
+    // KkmModule,
+    BalanceCagentModule,
 
     MaterialModule,
     FormsModule,

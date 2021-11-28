@@ -13,6 +13,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ValidationService } from './validation.service';
 import { SettingsShipmentDialogComponent } from 'src/app/modules/settings/settings-shipment-dialog/settings-shipment-dialog.component';
 import { ProductSearchAndTableComponent } from 'src/app/modules/trade-modules/product-search-and-table/product-search-and-table.component';
+import { BalanceCagentComponent } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.component';
 import { KkmComponent } from 'src/app/modules/trade-modules/kkm/kkm.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { v4 as uuidv4 } from 'uuid';
@@ -162,7 +163,7 @@ interface LinkedDocs {//интерфейс для загрузки связан�
   selector: 'app-shipment-doc',
   templateUrl: './shipment-doc.component.html',
   styleUrls: ['./shipment-doc.component.css'],
-  providers: [LoadSpravService,KkmAtolService,KkmAtolChequesService,Cookie,ProductSearchAndTableComponent,KkmComponent,CommonUtilitesService,
+  providers: [LoadSpravService,KkmAtolService,KkmAtolChequesService,Cookie,ProductSearchAndTableComponent,KkmComponent,CommonUtilitesService,BalanceCagentComponent,
     {provide: MAT_DATE_LOCALE, useValue: 'ru'},
     {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},]
@@ -263,9 +264,10 @@ export class ShipmentDocComponent implements OnInit {
   @ViewChild("doc_number", {static: false}) doc_number; //для редактирования номера документа
   @ViewChild(ProductSearchAndTableComponent, {static: false}) public productSearchAndTableComponent:ProductSearchAndTableComponent;
   @ViewChild(KkmComponent, {static: false}) public kkmComponent:KkmComponent;
+  @ViewChild(BalanceCagentComponent, {static: false}) public balanceCagentComponent:BalanceCagentComponent;
   
 
-  isDocNumberUnicalChecking = false;//идёт ли проверка на уникальность номера
+  isDocNumberUnicalChecking = false;//идёт ли проверка на уникальность 
   doc_number_isReadOnly=true;
   is_completed=false;
 
@@ -1152,6 +1154,7 @@ export class ShipmentDocComponent implements OnInit {
                 if(complete) {
                   this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с завершением - окончательно устанавливаем признак завершенности = true
                   this.is_completed=true;
+                  this.balanceCagentComponent.getBalance();//пересчитаем баланс покупателя, ведь мы отгрузили ему товар, и теперь он должен больше 
                   if(this.productSearchAndTableComponent){
                     this.productSearchAndTableComponent.hideOrShowNdsColumn(); //чтобы спрятать столбцы после завершения 
                     this.productSearchAndTableComponent.tableNdsRecount();

@@ -1,0 +1,7 @@
+<button mat-stroked-button
+    [color]="cagentBalance>0?'primary':(cagentBalance<0?'warn':'')" 
+    class="balance"
+    matTooltip='Баланс с контрагентом.'
+    *ngIf="showModule && cagentBalance!=null && +cagent_id>0"
+    >{{cagentBalance>0?'Вы должны ':(cagentBalance<0?'Вам должны ':'Баланс: ')}}{{commonUtilites.getAbs(cagentBalance)}} {{currency}}
+</button>

@@ -6,6 +6,7 @@ import { ValidationService } from './validation.service';
 import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SettingsVatinvoiceinDialogModule } from '../../../../modules/settings/settings-vatinvoicein-dialog/settings-vatinvoicein-dialog.module';
+import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.module';
 
 @NgModule({
   declarations: [VatinvoiceinDocComponent,],
@@ -13,6 +14,7 @@ import { SettingsVatinvoiceinDialogModule } from '../../../../modules/settings/s
     CommonModule,
     VatinvoiceinDocRoutingModule,
     SettingsVatinvoiceinDialogModule,
+    BalanceCagentModule,
 
     MaterialModule,
     FormsModule,

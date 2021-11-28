@@ -6,6 +6,7 @@ import { ValidationService } from './validation.service';
 import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SettingsOrderinDialogModule } from '../../../../modules/settings/settings-orderin-dialog/settings-orderin-dialog.module';
+import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.module';
 
 @NgModule({
   declarations: [OrderinDocComponent,],
@@ -13,6 +14,7 @@ import { SettingsOrderinDialogModule } from '../../../../modules/settings/settin
     CommonModule,
     OrderinDocRoutingModule,
     SettingsOrderinDialogModule,
+    BalanceCagentModule,
 
     MaterialModule,
     FormsModule,

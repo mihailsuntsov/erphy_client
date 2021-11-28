@@ -6,6 +6,7 @@ import { ValidationService } from './validation.service';
 import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SettingsCorrectionDialogModule } from '../../../../modules/settings/settings-correction-dialog/settings-correction-dialog.module';
+import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.module';
 
 @NgModule({
   declarations: [CorrectionDocComponent, /*ControlMessagesComponent*/],
@@ -13,6 +14,7 @@ import { SettingsCorrectionDialogModule } from '../../../../modules/settings/set
     CommonModule,
     CorrectionDocRoutingModule,
     SettingsCorrectionDialogModule,
+    BalanceCagentModule,
 
     MaterialModule,
     FormsModule,

@@ -209,6 +209,13 @@
                                                                         </mat-option>
                                                                     </ng-container>
                                                                     </mat-autocomplete>
+                                                                    
+                                                                    <app-balance-cagent 
+                                                                    [company_id]="formBaseInformation.get('company_id').value"
+                                                                    [cagent_id]="formBaseInformation.get('cagent_id').value"
+                                                                    [currency]="'руб.'">
+                                                                    </app-balance-cagent>
+
                                                                     <mat-hint  align="start" *ngIf="searchCagentCtrl.touched && formBaseInformation.get('cagent_id').invalid">
                                                                         <i class="form-invalid">Поставщик не выбран. Введите часть наименования поставщика, и выберите его из списка.</i>
                                                                     </mat-hint>
@@ -218,6 +225,11 @@
                                                                     <input  matInput
                                                                             placeholder="Поставщик"
                                                                             formControlName="cagent" [readonly]=true/>
+                                                                    <app-balance-cagent 
+                                                                    [company_id]="formBaseInformation.get('company_id').value"
+                                                                    [cagent_id]="formBaseInformation.get('cagent_id').value"
+                                                                    [currency]="'руб.'">
+                                                                    </app-balance-cagent>
                                                                 </mat-form-field>
                                                             </div>
                                                             <div class="col-12"> 
@@ -226,7 +238,9 @@
                                                                             placeholder="Наименование заказа"
                                                                             maxlength="500"
                                                                             formControlName="name"/>
-                                                                            <mat-hint align="end" *ngIf="formBaseInformation.get('name').value.length>450">{{formBaseInformation.get('name').value.length}} / 500</mat-hint>
+                                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('name').value.length>450">{{formBaseInformation.get('name').value.length}} / 500</mat-hint>
+                                                                
+
                                                                 </mat-form-field>
                                                             </div>
                                                         </div>

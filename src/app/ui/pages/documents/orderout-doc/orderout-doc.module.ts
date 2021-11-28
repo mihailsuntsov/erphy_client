@@ -6,6 +6,7 @@ import { ValidationService } from './validation.service';
 import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SettingsOrderoutDialogModule } from '../../../../modules/settings/settings-orderout-dialog/settings-orderout-dialog.module';
+import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.module';
 
 @NgModule({
   declarations: [OrderoutDocComponent,],
@@ -13,6 +14,7 @@ import { SettingsOrderoutDialogModule } from '../../../../modules/settings/setti
     CommonModule,
     OrderoutDocRoutingModule,
     SettingsOrderoutDialogModule,
+    BalanceCagentModule,
 
     MaterialModule,
     FormsModule,

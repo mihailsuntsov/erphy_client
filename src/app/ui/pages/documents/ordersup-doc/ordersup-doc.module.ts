@@ -7,6 +7,7 @@ import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SettingsOrdersupDialogModule } from '../../../../modules/settings/settings-ordersup-dialog/settings-ordersup-dialog.module';
 import { OrdersupProductsTableModule } from 'src/app/modules/trade-modules/ordersup-products-table/ordersup-products-table.module';
+import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.module';
 
 @NgModule({
   declarations: [OrdersupDocComponent, /*ControlMessagesComponent*/],
@@ -15,6 +16,7 @@ import { OrdersupProductsTableModule } from 'src/app/modules/trade-modules/order
     OrdersupDocRoutingModule,
     SettingsOrdersupDialogModule,
     OrdersupProductsTableModule,
+    BalanceCagentModule,
 
     MaterialModule,
     FormsModule,

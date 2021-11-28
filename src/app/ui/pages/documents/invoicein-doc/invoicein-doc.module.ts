@@ -7,6 +7,7 @@ import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SettingsInvoiceinDialogModule } from '../../../../modules/settings/settings-invoicein-dialog/settings-invoicein-dialog.module';
 import { InvoiceinProductsTableModule } from 'src/app/modules/trade-modules/invoicein-products-table/invoicein-products-table.module';
+import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.module';
 
 @NgModule({
   declarations: [InvoiceinDocComponent, /*ControlMessagesComponent*/],
@@ -15,6 +16,7 @@ import { InvoiceinProductsTableModule } from 'src/app/modules/trade-modules/invo
     InvoiceinDocRoutingModule,
     SettingsInvoiceinDialogModule,
     InvoiceinProductsTableModule,
+    BalanceCagentModule,
 
     MaterialModule,
     FormsModule,

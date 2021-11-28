@@ -13,6 +13,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ValidationService } from './validation.service';
 import { SettingsInvoiceoutDialogComponent } from 'src/app/modules/settings/settings-invoiceout-dialog/settings-invoiceout-dialog.component';
 import { ProductSearchAndTableComponent } from 'src/app/modules/trade-modules/product-search-and-table/product-search-and-table.component';
+import { BalanceCagentComponent } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { v4 as uuidv4 } from 'uuid';
 import { MatTabChangeEvent } from '@angular/material/tabs';
@@ -161,7 +162,7 @@ interface LinkedDocs {//интерфейс для загрузки связан�
   selector: 'app-invoiceout-doc',
   templateUrl: './invoiceout-doc.component.html',
   styleUrls: ['./invoiceout-doc.component.css'],
-  providers: [LoadSpravService,KkmAtolService,KkmAtolChequesService,Cookie,ProductSearchAndTableComponent,CommonUtilitesService,
+  providers: [LoadSpravService,KkmAtolService,KkmAtolChequesService,Cookie,ProductSearchAndTableComponent,CommonUtilitesService,BalanceCagentComponent,
     {provide: MAT_DATE_LOCALE, useValue: 'ru'},
     {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},]
@@ -260,6 +261,7 @@ export class InvoiceoutDocComponent implements OnInit {
   // @Input() authorized: boolean;
   @ViewChild("doc_number", {static: false}) doc_number; //для редактирования номера документа
   @ViewChild(ProductSearchAndTableComponent, {static: false}) public productSearchAndTableComponent:ProductSearchAndTableComponent;
+  @ViewChild(BalanceCagentComponent, {static: false}) public balanceCagentComponent:BalanceCagentComponent;
   
 
   isDocNumberUnicalChecking = false;//идёт ли проверка на уникальность номера

@@ -9,6 +9,7 @@ import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { SettingsReturnsupDialogComponent } from 'src/app/modules/settings/settings-returnsup-dialog/settings-returnsup-dialog.component';
 import { ReturnsupProductsTableComponent } from 'src/app/modules/trade-modules/returnsup-products-table/returnsup-products-table.component';
+import { BalanceCagentComponent } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { Router } from '@angular/router';
 import { v4 as uuidv4 } from 'uuid';
@@ -129,7 +130,7 @@ interface SpravSysNdsSet{
   selector: 'app-returnsup-doc',
   templateUrl: './returnsup-doc.component.html',
   styleUrls: ['./returnsup-doc.component.css'],
-  providers: [LoadSpravService, Cookie, CommonUtilitesService,
+  providers: [LoadSpravService, Cookie, CommonUtilitesService,BalanceCagentComponent,
     {provide: MAT_DATE_LOCALE, useValue: 'ru'},
     {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},]
@@ -210,6 +211,7 @@ export class ReturnsupDocComponent implements OnInit {
   doc_number_isReadOnly=true;
   @ViewChild("doc_number", {static: false}) doc_number; //для редактирования номера документа
   @ViewChild(ReturnsupProductsTableComponent, {static: false}) public returnsupProductsTableComponent:ReturnsupProductsTableComponent;
+  @ViewChild(BalanceCagentComponent, {static: false}) public balanceCagentComponent:BalanceCagentComponent;
   // @ViewChild(KkmComponent, {static: false}) public kkmComponent:KkmComponent;
 
   constructor(private activateRoute: ActivatedRoute,
@@ -877,6 +879,7 @@ export class ReturnsupDocComponent implements OnInit {
                   if(this.settingsForm.get('statusOnFinishId').value){//если в настройках есть "Статус при проведении" - выставим его
                     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);}
                   this.setStatusColor();//чтобы обновился цвет статуса
+                  this.balanceCagentComponent.getBalance();//пересчитаем баланс покупателя, ведь мы вернули ему товар, и теперь он должен больше 
                 }
               }
             }

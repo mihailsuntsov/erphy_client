@@ -1,29 +1,25 @@
 import { ChangeDetectorRef, Component, OnInit, ViewChild,  OnChanges,  SimpleChanges, AfterContentChecked } from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
-import { KkmAtolService } from '../../../../services/kkm_atol';
-import { KkmAtolChequesService } from '../../../../services/kkm_atol_cheques';
+// import { KkmAtolService } from '../../../../services/kkm_atol';
+// import { KkmAtolChequesService } from '../../../../services/kkm_atol_cheques';
 import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
-// import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component';
-// import { SelectionModel } from '@angular/cdk/collections';
 import { Observable } from 'rxjs';
 import { map, startWith, debounceTime, tap, switchMap, mergeMap, concatMap  } from 'rxjs/operators';
 import { MomentDateAdapter} from '@angular/material-moment-adapter';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
-// import { ProductsDocComponent } from '../products-doc/products-doc.component';
 import { MatDialog } from '@angular/material/dialog';
 import { ValidationService } from './validation.service';
-// import { ProductReservesDialogComponent } from 'src/app/ui/dialogs/product-reserves-dialog/product-reserves-dialog.component';
-// import { PricingDialogComponent } from 'src/app/ui/dialogs/pricing-dialog/pricing-dialog.component';
 import { v4 as uuidv4 } from 'uuid';
 import { CommonUtilitesService } from 'src/app/services/common_utilites.serviсe';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { graphviz }  from 'd3-graphviz';
 import { SettingsCustomersordersDialogComponent } from 'src/app/modules/settings/settings-customersorders-dialog/settings-customersorders-dialog.component';
 import { ProductSearchAndTableComponent } from 'src/app/modules/trade-modules/product-search-and-table/product-search-and-table.component';
-import { KkmComponent } from 'src/app/modules/trade-modules/kkm/kkm.component';
+import { BalanceCagentComponent } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.component';
+// import { KkmComponent } from 'src/app/modules/trade-modules/kkm/kkm.component';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatAccordion } from '@angular/material/expansion';
@@ -33,7 +29,7 @@ import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { Input } from '@angular/core';
 import * as _moment from 'moment';
 import {default as _rollupMoment} from 'moment';
-import { getLocaleNumberSymbol } from '@angular/common';
+// import { getLocaleNumberSymbol } from '@angular/common';
 const moment = _rollupMoment || _moment;
 moment.defaultFormat = "DD.MM.YYYY";
 moment.fn.toJSON = function() { return this.format('DD.MM.YYYY'); }
@@ -220,7 +216,12 @@ interface statusInterface{
   selector: 'app-customersorders-doc',
   templateUrl: './customersorders-doc.component.html',
   styleUrls: ['./customersorders-doc.component.css'],
-  providers: [LoadSpravService,KkmAtolService,KkmAtolChequesService,Cookie,DelCookiesService,ProductSearchAndTableComponent,KkmComponent,CommonUtilitesService,
+  providers: [LoadSpravService,
+    // KkmAtolService,
+    // KkmAtolChequesService,
+    Cookie,DelCookiesService,ProductSearchAndTableComponent,BalanceCagentComponent,
+    // KkmComponent,
+    CommonUtilitesService,
     {provide: MAT_DATE_LOCALE, useValue: 'ru'},
     {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},]
@@ -250,9 +251,6 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
   canGetChilds: boolean=false; //можно ли грузить дочерние модули
   actionsBeforeCreateNewDoc:number=0;// количество выполненных действий, необходимых чтобы создать новый документ
   actionsBeforeGetChilds:number=0;// количество выполненных действий, необходимых чтобы загрузить дочерние модули (форму товаров)
-  balanceLoading: boolean=false; // идет загрузка баланса
-  cagentBalance: number=null; // баланс контрагента
-  // productsTableIsValid=false;
   // Расценка (все настройки здесь - по умолчанию. После первого же сохранения настроек данные настройки будут заменяться в методе getSettings() )
   productPrice:number=0; //Цена найденного и выбранного в форме поиска товара.
   netCostPrice:number = 0; // себестоимость найденного и выбранного в форме поиска товара.
@@ -345,7 +343,9 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
   @ViewChild("formBI", {static: false}) formBI; 
   @ViewChild(MatAccordion) accordion: MatAccordion;
   @ViewChild(ProductSearchAndTableComponent, {static: false}) public productSearchAndTableComponent:ProductSearchAndTableComponent;
-  @ViewChild(KkmComponent, {static: false}) public kkmComponent:KkmComponent;
+  // @ViewChild(KkmComponent, {static: false}) public kkmComponent:KkmComponent;
+  @ViewChild(BalanceCagentComponent, {static: false}) public balanceCagentComponent:BalanceCagentComponent;
+  
   @Input() authorized: boolean;
 
   isDocNumberUnicalChecking = false;//идёт ли проверка на уникальность номера
@@ -760,7 +760,6 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
     this.formBaseInformation.get('department_id').setValue(null);
     this.formBaseInformation.get('cagent_id').setValue(null);
     this.formBaseInformation.get('cagent').setValue('');
-    this.cagentBalance=null;
     
     this.resetAddressForm();
     this.resetContactsForm();
@@ -779,10 +778,10 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
       this.getSetOfTypePrices();
       this.formBaseInformation.get('department').setValue(this.getDepartmentNameById(this.formBaseInformation.get('department_id').value));
       this.productSearchAndTableComponent.formSearch.get('secondaryDepartmentId').setValue(this.formBaseInformation.get('department_id').value);
-      if(this.kkmComponent){
-        this.kkmComponent.department_id=this.formBaseInformation.get('department_id').value;
-        this.kkmComponent.getKassaListByDepId();
-      }
+      // if(this.kkmComponent){
+      //   this.kkmComponent.department_id=this.formBaseInformation.get('department_id').value;
+      //   this.kkmComponent.getKassaListByDepId();
+      // }
   }
 
 
@@ -957,7 +956,6 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
     this.formBaseInformation.get('cagent_id').setValue(+id);
     this.formBaseInformation.get('cagent').setValue(name);
     this.getCagentValuesById(id);
-    this.getBalance(id);// загрузка баланса нашего предприятия с контрагентом
     //Загрузим тип цены для этого Покупателя, и 
     //если в форме поиска товаров приоритет цены выбран Покупатель, то установится тип цены этого покупателя (если конечно он у него есть)
     this.getSetOfTypePrices();
@@ -1056,7 +1054,6 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
         if(+customerId>0){
           this.searchCagentCtrl.setValue(customer);
           this.formBaseInformation.get('cagent_id').setValue(customerId);
-          this.getBalance(customerId);// загрузка баланса нашего предприятия с контрагентом
           this.getCagentValuesById(customerId);
         } else {
           this.searchCagentCtrl.setValue('');
@@ -1792,19 +1789,19 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
 
   //принимает от product-search-and-table.component сумму к оплате и передает ее в kkm.component  
   totalSumPriceHandler($event: any) {
-    if(this.kkmComponent!=undefined) {
-      this.kkmComponent.totalSumPrice=$event; 
-      // console.log($event);  
-    }
+    // if(this.kkmComponent!=undefined) {
+    //   this.kkmComponent.totalSumPrice=$event; 
+    //   // console.log($event);  
+    // }
   }  
 
-  sendingProductsTableHandler() {
-    this.kkmComponent.productsTable=[];
-    this.productSearchAndTableComponent.getProductTable().forEach(row=>{
-      this.kkmComponent.productsTable.push(row);
-    });
+  // sendingProductsTableHandler() {
+    // this.kkmComponent.productsTable=[];
+    // this.productSearchAndTableComponent.getProductTable().forEach(row=>{
+    //   this.kkmComponent.productsTable.push(row);
+    // });
     // this.kkmComponent.productsTable=this.productSearchAndTableComponent.getProductTable();
-  }
+  // }
 
   
   getCompanyNameById(id:number):string{
@@ -1888,24 +1885,6 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
     this.formBaseInformation.get('status_color').setValue('ff0000');
     this.formBaseInformation.get('status_description').setValue('');
     this.receivedStatusesList = [];
-  }
-  //возвращает баланс по кассе, р.счёту или контрагенту %%%%
-  getBalance(id:number){
-    this.balanceLoading=true;
-    this.cagentBalance=null;
-    this.http.get('/api/auth/getCagentBalance?companyId='+this.formBaseInformation.get('company_id').value+'&typeId='+id) 
-      .subscribe(
-          (data) => 
-          {  
-            if(data!=null){
-              this.balanceLoading=false;
-              this.cagentBalance=parseFloat(data.toString()); 
-            } else {
-              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Ошибка запроса баланса'}})
-            }
-          },
-          error => {this.balanceLoading=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-      );
   }
 //**********************************************************************************************************************************************/  
 //*************************************************          СВЯЗАННЫЕ ДОКУМЕНТЫ          ******************************************************/
