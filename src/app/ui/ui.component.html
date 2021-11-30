@@ -75,7 +75,7 @@
           </li>
         </ul>
       </li>
-      <li *ngIf="hasPermission(308)||hasPermission(70)">
+      <li *ngIf="hasPermission(308)||hasPermission(70)||hasPermission(559)||hasPermission(562)">
         <div class="icon-link" (click)="arrowClick($event,1)">
           <a>
             <i class="material-icons unselectable" (click)="arrowClick($event,3)">shopping_bag</i>
@@ -91,6 +91,14 @@
           <li *ngIf="hasPermission(308)">
             <a routerLink="retailsales">
               <span class="unselectable">Розничные продажи</span></a>
+          </li>
+          <li *ngIf="hasPermission(559)">
+            <a routerLink="shifts">
+              <span class="unselectable">Кассовые смены</span></a>
+          </li>
+          <li *ngIf="hasPermission(562)">
+            <a routerLink="receipts">
+              <span class="unselectable">Кассовые чеки</span></a>
           </li>
           <li *ngIf="hasPermission(70)">
             <a routerLink="traderesults">

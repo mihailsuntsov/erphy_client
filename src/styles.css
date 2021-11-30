@@ -119,3 +119,11 @@ body {
   margin: 0 2px !important;
   overflow: hidden !important;
 }
+/* стрелка сортировки в таблицах */
+.sortheader .sortarrow{
+  position: relative;
+  top: 3px;
+  left: -3px;
+  line-height: 0;
+  font-weight: bold;
+}

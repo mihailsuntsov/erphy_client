@@ -80,6 +80,7 @@ const routes: Routes = [
       { path: 'boxofficedoc', loadChildren: () => import('./pages/documents/boxoffice-doc/boxoffice-doc.module').then(m => m.BoxofficeDocModule) },
       { path: 'correction', loadChildren: () => import('./pages/documents/correction/correction.module').then(m => m.CorrectionModule) },
       { path: 'correctiondoc', loadChildren: () => import('./pages/documents/correction-doc/correction-doc.module').then(m => m.CorrectionDocModule) },
+      { path: 'shifts', loadChildren: () => import('./pages/documents/shifts/shifts.module').then(m => m.ShiftsModule) },
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
       { path: '**', redirectTo: 'dashboard',pathMatch: 'full' },
     ]  
