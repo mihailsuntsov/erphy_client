@@ -10,6 +10,7 @@ export class QueryForm{
     companyId:any;
     departmentId:any;
     kassaId:any;
+    shift_id:number;
     cashierId:any;
     searchCategoryString:any;
     filterOptionsIds: number[];

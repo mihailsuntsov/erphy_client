@@ -1,20 +1,20 @@
-import { Component, OnInit} from '@angular/core';
+import { Component, Inject, OnInit, Optional} from '@angular/core';
+import { ActivatedRoute} from '@angular/router';
 import { QueryForm } from './query-form';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { HttpClient } from '@angular/common/http';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 // import { Validators } from '@angular/forms';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
-import { QueryFormService } from './get-shifts-table.service';
+import { QueryFormService } from './get-receipts-table.service';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
-import { ReceiptsComponent } from 'src/app/ui/pages/documents/receipts/receipts.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
-// import { FormGroup, FormControl } from '@angular/forms';
-// import { SettingsShiftsDialogComponent } from 'src/app/modules/settings/settings-shifts-dialog/settings-shifts-dialog.component';
+import { FormGroup, FormControl } from '@angular/forms';
+// import { SettingsReceiptsDialogComponent } from 'src/app/modules/settings/settings-receipts-dialog/settings-receipts-dialog.component';
 
 export interface CheckBox {
   id: number;
@@ -33,12 +33,12 @@ export interface NumRow {//интерфейс для списка количес
 }
 
 @Component({
-  selector: 'app-shifts',
-  templateUrl: './shifts.component.html',
-  styleUrls: ['./shifts.component.css'],
+  selector: 'app-receipts',
+  templateUrl: './receipts.component.html',
+  styleUrls: ['./receipts.component.css'],
   providers: [QueryFormService,LoadSpravService,Cookie]
 })
-export class ShiftsComponent implements OnInit {
+export class ReceiptsComponent implements OnInit {
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
   receivedPagesList: string [] ;//массив для получения данных пагинации
   dataSource = new MatTableDataSource<CheckBox>(); //массив данных для таблицы и чекбоксов (чекбоксы берут из него id, таблица -всё)
@@ -52,6 +52,8 @@ export class ShiftsComponent implements OnInit {
   checkedList:number[]=[]; //строка для накапливания id чекбоксов вида [2,5,27...]
   shiftsKassaList:any[]; //загрузка списка касс
   shiftsCashiersList:any[]; //загрузка списка кассиров
+  // shift_id:number=null;// номер смены
+  mode: string = 'standart';  // режим работы документа: 
 
   //переменные прав
   permissionsSet: any[];//сет прав на документ
@@ -104,17 +106,22 @@ export class ShiftsComponent implements OnInit {
   displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
   //***********************************************************************************************************************/
-  constructor(private queryFormService:   QueryFormService,
+  constructor(
+    private activateRoute: ActivatedRoute,
+    private queryFormService:   QueryFormService,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
     public universalCategoriesDialog: MatDialog,
     private MessageDialog: MatDialog,
     public confirmDialog: MatDialog,
-    public receiptsDialog: MatDialog,
     private http: HttpClient,
-    private settingsShiftsDialogComponent: MatDialog,
+    // private settingsReceiptsDialogComponent: MatDialog,
     public deleteDialog: MatDialog,
-    public dialogRef1: MatDialogRef<ShiftsComponent>,) { }
+    public dialogRef1: MatDialogRef<ReceiptsComponent>,
+    @Optional() @Inject(MAT_DIALOG_DATA) public data: any) {
+    //   if(activateRoute.snapshot.params['id'])
+    //     this.shift_id = +activateRoute.snapshot.params['id'];
+     }
 
     ngOnInit() {
       this.sendingQueryForm.companyId='0';
@@ -128,22 +135,22 @@ export class ShiftsComponent implements OnInit {
       this.sendingQueryForm.searchCategoryString="";
       this.sendingQueryForm.filterOptionsIds = [];
 
-      if(Cookie.get('shifts_companyId')=='undefined' || Cookie.get('shifts_companyId')==null)     
-        Cookie.set('shifts_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('shifts_companyId')=="0"?"0":+Cookie.get('shifts_companyId'));
-      if(Cookie.get('shifts_departmentId')=='undefined' || Cookie.get('shifts_departmentId')==null)  
-        Cookie.set('shifts_departmentId',this.sendingQueryForm.departmentId); else this.sendingQueryForm.departmentId=(Cookie.get('shifts_departmentId')=="0"?"0":+Cookie.get('shifts_departmentId'));
-      if(Cookie.get('shifts_kassaId')=='undefined' || Cookie.get('shifts_kassaId')==null)  
-        Cookie.set('shifts_kassaId',this.sendingQueryForm.kassaId); else this.sendingQueryForm.kassaId=(Cookie.get('shifts_kassaId')=="0"?"0":+Cookie.get('shifts_kassaId'));
-      if(Cookie.get('shifts_cashierId')=='undefined' || Cookie.get('shifts_cashierId')==null)  
-        Cookie.set('shifts_cashierId',this.sendingQueryForm.cashierId); else this.sendingQueryForm.cashierId=(Cookie.get('shifts_cashierId')=="0"?"0":+Cookie.get('shifts_cashierId'));
-      if(Cookie.get('shifts_sortAsc')=='undefined' || Cookie.get('shifts_sortAsc')==null)       
-        Cookie.set('shifts_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('shifts_sortAsc');
-      if(Cookie.get('shifts_sortColumn')=='undefined' || Cookie.get('shifts_sortColumn')==null)    
-        Cookie.set('shifts_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('shifts_sortColumn');
-      if(Cookie.get('shifts_offset')=='undefined' || Cookie.get('shifts_offset')==null)        
-        Cookie.set('shifts_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('shifts_offset');
-      if(Cookie.get('shifts_result')=='undefined' || Cookie.get('shifts_result')==null)        
-        Cookie.set('shifts_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('shifts_result');
+      if(Cookie.get('receipts_companyId')=='undefined' || Cookie.get('receipts_companyId')==null)     
+        Cookie.set('receipts_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('receipts_companyId')=="0"?"0":+Cookie.get('receipts_companyId'));
+      if(Cookie.get('receipts_departmentId')=='undefined' || Cookie.get('receipts_departmentId')==null)  
+        Cookie.set('receipts_departmentId',this.sendingQueryForm.departmentId); else this.sendingQueryForm.departmentId=(Cookie.get('receipts_departmentId')=="0"?"0":+Cookie.get('receipts_departmentId'));
+      if(Cookie.get('receipts_kassaId')=='undefined' || Cookie.get('receipts_kassaId')==null)  
+        Cookie.set('receipts_kassaId',this.sendingQueryForm.kassaId); else this.sendingQueryForm.kassaId=(Cookie.get('receipts_kassaId')=="0"?"0":+Cookie.get('receipts_kassaId'));
+      if(Cookie.get('receipts_cashierId')=='undefined' || Cookie.get('receipts_cashierId')==null)  
+        Cookie.set('receipts_cashierId',this.sendingQueryForm.cashierId); else this.sendingQueryForm.cashierId=(Cookie.get('receipts_cashierId')=="0"?"0":+Cookie.get('receipts_cashierId'));
+      if(Cookie.get('receipts_sortAsc')=='undefined' || Cookie.get('receipts_sortAsc')==null)       
+        Cookie.set('receipts_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('receipts_sortAsc');
+      if(Cookie.get('receipts_sortColumn')=='undefined' || Cookie.get('receipts_sortColumn')==null)    
+        Cookie.set('receipts_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('receipts_sortColumn');
+      if(Cookie.get('receipts_offset')=='undefined' || Cookie.get('receipts_offset')==null)        
+        Cookie.set('receipts_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('receipts_offset');
+      if(Cookie.get('receipts_result')=='undefined' || Cookie.get('receipts_result')==null)        
+        Cookie.set('receipts_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('receipts_result');
       
       this.fillOptionsList();//заполняем список опций фильтра
       // Форма настроек
@@ -179,11 +186,27 @@ export class ShiftsComponent implements OnInit {
       // -> getCRUD_rights() 
       // -> getData() 
       //API: getCompaniesList         giveMeMyPermissions      getMyCompanyId
+
+      if(this.data)//если документ вызывается в окне из другого документа
+      {
+        this.mode=this.data.mode;
+        if(this.mode=='viewInWindow'){
+          this.sendingQueryForm.shift_id=this.data.docId;
+          this.sendingQueryForm.companyId=this.data.companyId;
+          this.sendingQueryForm.departmentId='0';
+          this.sendingQueryForm.kassaId='0';
+          this.sendingQueryForm.cashierId='0';
+          this.sendingQueryForm.sortAsc='desc';
+          this.sendingQueryForm.sortColumn='date_time_created_sort';
+          this.sendingQueryForm.offset='0';
+          this.sendingQueryForm.result='10';
+        }
+      } 
     }
 
     // -------------------------------------- *** ПРАВА *** ------------------------------------
    getSetOfPermissions(){
-    return this.http.get('/api/auth/getMyPermissions?id=43')
+    return this.http.get('/api/auth/getMyPermissions?id=44')
             .subscribe(
                 (data) => {   
                             this.permissionsSet=data as any [];
@@ -202,9 +225,9 @@ export class ShiftsComponent implements OnInit {
     // this.allowToDeleteMyCompany = permissionsSet.some(            function(e){return(e==429)});
     // this.allowToDeleteMyDepartments = permissionsSet.some(        function(e){return(e==430)});
     // this.allowToDeleteMyDocs = permissionsSet.some(               function(e){return(e==431)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==560)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==561)});
-    this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==566)});
+    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==563)});
+    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==564)});
+    this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==565)});
     // this.allowToViewMyDocs = permissionsSet.some(                 function(e){return(e==435)});
     // this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==436)});
     // this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==437)});
@@ -259,14 +282,12 @@ export class ShiftsComponent implements OnInit {
     this.displayedColumns.push('department');
     this.displayedColumns.push('kassa');
     this.displayedColumns.push('shift_number');
-    this.displayedColumns.push('shift_status_id');
-    this.displayedColumns.push('num_receipts');
+    this.displayedColumns.push('document');
+    this.displayedColumns.push('operation_id');
     this.displayedColumns.push('date_time_created');
     this.displayedColumns.push('creator');
-    this.displayedColumns.push('date_time_closed');
-    this.displayedColumns.push('closer');
-    this.displayedColumns.push('revenue_all');
-    this.displayedColumns.push('acquiring_bank');
+    this.displayedColumns.push('payment_type');
+    this.displayedColumns.push('summ');
   }
 
   getPagesList(){
@@ -295,7 +316,7 @@ export class ShiftsComponent implements OnInit {
             );
   }
   getShiftsKassa(){
-    this.http.get('/api/auth/getShiftsKassa?company_id='+this.sendingQueryForm.companyId+"&department_id="+(+this.sendingQueryForm.departmentId)+"&docName='shifts'")
+    this.http.get('/api/auth/getShiftsKassa?company_id='+this.sendingQueryForm.companyId+"&department_id="+(+this.sendingQueryForm.departmentId)+"&docName='receipts'")
       .subscribe(
           data => { 
             this.shiftsKassaList=data as any[];
@@ -307,7 +328,7 @@ export class ShiftsComponent implements OnInit {
     );
   }
   getShiftsCashiers(){
-    this.http.get('/api/auth/getShiftsCashiers?company_id='+this.sendingQueryForm.companyId+"&department_id="+(+this.sendingQueryForm.departmentId)+"&docName='shifts'")
+    this.http.get('/api/auth/getShiftsCashiers?company_id='+this.sendingQueryForm.companyId+"&department_id="+(+this.sendingQueryForm.departmentId)+"&docName='receipts'")
       .subscribe(
           data => { 
             this.shiftsCashiersList=data as any[];
@@ -319,12 +340,12 @@ export class ShiftsComponent implements OnInit {
     );
   }
   onKassaSelection(){
-    Cookie.set('shifts_kassaId',this.sendingQueryForm.kassaId);
+    Cookie.set('receipts_kassaId',this.sendingQueryForm.kassaId);
     this.resetOptions();
     this.getTableAndPagesList();
   }
   onCashierSelection(){
-    Cookie.set('shifts_cashierId',this.sendingQueryForm.cashierId);
+    Cookie.set('receipts_cashierId',this.sendingQueryForm.cashierId);
     this.resetOptions();
     this.getTableAndPagesList();
 
@@ -394,7 +415,7 @@ export class ShiftsComponent implements OnInit {
     this.clearCheckboxSelection();
     this.createCheckedList();
     this.sendingQueryForm.offset=0;
-    Cookie.set('shifts_result',this.sendingQueryForm.result);
+    Cookie.set('receipts_result',this.sendingQueryForm.result);
     this.getData();
   }
 
@@ -402,7 +423,7 @@ export class ShiftsComponent implements OnInit {
   {
     this.clearCheckboxSelection();
     this.sendingQueryForm.offset=value;
-    Cookie.set('shifts_offset',value);
+    Cookie.set('receipts_offset',value);
     this.getData();
   }
 
@@ -410,20 +431,7 @@ export class ShiftsComponent implements OnInit {
     this.selection.clear();
     this.dataSource.data.forEach(row => this.selection.deselect(row));
   }
-  openReceiptsWindow(companyId:number, docId:number) {
-    this.receiptsDialog.open(ReceiptsComponent, {
-      maxWidth: '95vw',
-      maxHeight: '95vh',
-      height: '95%',
-      width: '95%',
-      data:
-      { 
-        mode: 'viewInWindow',
-        docId: docId,
-        companyId: companyId
-      },
-    });
-  } 
+
   setSort(valueSortColumn:any) // set sorting column
   {
       this.clearCheckboxSelection();
@@ -433,23 +441,23 @@ export class ShiftsComponent implements OnInit {
           } else {  
               this.sendingQueryForm.sortAsc="asc"
           }
-      Cookie.set('shifts_sortAsc',this.sendingQueryForm.sortAsc);
+      Cookie.set('receipts_sortAsc',this.sendingQueryForm.sortAsc);
       } else {
           this.sendingQueryForm.sortColumn=valueSortColumn;
           this.sendingQueryForm.sortAsc="desc";
-          Cookie.set('shifts_sortAsc',"desc");
-          Cookie.set('shifts_sortColumn',valueSortColumn);
+          Cookie.set('receipts_sortAsc',"desc");
+          Cookie.set('receipts_sortColumn',valueSortColumn);
       }
       this.getData();
   }
   
   onCompanySelection(){
-    Cookie.set('shifts_companyId',this.sendingQueryForm.companyId);
-    Cookie.set('shifts_departmentId','0');
-    Cookie.set('shifts_kassaId','0');
-    Cookie.set('shifts_cashierId','0');
-    // console.log('shifts_companyId - '+Cookie.get('shifts_companyId'));
-    // console.log('shifts_departmentId - '+Cookie.get('shifts_departmentId'));
+    Cookie.set('receipts_companyId',this.sendingQueryForm.companyId);
+    Cookie.set('receipts_departmentId','0');
+    Cookie.set('receipts_kassaId','0');
+    Cookie.set('receipts_cashierId','0');
+    // console.log('receipts_companyId - '+Cookie.get('receipts_companyId'));
+    // console.log('receipts_departmentId - '+Cookie.get('receipts_departmentId'));
     this.sendingQueryForm.departmentId="0"; 
     this.sendingQueryForm.kassaId="0"; 
     this.sendingQueryForm.cashierId="0"; 
@@ -460,11 +468,11 @@ export class ShiftsComponent implements OnInit {
   }
 
   onDepartmentSelection(){
-    Cookie.set('shifts_departmentId',this.sendingQueryForm.departmentId);
-    Cookie.set('shifts_kassaId','0');
-    Cookie.set('shifts_cashierId','0');
-    // console.log('shifts_companyId - '+Cookie.get('shifts_companyId'));
-    // console.log('shifts_departmentId - '+Cookie.get('shifts_departmentId'));
+    Cookie.set('receipts_departmentId',this.sendingQueryForm.departmentId);
+    Cookie.set('receipts_kassaId','0');
+    Cookie.set('receipts_cashierId','0');
+    // console.log('receipts_companyId - '+Cookie.get('receipts_companyId'));
+    // console.log('receipts_departmentId - '+Cookie.get('receipts_departmentId'));
     this.sendingQueryForm.kassaId="0"; 
     this.sendingQueryForm.cashierId="0"; 
     this.resetOptions();
@@ -484,7 +492,7 @@ export class ShiftsComponent implements OnInit {
   deleteDocs(){
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
-          return this.http.post('/api/auth/deleteShifts', body) 
+          return this.http.post('/api/auth/deleteReceipts', body) 
   .subscribe((data) => {   
     let result=data as any;
     switch(result.result){
@@ -492,7 +500,7 @@ export class ShiftsComponent implements OnInit {
       case 1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе удаления "+(this.checkedList.length>1?"документов":"документа")+" проиошла ошибка")}});break;}
       case 2:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для операции удаления"}});break;}
       case 3:{let numbers:string='';
-        for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="/ui/shiftsdoc/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
+        for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="/ui/receiptsdoc/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
         this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Удаление невозможно - у следующих номеров документов есть производные (связанные с ними дочерние) документы:'+numbers}});break;}
     }
   },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
@@ -531,9 +539,9 @@ export class ShiftsComponent implements OnInit {
   }
 
   setDefaultCompany(){
-    if(Cookie.get('shifts_companyId')=='0'){
+    if(Cookie.get('receipts_companyId')=='0'){
       this.sendingQueryForm.companyId=this.myCompanyId;
-      Cookie.set('shifts_companyId',this.sendingQueryForm.companyId);
+      Cookie.set('receipts_companyId',this.sendingQueryForm.companyId);
     }
       this.getDepartmentsList();
   }
@@ -564,7 +572,7 @@ export class ShiftsComponent implements OnInit {
       console.log('установка отделения по умолчанию - '+this.receivedDepartmentsList[0].id);
 
       this.sendingQueryForm.departmentId=+this.receivedDepartmentsList[0].id;
-      Cookie.set('shifts_departmentId',this.sendingQueryForm.departmentId);
+      Cookie.set('receipts_departmentId',this.sendingQueryForm.departmentId);
     }
     this.getCRUD_rights(this.permissionsSet);
   }
@@ -604,7 +612,7 @@ export class ShiftsComponent implements OnInit {
       //*************************************************************   НАСТРОЙКИ   ************************************************************/    
     // открывает диалог настроек
    /* openDialogSettings() { 
-      const dialogSettings = this.settingsShiftsDialogComponent.open(SettingsShiftsDialogComponent, {
+      const dialogSettings = this.settingsReceiptsDialogComponent.open(SettingsReceiptsDialogComponent, {
         maxWidth: '95vw',
         maxHeight: '95vh',
         // height: '680px',
@@ -633,13 +641,13 @@ export class ShiftsComponent implements OnInit {
           this.settingsForm.get('statusIdOnComplete').setValue(result.get('statusIdOnComplete').value);
           this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
           this.settingsForm.get('autoPrice').setValue(result.get('autoPrice').value);
-          this.saveSettingsShifts();
+          this.saveSettingsReceipts();
         }
       });
     }
     // Сохраняет настройки
-    saveSettingsShifts(){
-      return this.http.post('/api/auth/saveSettingsShifts', this.settingsForm.value)
+    saveSettingsReceipts(){
+      return this.http.post('/api/auth/saveSettingsReceipts', this.settingsForm.value)
               .subscribe(
                   (data) => {   
                             this.openSnackBar("Настройки успешно сохранены", "Закрыть");
@@ -668,7 +676,7 @@ export class ShiftsComponent implements OnInit {
   undeleteDocs(){
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
-      return this.http.post('/api/auth/undeleteShifts', body) 
+      return this.http.post('/api/auth/undeleteReceipts', body) 
     .subscribe(
         (data) => {   
                     this.getData();

@@ -20,10 +20,11 @@ export class QueryFormService{
                           result:queryForm.result,
                           companyId: queryForm.companyId,
                           departmentId: queryForm.departmentId,
+                          shift_id: queryForm.shift_id,
                           kassaId: queryForm.kassaId,
                           cashierId: queryForm.cashierId,
                           filterOptionsIds: queryForm.filterOptionsIds};
-          return this.http.post('/api/auth/getShiftsTable', body); 
+          return this.http.post('/api/auth/getReceiptsTable', body); 
   }
 
   getPagesList(queryForm: QueryForm){
@@ -33,12 +34,13 @@ export class QueryFormService{
                               sortAsc:queryForm.sortAsc, 
                               result:queryForm.result,
                               companyId: queryForm.companyId,
+                              shift_id:queryForm.shift_id,
                               departmentId: queryForm.departmentId,
                               kassaId: queryForm.kassaId,
                               cashierId: queryForm.cashierId,
                               filterOptionsIds: queryForm.filterOptionsIds
                             };
-              return this.http.post('/api/auth/getShiftsPagesList', body); 
+              return this.http.post('/api/auth/getReceiptsPagesList', body); 
   }
 
 
