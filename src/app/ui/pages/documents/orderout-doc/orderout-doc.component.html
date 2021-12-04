@@ -1,125 +1,160 @@
 <mat-card class="card">
     <form #form="ngForm" [formGroup]="formBaseInformation">
         <div class="top-bar-plug"></div>
-        <mat-card-title class="flex top-bar">
-            <div class="card-name">Расходный ордер <span [ngClass]="{invisible: +id==0}"> №{{formBaseInformation.get('doc_number').value}}</span></div>
-            <div  id="status" style=" font-size: 15px;"> 
-                <div class = "circle-in-selected" *ngIf="+formBaseInformation.get('status_id').value>0" [style.background-color]="formBaseInformation.get('status_color').value"></div>
-                <mat-form-field  class="mat-form-field-100" style="margin-top: -25px;">
-                    <mat-select     style="padding: 0px 0px 0px 23px" 
-                                    panelClass="statuseslist"
-                                    formControlName="status_id"
-                                    (selectionChange)="setStatusColor();">
-                        <mat-option *ngFor="let status of receivedStatusesList" 
-                                    [value]="status.id"
-                                    matTooltip={{status.description}}>
-                                    <div style="display: inline;line-height: 20px;">
-                                        <div class = "circle-wrapper">
-                                            <div class = "circle-in-list" [style.background-color]="status.color"></div>
+        <mat-card-title class="top-bar container-fluid"> <!-- !!! -->
+            <div class="row" id="topBlock"> <!-- !!! -->
+                <div id="cardname"><!-- !!! -->
+                    <div class="nowrap">Расходный ордер №
+                        <mat-form-field class="docnumber" *ngIf="doc_number_isReadOnly && +id==0 && (+formBaseInformation.get('company_id').value>0)">                                                               
+                            <input  matInput
+                                    (click)="EditDocNumber()"
+                                    formControlName="doc_number"
+                                    [readonly]=true/>
+                        </mat-form-field>
+                        <mat-form-field class="docnumber" *ngIf="!doc_number_isReadOnly && +id==0 && (+formBaseInformation.get('company_id').value>0)">
+                            <!-- !!! checkDocNumberUnical('') -  -->
+                            <input  matInput
+                                    #doc_number 
+                                    maxlength="10"
+                                    (keypress)="numberOnly($event)"
+                                    (keyup)="checkDocNumberUnical('orderout')"
+                                    formControlName="doc_number"/>
+                            <mat-hint  align="start" style="font-size: x-small;margin-top: -1px;" *ngIf="formBaseInformation.get('doc_number').touched && formBaseInformation.get('doc_number').invalid">
+                                <i *ngIf="formBaseInformation.get('doc_number').errors.pattern" class="form-invalid">Номер должен состоять из цифр</i>
+                            </mat-hint>
+                            <mat-hint align="end" *ngIf="doc_number.value.length>5 && !formBaseInformation.get('is_completed').value" style="font-size: x-small;margin-top: -1px;">{{doc_number.value.length}} / 10</mat-hint>
+                            <mat-progress-bar *ngIf="isDocNumberUnicalChecking" mode="indeterminate"></mat-progress-bar>
+                        </mat-form-field>
+                        <span [ngClass]="{invisible: +id==0}"> {{formBaseInformation.get('doc_number').value}}</span>
+                    </div>
+                </div>
+                <div  id="status" style=" font-size: 15px;"> 
+                    <div class = "circle-in-selected" *ngIf="+formBaseInformation.get('status_id').value>0" [style.background-color]="formBaseInformation.get('status_color').value"></div>
+                    <mat-form-field  class="mat-form-field-100" style="margin-top: -25px;">
+                        <mat-select     style="padding: 0px 0px 0px 23px" 
+                                        panelClass="statuseslist"
+                                        formControlName="status_id"
+                                        (selectionChange)="setStatusColor();">
+                            <mat-option *ngFor="let status of receivedStatusesList" 
+                                        [ngClass]="{invisible: !(allowToUpdate && !formBaseInformation.get('is_completed').value)}"
+                                        [value]="status.id"
+                                        matTooltip={{status.description}}>
+                                        <div style="display: inline;line-height: 20px;">
+                                            <div class = "circle-wrapper">
+                                                <div class = "circle-in-list" [style.background-color]="status.color"></div>
+                                            </div>
+                                            <div class = "status-name">{{status.name}}</div>
                                         </div>
-                                        <div class = "status-name">{{status.name}}</div>
-                                    </div>
-                        </mat-option>
-                    </mat-select>
-                    <mat-hint  align="start" *ngIf="formBaseInformation.get('status_id').touched && formBaseInformation.get('status_id').invalid">
-                        <i class="form-invalid">Статус документа не выбран.</i>
-                    </mat-hint>
-                </mat-form-field>
-            </div>
-            <button 
-                mat-raised-button 
-                style="width: 36px;height: 36px;min-width: 38px;padding: 0px;"
-                color="primary"
-                matTooltip='Настройки документа "Расходный ордер"'
-                (click)="openDialogSettings()"
-                type="button"
-                class="button">
-                <i class="material-icons">settings</i>
-            </button>
-            <button 
-                mat-button 
-                [matMenuTriggerFor]="addDocMenu"
-                mat-raised-button 
-                matTooltip='Создать связанные документы'
-                [disabled]="!formBaseInformation.valid" 
-                *ngIf="+id>0"
-                color="primary"
-                (submit)="false"
-                type="button"
-                class="button"
-                style="width: 129px;height: 36px;min-width: 38px;">
-                <i class="material-icons">add</i> Документ<i class="material-icons">arrow_drop_down</i>
-            </button>
-            <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
-                <button mat-menu-item (click)="goToNewDocument()">
-                    <span>Расходный ордер</span>
+                            </mat-option>
+                        </mat-select>
+                        <mat-hint  align="start" *ngIf="formBaseInformation.get('status_id').touched && formBaseInformation.get('status_id').invalid">
+                            <i class="form-invalid">Статус документа не выбран.</i>
+                        </mat-hint>
+                    </mat-form-field>
+                </div>
+                <div class="separator"></div>
+                <button 
+                    mat-raised-button 
+                    style="width: 36px;height: 36px;min-width: 38px;padding: 0px;"
+                    color="primary"
+                    matTooltip='Настройки документа "Расходный ордер"'
+                    (click)="openDialogSettings()"
+                    type="button"
+                    class="button">
+                    <i class="material-icons">settings</i>
                 </button>
-                <button mat-menu-item (click)="createLinkedDoc('Paymentin')" *ngIf="expenditureType=='moving'&&formBaseInformation.get('moving_type').value=='account'"  matTooltip='Создать встречный входящий платёж для данного расходного ордера'>
-                    <span>Входящий платёж (внутренний)</span>
+                <button 
+                    mat-button 
+                    [matMenuTriggerFor]="addDocMenu"
+                    mat-raised-button 
+                    matTooltip='Создать связанные документы'
+                    [disabled]="!formBaseInformation.valid" 
+                    *ngIf="+id>0"
+                    color="primary"
+                    (submit)="false"
+                    type="button"
+                    class="button"
+                    style="width: 129px;height: 36px;min-width: 38px;">
+                    <i class="material-icons">add</i> Документ<i class="material-icons">arrow_drop_down</i>
                 </button>
-                <button mat-menu-item (click)="createLinkedDoc('Orderin')" *ngIf="expenditureType=='moving'&&formBaseInformation.get('moving_type').value=='boxoffice'" matTooltip='Создать встречный приходный ордер для данного расходного ордера'>
-                    <span>Приходный ордер (внутренний)</span>
-                </button>
-                <button mat-menu-item (click)="OnClickVatInvoiceIn()">
-                    <span>Счёт-фактура полученный</span>
-                </button>
-            </mat-menu>
-            <button 
-                style="width: 129px;height: 36px;min-width: 38px;"
-                mat-raised-button 
-                *ngIf=" +id>0 && !formBaseInformation.get('is_completed').value"
-                [disabled]="!formBaseInformation.valid" 
-                (click)="completeDocument()" 
-                type="button"
-                color="primary"
-                class="button">
-                <i class="material-icons">playlist_add_check</i> Провести
-            </button>
-            <button 
-                mat-raised-button 
-                style="width: 129px;height: 36px;min-width: 38px;"
-                *ngIf="+id>0 && allowToUpdate && canGetChilds && !formBaseInformation.get('is_completed').value"
-                matTooltip='Сохранить документ'
-                (click)="updateDocument()"
-                [disabled]="!formBaseInformation.valid" 
-                color="primary"
-                type="button"
-                class="button">
-                <i class="material-icons">done</i> Сохранить
-            </button>
-            <button 
-                mat-raised-button 
-                matTooltip='Создать документ'
-                (click)="createNewDocument()" 
-                style="width: 129px;height: 36px;min-width: 38px;"
-                *ngIf="allowToCreate && +id==0 "
-                [disabled]="!formBaseInformation.valid" 
-                color="primary"
-                type="submit"
-                class="button">
-                <i class="material-icons">done</i> Создать
-            </button>
-            <a routerLink="../../orderout"  [style.display]="(mode=='standart')?'block':'none'">
+                <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
+                    <button mat-menu-item (click)="goToNewDocument()">
+                        <span>Расходный ордер</span>
+                    </button>
+                    <button mat-menu-item (click)="createLinkedDoc('Paymentin')" *ngIf="expenditureType=='moving'&&formBaseInformation.get('moving_type').value=='account'"  matTooltip='Создать встречный входящий платёж для данного расходного ордера'>
+                        <span>Входящий платёж (внутренний)</span>
+                    </button>
+                    <button mat-menu-item (click)="createLinkedDoc('Orderin')" *ngIf="expenditureType=='moving'&&formBaseInformation.get('moving_type').value=='boxoffice'" matTooltip='Создать встречный приходный ордер для данного расходного ордера'>
+                        <span>Приходный ордер (внутренний)</span>
+                    </button>
+                    <button mat-menu-item (click)="OnClickVatInvoiceIn()">
+                        <span>Счёт-фактура полученный</span>
+                    </button>
+                </mat-menu>
                 <button 
                     style="width: 129px;height: 36px;min-width: 38px;"
                     mat-raised-button 
-                    [matTooltip]="id>0?'Выйти из документа в меню':'Отменить создание нового документа'"
-                    color="accent"
+                    *ngIf=" +id>0 && allowToComplete && canGetChilds && !formBaseInformation.get('is_completed').value"
+                    [disabled]="!formBaseInformation.valid" 
+                    (click)="completeDocument()" 
+                    type="button"
+                    color="primary"
                     class="button">
-                    <i class="material-icons">close</i>  {{id>0?'Выйти':'Отмена'}}
+                    <i class="material-icons">playlist_add_check</i> Провести
                 </button>
-            </a>
-            <button [style.display]="(mode=='window')?'block':'none'"
-                    mat-raised-button
-                    style="margin-left:10px"
-                    [mat-dialog-close]="formBaseInformation.get('is_completed').value"
-                    matDialogClose 
-                    color="accent">
-                    <i class="material-icons">close</i>
-                    <span> Закрыть </span>
-            </button>
+                <button 
+                    mat-raised-button 
+                    style="width: 129px;height: 36px;min-width: 38px;"
+                    *ngIf="+id>0 && allowToUpdate && canGetChilds && !formBaseInformation.get('is_completed').value"
+                    matTooltip='Сохранить документ'
+                    (click)="updateDocument()"
+                    [disabled]="!formBaseInformation.valid" 
+                    color="primary"
+                    type="button"
+                    class="button">
+                    <i class="material-icons">done</i> Сохранить
+                </button>
+                <button 
+                    mat-raised-button 
+                    matTooltip='Создать документ'
+                    (click)="createNewDocument()" 
+                    style="width: 129px;height: 36px;min-width: 38px;"
+                    *ngIf="allowToCreate && +id==0 "
+                    [disabled]="!formBaseInformation.valid" 
+                    color="primary"
+                    type="submit"
+                    class="button">
+                    <i class="material-icons">done</i> Создать
+                </button>
+                <a routerLink="../../orderout"  [style.display]="(mode=='standart')?'block':'none'">
+                    <button 
+                        style="width: 129px;height: 36px;min-width: 38px;"
+                        mat-raised-button 
+                        [matTooltip]="id>0?'Выйти из документа в меню':'Отменить создание нового документа'"
+                        color="accent"
+                        class="button">
+                        <i class="material-icons">close</i>  {{id>0?'Выйти':'Отмена'}}
+                    </button>
+                </a>
+                <button [style.display]="(mode=='window')?'block':'none'"
+                        mat-raised-button
+                        style="margin-left:10px"
+                        [mat-dialog-close]="formBaseInformation.get('is_completed').value"
+                        matDialogClose 
+                        color="accent">
+                        <i class="material-icons">close</i>
+                        <span> Закрыть </span>
+                </button>
+            </div>
         </mat-card-title>
-        <mat-card-content> 
+        <mat-card-content *ngIf="!allowToView && rightsDefined"> <!-- !!! -->
+            <mat-card class="internal-card">
+                <mat-card-content style="font-size: 20px;font-weight: bold;color: red;text-align: center;height: 100px;padding: 38px 0;">
+                    Недостаточно прав для просмотра
+                </mat-card-content>
+            </mat-card>
+        </mat-card-content>
+        <mat-card-content *ngIf="allowToView||!rightsDefined"> 
             <mat-tab-group
             (focusChange)="myTabFocusChange($event)"
             (selectedIndexChange)="myTabSelectedIndexChange($event)"  
@@ -167,8 +202,9 @@
                                                             </div>
                                                             <div class="col-12">    
                                                                 <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: formBaseInformation.get('is_completed').value}">
-                                                                    <mat-label>Касса <span *ngIf="+formBaseInformation.get('boxoffice_id').value==0" class="star">*</span></mat-label>
-                                                                    <mat-select formControlName="boxoffice_id" 
+                                                                    <mat-label>Из кассы <span *ngIf="+formBaseInformation.get('boxoffice_id').value==0" class="star">*</span></mat-label>
+                                                                    <mat-select formControlName="boxoffice_id"
+                                                                    (selectionChange)="onBoxofficeChange()" 
                                                                                 >                          
                                                                         <mat-option  *ngFor="let rt of boxoffices" [value]="rt.id">
                                                                                 {{rt.name}}
@@ -176,7 +212,7 @@
                                                                     </mat-select>
                                                                 </mat-form-field>
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="formBaseInformation.get('is_completed').value">
-                                                                    <mat-label>Касса</mat-label>
+                                                                    <mat-label>Из кассы</mat-label>
                                                                     <input  matInput [readonly]="true"
                                                                             [ngModel]="getBoxofficeNameById(formBaseInformation.get('boxoffice_id').value)" [ngModelOptions]="{standalone: true}"/>
                                                                 </mat-form-field>
@@ -262,7 +298,7 @@
                                                             </div>
                                                             <div class="col-12"  *ngIf="expenditureType=='moving' && formBaseInformation.get('moving_type').value=='boxoffice'">    
                                                                 <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: formBaseInformation.get('is_completed').value}">
-                                                                    <mat-label>Касса <span *ngIf="+formBaseInformation.get('boxoffice_to_id').value==0" class="star">*</span></mat-label>
+                                                                    <mat-label>В кассу <span *ngIf="+formBaseInformation.get('boxoffice_to_id').value==0" class="star">*</span></mat-label>
                                                                     <mat-select formControlName="boxoffice_to_id" 
                                                                                 >                          
                                                                         <mat-option  *ngFor="let rt of boxoffices" [value]="rt.id">
@@ -271,14 +307,14 @@
                                                                     </mat-select>
                                                                 </mat-form-field>
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="formBaseInformation.get('is_completed').value">
-                                                                    <mat-label>Касса</mat-label>
+                                                                    <mat-label>В кассу</mat-label>
                                                                     <input  matInput [readonly]="true"
                                                                             [ngModel]="getBoxofficeNameById(formBaseInformation.get('boxoffice_to_id').value)" [ngModelOptions]="{standalone: true}"/>
                                                                 </mat-form-field>
                                                             </div>
                                                             <div class="col-12"  *ngIf="expenditureType=='moving' && formBaseInformation.get('moving_type').value=='account'">    
                                                                 <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: formBaseInformation.get('is_completed').value}">
-                                                                    <mat-label>Расчётный счёт <span *ngIf="+formBaseInformation.get('payment_account_to_id').value==0" class="star">*</span></mat-label>
+                                                                    <mat-label>На расчётный счёт <span *ngIf="+formBaseInformation.get('payment_account_to_id').value==0" class="star">*</span></mat-label>
                                                                     <mat-select formControlName="payment_account_to_id" 
                                                                                 >                          
                                                                                 <mat-option  *ngFor="let rt of paymentAccounts" [value]="rt.id" 
@@ -288,9 +324,31 @@
                                                                     </mat-select>
                                                                 </mat-form-field>
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="formBaseInformation.get('is_completed').value">
-                                                                    <mat-label>Расчётный счёт</mat-label>
+                                                                    <mat-label>На расчётный счёт</mat-label>
                                                                     <input  matInput [readonly]="true"
                                                                             [ngModel]="getPaymentAccountNameById(formBaseInformation.get('payment_account_to_id').value)" [ngModelOptions]="{standalone: true}"/>
+                                                                </mat-form-field>
+                                                            </div>
+                                                            <div class="col-12"  *ngIf="expenditureType=='moving' && formBaseInformation.get('moving_type').value=='kassa'">    
+                                                                <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: formBaseInformation.get('is_completed').value}">
+                                                                    <mat-label>В кассу ККМ <span *ngIf="+formBaseInformation.get('kassa_to_id').value==0" class="star">*</span></mat-label>
+                                                                    <mat-spinner 
+                                                                        strokeWidth="2" 
+                                                                        class="field-spinner"
+                                                                        *ngIf="fieldDataLoading"
+                                                                        [diameter]="25"                                                                        
+                                                                        ></mat-spinner>
+                                                                    <mat-select formControlName="kassa_to_id" 
+                                                                                >                          
+                                                                        <mat-option  *ngFor="let rt of kassaList" [value]="rt.id">
+                                                                                {{rt.name}}
+                                                                        </mat-option> 
+                                                                    </mat-select>
+                                                                </mat-form-field>
+                                                                <mat-form-field class="mat-form-field-100" *ngIf="formBaseInformation.get('is_completed').value">
+                                                                    <mat-label>В кассу KKM</mat-label>
+                                                                    <input  matInput [readonly]="true"
+                                                                            [ngModel]="getKassaNameById(formBaseInformation.get('kassa_to_id').value)" [ngModelOptions]="{standalone: true}"/>
                                                                 </mat-form-field>
                                                             </div>
 
@@ -309,7 +367,7 @@
                                                                             </mat-hint>
                                                                 </mat-form-field>
                                                             </div>
-                                                            <div class="col-12"> 
+                                                            <div class="col-12" *ngIf="!(expenditureType=='moving')"> 
                                                                 <mat-form-field   class="mat-form-field-100">
                                                                     <mat-label>В том числе НДС <span *ngIf="formBaseInformation.get('nds').value==''&& formBaseInformation.get('nds').invalid" class="star">*</span></mat-label>
                                                                     <input  matInput
@@ -328,32 +386,6 @@
                                                 </div>
                                                 <div class="col-xl-4 col-sm-12">
                                                     <div class="container-fluid">
-                                                        <div class="row">
-                                                            <div class="col-lg-6  col-md-12"> 
-                                                                <mat-form-field class="mat-form-field-100" *ngIf="doc_number_isReadOnly && (+formBaseInformation.get('company_id').value>0)">                                                               
-                                                                    <input  matInput
-                                                                            (click)="EditDocNumber()"
-                                                                            placeholder="Номер документа"
-                                                                            formControlName="doc_number"
-                                                                            [readonly]=true/>
-                                                                </mat-form-field>
-                                                                <mat-form-field class="mat-form-field-100" *ngIf="!doc_number_isReadOnly && (+formBaseInformation.get('company_id').value>0)">
-                                                                    <input  matInput
-                                                                            #doc_number 
-                                                                            maxlength="10"
-                                                                            placeholder="Номер документа"
-                                                                            (keypress)="numberOnly($event)"
-                                                                            (change)="checkDocNumberUnical()"
-                                                                            formControlName="doc_number"/>
-                                                                    <mat-hint  align="start" *ngIf="formBaseInformation.get('doc_number').touched && formBaseInformation.get('doc_number').invalid">
-                                                                        <i *ngIf="formBaseInformation.get('doc_number').errors.pattern" class="form-invalid">Номер должен состоять из цифр</i>
-                                                                    </mat-hint>
-                                                                    <mat-hint align="end">{{doc_number.value.length}} / 10</mat-hint>
-                                                                    <mat-progress-bar *ngIf="isDocNumberUnicalChecking" mode="indeterminate"></mat-progress-bar>
-                                                                </mat-form-field>
-                                                            </div>
-                                                        </div>
-                                                        
                                                         <div class="row">
                                                             <div class="col-12">
                                                                 <mat-form-field  class="mat-form-field-100">

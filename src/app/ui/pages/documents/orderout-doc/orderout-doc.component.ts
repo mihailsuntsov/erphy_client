@@ -55,6 +55,7 @@ interface DocResponse {//интерфейс для получения ответ
   date_time_changed: string;
   date_time_created: string;
   description : string;
+  kassa_to_id: number; // касса ККМ, в которую переносим денги (внесение)
   is_archive: boolean;
   status_id: number;
   status_name: string;
@@ -146,9 +147,12 @@ export class OrderoutDocComponent implements OnInit {
   paymentAccounts:any[]=[];// список расчётных счетов предприятия
   movingTypes:any[]=[]; // список типов перемещений: на кассу - boxoffice, на счёт - account 
   boxoffices:any[]=[];// список касс предприятия (не путать с ККМ!!!)
+  kassaList:any[]=[];  // список касс ККМ по отделениям, которые (отделения) привязаны к кассе предприятия boxoffice_id
   expenditureItems:any[]=[]; // список статей расходов
+  fieldDataLoading=false; //загрузка списка касс или расч счетов
   expenditureType:string='';// тип статьи расходов (return (возврат),  purchases (закупки товаров), taxes (налоги и сборы), moving (перемещение меж. своими счетами или кассами), other_opex (другие операционные))
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
+  rightsDefined:boolean; // определены ли права //!!!
 
   //для загрузки связанных документов
   linkedDocsReturn:LinkedDocs[]=[];
@@ -231,6 +235,7 @@ export class OrderoutDocComponent implements OnInit {
       boxoffice_id: new FormControl             ('',[]),
       boxoffice: new FormControl                ('',[]),
       moving_type: new FormControl              ('',[]),
+      kassa_to_id: new FormControl            ('',[]),// id кассы ККМ, в которую делаем внесение
       payment_account_to_id: new FormControl    ('',[]),
       boxoffice_to_id: new FormControl          ('',[]),
       status_color: new FormControl             ('',[]),
@@ -260,12 +265,14 @@ export class OrderoutDocComponent implements OnInit {
       parent_uid: new FormControl         (null,[]),// uid родительского документа
       child_uid: new FormControl          (null,[]),// uid дочернего документа
       linked_doc_name: new FormControl    (null,[]),//имя (таблицы) связанного документа
-      uid: new FormControl                ('',[]),  //uid создаваемого связанного документа
-      // параметры для входящих ордеров и платежей
-      payment_account_id: new FormControl ('',[]),//id расчтёного счёта      
-      boxoffice_id: new FormControl       ('',[]), // касса предприятия
-      internal: new FormControl           ('',[]), // внутренний платеж     
+      uid: new FormControl                ('',[]),  //uid создаваемого связанного документа   
       summ: new FormControl               ('',[]), // сумма   
+      // параметры для входящих ордеров и платежей
+      internal: new FormControl           ('',[]), // внутренний платеж  
+      moving_type: new FormControl              ('',[]), // тип перевода  -  на: кассу предприятия - boxoffice, счёт - account, касса ККМ - kassa 
+      boxoffice_from_id: new FormControl  (null,[]), // из какой кассы предприятия переводим
+      payment_account_id: new FormControl ('',[]), // id расчтёного счёта, на который переводят    
+      boxoffice_id: new FormControl       ('',[]), // id кассы предприятия, в которую переводят
     });
 
     // Форма настроек
@@ -335,7 +342,7 @@ export class OrderoutDocComponent implements OnInit {
       .subscribe(
           (data) => {   
                       this.permissionsSet=data as any [];
-                      this.getMyId();
+                      this. getMyId();
                   },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
       );
@@ -357,12 +364,12 @@ export class OrderoutDocComponent implements OnInit {
     )?true:false;
     this.allowToCreate=(this.allowToCreateAllCompanies || this.allowToCreateMyCompany)?true:false;
     this.editability=((this.allowToCreate && +this.id==0)||(this.allowToUpdate && this.id>0));
-    // console.log("myCompanyId - "+this.myCompanyId);
-    // console.log("documentOfMyCompany - "+documentOfMyCompany);
-    // console.log("allowToView - "+this.allowToView);
-    // console.log("allowToUpdate - "+this.allowToUpdate);
-    // console.log("allowToCreate - "+this.allowToCreate);
-    // return true;
+    console.log("myCompanyId - "+this.myCompanyId);
+    console.log("documentOfMyCompany - "+documentOfMyCompany);
+    console.log("allowToView - "+this.allowToView);
+    console.log("allowToUpdate - "+this.allowToUpdate);
+    console.log("allowToCreate - "+this.allowToCreate);
+    this.rightsDefined=true;//!!!
     this.necessaryActionsBeforeGetChilds();
   }
  //  -------------     ***** поиск по подстроке для поставщика ***    --------------------------
@@ -486,9 +493,9 @@ export class OrderoutDocComponent implements OnInit {
     this.formBaseInformation.get('boxoffice_to_id').setValue(null);
     this.getBoxofficesList();
     this.getCompaniesPaymentAccounts();
+    this.getStatusesList();
     //если идет стартовая прогрузка - продолжаем цепочку запросов. Если это была, например, просто смена предприятия - продолжать далее текущего метода смысла нет
     if(this.startProcess) {
-      this.getStatusesList();
       this.refreshPermissions();
     }
   }
@@ -523,7 +530,8 @@ export class OrderoutDocComponent implements OnInit {
       this.receivedCompaniesList=[];
       this.receivedCompaniesList.push(myCompany);
     }
-    this.getSettings(); // настройки документа Расходный ордер
+    if(+this.id==0)//!!!!! отсюда загружаем настройки только если документ новый. Если уже создан - настройки грузятся из get<Document>ValuesById
+      this.getSettings(); // настройки документа Расходный ордер
   }
 
   //загрузка настроек
@@ -591,7 +599,8 @@ export class OrderoutDocComponent implements OnInit {
     this.http.get('/api/auth/getOrderoutValuesById?id='+ this.id)
         .subscribe(
             data => { 
-                let documentValues: DocResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
+              let documentValues: DocResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
+              if(data!=null&&documentValues.company_id!=null){//!!!
                 this.formBaseInformation.get('id').setValue(+documentValues.id);
                 this.formBaseInformation.get('company_id').setValue(documentValues.company_id);
                 this.formBaseInformation.get('cagent_id').setValue(documentValues.cagent_id);
@@ -603,6 +612,7 @@ export class OrderoutDocComponent implements OnInit {
                 this.formBaseInformation.get('payment_account_to_id').setValue(documentValues.payment_account_to_id);
                 this.formBaseInformation.get('doc_number').setValue(documentValues.doc_number);
                 this.formBaseInformation.get('nds').setValue(documentValues.nds);
+                this.formBaseInformation.get('kassa_to_id').setValue(documentValues.kassa_to_id);
                 this.formBaseInformation.get('summ').setValue(documentValues.summ);
                 this.formBaseInformation.get('description').setValue(documentValues.description);
                 this.formBaseInformation.get('expenditure').setValue(documentValues.expenditure);
@@ -624,8 +634,11 @@ export class OrderoutDocComponent implements OnInit {
     		        this.getMovingTypesList(); 
                 this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
                 this.loadFilesInfo();
+                this.getKassaListByBoxofficeId();   // все кассы KKM отеделений, привязанных к кассе препдриятия boxoffice_id
                 this.getStatusesList();//статусы документа Расходный ордер
                 this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+              } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})} //!!!
+              this.refreshPermissions();//!!!
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
         );
@@ -650,23 +663,25 @@ export class OrderoutDocComponent implements OnInit {
     } 
   }
 
-  checkDocNumberUnical() {
-    if(!this.formBaseInformation.get('doc_number').errors)
-    {
-      let Unic: boolean;
-      this.isDocNumberUnicalChecking=true;
-      return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table=orderout')
-      .subscribe(
-          (data) => {   
-                      Unic = data as boolean;
-                      if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Введённый номер документа не является уникальным.',}});
-                      this.isDocNumberUnicalChecking=false;
-                  },
-          error => {console.log(error);this.isDocNumberUnicalChecking=false;}
-      );
-    }
+  checkDocNumberUnical(tableName:string) {
+    let docNumTmp=this.formBaseInformation.get('doc_number').value;
+    setTimeout(() => {
+      if(!this.formBaseInformation.get('doc_number').errors && docNumTmp==this.formBaseInformation.get('doc_number').value)
+        {
+          let Unic: boolean;
+          this.isDocNumberUnicalChecking=true;
+          return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table='+tableName)
+          .subscribe(
+              (data) => {   
+                          Unic = data as boolean;
+                          if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Введённый номер документа не является уникальным.',}});
+                          this.isDocNumberUnicalChecking=false;
+                      },
+              error => {console.log(error);this.isDocNumberUnicalChecking=false;}
+          );
+        }
+     }, 1000);
   }
-
   //создание нового документа Расходный ордер
   createNewDocument(){
     this.createdDocId=null;
@@ -907,7 +922,7 @@ export class OrderoutDocComponent implements OnInit {
     let name:string = 'Не установлен';
     if(this.movingTypes){
       this.movingTypes.forEach(a=>{
-        if(a.id==id) name=a.name;
+        if(a.id==id) name=a.name_to;
       })}
     return(name);
   }
@@ -929,16 +944,49 @@ export class OrderoutDocComponent implements OnInit {
     return type;
   }
   onMovingChange(){
-
-    if(this.formBaseInformation.get('moving_type').value=='account'){
+    if(this.formBaseInformation.get('moving_type').value=='account'){        // moving_type = 'account'
       this.formBaseInformation.get('boxoffice_to_id').setValue(null);
+      this.formBaseInformation.get('kassa_to_id').setValue(null);
       this.setDefaultPaymentToAccount();
-    } else {// moving_type = 'boxoffice'
+    } else if(this.formBaseInformation.get('moving_type').value=='boxoffice'){// moving_type = 'boxoffice'
       this.formBaseInformation.get('payment_account_to_id').setValue(null);
+      this.formBaseInformation.get('kassa_to_id').setValue(null);
       this.setDefaultBoxofficeTo();
+    } else {                   
+      this.formBaseInformation.get('payment_account_to_id').setValue(null);
+      this.formBaseInformation.get('boxoffice_to_id').setValue(null);
+      if( this.kassaList.length==0)                                               // moving_type = 'kassa' 
+        this.getKassaListByBoxofficeId();
     }
   }
-  
+
+  onBoxofficeChange(){
+    if(this.formBaseInformation.get('moving_type').value=='kassa'){        // moving_type = 'kassa'
+      this.formBaseInformation.get('kassa_to_id').setValue(null);
+      this.kassaList=[];
+      this.getKassaListByBoxofficeId();
+    }
+  }
+  getKassaListByBoxofficeId(){
+    this.fieldDataLoading=true;
+    return this.http.get('/api/auth/getKassaListByBoxofficeId?id='+this.formBaseInformation.get('boxoffice_id').value).subscribe(
+      (data) => { 
+        this.fieldDataLoading=false;
+        this.kassaList=data as any [];
+        // this.setDefaultPaymentFromAccount();
+      },
+      error => {this.fieldDataLoading=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+    );
+  }
+
+  getKassaNameById(id:string):string{
+    let name:string = 'Не установлено';
+    if(this.kassaList){
+      this.kassaList.forEach(a=>{
+        if(a.id==id) name=a.name;
+      })}
+    return(name);
+  }
   OnClickVatInvoiceIn(){
     if(+this.formBaseInformation.get('cagent_id').value==0)
       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Невозможно создать данный документ, так как контрагент не выбран',}});
@@ -1095,10 +1143,11 @@ deleteFile(id:number){
       this.formLinkedDocs.get('linked_doc_name').setValue('orderout');//имя (таблицы) связанного документа
 
       // параметры для входящих ордеров и платежей (Paymentin, Orderin)
-      if(docname=='Paymentin'||docname=='Orderin'){
-        this.formLinkedDocs.get('payment_account_id').setValue(this.formBaseInformation.get('payment_account_to_id').value);//id расчтёного счёта      
-        this.formLinkedDocs.get('boxoffice_id').setValue(this.formBaseInformation.get('boxoffice_id').value);
-        this.formLinkedDocs.get('internal').setValue(this.expenditureType=='moving');
+      if(docname=='Paymentin'||docname=='Orderin'){this.formLinkedDocs.get('internal').setValue(this.expenditureType=='moving');
+        this.formLinkedDocs.get('moving_type').setValue('boxoffice');// тип перевода  -  из : кассы - boxoffice, счёта - account, кассы ККМ - kassa
+        this.formLinkedDocs.get('boxoffice_from_id').setValue(this.formBaseInformation.get('boxoffice_id').value); // id кассы предприятия, из которой переводят 
+        this.formLinkedDocs.get('payment_account_id').setValue(this.formBaseInformation.get('payment_account_to_id').value);//id расчтёного счёта, на который переводят    
+        this.formLinkedDocs.get('boxoffice_id').setValue(this.formBaseInformation.get('boxoffice_to_id').value);// id кассы предприятия, в которую переводят
       }
 
       //поля для счёта-фактуры

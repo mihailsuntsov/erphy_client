@@ -97,14 +97,15 @@ export class LoadSpravService{
         ];
         return docList; 
     }    
-    //формирование списка типов перемещений: на кассу - boxoffice, на счёт - account 
+    //формирование списка типов перемещений: на кассу - boxoffice, на счёт - account, kassa - касса ККМ
     getMovingTypeList(){
-        let docList: idAndName [] = [];
+        let docList: any [] = [];
         docList = [
-            {id:'boxoffice', name:'В кассу предприятия'},
-            {id:'account', name:'На расчётный счёт'},
+            {id:'boxoffice', name_from:'Из кассы предприятия', name_to:'В кассу предприятия'},
+            {id:'account', name_from:'С расчётного счёта', name_to:'На расчётный счёт'},
+            {id:'kassa', name_from:'Из кассы ККМ', name_to:'В Кассу ККМ'},
         ];
-        return docList; 
+        return docList;  
     }    
     //загружается список статусов документа по его id (таблица documents) и id предприятия
     getStatusList(companyId: number, documentId:number){

@@ -126,7 +126,7 @@ export class CorrectionDocComponent implements OnInit {
   correctionTypesList:any[]=[]; // список коррекции
   correctionType:string='';// тип коррекции boxoffice - коррекция кассы, cagent - коррекция баланса с контрагентом, account - коррекция расчётного счёта
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
-  rightsDefined:boolean;
+  rightsDefined:boolean; // определены ли права
 
   //для загрузки связанных документов
   linkedDocsReturn:LinkedDocs[]=[];

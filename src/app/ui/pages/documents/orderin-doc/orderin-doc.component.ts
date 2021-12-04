@@ -53,6 +53,10 @@ interface DocResponse {//интерфейс для получения ответ
   date_time_changed: string;
   date_time_created: string;
   description : string;
+  moving_type:string; //перемещение на: кассу - boxoffice, счёт - account 
+  boxoffice_from_id:number; // id кассы предприятия
+  payment_account_from_id:number; // id расчётного счёта
+  kassa_from_id:number;// id кассы ККМ, из которой делаем перенос (выемку)
   is_archive: boolean;
   status_id: number;
   status_name: string;
@@ -137,8 +141,13 @@ export class OrderinDocComponent implements OnInit {
   receivedPriceTypesList: IdNameDescription [] = [];//массив для получения списка типов цен
   canEditCompAndDepth=true;
   spravSysNdsSet: SpravSysNdsSet[] = []; //массив имен и id для ндс 
+  movingTypes:any[]=[]; // список типов перемещений: из кассы предприятия - boxoffice, с расч. счета - account, из кассы ККМ - kassa
+  paymentAccounts:any[]=[];  // список расчётных счетов предприятия
+  kassaList:any[]=[];  // список касс ККМ по отделениям, которые привязаны к кассе предприятия boxoffice_id
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
-  boxoffices:any[]=[];// список касс предприятия (не путать с ККМ!!!)
+  boxoffices:any[]=[];// список касс предприятия (не путать с ККМ)
+  fieldDataLoading=false; //загрузка списка касс или расч счетов
+  rightsDefined:boolean; // определены ли права //!!!
 
   //для загрузки связанных документов
   linkedDocsReturn:LinkedDocs[]=[];
@@ -216,6 +225,10 @@ export class OrderinDocComponent implements OnInit {
       summ: new FormControl                     ('',[Validators.required, Validators.pattern('^[0-9]{1,9}(?:[.,][0-9]{0,2})?\r?$')]),
       status_id: new FormControl                ('',[]),
       status_name: new FormControl              ('',[]),
+      moving_type: new FormControl              ('',[]),// тип перемещения (из кассы предприятия, расч. счёта, кассы ККМ)
+      boxoffice_from_id: new FormControl        ('',[]), // id кассы предприятия
+      payment_account_from_id: new FormControl  ('',[]), // id расчётного счёта
+      kassa_from_id: new FormControl            ('',[]),// id кассы ККМ откуда делаем выемку
       status_color: new FormControl             ('',[]),
       status_description: new FormControl       ('',[]),
       is_completed: new FormControl             (false,[]),
@@ -343,6 +356,8 @@ export class OrderinDocComponent implements OnInit {
     // console.log("allowToUpdate - "+this.allowToUpdate);
     // console.log("allowToCreate - "+this.allowToCreate);
     // return true;
+
+    this.rightsDefined=true;//!!!
     this.necessaryActionsBeforeGetChilds();
   }
  //  -------------     ***** поиск по подстроке для поставщика ***    --------------------------
@@ -461,9 +476,10 @@ export class OrderinDocComponent implements OnInit {
     this.actionsBeforeGetChilds=0;
     this.formBaseInformation.get('boxoffice_id').setValue(null);
     this.getBoxofficesList();
+    this.getStatusesList();
+    this.getCompaniesPaymentAccounts(); // загрузка расч. счетов
     //если идет стартовая прогрузка - продолжаем цепочку запросов. Если это была, например, просто смена предприятия - продолжать далее текущего метода смысла нет
     if(this.startProcess) {
-      this.getStatusesList();
       this.refreshPermissions();
     }
   }
@@ -498,7 +514,8 @@ export class OrderinDocComponent implements OnInit {
       this.receivedCompaniesList=[];
       this.receivedCompaniesList.push(myCompany);
     }
-    this.getSettings(); // настройки документа Приходный ордер
+    if(+this.id==0)//!!!!! отсюда загружаем настройки только если документ новый. Если уже создан - настройки грузятся из get<Document>ValuesById
+      this.getSettings(); // настройки документа Приходный ордер
   }
 
   //загрузка настроек
@@ -531,6 +548,8 @@ export class OrderinDocComponent implements OnInit {
       this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
     this.getStatusesList();
     this.getBoxofficesList();  
+    this.getCompaniesPaymentAccounts(); // загрузка расч. счетов
+    this.getMovingTypesList();  // типы внутреннего перемещения
     this.refreshPermissions();
   }
   
@@ -564,35 +583,44 @@ export class OrderinDocComponent implements OnInit {
         .subscribe(
             data => { 
                 let documentValues: DocResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
-                this.formBaseInformation.get('id').setValue(+documentValues.id);
-                this.formBaseInformation.get('company_id').setValue(documentValues.company_id);
-                this.formBaseInformation.get('cagent_id').setValue(documentValues.cagent_id);
-                this.formBaseInformation.get('cagent').setValue(documentValues.cagent);
-                this.formBaseInformation.get('doc_number').setValue(documentValues.doc_number);
-                this.formBaseInformation.get('nds').setValue(documentValues.nds);
-                this.formBaseInformation.get('summ').setValue(documentValues.summ);
-                this.formBaseInformation.get('description').setValue(documentValues.description);
-                this.formBaseInformation.get('internal').setValue(documentValues.internal);
-                this.formBaseInformation.get('boxoffice_id').setValue(documentValues.boxoffice_id);
-                this.searchCagentCtrl.setValue(documentValues.cagent);
-                this.formAboutDocument.get('master').setValue(documentValues.master);
-                this.formAboutDocument.get('creator').setValue(documentValues.creator);
-                this.formAboutDocument.get('changer').setValue(documentValues.changer);
-                this.formAboutDocument.get('company').setValue(documentValues.company);
-                this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
-                this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
-                this.formBaseInformation.get('status_id').setValue(documentValues.status_id);
-                this.formBaseInformation.get('status_name').setValue(documentValues.status_name);
-                this.formBaseInformation.get('status_color').setValue(documentValues.status_color);
-                this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
-                this.formBaseInformation.get('is_completed').setValue(documentValues.is_completed);
-                this.formBaseInformation.get('uid').setValue(documentValues.uid);
-                this.creatorId=+documentValues.creator_id;
-                this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
-                this.loadFilesInfo();
-                this.getBoxofficesList();  
-                this.getStatusesList();//статусы документа Приходный ордер
-                this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+                if(data!=null&&documentValues.company_id!=null){//!!!
+                  this.formBaseInformation.get('id').setValue(+documentValues.id);
+                  this.formBaseInformation.get('company_id').setValue(documentValues.company_id);
+                  this.formBaseInformation.get('cagent_id').setValue(documentValues.cagent_id);
+                  this.formBaseInformation.get('cagent').setValue(documentValues.cagent);
+                  this.formBaseInformation.get('doc_number').setValue(documentValues.doc_number);
+                  this.formBaseInformation.get('nds').setValue(documentValues.nds);
+                  this.formBaseInformation.get('summ').setValue(documentValues.summ);
+                  this.formBaseInformation.get('description').setValue(documentValues.description);
+                  this.formBaseInformation.get('moving_type').setValue(documentValues.moving_type);
+                  this.formBaseInformation.get('boxoffice_from_id').setValue(documentValues.boxoffice_from_id);
+                  this.formBaseInformation.get('payment_account_from_id').setValue(documentValues.payment_account_from_id);
+                  this.formBaseInformation.get('kassa_from_id').setValue(documentValues.kassa_from_id);
+                  this.formBaseInformation.get('internal').setValue(documentValues.internal);
+                  this.formBaseInformation.get('boxoffice_id').setValue(documentValues.boxoffice_id);
+                  this.searchCagentCtrl.setValue(documentValues.cagent);
+                  this.formAboutDocument.get('master').setValue(documentValues.master);
+                  this.formAboutDocument.get('creator').setValue(documentValues.creator);
+                  this.formAboutDocument.get('changer').setValue(documentValues.changer);
+                  this.formAboutDocument.get('company').setValue(documentValues.company);
+                  this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
+                  this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
+                  this.formBaseInformation.get('status_id').setValue(documentValues.status_id);
+                  this.formBaseInformation.get('status_name').setValue(documentValues.status_name);
+                  this.formBaseInformation.get('status_color').setValue(documentValues.status_color);
+                  this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
+                  this.formBaseInformation.get('is_completed').setValue(documentValues.is_completed);
+                  this.formBaseInformation.get('uid').setValue(documentValues.uid);
+                  this.creatorId=+documentValues.creator_id;
+                  this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
+                  this.loadFilesInfo();
+                  this.getMovingTypesList();  // типы внутреннего перемещения
+                  this.getBoxofficesList();   // кассы предприятия
+                  this.getKassaListByBoxofficeId();   // все кассы KKM отеделений, привязанных к кассе препдриятия boxoffice_id
+                  this.getStatusesList();//статусы документа Приходный ордер
+                  this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+              } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})} //!!!
+              this.refreshPermissions();
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
         );
@@ -617,21 +645,24 @@ export class OrderinDocComponent implements OnInit {
     } 
   }
 
-  checkDocNumberUnical() {
-    if(!this.formBaseInformation.get('doc_number').errors)
-    {
-      let Unic: boolean;
-      this.isDocNumberUnicalChecking=true;
-      return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table=orderin')
-      .subscribe(
-          (data) => {   
-                      Unic = data as boolean;
-                      if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Введённый номер документа не является уникальным.',}});
-                      this.isDocNumberUnicalChecking=false;
-                  },
-          error => {console.log(error);this.isDocNumberUnicalChecking=false;}
-      );
-    }
+  checkDocNumberUnical(tableName:string) {
+    let docNumTmp=this.formBaseInformation.get('doc_number').value;
+    setTimeout(() => {
+      if(!this.formBaseInformation.get('doc_number').errors && docNumTmp==this.formBaseInformation.get('doc_number').value)
+        {
+          let Unic: boolean;
+          this.isDocNumberUnicalChecking=true;
+          return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table='+tableName)
+          .subscribe(
+              (data) => {   
+                          Unic = data as boolean;
+                          if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Введённый номер документа не является уникальным.',}});
+                          this.isDocNumberUnicalChecking=false;
+                      },
+              error => {console.log(error);this.isDocNumberUnicalChecking=false;}
+          );
+        }
+     }, 1000);
   }
 
   //создание нового документа Приходный ордер
@@ -718,7 +749,8 @@ export class OrderinDocComponent implements OnInit {
                   if(this.settingsForm.get('statusIdOnComplete').value){//если в настройках есть "Статус при проведении" - выставим его
                     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
                   this.setStatusColor();//чтобы обновился цвет статуса
-                  this.balanceCagentComponent.getBalance();//пересчитаем баланс покупателя, ведь мы получили от него деньги  
+                  if(!this.formBaseInformation.get('internal').value)//если перевод не внутренний
+                    this.balanceCagentComponent.getBalance();//пересчитаем баланс контрагента, ведь мы получили от него деньги  
                 }
               }
             }
@@ -851,8 +883,13 @@ export class OrderinDocComponent implements OnInit {
   }
 
   onSwitchInternal(){
-    this.formBaseInformation.get('cagent_id').setValue(null);
-    this.searchCagentCtrl.setValue('');
+    if(this.formBaseInformation.get('internal').value){
+      this.formBaseInformation.get('cagent_id').setValue(null);
+      this.searchCagentCtrl.setValue('');
+      this.formBaseInformation.get('nds').setValue(0);
+      this.setDefaultMovingType(); // установит "С расчётного счёта"
+      this.setDefaultPaymentFromAccount(); // установит расч. счёт по умолчанию
+    }
   }
   getBoxofficesList(){
     return this.http.get('/api/auth/getBoxofficesList?id='+this.formBaseInformation.get('company_id').value).subscribe(
@@ -863,14 +900,102 @@ export class OrderinDocComponent implements OnInit {
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
     );
   }
-  setDefaultBoxoffice(){
-    if(+this.formBaseInformation.get('boxoffice_id').value==0 && this.boxoffices.length>0)// - ставим по дефолту самую первую кассу (т.к. она главная)
-      this.formBaseInformation.get('boxoffice_id').setValue(this.boxoffices[0].id);
-  }
   getBoxofficeNameById(id:string):string{
     let name:string = 'Не установлен';
     if(this.boxoffices){
       this.boxoffices.forEach(a=>{
+        if(a.id==id) name=a.name;
+      })}
+    return(name);
+  }
+  
+  getMovingTypesList(){
+    this.movingTypes=this.loadSpravService.getMovingTypeList();
+    this.setDefaultMovingType();
+  }
+  setDefaultMovingType(){
+    if((this.formBaseInformation.get('moving_type').value=='' || this.formBaseInformation.get('moving_type').value==null) && this.movingTypes.length>0){// - ставим по дефолту 2й тип, т.к. чаще всего будут переводить в кассу предприятия
+      this.formBaseInformation.get('moving_type').setValue(this.movingTypes[1].id);
+    }
+  }  
+  getMovingTypeNameById(id:string):string{
+    let name:string = 'Не установлен';
+    if(this.movingTypes){
+      this.movingTypes.forEach(a=>{
+        if(a.id==id) name=a.name_from;
+      })}
+    return(name);
+  }
+  setDefaultBoxoffice(){
+    if(+this.formBaseInformation.get('boxoffice_id').value==0 && this.boxoffices.length>0)// - ставим по дефолту самую первую кассу (т.к. она главная)
+      this.formBaseInformation.get('boxoffice_id').setValue(this.boxoffices[0].id);
+  }
+  setDefaultBoxofficeFrom(){
+    if(+this.formBaseInformation.get('boxoffice_from_id').value==0 && this.boxoffices.length>0)// - ставим по дефолту самую первую кассу (т.к. она главная)
+      this.formBaseInformation.get('boxoffice_from_id').setValue(this.boxoffices[0].id);
+  }
+
+  onMovingChange(){
+    if(this.formBaseInformation.get('moving_type').value=='account'){        // moving_type = 'account'
+      this.formBaseInformation.get('boxoffice_from_id').setValue(null);
+      this.formBaseInformation.get('kassa_from_id').setValue(null);
+      this.setDefaultPaymentFromAccount();
+    } else if(this.formBaseInformation.get('moving_type').value=='boxoffice'){// moving_type = 'boxoffice'
+      this.formBaseInformation.get('payment_account_from_id').setValue(null);
+      this.formBaseInformation.get('kassa_from_id').setValue(null);
+      this.setDefaultBoxofficeFrom();
+    } else {                   
+      this.formBaseInformation.get('payment_account_from_id').setValue(null);
+      this.formBaseInformation.get('boxoffice_from_id').setValue(null);
+      if( this.kassaList.length==0)                                               // moving_type = 'kassa' 
+        this.getKassaListByBoxofficeId();
+    }
+  }
+  onBoxofficeChange(){
+    if(this.formBaseInformation.get('moving_type').value=='kassa'){        // moving_type = 'kassa'
+      this.formBaseInformation.get('kassa_from_id').setValue(null);
+      this.kassaList=[];
+      this.getKassaListByBoxofficeId();
+    }
+  }
+  getCompaniesPaymentAccounts(){
+    this.fieldDataLoading=true;
+    return this.http.get('/api/auth/getCompaniesPaymentAccounts?id='+this.formBaseInformation.get('company_id').value).subscribe(
+        (data) => { 
+          this.fieldDataLoading=false;
+          this.paymentAccounts=data as any [];
+          // this.setDefaultPaymentFromAccount();
+        },
+        error => {this.fieldDataLoading=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+    );
+  }
+  getPaymentAccountNameById(id:string):string{
+    let name:string = 'Не установлен';
+    if(this.paymentAccounts){
+      this.paymentAccounts.forEach(a=>{
+        if(a.id==id) name=a.name;
+      })}
+    return(name);
+  }
+  setDefaultPaymentFromAccount(){
+    if(+this.formBaseInformation.get('payment_account_from_id').value==0 && this.paymentAccounts.length>0)// - ставим по дефолту самый верхний расчётный счёт
+      this.formBaseInformation.get('payment_account_from_id').setValue(this.paymentAccounts[0].id);
+  }
+  getKassaListByBoxofficeId(){
+    this.fieldDataLoading=true;
+    return this.http.get('/api/auth/getKassaListByBoxofficeId?id='+this.formBaseInformation.get('boxoffice_id').value).subscribe(
+      (data) => { 
+        this.fieldDataLoading=false;
+        this.kassaList=data as any [];
+        // this.setDefaultPaymentFromAccount();
+      },
+      error => {this.fieldDataLoading=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+    );
+  }
+  getKassaNameById(id:string):string{
+    let name:string = 'Не установлено';
+    if(this.kassaList){
+      this.kassaList.forEach(a=>{
         if(a.id==id) name=a.name;
       })}
     return(name);

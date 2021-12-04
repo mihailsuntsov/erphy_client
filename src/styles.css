@@ -96,7 +96,7 @@ body {
   padding-left: 10px;
   flex-grow: 40;
   margin-top: -14px;
-  width: 150px;
+  max-width: 250px;
 }
 #topBlock .button{/*Для кнопок верхней панели*/
   margin: 0 5px 5px 0 !important;

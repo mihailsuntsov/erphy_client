@@ -46,10 +46,10 @@
                             </mat-form-field>
                             <mat-form-field class="mat-form-field-100"> 
                                 <input  matInput 
-                                placeholder="{{settingsForm.get('cagentId').value==''?'Поиск поставщика':'Поставщик'}}"
+                                placeholder="{{settingsForm.get('cagentId').value==''?'Поиск контрагента':'Контрагент'}}"
                                 [matAutocomplete]="auto4" 
                                 [formControl]="searchCagentCtrl"
-                                matTooltip="Поставщик по умолчанию"
+                                matTooltip="Контрагент по умолчанию"
                                 (input)="canCagentAutocompleteQuery=true; checkEmptyCagentField();"
                                 (change)="canCagentAutocompleteQuery=false; checkEmptyCagentField();">
                                 <mat-autocomplete #auto4="matAutocomplete">

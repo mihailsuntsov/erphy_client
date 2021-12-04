@@ -53,6 +53,9 @@ interface DocResponse {//интерфейс для получения ответ
   date_time_changed: string;
   date_time_created: string;
   description : string;
+  moving_type:string; //перемещение на: кассу - boxoffice, счёт - account 
+  boxoffice_from_id:number;
+  payment_account_from_id:number;
   is_archive: boolean;
   status_id: number;
   payment_account_id:number;
@@ -141,6 +144,9 @@ export class PaymentinDocComponent implements OnInit {
   canEditCompAndDepth=true;
   spravSysNdsSet: SpravSysNdsSet[] = []; //массив имен и id для ндс 
   paymentAccounts:any[]=[];  // список расчётных счетов предприятия
+  boxoffices:any[]=[];// список касс предприятия (не путать с ККМ!!!)
+  movingTypes:any[]=[]; // список типов перемещений: из кассы предприятия - boxoffice, с расч. счета - account
+  rightsDefined:boolean; // определены ли права
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
 
   //для загрузки связанных документов
@@ -221,8 +227,11 @@ export class PaymentinDocComponent implements OnInit {
       status_name: new FormControl              ('',[]),
       status_color: new FormControl             ('',[]),
       payment_account_id: new FormControl       ('',[Validators.required]),
+      moving_type: new FormControl              ('',[]),
       payment_account: new FormControl          ('',[]),
       status_description: new FormControl       ('',[]),
+      boxoffice_from_id: new FormControl        ('',[]),
+      payment_account_from_id: new FormControl  ('',[]), // расч счет, с которого переводят
       is_completed: new FormControl             (false,[]),
       paymentinProductTable: new FormArray      ([]),
       internal: new FormControl                 (false,[]), // внутренний платеж
@@ -352,6 +361,7 @@ export class PaymentinDocComponent implements OnInit {
     // console.log("allowToUpdate - "+this.allowToUpdate);
     // console.log("allowToCreate - "+this.allowToCreate);
     // return true;
+	  this.rightsDefined=true;//!!!
     this.necessaryActionsBeforeGetChilds();
   }
  //  -------------     ***** поиск по подстроке для поставщика ***    --------------------------
@@ -470,6 +480,7 @@ export class PaymentinDocComponent implements OnInit {
     this.searchCagentCtrl.reset();
     this.actionsBeforeGetChilds=0;
     this.getStatusesList();
+    this.getBoxofficesList();   // кассы предприятия
     this.getCompaniesPaymentAccounts();
     //если идет стартовая прогрузка - продолжаем цепочку запросов. Если это была, например, просто смена предприятия - продолжать далее текущего метода смысла нет
     if(this.startProcess) {
@@ -507,7 +518,8 @@ export class PaymentinDocComponent implements OnInit {
       this.receivedCompaniesList=[];
       this.receivedCompaniesList.push(myCompany);
     }
-    this.getSettings(); // настройки документа Входящий платёж
+    if(+this.id==0)//!!!!! отсюда загружаем настройки только если документ новый. Если уже создан - настройки грузятся из getDocumentValuesById()
+      this.getSettings(); // настройки документа Входящий платёж
   }
 
   //загрузка настроек
@@ -539,7 +551,9 @@ export class PaymentinDocComponent implements OnInit {
     if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим своё по дефолту
       this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
     this.getStatusesList();    
-    this.getCompaniesPaymentAccounts();
+    this.getCompaniesPaymentAccounts(); // загрузка расч. счетов
+    this.getMovingTypesList();  // типы внутреннего перемещения
+    this.getBoxofficesList();   // кассы предприятия
     this.refreshPermissions();
   }
   
@@ -573,37 +587,46 @@ export class PaymentinDocComponent implements OnInit {
         .subscribe(
             data => { 
                 let documentValues: DocResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
-                this.formBaseInformation.get('id').setValue(+documentValues.id);
-                this.formBaseInformation.get('company_id').setValue(documentValues.company_id);
-                this.formBaseInformation.get('cagent_id').setValue(documentValues.cagent_id);
-                this.formBaseInformation.get('cagent').setValue(documentValues.cagent);
-                this.formBaseInformation.get('doc_number').setValue(documentValues.doc_number);
-                this.formBaseInformation.get('nds').setValue(documentValues.nds);
-                this.formBaseInformation.get('summ').setValue(documentValues.summ);
-                this.formBaseInformation.get('description').setValue(documentValues.description);
-                this.formBaseInformation.get('payment_account').setValue(documentValues.payment_account);
-                this.formBaseInformation.get('payment_account_id').setValue(documentValues.payment_account_id);
-                this.formBaseInformation.get('internal').setValue(documentValues.internal);
-                this.searchCagentCtrl.setValue(documentValues.cagent);
-                this.formAboutDocument.get('master').setValue(documentValues.master);
-                this.formAboutDocument.get('creator').setValue(documentValues.creator);
-                this.formAboutDocument.get('changer').setValue(documentValues.changer);
-                this.formAboutDocument.get('company').setValue(documentValues.company);
-                this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
-                this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
-                this.formBaseInformation.get('status_id').setValue(documentValues.status_id);
-                this.formBaseInformation.get('status_name').setValue(documentValues.status_name);
-                this.formBaseInformation.get('status_color').setValue(documentValues.status_color);
-                this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
-                this.formBaseInformation.get('is_completed').setValue(documentValues.is_completed);
-                this.formBaseInformation.get('income_number').setValue(documentValues.income_number);
-                this.formBaseInformation.get('income_number_date').setValue(documentValues.income_number_date?moment(documentValues.income_number_date,'DD.MM.YYYY'):"");
-                this.formBaseInformation.get('uid').setValue(documentValues.uid);
-                this.creatorId=+documentValues.creator_id;
-                this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
-                this.loadFilesInfo();
-                this.getStatusesList();//статусы документа Входящий платёж
-                this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+                if(data!=null&&documentValues.company_id!=null){//!!!
+                  this.formBaseInformation.get('id').setValue(+documentValues.id);
+                  this.formBaseInformation.get('company_id').setValue(documentValues.company_id);
+                  this.formBaseInformation.get('cagent_id').setValue(documentValues.cagent_id);
+                  this.formBaseInformation.get('cagent').setValue(documentValues.cagent);
+                  this.formBaseInformation.get('doc_number').setValue(documentValues.doc_number);
+                  this.formBaseInformation.get('nds').setValue(documentValues.nds);
+                  this.formBaseInformation.get('summ').setValue(documentValues.summ);
+                  this.formBaseInformation.get('description').setValue(documentValues.description);
+                  this.formBaseInformation.get('payment_account').setValue(documentValues.payment_account);
+                  this.formBaseInformation.get('payment_account_id').setValue(documentValues.payment_account_id);
+                  this.formBaseInformation.get('boxoffice_from_id').setValue(documentValues.boxoffice_from_id);
+                  this.formBaseInformation.get('payment_account_from_id').setValue(documentValues.payment_account_from_id);
+                  this.formBaseInformation.get('internal').setValue(documentValues.internal);
+                  this.formBaseInformation.get('moving_type').setValue(documentValues.moving_type);
+                  this.searchCagentCtrl.setValue(documentValues.cagent);
+                  this.formAboutDocument.get('master').setValue(documentValues.master);
+                  this.formAboutDocument.get('creator').setValue(documentValues.creator);
+                  this.formAboutDocument.get('changer').setValue(documentValues.changer);
+                  this.formAboutDocument.get('company').setValue(documentValues.company);
+                  this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
+                  this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
+                  this.formBaseInformation.get('status_id').setValue(documentValues.status_id);
+                  this.formBaseInformation.get('status_name').setValue(documentValues.status_name);
+                  this.formBaseInformation.get('status_color').setValue(documentValues.status_color);
+                  this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
+                  this.formBaseInformation.get('is_completed').setValue(documentValues.is_completed);
+                  this.formBaseInformation.get('income_number').setValue(documentValues.income_number);
+                  this.formBaseInformation.get('income_number_date').setValue(documentValues.income_number_date?moment(documentValues.income_number_date,'DD.MM.YYYY'):"");
+                  this.formBaseInformation.get('uid').setValue(documentValues.uid);
+                  this.creatorId=+documentValues.creator_id;
+                  this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
+                  this.loadFilesInfo();
+                  this.getStatusesList();//статусы документа Входящий платёж
+                  this.getMovingTypesList();  // типы внутреннего перемещения
+                  this.getBoxofficesList();   // кассы предприятия
+                  this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})} //!!!
+                this.refreshPermissions();//!!!
+              
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
         );
@@ -643,21 +666,24 @@ export class PaymentinDocComponent implements OnInit {
       this.formBaseInformation.get('payment_account_id').setValue(this.paymentAccounts[0].id);
   }
 
-  checkDocNumberUnical() {
-    if(!this.formBaseInformation.get('doc_number').errors)
-    {
-      let Unic: boolean;
-      this.isDocNumberUnicalChecking=true;
-      return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table=paymentin')
-      .subscribe(
-          (data) => {   
-                      Unic = data as boolean;
-                      if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Введённый номер документа не является уникальным.',}});
-                      this.isDocNumberUnicalChecking=false;
-                  },
-          error => {console.log(error);this.isDocNumberUnicalChecking=false;}
-      );
-    }
+  checkDocNumberUnical(tableName:string) {
+    let docNumTmp=this.formBaseInformation.get('doc_number').value;
+    setTimeout(() => {
+      if(!this.formBaseInformation.get('doc_number').errors && docNumTmp==this.formBaseInformation.get('doc_number').value)
+        {
+          let Unic: boolean;
+          this.isDocNumberUnicalChecking=true;
+          return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table='+tableName)
+          .subscribe(
+              (data) => {   
+                          Unic = data as boolean;
+                          if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Введённый номер документа не является уникальным.',}});
+                          this.isDocNumberUnicalChecking=false;
+                      },
+              error => {console.log(error);this.isDocNumberUnicalChecking=false;}
+          );
+        }
+     }, 1000);
   }
 
   //создание нового документа Входящий платёж
@@ -882,8 +908,78 @@ export class PaymentinDocComponent implements OnInit {
   onSwitchInternal(){
     this.formBaseInformation.get('cagent_id').setValue(null);
     this.searchCagentCtrl.setValue('');
+    this.formBaseInformation.get('boxoffice_from_id').setValue(null);
+    this.formBaseInformation.get('payment_account_from_id').setValue(null);
+    this.formBaseInformation.get('nds').setValue(0);
+    
+    if(this.formBaseInformation.get('internal').value){
+      this.setDefaultMovingType(); // установит "Из кассы предприятия"
+      this.setDefaultBoxofficeFrom(); // установит кассу предприятия по умолчанию
+    }
+
   }
 
+  getMovingTypesList(){
+    this.movingTypes=this.loadSpravService.getMovingTypeList();
+    this.movingTypes.splice(2,1);// удаляем последний элемент (перемещение из кассы ККТ), т.к. на расч. счёт из кассы ККТ не перемещают)
+    this.setDefaultMovingType();
+  }
+  setDefaultMovingType(){
+    if((this.formBaseInformation.get('moving_type').value=='' || this.formBaseInformation.get('moving_type').value==null) && this.movingTypes.length>0){// - ставим по дефолту 1й тип, т.к. чаще всего будут переводить в кассу предприятия
+      this.formBaseInformation.get('moving_type').setValue(this.movingTypes[0].id);
+    }
+  }  
+  getMovingTypeNameById(id:string):string{
+    let name:string = 'Не установлен';
+    if(this.movingTypes){
+      this.movingTypes.forEach(a=>{
+        if(a.id==id) name=a.name_from;
+      })}
+    return(name);
+  }
+  
+  getBoxofficesList(){
+    return this.http.get('/api/auth/getBoxofficesList?id='+this.formBaseInformation.get('company_id').value).subscribe(
+        (data) => { 
+          this.boxoffices=data as any [];
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+    );
+  }  
+  getBoxofficeNameById(id:string):string{
+    let name:string = 'Не установлен';
+    if(this.boxoffices){
+      this.boxoffices.forEach(a=>{
+        if(a.id==id) name=a.name;
+      })}
+    return(name);
+  }
+  setDefaultBoxofficeFrom(){
+    if(+this.formBaseInformation.get('boxoffice_from_id').value==0 && this.boxoffices.length>0)// - ставим по дефолту самую первую кассу (т.к. она главная)
+      this.formBaseInformation.get('boxoffice_from_id').setValue(this.boxoffices[0].id);
+  }
+
+  onMovingChange(){
+    if(this.formBaseInformation.get('moving_type').value=='account'){
+      this.formBaseInformation.get('boxoffice_from_id').setValue(null);
+      this.setDefaultPaymentFromAccount();
+    } else {// moving_type = 'boxoffice'
+      this.formBaseInformation.get('payment_account_from_id').setValue(null);
+      this.setDefaultBoxofficeFrom();
+    }
+  }
+  getPaymentAccountNameById(id:string):string{
+    let name:string = 'Не установлен';
+    if(this.paymentAccounts){
+      this.paymentAccounts.forEach(a=>{
+        if(a.id==id) name=a.name;
+      })}
+    return(name);
+  }
+  setDefaultPaymentFromAccount(){
+    if(+this.formBaseInformation.get('payment_account_from_id').value==0 && this.paymentAccounts.length>0)// - ставим по дефолту самый верхний расчётный счёт
+      this.formBaseInformation.get('payment_account_from_id').setValue(this.paymentAccounts[0].id);
+  }
 //*****************************************************************************************************************************************/
 /***********************************************************         ФАЙЛЫ          *******************************************************/
 //*****************************************************************************************************************************************/

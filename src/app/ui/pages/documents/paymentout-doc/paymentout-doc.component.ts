@@ -151,6 +151,8 @@ export class PaymentoutDocComponent implements OnInit {
   movingTypes:any[]=[]; // список типов перемещений: на кассу - boxoffice, на счёт - account 
   expenditureType:string='';// тип статьи расходов (return (возврат),  purchases (закупки товаров), taxes (налоги и сборы), moving (перемещение меж. своими счетами или кассами), other_opex (другие операционные))
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
+  rightsDefined:boolean; // определены ли права
+
 
   //для загрузки связанных документов
   linkedDocsReturn:LinkedDocs[]=[];
@@ -240,8 +242,6 @@ export class PaymentoutDocComponent implements OnInit {
       expenditure: new FormControl              ('',[]),
       is_completed: new FormControl             (false,[]),
       paymentoutProductTable: new FormArray      ([]),
-      // income_number: new FormControl            ('',[]),
-      // income_number_date: new FormControl       ('',[]),//на дату валидаторы не вешаются, у нее свой валидатор
       uid: new FormControl                      ('',[]),// uuid идентификатор
     });
     this.formAboutDocument = new FormGroup({
@@ -270,9 +270,13 @@ export class PaymentoutDocComponent implements OnInit {
       linked_doc_name: new FormControl    (null,[]),//имя (таблицы) связанного документа
       uid: new FormControl                ('',[]),  //uid создаваемого связанного документа
       // параметры для входящих ордеров и платежей
-      payment_account_id: new FormControl ('',[]),//id расчтёного счёта      
-      boxoffice_id: new FormControl       ('',[]), // внутренний платеж
-      internal: new FormControl           ('',[]), // внутренний платеж     
+      internal: new FormControl           ('',[]), // внутренний платеж   
+      payment_account_from_id: new FormControl  (null,[]), // с какого расч счета переводим
+      moving_type: new FormControl              ('',[]), // тип перевода  -  на: кассу - boxoffice, счёт - account 
+      payment_account_id: new FormControl ('',[]), // id расчтёного счёта, на который переводят    
+      boxoffice_id: new FormControl       ('',[]), // id кассы предприятия, в которую переводят
+      // boxoffice_from_id: new FormControl  ('',[]), // id кассы предприятия, из которой переводят
+
     });
 
     // Форма настроек
@@ -370,6 +374,7 @@ export class PaymentoutDocComponent implements OnInit {
     // console.log("allowToUpdate - "+this.allowToUpdate);
     // console.log("allowToCreate - "+this.allowToCreate);
     // return true;
+	  this.rightsDefined=true;//!!!
     this.necessaryActionsBeforeGetChilds();
   }
  //  -------------     ***** поиск по подстроке для поставщика ***    --------------------------
@@ -531,7 +536,8 @@ export class PaymentoutDocComponent implements OnInit {
       this.receivedCompaniesList=[];
       this.receivedCompaniesList.push(myCompany);
     }
-    this.getSettings(); // настройки документа Исходящий платёж
+    if(+this.id==0)//!!!!! отсюда загружаем настройки только если документ новый. Если уже создан - настройки грузятся из getDocumentValuesById()
+      this.getSettings(); // настройки документа Исходящий платёж
   }
 
   //загрузка настроек
@@ -599,7 +605,9 @@ export class PaymentoutDocComponent implements OnInit {
     this.http.get('/api/auth/getPaymentoutValuesById?id='+ this.id)
         .subscribe(
             data => { 
-                let documentValues: DocResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
+              let documentValues: DocResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
+              if(data!=null&&documentValues.company_id!=null){//!!!
+
                 this.formBaseInformation.get('id').setValue(+documentValues.id);
                 this.formBaseInformation.get('company_id').setValue(documentValues.company_id);
                 this.formBaseInformation.get('cagent_id').setValue(documentValues.cagent_id);
@@ -639,6 +647,8 @@ export class PaymentoutDocComponent implements OnInit {
                 this.getBoxofficesList();   // кассы предприятия
                 this.getMovingTypesList();  // типы внутреннего перемещения
                 this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+              } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})} //!!!
+              this.refreshPermissions();//!!!            
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
         );
@@ -713,6 +723,7 @@ export class PaymentoutDocComponent implements OnInit {
   }
   getMovingTypesList(){
     this.movingTypes=this.loadSpravService.getMovingTypeList();
+    this.movingTypes.splice(2,1);// удаляем последний элемент (перемещение в кассу ККТ), т.к. с расчётного счёта в кассу ККТ не перемещают)
     this.setDefaultMovingType();
   }
   setDefaultMovingType(){
@@ -732,7 +743,7 @@ export class PaymentoutDocComponent implements OnInit {
     let name:string = 'Не установлен';
     if(this.movingTypes){
       this.movingTypes.forEach(a=>{
-        if(a.id==id) name=a.name;
+        if(a.id==id) name=a.name_to;
       })}
     return(name);
   }
@@ -770,21 +781,24 @@ export class PaymentoutDocComponent implements OnInit {
       this.createLinkedDoc('Vatinvoicein');
   }
 
-  checkDocNumberUnical() {
-    if(!this.formBaseInformation.get('doc_number').errors)
-    {
-      let Unic: boolean;
-      this.isDocNumberUnicalChecking=true;
-      return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table=paymentout')
-      .subscribe(
-          (data) => {   
-                      Unic = data as boolean;
-                      if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Введённый номер документа не является уникальным.',}});
-                      this.isDocNumberUnicalChecking=false;
-                  },
-          error => {console.log(error);this.isDocNumberUnicalChecking=false;}
-      );
-    }
+  checkDocNumberUnical(tableName:string) {
+    let docNumTmp=this.formBaseInformation.get('doc_number').value;
+    setTimeout(() => {
+      if(!this.formBaseInformation.get('doc_number').errors && docNumTmp==this.formBaseInformation.get('doc_number').value)
+        {
+          let Unic: boolean;
+          this.isDocNumberUnicalChecking=true;
+          return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table='+tableName)
+          .subscribe(
+              (data) => {   
+                          Unic = data as boolean;
+                          if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Введённый номер документа не является уникальным.',}});
+                          this.isDocNumberUnicalChecking=false;
+                      },
+              error => {console.log(error);this.isDocNumberUnicalChecking=false;}
+          );
+        }
+     }, 1000);
   }
 
   //создание нового документа Исходящий платёж
@@ -1110,9 +1124,12 @@ deleteFile(id:number){
 
       // параметры для входящих ордеров и платежей (Paymentin, Orderin)
       if(docname=='Paymentin'||docname=='Orderin'){
-        this.formLinkedDocs.get('payment_account_id').setValue(this.formBaseInformation.get('payment_account_id').value);//id расчтёного счёта      
-        this.formLinkedDocs.get('boxoffice_id').setValue(this.formBaseInformation.get('boxoffice_id').value);
+        this.formLinkedDocs.get('payment_account_id').setValue(this.formBaseInformation.get('payment_account_to_id').value);//id расчтёного счёта, на который переводим 
         this.formLinkedDocs.get('internal').setValue(this.expenditureType=='moving');
+        this.formLinkedDocs.get('moving_type').setValue('account');// тип перевода  -  из : кассы - boxoffice, счёта - account 
+        this.formLinkedDocs.get('payment_account_from_id').setValue(this.formBaseInformation.get('payment_account_id').value); // с какого расч счета переводим
+        this.formLinkedDocs.get('boxoffice_id').setValue(this.formBaseInformation.get('boxoffice_id').value); // с какого расч счета переводим
+      
       }
 
       //поля для счёта-фактуры выданного

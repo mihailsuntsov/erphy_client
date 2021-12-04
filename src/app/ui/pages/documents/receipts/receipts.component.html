@@ -276,7 +276,9 @@ class="spinner"
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='document'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='document'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
-                            <td mat-cell *matCellDef="let row"> {{row.document}} </td>
+                            <td mat-cell *matCellDef="let row"> 
+                                <span matTooltip='Открыть документ, из которого был создан чек' class="hand" (click)="openDocWindow(row.retail_sales_id, row.shipment_id, row.return_id)" style="cursor:pointer">{{row.document}}</span>
+                                 </td>
                         </ng-container>
                         <ng-container matColumnDef="operation_id">
                             <th mat-header-cell *matHeaderCellDef>

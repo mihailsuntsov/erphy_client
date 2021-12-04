@@ -14,6 +14,7 @@ import { QueryFormService } from './get-receipts-table.service';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { FormGroup, FormControl } from '@angular/forms';
+import { Router } from '@angular/router';
 // import { SettingsReceiptsDialogComponent } from 'src/app/modules/settings/settings-receipts-dialog/settings-receipts-dialog.component';
 
 export interface CheckBox {
@@ -113,6 +114,7 @@ export class ReceiptsComponent implements OnInit {
     private _snackBar: MatSnackBar,
     public universalCategoriesDialog: MatDialog,
     private MessageDialog: MatDialog,
+    private _router:Router,
     public confirmDialog: MatDialog,
     private http: HttpClient,
     // private settingsReceiptsDialogComponent: MatDialog,
@@ -478,6 +480,19 @@ export class ReceiptsComponent implements OnInit {
     this.resetOptions();
     this.getData();
   }
+  
+  openDocWindow(retail_sales_id:number, shipment_id:number, return_id:number) {
+    let docName:string;
+    let docId:number;
+    if(retail_sales_id!=null) {docName='retailsalesdoc';docId=retail_sales_id}
+    if(shipment_id!=null) {docName='shipmentdoc';docId=shipment_id}
+    if(return_id!=null) {docName='returndoc';docId=return_id}
+    if(this.mode!='viewInWindow')
+      this._router.navigate(['ui/'+docName,docId]);
+    else
+      document.location.href = "ui/"+docName+"/"+docId;
+  } 
+
   clickBtnDelete(): void {
     const dialogRef = this.deleteDialog.open(DeleteDialog, {
       width: '300px',
