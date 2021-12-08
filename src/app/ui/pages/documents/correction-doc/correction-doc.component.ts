@@ -127,6 +127,7 @@ export class CorrectionDocComponent implements OnInit {
   correctionType:string='';// тип коррекции boxoffice - коррекция кассы, cagent - коррекция баланса с контрагентом, account - коррекция расчётного счёта
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
   rightsDefined:boolean; // определены ли права
+  lastCheckedDocNumber:string='';
 
   //для загрузки связанных документов
   linkedDocsReturn:LinkedDocs[]=[];
@@ -609,6 +610,7 @@ export class CorrectionDocComponent implements OnInit {
                   this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
                   this.loadFilesInfo();
                   this.getStatusesList();//статусы документа
+                  this.getSettings(); // настройки документа
                   this.getBoxofficesList();   // кассы предприятия
                   this.getCompaniesPaymentAccounts();// р. счета предприятия
                   this.getCorrectionTypesList();  // типы внутреннего перемещения
@@ -730,10 +732,11 @@ export class CorrectionDocComponent implements OnInit {
   checkDocNumberUnical(tableName:string) {
     let docNumTmp=this.formBaseInformation.get('doc_number').value;
     setTimeout(() => {
-      if(!this.formBaseInformation.get('doc_number').errors && docNumTmp==this.formBaseInformation.get('doc_number').value)
+      if(!this.formBaseInformation.get('doc_number').errors && this.lastCheckedDocNumber!=docNumTmp && docNumTmp!='' && docNumTmp==this.formBaseInformation.get('doc_number').value)
         {
           let Unic: boolean;
           this.isDocNumberUnicalChecking=true;
+          this.lastCheckedDocNumber=docNumTmp;
           return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table='+tableName)
           .subscribe(
               (data) => {   
@@ -821,6 +824,10 @@ export class CorrectionDocComponent implements OnInit {
               }
               case -1:{//недостаточно прав
                 this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для сохренения документа \"Корректировка\""}});
+                break;
+              }
+              case -30:{//недостаточно средств у корректируемого объекта
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно средств для проведения операции"}});
                 break;
               }
               default:{// Успешно

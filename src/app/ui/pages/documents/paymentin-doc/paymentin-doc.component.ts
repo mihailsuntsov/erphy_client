@@ -147,6 +147,7 @@ export class PaymentinDocComponent implements OnInit {
   boxoffices:any[]=[];// список касс предприятия (не путать с ККМ!!!)
   movingTypes:any[]=[]; // список типов перемещений: из кассы предприятия - boxoffice, с расч. счета - account
   rightsDefined:boolean; // определены ли права
+  lastCheckedDocNumber:string='';
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
 
   //для загрузки связанных документов
@@ -481,7 +482,7 @@ export class PaymentinDocComponent implements OnInit {
     this.actionsBeforeGetChilds=0;
     this.getStatusesList();
     this.getBoxofficesList();   // кассы предприятия
-    this.getCompaniesPaymentAccounts();
+    this.getCompaniesPaymentAccounts(); //расч счета
     //если идет стартовая прогрузка - продолжаем цепочку запросов. Если это была, например, просто смена предприятия - продолжать далее текущего метода смысла нет
     if(this.startProcess) {
       this.refreshPermissions();
@@ -523,7 +524,7 @@ export class PaymentinDocComponent implements OnInit {
   }
 
   //загрузка настроек
-  getSettings(){
+  getSettings(onlyGetSettings?:boolean){
     let result:any;
     this.http.get('/api/auth/getSettingsPaymentin')
       .subscribe(
@@ -541,8 +542,10 @@ export class PaymentinDocComponent implements OnInit {
               this.settingsForm.get('cagent').setValue(result.cagent);
               this.settingsForm.get('statusIdOnComplete').setValue(result.statusIdOnComplete);
             } 
-            this.setDefaultInfoOnStart();
-            this.setDefaultCompany();
+            if(!onlyGetSettings){
+              this.setDefaultInfoOnStart();
+              this.setDefaultCompany();
+            }
           },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
@@ -620,9 +623,11 @@ export class PaymentinDocComponent implements OnInit {
                   this.creatorId=+documentValues.creator_id;
                   this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
                   this.loadFilesInfo();
+                  this.getSettings(true); // настройки документа
                   this.getStatusesList();//статусы документа Входящий платёж
                   this.getMovingTypesList();  // типы внутреннего перемещения
                   this.getBoxofficesList();   // кассы предприятия
+                  this.getCompaniesPaymentAccounts(); //расч счета
                   this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                 } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})} //!!!
                 this.refreshPermissions();//!!!
@@ -669,10 +674,11 @@ export class PaymentinDocComponent implements OnInit {
   checkDocNumberUnical(tableName:string) {
     let docNumTmp=this.formBaseInformation.get('doc_number').value;
     setTimeout(() => {
-      if(!this.formBaseInformation.get('doc_number').errors && docNumTmp==this.formBaseInformation.get('doc_number').value)
+      if(!this.formBaseInformation.get('doc_number').errors && this.lastCheckedDocNumber!=docNumTmp && docNumTmp!='' && docNumTmp==this.formBaseInformation.get('doc_number').value)
         {
           let Unic: boolean;
           this.isDocNumberUnicalChecking=true;
+          this.lastCheckedDocNumber=docNumTmp;
           return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table='+tableName)
           .subscribe(
               (data) => {   
@@ -760,6 +766,10 @@ export class PaymentinDocComponent implements OnInit {
               }
               case -1:{//недостаточно прав
                 this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа \"Входящий платёж\""}});
+                break;
+              }
+              case -30:{//недостаточно средств 
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно средств для проведения операции"}});
                 break;
               }
               default:{// Успешно

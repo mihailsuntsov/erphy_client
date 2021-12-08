@@ -152,6 +152,7 @@ export class PaymentoutDocComponent implements OnInit {
   expenditureType:string='';// тип статьи расходов (return (возврат),  purchases (закупки товаров), taxes (налоги и сборы), moving (перемещение меж. своими счетами или кассами), other_opex (другие операционные))
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
   rightsDefined:boolean; // определены ли права
+  lastCheckedDocNumber:string='';
 
 
   //для загрузки связанных документов
@@ -541,7 +542,7 @@ export class PaymentoutDocComponent implements OnInit {
   }
 
   //загрузка настроек
-  getSettings(){
+  getSettings(onlyGetSettings?:boolean){
     let result:any;
     this.http.get('/api/auth/getSettingsPaymentout')
       .subscribe(
@@ -559,8 +560,10 @@ export class PaymentoutDocComponent implements OnInit {
               this.settingsForm.get('cagent').setValue(result.cagent);
               this.settingsForm.get('statusIdOnComplete').setValue(result.statusIdOnComplete);
             } 
-            this.setDefaultInfoOnStart();
-            this.setDefaultCompany();
+            if(!onlyGetSettings){
+              this.setDefaultInfoOnStart();
+              this.setDefaultCompany();
+            }
           },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
@@ -643,8 +646,10 @@ export class PaymentoutDocComponent implements OnInit {
                 this.getExpenditureItemsList();
                 this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
                 this.loadFilesInfo();
+                this.getSettings(true); // настройки документа
                 this.getStatusesList();//статусы документа Исходящий платёж
                 this.getBoxofficesList();   // кассы предприятия
+                this.getCompaniesPaymentAccounts(); //расч счета
                 this.getMovingTypesList();  // типы внутреннего перемещения
                 this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
               } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})} //!!!
@@ -784,10 +789,11 @@ export class PaymentoutDocComponent implements OnInit {
   checkDocNumberUnical(tableName:string) {
     let docNumTmp=this.formBaseInformation.get('doc_number').value;
     setTimeout(() => {
-      if(!this.formBaseInformation.get('doc_number').errors && docNumTmp==this.formBaseInformation.get('doc_number').value)
+      if(!this.formBaseInformation.get('doc_number').errors && this.lastCheckedDocNumber!=docNumTmp && docNumTmp!='' && docNumTmp==this.formBaseInformation.get('doc_number').value)
         {
           let Unic: boolean;
           this.isDocNumberUnicalChecking=true;
+          this.lastCheckedDocNumber=docNumTmp;
           return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table='+tableName)
           .subscribe(
               (data) => {   
@@ -875,6 +881,10 @@ export class PaymentoutDocComponent implements OnInit {
               }
               case -1:{//недостаточно прав
                 this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа \"Исходящий платёж\""}});
+                break;
+              }
+              case -30:{//недостаточно средств на р. счете
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно средств для проведения операции"}});
                 break;
               }
               default:{// Успешно
