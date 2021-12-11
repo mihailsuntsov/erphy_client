@@ -909,6 +909,7 @@ export class OrdersupDocComponent implements OnInit {
               }
               default:{// Успешно
                 this.openSnackBar("Документ \"Заказ поставщику\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
+                this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                 if(complete) {
                   this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведённости = true
                   if(this.ordersupProductsTableComponent){

@@ -233,9 +233,9 @@
                                                                     <mat-autocomplete #auto4="matAutocomplete">
                                                                     <ng-container *ngIf="!isCagentListLoading" style="width:320px;">
                                                                         <mat-option style="padding:0px" *ngFor="let value of filteredCagents" [value]="value.name">
-                                                                        <div (click)="onSelectCagent(value.id,value.name)">
-                                                                            <span style="margin:10px;"><b>{{value.name}}</b></span>
-                                                                        </div>
+                                                                            <div (click)="onSelectCagent(value.id,value.name)">
+                                                                                <span style="margin:10px;"><b>{{value.name}}</b></span>
+                                                                            </div>
                                                                         </mat-option>
                                                                     </ng-container>
                                                                     </mat-autocomplete>

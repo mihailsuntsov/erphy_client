@@ -873,6 +873,7 @@ export class ReturnsupDocComponent implements OnInit {
               }
               default:{// Успешно
                 this.openSnackBar("Документ \"Возврат поставщику\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
+                this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                 if(complete) {
                   this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведенности = true
                   if(this.returnsupProductsTableComponent) this.returnsupProductsTableComponent.showColumns(); //чтобы спрятать столбцы после проведения 

@@ -621,6 +621,7 @@ export class OrderinDocComponent implements OnInit {
                   this.getMovingTypesList();  // типы внутреннего перемещения
                   this.getSettings(true); // настройки документа
                   this.getBoxofficesList();   // кассы предприятия
+                  this.getCompaniesPaymentAccounts(); //расч счета
                   this.getKassaListByBoxofficeId();   // все кассы KKM отеделений, привязанных к кассе препдриятия boxoffice_id
                   this.getStatusesList();//статусы документа Приходный ордер
                   this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
