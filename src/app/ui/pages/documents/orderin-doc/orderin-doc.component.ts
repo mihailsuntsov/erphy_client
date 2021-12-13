@@ -57,13 +57,23 @@ interface DocResponse {//интерфейс для получения ответ
   boxoffice_from_id:number; // id кассы предприятия
   payment_account_from_id:number; // id расчётного счёта
   kassa_from_id:number;// id кассы ККМ, из которой делаем перенос (выемку)
+  boxoffice_from:number; // касса предприятия
+  payment_account_from:number; // расчётный счёт
+  kassa_from:number;// касса ККМ, из которой делаем перенос (выемку)
   is_archive: boolean;
   status_id: number;
   status_name: string;
   status_color: string;
   status_description: string;
   boxoffice_id:number;// id кассы в которую перемещаем ден. средства
+  boxoffice:string; //  касса в которую перемещаем ден. средства
   internal: boolean; // внутренний платеж
+  withdrawal_id: number;             // id выемки, из которой поступили средства
+  paymentout_id: number;             // id исходящего платежа, из которого поступили средства
+  orderout_id: number;               // id расходного ордера, из которого поступили средства
+  withdrawal: number;                // номер выемки, из которой поступили средства
+  paymentout: number;                // номер исходящего платежа, из которого поступили средства
+  orderout: number;                  // номер расходного ордера, из которого поступили средства
   uid:string;
 }
 interface FilesInfo {
@@ -144,6 +154,14 @@ export class OrderinDocComponent implements OnInit {
   movingTypes:any[]=[]; // список типов перемещений: из кассы предприятия - boxoffice, с расч. счета - account, из кассы ККМ - kassa
   paymentAccounts:any[]=[];  // список расчётных счетов предприятия
   kassaList:any[]=[];  // список касс ККМ по отделениям, которые привязаны к кассе предприятия boxoffice_id
+
+  withdrawalList: any[];             // список выемок, из которых поступили средства
+  paymentoutList: any[];             // список исходящих платежей, из которых поступили средства
+  orderoutList: any[];               // список расходных ордеров, из которых поступили средства
+  withdrawalListLoading:boolean = false; //загрузка списка выемок 
+  paymentoutListLoading:boolean = false; //загрузка списка исходящих платежей 
+  orderoutListLoading:  boolean = false; //загрузка списка расходных ордеров 
+
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
   boxoffices:any[]=[];// список касс предприятия (не путать с ККМ)
   fieldDataLoading=false; //загрузка списка касс или расч счетов
@@ -230,11 +248,22 @@ export class OrderinDocComponent implements OnInit {
       boxoffice_from_id: new FormControl        ('',[]), // id кассы предприятия
       payment_account_from_id: new FormControl  ('',[]), // id расчётного счёта
       kassa_from_id: new FormControl            ('',[]),// id кассы ККМ откуда делаем выемку
+      boxoffice_from: new FormControl           ('',[]), // касса предприятия
+      payment_account_from: new FormControl     ('',[]), // расчётный счёт
+      kassa_from: new FormControl               ('',[]),// касса ККМ откуда делаем выемку
       status_color: new FormControl             ('',[]),
       status_description: new FormControl       ('',[]),
       is_completed: new FormControl             (false,[]),
       boxoffice_id: new FormControl             ('',[Validators.required]),// id кассы в которую перемещаем ден. средства
+      boxoffice: new FormControl                ('',[]),// касса в которую перемещаем ден. средства
       internal: new FormControl                 (false,[]), // внутренний платеж
+      withdrawal_id: new FormControl            ('',[]),             // id выемки, из которой поступили средства
+      paymentout_id: new FormControl            ('',[]),             // id исходящего платежа, из которого поступили средства
+      orderout_id: new FormControl              ('',[]),             // id расходного ордера, из которого поступили средства
+      withdrawal: new FormControl               ('',[]),             // номер выемки, из которой поступили средства
+      paymentout: new FormControl               ('',[]),             // номер исходящего платежа, из которого поступили средства
+      orderout: new FormControl                 ('',[]),             // номер расходного ордера, из которого поступили средства
+
       uid: new FormControl                      ('',[]),// uuid идентификатор
     });
     this.formAboutDocument = new FormGroup({
@@ -315,9 +344,13 @@ export class OrderinDocComponent implements OnInit {
   ngAfterContentChecked() {
     this.cdRef.detectChanges();
   }
-  //чтобы "на лету" чекать валидность таблицы с товарами
-  get childFormValid() {
-    return true;    
+  //чтобы "на лету" чекать валидность всех полей в зависимости от разных вариантов типа внутреннего перевода
+  get isFormInvalid() {
+    return (!this.formBaseInformation.valid 
+      || (!this.formBaseInformation.get('internal').value && +this.formBaseInformation.get('cagent_id').value==0)
+      || (this.formBaseInformation.get('internal').value && this.formBaseInformation.get('moving_type').value=='kassa' && (+this.formBaseInformation.get('kassa_from_id').value==0 || +this.formBaseInformation.get('withdrawal_id').value==0))
+      || (this.formBaseInformation.get('internal').value && this.formBaseInformation.get('moving_type').value=='boxoffice' && (+this.formBaseInformation.get('boxoffice_from_id').value==0 || +this.formBaseInformation.get('orderout_id').value==0))
+      || (this.formBaseInformation.get('internal').value && this.formBaseInformation.get('moving_type').value=='account' && (+this.formBaseInformation.get('payment_account_from_id').value==0 || +this.formBaseInformation.get('paymentout_id').value==0)));    
   }
 
   //---------------------------------------------------------------------------------------------------------------------------------------                            
@@ -602,6 +635,19 @@ export class OrderinDocComponent implements OnInit {
                   this.formBaseInformation.get('kassa_from_id').setValue(documentValues.kassa_from_id);
                   this.formBaseInformation.get('internal').setValue(documentValues.internal);
                   this.formBaseInformation.get('boxoffice_id').setValue(documentValues.boxoffice_id);
+                  this.formBaseInformation.get('boxoffice').setValue(documentValues.boxoffice);
+
+                  this.formBaseInformation.get('boxoffice_from').setValue(documentValues.boxoffice_from);
+                  this.formBaseInformation.get('payment_account_from').setValue(documentValues.payment_account_from);
+                  this.formBaseInformation.get('kassa_from').setValue(documentValues.kassa_from);
+
+                  this.formBaseInformation.get('withdrawal_id').setValue(documentValues.withdrawal_id);
+                  this.formBaseInformation.get('paymentout_id').setValue(documentValues.paymentout_id);
+                  this.formBaseInformation.get('orderout_id').setValue(documentValues.orderout_id);
+                  this.formBaseInformation.get('withdrawal').setValue(documentValues.withdrawal);
+                  this.formBaseInformation.get('paymentout').setValue(documentValues.paymentout);
+                  this.formBaseInformation.get('orderout').setValue(documentValues.orderout);
+                  
                   this.searchCagentCtrl.setValue(documentValues.cagent);
                   this.formAboutDocument.get('master').setValue(documentValues.master);
                   this.formAboutDocument.get('creator').setValue(documentValues.creator);
@@ -623,6 +669,11 @@ export class OrderinDocComponent implements OnInit {
                   this.getBoxofficesList();   // кассы предприятия
                   this.getCompaniesPaymentAccounts(); //расч счета
                   this.getKassaListByBoxofficeId();   // все кассы KKM отеделений, привязанных к кассе препдриятия boxoffice_id
+
+                  this.getWithdrawalListByKassaId(); // загрузка выемок
+                  this.getOrderoutListByKassaId(); // загрузка списка расходных ордеров
+                  this.getPaymentoutListByAccountId(); // загрузка списка исходящих платежей
+
                   this.getStatusesList();//статусы документа Приходный ордер
                   this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
               } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})} //!!!
@@ -911,15 +962,13 @@ export class OrderinDocComponent implements OnInit {
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
     );
   }
-  getBoxofficeNameById(id:string):string{
-    let name:string = 'Не установлен';
+
+  setBoxofficeFromName(){
     if(this.boxoffices){
       this.boxoffices.forEach(a=>{
-        if(a.id==id) name=a.name;
+        if(a.id==this.formBaseInformation.get('boxoffice_from_id').value) this.formBaseInformation.get('boxoffice_from').setValue(a.name);
       })}
-    return(name);
   }
-  
   getMovingTypesList(){
     this.movingTypes=this.loadSpravService.getMovingTypeList();
     this.setDefaultMovingType();
@@ -938,12 +987,16 @@ export class OrderinDocComponent implements OnInit {
     return(name);
   }
   setDefaultBoxoffice(){
-    if(+this.formBaseInformation.get('boxoffice_id').value==0 && this.boxoffices.length>0)// - ставим по дефолту самую первую кассу (т.к. она главная)
+    if(+this.formBaseInformation.get('boxoffice_id').value==0 && this.boxoffices.length>0){// - ставим по дефолту самую первую кассу (т.к. она главная)
       this.formBaseInformation.get('boxoffice_id').setValue(this.boxoffices[0].id);
+    }
   }
   setDefaultBoxofficeFrom(){
-    if(+this.formBaseInformation.get('boxoffice_from_id').value==0 && this.boxoffices.length>0)// - ставим по дефолту самую первую кассу (т.к. она главная)
+    if(+this.formBaseInformation.get('boxoffice_from_id').value==0 && this.boxoffices.length>0){// - ставим по дефолту самую первую кассу (т.к. она главная)
       this.formBaseInformation.get('boxoffice_from_id').setValue(this.boxoffices[0].id);
+      this.setBoxofficeFromName();
+      this.getOrderoutListByKassaId();
+    }
   }
 
   onMovingChange(){
@@ -980,17 +1033,19 @@ export class OrderinDocComponent implements OnInit {
         error => {this.fieldDataLoading=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
     );
   }
-  getPaymentAccountNameById(id:string):string{
-    let name:string = 'Не установлен';
+
+  setPaymentAccountFromName(){
     if(this.paymentAccounts){
       this.paymentAccounts.forEach(a=>{
-        if(a.id==id) name=a.name;
+        if(a.id==this.formBaseInformation.get('payment_account_from_id').value) this.formBaseInformation.get('payment_account_from').setValue(a.payment_account+', '+a.name);
       })}
-    return(name);
   }
+
   setDefaultPaymentFromAccount(){
-    if(+this.formBaseInformation.get('payment_account_from_id').value==0 && this.paymentAccounts.length>0)// - ставим по дефолту самый верхний расчётный счёт
+    if(+this.formBaseInformation.get('payment_account_from_id').value==0 && this.paymentAccounts.length>0){// - ставим по дефолту самый верхний расчётный счёт
       this.formBaseInformation.get('payment_account_from_id').setValue(this.paymentAccounts[0].id);
+      this.getPaymentoutListByAccountId();
+    }
   }
   getKassaListByBoxofficeId(){
     this.fieldDataLoading=true;
@@ -1003,14 +1058,80 @@ export class OrderinDocComponent implements OnInit {
       error => {this.fieldDataLoading=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
     );
   }
-  getKassaNameById(id:string):string{
-    let name:string = 'Не установлено';
+
+  setKassaFromName(){
     if(this.kassaList){
       this.kassaList.forEach(a=>{
-        if(a.id==id) name=a.name;
+        if(a.id==this.formBaseInformation.get('kassa_from_id').value) this.formBaseInformation.get('kassa_from').setValue(a.name);
       })}
-    return(name);
   }
+
+  getWithdrawalListByKassaId(){
+    if(+this.formBaseInformation.get('kassa_from_id').value>0 && !this.formBaseInformation.get('is_completed').value){
+      this.withdrawalListLoading=true;
+      this.http.get('/api/auth/getWithdrawalList?kassa_id='+this.formBaseInformation.get('kassa_from_id').value).subscribe(
+        (data) => { 
+          this.withdrawalListLoading=false;
+          this.withdrawalList=data as any [];
+          this.setDefaultWithdrawal();
+        },
+        error => {this.withdrawalListLoading=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+      );
+    }
+  }
+  setDefaultWithdrawal(){
+    if(+this.formBaseInformation.get('withdrawal_id').value==0 && this.withdrawalList.length==1)
+      this.formBaseInformation.get('withdrawal_id').setValue(this.withdrawalList[0].id);
+  }
+  onSelectWithdrawal(withdravalName:any,summ:number){
+    this.formBaseInformation.get('withdrawal').setValue(withdravalName);
+    this.formBaseInformation.get('summ').setValue(summ);
+  }
+
+  getPaymentoutListByAccountId(){
+    if(+this.formBaseInformation.get('payment_account_from_id').value>0 && !this.formBaseInformation.get('is_completed').value){
+      this.paymentoutListLoading=true;
+      this.http.get('/api/auth/getPaymentoutList?account_id='+this.formBaseInformation.get('payment_account_from_id').value).subscribe(
+        (data) => { 
+          this.paymentoutListLoading=false;
+          this.paymentoutList=data as any [];
+          this.setDefaultPaymentout();
+        },
+        error => {this.paymentoutListLoading=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+      );
+    }
+  }
+  setDefaultPaymentout(){
+    if(+this.formBaseInformation.get('paymentout_id').value==0 && this.paymentoutList.length==1)
+      this.formBaseInformation.get('paymentout_id').setValue(this.paymentoutList[0].id);
+  }
+  onSelectPaymentout(paymentoutName:any,summ:number){
+    this.formBaseInformation.get('paymentout').setValue(paymentoutName);
+    this.formBaseInformation.get('summ').setValue(summ);
+  }
+
+  getOrderoutListByKassaId(){
+    if(+this.formBaseInformation.get('boxoffice_from_id').value>0 && !this.formBaseInformation.get('is_completed').value){
+      this.orderoutListLoading=true;
+      this.http.get('/api/auth/getOrderoutList?kassa_id='+this.formBaseInformation.get('boxoffice_from_id').value).subscribe(
+        (data) => { 
+          this.orderoutListLoading=false;
+          this.orderoutList=data as any [];
+          this.setDefaultOrderout();
+        },
+        error => {this.orderoutListLoading=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+      );
+    }
+  }
+  setDefaultOrderout(){
+    if(+this.formBaseInformation.get('orderout_id').value==0 && this.orderoutList.length==1)
+      this.formBaseInformation.get('orderout_id').setValue(this.orderoutList[0].id);
+  }
+  onSelectOrderout(orderoutName:any,summ:number){
+    this.formBaseInformation.get('orderout').setValue(orderoutName);
+    this.formBaseInformation.get('summ').setValue(summ);
+  }
+  
 //*****************************************************************************************************************************************/
 /***********************************************************         ФАЙЛЫ          *******************************************************/
 //*****************************************************************************************************************************************/

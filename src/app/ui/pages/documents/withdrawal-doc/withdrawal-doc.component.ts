@@ -200,6 +200,7 @@ export class WithdrawalDocComponent implements OnInit {
       nds: new FormControl                (0,[]),
       description: new FormControl        ('',[]),
       boxoffice_id: new FormControl       (null,[]),
+      withdrawal_id: new FormControl       (null,[]),
       internal: new FormControl           (false,[]),
       moving_type: new FormControl        ('',[]),
       is_completed: new FormControl       (false,[]),
@@ -758,6 +759,7 @@ export class WithdrawalDocComponent implements OnInit {
         this.formLinkedDocs.get('internal').setValue(true);
         this.formLinkedDocs.get('moving_type').setValue('kassa');// тип перевода  -  из : кассы - boxoffice, счёта - account, kassa - касса ККМ 
         this.formLinkedDocs.get('boxoffice_id').setValue(this.formBaseInformation.get('boxoffice_id').value); // в какую кассу предприятия переводим
+        this.formLinkedDocs.get('withdrawal_id').setValue(this.id); // id-номер выемки 
         this.formLinkedDocs.get('nds').setValue(0);      
       }
       this.http.post('/api/auth/insert'+docname, this.formLinkedDocs.value)
