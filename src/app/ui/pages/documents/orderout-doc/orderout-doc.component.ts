@@ -1,13 +1,12 @@
 import { ChangeDetectorRef, Component, Inject, OnInit, Optional, ViewChild} from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
-import { LoadSpravService } from '../../../../services/loadsprav';
+import { idAndName, LoadSpravService } from '../../../../services/loadsprav';
 import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { BalanceCagentComponent } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.component';
 import { SettingsOrderoutDialogComponent } from 'src/app/modules/settings/settings-orderout-dialog/settings-orderout-dialog.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { Router } from '@angular/router';
@@ -17,7 +16,10 @@ import { MatTabChangeEvent } from '@angular/material/tabs';
 import { graphviz }  from 'd3-graphviz';
 import { FilesComponent } from '../files/files.component';
 import { FilesDocComponent } from '../files-doc/files-doc.component';
-import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from '@angular/material/core';
+import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+import { BalanceCagentComponent } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.component';
+import { BalanceKassaComponent } from 'src/app/modules/info-modules/balance/balance-kassa/balance-kassa.component';
+import { BalanceBoxofficeComponent } from 'src/app/modules/info-modules/balance/balance-boxoffice/balance-boxoffice.component';
 import { MomentDateAdapter} from '@angular/material-moment-adapter';
 import * as _moment from 'moment';
 import {default as _rollupMoment} from 'moment';
@@ -55,13 +57,16 @@ interface DocResponse {//интерфейс для получения ответ
   date_time_changed: string;
   date_time_created: string;
   description : string;
-  kassa_to_id: number; // касса ККМ, в которую переносим денги (внесение)
+  kassa_to_id: number; // id кассы ККМ, в которую переносим денги (внесение)
+  kassa_to: number; // касса ККМ, в которую переносим денги (внесение)
   is_archive: boolean;
   status_id: number;
   status_name: string;
   status_color: string;
   status_description: string;
   uid:string;
+  kassa_department_id:number;// id отделения, где находится касса ККМ, в которую будет внесение
+  kassa_department:string;// отделение, где находится касса ККМ, в которую будет внесение
   boxoffice_id:number;// id кассы из которой перемещаем ден. средства
   boxoffice_to_id:number;// id кассы в которую перемещаем (вообще это редкое явление, более одной кассы используются только если у предприятия есть обособленные подразделения)
   boxoffice:string;//наименование кассы из которой перемещаем ден. средства
@@ -122,7 +127,7 @@ interface SpravSysNdsSet{
   selector: 'app-orderout-doc',
   templateUrl: './orderout-doc.component.html',
   styleUrls: ['./orderout-doc.component.css'],
-  providers: [LoadSpravService, CommonUtilitesService,BalanceCagentComponent,
+  providers: [LoadSpravService, CommonUtilitesService,BalanceCagentComponent,BalanceBoxofficeComponent,BalanceKassaComponent,
     {provide: MAT_DATE_LOCALE, useValue: 'ru'},
     {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},]
@@ -154,6 +159,7 @@ export class OrderoutDocComponent implements OnInit {
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
   rightsDefined:boolean; // определены ли права //!!!
   lastCheckedDocNumber:string='';
+  receivedKassaDepartmentsList: idAndName [] = [];//массив для получения списка отделений
 
   //для загрузки связанных документов
   linkedDocsReturn:LinkedDocs[]=[];
@@ -200,6 +206,8 @@ export class OrderoutDocComponent implements OnInit {
   @ViewChild("doc_number", {static: false}) doc_number; //для редактирования номера документа
   @ViewChild("form", {static: false}) form; // связь с формой <form #form="ngForm" ...
   @ViewChild(BalanceCagentComponent, {static: false}) public balanceCagentComponent:BalanceCagentComponent;
+  @ViewChild(BalanceBoxofficeComponent, {static: false}) public balanceBoxofficeComponent:BalanceBoxofficeComponent;   
+  @ViewChild(BalanceKassaComponent, {static: false}) public balanceKassaComponent:BalanceKassaComponent; 
 
   constructor(private activateRoute: ActivatedRoute,
     private cdRef:ChangeDetectorRef,
@@ -236,11 +244,14 @@ export class OrderoutDocComponent implements OnInit {
       boxoffice_id: new FormControl             ('',[]),
       boxoffice: new FormControl                ('',[]),
       moving_type: new FormControl              ('',[]),
-      kassa_to_id: new FormControl            ('',[]),// id кассы ККМ, в которую делаем внесение
+      kassa_to_id: new FormControl              ('',[]),// id кассы ККМ, в которую делаем внесение
+      kassa_to: new FormControl                 ('',[]),// касса ККМ, в которую делаем внесение
       payment_account_to_id: new FormControl    ('',[]),
       boxoffice_to_id: new FormControl          ('',[]),
       status_color: new FormControl             ('',[]),
       status_description: new FormControl       ('',[]),
+      kassa_department_id: new FormControl      ('',[]),      
+      kassa_department: new FormControl         ('',[]),
       is_completed: new FormControl             (false,[]),
       uid: new FormControl                      ('',[]),// uuid идентификатор
     });
@@ -274,6 +285,9 @@ export class OrderoutDocComponent implements OnInit {
       boxoffice_from_id: new FormControl  (null,[]), // из какой кассы предприятия переводим
       payment_account_id: new FormControl ('',[]), // id расчтёного счёта, на который переводят    
       boxoffice_id: new FormControl       ('',[]), // id кассы предприятия, в которую переводят
+      // параметры для Внесения
+      kassa_id: new FormControl           ('',[]), // id кассы ККМ, в которую переводят
+      department_id: new FormControl      ('',[]),      
     });
 
     // Форма настроек
@@ -616,6 +630,9 @@ export class OrderoutDocComponent implements OnInit {
                 this.formBaseInformation.get('doc_number').setValue(documentValues.doc_number);
                 this.formBaseInformation.get('nds').setValue(documentValues.nds);
                 this.formBaseInformation.get('kassa_to_id').setValue(documentValues.kassa_to_id);
+                this.formBaseInformation.get('kassa_to').setValue(documentValues.kassa_to);
+                this.formBaseInformation.get('kassa_department_id').setValue(documentValues.kassa_department_id);
+                this.formBaseInformation.get('kassa_department').setValue(documentValues.kassa_department);
                 this.formBaseInformation.get('summ').setValue(documentValues.summ);
                 this.formBaseInformation.get('description').setValue(documentValues.description);
                 this.formBaseInformation.get('expenditure').setValue(documentValues.expenditure);
@@ -639,7 +656,9 @@ export class OrderoutDocComponent implements OnInit {
                 this.loadFilesInfo();
                 this.getSettings(true); // настройки документа
                 this.getExpenditureItemsList();
-                this.getKassaListByBoxofficeId();   // все кассы KKM отеделений, привязанных к кассе препдриятия boxoffice_id
+                this.getKassaDepartmentsList();
+                this.getKassaListByDepId();   // все кассы KKM отеделений, привязанных к кассе препдриятия boxoffice_id
+                this.getCompaniesPaymentAccounts(); //расч счета
                 this.getStatusesList();//статусы документа Расходный ордер
                 this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
               } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})} //!!!
@@ -774,10 +793,13 @@ export class OrderoutDocComponent implements OnInit {
                 if(complete) {
                   this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведённости = true
                   this.formBaseInformation.get('cagent').setValue(this.searchCagentCtrl.value);// иначе после проведения пропадет наименование контрагента
+                  this.balanceBoxofficeComponent.getBalance();//пересчитаем баланс кассы предприятия, ведь мы изъяли из нее деньги для внесения в кассу ККМ, и теперь их должно быть меньше
                   if(this.settingsForm.get('statusIdOnComplete').value){//если в настройках есть "Статус при проведении" - выставим его
                     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
                   this.setStatusColor();//чтобы обновился цвет статуса
-                  this.balanceCagentComponent.getBalance();//пересчитаем баланс покупателя, ведь мы произвели оплату в его адрес и баланс изменился
+                  //если это не внутренний перевод - пересчитаем баланс покупателя, ведь мы произвели оплату в его адрес и баланс изменился
+                  if(this.expenditureType!='moving')
+                    this.balanceCagentComponent.getBalance();
                 }
               }
             }
@@ -966,7 +988,7 @@ export class OrderoutDocComponent implements OnInit {
       this.formBaseInformation.get('payment_account_to_id').setValue(null);
       this.formBaseInformation.get('boxoffice_to_id').setValue(null);
       if( this.kassaList.length==0)                                               // moving_type = 'kassa' 
-        this.getKassaListByBoxofficeId();
+        this.getKassaDepartmentsList();
     }
   }
 
@@ -974,29 +996,10 @@ export class OrderoutDocComponent implements OnInit {
     if(this.formBaseInformation.get('moving_type').value=='kassa'){        // moving_type = 'kassa'
       this.formBaseInformation.get('kassa_to_id').setValue(null);
       this.kassaList=[];
-      this.getKassaListByBoxofficeId();
+      // this.getKassaListByDepId();
     }
   }
-  getKassaListByBoxofficeId(){
-    this.fieldDataLoading=true;
-    return this.http.get('/api/auth/getKassaListByBoxofficeId?id='+this.formBaseInformation.get('boxoffice_id').value).subscribe(
-      (data) => { 
-        this.fieldDataLoading=false;
-        this.kassaList=data as any [];
-        // this.setDefaultPaymentFromAccount();
-      },
-      error => {this.fieldDataLoading=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
-    );
-  }
 
-  getKassaNameById(id:string):string{
-    let name:string = 'Не установлено';
-    if(this.kassaList){
-      this.kassaList.forEach(a=>{
-        if(a.id==id) name=a.name;
-      })}
-    return(name);
-  }
   OnClickVatInvoiceIn(){
     if(+this.formBaseInformation.get('cagent_id').value==0)
       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Невозможно создать данный документ, так как контрагент не выбран',}});
@@ -1014,6 +1017,53 @@ export class OrderoutDocComponent implements OnInit {
     );
   }
   
+  getKassaDepartmentsList(){
+    if(this.expenditureType=='moving' && this.formBaseInformation.get('moving_type').value=='kassa' && !this.formBaseInformation.get('is_completed').value){
+      this.receivedKassaDepartmentsList=null;
+      this.loadSpravService.getDepartmentsListByCompanyId(this.formBaseInformation.get('company_id').value,false)
+        .subscribe(
+            (data) => {this.receivedKassaDepartmentsList=data as any [];
+              // this.doFilterDepartmentsList();
+              this.setDefaultDepartment();
+            },
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+        );
+      }
+  }
+  setDefaultDepartment(){
+    if(+this.formBaseInformation.get('kassa_department_id').value==0 && this.receivedKassaDepartmentsList.length==1){
+      this.formBaseInformation.get('kassa_department_id').setValue(this.receivedKassaDepartmentsList[0].id);
+      this.getKassaListByDepId();
+    }
+  }
+  onKassaDepartmentChange(){
+    this.kassaList=[];
+    this.formBaseInformation.get('kassa_to_id').setValue(null);
+    this.getKassaListByDepId();
+  }
+  getKassaListByDepId(){
+    if(+this.formBaseInformation.get('kassa_department_id').value>0){
+      this.fieldDataLoading=true;
+      return this.http.get('/api/auth/getKassaListByDepId?id='+this.formBaseInformation.get('kassa_department_id').value).subscribe(
+        (data) => { 
+          this.fieldDataLoading=false;
+          this.kassaList=data as any [];
+          // this.setDefaultPaymentFromAccount();
+        },
+        error => {this.fieldDataLoading=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+      );
+    }
+  }
+
+  // getKassaNameById(id:string):string{
+  //   let name:string = 'Не установлено';
+  //   if(this.kassaList){
+  //     this.kassaList.forEach(a=>{
+  //       if(a.id==id) name=a.name;
+  //     })}
+  //   return(name);
+  // }
+
   //создание нового документа
   goToNewDocument(){
     this._router.navigate(['ui/orderoutdoc',0]);
@@ -1030,6 +1080,8 @@ export class OrderoutDocComponent implements OnInit {
     this.formBaseInformation.get('description').setValue('');
     this.formBaseInformation.get('status_id').setValue(null); 
     this.formBaseInformation.get('expenditure_id').setValue(null); 
+    this.kassaList=[];
+
     this.searchCagentCtrl.reset();
     this.resetStatus();
 
@@ -1159,7 +1211,12 @@ deleteFile(id:number){
         this.formLinkedDocs.get('payment_account_id').setValue(this.formBaseInformation.get('payment_account_to_id').value);//id расчтёного счёта, на который переводят    
         this.formLinkedDocs.get('boxoffice_id').setValue(this.formBaseInformation.get('boxoffice_to_id').value);// id кассы предприятия, в которую переводят
       }
-
+      if(docname=='Depositing'){
+      this.formLinkedDocs.get('orderout_id').setValue(this.formBaseInformation.get('id').value); // id расходного ордера, которым осуществляют внесение       
+      this.formLinkedDocs.get('boxoffice_id').setValue(this.formBaseInformation.get('boxoffice_id').value);// id кассы предприятия, из которой вносят
+      this.formLinkedDocs.get('department_id').setValue(this.formBaseInformation.get('kassa_department_id').value);// id отделения, в котором находится касса ККМ  
+      this.formLinkedDocs.get('kassa_id').setValue(this.formBaseInformation.get('kassa_to_id').value);//id кассы ККМ, куда вносят    
+    }
       //поля для счёта-фактуры
       this.formLinkedDocs.get('parent_tablename').setValue('orderout');
       this.formLinkedDocs.get('orderout_id').setValue(this.id);
@@ -1185,8 +1242,14 @@ deleteFile(id:number){
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа "+(this.commonUtilites.getDocNameByDocAlias(docname))}});
                       break;
                     }
+                    case -40:{//дублирование расходного ордера
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Внесение с данным расходным ордером уже проведено"}});
+                      break;
+                    }
                     default:{// Документ успешно создался в БД 
                       this.openSnackBar("Документ "+this.commonUtilites.getDocNameByDocAlias(docname)+" успешно создан", "Закрыть");
+                      // if(docname=='Depositing') // так как внесение создается сразу проведённым, ...
+                        // this.balanceKassaComponent.getBalance();//пересчитаем баланс кассы ККМ, ведь мы внесли в нее деньги, и теперь их должно быть больше
                       this.getLinkedDocsScheme(true);//обновляем схему этого документа
                     }
                   }
@@ -1198,6 +1261,13 @@ deleteFile(id:number){
 
   // можно ли создать связанный документ 
   canCreateLinkedDoc(docname:string):CanCreateLinkedDoc{
+    if(docname=='Depositing'){
+      if(!this.formBaseInformation.get('is_completed').value)
+        return {can:false, reason:'Для выполнения данной операции текущий документ должен быть проведён'};
+      else
+        return {can:true, reason:''};
+    }
+    else
       return {can:true, reason:''};
   }
 

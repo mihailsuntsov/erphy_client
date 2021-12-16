@@ -16,7 +16,7 @@ import { graphviz }  from 'd3-graphviz';
 import { Router } from '@angular/router';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 
-interface DocResponse {//интерфейс для получения ответа в методе getWithdrawalValuesById
+interface DocResponse {//интерфейс для получения ответа в методе getDepositingValuesById
   id: number;
   company: string;
   company_id: number;
@@ -28,6 +28,8 @@ interface DocResponse {//интерфейс для получения ответ
   master_id: number;
   kassa: string;
   kassa_id: number;
+  orderout: string;
+  orderout_id: number;
   boxoffice: string;
   boxoffice_id: number;
   summ: number; 
@@ -72,12 +74,12 @@ interface LinkedDocs {//интерфейс для загрузки связан�
   is_completed:boolean;
 }
 @Component({
-  selector: 'app-withdrawal-doc',
-  templateUrl: './withdrawal-doc.component.html',
-  styleUrls: ['./withdrawal-doc.component.css'],
+  selector: 'app-depositing-doc',
+  templateUrl: './depositing-doc.component.html',
+  styleUrls: ['./depositing-doc.component.css'],
   providers: [LoadSpravService,Cookie,ProductSearchAndTableComponent,BalanceKassaComponent,]
 })
-export class WithdrawalDocComponent implements OnInit {
+export class DepositingDocComponent implements OnInit {
 
   id: number = 0;// id документа
   createdDocId: number;//получение id созданного документа
@@ -97,6 +99,11 @@ export class WithdrawalDocComponent implements OnInit {
   rightsDefined:boolean; // определены ли права
   lastCheckedDocNumber:string=''; // последний проверенный номер (чтобы не отправлять запросы с одинаковыми номерами)
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, select - оконный режим выбора файлов
+
+
+  orderoutList: any[];               // список расходных ордеров, из которых поступили средства
+  orderoutListLoading:  boolean = false; //загрузка списка расходных ордеров 
+
 
   //для загрузки связанных документов
   linkedDocsReturn:LinkedDocs[]=[];
@@ -138,7 +145,7 @@ export class WithdrawalDocComponent implements OnInit {
 
   constructor(private activateRoute: ActivatedRoute,
     private cdRef:ChangeDetectorRef,
-    private _fb: FormBuilder, //чтобы билдить группу форм withdrawalProductTable
+    private _fb: FormBuilder, //чтобы билдить группу форм depositingProductTable
     private http: HttpClient,
     public ConfirmDialog: MatDialog,
     public MessageDialog: MatDialog,
@@ -166,12 +173,14 @@ export class WithdrawalDocComponent implements OnInit {
       creator_id: new FormControl         ('',[]),
       kassa_id: new FormControl           ('',[Validators.required]),
       kassa: new FormControl              ('',[]),      
-      boxoffice_id: new FormControl       ('',[]),
+      boxoffice_id: new FormControl       ('',[Validators.required]),
       boxoffice: new FormControl          ('',[]),
       creator: new FormControl            ('',[]),
       balance_after: new FormControl      ('0.00',[Validators.pattern('^-?[0-9]{1,9}(?:[.,][0-9]{0,2})?\r?$'), ValidationService.numberNotNegative]),  // сколько останется в кассе после выемки
       description: new FormControl        ('',[]),
       department: new FormControl         ('',[]),
+      orderout_id: new FormControl        ('',[Validators.required]),
+      orderout: new FormControl           ('',[]),
       summ: new FormControl               ('0.00',[Validators.required, Validators.pattern('^-?[0-9]{1,9}(?:[.,][0-9]{0,2})?\r?$'), ValidationService.numberNotNegative]),
       is_delivered: new FormControl       (false,[]),
       is_completed: new FormControl       (true,[]), // выемка всегда создается уже проведенной, ибо тут нет смысла делать лишние действия
@@ -200,7 +209,7 @@ export class WithdrawalDocComponent implements OnInit {
       nds: new FormControl                (0,[]),
       description: new FormControl        ('',[]),
       boxoffice_id: new FormControl       (null,[]),
-      withdrawal_id: new FormControl       (null,[]),
+      depositing_id: new FormControl       (null,[]),
       internal: new FormControl           (false,[]),
       moving_type: new FormControl        ('',[]),
       is_completed: new FormControl       (false,[]),
@@ -263,7 +272,7 @@ export class WithdrawalDocComponent implements OnInit {
   //---------------------------------------------------------------------------------------------------------------------------------------
 
   getSetOfPermissions(){
-    return this.http.get('/api/auth/getMyPermissions?id=45')
+    return this.http.get('/api/auth/getMyPermissions?id=46')
       .subscribe(
           (data) => {   
                       this.permissionsSet=data as any [];
@@ -329,13 +338,13 @@ export class WithdrawalDocComponent implements OnInit {
   }
 
   getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==568)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==569)});
-    this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==570)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==571)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==572)});
-    this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==573)});
-    this.allowToViewMyDocs = permissionsSet.some(                 function(e){return(e==574)});
+    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==576)});
+    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==577)});
+    this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==578)});
+    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==579)});
+    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==580)});
+    this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==581)});
+    this.allowToViewMyDocs = permissionsSet.some(                 function(e){return(e==582)});
    
     if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;this.allowToCreateMyDepartments=true}
     if(this.allowToCreateMyCompany)this.allowToCreateMyDepartments=true;
@@ -379,6 +388,7 @@ export class WithdrawalDocComponent implements OnInit {
   }
 
   onDepartmentChange(){
+    this.formBaseInformation.get('orderout_id').setValue(null);
     this.formBaseInformation.get('kassa_id').setValue(null);
     this.formBaseInformation.get('kassa').setValue('');
     this.formBaseInformation.get('department').setValue(this.getDepartmentNameById(this.formBaseInformation.get('department_id').value));
@@ -396,6 +406,7 @@ export class WithdrawalDocComponent implements OnInit {
   setDefaultBoxoffice(){
     if(+this.formBaseInformation.get('boxoffice_id').value==0 && this.boxoffices.length==1)
       this.formBaseInformation.get('boxoffice_id').setValue(this.boxoffices[0].id);
+
   }  
   getBoxofficeNameById(id:any):string{
     let name:string = 'Не установлен';
@@ -406,6 +417,7 @@ export class WithdrawalDocComponent implements OnInit {
     return(name);
   }
   onBoxofficeChange(){
+    this.formBaseInformation.get('orderout_id').setValue(null);
     this.formBaseInformation.get('boxoffice').setValue(this.getBoxofficeNameById(this.formBaseInformation.get('boxoffice_id').value));
   }
   getDepartmentsList(){
@@ -445,20 +457,22 @@ export class WithdrawalDocComponent implements OnInit {
     //если в списке касс ККМ только одна касса - ставим её по дефолту
     if(+this.formBaseInformation.get('kassa_id').value==0 && this.kassaList.length==1){
       this.formBaseInformation.get('kassa_id').setValue(this.kassaList[0].id);
+      this.getOrderoutListByBoxofficeId();
     }
   }
-  getKassaNameById(id:string):string{
-    let name:string = 'Не установлено';
-    if(this.kassaList){
-      this.kassaList.forEach(a=>{
-        if(a.id==id) name=a.name;
-      })}
-    return(name);
-  }
+  // getKassaNameById(id:string):string{
+  //   let name:string = 'Не установлено';
+  //   if(this.kassaList){
+  //     this.kassaList.forEach(a=>{
+  //       if(a.id==id) name=a.name;
+  //     })}
+  //   return(name);
+  // }
 
   onSelectKassa(id:number,name:string){
-    // this.formBaseInformation.get('kassa_id').setValue(+id);
+    this.formBaseInformation.get('orderout_id').setValue(null);
     this.formBaseInformation.get('kassa').setValue(name);
+    this.getOrderoutListByBoxofficeId();
   }
 
   // проверки на различные случаи
@@ -542,7 +556,7 @@ export class WithdrawalDocComponent implements OnInit {
   }
 
   getDocumentValuesById(){
-    this.http.get('/api/auth/getWithdrawalValuesById?id='+ this.id)
+    this.http.get('/api/auth/getDepositingValuesById?id='+ this.id)
         .subscribe(
             data => { 
               
@@ -560,13 +574,15 @@ export class WithdrawalDocComponent implements OnInit {
                   this.formBaseInformation.get('company_id').setValue(documentValues.company_id);
                   this.formBaseInformation.get('kassa_id').setValue(documentValues.kassa_id);
                   this.formBaseInformation.get('kassa').setValue(documentValues.kassa);
+                  this.formBaseInformation.get('orderout_id').setValue(documentValues.orderout_id);
+                  this.formBaseInformation.get('orderout').setValue(documentValues.orderout);
                   this.formBaseInformation.get('boxoffice_id').setValue(documentValues.boxoffice_id);
                   this.formBaseInformation.get('boxoffice').setValue(documentValues.boxoffice);
                   this.formBaseInformation.get('department_id').setValue(documentValues.department_id);
                   this.formBaseInformation.get('department').setValue(documentValues.department);
                   this.formBaseInformation.get('doc_number').setValue(documentValues.doc_number);
                   this.formBaseInformation.get('description').setValue(documentValues.description);
-                  this.formBaseInformation.get('summ').setValue(documentValues.summ);
+                  this.formBaseInformation.get('summ').setValue(this.numToPrice(documentValues.summ,2));
                   this.formBaseInformation.get('is_delivered').setValue(documentValues.is_delivered);
                   this.formBaseInformation.get('uid').setValue(documentValues.uid);
                   this.creatorId=+documentValues.creator_id;
@@ -629,7 +645,7 @@ export class WithdrawalDocComponent implements OnInit {
  createNewDocument(){
   this.createdDocId=null;
   this.formBaseInformation.get('uid').setValue(uuidv4());
-  this.http.post('/api/auth/insertWithdrawal', this.formBaseInformation.value)
+  this.http.post('/api/auth/insertDepositing', this.formBaseInformation.value)
     .subscribe(
     (data) => {
                 this.actionsBeforeGetChilds=0;
@@ -647,9 +663,13 @@ export class WithdrawalDocComponent implements OnInit {
                     this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно средств в кассе ККМ для создания документа Выемка"}});
                     break;
                   }
+                  case -40:{//дублирование исходящего платежа 
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Входящий платеж с данным расходным ордером уже проведён"}});
+                    break;
+                  }
                   default:{// Выемка успешно создалась в БД 
                     this.openSnackBar("Документ \"Выемка\" успешно создан", "Закрыть");
-                    this.afterCreateWithdrawal();
+                    this.afterCreateDepositing();
                   }
                 }
               },
@@ -657,29 +677,34 @@ export class WithdrawalDocComponent implements OnInit {
     );
   }
 
-  afterCreateWithdrawal(){
+  afterCreateDepositing(){//
     // Сначала обживаем текущий документ:
     this.id=+this.createdDocId;
-    this._router.navigate(['/ui/withdrawaldoc', this.id]);
+    this._router.navigate(['/ui/depositingdoc', this.id]);
     this.formBaseInformation.get('id').setValue(this.id);    
-    this.balanceKassaComponent.getBalance();//пересчитаем баланс кассы ККМ (ведь из нее изъяли деньги, и баланс уменьшился)
     this.getData();
+    this.balanceKassaComponent.getBalance();//пересчитаем баланс кассы ККМ (ведь из нее изъяли деньги, и баланс уменьшился)
   }
 
-  // updateDocument(onChequePrinting?:boolean){ 
-  //   return this.http.post('/api/auth/updateWithdrawal',  this.formBaseInformation.value)
-  //     .subscribe(
-  //         (data) => 
-  //         {   
-  //           let response=data as any;
-  //           this.getData();
-  //           this.openSnackBar("Документ \"Выемка\" сохранён", "Закрыть");
-  //         },
-  //         error => {
-  //           this.showQueryErrorMessage(error);
-  //           },
-  //     );
-  // } 
+  updateDocument(onChequePrinting?:boolean){ 
+    return this.http.post('/api/auth/updateDepositing',  this.formBaseInformation.value)
+      .subscribe(
+          (data) => 
+          {   
+            let response=data as any;
+            this.getData();
+            this.openSnackBar("Документ \"Выемка\" сохранён", "Закрыть");
+            if(response.fail_to_reserve>0){//если у 1 или нескольких позиций резервы при сохранении были отменены
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:
+              'У некоторых позиций не был сохранён резерв, т.к. он превышал заказываемое либо доступное количество товара'
+              }});
+            }
+          },
+          error => {
+            this.showQueryErrorMessage(error);
+            },
+      );
+  } 
 
   showQueryErrorMessage(error:any){
     console.log(error);
@@ -701,7 +726,7 @@ export class WithdrawalDocComponent implements OnInit {
 
   //создание нового документа после завершения текущего
   goToNewDocument(){
-      this._router.navigate(['ui/withdrawaldoc',0]);
+      this._router.navigate(['ui/depositingdoc',0]);
       this.id=0;      
       this.form.resetForm();
       this.formBaseInformation.get('id').setValue(0);
@@ -729,6 +754,28 @@ export class WithdrawalDocComponent implements OnInit {
       this.getData();
   }
 
+getOrderoutListByBoxofficeId(){
+    if(+this.formBaseInformation.get('boxoffice_id').value>0 && +this.id==0){
+      this.orderoutListLoading=true;
+      this.http.get('/api/auth/getOrderoutList?boxoffice_id='+this.formBaseInformation.get('boxoffice_id').value).subscribe(
+        (data) => { 
+          this.orderoutListLoading=false;
+          this.orderoutList=data as any [];
+          this.setDefaultOrderout();
+        },
+        error => {this.orderoutListLoading=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+      );
+    }
+  }
+  setDefaultOrderout(){
+    if(+this.formBaseInformation.get('orderout_id').value==0 && this.orderoutList.length==1)
+      this.formBaseInformation.get('orderout_id').setValue(this.orderoutList[0].id);
+  }
+  onSelectOrderout(orderoutName:any,summ:number){
+    this.formBaseInformation.get('orderout').setValue(orderoutName);
+    this.formBaseInformation.get('summ').setValue(this.numToPrice(summ,2));
+    this.onChangeDepositingSumm();
+  }
 //**********************************************************************************************************************************************/  
 //*************************************************          СВЯЗАННЫЕ ДОКУМЕНТЫ          ******************************************************/
 //**********************************************************************************************************************************************/  
@@ -745,7 +792,7 @@ export class WithdrawalDocComponent implements OnInit {
       this.formLinkedDocs.get('is_completed').setValue(false);
       this.formLinkedDocs.get('uid').setValue(uid);
       this.formLinkedDocs.get('linked_doc_id').setValue(this.id);//id связанного документа (того, из которого инициируется создание данного документа)
-      this.formLinkedDocs.get('linked_doc_name').setValue('withdrawal');//имя (таблицы) связанного документа
+      this.formLinkedDocs.get('linked_doc_name').setValue('depositing');//имя (таблицы) связанного документа
       this.formLinkedDocs.get('parent_uid').setValue(this.formBaseInformation.get('uid').value);// uid исходящего (родительского) документа
       this.formLinkedDocs.get('child_uid').setValue(uid);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
       // параметры для входящих ордеров и платежей (Paymentin, Orderin)
@@ -754,7 +801,7 @@ export class WithdrawalDocComponent implements OnInit {
         this.formLinkedDocs.get('internal').setValue(true);
         this.formLinkedDocs.get('moving_type').setValue('kassa');// тип перевода  -  из : кассы - boxoffice, счёта - account, kassa - касса ККМ 
         this.formLinkedDocs.get('boxoffice_id').setValue(this.formBaseInformation.get('boxoffice_id').value); // в какую кассу предприятия переводим
-        this.formLinkedDocs.get('withdrawal_id').setValue(this.id); // id-номер выемки 
+        this.formLinkedDocs.get('depositing_id').setValue(this.id); // id-номер выемки 
         this.formLinkedDocs.get('nds').setValue(0);      
       }
       this.http.post('/api/auth/insert'+docname, this.formLinkedDocs.value)
@@ -867,13 +914,9 @@ export class WithdrawalDocComponent implements OnInit {
     }
     return(name);
   }
-  onChangeWithdrawalSumm(){
-    +this.formBaseInformation.get('balance_after').setValue((+this.balanceKassaComponent.balance-(+this.formBaseInformation.get('summ').value)).toFixed(2));
+  onChangeDepositingSumm(){
+    +this.formBaseInformation.get('balance_after').setValue((+this.balanceKassaComponent.balance+(+this.formBaseInformation.get('summ').value)).toFixed(2));
     if(isNaN(this.formBaseInformation.get('balance_after').value)) this.formBaseInformation.get('balance_after').setValue(0);
-  }
-  onChangeBalanceAfter(){
-    +this.formBaseInformation.get('summ').setValue((+this.balanceKassaComponent.balance-(+this.formBaseInformation.get('balance_after').value)).toFixed(2));
-    if(isNaN(this.formBaseInformation.get('summ').value)) this.formBaseInformation.get('summ').setValue(0);
   }
   //------------------------------------------ COMMON UTILITIE   -----------------------------------------
   commaToDot(fieldName:string){

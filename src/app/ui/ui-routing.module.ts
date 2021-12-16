@@ -84,6 +84,8 @@ const routes: Routes = [
       { path: 'receipts', loadChildren: () => import('./pages/documents/receipts/receipts.module').then(m => m.ReceiptsModule) },
       { path: 'withdrawal', loadChildren: () => import('./pages/documents/withdrawal/withdrawal.module').then(m => m.WithdrawalModule) },
       { path: 'withdrawaldoc', loadChildren: () => import('./pages/documents/withdrawal-doc/withdrawal-doc.module').then(m => m.WithdrawalDocModule) },
+      { path: 'depositing', loadChildren: () => import('./pages/documents/depositing/depositing.module').then(m => m.DepositingModule) },
+      { path: 'depositingdoc', loadChildren: () => import('./pages/documents/depositing-doc/depositing-doc.module').then(m => m.DepositingDocModule) },
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
       { path: '**', redirectTo: 'dashboard',pathMatch: 'full' },
     ]  

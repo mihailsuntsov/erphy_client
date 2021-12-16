@@ -494,6 +494,7 @@ export class PaymentinDocComponent implements OnInit {
 
 
   onCompanyChange(){
+    this.setNullOnIncomePayments();
     this.formBaseInformation.get('status_id').setValue(null);
     this.formBaseInformation.get('cagent_id').setValue(null);
     this.formBaseInformation.get('payment_account_id').setValue(null);
@@ -654,7 +655,7 @@ export class PaymentinDocComponent implements OnInit {
                   this.getBoxofficesList();   // кассы предприятия
                   this.getCompaniesPaymentAccounts(); //расч счета
 
-                  this.getOrderoutListByKassaId(); // загрузка списка расходных ордеров
+                  this.getOrderoutListByBoxofficeId(); // загрузка списка расходных ордеров
                   this.getPaymentoutListByAccountId(); // загрузка списка исходящих платежей
 
                   this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
@@ -801,6 +802,10 @@ export class PaymentinDocComponent implements OnInit {
                 this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно средств для проведения операции"}});
                 break;
               }
+              case -40:{//дублирование исходящего платежа 
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Входящий платеж с данным "+(this.formBaseInformation.get('moving_type').value=='account'?"исходящим платежом":"расходным ордером")+" уже проведён"}});
+                break;
+              }
               default:{// Успешно
                 this.openSnackBar("Документ \"Входящий платёж\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
                 this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
@@ -945,6 +950,7 @@ export class PaymentinDocComponent implements OnInit {
   }
   
   onSwitchInternal(){
+    this.setNullOnIncomePayments();
     this.formBaseInformation.get('cagent_id').setValue(null);
     this.searchCagentCtrl.setValue('');
     this.formBaseInformation.get('boxoffice_from_id').setValue(null);
@@ -997,7 +1003,7 @@ export class PaymentinDocComponent implements OnInit {
     if(+this.formBaseInformation.get('boxoffice_from_id').value==0 && this.boxoffices.length>0){// - ставим по дефолту самую первую кассу (т.к. она главная)
       this.formBaseInformation.get('boxoffice_from_id').setValue(this.boxoffices[0].id);
       this.setBoxofficeFromName();
-      this.getOrderoutListByKassaId();
+      this.getOrderoutListByBoxofficeId();
     }
   }
   setBoxofficeFromName(){
@@ -1007,6 +1013,7 @@ export class PaymentinDocComponent implements OnInit {
       })}
   }
   onMovingChange(){
+    this.setNullOnIncomePayments();
     if(this.formBaseInformation.get('moving_type').value=='account'){
       this.formBaseInformation.get('boxoffice_from_id').setValue(null);
       this.setDefaultPaymentFromAccount();
@@ -1015,6 +1022,10 @@ export class PaymentinDocComponent implements OnInit {
       this.setDefaultBoxofficeFrom();
     }
   }
+  setNullOnIncomePayments(){// очистка полей источника входящего платежа
+    this.formBaseInformation.get('orderout_id').setValue(null);
+    this.formBaseInformation.get('paymentout_id').setValue(null);
+  }
   getPaymentAccountNameById(id:string):string{
     let name:string = 'Не установлен';
     if(this.paymentAccounts){
@@ -1022,6 +1033,16 @@ export class PaymentinDocComponent implements OnInit {
         if(a.id==id) name=a.name;
       })}
     return(name);
+  }
+  onPaymentAccountFromChange(){
+    this.setNullOnIncomePayments();
+    this.formBaseInformation.get('paymentout_id').setValue(null);
+    this.getPaymentoutListByAccountId();
+  }
+  onBoxofficeFromChange(){
+    this.setNullOnIncomePayments();
+    this.formBaseInformation.get('orderout_id').setValue(null);
+    this.getOrderoutListByBoxofficeId();
   }
   setDefaultPaymentFromAccount(){
     if(+this.formBaseInformation.get('payment_account_from_id').value==0 && this.paymentAccounts.length>0){// - ставим по дефолту самый верхний расчётный счёт
@@ -1051,10 +1072,10 @@ export class PaymentinDocComponent implements OnInit {
     this.formBaseInformation.get('summ').setValue(summ);
   }
 
-  getOrderoutListByKassaId(){
+  getOrderoutListByBoxofficeId(){
     if(+this.formBaseInformation.get('boxoffice_from_id').value>0 && !this.formBaseInformation.get('is_completed').value){
       this.orderoutListLoading=true;
-      this.http.get('/api/auth/getOrderoutList?kassa_id='+this.formBaseInformation.get('boxoffice_from_id').value).subscribe(
+      this.http.get('/api/auth/getOrderoutList?boxoffice_id='+this.formBaseInformation.get('boxoffice_from_id').value).subscribe(
         (data) => { 
           this.orderoutListLoading=false;
           this.orderoutList=data as any [];

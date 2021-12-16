@@ -9,6 +9,8 @@ import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { SettingsOrderinDialogComponent } from 'src/app/modules/settings/settings-orderin-dialog/settings-orderin-dialog.component';
 import { BalanceCagentComponent } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.component';
+import { BalanceKassaComponent } from 'src/app/modules/info-modules/balance/balance-kassa/balance-kassa.component';
+import { BalanceBoxofficeComponent } from 'src/app/modules/info-modules/balance/balance-boxoffice/balance-boxoffice.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { Router } from '@angular/router';
 import { v4 as uuidv4 } from 'uuid';
@@ -129,7 +131,7 @@ interface SpravSysNdsSet{
   selector: 'app-orderin-doc',
   templateUrl: './orderin-doc.component.html',
   styleUrls: ['./orderin-doc.component.css'],
-  providers: [LoadSpravService, CommonUtilitesService,BalanceCagentComponent,
+  providers: [LoadSpravService, CommonUtilitesService,BalanceCagentComponent,BalanceKassaComponent,BalanceBoxofficeComponent,
     {provide: MAT_DATE_LOCALE, useValue: 'ru'},
     {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},]
@@ -213,6 +215,8 @@ export class OrderinDocComponent implements OnInit {
   @ViewChild("doc_number", {static: false}) doc_number; //для редактирования номера документа
   @ViewChild("form", {static: false}) form; // связь с формой <form #form="ngForm" ...
   @ViewChild(BalanceCagentComponent, {static: false}) public balanceCagentComponent:BalanceCagentComponent;
+  @ViewChild(BalanceKassaComponent, {static: false}) public balanceKassaComponent:BalanceKassaComponent;
+  @ViewChild(BalanceBoxofficeComponent, {static: false}) public balanceBoxofficeComponent:BalanceBoxofficeComponent;
 
   constructor(private activateRoute: ActivatedRoute,
     private cdRef:ChangeDetectorRef,
@@ -671,7 +675,7 @@ export class OrderinDocComponent implements OnInit {
                   this.getKassaListByBoxofficeId();   // все кассы KKM отеделений, привязанных к кассе препдриятия boxoffice_id
 
                   this.getWithdrawalListByKassaId(); // загрузка выемок
-                  this.getOrderoutListByKassaId(); // загрузка списка расходных ордеров
+                  this.getOrderoutListByBoxofficeId(); // загрузка списка расходных ордеров
                   this.getPaymentoutListByAccountId(); // загрузка списка исходящих платежей
 
                   this.getStatusesList();//статусы документа Приходный ордер
@@ -803,11 +807,16 @@ export class OrderinDocComponent implements OnInit {
                 this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно средств для проведения операции"}});
                 break;
               }
+              case -40:{//дублирование исходящего платежа 
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Входящий платеж с данным "+(this.formBaseInformation.get('moving_type').value=='account'?"исходящим платежом":(this.formBaseInformation.get('moving_type').value=='boxoffice'?"расходным ордером":"документом Выемка"))+" уже проведён"}});
+                break;
+              }
               default:{// Успешно
                 this.openSnackBar("Документ \"Приходный ордер\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
                 this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                 if(complete) {
                   this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведённости = true
+                  this.balanceBoxofficeComponent.getBalance();//пересчитаем баланс кассы предприятия, ведь мы внесли в нее деньги, и теперь их должно быть больше
                   if(this.settingsForm.get('statusIdOnComplete').value){//если в настройках есть "Статус при проведении" - выставим его
                     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
                   this.setStatusColor();//чтобы обновился цвет статуса
@@ -995,11 +1004,12 @@ export class OrderinDocComponent implements OnInit {
     if(+this.formBaseInformation.get('boxoffice_from_id').value==0 && this.boxoffices.length>0){// - ставим по дефолту самую первую кассу (т.к. она главная)
       this.formBaseInformation.get('boxoffice_from_id').setValue(this.boxoffices[0].id);
       this.setBoxofficeFromName();
-      this.getOrderoutListByKassaId();
+      this.getOrderoutListByBoxofficeId();
     }
   }
 
   onMovingChange(){
+    this.setNullOnIncomePayments();
     if(this.formBaseInformation.get('moving_type').value=='account'){        // moving_type = 'account'
       this.formBaseInformation.get('boxoffice_from_id').setValue(null);
       this.formBaseInformation.get('kassa_from_id').setValue(null);
@@ -1014,6 +1024,11 @@ export class OrderinDocComponent implements OnInit {
       if( this.kassaList.length==0)                                               // moving_type = 'kassa' 
         this.getKassaListByBoxofficeId();
     }
+  }
+  setNullOnIncomePayments(){// очистка полей источника входящего платежа
+    this.formBaseInformation.get('orderout_id').setValue(null);
+    this.formBaseInformation.get('paymentout_id').setValue(null);
+    this.formBaseInformation.get('withdrawal_id').setValue(null);
   }
   onBoxofficeChange(){
     if(this.formBaseInformation.get('moving_type').value=='kassa'){        // moving_type = 'kassa'
@@ -1110,10 +1125,10 @@ export class OrderinDocComponent implements OnInit {
     this.formBaseInformation.get('summ').setValue(summ);
   }
 
-  getOrderoutListByKassaId(){
+  getOrderoutListByBoxofficeId(){
     if(+this.formBaseInformation.get('boxoffice_from_id').value>0 && !this.formBaseInformation.get('is_completed').value){
       this.orderoutListLoading=true;
-      this.http.get('/api/auth/getOrderoutList?kassa_id='+this.formBaseInformation.get('boxoffice_from_id').value).subscribe(
+      this.http.get('/api/auth/getOrderoutList?boxoffice_id='+this.formBaseInformation.get('boxoffice_from_id').value).subscribe(
         (data) => { 
           this.orderoutListLoading=false;
           this.orderoutList=data as any [];

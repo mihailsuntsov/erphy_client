@@ -7,6 +7,8 @@ import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SettingsOrderinDialogModule } from '../../../../modules/settings/settings-orderin-dialog/settings-orderin-dialog.module';
 import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.module';
+import { BalanceKassaModule } from 'src/app/modules/info-modules/balance/balance-kassa/balance-kassa.module';
+import { BalanceBoxofficeModule } from 'src/app/modules/info-modules/balance/balance-boxoffice/balance-boxoffice.module';
 
 @NgModule({
   declarations: [OrderinDocComponent,],
@@ -15,6 +17,8 @@ import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balanc
     OrderinDocRoutingModule,
     SettingsOrderinDialogModule,
     BalanceCagentModule,
+    BalanceKassaModule,
+    BalanceBoxofficeModule,
 
     MaterialModule,
     FormsModule,

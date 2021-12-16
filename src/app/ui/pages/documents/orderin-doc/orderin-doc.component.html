@@ -211,7 +211,12 @@
                                                                     <mat-label>В кассу</mat-label>
                                                                     <input  matInput [readonly]="true"
                                                                             [ngModel]="formBaseInformation.get('boxoffice').value" [ngModelOptions]="{standalone: true}"/>
-                                                                </mat-form-field>
+                                                                </mat-form-field>                                                                
+                                                                <app-balance-boxoffice style="top: 10px;right: 16px; position: absolute;"
+                                                                    [company_id]="formBaseInformation.get('company_id').value"
+                                                                    [boxoffice_id]="formBaseInformation.get('boxoffice_id').value"
+                                                                    [currency]="'руб.'">
+                                                                </app-balance-boxoffice>
                                                             </div>
 
                                                             <div class="col-12" *ngIf="+id==0 || (+id>0 && formBaseInformation.get('internal').value)">
@@ -244,10 +249,10 @@
                                                                 </mat-form-field>
                                                             </div>
                                                             <div class="col-12"  *ngIf="formBaseInformation.get('internal').value && formBaseInformation.get('moving_type').value=='boxoffice'">    
-                                                                <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: formBaseInformation.get('is_completed').value}">
+                                                                <mat-form-field class="mat-form-field-100" *ngIf="!formBaseInformation.get('is_completed').value">
                                                                     <mat-label>Из кассы <span *ngIf="+formBaseInformation.get('boxoffice_from_id').value==0" class="star">*</span></mat-label>
                                                                     <mat-select formControlName="boxoffice_from_id" 
-                                                                    (selectionChange)="setBoxofficeFromName();formBaseInformation.get('orderout_id').setValue(null); getOrderoutListByKassaId()" 
+                                                                    (selectionChange)="setNullOnIncomePayments();setBoxofficeFromName(); getOrderoutListByBoxofficeId()" 
                                                                                 >                          
                                                                         <mat-option  *ngFor="let rt of boxoffices" [value]="rt.id">
                                                                                 {{rt.name}}
@@ -259,6 +264,11 @@
                                                                     <input  matInput [readonly]="true"
                                                                             [ngModel]="formBaseInformation.get('boxoffice_from').value" [ngModelOptions]="{standalone: true}"/>
                                                                 </mat-form-field>
+                                                                <app-balance-boxoffice style="top: 10px;right: 16px; position: absolute;"
+                                                                    [company_id]="formBaseInformation.get('company_id').value"
+                                                                    [boxoffice_id]="formBaseInformation.get('boxoffice_from_id').value"
+                                                                    [currency]="'руб.'">
+                                                                </app-balance-boxoffice>
                                                             </div>
                                                             <div class="col-12"  *ngIf="formBaseInformation.get('internal').value && formBaseInformation.get('moving_type').value=='account'">    
                                                                 <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: formBaseInformation.get('is_completed').value}">
@@ -270,7 +280,7 @@
                                                                         [diameter]="25"                                                                        
                                                                         ></mat-spinner>
                                                                     <mat-select formControlName="payment_account_from_id" 
-                                                                    (selectionChange)="setPaymentAccountFromName();formBaseInformation.get('paymentout_id').setValue(null); getPaymentoutListByAccountId()" 
+                                                                    (selectionChange)="setNullOnIncomePayments();setPaymentAccountFromName();getPaymentoutListByAccountId()" 
                                                                                 >                          
                                                                                 <mat-option  *ngFor="let rt of paymentAccounts" [value]="rt.id" 
                                                                                 matTooltip='{{rt.payment_account}}, {{rt.name}}'>
@@ -294,7 +304,7 @@
                                                                         [diameter]="25"                                                                        
                                                                         ></mat-spinner>
                                                                     <mat-select formControlName="kassa_from_id"
-                                                                                (selectionChange)="setKassaFromName();formBaseInformation.get('withdrawal_id').setValue(null); getWithdrawalListByKassaId()" 
+                                                                                (selectionChange)="setNullOnIncomePayments();setKassaFromName(); getWithdrawalListByKassaId()" 
                                                                                 >                          
                                                                         <mat-option  *ngFor="let rt of kassaList" [value]="rt.id">
                                                                                 {{rt.name}}

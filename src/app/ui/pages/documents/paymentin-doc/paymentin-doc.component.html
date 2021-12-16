@@ -198,6 +198,7 @@
                                                                 <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: formBaseInformation.get('is_completed').value}">
                                                                     <mat-label>На расчётный счёт <span *ngIf="+formBaseInformation.get('payment_account_id').value==0" class="star">*</span></mat-label>
                                                                     <mat-select formControlName="payment_account_id" 
+                                                                                (selectionChange)="setNullOnIncomePayments()"
                                                                                 >                          
                                                                         <mat-option  *ngFor="let rt of paymentAccounts" [value]="rt.id" 
                                                                         matTooltip='{{rt.payment_account}} ({{rt.name}})'>
@@ -248,6 +249,7 @@
                                                                 <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: formBaseInformation.get('is_completed').value}">
                                                                     <mat-label>Из кассы <span *ngIf="+formBaseInformation.get('boxoffice_from_id').value==0" class="star">*</span></mat-label>
                                                                     <mat-select formControlName="boxoffice_from_id" 
+                                                                                (selectionChange)="onBoxofficeFromChange()"
                                                                                 >                          
                                                                         <mat-option  *ngFor="let rt of boxoffices" [value]="rt.id">
                                                                                 {{rt.name}}
@@ -257,13 +259,14 @@
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="formBaseInformation.get('is_completed').value">
                                                                     <mat-label>Из кассы</mat-label>
                                                                     <input  matInput [readonly]="true"
-                                                                            [ngModel]="getBoxofficeNameById(formBaseInformation.get('boxoffice_from_id').value)" [ngModelOptions]="{standalone: true}"/>
+                                                                            [ngModel]="formBaseInformation.get('boxoffice_from').value" [ngModelOptions]="{standalone: true}"/>
                                                                 </mat-form-field>
                                                             </div>
                                                             <div class="col-12"  *ngIf="formBaseInformation.get('internal').value && formBaseInformation.get('moving_type').value=='account'">    
                                                                 <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: formBaseInformation.get('is_completed').value}">
                                                                     <mat-label>С расчётного счёта <span *ngIf="+formBaseInformation.get('payment_account_from_id').value==0" class="star">*</span></mat-label>
                                                                     <mat-select formControlName="payment_account_from_id" 
+                                                                                (selectionChange)="onPaymentAccountFromChange()"
                                                                                 >                          
                                                                                 <mat-option  *ngFor="let rt of paymentAccounts" [value]="rt.id" 
                                                                                 matTooltip='{{rt.payment_account}} ({{rt.name}})'>
@@ -274,7 +277,7 @@
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="formBaseInformation.get('is_completed').value">
                                                                     <mat-label>С расчётного счёта</mat-label>
                                                                     <input  matInput [readonly]="true"
-                                                                            [ngModel]="getPaymentAccountNameById(formBaseInformation.get('payment_account_from_id').value)" [ngModelOptions]="{standalone: true}"/>
+                                                                            [ngModel]="formBaseInformation.get('payment_account_from').value" [ngModelOptions]="{standalone: true}"/>
                                                                 </mat-form-field>
                                                             </div>
 

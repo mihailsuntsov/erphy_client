@@ -6,8 +6,8 @@ class="spinner"
 ></mat-spinner>
 <mat-card class="card">
     <mat-card-title class="flex" style="height: 30px;">
-        <div *ngIf="!displayingDeletedDocs" class="emptyspace">Выемки</div>
-        <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> выемки</div>
+        <div *ngIf="!displayingDeletedDocs" class="emptyspace">Внесения</div>
+        <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> внесения</div>
         <!-- <button 
             mat-raised-button 
             style="width: 36px;height: 36px;min-width: 38px;padding: 0px;"
@@ -19,7 +19,7 @@ class="spinner"
             <i class="material-icons">settings</i>
         </button> -->
         <div [style.display]="(allowToCreate&&!displayingDeletedDocs)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
-            <a [routerLink]="['../../withdrawaldoc', '']">
+            <a [routerLink]="['../../depositingdoc', '']">
                 <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> Создать</button>
             </a>   
         </div>
@@ -147,7 +147,7 @@ class="spinner"
                         <ng-container matColumnDef="opendoc">
                             <th mat-header-cell *matHeaderCellDef></th>
                             <td mat-cell *matCellDef="let row" class="table-launch-icon">
-                                <a class="inactive" [routerLink]="['../../withdrawaldoc', row.id ]">
+                                <a class="inactive" [routerLink]="['../../depositingdoc', row.id ]">
                                     <mat-icon style="margin: 9px;">launch</mat-icon>
                                 </a>
                             </td>   
