@@ -214,7 +214,7 @@ export class InvoiceoutDocComponent implements OnInit {
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
   formBaseInformation: FormGroup; //массив форм для накопления информации о Заказе покупателя
   settingsForm: any; // форма с настройками
-  formLinkedDocs:any// Форма для отправки при создании Возврата покупателя
+  formLinkedDocs:any// Форма для отправки при создании связанного документа
 
   //переменные прав
   permissionsSet: any[];//сет прав на документ
@@ -335,7 +335,6 @@ export class InvoiceoutDocComponent implements OnInit {
       company_id: new FormControl         (null,[Validators.required]),
       department_id: new FormControl      (null,[Validators.required]),
       description: new FormControl        ('',[]),
-      returnProductTable: new FormArray   ([]),
       linked_doc_id: new FormControl      (null,[]),//id связанного документа (в данном случае ЭТОГО документа)
       parent_uid: new FormControl         (null,[]),// uid родительского документа
       child_uid: new FormControl          (null,[]),// uid дочернего документа
@@ -1378,13 +1377,15 @@ export class InvoiceoutDocComponent implements OnInit {
   
 // забирает таблицу товаров из дочернего компонента и помещает ее в форму, предназначенную для создания дочерних документов
   getProductsTableLinkedDoc(docname:string){
-    let tableName:string;//для маппинга в соответствующие названия сетов в бэкэнде (например private Set<PostingProductForm> postingProductTable;)
-    if(docname=='Shipment') tableName='shipmentProductTable'; else tableName='postingProductTable';
-    const control = <FormArray>this.formLinkedDocs.get(tableName);
-    control.clear();
-    this.productSearchAndTableComponent.getProductTable().forEach(row=>{
-          control.push(this.formingProductRowLinkedDoc(row,docname));
-    });
+    let tableName='';//для маппинга в соответствующие названия сетов в бэкэнде (например private Set<PostingProductForm> postingProductTable;)
+    if(docname=='Shipment'){// из создающихся из данногод документа связанных документов таблица товара есть только у Отгрузки
+      tableName='shipmentProductTable';
+      const control = <FormArray>this.formLinkedDocs.get(tableName);
+      control.clear();
+      this.productSearchAndTableComponent.getProductTable().forEach(row=>{
+            control.push(this.formingProductRowLinkedDoc(row,docname));
+      });
+    }
   }
   formingProductRowLinkedDoc(row: InvoiceoutProductTable, docname:string) {
     return this._fb.group({
