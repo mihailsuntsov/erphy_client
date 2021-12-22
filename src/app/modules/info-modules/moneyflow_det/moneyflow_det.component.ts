@@ -43,16 +43,16 @@ export interface NumRow {//интерфейс для списка количес
 }
 
 @Component({
-  selector: 'app-mutualpayment_det',
-  templateUrl: './mutualpayment_det.component.html',
-  styleUrls: ['./mutualpayment_det.component.css'],
+  selector: 'app-moneyflow_det',
+  templateUrl: './moneyflow_det.component.html',
+  styleUrls: ['./moneyflow_det.component.css'],
   providers: [
     {provide: MAT_DATE_LOCALE, useValue: 'ru'},
     {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
     /*QueryFormService,*/LoadSpravService,Cookie]
 })
-export class MutualpaymentDetComponent implements OnInit {
+export class MoneyflowDetComponent implements OnInit {
   queryForm:any;//форма для отправки запроса 
   receivedPagesList: string [] ;//массив для получения данных пагинации
   dataSource = new MatTableDataSource<CheckBox>(); //массив данных для таблицы и чекбоксов (чекбоксы берут из него id, таблица -всё)
@@ -94,16 +94,16 @@ export class MutualpaymentDetComponent implements OnInit {
     public confirmDialog: MatDialog,
     private http: HttpClient,
     public deleteDialog: MatDialog,
-    public mutualpaymentDetDialog: MatDialogRef<MutualpaymentDetComponent>,
+    public moneyflowDetDialog: MatDialogRef<MoneyflowDetComponent>,
     @Optional() @Inject(MAT_DIALOG_DATA) public data: any,) { }
 
     ngOnInit() {
 
       this.queryForm = new FormGroup({ //форма для отправки запроса 
         companyId: new FormControl(this.data.companyId,[]), // предприятие, по которому идет запрос данных (передаётся из вызывающего окна)
-        cagentId: new FormControl(this.data.cagentId,[]), // контрагент, по которому идет запрос данных (передаётся из вызывающего окна)
-        dateFrom: new FormControl(this.data.dateFrom?moment(this.data.dateFrom,'DD.MM.YYYY'):moment().startOf('year'),[]),   // дата С
-        dateTo: new FormControl(this.data.dateTo?moment(this.data.dateTo,'DD.MM.YYYY'):moment(),[]),     // дата По
+        // cagentId: new FormControl(this.data.cagentId,[]), // контрагент, по которому идет запрос данных (передаётся из вызывающего окна)
+        dateFrom: new FormControl(this.data.date?moment(this.data.date,'DD.MM.YYYY'):moment().startOf('year'),[]),   // дата С
+        dateTo: new FormControl(this.data.date?moment(this.data.date,'DD.MM.YYYY'):moment(),[]),     // дата По
         sortColumn: new FormControl('date_time_created_sort',[]), //
         sortAsc: new FormControl('desc',[]), //
         offset: new FormControl(0,[]), //
@@ -112,16 +112,16 @@ export class MutualpaymentDetComponent implements OnInit {
         searchString: new FormControl('',[]), //
       });
 
-      // if(Cookie.get('mutualpayment_det_companyId')=='undefined' || Cookie.get('mutualpayment_det_companyId')==null)     
-        // Cookie.set('mutualpayment_det_companyId',this.queryForm.get('companyId').value); else this.queryForm.get('companyId').setValue(Cookie.get('mutualpayment_det_companyId')=="0"?"0":+Cookie.get('mutualpayment_det_companyId'));
-      if(Cookie.get('mutualpayment_det_sortAsc')=='undefined' || Cookie.get('mutualpayment_det_sortAsc')==null)       
-        Cookie.set('mutualpayment_det_sortAsc',this.queryForm.get('sortAsc').value); else this.queryForm.get('sortAsc').setValue(Cookie.get('mutualpayment_det_sortAsc'));
-      // if(Cookie.get('mutualpayment_det_sortColumn')=='undefined' || Cookie.get('mutualpayment_det_sortColumn')==null)    
-        // Cookie.set('mutualpayment_det_sortColumn',this.queryForm.get('sortColumn').value); else this.queryForm.get('sortColumn').setValue(Cookie.get('mutualpayment_det_sortColumn'));
-      // if(Cookie.get('mutualpayment_det_offset')=='undefined' || Cookie.get('mutualpayment_det_offset')==null)        
-        // Cookie.set('mutualpayment_det_offset',this.queryForm.get('offset').value); else this.queryForm.get('offset').setValue(Cookie.get('mutualpayment_det_offset'));
-      // if(Cookie.get('mutualpayment_det_result')=='undefined' || Cookie.get('mutualpayment_det_result')==null)        
-        // Cookie.set('mutualpayment_det_result',this.queryForm.get('result').value); else this.queryForm.get('result').setValue(Cookie.get('mutualpayment_det_result'));
+      // if(Cookie.get('moneyflow_det_companyId')=='undefined' || Cookie.get('moneyflow_det_companyId')==null)     
+        // Cookie.set('moneyflow_det_companyId',this.queryForm.get('companyId').value); else this.queryForm.get('companyId').setValue(Cookie.get('moneyflow_det_companyId')=="0"?"0":+Cookie.get('moneyflow_det_companyId'));
+      if(Cookie.get('moneyflow_det_sortAsc')=='undefined' || Cookie.get('moneyflow_det_sortAsc')==null)       
+        Cookie.set('moneyflow_det_sortAsc',this.queryForm.get('sortAsc').value); else this.queryForm.get('sortAsc').setValue(Cookie.get('moneyflow_det_sortAsc'));
+      // if(Cookie.get('moneyflow_det_sortColumn')=='undefined' || Cookie.get('moneyflow_det_sortColumn')==null)    
+        // Cookie.set('moneyflow_det_sortColumn',this.queryForm.get('sortColumn').value); else this.queryForm.get('sortColumn').setValue(Cookie.get('moneyflow_det_sortColumn'));
+      // if(Cookie.get('moneyflow_det_offset')=='undefined' || Cookie.get('moneyflow_det_offset')==null)        
+        // Cookie.set('moneyflow_det_offset',this.queryForm.get('offset').value); else this.queryForm.get('offset').setValue(Cookie.get('moneyflow_det_offset'));
+      // if(Cookie.get('moneyflow_det_result')=='undefined' || Cookie.get('moneyflow_det_result')==null)        
+        // Cookie.set('moneyflow_det_result',this.queryForm.get('result').value); else this.queryForm.get('result').setValue(Cookie.get('moneyflow_det_result'));
       
       this.fillOptionsList();//заполняем список опций фильтра
     
@@ -131,7 +131,7 @@ export class MutualpaymentDetComponent implements OnInit {
 
     // -------------------------------------- *** ПРАВА *** ------------------------------------
    getSetOfPermissions(){
-    return this.http.get('/api/auth/getMyPermissions?id=47')// права на приосмотр регулируются документом Взаиморасчёты
+    return this.http.get('/api/auth/getMyPermissions?id=48')// права на приосмотр регулируются документом Взаиморасчёты
             .subscribe(
                 (data) => {   
                             this.permissionsSet=data as any [];
@@ -142,8 +142,8 @@ export class MutualpaymentDetComponent implements OnInit {
   }
 
   getCRUD_rights(permissionsSet:any[]){
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==584)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==585)});
+    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==587)});
+    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==588)});
     this.getData();
   }
 
@@ -172,13 +172,17 @@ export class MutualpaymentDetComponent implements OnInit {
     this.displayedColumns.push('doc_name');
     this.displayedColumns.push('doc_number');
     this.displayedColumns.push('date_time_created');
+    this.displayedColumns.push('obj_name');
     this.displayedColumns.push('summ_in');
     this.displayedColumns.push('summ_out');
     this.displayedColumns.push('status');
   }
-
+ 
+  onNoClick(): void {
+    this.moneyflowDetDialog.close();
+    }
   getPagesList(){
-    this.http.post('/api/auth/getMutualpaymentDetailedPagesList', this.queryForm.getRawValue())
+    this.http.post('/api/auth/getMoneyflowDetailedPagesList', this.queryForm.getRawValue())
             .subscribe(
                 data => {this.receivedPagesList=data as string [];
                 this.size=this.receivedPagesList[0];
@@ -191,7 +195,7 @@ export class MutualpaymentDetComponent implements OnInit {
 
   getTable(){
     this.gettingTableData=true;
-    this.http.post('/api/auth/getMutualpaymentDetailedTable', this.queryForm.getRawValue())
+    this.http.post('/api/auth/getMoneyflowDetailedTable', this.queryForm.getRawValue())
             .subscribe(
                 (data) => {
                   this.dataSource.data = data as any []; 
@@ -204,14 +208,14 @@ export class MutualpaymentDetComponent implements OnInit {
 
   setNumOfPages(){
     this.queryForm.get('offset').setValue(this.queryForm.get('result').value);
-    // Cookie.set('mutualpayment_det_result',this.queryForm.get('result').value);
+    // Cookie.set('moneyflow_det_result',this.queryForm.get('result').value);
     this.getData();
   }
 
   setPage(value:any) // set pagination
   {
     this.queryForm.get('offset').setValue(value);
-    // Cookie.set('mutualpayment_det_offset',value);
+    // Cookie.set('moneyflow_det_offset',value);
     this.getData();
   }
 
@@ -223,17 +227,17 @@ export class MutualpaymentDetComponent implements OnInit {
           } else {  
               this.queryForm.get('sortAsc').setValue("asc")
           }
-      Cookie.set('mutualpayment_det_sortAsc',this.queryForm.sortAsc);
+      Cookie.set('moneyflow_det_sortAsc',this.queryForm.sortAsc);
       } else {
           this.queryForm.get('sortColumn').setValue(valueSortColumn);
           this.queryForm.get('sortAsc').setValue("asc");
-          Cookie.set('mutualpayment_det_sortAsc',"asc");
-          // Cookie.set('mutualpayment_det_sortColumn',valueSortColumn);
+          Cookie.set('moneyflow_det_sortAsc',"asc");
+          // Cookie.set('moneyflow_det_sortColumn',valueSortColumn);
       }
       this.getData();
   }
   onCompanySelection(){
-    // Cookie.set('mutualpayment_det_companyId',this.queryForm.get('companyId').value);
+    // Cookie.set('moneyflow_det_companyId',this.queryForm.get('companyId').value);
     this.resetOptions();
     this.getData();
   }
@@ -270,9 +274,9 @@ export class MutualpaymentDetComponent implements OnInit {
   }
 
   setDefaultCompany(){
-    // if(Cookie.get('mutualpayment_det_companyId')=='0'){
+    // if(Cookie.get('moneyflow_det_companyId')=='0'){
       this.queryForm.get('companyId').setValue(this.myCompanyId);
-      // Cookie.set('mutualpayment_det_companyId',this.queryForm.get('companyId').value);
+      // Cookie.set('moneyflow_det_companyId',this.queryForm.get('companyId').value);
     // }
     this.getCRUD_rights(this.permissionsSet);
   }
@@ -287,9 +291,6 @@ export class MutualpaymentDetComponent implements OnInit {
     }
   }
 
-  onNoClick(): void {
-    this.mutualpaymentDetDialog.close();
-    }
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
 
   resetOptions(){

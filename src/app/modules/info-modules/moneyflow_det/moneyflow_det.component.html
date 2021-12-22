@@ -6,7 +6,7 @@ class="spinner"
 ></mat-spinner>
 <mat-card class="card">
     <mat-card-title class="flex" style="height: 30px;">
-        <div *ngIf="!displayingDeletedDocs" class="emptyspace">Взаиморасчёты с {{data.cagent}}</div>
+        <div *ngIf="!displayingDeletedDocs" class="emptyspace">Движение денежных средств</div>
         <!-- <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> входящие платежи</div> -->
         <!-- <button 
             mat-raised-button 
@@ -19,9 +19,9 @@ class="spinner"
             <i class="material-icons">settings</i>
         </button> -->
         <!-- <div [style.display]="(visBtnAdd==true&&!displayingDeletedDocs)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
-            <a [routerLink]="['../../mutualpaymentdoc', '']">
+            <a [routerLink]="['../../moneyflowdoc', '']">
                 <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> Создать</button>
-            </a>   
+            </a>   ""
         </div> -->
         <!-- <div [style.display]="(!displayingDeletedDocs&&visBtnDelete)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
             <button mat-raised-button (click)="clickBtnDelete()" color="warn"><i class="material-icons">delete_forever</i> Удалить</button>
@@ -29,7 +29,6 @@ class="spinner"
         <div *ngIf="displayingDeletedDocs && visBtnDelete" class="col-sm-auto justify-content-center" style="margin:0px 10px 10px 0px">
             <button mat-raised-button (click)="clickBtnRestore()" color="accent"><i class="material-icons">restore_from_trash</i> Восстановить</button>
         </div> -->
-        
         <button 
             (click)="onNoClick()"
             matTooltip="Закрыть диалоговое окно"
@@ -182,7 +181,7 @@ class="spinner"
                 <div id="result_form">
                     <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
                         <ng-container matColumnDef="opendoc">
-                            <th mat-header-cell *matHeaderCellDef></th>
+                            <th mat-header-cell *matHeaderCellDef style="width:45px"></th>
                             <td mat-cell *matCellDef="let row" class="table-launch-icon"> 
                                 <a class="inactive"  target="_blank" href="ui/{{row.doc_page_name}}doc/{{row.doc_id}}">
                                     <mat-icon>launch</mat-icon>
@@ -198,7 +197,7 @@ class="spinner"
                             <td mat-cell *matCellDef="let row"> {{row.doc_name}} </td>
                         </ng-container>
                         <ng-container matColumnDef="doc_number" >
-                            <th mat-header-cell *matHeaderCellDef style="width:15%">
+                            <th mat-header-cell *matHeaderCellDef style="width:80px">
                             <span (click)="setSort('doc_number')" class="sortheader"> Номер 
                                 <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='doc_number'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='doc_number'" class="material-icons sortarrow">arrow_downward</i>
@@ -213,8 +212,16 @@ class="spinner"
                             </span>
                             <td mat-cell *matCellDef="let row"> {{row.date_time_created}} </td>
                         </ng-container>
+                        <ng-container matColumnDef="obj_name">
+                            <th mat-header-cell *matHeaderCellDef>
+                            <span (click)="setSort('obj_name')" class="sortheader"> Наименование 
+                                <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='obj_name'" class="material-icons sortarrow">arrow_upward</i>
+                                <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='obj_name'" class="material-icons sortarrow">arrow_downward</i>
+                            </span>
+                            <td mat-cell *matCellDef="let row"> {{row.obj_name}} </td>
+                        </ng-container>
                         <ng-container matColumnDef="summ_in">
-                            <th mat-header-cell *matHeaderCellDef style="width:15%">
+                            <th mat-header-cell *matHeaderCellDef style="width:10%">
                             <span (click)="setSort('summ_in')" class="sortheader"> Приход 
                                 <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='summ_in'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='summ_in'" class="material-icons sortarrow">arrow_downward</i>
@@ -222,7 +229,7 @@ class="spinner"
                             <td mat-cell *matCellDef="let row"> {{row.summ_in}} </td>
                         </ng-container>
                         <ng-container matColumnDef="summ_out">
-                            <th mat-header-cell *matHeaderCellDef style="width:15%">
+                            <th mat-header-cell *matHeaderCellDef style="width:10%">
                             <span (click)="setSort('summ_out')" class="sortheader"> Расход 
                                 <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='summ_out'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='summ_out'" class="material-icons sortarrow">arrow_downward</i>

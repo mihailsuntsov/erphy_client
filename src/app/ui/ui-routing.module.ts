@@ -87,6 +87,7 @@ const routes: Routes = [
       { path: 'depositing', loadChildren: () => import('./pages/documents/depositing/depositing.module').then(m => m.DepositingModule) },
       { path: 'depositingdoc', loadChildren: () => import('./pages/documents/depositing-doc/depositing-doc.module').then(m => m.DepositingDocModule) },
       { path: 'mutualpayment', loadChildren: () => import('./pages/documents/mutualpayment/mutualpayment.module').then(m => m.MutualpaymentModule) },
+      { path: 'moneyflow', loadChildren: () => import('./pages/documents/moneyflow/moneyflow.module').then(m => m.MoneyflowModule) },
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
       { path: '**', redirectTo: 'dashboard',pathMatch: 'full' },
     ]  
