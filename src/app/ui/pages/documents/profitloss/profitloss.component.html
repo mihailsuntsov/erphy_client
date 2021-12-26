@@ -1,0 +1,174 @@
+
+<mat-card class="card">
+    <mat-card-title class="flex" style="height: 30px;">
+        <div *ngIf="!displayingDeletedDocs" class="emptyspace">Прибыли и убытки</div>
+    </mat-card-title>
+    <mat-card-content>
+        <div class="card  w-100">
+            <div class="card-body">
+                <form  class="form-horizontal" [formGroup]="queryForm" style="margin-bottom: 0px;">
+                    <div class="flex">
+                        <mat-form-field class="company-select" style="margin-left: 10px; max-width: 250px;">
+                            <mat-label>Предприятие</mat-label>
+                            <mat-select formControlName="companyId"
+                            (selectionChange)="onCompanySelection()">                          
+                                <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
+                                        {{rt.name}}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                                <mat-form-field style="width: 100px; margin: 0 10px;">
+                                    <input  matInput 
+                                            formControlName="dateFrom"
+                                            placeholder="С даты"
+                                            [matDatepicker]="dpFrom"
+                                            (dateChange)="getData()"
+                                            />
+                                            <mat-datepicker-toggle matSuffix [for]="dpFrom"></mat-datepicker-toggle>
+                                    <mat-datepicker #dpFrom></mat-datepicker>
+                                </mat-form-field>
+                                <mat-form-field style="width: 100px; margin: 0 10px;">
+                                    <input  matInput 
+                                            formControlName="dateTo"
+                                            placeholder="По дату"
+                                            [matDatepicker]="dpTo"
+                                            (dateChange)="getData()"
+                                            />
+                                            <mat-datepicker-toggle 
+                                            matSuffix [for]="dpTo" 
+                                            ></mat-datepicker-toggle>
+                                    <mat-datepicker #dpTo></mat-datepicker>
+                                </mat-form-field>
+                        <span  class="emptyspace"></span>
+                        <!-- <button mat-button
+                            *ngIf="displaySelectOptions"
+                            class="options-button"
+                            [matMenuTriggerFor]="oper"
+                            type="button"
+                            matTooltip='Выбрать опции для фильтра'
+                            matSuffix mat-icon-button>
+                            <mat-icon>list_alt</mat-icon>
+                        </button> -->
+                        <mat-menu #oper="matMenu" xPosition="before">
+                            <div style="width: 300px;">
+                                <ul>
+                                    <li *ngFor="let row of optionsIds">
+                                        <mat-checkbox
+                                        (click)="$event.stopPropagation()"
+                                        (change)="$event ? clickFilterOptionsCheckbox(row) : null"
+                                        [checked]="selectionFilterOptions.isSelected(row)"
+                                        >{{row.name}}</mat-checkbox>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="div-100"> 
+                                <div style="width:100%; height: 38px; padding-bottom: 15px;">
+                                    <button matTooltip="Применить фильтры" 
+                                            mat-mini-fab 
+                                            color="primary" 
+                                            (click)="clickApplyFilters()">
+                                        <mat-icon>done</mat-icon>
+                                    </button>
+                                </div>
+                            </div> 
+                        </mat-menu>
+                        <span  class="emptyspace" style="display: none"></span>
+                    </div>
+                </form>
+                
+                <div  class="container-fluid" id="result_form">
+                    <div class="row">
+                        <div class="col-xl-6 col-sm-12">
+                            <mat-spinner 
+                            strokeWidth="3" 
+                            class="spinner"
+                            *ngIf="gettingTableData"
+                            [diameter]="50"
+                            ></mat-spinner> 
+                            <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+                                
+                                <ng-container matColumnDef="name" >
+                                    <th mat-header-cell *matHeaderCellDef class="padded" style="width:9%">
+                                    <span class="sortheader"> Приход </span></th>
+                                    <td mat-cell class="padded" style="padding-left: 50px; height: 35px;" *matCellDef="let row"> {{row.name}} </td>
+                                </ng-container>
+                                <ng-container matColumnDef="value">
+                                    <th mat-header-cell *matHeaderCellDef class="padded" style="width:9%">
+                                    <span class="sortheader"> Расход </span></th>
+                                    <td mat-cell class="padded right" style="height: 35px;" *matCellDef="let row"><p style="margin: 5px">{{commonUtilites.numToPrice(row.value,2,true)}}</p></td>
+                                </ng-container>
+                                <!-- Выручка -->
+                                <ng-container matColumnDef="revenue_name" >
+                                    <th class="padded balance-bar bold" mat-header-cell *matHeaderCellDef> Выручка </th>
+                                </ng-container>
+                                <ng-container matColumnDef="revenue_value">
+                                    <th class="padded balance-bar bold right" mat-header-cell *matHeaderCellDef><p style="margin: 5px">{{commonUtilites.numToPrice(revenue,2,true)}}</p></th>
+                                </ng-container>
+                                <!-- Себестоимость -->
+                                <ng-container matColumnDef="cost_price_name" >
+                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> Себестоимость </th>
+                                </ng-container>
+                                <ng-container matColumnDef="cost_price_value">
+                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p style="margin: 5px">{{commonUtilites.numToPrice(cost_price,2,true)}}</p></th>
+                                </ng-container>
+                                <!-- Валовая прибыль -->
+                                <ng-container matColumnDef="gross_profit_name" >
+                                    <th class="padded balance-bar bold" mat-header-cell *matHeaderCellDef> Валовая прибыль </th>
+                                </ng-container>
+                                <ng-container matColumnDef="gross_profit_value">
+                                    <th class="padded balance-bar bold right" mat-header-cell *matHeaderCellDef><p style="margin: 5px">{{commonUtilites.numToPrice(gross_profit,2,true)}}</p></th>
+                                </ng-container>
+                                <!-- Операционные расходы -->
+                                <ng-container matColumnDef="operating_expenses_name" >
+                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> Операционные расходы </th>
+                                </ng-container>
+                                <ng-container matColumnDef="operating_expenses_value">
+                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p style="margin: 5px">{{commonUtilites.numToPrice(operating_expenses,2,true)}}</p></th>
+                                </ng-container>
+                                <!-- Операционная прибыль -->
+                                <ng-container matColumnDef="operating_profit_name">
+                                    <th class="bottom-bar-left padded balance-bar top-bar bold" mat-footer-cell *matFooterCellDef>Операционная прибыль</th>
+                                </ng-container>
+                                <ng-container matColumnDef="operating_profit_value">
+                                    <th class="bottom-bar-right balance-bar balance-bar-bottom bold right" mat-footer-cell *matFooterCellDef>{{commonUtilites.numToPrice(operating_profit,2,true)}}</th>
+                                </ng-container>
+                                <!-- Налоги и сборы -->
+                                <ng-container matColumnDef="taxes_and_fees_name">
+                                    <th class="bottom-bar-left padded balance-bar top-bar normal" mat-footer-cell *matFooterCellDef>Налоги и сборы</th>
+                                </ng-container>
+                                <ng-container matColumnDef="taxes_and_fees_value">
+                                    <th class="bottom-bar-right balance-bar balance-bar-bottom normal right" mat-footer-cell *matFooterCellDef>{{commonUtilites.numToPrice(taxes_and_fees,2,true)}}</th>
+                                </ng-container>
+
+
+                                <!-- Чистая прибыль -->
+                                <ng-container matColumnDef="net_profit_name">
+                                    <th class="bottom-bar-left padded balance-bar top-bar bold" mat-footer-cell *matFooterCellDef>Чистая прибыль</th>
+                                </ng-container>
+                                <ng-container matColumnDef="net_profit_value">
+                                    <th class="bottom-bar-right balance-bar balance-bar-bottom bold right" mat-footer-cell *matFooterCellDef>{{commonUtilites.numToPrice(net_profit,2,true)}}</th>
+                                </ng-container>
+
+
+                                <tr mat-header-row *matHeaderRowDef="displayedColumns" style="height: 48px;"></tr>
+                                <tr mat-header-row *matHeaderRowDef="['revenue_name','revenue_value']"></tr>
+                                <tr mat-header-row *matHeaderRowDef="['cost_price_name','cost_price_value']"></tr>
+                                <tr mat-header-row *matHeaderRowDef="['gross_profit_name','gross_profit_value']"></tr>
+                                <tr mat-header-row *matHeaderRowDef="['operating_expenses_name','operating_expenses_value']"></tr>
+                                <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+                                <tr mat-footer-row *matFooterRowDef="['operating_profit_name','operating_profit_value']"></tr>
+                                <tr mat-footer-row *matFooterRowDef="['taxes_and_fees_name','taxes_and_fees_value']"></tr>
+                                <tr mat-footer-row *matFooterRowDef="['net_profit_name','net_profit_value']"></tr>
+
+
+
+                                
+
+                            </table>
+                        </div>
+                    </div>
+                </div> 
+            </div>  
+        </div>
+    </mat-card-content>
+</mat-card>

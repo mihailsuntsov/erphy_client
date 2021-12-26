@@ -161,7 +161,7 @@
           </li>
         </ul>
       </li>
-      <li *ngIf="hasPermission(464)||hasPermission(475)||hasPermission(506)||hasPermission(517)||hasPermission(539)||hasPermission(583)||hasPermission(586)">
+      <li *ngIf="hasPermission(464)||hasPermission(475)||hasPermission(506)||hasPermission(517)||hasPermission(539)||hasPermission(583)||hasPermission(586)||hasPermission(589)">
         <div class="icon-link" (click)="arrowClick($event,1)">
           <a>
             <i class="material-icons unselectable" (click)="arrowClick($event,3)">payments</i>
@@ -193,6 +193,10 @@
           <li *ngIf="hasPermission(539)">
             <a routerLink="correction">
               <span class="unselectable">Корректировки</span></a>
+          </li>
+          <li *ngIf="hasPermission(589)">
+            <a routerLink="profitloss">
+              <span class="unselectable">Прибыли и убытки</span></a>
           </li>
           <li *ngIf="hasPermission(583)">
             <a routerLink="mutualpayment">

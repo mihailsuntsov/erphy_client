@@ -40,7 +40,7 @@ export class CommonUtilitesService{
 
 
   //Конвертирует число в строку типа 0.00 например 6.40, 99.25
-  numToPrice(price:number,charsAfterDot:number) {
+  numToPrice(price:number,charsAfterDot:number,withSpaces?:boolean) {
     //конертим число в строку и отбрасываем лишние нули без округления
     const reg = new RegExp("^-?\\d+(?:\\.\\d{0," + charsAfterDot + "})?", "g")
     const a = price.toString().match(reg)[0];
@@ -48,11 +48,18 @@ export class CommonUtilitesService{
     const dot = a.indexOf(".");
     // если число целое - добавляется точка и нужное кол-во нулей
     if (dot === -1) { 
+      if(withSpaces)
+        return  this.addSpaces(a + "." + "0".repeat(charsAfterDot));
+      else
         return a + "." + "0".repeat(charsAfterDot);
     }
     //если не целое число
     const b = charsAfterDot - (a.length - dot) + 1;
-    return b > 0 ? (a + "0".repeat(b)) : a;
+    return b > 0 ? (withSpaces?this.addSpaces(a + "0".repeat(b)):(a + "0".repeat(b))) : (withSpaces?this.addSpaces(a):a);
+  }
+
+  addSpaces(price:string){
+    return parseFloat(price).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, "$1 ");
   }
 
   getDocNameByDocAlias(alias: string): string{
