@@ -45,6 +45,8 @@ export class DashboardComponent implements OnInit {
   receivedDepartmentsList: IdAndName [] = [];//массив для получения списка отделений
   receivedMyDepartmentsList: IdAndName [] = [];//массив для получения списка своих отделений в своем предприятии
   onSaveSettings: boolean = false;
+  canGetChilds: boolean=false; //можно ли грузить дочерние модули
+  actionsBeforeGetChilds:number=0;// количество выполненных действий, необходимых чтобы загрузить дочерние модули (кассу и форму товаров)
 
   //переменные прав
   permissionsSet: any[];//сет прав на документ
@@ -76,6 +78,18 @@ export class DashboardComponent implements OnInit {
     //  |
     // +  this.vidgetsReload (если не на старте, а на сохранении настроек)
 
+  }
+//нужно загруить всю необходимую информацию, прежде чем вызывать детей (Поиск и добавление товара, Кассовый модуль), иначе их ngOnInit выполнится быстрее, чем загрузится вся информация в родителе
+  //вызовы из:
+  //getCRUD_rights() (загрузятся myCompanyId и настройки с companyId, права)
+  //getDepartmentsList() (загрузятся предприятия и мои предприятия)
+  necessaryActionsBeforeGetChilds(){
+    this.actionsBeforeGetChilds++;
+    //Если набрано необходимое кол-во действий для отображения модуля Формы поиска и добавления товара
+    if(this.actionsBeforeGetChilds==2){
+      // this.canGetChilds=true;
+      this.vidgetsReload();
+    }
   }
 
   getMyCompanyId(){
@@ -135,6 +149,7 @@ export class DashboardComponent implements OnInit {
     this.allowToViewAllCompanies = this.permissionsSet.some(         function(e){return(e==325)});//пока у нас только один виджет, что упрощает расчёты))
     console.log("allowToDashboard - "+this.allowToDashboard);
     console.log("allowToVolumes - "+this.allowToVolumes);
+    this.necessaryActionsBeforeGetChilds();
   }
 
   checkToViewAllCompanies(){
@@ -170,6 +185,7 @@ export class DashboardComponent implements OnInit {
                     this.vidgetsReload();
                     this.onSaveSettings=false;
                   }
+                  this.necessaryActionsBeforeGetChilds();
                 },
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             );

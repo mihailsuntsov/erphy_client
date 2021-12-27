@@ -119,7 +119,7 @@ export class SalesOnPeriodComponent implements OnInit {
       withSeparation: new FormControl(false,[]), // с разбивкой. Например, на каждый временной отрезок будет представлено несколько значений выбранных категорий по отдельности (иначе эти значения суммируются)
     });
 
-    this.onStart();
+    // this.onStart(); - запуск вызывается из модуля Dashboard после загрузки всех справочников
   }
 
   onStart(){

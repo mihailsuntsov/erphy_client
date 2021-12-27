@@ -89,12 +89,12 @@
                                 
                                 <ng-container matColumnDef="name" >
                                     <th mat-header-cell *matHeaderCellDef class="padded" style="width:9%">
-                                    <span class="sortheader"> Приход </span></th>
+                                    <span class="sortheader"> Наименование </span></th>
                                     <td mat-cell class="padded" style="padding-left: 50px; height: 35px;" *matCellDef="let row"> {{row.name}} </td>
                                 </ng-container>
                                 <ng-container matColumnDef="value">
                                     <th mat-header-cell *matHeaderCellDef class="padded" style="width:9%">
-                                    <span class="sortheader"> Расход </span></th>
+                                    <span class="sortheader"> Прибыль </span></th>
                                     <td mat-cell class="padded right" style="height: 35px;" *matCellDef="let row"><p style="margin: 5px">{{commonUtilites.numToPrice(row.value,2,true)}}</p></td>
                                 </ng-container>
                                 <!-- Выручка -->
