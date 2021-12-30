@@ -87,11 +87,11 @@ export class SalesOnPeriodComponent implements OnInit {
   allowToViewMyDepartments:boolean = false; //Возможность построения отчётов по объёмам продаж, закупок и др. по своим отделениям своего предпрития
 
   // @ViewChild(ProductCategoriesSelectComponent, {static: false}) public productCategoriesSelectComponent:ProductCategoriesSelectComponent; // блок выбора категорий и товаров/услуг
-  @Input() companyId: number;  // id предприятия, для которого запрашиваем данные
-  @Input() myCompanyId: number;  // id своего предприятия, для которого запрашиваем данные
-  @Input() permissionsSet: any[]; // //сет прав на документ
-  @Input() receivedDepartmentsList: IdAndName[]; // массив всех отделений предприятия
-  @Input() receivedMyDepartmentsList: IdAndName[]; // массив своих отделений предприятия
+  @Input() companyId: number;                       // id предприятия, для которого запрашиваем данные
+  @Input() myCompanyId: number;                     // id своего предприятия, для которого запрашиваем данные
+  @Input() permissionsSet: any[];                   // сет прав на документ
+  @Input() receivedDepartmentsList: IdAndName[];    // массив всех отделений предприятия
+  @Input() receivedMyDepartmentsList: IdAndName[];  // массив своих отделений предприятия
 
   constructor(
     private loadSpravService:   LoadSpravService,
@@ -123,6 +123,7 @@ export class SalesOnPeriodComponent implements OnInit {
   }
 
   onStart(){
+    
     this.units.push();
     this.onPeriodChange();
     this.setReportName();
@@ -135,7 +136,6 @@ export class SalesOnPeriodComponent implements OnInit {
     
     this.filterDepartments();
     
-    
     this.getVolumesReportData();
   }
 
@@ -147,17 +147,17 @@ export class SalesOnPeriodComponent implements OnInit {
 
   //определяет, на какой из списков отделений (все отделения предприятия или только пользователя) пользователь имеет право
   determineDepartmentsList(){
-    // console.log('------receivedMyDepartmentsList------');
-    // this.receivedMyDepartmentsList.map(i=>{
-    //   console.log('id - '+i.id+', name - '+i.name);
-    // });
-    // console.log('---------------------------------');
+    console.log('------receivedMyDepartmentsList------');
+    this.receivedMyDepartmentsList.map(i=>{
+      console.log('id - '+i.id+', name - '+i.name);
+    });
+    console.log('---------------------------------');
 
-    // console.log('------receivedDepartmentsList------');
-    // this.receivedDepartmentsList.map(i=>{
-    //   console.log('id - '+i.id+', name - '+i.name);
-    // });
-    // console.log('---------------------------------');
+    console.log('------receivedDepartmentsList------');
+    this.receivedDepartmentsList.map(i=>{
+      console.log('id - '+i.id+', name - '+i.name);
+    });
+    console.log('---------------------------------');
     //если разрешен просмотр по всем предприятиям, или по своему предприятию и мое предприятие = тому предприятию, чьи отделения переданы в данный модуль
     if(this.allowToViewAllCompanies || (this.allowToViewMyCompany && this.companyId==this.myCompanyId)){
       this.fillDepartmentsList(this.receivedDepartmentsList); //имеем доступ к просмотру отчета по всем отделениям текущего предприятия

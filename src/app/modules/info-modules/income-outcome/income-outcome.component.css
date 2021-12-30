@@ -10,7 +10,7 @@ li {list-style: none;}
 .flex{ display: flex; }
 
 .card{
-    width:100%;
+    width:100%;    
     margin-bottom: 10px;
 }
 .internal-card{

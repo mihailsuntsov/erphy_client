@@ -13,7 +13,7 @@ import { SettingsInventoryDialogComponent } from 'src/app/modules/settings/setti
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
-import { YAxisComponent } from '@swimlane/ngx-charts';
+// import { YAxisComponent } from '@swimlane/ngx-charts';
 
 export interface CheckBox {
   id: number;

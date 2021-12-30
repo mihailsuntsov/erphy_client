@@ -4,6 +4,7 @@ import { MaterialModule } from '../../modules/material.module';
 import { DashboardRoutingModule } from './dashboard-routing.module';
 import { DashboardComponent } from './dashboard.component';
 import { SalesOnPeriodModule } from 'src/app/modules/info-modules/sales-on-period/sales-on-period.module';
+import { IncomeOutcomeModule } from 'src/app/modules/info-modules/income-outcome/income-outcome.module';
 import {SettingsDashboardModule} from 'src/app/modules/settings/settings-dashboard/settings-dashboard.module'
 
 @NgModule({
@@ -13,6 +14,7 @@ import {SettingsDashboardModule} from 'src/app/modules/settings/settings-dashboa
     DashboardRoutingModule,
     MaterialModule,
     SalesOnPeriodModule,
+    IncomeOutcomeModule,
     SettingsDashboardModule
   ]
 })

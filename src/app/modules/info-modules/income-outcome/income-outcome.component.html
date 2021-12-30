@@ -1,0 +1,102 @@
+<mat-card class="card">
+    <div class="icon-panel">
+        <mat-icon   matTooltip='Настройки отчёта'    
+                    (click)="onClickMenuIcon()"
+                    class="nav-icon">menu
+        </mat-icon>
+    </div>
+    <mat-card-title class="flex">
+        <div class="card-name">Приход и расход</div>
+
+    </mat-card-title>
+    
+    <mat-card-content class="input-form">
+        <form [formGroup]="queryForm" *ngIf="showSettingsForm">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-4 col-12">
+                        <!-- <div class="container-fluid"> -->
+                            <div class="row">
+                                <div class="col-xl-6 col-lg-12">
+                                    <mat-form-field style="margin-top: 10px; width: 100%;">
+                                        <input  matInput 
+                                                formControlName="dateFrom"
+                                                placeholder="С даты"
+                                                [matDatepicker]="dpFrom"
+                                                [readonly]="queryForm.get('periodType').value!='period'"
+                                                (dateChange)="onDateChange('dateFrom', $event);getVolumesReportData()"
+                                                />
+                                                <mat-datepicker-toggle matSuffix [for]="dpFrom" ></mat-datepicker-toggle>
+                                        <mat-datepicker #dpFrom></mat-datepicker>
+                                    </mat-form-field>
+                                </div>
+                                <div class="col-xl-6 col-lg-12">
+                                    <mat-form-field style="margin-top: 10px; width: 100%;">
+                                        <input  matInput 
+                                                formControlName="dateTo"
+                                                placeholder="По дату"
+                                                [matDatepicker]="dpTo"
+                                                [readonly]="queryForm.get('periodType').value!='period'"
+                                                (dateChange)="onDateChange('dateTo', $event);getVolumesReportData()"
+                                                />
+                                                <mat-datepicker-toggle 
+                                                matSuffix [for]="dpTo" 
+                                                ></mat-datepicker-toggle>
+                                        <mat-datepicker #dpTo></mat-datepicker>
+                                    </mat-form-field>
+                                </div>
+                            </div>
+                        <!-- </div> -->
+                    </div>
+                </div>
+            </div>
+        </form>
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12" style="height:370px">
+                    <ngx-charts-bar-vertical-2d
+                        [scheme]="colorScheme"
+                        [results]="multi"
+                        [gradient]="gradient"
+                        [xAxis]="showXAxis"
+                        [yAxis]="showYAxis"
+                        [showXAxisLabel]="showXAxisLabel"
+                        [showYAxisLabel]="showYAxisLabel"
+                        [xAxisLabel]="xAxisLabel"
+                        [yAxisLabel]="yAxisLabel"
+                        [barPadding]=3
+                        [groupPadding]=3
+                        (select)="onSelect($event)"
+                        (activate)="onActivate($event)"
+                        (deactivate)="onDeactivate($event)">
+                    </ngx-charts-bar-vertical-2d>
+                    <!-- <combo-chart-component
+                        [view]="view"
+                        [scheme]="colorScheme"
+                        [colorSchemeLine]="lineChartScheme"
+                        [results]="barChart"
+                        [animations]="true"
+                        [lineChart]="lineChartSeries"
+                        [gradient]="true"
+                        [xAxis]="showXAxis"
+                        [yAxis]="showYAxis"
+                        [legend]="showLegend"
+                        [legendTitle]="legendTitle"
+                        [legendPosition]="legendPosition"
+                        [showGridLines]="true"
+                        [showXAxisLabel]="showXAxisLabel"
+                        [showYAxisLabel]="showYAxisLabel"
+                        [showRightYAxisLabel]="showYAxisLabel"
+                        [xAxisLabel]="xAxisLabel"
+                        [yAxisLabel]="yAxisLabel"
+                        [yAxisLabelRight]="yAxisLabelRight">
+                    </combo-chart-component> -->
+                </div>
+            </div>
+        </div>
+    </mat-card-content> 
+</mat-card>    
+
+
+<!-- <code><pre>{{departmentControl.value | json}}</pre></code> -->
+<!-- <code><pre>{{multi2 | json}}</pre></code> -->

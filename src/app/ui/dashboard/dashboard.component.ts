@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { SalesOnPeriodComponent } from 'src/app/modules/info-modules/sales-on-period/sales-on-period.component';
+import { IncomeOutcomeComponent } from 'src/app/modules/info-modules/income-outcome/income-outcome.component';
 import { SettingsDashboardComponent } from 'src/app/modules/settings/settings-dashboard/settings-dashboard.component'
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -29,7 +30,8 @@ export interface IdAndName {
 export class DashboardComponent implements OnInit {
 
   @ViewChild(SalesOnPeriodComponent, {static: false}) public salesOnPeriodComponent:SalesOnPeriodComponent; // блок продаж по периодам 
-
+  @ViewChild(IncomeOutcomeComponent, {static: false}) public incomeOutcomeComponent:IncomeOutcomeComponent; // блок Остаток (приход-расход) 
+  
   constructor(
     private settingsDashboardComponent: MatDialog,
     private _snackBar: MatSnackBar,
@@ -52,6 +54,7 @@ export class DashboardComponent implements OnInit {
   permissionsSet: any[];//сет прав на документ
   allowToDashboard: boolean = false; // показывать всю стартовую страницу
   allowToVolumes: boolean = false; // показывать плагин "Объёмы"
+  allowToIncomeOutcome: boolean = false; // показывать плагин "Остаток"
   allowToViewAllCompanies:boolean = false;  //Возможность построения виджетов по всем предприятиям (true если хотя бы у одного виджета есть право на просмотр по всем предприятиям)
 
 
@@ -142,8 +145,9 @@ export class DashboardComponent implements OnInit {
   }
 
   getCRUD_rights(permissionsSet:any[]){
-    this.allowToDashboard = permissionsSet.some(function(e){return(e==324)});
-    this.allowToVolumes =   permissionsSet.some(function(e){return(e==325)}) || permissionsSet.some(function(e){return(e==326)}) || permissionsSet.some(function(e){return(e==327)});
+    this.allowToDashboard =     permissionsSet.some(function(e){return(e==324)});
+    this.allowToVolumes =       permissionsSet.some(function(e){return(e==325)}) || permissionsSet.some(function(e){return(e==326)}) || permissionsSet.some(function(e){return(e==327)});
+    this.allowToIncomeOutcome = permissionsSet.some(function(e){return(e==325)}) || permissionsSet.some(function(e){return(e==326)}) || permissionsSet.some(function(e){return(e==327)});
     // Если ни у одного виджета не будет права на "Просмотр по всем предприятиям", а в настройках выбрано не своё предприятие
     // то нужно сменить текущее предприятие из настроек на своё, иначе абсолютно все виджеты будут пустые
     this.allowToViewAllCompanies = this.permissionsSet.some(         function(e){return(e==325)});//пока у нас только один виджет, что упрощает расчёты))
@@ -180,6 +184,7 @@ export class DashboardComponent implements OnInit {
                 (data) => {
                   this.receivedDepartmentsList=[];//для того, чтобы виджеты "заметили" изменение по этому массиву, и получили его (они реагируют только на изменение длины массива, но не на его содержание)
                   this.receivedDepartmentsList=data as IdAndName [];
+                  
                   //если вся цепочка методов выполнялась не на старте, а на сохранении настроек, необходимо перезапустить виджеты Стартовой страницы
                   if(this.onSaveSettings){
                     this.vidgetsReload();
@@ -192,8 +197,12 @@ export class DashboardComponent implements OnInit {
   }
 
   //перезапуск виджетов Стартовой страницы
-  vidgetsReload(){
-    this.salesOnPeriodComponent.onStart();
+  vidgetsReload(){    
+    setTimeout(() => { // без этого @Input's у детей не успевают прогружаться, в частности, receivedDepartmentsList
+      if(this.salesOnPeriodComponent) this.salesOnPeriodComponent.onStart();
+      if(this.incomeOutcomeComponent) this.incomeOutcomeComponent.onStart();
+    }, 1);
+    
   }
 
   openDialogSettings(){
