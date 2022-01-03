@@ -69,7 +69,16 @@ export class SettingsDashboardComponent implements OnInit {getSettingsDashboard
   // Если у хотя бы одного виджета будет право на "Просмотр по всем предприятиям" - нужно отобразить все предприятия. 
   // Иначе - фильтруем список полученных предприятий главного аккаунта, и оставляем только своё
   getCRUD_rights(){
-    this.allowToViewAllCompanies = this.permissionsSet.some(         function(e){return(e==325)});//пока у нас только один виджет, что упрощает расчёты))
+    this.allowToViewAllCompanies = 
+      this.permissionsSet.some(         function(e){return(e==325)}) 
+    ||this.permissionsSet.some(         function(e){return(e==592)}) 
+    ||this.permissionsSet.some(         function(e){return(e==594)}) 
+    ||this.permissionsSet.some(         function(e){return(e==596)}) 
+    ||this.permissionsSet.some(         function(e){return(e==598)}) 
+    ||this.permissionsSet.some(         function(e){return(e==600)}) 
+    ||this.permissionsSet.some(         function(e){return(e==602)}) 
+    ||this.permissionsSet.some(         function(e){return(e==604)}) 
+    ;
     this.getCompaniesList();
   }
 

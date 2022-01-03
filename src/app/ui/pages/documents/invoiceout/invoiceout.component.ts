@@ -101,7 +101,8 @@ export class InvoiceoutComponent implements OnInit {
   optionsIds: idAndName [];
   displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
-  option:number; // опция для фильтра при переходе в данный модуль по роутеру // !!!
+  option:number = 0; // опция для фильтра при переходе в данный модуль по роутеру // !!!
+  company:number = 0; // опция для фильтра при переходе в данный модуль по роутеру // !!!
   //***********************************************************************************************************************/
   constructor(private queryFormService:   QueryFormService,
     private activateRoute: ActivatedRoute,// !!!
@@ -116,11 +117,12 @@ export class InvoiceoutComponent implements OnInit {
     public dialogRef1: MatDialogRef<InvoiceoutComponent>,) {
       // !!!
       if(activateRoute.snapshot.params['option'])
-        this.option = +activateRoute.snapshot.params['option'];        
+        this.option = +activateRoute.snapshot.params['option'];
+        this.company = +activateRoute.snapshot.params['company'];
      }
 
     ngOnInit() {
-      this.sendingQueryForm.companyId='0';
+      this.sendingQueryForm.companyId=this.company;
       this.sendingQueryForm.departmentId='0';
       this.sendingQueryForm.sortAsc='desc';
       this.sendingQueryForm.sortColumn='date_time_created_sort';
@@ -131,10 +133,12 @@ export class InvoiceoutComponent implements OnInit {
       this.sendingQueryForm.filterOptionsIds = [this.option];
       if(this.option>0) this.selectionFilterOptions.toggle(this.option);
 
-      if(Cookie.get('invoiceout_companyId')=='undefined' || Cookie.get('invoiceout_companyId')==null)     
-        Cookie.set('invoiceout_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('invoiceout_companyId')=="0"?"0":+Cookie.get('invoiceout_companyId'));
-      if(Cookie.get('invoiceout_departmentId')=='undefined' || Cookie.get('invoiceout_departmentId')==null)  
-        Cookie.set('invoiceout_departmentId',this.sendingQueryForm.departmentId); else this.sendingQueryForm.departmentId=(Cookie.get('invoiceout_departmentId')=="0"?"0":+Cookie.get('invoiceout_departmentId'));
+      if(this.company==0){
+        if(Cookie.get('invoiceout_companyId')=='undefined' || Cookie.get('invoiceout_companyId')==null)     
+          Cookie.set('invoiceout_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('invoiceout_companyId')=="0"?"0":+Cookie.get('invoiceout_companyId'));
+        if(Cookie.get('invoiceout_departmentId')=='undefined' || Cookie.get('invoiceout_departmentId')==null)  
+          Cookie.set('invoiceout_departmentId',this.sendingQueryForm.departmentId); else this.sendingQueryForm.departmentId=(Cookie.get('invoiceout_departmentId')=="0"?"0":+Cookie.get('invoiceout_departmentId'));
+      }
       if(Cookie.get('invoiceout_sortAsc')=='undefined' || Cookie.get('invoiceout_sortAsc')==null)       
         Cookie.set('invoiceout_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('invoiceout_sortAsc');
       if(Cookie.get('invoiceout_sortColumn')=='undefined' || Cookie.get('invoiceout_sortColumn')==null)    

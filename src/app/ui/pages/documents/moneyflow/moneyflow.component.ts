@@ -1,5 +1,6 @@
 import { Component, OnInit} from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
+import { ActivatedRoute} from '@angular/router';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
 // import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
@@ -114,15 +115,17 @@ export class MoneyflowComponent implements OnInit {
   listsize: any; // - Последняя страница в пагинации (но не в пагинаторе. т.е. в пагинаторе может быть [12345] а listsize =10)
 
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
-  selectionFilterOptions = new SelectionModel<idAndName>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние
+  selectionFilterOptions = new SelectionModel<number>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние
   optionsIds: idAndName [];
   displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
+  company:number = 0; // опция для фильтра при переходе в данный модуль по роутеру // !!!
   //***********************************************************************************************************************/
   constructor(
     /*private queryFormService:   QueryFormService,*/
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
+    private activateRoute: ActivatedRoute,
     public universalCategoriesDialog: MatDialog,
     private MessageDialog: MatDialog,
     public moneyflowDetDialog: MatDialog,
@@ -130,11 +133,13 @@ export class MoneyflowComponent implements OnInit {
     private http: HttpClient,
     // private settingsMoneyflowDialogComponent: MatDialog,
     public deleteDialog: MatDialog,
-    public dialogRef1: MatDialogRef<MoneyflowComponent>,) { }
+    public dialogRef1: MatDialogRef<MoneyflowComponent>,) {
+      if(activateRoute.snapshot.params['company'])
+        this.company = +activateRoute.snapshot.params['company']; }
 
     ngOnInit() {
       this.queryForm = new FormGroup({ //форма для отправки запроса 
-        companyId: new FormControl(0,[]), // предприятие, по которому идет запрос данных
+        companyId: new FormControl(this.company,[]), // предприятие, по которому идет запрос данных
         dateFrom: new FormControl(moment().startOf('year'),[]),   // дата С
         dateTo: new FormControl(moment(),[]),     // дата По
         sortColumn: new FormControl('date_created',[]), //
@@ -144,9 +149,10 @@ export class MoneyflowComponent implements OnInit {
         filterOptionsIds: new FormControl([],[]), //
         searchString: new FormControl('',[]), //
       });
-
-      if(Cookie.get('moneyflow_companyId')=='undefined' || Cookie.get('moneyflow_companyId')==null)     
-        Cookie.set('moneyflow_companyId',this.queryForm.get('companyId').value); else this.queryForm.get('companyId').setValue(Cookie.get('moneyflow_companyId')=="0"?"0":+Cookie.get('moneyflow_companyId'));
+      if(this.company==0){
+        if(Cookie.get('moneyflow_companyId')=='undefined' || Cookie.get('moneyflow_companyId')==null)     
+          Cookie.set('moneyflow_companyId',this.queryForm.get('companyId').value); else this.queryForm.get('companyId').setValue(Cookie.get('moneyflow_companyId')=="0"?"0":+Cookie.get('moneyflow_companyId'));
+      }
       if(Cookie.get('moneyflow_sortAsc')=='undefined' || Cookie.get('moneyflow_sortAsc')==null)       
         Cookie.set('moneyflow_sortAsc',this.queryForm.get('sortAsc').value); else this.queryForm.get('sortAsc').setValue(Cookie.get('moneyflow_sortAsc'));
       // if(Cookie.get('moneyflow_sortColumn')=='undefined' || Cookie.get('moneyflow_sortColumn')==null)    
@@ -367,7 +373,7 @@ export class MoneyflowComponent implements OnInit {
   }
 
   setDefaultCompany(){
-    if(Cookie.get('moneyflow_companyId')=='0'){
+    if(Cookie.get('moneyflow_companyId')=='0' && this.company==0){
       this.queryForm.get('companyId').setValue(this.myCompanyId);
       Cookie.set('moneyflow_companyId',this.queryForm.get('companyId').value);
     }
@@ -414,7 +420,7 @@ export class MoneyflowComponent implements OnInit {
   clickApplyFilters(){
     let showOnlyDeletedCheckboxIsOn:boolean = false; //присутствует ли включенный чекбокс "Показывать только удалённые"
     this.selectionFilterOptions.selected.forEach(z=>{
-      if(z.id==1){showOnlyDeletedCheckboxIsOn=true;}
+      if(z==1){showOnlyDeletedCheckboxIsOn=true;}
     })
     this.displayingDeletedDocs=showOnlyDeletedCheckboxIsOn;
     this.queryForm.get('offset').setValue(0);//сброс пагинации
@@ -430,7 +436,7 @@ export class MoneyflowComponent implements OnInit {
     if (this.optionsIds.length>0) this.displaySelectOptions=true; else this.displaySelectOptions=false;//если опций нет - не показываем меню опций
   }
   clickFilterOptionsCheckbox(row){
-    this.selectionFilterOptions.toggle(row); 
+    this.selectionFilterOptions.toggle(row.id); 
     this.createFilterOptionsCheckedList();
   } 
   createFilterOptionsCheckedList(){//this.queryForm.filterOptionsIds - массив c id выбранных чекбоксов вида "7,5,1,3,6,2,4", который заполняется при нажатии на чекбокс
@@ -438,7 +444,7 @@ export class MoneyflowComponent implements OnInit {
     this.selectionFilterOptions.selected.forEach(z=>{
 
       const control = this.queryForm.get('filterOptionsIds');
-      control.push(+z.id);
+      control.push(+z);
 
       // this.queryForm.filterOptionsIds.push(+z.id);
     });

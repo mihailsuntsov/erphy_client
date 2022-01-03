@@ -99,22 +99,22 @@ export class IndicatorsLeftComponent implements OnInit {
 
     switch (data.name) {
       case 'Просроченные счета': {
-        this._router.navigate(['ui/invoiceout',2]);
+        this._router.navigate(['ui/invoiceout',{company: this.companyId, option: 2}]);
         break;}
       case 'Просроченные заказы': {
-        this._router.navigate(['ui/customersorders',2]);
+        this._router.navigate(['ui/customersorders',{company: this.companyId, option: 2}]);
         break;}
       case 'Новые заказы': {
-        this._router.navigate(['ui/customersorders',3]);
+        this._router.navigate(['ui/customersorders',{company: this.companyId, option: 3}]);
         break;}
       case 'Деньги': {
-        this._router.navigate(['ui/moneyflow']);
+        this._router.navigate(['ui/moneyflow',{company: this.companyId}]);
         break;}
       case 'Мы должны': {
-        this._router.navigate(['ui/mutualpayment',1]);
+        this._router.navigate(['ui/mutualpayment',{company: this.companyId, option: 1}]);
         break;}
       case 'Нам должны': {
-        this._router.navigate(['ui/mutualpayment',2]);
+        this._router.navigate(['ui/mutualpayment',{company: this.companyId, option: 2}]);
         break;}
   }
 

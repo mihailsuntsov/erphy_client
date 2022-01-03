@@ -93,7 +93,8 @@ export class MutualpaymentComponent implements OnInit {
   optionsIds: idAndName [];
   displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
-  option:number; // опция для фильтра при переходе в данный модуль по роутеру // !!!
+  option:number=0; // опция для фильтра при переходе в данный модуль по роутеру // !!!
+  company:number = 0; // опция для фильтра при переходе в данный модуль по роутеру // !!!
   //***********************************************************************************************************************/
   constructor(
     /*private queryFormService:   QueryFormService,*/
@@ -109,12 +110,13 @@ export class MutualpaymentComponent implements OnInit {
     public deleteDialog: MatDialog,
     public dialogRef1: MatDialogRef<MutualpaymentComponent>,) {
       if(activateRoute.snapshot.params['option'])
-        this.option = +activateRoute.snapshot.params['option'];   }
+        this.option = +activateRoute.snapshot.params['option'];
+        this.company = +activateRoute.snapshot.params['company'];   }
 
     ngOnInit() {
 
       this.queryForm = new FormGroup({ //форма для отправки запроса 
-        companyId: new FormControl(0,[]), // предприятие, по которому идет запрос данных
+        companyId: new FormControl(this.company,[]), // предприятие, по которому идет запрос данных
         dateFrom: new FormControl(moment().startOf('year'),[]),   // дата С
         dateTo: new FormControl(moment(),[]),     // дата По
         sortColumn: new FormControl(+this.option>0?'summ_on_end':'cagent',[]), //
@@ -125,8 +127,10 @@ export class MutualpaymentComponent implements OnInit {
         filterOptionsIds: new FormControl([this.option],[]),
       });
       if(this.option>0) this.selectionFilterOptions.toggle(this.option);
-      if(Cookie.get('mutualpayment_companyId')=='undefined' || Cookie.get('mutualpayment_companyId')==null)     
-        Cookie.set('mutualpayment_companyId',this.queryForm.get('companyId').value); else this.queryForm.get('companyId').setValue(Cookie.get('mutualpayment_companyId')=="0"?"0":+Cookie.get('mutualpayment_companyId'));
+      if(this.company==0){
+        if(Cookie.get('mutualpayment_companyId')=='undefined' || Cookie.get('mutualpayment_companyId')==null)     
+          Cookie.set('mutualpayment_companyId',this.queryForm.get('companyId').value); else this.queryForm.get('companyId').setValue(Cookie.get('mutualpayment_companyId')=="0"?"0":+Cookie.get('mutualpayment_companyId'));
+      }
       if(+this.option==0){
         if(Cookie.get('mutualpayment_sortAsc')=='undefined' || Cookie.get('mutualpayment_sortAsc')==null)       
         Cookie.set('mutualpayment_sortAsc',this.queryForm.get('sortAsc').value); else this.queryForm.get('sortAsc').setValue(Cookie.get('mutualpayment_sortAsc'));
