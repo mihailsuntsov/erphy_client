@@ -2,6 +2,7 @@ import { Component, OnInit} from '@angular/core';
 import { QueryForm } from './query-form';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource } from '@angular/material/table';
+import { ActivatedRoute} from '@angular/router'; //!!!
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpClient } from '@angular/common/http';
 import { LoadSpravService } from '../../../../services/loadsprav';
@@ -43,6 +44,7 @@ interface idNameDescription{
 export class CustomersordersComponent implements OnInit {
 
   constructor(private queryFormService:   QueryFormService,
+    private activateRoute: ActivatedRoute,// !!!
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
     public universalCategoriesDialog: MatDialog,
@@ -51,7 +53,11 @@ export class CustomersordersComponent implements OnInit {
     public deleteDialog: MatDialog,
     public MessageDialog: MatDialog,
     public SettingsCustomersordersDialogComponent: MatDialog,
-    public dialogRef1: MatDialogRef<CustomersordersComponent>,) { }
+    public dialogRef1: MatDialogRef<CustomersordersComponent>,) {
+      // !!!
+      if(activateRoute.snapshot.params['option'])
+        this.option = +activateRoute.snapshot.params['option'];        
+     }
 
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
   receivedPagesList: string [] ;//массив для получения данных пагинации
@@ -112,10 +118,11 @@ export class CustomersordersComponent implements OnInit {
   visBtnDelete = false;
 
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
-  selectionFilterOptions = new SelectionModel<idAndName>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние
+  selectionFilterOptions = new SelectionModel<number>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние 
   optionsIds: idAndName [];
   displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
+  option:number; // опция для фильтра при переходе в данный модуль по роутеру
   //***********************************************************************************************************************/
 
 
@@ -127,7 +134,10 @@ export class CustomersordersComponent implements OnInit {
     this.sendingQueryForm.offset='0';
     this.sendingQueryForm.result='10';
     this.sendingQueryForm.searchCategoryString="";
-    this.sendingQueryForm.filterOptionsIds = [];
+    this.sendingQueryForm.filterOptionsIds = [];    
+      // !!!
+    this.sendingQueryForm.filterOptionsIds = [this.option];
+    if(this.option>0) this.selectionFilterOptions.toggle(this.option);
 
     if(Cookie.get('customersorders_companyId')=='undefined' || Cookie.get('customersorders_companyId')==null)     
       Cookie.set('customersorders_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('customersorders_companyId')=="0"?"0":+Cookie.get('customersorders_companyId'));
@@ -645,12 +655,14 @@ export class CustomersordersComponent implements OnInit {
     this.sendingQueryForm.filterOptionsIds = [];
   }
   fillOptionsList(){
-    this.optionsIds=[{id:1, name:"Показать только удалённые"},];
+    this.optionsIds=[{id:1, name:"Показать только удалённые"},
+    {id:2, name:"Только просроченные заказы"},
+    {id:3, name:"Только новые заказы"}];
   }
   clickApplyFilters(){
     let showOnlyDeletedCheckboxIsOn:boolean = false; //присутствует ли включенный чекбокс "Показывать только удалённые"
     this.selectionFilterOptions.selected.forEach(z=>{
-      if(z.id==1){showOnlyDeletedCheckboxIsOn=true;}
+      if(z==1){showOnlyDeletedCheckboxIsOn=true;}
     })
     this.displayingDeletedDocs=showOnlyDeletedCheckboxIsOn;
     this.clearCheckboxSelection();
@@ -667,13 +679,13 @@ export class CustomersordersComponent implements OnInit {
     if (this.optionsIds.length>0) this.displaySelectOptions=true; else this.displaySelectOptions=false;//если опций нет - не показываем меню опций
   }
   clickFilterOptionsCheckbox(row){
-    this.selectionFilterOptions.toggle(row); 
+    this.selectionFilterOptions.toggle(row.id); 
     this.createFilterOptionsCheckedList();
   } 
   createFilterOptionsCheckedList(){//this.sendingQueryForm.filterOptionsIds - массив c id выбранных чекбоксов вида "7,5,1,3,6,2,4", который заполняется при нажатии на чекбокс
     this.sendingQueryForm.filterOptionsIds = [];//                                                     
     this.selectionFilterOptions.selected.forEach(z=>{
-      this.sendingQueryForm.filterOptionsIds.push(+z.id);
+      this.sendingQueryForm.filterOptionsIds.push(+z);
     });
   }
 }

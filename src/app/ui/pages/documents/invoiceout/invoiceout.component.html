@@ -90,11 +90,12 @@ class="spinner"
                         <mat-menu #oper="matMenu" xPosition="before">
                             <div style="width: 300px;">
                                 <ul>
+                                    <!--!!! -->
                                     <li *ngFor="let row of optionsIds">
                                         <mat-checkbox
                                         (click)="$event.stopPropagation()"
                                         (change)="$event ? clickFilterOptionsCheckbox(row) : null"
-                                        [checked]="selectionFilterOptions.isSelected(row)"
+                                        [checked]="selectionFilterOptions.isSelected(row.id)"
                                         >{{row.name}}</mat-checkbox>
                                     </li>
                                 </ul>

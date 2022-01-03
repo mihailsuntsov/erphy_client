@@ -1,6 +1,7 @@
 import { Component, OnInit} from '@angular/core';
 import { QueryForm } from './query-form';
 import { SelectionModel } from '@angular/cdk/collections';
+import { ActivatedRoute} from '@angular/router'; //!!!
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
@@ -96,12 +97,14 @@ export class InvoiceoutComponent implements OnInit {
   visBtnCopy = false;
   visBtnDelete = false;
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
-  selectionFilterOptions = new SelectionModel<idAndName>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние
+  selectionFilterOptions = new SelectionModel<number>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние  // !!!
   optionsIds: idAndName [];
   displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
+  option:number; // опция для фильтра при переходе в данный модуль по роутеру // !!!
   //***********************************************************************************************************************/
   constructor(private queryFormService:   QueryFormService,
+    private activateRoute: ActivatedRoute,// !!!
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
     public universalCategoriesDialog: MatDialog,
@@ -110,7 +113,11 @@ export class InvoiceoutComponent implements OnInit {
     private http: HttpClient,
     private settingsInvoiceoutDialogComponent: MatDialog,
     public deleteDialog: MatDialog,
-    public dialogRef1: MatDialogRef<InvoiceoutComponent>,) { }
+    public dialogRef1: MatDialogRef<InvoiceoutComponent>,) {
+      // !!!
+      if(activateRoute.snapshot.params['option'])
+        this.option = +activateRoute.snapshot.params['option'];        
+     }
 
     ngOnInit() {
       this.sendingQueryForm.companyId='0';
@@ -120,7 +127,9 @@ export class InvoiceoutComponent implements OnInit {
       this.sendingQueryForm.offset='0';
       this.sendingQueryForm.result='10';
       this.sendingQueryForm.searchCategoryString="";
-      this.sendingQueryForm.filterOptionsIds = [];
+      // !!!
+      this.sendingQueryForm.filterOptionsIds = [this.option];
+      if(this.option>0) this.selectionFilterOptions.toggle(this.option);
 
       if(Cookie.get('invoiceout_companyId')=='undefined' || Cookie.get('invoiceout_companyId')==null)     
         Cookie.set('invoiceout_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('invoiceout_companyId')=="0"?"0":+Cookie.get('invoiceout_companyId'));
@@ -629,13 +638,17 @@ export class InvoiceoutComponent implements OnInit {
     this.selectionFilterOptions.clear();
     this.sendingQueryForm.filterOptionsIds = [];
   }
+  // !!!
   fillOptionsList(){
-    this.optionsIds=[{id:1, name:"Показать только удалённые"},];
+    this.optionsIds=[
+      {id:1, name:"Показать только удалённые"},
+      {id:2, name:"Только просроченные счета"}];
   }
+  // !!!
   clickApplyFilters(){
     let showOnlyDeletedCheckboxIsOn:boolean = false; //присутствует ли включенный чекбокс "Показывать только удалённые"
     this.selectionFilterOptions.selected.forEach(z=>{
-      if(z.id==1){showOnlyDeletedCheckboxIsOn=true;}
+      if(z==1){showOnlyDeletedCheckboxIsOn=true;}
     })
     this.displayingDeletedDocs=showOnlyDeletedCheckboxIsOn;
     this.clearCheckboxSelection();
@@ -651,14 +664,16 @@ export class InvoiceoutComponent implements OnInit {
     });
     if (this.optionsIds.length>0) this.displaySelectOptions=true; else this.displaySelectOptions=false;//если опций нет - не показываем меню опций
   }
+  // !!!
   clickFilterOptionsCheckbox(row){
-    this.selectionFilterOptions.toggle(row); 
+    this.selectionFilterOptions.toggle(row.id); 
     this.createFilterOptionsCheckedList();
   } 
+  // !!!
   createFilterOptionsCheckedList(){//this.sendingQueryForm.filterOptionsIds - массив c id выбранных чекбоксов вида "7,5,1,3,6,2,4", который заполняется при нажатии на чекбокс
     this.sendingQueryForm.filterOptionsIds = [];//                                                     
     this.selectionFilterOptions.selected.forEach(z=>{
-      this.sendingQueryForm.filterOptionsIds.push(+z.id);
+      this.sendingQueryForm.filterOptionsIds.push(z);
     });
   }
 }

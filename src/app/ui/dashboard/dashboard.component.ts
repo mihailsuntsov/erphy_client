@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { SalesOnPeriodComponent } from 'src/app/modules/info-modules/sales-on-period/sales-on-period.component';
 import { IncomeOutcomeComponent } from 'src/app/modules/info-modules/income-outcome/income-outcome.component';
+import { IndicatorsLeftComponent } from 'src/app/modules/info-modules/indicators-left/indicators-left.component';
 import { SettingsDashboardComponent } from 'src/app/modules/settings/settings-dashboard/settings-dashboard.component'
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -31,6 +32,7 @@ export class DashboardComponent implements OnInit {
 
   @ViewChild(SalesOnPeriodComponent, {static: false}) public salesOnPeriodComponent:SalesOnPeriodComponent; // блок продаж по периодам 
   @ViewChild(IncomeOutcomeComponent, {static: false}) public incomeOutcomeComponent:IncomeOutcomeComponent; // блок Остаток (приход-расход) 
+  @ViewChild(IndicatorsLeftComponent, {static: false}) public indicatorsLeftComponent:IndicatorsLeftComponent; // карточки слева
   
   constructor(
     private settingsDashboardComponent: MatDialog,
@@ -201,6 +203,7 @@ export class DashboardComponent implements OnInit {
     setTimeout(() => { // без этого @Input's у детей не успевают прогружаться, в частности, receivedDepartmentsList
       if(this.salesOnPeriodComponent) this.salesOnPeriodComponent.onStart();
       if(this.incomeOutcomeComponent) this.incomeOutcomeComponent.onStart();
+      if(this.indicatorsLeftComponent) this.indicatorsLeftComponent.onStart();
     }, 1);
     
   }

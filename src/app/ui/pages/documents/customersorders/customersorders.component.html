@@ -94,7 +94,7 @@ class="spinner"
                                         <mat-checkbox
                                         (click)="$event.stopPropagation()"
                                         (change)="$event ? clickFilterOptionsCheckbox(row) : null"
-                                        [checked]="selectionFilterOptions.isSelected(row)"
+                                        [checked]="selectionFilterOptions.isSelected(row.id)"
                                         >{{row.name}}</mat-checkbox>
                                     </li>
                                 </ul>

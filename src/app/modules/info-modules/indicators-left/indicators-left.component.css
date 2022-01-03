@@ -1,0 +1,111 @@
+:host{
+    flex-grow: 1;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+}
+
+table {width: 100%;}
+li {list-style: none;}
+.flex{ display: flex; }
+
+.card{
+    width:100%;    
+    margin-bottom: 10px;
+}
+.internal-card{
+    padding: 15px 0 15px;
+    margin: 10px 0 10px 0;
+}
+.card-title{
+    margin:0px -15px 15px !important;
+}
+.input-form{
+    display: flex;
+    flex-direction: column;
+}
+
+.invisible{display:none;}
+
+.card-name{ flex-grow: 1; }
+.container-fluid mat-card{/*отступы у карточки сверху и снизу*/
+    margin: 0 0 15px !important;
+}
+.form-invalid{
+    color: red;
+}
+.button{
+    margin-left: 10px;
+}
+.doc-container {
+position: absolute;
+left: 0;
+top: 0;
+height: 100%;
+width:100%;
+border: 0px solid black;
+}
+.slideWidth100{
+    width:100%;
+    margin:-8.5px 0 0 0;
+}
+.chip-list {
+    width: 100%;
+}
+.field-name{
+    font: inherit;
+    font-size: 10.5px;
+    color: rgba(0,0,0,.40);
+    position: absolute;
+    top: 0px;
+    left: 10px;
+}
+::ng-deep .mat-button-toggle-appearance-standard .mat-button-toggle-label-content{
+padding: 0 6px !important;
+}
+
+::ng-deep .mat-button-toggle-appearance-standard .mat-button-toggle-label-content {
+    line-height: 25px !important;
+}
+/*-------------- Кнопка меню (настроек) --------------------------*/
+.icon-panel {
+    cursor: default;
+    position: absolute;
+    top: 6px;
+    right: 10px;
+    width: 20px;
+    height: 20px;
+    color: #585858;
+    z-index: 1000;
+}
+/*---------- DRAG n DROP -------------*/
+.handler {
+    cursor: move;
+    position: absolute;
+    top: 6px;
+    right: 40px;
+    width: 20px;
+    height: 20px;
+    color: #585858;
+    z-index: 1000;
+  }
+  .del-icon {
+    cursor: default;
+    position: absolute;
+    top: 6px;
+    right: 10px;
+    width: 20px;
+    height: 20px;
+    color: #585858;
+    z-index: 1000;
+}
+.cdk-drag-placeholder {
+    background: white;
+    transition: transform 500ms ease;
+    padding: 20px;
+    border: 3px solid rgb(43, 43, 43);
+    z-index: 999;
+  }
+.cdk-drag-animating {
+transition: transform 500ms cubic-bezier(0, 0, 0.2, 1);
+}

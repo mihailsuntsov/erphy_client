@@ -1,6 +1,7 @@
 import { Component, OnInit} from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource } from '@angular/material/table';
+import { ActivatedRoute} from '@angular/router'; //!!!
 import { MatSnackBar } from '@angular/material/snack-bar';
 // import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { MutualpaymentDetComponent } from 'src/app/modules/info-modules/mutualpayment_det/mutualpayment_det.component';
@@ -88,14 +89,16 @@ export class MutualpaymentComponent implements OnInit {
   listsize: any; // - Последняя страница в пагинации (но не в пагинаторе. т.е. в пагинаторе может быть [12345] а listsize =10)
 
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
-  selectionFilterOptions = new SelectionModel<idAndName>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние
+  selectionFilterOptions = new SelectionModel<number>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние
   optionsIds: idAndName [];
   displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
+  option:number; // опция для фильтра при переходе в данный модуль по роутеру // !!!
   //***********************************************************************************************************************/
   constructor(
     /*private queryFormService:   QueryFormService,*/
     private loadSpravService:   LoadSpravService,
+    private activateRoute: ActivatedRoute,// !!!
     private _snackBar: MatSnackBar,
     public universalCategoriesDialog: MatDialog,
     private MessageDialog: MatDialog,
@@ -104,7 +107,9 @@ export class MutualpaymentComponent implements OnInit {
     private http: HttpClient,
     // private settingsMutualpaymentDialogComponent: MatDialog,
     public deleteDialog: MatDialog,
-    public dialogRef1: MatDialogRef<MutualpaymentComponent>,) { }
+    public dialogRef1: MatDialogRef<MutualpaymentComponent>,) {
+      if(activateRoute.snapshot.params['option'])
+        this.option = +activateRoute.snapshot.params['option'];   }
 
     ngOnInit() {
 
@@ -112,18 +117,20 @@ export class MutualpaymentComponent implements OnInit {
         companyId: new FormControl(0,[]), // предприятие, по которому идет запрос данных
         dateFrom: new FormControl(moment().startOf('year'),[]),   // дата С
         dateTo: new FormControl(moment(),[]),     // дата По
-        sortColumn: new FormControl('cagent',[]), //
-        sortAsc: new FormControl('desc',[]), //
+        sortColumn: new FormControl(+this.option>0?'summ_on_end':'cagent',[]), //
+        sortAsc: new FormControl(+this.option==2?'asc':'desc',[]), //
         offset: new FormControl(0,[]), //
         result: new FormControl(10,[]), //
-        filterOptionsIds: new FormControl([],[]), //
         searchString: new FormControl('',[]), //
+        filterOptionsIds: new FormControl([this.option],[]),
       });
-
+      if(this.option>0) this.selectionFilterOptions.toggle(this.option);
       if(Cookie.get('mutualpayment_companyId')=='undefined' || Cookie.get('mutualpayment_companyId')==null)     
         Cookie.set('mutualpayment_companyId',this.queryForm.get('companyId').value); else this.queryForm.get('companyId').setValue(Cookie.get('mutualpayment_companyId')=="0"?"0":+Cookie.get('mutualpayment_companyId'));
-      if(Cookie.get('mutualpayment_sortAsc')=='undefined' || Cookie.get('mutualpayment_sortAsc')==null)       
+      if(+this.option==0){
+        if(Cookie.get('mutualpayment_sortAsc')=='undefined' || Cookie.get('mutualpayment_sortAsc')==null)       
         Cookie.set('mutualpayment_sortAsc',this.queryForm.get('sortAsc').value); else this.queryForm.get('sortAsc').setValue(Cookie.get('mutualpayment_sortAsc'));
+      }
       if(Cookie.get('mutualpayment_sortColumn')=='undefined' || Cookie.get('mutualpayment_sortColumn')==null)    
         Cookie.set('mutualpayment_sortColumn',this.queryForm.get('sortColumn').value); else this.queryForm.get('sortColumn').setValue(Cookie.get('mutualpayment_sortColumn'));
       if(Cookie.get('mutualpayment_offset')=='undefined' || Cookie.get('mutualpayment_offset')==null)        
@@ -336,12 +343,14 @@ export class MutualpaymentComponent implements OnInit {
     this.queryForm.get('filterOptionsIds').setValue([]);
   }
   fillOptionsList(){
-    this.optionsIds=[/*{id:1, name:"Показать только удалённые"},*/];
+    this.optionsIds=[
+      {id:1, name:"Показать только должников"},
+      {id:2, name:"Показать только кому мы должны"}];
   }
   clickApplyFilters(){
     let showOnlyDeletedCheckboxIsOn:boolean = false; //присутствует ли включенный чекбокс "Показывать только удалённые"
     this.selectionFilterOptions.selected.forEach(z=>{
-      if(z.id==1){showOnlyDeletedCheckboxIsOn=true;}
+      if(z==1){showOnlyDeletedCheckboxIsOn=true;}
     })
     this.displayingDeletedDocs=showOnlyDeletedCheckboxIsOn;
     this.queryForm.get('offset').setValue(0);//сброс пагинации
@@ -357,7 +366,7 @@ export class MutualpaymentComponent implements OnInit {
     if (this.optionsIds.length>0) this.displaySelectOptions=true; else this.displaySelectOptions=false;//если опций нет - не показываем меню опций
   }
   clickFilterOptionsCheckbox(row){
-    this.selectionFilterOptions.toggle(row); 
+    this.selectionFilterOptions.toggle(row.id); 
     this.createFilterOptionsCheckedList();
   } 
   createFilterOptionsCheckedList(){//this.queryForm.filterOptionsIds - массив c id выбранных чекбоксов вида "7,5,1,3,6,2,4", который заполняется при нажатии на чекбокс
@@ -365,7 +374,7 @@ export class MutualpaymentComponent implements OnInit {
     this.selectionFilterOptions.selected.forEach(z=>{
 
       const control = this.queryForm.get('filterOptionsIds');
-      control.push(+z.id);
+      control.push(+z);
 
       // this.queryForm.filterOptionsIds.push(+z.id);
     });

@@ -1,4 +1,27 @@
 <div class="container-fluid" *ngIf="allowToDashboard">
+    <div class="row" style="padding: 10px 10px 0px">
+        <div class="col-12">
+            <app-indicators-left 
+            *ngIf="allowToVolumes"
+            [companyId] = "companyId"
+            [myCompanyId] = "myCompanyId"
+            [permissionsSet] = "permissionsSet"            
+            >
+            </app-indicators-left>
+        </div>
+        <div class="col-xl-6 col-md-12">
+            <!-- <app-income-outcome 
+            *ngIf="allowToIncomeOutcome"
+            [companyId] = "companyId"
+            [myCompanyId] = "myCompanyId"
+            [permissionsSet] = "permissionsSet"            
+            >
+            </app-income-outcome> -->
+        </div>
+        <!-- <div class="col-xl-6 col-md-12">
+        </div> -->
+
+    </div>
     <div class="row" style="padding: 10px">
         <div class="col-xl-6 col-md-12">
             <app-sales-on-period 
@@ -20,8 +43,8 @@
             >
             </app-income-outcome>
         </div>
-        <div class="col-xl-6 col-md-12">
-        </div>
+        <!-- <div class="col-xl-6 col-md-12">
+        </div> -->
 
     </div>
 </div>
