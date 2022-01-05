@@ -109,9 +109,11 @@ export class MutualpaymentComponent implements OnInit {
     // private settingsMutualpaymentDialogComponent: MatDialog,
     public deleteDialog: MatDialog,
     public dialogRef1: MatDialogRef<MutualpaymentComponent>,) {
-      if(activateRoute.snapshot.params['option'])
+      if(activateRoute.snapshot.params['option']){
         this.option = +activateRoute.snapshot.params['option'];
-        this.company = +activateRoute.snapshot.params['company'];   }
+        this.company = +activateRoute.snapshot.params['company'];
+      }
+    }
 
     ngOnInit() {
 

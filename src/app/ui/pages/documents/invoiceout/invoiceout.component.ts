@@ -116,9 +116,10 @@ export class InvoiceoutComponent implements OnInit {
     public deleteDialog: MatDialog,
     public dialogRef1: MatDialogRef<InvoiceoutComponent>,) {
       // !!!
-      if(activateRoute.snapshot.params['option'])
+      if(activateRoute.snapshot.params['option']){
         this.option = +activateRoute.snapshot.params['option'];
         this.company = +activateRoute.snapshot.params['company'];
+      }
      }
 
     ngOnInit() {
@@ -243,11 +244,11 @@ export class InvoiceoutComponent implements OnInit {
     this.showOpenDocIcon=(this.allowToUpdate||this.allowToView);
     this.visBtnAdd = (this.allowToCreate)?true:false;
     
-    console.log("allowToView - "+this.allowToView);
-    console.log("allowToUpdate - "+this.allowToUpdate);
-    console.log("allowToCreate - "+this.allowToCreate);
-    console.log("allowToDelete - "+this.allowToDelete);
-    console.log("allowToDeleteAllCompanies - "+this.allowToDeleteAllCompanies);
+    // console.log("allowToView - "+this.allowToView);
+    // console.log("allowToUpdate - "+this.allowToUpdate);
+    // console.log("allowToCreate - "+this.allowToCreate);
+    // console.log("allowToDelete - "+this.allowToDelete);
+    // console.log("allowToDeleteAllCompanies - "+this.allowToDeleteAllCompanies);
     return true;
   }
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------

@@ -165,7 +165,7 @@ export class IncomeOutcomeComponent implements OnInit {
     .subscribe(
         (data) => {
           this.multi=data as any []; 
-          this.getBalancesOnDate();
+          // this.getBalancesOnDate();
         },
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
     );

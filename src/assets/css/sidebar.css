@@ -202,8 +202,10 @@
     background-color: #e4e9f7;
     left: 260px;
     width:calc(100% - 260px);
-    height: 100vh;
+    height: 100%;
+    min-height: 100vh;
     transition: all 0.5s ease;
+    overflow-x: hidden;/*чтобы не возникала горизонтальная полоса прокрутки*/
 }
 .sidebar.close ~ .home-section{
     left:78px;

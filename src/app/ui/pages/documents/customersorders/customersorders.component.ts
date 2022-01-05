@@ -55,9 +55,10 @@ export class CustomersordersComponent implements OnInit {
     public SettingsCustomersordersDialogComponent: MatDialog,
     public dialogRef1: MatDialogRef<CustomersordersComponent>,) {
       // !!!
-      if(activateRoute.snapshot.params['option'])
+      if(activateRoute.snapshot.params['option']){
         this.option = +activateRoute.snapshot.params['option'];
-        this.company = +activateRoute.snapshot.params['company'];        
+        this.company = +activateRoute.snapshot.params['company'];    
+      }
      }
 
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
@@ -140,13 +141,14 @@ export class CustomersordersComponent implements OnInit {
       // !!!
     this.sendingQueryForm.filterOptionsIds = [this.option];
     if(this.option>0) this.selectionFilterOptions.toggle(this.option);
+
     if(this.company==0){
       if(Cookie.get('customersorders_companyId')=='undefined' || Cookie.get('customersorders_companyId')==null)     
         Cookie.set('customersorders_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('customersorders_companyId')=="0"?"0":+Cookie.get('customersorders_companyId'));
       if(Cookie.get('customersorders_departmentId')=='undefined' || Cookie.get('customersorders_departmentId')==null)  
         Cookie.set('customersorders_departmentId',this.sendingQueryForm.departmentId); else this.sendingQueryForm.departmentId=(Cookie.get('customersorders_departmentId')=="0"?"0":+Cookie.get('customersorders_departmentId'));
     }
-        if(Cookie.get('customersorders_sortAsc')=='undefined' || Cookie.get('customersorders_sortAsc')==null)       
+    if(Cookie.get('customersorders_sortAsc')=='undefined' || Cookie.get('customersorders_sortAsc')==null)       
       Cookie.set('customersorders_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('customersorders_sortAsc');
     if(Cookie.get('customersorders_sortColumn')=='undefined' || Cookie.get('customersorders_sortColumn')==null)    
       Cookie.set('customersorders_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('customersorders_sortColumn');

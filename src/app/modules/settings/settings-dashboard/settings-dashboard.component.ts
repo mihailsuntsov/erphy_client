@@ -77,7 +77,8 @@ export class SettingsDashboardComponent implements OnInit {getSettingsDashboard
     ||this.permissionsSet.some(         function(e){return(e==598)}) 
     ||this.permissionsSet.some(         function(e){return(e==600)}) 
     ||this.permissionsSet.some(         function(e){return(e==602)}) 
-    ||this.permissionsSet.some(         function(e){return(e==604)}) 
+    ||this.permissionsSet.some(         function(e){return(e==604)})     
+    ||this.permissionsSet.some(         function(e){return(e==606)}) 
     ;
     this.getCompaniesList();
   }
