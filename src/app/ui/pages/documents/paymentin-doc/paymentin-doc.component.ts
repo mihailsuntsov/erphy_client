@@ -384,7 +384,7 @@ export class PaymentinDocComponent implements OnInit {
 	  this.rightsDefined=true;//!!!
     this.necessaryActionsBeforeGetChilds();
   }
- //  -------------     ***** поиск по подстроке для поставщика ***    --------------------------
+ //  -------------     ***** поиск по подстроке для контрагента ***    --------------------------
  onCagentSearchValueChanges(){
   this.searchCagentCtrl.valueChanges
   .pipe(

@@ -60,7 +60,13 @@
             </app-remains-vidget>
         </div>
         <div class="col-xl-6 col-md-12">
-
+            <app-opex 
+            *ngIf="allowToOpex"
+            [companyId] = "companyId"
+            [myCompanyId] = "myCompanyId"
+            [permissionsSet] = "permissionsSet"                         
+            >
+            </app-opex>
         </div>
     </div>
 </div>

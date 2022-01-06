@@ -116,8 +116,7 @@ export class MutualpaymentComponent implements OnInit {
     }
 
     ngOnInit() {
-
-      this.queryForm = new FormGroup({ //форма для отправки запроса 
+        this.queryForm = new FormGroup({ //форма для отправки запроса 
         companyId: new FormControl(this.company,[]), // предприятие, по которому идет запрос данных
         dateFrom: new FormControl(moment().startOf('year'),[]),   // дата С
         dateTo: new FormControl(moment(),[]),     // дата По
@@ -135,12 +134,12 @@ export class MutualpaymentComponent implements OnInit {
       }
       if(+this.option==0){
         if(Cookie.get('mutualpayment_sortAsc')=='undefined' || Cookie.get('mutualpayment_sortAsc')==null)       
-        Cookie.set('mutualpayment_sortAsc',this.queryForm.get('sortAsc').value); else this.queryForm.get('sortAsc').setValue(Cookie.get('mutualpayment_sortAsc'));
+          Cookie.set('mutualpayment_sortAsc',this.queryForm.get('sortAsc').value); else this.queryForm.get('sortAsc').setValue(Cookie.get('mutualpayment_sortAsc'));
+        if(Cookie.get('mutualpayment_sortColumn')=='undefined' || Cookie.get('mutualpayment_sortColumn')==null)    
+          Cookie.set('mutualpayment_sortColumn',this.queryForm.get('sortColumn').value); else this.queryForm.get('sortColumn').setValue(Cookie.get('mutualpayment_sortColumn'));
+        if(Cookie.get('mutualpayment_offset')=='undefined' || Cookie.get('mutualpayment_offset')==null)        
+          Cookie.set('mutualpayment_offset',this.queryForm.get('offset').value); else this.queryForm.get('offset').setValue(Cookie.get('mutualpayment_offset'));
       }
-      if(Cookie.get('mutualpayment_sortColumn')=='undefined' || Cookie.get('mutualpayment_sortColumn')==null)    
-        Cookie.set('mutualpayment_sortColumn',this.queryForm.get('sortColumn').value); else this.queryForm.get('sortColumn').setValue(Cookie.get('mutualpayment_sortColumn'));
-      if(Cookie.get('mutualpayment_offset')=='undefined' || Cookie.get('mutualpayment_offset')==null)        
-        Cookie.set('mutualpayment_offset',this.queryForm.get('offset').value); else this.queryForm.get('offset').setValue(Cookie.get('mutualpayment_offset'));
       if(Cookie.get('mutualpayment_result')=='undefined' || Cookie.get('mutualpayment_result')==null)        
         Cookie.set('mutualpayment_result',this.queryForm.get('result').value); else this.queryForm.get('result').setValue(Cookie.get('mutualpayment_result'));
       

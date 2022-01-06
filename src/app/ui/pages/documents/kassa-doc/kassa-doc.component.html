@@ -133,6 +133,17 @@
                                                         <input matInput hidden/>
                                                     </mat-form-field>
                                                 </div>
+                                                <div class="col-12"> 
+                                                    <mat-form-field 
+                                                        class="slideWidth100">
+                                                        <mat-slide-toggle formControlName="allow_acquiring"
+                                                            matTooltip='Включите, если при оплате есть возможность принимать безналичные платежи'>
+                                                            Платежи по картам
+                                                        </mat-slide-toggle>
+                                                        <input matInput hidden/>
+                                                    </mat-form-field>
+                                                </div>
+
 
                                             </div>
                                         </div>  
@@ -248,6 +259,61 @@
                                                     <span class="test-result-row">ФФД:        {{ffdVersion}}</span>
                                                     <span class="test-result-row">ФФД ФН:     {{fnFfdVersion}}</span>
                                                 </div>
+                                            </div>
+                                        </div>
+                                    </mat-card-content>
+                                </mat-card>
+                                <mat-card class="internal-card" *ngIf="formBaseInformation.get('allow_acquiring').value">
+                                    <mat-card-header>
+                                        <mat-card-title class="card-title">Эквайринг</mat-card-title>
+                                    </mat-card-header>
+                                    <mat-card-content class="input-form">
+                                        <div class="container-fluid">
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <mat-form-field style="display: none">
+                                                        <input  matInput
+                                                                placeholder="acquiring_bank_id"
+                                                                formControlName="acquiring_bank_id"/>
+                                                    </mat-form-field>
+                                                    <mat-form-field  class="mat-form-field-100">
+                                                        <mat-label>Банк-эквайер <span *ngIf="+formBaseInformation.get('acquiring_bank_id').value==0" class="star">*</span></mat-label>
+                                                        <input  matInput 
+                                                        [matAutocomplete]="auto4" 
+                                                        [formControl]="searchCagentCtrl"
+                                                        (input)="canCagentAutocompleteQuery=true; checkEmptyCagentField();"
+                                                        (change)="canCagentAutocompleteQuery=false; checkEmptyCagentField();">
+                                                        
+                                                        <mat-autocomplete #auto4="matAutocomplete">
+                                                        <ng-container *ngIf="!isCagentListLoading" style="width:320px;">
+                                                            <mat-option style="padding:0px" *ngFor="let value of filteredCagents" [value]="value.name">
+                                                            <div (click)="onSelectCagent(value.id,value.name)">
+                                                                <span style="margin:10px;"><b>{{value.name}}</b></span>
+                                                            </div>
+                                                            </mat-option>
+                                                        </ng-container>
+                                                        </mat-autocomplete>
+                                                        <mat-hint  align="start" *ngIf="searchCagentCtrl.touched && formBaseInformation.get('acquiring_bank_id').invalid">
+                                                            <i class="form-invalid">Банк-эквайер не выбран. Введите часть наименования банка, и выберите его из списка.</i>
+                                                        </mat-hint>
+                                                    </mat-form-field>
+                                                    <mat-progress-bar *ngIf="isCagentListLoading" mode="indeterminate"></mat-progress-bar>
+                                                </div>
+                                                <div class="col-12"> 
+                                                    <mat-form-field  class="mat-form-field-100">
+                                                        <mat-label>Процент за услугу эквайринга</mat-label>
+                                                        <input  matInput
+                                                                maxlength="5"
+                                                                (input)="checkPrecent()"
+                                                                (change)="checkPrecent()"
+                                                                (keypress)="numberOnlyPlusDotAndComma($event)"
+                                                                formControlName="acquiring_precent" [readonly]=!allowToUpdate/>
+                                                        <mat-hint  align="start" *ngIf="formBaseInformation.get('acquiring_precent').touched && formBaseInformation.get('acquiring_precent').invalid">
+                                                            <i class="form-invalid">Допусается число от 0 до 100</i>
+                                                        </mat-hint>
+                                                    </mat-form-field>
+                                                </div>
+                                                
                                             </div>
                                         </div>
                                     </mat-card-content>

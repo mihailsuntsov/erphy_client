@@ -6,7 +6,7 @@
         </mat-icon>
     </div>
     <mat-card-title class="flex">
-        <div class="card-name">Приход и расход</div>
+        <div class="card-name">Операционные расходы</div>
 
     </mat-card-title>
     
@@ -23,7 +23,6 @@
                                                 formControlName="dateFrom"
                                                 placeholder="С даты"
                                                 [matDatepicker]="dpFrom"
-                                                [readonly]="queryForm.get('periodType').value!='period'"
                                                 (dateChange)="onDateChange('dateFrom', $event);getVolumesReportData()"
                                                 />
                                                 <mat-datepicker-toggle matSuffix [for]="dpFrom" ></mat-datepicker-toggle>
@@ -36,7 +35,6 @@
                                                 formControlName="dateTo"
                                                 placeholder="По дату"
                                                 [matDatepicker]="dpTo"
-                                                [readonly]="queryForm.get('periodType').value!='period'"
                                                 (dateChange)="onDateChange('dateTo', $event);getVolumesReportData()"
                                                 />
                                                 <mat-datepicker-toggle 
@@ -53,44 +51,20 @@
         </form>
         <div class="container-fluid">
             <div class="row">
-                <div class="col-12" style="height:370px">
-                    <ngx-charts-bar-vertical-2d
-                        [scheme]="colorScheme"
+                <div class="col-12" style="height:170px">
+                    <ngx-charts-advanced-pie-chart
+                        [scheme]="'picnic'"
+                        [animations]=true
                         [results]="multi"
+                        [label]="'Всего, руб.'"
                         [gradient]="gradient"
-                        [xAxis]="showXAxis"
-                        [yAxis]="showYAxis"
-                        [showXAxisLabel]="showXAxisLabel"
-                        [showYAxisLabel]="showYAxisLabel"
-                        [xAxisLabel]="xAxisLabel"
-                        [yAxisLabel]="yAxisLabel"
-                        [barPadding]=3
-                        [groupPadding]=3
+                        [percentageFormatting]="percentageFormatting"
+                        [valueFormatting] = "moneyFormat"
                         (select)="onSelect($event)"
                         (activate)="onActivate($event)"
                         (deactivate)="onDeactivate($event)">
-                    </ngx-charts-bar-vertical-2d>
-                    <!-- <combo-chart-component
-                        [view]="view"
-                        [scheme]="colorScheme"
-                        [colorSchemeLine]="lineChartScheme"
-                        [results]="barChart"
-                        [animations]="true"
-                        [lineChart]="lineChartSeries"
-                        [gradient]="true"
-                        [xAxis]="showXAxis"
-                        [yAxis]="showYAxis"
-                        [legend]="showLegend"
-                        [legendTitle]="legendTitle"
-                        [legendPosition]="legendPosition"
-                        [showGridLines]="true"
-                        [showXAxisLabel]="showXAxisLabel"
-                        [showYAxisLabel]="showYAxisLabel"
-                        [showRightYAxisLabel]="showYAxisLabel"
-                        [xAxisLabel]="xAxisLabel"
-                        [yAxisLabel]="yAxisLabel"
-                        [yAxisLabelRight]="yAxisLabelRight">
-                    </combo-chart-component> -->
+                    </ngx-charts-advanced-pie-chart>
+                   
                 </div>
             </div>
         </div>

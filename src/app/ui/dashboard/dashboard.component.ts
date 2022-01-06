@@ -3,6 +3,7 @@ import { SalesOnPeriodComponent } from 'src/app/modules/info-modules/sales-on-pe
 import { IncomeOutcomeComponent } from 'src/app/modules/info-modules/income-outcome/income-outcome.component';
 import { IndicatorsLeftComponent } from 'src/app/modules/info-modules/indicators-left/indicators-left.component';
 import { RemainsComponent } from 'src/app/modules/info-modules/remains/remains.component';
+import { OpexComponent } from 'src/app/modules/info-modules/opex/opex.component';
 import { SettingsDashboardComponent } from 'src/app/modules/settings/settings-dashboard/settings-dashboard.component'
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -35,7 +36,8 @@ export class DashboardComponent implements OnInit {
   @ViewChild(IncomeOutcomeComponent,  {static: false}) public incomeOutcomeComponent:IncomeOutcomeComponent; // блок Остаток (приход-расход) 
   @ViewChild(IndicatorsLeftComponent, {static: false}) public indicatorsLeftComponent:IndicatorsLeftComponent; // карточки - информеры вверху страницы
   @ViewChild(RemainsComponent,        {static: false}) public remainsComponent:RemainsComponent; // остатки товаров
-  
+  @ViewChild(OpexComponent,           {static: false}) public opexComponent:OpexComponent; // операционные расходы
+
   constructor(
     private settingsDashboardComponent: MatDialog,
     private _snackBar: MatSnackBar,
@@ -58,7 +60,8 @@ export class DashboardComponent implements OnInit {
   permissionsSet: any[];//сет прав на документ
   allowToDashboard: boolean = false; // показывать всю стартовую страницу
   allowToVolumes: boolean = false; // показывать плагин "Объёмы"
-  allowToRemains: boolean = true; // показывать плагин "Остатки по скаладам"
+  allowToRemains: boolean = false; // показывать плагин "Остатки по скаладам"
+  allowToOpex: boolean = false; // показывать плагин "Операционные расходы"
   allowToIncomeOutcome: boolean = false; // показывать плагин "Остаток"
   allowToViewAllCompanies:boolean = false;  //Возможность построения виджетов по всем предприятиям (true если хотя бы у одного виджета есть право на просмотр по всем предприятиям)
 
@@ -152,6 +155,9 @@ export class DashboardComponent implements OnInit {
     this.allowToDashboard =     permissionsSet.some(function(e){return(e==324)});
     this.allowToVolumes =       permissionsSet.some(function(e){return(e==325)}) || permissionsSet.some(function(e){return(e==326)}) || permissionsSet.some(function(e){return(e==327)});
     this.allowToIncomeOutcome = permissionsSet.some(function(e){return(e==325)}) || permissionsSet.some(function(e){return(e==326)}) || permissionsSet.some(function(e){return(e==327)});
+    this.allowToRemains       = permissionsSet.some(function(e){return(e==606)}) || permissionsSet.some(function(e){return(e==607)}) || permissionsSet.some(function(e){return(e==608)});
+    this.allowToOpex          = permissionsSet.some(function(e){return(e==609)}) || permissionsSet.some(function(e){return(e==610)});
+    
     // Если ни у одного виджета не будет права на "Просмотр по всем предприятиям", а в настройках выбрано не своё предприятие
     // то нужно сменить текущее предприятие из настроек на своё, иначе абсолютно все виджеты будут пустые
     this.allowToViewAllCompanies = this.permissionsSet.some(         function(e){return(e==325)}) 
@@ -162,9 +168,10 @@ export class DashboardComponent implements OnInit {
     ||this.permissionsSet.some(         function(e){return(e==600)}) 
     ||this.permissionsSet.some(         function(e){return(e==602)}) 
     ||this.permissionsSet.some(         function(e){return(e==604)})     
-    ||this.permissionsSet.some(         function(e){return(e==606)});
-    console.log("allowToDashboard - "+this.allowToDashboard);
-    console.log("allowToVolumes - "+this.allowToVolumes);
+    ||this.permissionsSet.some(         function(e){return(e==606)})     
+    ||this.permissionsSet.some(         function(e){return(e==609)});
+    // console.log("allowToDashboard - "+this.allowToDashboard);
+    // console.log("allowToVolumes - "+this.allowToVolumes);
     this.necessaryActionsBeforeGetChilds();
   }
 
@@ -215,6 +222,7 @@ export class DashboardComponent implements OnInit {
       if(this.incomeOutcomeComponent) this.incomeOutcomeComponent.onStart();
       if(this.indicatorsLeftComponent) this.indicatorsLeftComponent.onStart();
       if(this.remainsComponent) this.remainsComponent.onStart();
+      if(this.opexComponent) this.opexComponent.onStart();
     }, 1);
     
   }

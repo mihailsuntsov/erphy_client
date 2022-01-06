@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
+import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { FormGroup, Validators, FormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -35,6 +36,11 @@ interface docResponse {//интерфейс для получения ответ
   allow_to_use: boolean; // разрешено исползовать
   is_delete: boolean; // касса удалена
   zn_kkt: string; // заводской номер кассы
+  is_virtual: boolean;// виртуальная (сейчас не используется, на будущее)
+  allow_acquiring: boolean;// прием безнала на данной кассе
+  acquiring_bank_id: number; // id банка-эквайера
+  acquiring_bank: string; // название банка-эквайера
+  acquiring_precent: number; // процент банку за услугу эквайринга 
 }
 interface idAndName{ //универсалный интерфейс для выбора из справочников
   id: number;
@@ -78,6 +84,12 @@ export class KassaDocComponent implements OnInit {
   formBaseInformation:any;//форма для основной информации, содержащейся в документе
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
   
+  //для поиска контрагента по подстроке
+  searchCagentCtrl = new FormControl();//поле для поиска
+  isCagentListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
+  canCagentAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
+  filteredCagents: any;
+
   //переменные для управления динамическим отображением элементов
   visBeforeCreatingBlocks = true; //блоки, отображаемые ДО создания документа (до получения id)
   visAfterCreatingBlocks = true; //блоки, отображаемые ПОСЛЕ создания документа (id >0)
@@ -139,6 +151,11 @@ export class KassaDocComponent implements OnInit {
       server_address:     new FormControl('http://127.0.0.1:16732',[Validators.maxLength(300), Validators.required]), // адрес сервера и порт в локальной сети или интернете вида http://127.0.0.1:16732
       allow_to_use:       new FormControl(false,[]), // разрешено исползовать
       zn_kkt:             new FormControl('',[Validators.maxLength(64),  Validators.required]), // заводской номер кассы
+      is_virtual:         new FormControl(false,[]),  // виртуальная (сейчас не используется, на будущее)
+      allow_acquiring:    new FormControl(false,[]),  // прием безнала на данной кассе
+      acquiring_bank_id:  new FormControl('',[]),     // id банка-эквайера
+      acquiring_bank:     new FormControl('',[]),     // название банка-эквайера
+      acquiring_precent:  new FormControl('',[Validators.max(100),Validators.min(0)]),     // процент банку за услугу эквайринга 
     });
     this.formAboutDocument = new FormGroup({
       id:                 new FormControl('',[]),
@@ -149,7 +166,7 @@ export class KassaDocComponent implements OnInit {
       date_time_created:  new FormControl('',[]),
       date_time_changed:  new FormControl('',[]),
     });
-
+    this.onCagentSearchValueChanges();//отслеживание изменений поля
     this.getSpravSysTaxationTypes();
     this.getSetOfPermissions();//
     // ->getMyId()
@@ -226,6 +243,40 @@ export class KassaDocComponent implements OnInit {
 
 }
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
+//  -------------     ***** поиск по подстроке для контрагента ***    --------------------------
+onCagentSearchValueChanges(){
+  this.searchCagentCtrl.valueChanges
+  .pipe(
+    debounceTime(500),
+    tap(() => {
+      this.filteredCagents = [];}),       
+    switchMap(fieldObject =>  
+      this.getCagentsList()))
+  .subscribe(data => {
+    this.isCagentListLoading = false;
+    if (data == undefined) {
+      this.filteredCagents = [];
+    } else {
+      this.filteredCagents = data as any;
+  }});}
+  onSelectCagent(id:any,name:string){
+    this.formBaseInformation.get('acquiring_bank_id').setValue(+id);}
+  checkEmptyCagentField(){
+    if(this.searchCagentCtrl.value.length==0){
+      this.formBaseInformation.get('acquiring_bank_id').setValue(null);
+  }}
+  getCagentsList(){ //заполнение Autocomplete для поля Товар
+    try {
+      if(this.canCagentAutocompleteQuery && this.searchCagentCtrl.value.length>1){
+        const body = {
+          "searchString":this.searchCagentCtrl.value,
+          "companyId":this.formBaseInformation.get('company_id').value};
+        this.isCagentListLoading  = true;
+        return this.http.post('/api/auth/getCagentsList', body);
+      }else return [];
+    } catch (e) {
+    return [];}}
+//-------------------------------------------------------------------------------
   getData(){
     if(+this.id>0){
       this.getDocumentValuesById();
@@ -320,7 +371,7 @@ export class KassaDocComponent implements OnInit {
   return inMyDepthsId;
   }
   getDocumentValuesById(){
-          this.http.get('/api/auth/getKassaValuesById?id='+this.id)
+        this.http.get('/api/auth/getKassaValuesById?id='+this.id)
         .subscribe(
             data => { 
               
@@ -338,6 +389,14 @@ export class KassaDocComponent implements OnInit {
                 this.formBaseInformation.get('server_address').setValue(documentValues.server_address);
                 this.formBaseInformation.get('allow_to_use').setValue(documentValues.allow_to_use);
                 this.formBaseInformation.get('zn_kkt').setValue(documentValues.zn_kkt);
+
+                this.formBaseInformation.get('is_virtual').setValue(documentValues.is_virtual);
+                this.formBaseInformation.get('allow_acquiring').setValue(documentValues.allow_acquiring);
+                this.formBaseInformation.get('acquiring_bank_id').setValue(documentValues.acquiring_bank_id);
+                this.formBaseInformation.get('acquiring_bank').setValue(documentValues.acquiring_bank);
+                this.formBaseInformation.get('acquiring_precent').setValue(documentValues.acquiring_precent);     
+                this.searchCagentCtrl.setValue(documentValues.acquiring_bank);
+
                 this.formAboutDocument.get('master').setValue(documentValues.master);
                 this.formAboutDocument.get('creator').setValue(documentValues.creator);
                 this.formAboutDocument.get('changer').setValue(documentValues.changer);
@@ -354,7 +413,7 @@ export class KassaDocComponent implements OnInit {
   }
 
   getSpravSysTaxationTypes(){
-        this.loadSpravService.getSpravSysTaxationTypes()
+        this.loadSpravService.getSpravSysTaxationTypes()
         .subscribe((data) => {this.spravSysTaxationTypes=data as TaxationTypes[];},
         error => console.log(error));
   }
@@ -493,7 +552,7 @@ export class KassaDocComponent implements OnInit {
 
   addFilesToKassa(filesIds: number[]){
     const body = {"id1":this.id, "setOfLongs1":filesIds};// передаем id товара и id файлов 
-            return this.http.post('/api/auth/addFilesToKassa', body) 
+            return this.http.post('/api/auth/addFilesToKassa', body) 
               .subscribe(
                   (data) => {  
                     this.openSnackBar("Файлы добавлены", "Закрыть");
@@ -503,7 +562,7 @@ export class KassaDocComponent implements OnInit {
               );
   }
   loadFilesInfo(){//                                     загружает информацию по прикрепленным файлам
-    return this.http.get('/api/auth/getListOfKassaFiles?id='+this.id) 
+    return this.http.get('/api/auth/getListOfKassaFiles?id='+this.id) 
       .subscribe(
           (data) => {  
                       this.filesInfo = data as any; 
@@ -536,4 +595,11 @@ export class KassaDocComponent implements OnInit {
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
     );  
   }
+  checkPrecent(){
+    this.formBaseInformation.get('acquiring_precent').setValue((this.formBaseInformation.get('acquiring_precent').value!=null?this.formBaseInformation.get('acquiring_precent').value:'').replace(",", "."));
+  }
+  numberOnlyPlusDotAndComma(event): boolean {
+    const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
+    if (charCode > 31 && ((charCode < 48 || charCode > 57) && charCode!=44 && charCode!=46)) { return false; } return true;}
+  
 }
