@@ -41,6 +41,12 @@ interface docResponse {//интерфейс для получения ответ
   acquiring_bank_id: number; // id банка-эквайера
   acquiring_bank: string; // название банка-эквайера
   acquiring_precent: number; // процент банку за услугу эквайринга 
+  acquiring_service_id: number; // id услуги эквайринга
+  acquiring_service: string; // наименование услуги эквайринга
+  payment_account_id: number; //id расчетного счета
+  payment_account: string;  // расчетный счет
+  expenditure_id: number; //id статьи расходов
+  expenditure: string;  // статья расходов
 }
 interface idAndName{ //универсалный интерфейс для выбора из справочников
   id: number;
@@ -80,6 +86,8 @@ export class KassaDocComponent implements OnInit {
   filesInfo : filesInfo [] = []; //массив для получения информации по прикрепленным к документу файлам 
   spravSysTaxationTypes: TaxationTypes[] = []; //массив списка справочника систем налогообложения (например усн, осн)
   
+  paymentAccounts:any[]=[];  // список расчётных счетов предприятия
+  expenditureItems:any[]=[];  // список статей расходов
   //Формы
   formBaseInformation:any;//форма для основной информации, содержащейся в документе
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
@@ -89,6 +97,11 @@ export class KassaDocComponent implements OnInit {
   isCagentListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canCagentAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredCagents: any;
+  //для поиска услуги эквайринга по подстроке
+  searchServiceCtrl = new FormControl();//поле для поиска
+  isServiceListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
+  canServiceAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
+  filteredServices: any;
 
   //переменные для управления динамическим отображением элементов
   visBeforeCreatingBlocks = true; //блоки, отображаемые ДО создания документа (до получения id)
@@ -156,6 +169,12 @@ export class KassaDocComponent implements OnInit {
       acquiring_bank_id:  new FormControl('',[]),     // id банка-эквайера
       acquiring_bank:     new FormControl('',[]),     // название банка-эквайера
       acquiring_precent:  new FormControl('',[Validators.max(100),Validators.min(0)]),     // процент банку за услугу эквайринга 
+      acquiring_service_id:new FormControl('',[]),    // id услуги эквайринга
+      acquiring_service:  new FormControl('',[]),     // наименование услуги эквайринга
+      payment_account_id: new FormControl('',[]),     // id расчетного счета
+      payment_account:    new FormControl('',[]),     // расчетный счет
+      expenditure_id:     new FormControl('',[]),     // id статьи расходов
+      expenditure:        new FormControl('',[]),     // статья расходов
     });
     this.formAboutDocument = new FormGroup({
       id:                 new FormControl('',[]),
@@ -166,7 +185,8 @@ export class KassaDocComponent implements OnInit {
       date_time_created:  new FormControl('',[]),
       date_time_changed:  new FormControl('',[]),
     });
-    this.onCagentSearchValueChanges();//отслеживание изменений поля
+    this.onCagentSearchValueChanges();//отслеживание изменений поля Банк для эквайринга
+    this.onServiceSearchValueChanges();//отслеживание изменений поля Услуга эквайринга
     this.getSpravSysTaxationTypes();
     this.getSetOfPermissions();//
     // ->getMyId()
@@ -277,6 +297,38 @@ onCagentSearchValueChanges(){
     } catch (e) {
     return [];}}
 //-------------------------------------------------------------------------------
+//  -------------     ***** поиск по подстроке для услуги эквайринга ***    --------------------------
+onServiceSearchValueChanges(){
+  this.searchServiceCtrl.valueChanges
+  .pipe(
+    debounceTime(500),
+    tap(() => {
+      this.filteredServices = [];}),       
+    switchMap(fieldObject =>  
+      this.getServicesList()))
+  .subscribe(data => {
+    this.isServiceListLoading = false;
+    if (data == undefined) {
+      this.filteredServices = [];
+    } else {
+      this.filteredServices = data as any;
+  }});}
+  onSelectService(id:any,name:string){
+    this.formBaseInformation.get('acquiring_service_id').setValue(+id);}
+  checkEmptyServiceField(){
+    if(this.searchServiceCtrl.value.length==0){
+      this.formBaseInformation.get('acquiring_service_id').setValue(null);
+  }}
+  getServicesList(){ //заполнение Autocomplete для поля Услуга банка Эквайринга
+    try {
+      if(this.canServiceAutocompleteQuery && this.searchServiceCtrl.value.length>1){
+        this.isServiceListLoading  = true;
+        return this.http.get('/api/auth/getProductsList?searchString='+this.searchServiceCtrl.value+'&companyId='+this.formBaseInformation.get('company_id').value+'&departmentId=0&document_id=0&priceTypeId=0');
+      }else return [];
+    } catch (e) {
+      this.isServiceListLoading  = false;
+      return [];}}
+//-------------------------------------------------------------------------------
   getData(){
     if(+this.id>0){
       this.getDocumentValuesById();
@@ -326,6 +378,8 @@ onCagentSearchValueChanges(){
   setDefaultCompany(){
       this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
       this.getDepartmentsList(true);
+      this.getExpenditureItemsList();
+      this.getCompaniesPaymentAccounts();
   }
   getDepartmentsList(newDoc:boolean){
     this.receivedDepartmentsList=null;
@@ -338,6 +392,32 @@ onCagentSearchValueChanges(){
                 error => console.log(error)
             );
   }
+
+  onCompanyChange(){
+    this.getDepartmentsList(true);
+    this.getExpenditureItemsList();
+    this.getCompaniesPaymentAccounts();
+  }
+
+  getExpenditureItemsList(){
+    return this.http.get('/api/auth/getExpenditureItems?id='+this.formBaseInformation.get('company_id').value).subscribe(
+        (data) => { 
+          this.expenditureItems=data as any [];
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+    );
+  }
+
+  getCompaniesPaymentAccounts(){
+    return this.http.get('/api/auth/getCompaniesPaymentAccounts?id='+this.formBaseInformation.get('company_id').value).subscribe(
+        (data) => { 
+          this.paymentAccounts=data as any [];
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+    );
+  }
+
+
   setDefaultDepartment(){
     if(this.receivedDepartmentsList.length==1)
     {
@@ -394,8 +474,16 @@ onCagentSearchValueChanges(){
                 this.formBaseInformation.get('allow_acquiring').setValue(documentValues.allow_acquiring);
                 this.formBaseInformation.get('acquiring_bank_id').setValue(documentValues.acquiring_bank_id);
                 this.formBaseInformation.get('acquiring_bank').setValue(documentValues.acquiring_bank);
-                this.formBaseInformation.get('acquiring_precent').setValue(documentValues.acquiring_precent);     
+                this.formBaseInformation.get('acquiring_precent').setValue(documentValues.acquiring_precent);  
+                this.formBaseInformation.get('acquiring_service_id').setValue(documentValues.acquiring_service_id);  
+                this.formBaseInformation.get('acquiring_service').setValue(documentValues.acquiring_service);    
                 this.searchCagentCtrl.setValue(documentValues.acquiring_bank);
+                this.searchServiceCtrl.setValue(documentValues.acquiring_service);
+
+                this.formBaseInformation.get('payment_account_id').setValue(documentValues.payment_account_id);    
+                this.formBaseInformation.get('payment_account').setValue(documentValues.payment_account);    
+                this.formBaseInformation.get('expenditure_id').setValue(documentValues.expenditure_id);    
+                this.formBaseInformation.get('expenditure').setValue(documentValues.expenditure);    
 
                 this.formAboutDocument.get('master').setValue(documentValues.master);
                 this.formAboutDocument.get('creator').setValue(documentValues.creator);
@@ -406,6 +494,8 @@ onCagentSearchValueChanges(){
                 this.creatorId=+documentValues.creator_id;
                 this.loadFilesInfo();
                 this.getDepartmentsList(false);
+                this.getExpenditureItemsList();
+                this.getCompaniesPaymentAccounts();
                 this.refreshPermissions();
             },
             error => console.log(error)

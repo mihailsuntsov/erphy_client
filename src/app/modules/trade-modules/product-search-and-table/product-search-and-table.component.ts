@@ -656,7 +656,9 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
         this.filteredProducts = data as any;
         if(this.filteredProducts.length==1){
           this.onAutoselectProduct();
-      }}});
+      }}}
+      ,error => {this.isProductListLoading = false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+      );
   }
 
   getEdizmNameBySelectedId(srchId:number):string {

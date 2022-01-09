@@ -153,7 +153,7 @@ export class AcceptanceProductsTableComponent implements OnInit {
       edizm: new FormControl                    ('',[]),                      // наименование единицы измерения товара
       product_price : new FormControl           ('',[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),                      // цена товара (которая уйдет в таблицу выбранных товаров). Т.е. мы как можем вписать цену вручную, так и выбрать из предложенных (см. выше)
       product_count : new FormControl           ('',[Validators.required,Validators.pattern('^[0-9]{1,6}(?:[.,][0-9]{0,3})?\r?$')]),                      // количество товара к возврату
-      total : new FormControl                 ('',[]),                      // остатки на складе
+      total : new FormControl                   ('',[]),                      // остатки на складе
       nds_id: new FormControl                   ('',[]),                      // НДС
       // nds: new FormControl                      (0,[]),                    // НДС в валютном ввыражении
       product_sumprice : new FormControl        ('',[]),                       // суммарная стоимость товара = цена * кол-во

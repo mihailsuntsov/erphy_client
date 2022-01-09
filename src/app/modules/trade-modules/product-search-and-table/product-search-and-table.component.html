@@ -55,7 +55,7 @@
                                                         placeholder="Введите часть наименования,артикул или штрих-код" 
                                                         [matAutocomplete]="auto3" 
                                                         [formControl]="searchProductCtrl"
-                                                        [readonly]="formSearchReadOnly"
+                                                        [readonly]="formSearchReadOnly || isProductListLoading"
                                                         (input)="canAutocompleteQuery=true; checkEmptyProductField();"
                                                         (change)="canAutocompleteQuery=false; checkEmptyProductField();">
                                                         
