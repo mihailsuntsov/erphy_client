@@ -187,6 +187,7 @@ export class ReturnsupDocComponent implements OnInit {
   linkedDocsText:string = ''; // схема связанных документов (пример - в самом низу)
   loadingDocsScheme:boolean = false;
   linkedDocsSchemeDisplayed:boolean = false;
+  showGraphDiv:boolean=true;
 
   //переменные прав
   permissionsSet: any[];//сет прав на документ
@@ -1148,14 +1149,18 @@ myTabSelectedTabChange(changeEvent: MatTabChangeEvent) {
 myTabAnimationDone() {
   console.log('Animation is done.');
   if(this.tabIndex==1)  {
-    if(!this.linkedDocsSchemeDisplayed) this.loadingDocsScheme=true;
-    setTimeout(() => { this.drawLinkedDocsScheme(); }, 500);
-  }
-    
+    if(!this.linkedDocsSchemeDisplayed) {
+      this.loadingDocsScheme=true;
+      setTimeout(() => {
+          this.drawLinkedDocsScheme(); 
+        }, 1);   
+    }      
+  }    
 }
 getLinkedDocsScheme(draw?:boolean){
   let result:any;
   this.loadingDocsScheme=true;
+  this.linkedDocsSchemeDisplayed = false;
   this.linkedDocsText ='';
   this.loadingDocsScheme=true;
   this.http.get('/api/auth/getLinkedDocsScheme?uid='+this.formBaseInformation.get('uid').value)
@@ -1186,9 +1191,15 @@ drawLinkedDocsScheme(){
   if(this.tabIndex==1){
     try{
       console.log(this.linkedDocsText);
-      graphviz("#graph").renderDot(this.linkedDocsText);
       this.loadingDocsScheme=false;
       this.linkedDocsSchemeDisplayed = true;
+      this.showGraphDiv=false;
+      setTimeout(() => {
+        this.showGraphDiv=true;
+        setTimeout(() => {
+          graphviz("#graph").renderDot(this.linkedDocsText);
+          }, 1);
+        }, 1);
     } catch (e){
       this.loadingDocsScheme=false;
       console.log(e.message);

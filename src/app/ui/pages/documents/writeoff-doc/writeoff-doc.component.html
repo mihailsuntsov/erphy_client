@@ -280,13 +280,13 @@
                     <div class="col-12">
                         <div class="container-fluid">
                             <div class="row">
-                                <mat-card  style="margin:10px 0 10px;width:100%;">
+                                <mat-card  style="margin:10px 0 10px; width:100%; min-height: 90vh;">
                                     <mat-card-header>
                                         <mat-card-title class="card-title">Связанные документы</mat-card-title>
                                     </mat-card-header>
                                     <mat-card-content class="input-form">
                                         <mat-spinner *ngIf="loadingDocsScheme" strokeWidth="3" style=" position: absolute; top: 15%;left: calc(50% - 25px)" [diameter]="50"></mat-spinner>
-                                        <div id="graph" style="width:100%; height: 700px; text-align:center; margin-top:50px;"></div>
+                                        <div id="graph" *ngIf="showGraphDiv" style="width:100%; height: 700px; text-align:center; margin-top:50px;"></div>
                                         <div 
                                         *ngIf="linkedDocsCount==0 && this.loadingDocsScheme==false"
                                         class="no_linked_docs">

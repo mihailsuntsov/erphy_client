@@ -147,11 +147,13 @@ export class PostingDocComponent implements OnInit {
   linkedDocsReturn:LinkedDocs[]=[];
   panelReturnOpenState=false;
 
+  // для построения диаграмм связанности
   tabIndex=0;// индекс текущего отображаемого таба (вкладки)
   linkedDocsCount:number = 0; // кол-во документов в группе, ЗА ИСКЛЮЧЕНИЕМ текущего
   linkedDocsText:string = ''; // схема связанных документов (пример - в самом низу файла inventory-doc.component.ts)
   loadingDocsScheme:boolean = false; // идет загрузка данных для схемы
   linkedDocsSchemeDisplayed:boolean = false; //схема была отображена
+  showGraphDiv:boolean=true;
 
   // Формы
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
@@ -1186,13 +1188,18 @@ deleteFile(id:number){
   myTabAnimationDone() {
     console.log('Animation is done.');
     if(this.tabIndex==1)  {
-      if(!this.linkedDocsSchemeDisplayed) this.loadingDocsScheme=true;
-      setTimeout(() => { this.drawLinkedDocsScheme(); }, 500);
-    }
+      if(!this.linkedDocsSchemeDisplayed) {
+        this.loadingDocsScheme=true;
+        setTimeout(() => {
+            this.drawLinkedDocsScheme(); 
+          }, 1);   
+      }      
+    }    
   }
   getLinkedDocsScheme(draw?:boolean){
     let result:any;
     this.loadingDocsScheme=true;
+    this.linkedDocsSchemeDisplayed = false;
     this.linkedDocsText ='';
     this.loadingDocsScheme=true;
     this.http.get('/api/auth/getLinkedDocsScheme?uid='+this.formBaseInformation.get('uid').value)
@@ -1223,15 +1230,21 @@ deleteFile(id:number){
     if(this.tabIndex==1){
       try{
         console.log(this.linkedDocsText);
-        graphviz("#graph").renderDot(this.linkedDocsText);
         this.loadingDocsScheme=false;
         this.linkedDocsSchemeDisplayed = true;
+        this.showGraphDiv=false;
+        setTimeout(() => {
+          this.showGraphDiv=true;
+          setTimeout(() => {
+            graphviz("#graph").renderDot(this.linkedDocsText);
+            }, 1);
+          }, 1);
       } catch (e){
         this.loadingDocsScheme=false;
         console.log(e.message);
       }
     } else this.loadingDocsScheme=false;
-  }  
+  }
 //------------------------------------------ COMMON UTILITES -----------------------------------------
   //Конвертирует число в строку типа 0.00 например 6.40, 99.25
   numToPrice(price:number,charsAfterDot:number) {
