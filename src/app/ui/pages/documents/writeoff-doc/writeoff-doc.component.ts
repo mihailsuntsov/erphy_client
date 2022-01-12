@@ -782,8 +782,8 @@ export class WriteoffDocComponent implements OnInit {
               }
               default:{// Успешно
                 this.openSnackBar("Документ \"Списание\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
+                this.getLinkedDocsScheme(true);//обновим схему связанных документов )чтобы Проведено сменилось с Нет на Да или обновился статус
                 if(complete) {
-                  this.getLinkedDocsScheme(true);//обновим схему связанных документов )чтобы Проведено сменилось с Нет на Да
                   this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведённости = true
                   if(this.writeoffProductsTableComponent){
                     this.writeoffProductsTableComponent.showColumns(); //чтобы спрятать столбцы после проведения 

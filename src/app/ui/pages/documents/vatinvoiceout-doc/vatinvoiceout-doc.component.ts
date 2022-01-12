@@ -595,8 +595,8 @@ export class VatinvoiceoutDocComponent implements OnInit {
                   if(this.settingsForm.get('statusIdOnComplete').value){//если в настройках есть "Статус при проведении" - выставим его
                     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
                   // this.setStatusColor();//чтобы обновился цвет статуса
-                  this.getData();
                 }
+                this.getData();
               }
             }
           },

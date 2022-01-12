@@ -772,6 +772,7 @@ export class PostingDocComponent implements OnInit {
               }
               default:{// Успешно
                 this.openSnackBar("Документ \"Оприходование\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
+                this.getLinkedDocsScheme(true);//обновляем схему связанных документов
                 if(complete) {
                   this.getLinkedDocsScheme(true);//обновим схему связанных документов )чтобы Проведено сменилось с Нет на Да
                   this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведённости = true

@@ -833,6 +833,7 @@ export class CorrectionDocComponent implements OnInit {
               }
               default:{// Успешно
                 this.openSnackBar("Документ \"Корректировка\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
+                this.getLinkedDocsScheme(true);//обновляем схему связанных документов
                 if(complete) {
                   this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведённости = true
                   this.formBaseInformation.get('cagent').setValue(this.searchCagentCtrl.value); // иначе после проведения пропадёт наименование контрагента

@@ -772,6 +772,7 @@ export class InventoryDocComponent implements OnInit {
 
   updateDocument(complete?:boolean){ 
     this.getProductsTable();    
+    let currentStatus:number=this.formBaseInformation.get('status_id').value;
     if(complete) {
       if(this.settingsForm.get('statusOnFinishId').value)//если в настройках есть "Статус при проведении" - выставим его
         this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);
@@ -781,10 +782,35 @@ export class InventoryDocComponent implements OnInit {
       .subscribe(
           (data) => 
           {   
-            this.setStatusColor();//чтобы обновился цвет статуса
-            if(this.inventoryProductsTableComponent) this.inventoryProductsTableComponent.showColumns(); //чтобы спрятать столбцы после проведения Инвентаризации
-            this.openSnackBar("Документ \"Инвентаризация\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
-            this.getLinkedDocsScheme(true);//обновим схему связанных документов )чтобы Проведено сменилось с Нет на Да
+            if(complete){
+              this.formBaseInformation.get('is_completed').setValue(false);//если сохранение с проведением - удаляем временную установку признака проведенности, 
+              this.formBaseInformation.get('status_id').setValue(currentStatus);//и возвращаем предыдущий статус
+            }
+            let result:number=data as number;
+            switch(result){
+              case null:{// null возвращает если не удалось создать документ из-за ошибки
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка "+ (complete?"проведения":"сохренения") + " документа \"Инвентаризация\""}});
+                break;
+              }
+              case -1:{//недостаточно прав
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для данной операции"}});
+                break;
+              }
+              default:{// Успешно
+                this.openSnackBar("Документ \"Инвентаризация\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
+                this.getLinkedDocsScheme(true);//обновляем схему связанных документов
+                if(complete) {
+                  this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведённости = true
+                  if(this.inventoryProductsTableComponent){
+                    this.inventoryProductsTableComponent.showColumns(); //чтобы спрятать столбцы после проведения 
+                    this.inventoryProductsTableComponent.getProductsTable();
+                  }
+                  if(this.settingsForm.get('statusIdOnComplete').value){//если в настройках есть "Статус при проведении" - выставим его
+                    this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
+                  this.setStatusColor();//чтобы обновился цвет статуса
+                }
+              }
+            }
           },
           error => {
             this.showQueryErrorMessage(error);

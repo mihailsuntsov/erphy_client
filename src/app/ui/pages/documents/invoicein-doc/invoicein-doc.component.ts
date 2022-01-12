@@ -915,6 +915,7 @@ export class InvoiceinDocComponent implements OnInit {
               }
               default:{// Успешно
                 this.openSnackBar("Документ \"Счёт поставщика\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
+                this.getLinkedDocsScheme(true);//обновляем схему связанных документов
                 if(complete) {
                   this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведённости = true
                   if(this.invoiceinProductsTableComponent){
