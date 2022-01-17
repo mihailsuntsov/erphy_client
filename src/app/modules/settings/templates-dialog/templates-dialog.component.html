@@ -1,0 +1,213 @@
+<mat-card class="card">
+    <mat-card-title class="flex">
+        <div class="card-name">Настройки шаблонов</div>
+        <button 
+            style="width: 129px;height: 36px;"
+            (click)="applyTemplates()"
+            matTooltip="Сохранить настройки"
+            mat-raised-button 
+            color="primary"
+            [disabled]="(!formBaseInformation.valid)"
+            >
+            <i class="material-icons">done</i> Сохранить 
+        </button>
+        <button 
+            (click)="onNoClick()"
+            style="width: 129px;height: 36px;"
+            matTooltip="Закрыть окно настроек"
+            mat-raised-button 
+            color="accent"
+            class="button">
+            <i class="material-icons">close</i> Закрыть 
+        </button>
+    </mat-card-title>
+    <mat-card-content > 
+        <div class="card">
+            <mat-spinner 
+            strokeWidth="3" 
+            class="spinner"
+            [diameter]="50"
+            *ngIf="gettingData"
+            ></mat-spinner>
+            <form [formGroup]="formBaseInformation">
+                <div class="container-fluid">
+                    <!-- <div class="row">
+                        <div class="col-12"> 
+                            <mat-form-field  class="mat-form-field-100">
+                                <mat-label> Предприятие  </mat-label>
+                                <mat-select formControlName="companyId"  (selectionChange)="onCompanyChange()" matTooltip="Предприятие по умолчанию">
+                                    
+                                    <mat-option *ngFor="let cmp of receivedCompaniesList" 
+                                                [value]="cmp.id">
+                                                {{cmp.name}}
+                                    </mat-option>
+                                </mat-select>
+                                <mat-hint  align="start" *ngIf="formBaseInformation.get('companyId').touched && formBaseInformation.get('companyId').invalid">
+                                    <i class="form-invalid">Предприятие не выбрано.</i>
+                                </mat-hint>
+                            </mat-form-field>
+                        </div>
+                    </div> -->
+                    
+                </div>
+                
+                <!-- <mat-divider></mat-divider> -->
+                
+                <div cdkDropList (cdkDropListDropped)="dropTemplate($event)" style="margin-top:40px">
+                    <mat-card   *ngFor="let template of formBaseInformation.get('templatesList').controls;let i = index" 
+                                [formGroup]="template"
+                                cdkDrag
+                                style="background-color: #f7f7f7; margin-top:5px">
+                        <div cdkDragHandle  [style.display]="editability?'block':'none'">
+                            <mat-icon   matTooltip='Переместить'
+                                        class="handler" 
+                                        *ngIf="formBaseInformation.get('templatesList').controls.length>1">
+                                        swap_vertical_circle
+                            </mat-icon>
+                        </div>
+                        <div  [style.display]="editability?'block':'none'">
+                            <mat-icon   (click)="deleteTemplate(i)" 
+                                        class="del-icon" 
+                                        matTooltip='Удалить'>
+                                        cancel
+                            </mat-icon>
+                        </div>
+                        <mat-card-content class="input-form" >
+
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <div class="col-12 col-sm-1"> 
+                                        <mat-form-field [style.display]="'none'">
+                                            <input  matInput
+                                                placeholder="Файл шаблона на диске"
+                                                [readonly]=true
+                                                formControlName="file_name"/>
+                                        </mat-form-field>                                        
+                                        <mat-form-field [style.display]="'none'">
+                                            <input   matInput
+                                                    placeholder="file_id"                                        
+                                                    [readonly]=true
+                                                    #file_id
+                                                    formControlName="file_id"/>
+                                        </mat-form-field>
+                                        <mat-form-field [style.display]="'none'">
+                                            <input   matInput
+                                                    placeholder="template_type_id"
+                                                    [readonly]=true
+                                                    #template_type_id
+                                                    formControlName="template_type_id"/>
+                                        </mat-form-field>
+                                        <mat-form-field [style.display]="'none'">
+                                            <input   matInput
+                                                    placeholder="template_type"
+                                                    [readonly]=true
+                                                    #template_type
+                                                    formControlName="template_type"/>
+                                        </mat-form-field>
+                                        <mat-form-field [style.display]="'none'">
+                                            <input   matInput
+                                                    placeholder="company_id"
+                                                    [readonly]=true
+                                                    #company_id
+                                                    formControlName="company_id"/>
+                                        </mat-form-field>
+                                        <mat-form-field [style.display]="'none'">
+                                            <input   matInput
+                                                    placeholder="document_id"
+                                                    [readonly]=true
+                                                    #document_id
+                                                    formControlName="document_id"/>
+                                        </mat-form-field>
+                                        <mat-form-field [style.display]="'none'">
+                                            <input matInput placeholder="id" formControlName="id"/>
+                                        </mat-form-field>
+                                        
+                                        <mat-form-field [style.display]="'none'">
+                                            <input   matInput
+                                                    placeholder="output_order"
+                                                    formControlName="output_order"/>
+                                        </mat-form-field>
+
+
+                                        <mat-form-field id="toggle"
+                                            class="mat-form-field-100" 
+                                            style="margin-top:-9px">
+                                            <mat-slide-toggle 
+                                                formControlName="is_show"
+                                                matTooltip='Включите, если шаблон необходимо отображать в списке'>
+                                            </mat-slide-toggle>
+                                            <input matInput hidden/>
+                                        </mat-form-field>
+                                    </div>
+                                    <div class="col-12 col-sm-6"> 
+                                        <mat-form-field class="mat-form-field-100">
+                                            <mat-label> Тип шаблона </mat-label>
+                                            <mat-select #tti formControlName="template_type_id"  matTooltip="Тип шаблона, которому соответствует файл шаблона">
+                                                
+                                                <mat-option *ngFor="let cmp of templateTypesList"
+                                                            (click)="onTemplateTypeChange(cmp)" 
+                                                            [value]="cmp.id">
+                                                            {{cmp.template_type_name}}
+                                                </mat-option>
+                                            </mat-select>
+                                            <!-- <mat-hint  align="start" *ngIf="formBaseInformation.get('companyId').touched && formBaseInformation.get('companyId').invalid">
+                                                <i class="form-invalid">Предприятие не выбрано.</i>
+                                            </mat-hint> -->
+                                        </mat-form-field>
+                                    </div>
+                                    <div class="col-12 col-sm-5"> 
+                                        <mat-form-field class="mat-form-field-100">
+                                            <div *ngIf="editability && +file_id.value==0" class="add-file">
+                                                <mat-icon   
+                                                    matTooltip="Выбрать файл"
+                                                    class="add_circle"
+                                                    (click)="addFileInField(tti.value)">
+                                                    add_circle
+                                                </mat-icon>
+                                            </div>
+                                            <div style="min-width:70px;">
+                                                <!-- <mat-icon   *ngIf="file_id.value"
+                                                            class="open-file"
+                                                            (click)="openFileCard(file_id.value)"
+                                                            matTooltip='Открыть карточку файла'
+                                                        >
+                                                    <mat-icon>launch</mat-icon>
+                                                </mat-icon> -->
+                                                <mat-icon 
+                                                        *ngIf="editability && file_id.value"
+                                                        class="del-file"
+                                                        (click)="deleteFileInField(file_id.value)"
+                                                        matTooltip='Удалить файл'
+                                                        >
+                                                    <mat-icon>delete_forever</mat-icon>
+                                                </mat-icon>
+                                            </div>
+                                            <input  matInput
+                                                    placeholder="Файл шаблона"
+                                                    style="cursor: pointer;"
+                                                    [readonly]=true
+                                                    (click)="openFileCard(file_id.value)"
+                                                    formControlName="file_original_name"/>
+                                            
+                                        </mat-form-field>
+                                        <p *cdkDragPreview></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </mat-card-content>
+                    </mat-card>
+                </div>
+                <div class="div-100" [style.display]="editability"> 
+                    <div class="center hand" style="width:100%; height: 38px;text-align: center; padding: 7px;">
+                        <button matTooltip="Добавить шаблон" mat-mini-fab color="primary" (click)="addNewTemplate()">
+                            <mat-icon>add</mat-icon>
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+        <!-- <code><pre>{{formBaseInformation.value | json}}</pre></code> -->
+    </mat-card-content> 
+</mat-card>
+    

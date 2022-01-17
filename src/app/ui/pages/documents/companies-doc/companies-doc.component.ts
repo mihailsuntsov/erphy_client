@@ -1151,7 +1151,7 @@ constructor(private activateRoute: ActivatedRoute,
       data:
       { 
         head: 'Удаление файла',
-        query: 'Удалить файл из приёмки?',
+        query: 'Удалить файл?',
         warning: 'Файл не будет удалён безвозвратно, он останется в библиотеке "Файлы".',
       },
     });

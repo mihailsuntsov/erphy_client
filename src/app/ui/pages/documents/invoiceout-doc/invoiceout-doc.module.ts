@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { InvoiceoutDocRoutingModule } from './invoiceout-doc-routing.module';
 import { InvoiceoutDocComponent } from './invoiceout-doc.component';
 import { ValidationService } from './validation.service';
+import { TemplatesDialogModule } from '../../../../modules/settings/templates-dialog/templates-dialog.module';
 import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SettingsInvoiceoutDialogModule } from '../../../../modules/settings/settings-invoiceout-dialog/settings-invoiceout-dialog.module';
@@ -16,6 +17,7 @@ import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balanc
     CommonModule,
     InvoiceoutDocRoutingModule,
     SettingsInvoiceoutDialogModule,
+    TemplatesDialogModule,
     ProductSearchAndTableModule,
     // KkmModule,
     BalanceCagentModule,
