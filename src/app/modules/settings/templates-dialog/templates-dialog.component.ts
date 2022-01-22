@@ -110,11 +110,10 @@ export class TemplatesDialogComponent implements OnInit {
     this.http.get('/api/auth/getTemplatesList?company_id='+this.company_id+"&document_id="+this.document_id+"&is_show="+false).subscribe
     (
       data => 
-      { 
-        this.gettingData=false;
+      {         
         result=data as TemplatesList[];
         this.fillTemplatesArray(result);
-        
+        this.gettingData=false;
       },
       error => {console.log(error);this.gettingData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
     );
@@ -135,7 +134,7 @@ export class TemplatesDialogComponent implements OnInit {
       template_type:        new FormControl (m.template_type,[Validators.required]),
       template_type_id:     new FormControl (m.template_type_id,[Validators.required]),
       template_type_name:   new FormControl (m.template_type_name,[]),
-      output_order: this.getTemplatesOutputOrder()
+      output_order:         this.getTemplatesOutputOrder()
       }))
     })
   }

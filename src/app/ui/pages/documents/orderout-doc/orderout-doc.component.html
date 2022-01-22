@@ -98,7 +98,7 @@
                     style="width: 129px;height: 36px;min-width: 38px;"
                     mat-raised-button 
                     *ngIf=" +id>0 && allowToComplete && canGetChilds && !formBaseInformation.get('is_completed').value"
-                    [disabled]="!formBaseInformation.valid" 
+                    [disabled]="isFormInvalid" 
                     (click)="completeDocument()" 
                     type="button"
                     color="primary"
@@ -111,7 +111,7 @@
                     *ngIf="+id>0 && allowToUpdate && canGetChilds && !formBaseInformation.get('is_completed').value"
                     matTooltip='Сохранить документ'
                     (click)="updateDocument()"
-                    [disabled]="!formBaseInformation.valid" 
+                    [disabled]="isFormInvalid" 
                     color="primary"
                     type="button"
                     class="button">
@@ -123,7 +123,7 @@
                     (click)="createNewDocument()" 
                     style="width: 129px;height: 36px;min-width: 38px;"
                     *ngIf="allowToCreate && +id==0 "
-                    [disabled]="!formBaseInformation.valid" 
+                    [disabled]="isFormInvalid " 
                     color="primary"
                     type="submit"
                     class="button">

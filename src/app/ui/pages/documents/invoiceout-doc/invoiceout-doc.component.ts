@@ -1532,7 +1532,7 @@ drawLinkedDocsScheme(){
 // открывает диалог печати
   openDialogTemplates() { 
     const dialogTemplates = this.templatesDialogComponent.open(TemplatesDialogComponent, {
-      maxWidth: '95vw',
+      maxWidth: '1000px',
       maxHeight: '95vh',
       // height: '680px',
       width: '95vw', 
@@ -1560,7 +1560,24 @@ drawLinkedDocsScheme(){
       },error => {console.log(error);this.gettingTemplatesData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
   }
   clickOnTemplate(template:TemplatesList){
-
+    const baseUrl = '/api/auth/invoiceoutPrint/';
+    this.http.get(baseUrl+ 
+                  "?file_name="+template.file_name+
+                  "&doc_id="+this.id+
+                  "&tt_id="+template.template_type_id,
+                  { responseType: 'blob' as 'json', withCredentials: false}).subscribe(
+      (response: any) =>{
+          let dataType = response.type;
+          let binaryData = [];
+          binaryData.push(response);
+          let downloadLink = document.createElement('a');
+          downloadLink.href = window.URL.createObjectURL(new Blob(binaryData, {type: dataType}));
+          downloadLink.setAttribute('download', template.file_original_name);
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+      }, 
+      error => console.log(error),
+    );  
   }
 //**************************** КАССОВЫЕ ОПЕРАЦИИ  ******************************/
   //принимает от кассового модуля запрос на итоговую цену. цена запрашивается у returnProductsTableComponent и отдаётся в totalSumPriceHandler обратно в кассовый модуль

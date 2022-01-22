@@ -344,9 +344,13 @@ export class OrderoutDocComponent implements OnInit {
   ngAfterContentChecked() {
     this.cdRef.detectChanges();
   }
-  //чтобы "на лету" чекать валидность таблицы с товарами
-  get childFormValid() {
-    return true;    
+  //чтобы "на лету" чекать валидность всех полей в зависимости от разных вариантов типа внутреннего перевода
+  get isFormInvalid() {
+    return (!this.formBaseInformation.valid 
+      || (!(this.expenditureType=='moving') && +this.formBaseInformation.get('cagent_id').value==0)
+      || (this.expenditureType=='moving' && this.formBaseInformation.get('moving_type').value=='kassa' && +this.formBaseInformation.get('kassa_to_id').value==0)
+      || (this.expenditureType=='moving' && this.formBaseInformation.get('moving_type').value=='boxoffice' && +this.formBaseInformation.get('boxoffice_to_id').value==0)
+      || (this.expenditureType=='moving' && this.formBaseInformation.get('moving_type').value=='account' && +this.formBaseInformation.get('payment_account_to_id').value==0));    
   }
 
   //---------------------------------------------------------------------------------------------------------------------------------------                            

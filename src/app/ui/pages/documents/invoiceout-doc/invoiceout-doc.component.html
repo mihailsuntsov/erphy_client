@@ -63,12 +63,17 @@
                 </div>
                 
                 <button mat-menu-item *ngFor="let template of templatesList">
-                    <span (click)="clickOnTemplate(template)">{{template.template_type_name}}</span>
+                    <div style="width:100%; height: 100%;" (click)="clickOnTemplate(template)">
+                        <span >{{template.template_type_name}}</span>                    
+                    </div>
                 </button>
                 <mat-divider></mat-divider>
                 <button mat-menu-item (click)="openDialogTemplates()" matTooltip='Настроить меню, вызываемое при нажатии кнопки "Печать"'>
                     <span>Настроить меню печати</span>
                 </button>
+                <!-- <button mat-menu-item (click)="getCompanyCard('1d1b1500-083-2022-01-14-14-55-05-553.xls','test.xls')" matTooltip='Настроить меню, вызываемое при нажатии кнопки "Печать"'>
+                    <span>Тест</span>
+                </button> -->
             </mat-menu>
             <button 
                 mat-button 
