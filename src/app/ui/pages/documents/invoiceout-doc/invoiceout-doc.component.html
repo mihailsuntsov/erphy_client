@@ -31,14 +31,13 @@
             <button 
                 mat-raised-button 
                 color="primary"
-                matTooltip='Настройки документа "Счёт покупателю"'
+                matTooltip='Пользовательские настройки документа'
                 (click)="openDialogSettings()"
                 type="button"
                 (submit)="false"
                 class="button small-button">
                 <i class="material-icons">settings</i>
             </button>
-            <!-- (click)="getCompanyCard('1d1b1500-083-2022-01-14-14-55-05-553.xls','test.xls')" -->
             <button 
                 mat-raised-button 
                 [matMenuTriggerFor]="templatesMenu"
@@ -60,8 +59,7 @@
                     [diameter]="50"
                     *ngIf="gettingTemplatesData"
                 ></mat-spinner>
-                </div>
-                
+                </div>                
                 <button mat-menu-item *ngFor="let template of templatesList">
                     <div style="width:100%; height: 100%;" (click)="clickOnTemplate(template)">
                         <span >{{template.template_type_name}}</span>                    
@@ -71,9 +69,6 @@
                 <button mat-menu-item (click)="openDialogTemplates()" matTooltip='Настроить меню, вызываемое при нажатии кнопки "Печать"'>
                     <span>Настроить меню печати</span>
                 </button>
-                <!-- <button mat-menu-item (click)="getCompanyCard('1d1b1500-083-2022-01-14-14-55-05-553.xls','test.xls')" matTooltip='Настроить меню, вызываемое при нажатии кнопки "Печать"'>
-                    <span>Тест</span>
-                </button> -->
             </mat-menu>
             <button 
                 mat-button 

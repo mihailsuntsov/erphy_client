@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 
 import { VatinvoiceoutRoutingModule } from './vatinvoiceout-routing.module';
 import { VatinvoiceoutComponent } from './vatinvoiceout.component';
+import { TemplatesDialogModule } from '../../../../modules/settings/templates-dialog/templates-dialog.module';
 
 import { SettingsVatinvoiceoutDialogModule } from '../../../../modules/settings/settings-vatinvoiceout-dialog/settings-vatinvoiceout-dialog.module';
 
@@ -15,6 +16,7 @@ import { MaterialModule } from '../../../../modules/material.module';
     CommonModule,
     VatinvoiceoutRoutingModule,
     SettingsVatinvoiceoutDialogModule,
+    TemplatesDialogModule,
     
     FormsModule,
     MaterialModule

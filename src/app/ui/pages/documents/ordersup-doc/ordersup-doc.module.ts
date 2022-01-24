@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OrdersupDocRoutingModule } from './ordersup-doc-routing.module';
+import { TemplatesDialogModule } from '../../../../modules/settings/templates-dialog/templates-dialog.module';
 import { OrdersupDocComponent } from './ordersup-doc.component';
 import { ValidationService } from './validation.service';
 import { MaterialModule } from '../../../../modules/material.module';
@@ -16,6 +17,7 @@ import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balanc
     OrdersupDocRoutingModule,
     SettingsOrdersupDialogModule,
     OrdersupProductsTableModule,
+    TemplatesDialogModule,
     BalanceCagentModule,
 
     MaterialModule,

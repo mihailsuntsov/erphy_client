@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AcceptanceDocRoutingModule } from './acceptance-doc-routing.module';
 import { AcceptanceDocComponent } from './acceptance-doc.component';
-
+import { TemplatesDialogModule } from '../../../../modules/settings/templates-dialog/templates-dialog.module';
 import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SettingsAcceptanceDialogModule } from '../../../../modules/settings/settings-acceptance-dialog/settings-acceptance-dialog.module';
@@ -13,6 +13,7 @@ import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balanc
   declarations: [AcceptanceDocComponent],
   imports: [
     CommonModule,
+    TemplatesDialogModule,
     AcceptanceDocRoutingModule,
     SettingsAcceptanceDialogModule,
     AcceptanceProductsTableModule,

@@ -21,6 +21,7 @@ import { ProductSearchAndTableComponent } from 'src/app/modules/trade-modules/pr
 import { BalanceCagentComponent } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.component';
 // import { KkmComponent } from 'src/app/modules/trade-modules/kkm/kkm.component';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+import { TemplatesDialogComponent } from 'src/app/modules/settings/templates-dialog/templates-dialog.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatAccordion } from '@angular/material/expansion';
 import { DelCookiesService } from './del-cookies.service';
@@ -211,6 +212,19 @@ interface statusInterface{
   description:string;
   is_default:boolean;
 }
+interface TemplatesList{
+    id: number;                   // id из таблицы template_docs
+    company_id: number;           // id предприятия, для которого эти настройки
+    template_type_name: string;   // наименование шаблона. Например, Товарный чек
+    template_type: string;        // обозначение типа шаблона. Например, для товарного чека это product_receipt
+    template_type_id: number;     // id типа шаблона
+    file_id: number;              // id из таблицы files
+    file_name: string;            // наименование файла как он хранится на диске
+    file_original_name: string;   // оригинальное наименование файла
+    document_id: number;          // id документа, в котором будет возможность печати данного шаблона (соответствует id в таблице documents)
+    is_show: boolean;             // показывать шаблон в выпадающем списке на печать
+    output_order: number;         // порядок вывода наименований шаблонов в списке на печать
+}
 
 @Component({
   selector: 'app-customersorders-doc',
@@ -265,6 +279,11 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
   secondaryDepartments:SecondaryDepartment[]=[];// склады в выпадающем списке складов формы поиска товара
   spravSysEdizmOfProductAll: idAndNameAndShorname[] = [];// массив, куда будут грузиться все единицы измерения товара
   receivedPriceTypesList: idNameDescription [] = [];//массив для получения списка типов цен
+
+  //печать документов
+  gettingTemplatesData: boolean = false; // идёт загрузка шаблонов
+  templatesList:TemplatesList[]=[]; // список загруженных шаблонов
+
 
   //поиск адреса и юр. адреса (Страна, Район, Город):
   // Страны 
@@ -366,6 +385,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
     private http: HttpClient,
     public ShowImageDialog: MatDialog,
     public ConfirmDialog: MatDialog,
+    private templatesDialogComponent: MatDialog,
     public commonUtilites: CommonUtilitesService,
     public dialogAddFiles: MatDialog,
     public ProductReservesDialogComponent: MatDialog,
@@ -2127,6 +2147,57 @@ drawLinkedDocsScheme(){
   } else this.loadingDocsScheme=false;
 }
 
+//**************************** ПЕЧАТЬ ДОКУМЕНТОВ  ******************************/
+// открывает диалог печати
+openDialogTemplates() { 
+  const dialogTemplates = this.templatesDialogComponent.open(TemplatesDialogComponent, {
+    maxWidth: '1000px',
+    maxHeight: '95vh',
+    // height: '680px',
+    width: '95vw', 
+    minHeight: '95vh',
+    data:
+    { //отправляем в диалог:
+      company_id: +this.formBaseInformation.get('company_id').value, //предприятие
+      document_id: 23, // id документа из таблицы documents
+    },
+  });
+  dialogTemplates.afterClosed().subscribe(result => {
+    if(result){
+      
+    }
+  });
+}
+// при нажатии на кнопку печати - нужно подгрузить список шаблонов для этого типа документа
+printDocs(){
+  this.gettingTemplatesData=true;
+  this.templatesList=[];
+  this.http.get('/api/auth/getTemplatesList?company_id='+this.formBaseInformation.get('company_id').value+"&document_id="+23+"&is_show="+true).subscribe
+  (data =>{ 
+      this.gettingTemplatesData=false;
+      this.templatesList=data as TemplatesList[];
+    },error => {console.log(error);this.gettingTemplatesData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+}
+clickOnTemplate(template:TemplatesList){
+  const baseUrl = '/api/auth/customersOrdersPrint/';
+  this.http.get(baseUrl+ 
+                "?file_name="+template.file_name+
+                "&doc_id="+this.id+
+                "&tt_id="+template.template_type_id,
+                { responseType: 'blob' as 'json', withCredentials: false}).subscribe(
+    (response: any) =>{
+        let dataType = response.type;
+        let binaryData = [];
+        binaryData.push(response);
+        let downloadLink = document.createElement('a');
+        downloadLink.href = window.URL.createObjectURL(new Blob(binaryData, {type: dataType}));
+        downloadLink.setAttribute('download', template.file_original_name);
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+    }, 
+    error => console.log(error),
+  );  
+}
     //**************************** КАССОВЫЕ ОПЕРАЦИИ  ******************************/
 
   //обработчик события успешной печати чека - в Заказе покупателя это выставление статуса документа, сохранение и создание нового.  

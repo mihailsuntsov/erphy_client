@@ -28,27 +28,58 @@
             </div>
             <button 
                 mat-raised-button 
-                style="width: 36px;height: 36px;min-width: 38px;padding: 0px;"
                 color="primary"
-                matTooltip='Настройки документа "Заказ поставщику"'
+                matTooltip='Пользовательские настройки документа'
                 (click)="openDialogSettings()"
                 type="button"
-                class="button">
+                class="button small-button">
                 <i class="material-icons">settings</i>
             </button>
+            <button 
+                mat-raised-button 
+                [matMenuTriggerFor]="templatesMenu"
+                *ngIf="+id>0"
+                matTooltip='Печать документов'
+                color="primary"                
+                (click)="printDocs()"
+                type="button"
+                (submit)="false"
+                class="button small-button">
+                <i class="material-icons">print</i>
+            </button>
+            <mat-menu #templatesMenu="matMenu" yPosition="below" xPosition="before">
+                <div *ngIf="gettingTemplatesData" style="width:240px; height: 125px;">
+                    <mat-spinner 
+                    strokeWidth="3" 
+                    class="spinner"
+                    style="position: relative;"
+                    [diameter]="50"
+                    *ngIf="gettingTemplatesData"
+                ></mat-spinner>
+                </div>                
+                <button mat-menu-item *ngFor="let template of templatesList">
+                    <div style="width:100%; height: 100%;" (click)="clickOnTemplate(template)">
+                        <span >{{template.template_type_name}}</span>                    
+                    </div>
+                </button>
+                <mat-divider></mat-divider>
+                <button mat-menu-item (click)="openDialogTemplates()" matTooltip='Настроить меню, вызываемое при нажатии кнопки "Печать"'>
+                    <span>Настроить меню печати</span>
+                </button>
+            </mat-menu>
             <button 
                 mat-button 
                 [matMenuTriggerFor]="addDocMenu"
                 mat-raised-button 
-                matTooltip='Создать связанные документы'
+                matTooltip='Создать документы'
                 [disabled]="!childFormValid||!formBaseInformation.valid||ordersupProductsTableComponent.indivisibleErrorOfProductTable" 
                 *ngIf="+id>0 && ordersupProductsTableComponent"
                 color="primary"
                 (submit)="false"
                 type="button"
-                class="button"
-                style="width: 129px;height: 36px;min-width: 38px;">
-                <i class="material-icons">add</i> Документ<i class="material-icons">arrow_drop_down</i>
+                class="button small-button"
+                >
+                <i class="material-icons">add</i>
             </button>
             <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
                 <button mat-menu-item (click)="goToNewDocument()">
@@ -65,58 +96,56 @@
                 </button>
             </mat-menu>
             <button 
-                style="width: 129px;height: 36px;min-width: 38px;"
+                matTooltip='Провести документ'
                 mat-raised-button 
                 *ngIf=" +id>0 && !formBaseInformation.get('is_completed').value && ordersupProductsTableComponent"
                 [disabled]="!childFormValid||!formBaseInformation.valid||ordersupProductsTableComponent.indivisibleErrorOfProductTable" 
                 (click)="completeDocument()" 
                 type="button"
                 color="primary"
-                class="button">
-                <i class="material-icons">playlist_add_check</i> Провести
+                class="button small-button">
+                <i class="material-icons">playlist_add_check</i>
             </button>
             <button 
                 mat-raised-button 
-                style="width: 129px;height: 36px;min-width: 38px;"
-                *ngIf="+id>0 && allowToUpdate && canGetChilds && !formBaseInformation.get('is_completed').value && ordersupProductsTableComponent"
                 matTooltip='Сохранить документ'
+                *ngIf="+id>0 && allowToUpdate && canGetChilds && !formBaseInformation.get('is_completed').value && ordersupProductsTableComponent"
                 (click)="updateDocument()"
                 [disabled]="!childFormValid||!formBaseInformation.valid||ordersupProductsTableComponent.indivisibleErrorOfProductTable" 
                 color="primary"
                 type="button"
-                class="button">
-                <i class="material-icons">done</i> Сохранить
+                class="button small-button">
+                <i class="material-icons">save</i>
             </button>
             <button 
                 mat-raised-button 
                 matTooltip='Создать документ'
                 (click)="createNewDocument()" 
-                style="width: 129px;height: 36px;min-width: 38px;"
                 *ngIf="allowToCreate && +id==0  && ordersupProductsTableComponent"
                 [disabled]="!childFormValid||!formBaseInformation.valid||ordersupProductsTableComponent.indivisibleErrorOfProductTable" 
                 color="primary"
                 type="submit"
-                class="button">
-                <i class="material-icons">done</i> Создать
+                class="button small-button">
+                <i class="material-icons">done</i>
             </button>
             <a routerLink="../../ordersup"  [style.display]="(mode=='standart')?'block':'none'">
-                <button 
-                    style="width: 129px;height: 36px;min-width: 38px;"
+                <button                     
+                    [matTooltip]="id>0?'Выйти в меню':'Отмена создания документа'"
                     mat-raised-button 
                     [matTooltip]="id>0?'Выйти из документа в меню':'Отменить создание нового документа'"
                     color="accent"
-                    class="button">
-                    <i class="material-icons">close</i>  {{id>0?'Выйти':'Отмена'}}
+                    class="button small-button">
+                    <i class="material-icons">close</i>
                 </button>
             </a>
             <button [style.display]="(mode=='window')?'block':'none'"
                     mat-raised-button
+                    matTooltip='Закрыть окно'
                     style="margin-left:10px"
                     [mat-dialog-close]="formBaseInformation.get('is_completed').value"
                     matDialogClose 
                     color="accent">
                     <i class="material-icons">close</i>
-                    <span> Закрыть </span>
             </button>
         </mat-card-title>
         <mat-card-content> 

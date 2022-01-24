@@ -5,6 +5,7 @@ import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl } from '@a
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
+import { TemplatesDialogComponent } from 'src/app/modules/settings/templates-dialog/templates-dialog.component';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { SettingsInvoiceinDialogComponent } from 'src/app/modules/settings/settings-invoicein-dialog/settings-invoicein-dialog.component';
@@ -129,6 +130,19 @@ interface SpravSysNdsSet{
   is_active: string;
   calculated: string;
 }
+interface TemplatesList{
+    id: number;                   // id из таблицы template_docs
+    company_id: number;           // id предприятия, для которого эти настройки
+    template_type_name: string;   // наименование шаблона. Например, Товарный чек
+    template_type: string;        // обозначение типа шаблона. Например, для товарного чека это product_receipt
+    template_type_id: number;     // id типа шаблона
+    file_id: number;              // id из таблицы files
+    file_name: string;            // наименование файла как он хранится на диске
+    file_original_name: string;   // оригинальное наименование файла
+    document_id: number;          // id документа, в котором будет возможность печати данного шаблона (соответствует id в таблице documents)
+    is_show: boolean;             // показывать шаблон в выпадающем списке на печать
+    output_order: number;         // порядок вывода наименований шаблонов в списке на печать
+}
 
 @Component({
   selector: 'app-invoicein-doc',
@@ -167,6 +181,10 @@ export class InvoiceinDocComponent implements OnInit {
   //для загрузки связанных документов
   linkedDocsReturn:LinkedDocs[]=[];
   panelReturnOpenState=false;
+
+  //печать документов
+  gettingTemplatesData: boolean = false; // идёт загрузка шаблонов
+  templatesList:TemplatesList[]=[]; // список загруженных шаблонов
 
   // Формы
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
@@ -227,6 +245,7 @@ export class InvoiceinDocComponent implements OnInit {
     private _fb: FormBuilder, //чтобы билдить группу форм invoiceinProductTable
     private http: HttpClient,
     public ConfirmDialog: MatDialog,
+    private templatesDialogComponent: MatDialog,
     public dialogAddFiles: MatDialog,
     private commonUtilites: CommonUtilitesService,
     public SettingsInvoiceinDialogComponent: MatDialog,
@@ -377,7 +396,7 @@ export class InvoiceinDocComponent implements OnInit {
   //---------------------------------------------------------------------------------------------------------------------------------------
 
   getSetOfPermissions(){
-    return this.http.get('/api/auth/getMyPermissions?id=39')
+    return this.http.get('/api/auth/getMyPermissions?id=32')
       .subscribe(
           (data) => {   
                       this.permissionsSet=data as any [];
@@ -496,21 +515,21 @@ export class InvoiceinDocComponent implements OnInit {
         .subscribe((data) => {this.spravSysNdsSet=data as any[];},
         error => console.log(error));}
   getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==425)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==426)});
-    this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==427)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==432)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==433)});
-    this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==434)});
-    this.allowToViewMyDocs = permissionsSet.some(                 function(e){return(e==435)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==436)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==437)});
-    this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==438)});
-    this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==439)});
-    this.allowToCompleteAllCompanies = permissionsSet.some(       function(e){return(e==440)});
-    this.allowToCompleteMyCompany = permissionsSet.some(          function(e){return(e==441)});
-    this.allowToCompleteMyDepartments = permissionsSet.some(      function(e){return(e==442)});
-    this.allowToCompleteMyDocs = permissionsSet.some(             function(e){return(e==443)});
+    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==445)});
+    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==446)});
+    this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==447)});
+    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==452)});
+    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==453)});
+    this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==454)});
+    this.allowToViewMyDocs = permissionsSet.some(                 function(e){return(e==455)});
+    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==456)});
+    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==457)});
+    this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==458)});
+    this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==459)});
+    this.allowToCompleteAllCompanies = permissionsSet.some(       function(e){return(e==460)});
+    this.allowToCompleteMyCompany = permissionsSet.some(          function(e){return(e==461)});
+    this.allowToCompleteMyDepartments = permissionsSet.some(      function(e){return(e==462)});
+    this.allowToCompleteMyDocs = permissionsSet.some(             function(e){return(e==463)});
    
     if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;this.allowToCreateMyDepartments=true}
     if(this.allowToCreateMyCompany)this.allowToCreateMyDepartments=true;
@@ -792,9 +811,9 @@ export class InvoiceinDocComponent implements OnInit {
       invoicein_id:      new FormControl (this.id,[]),
       nds_id:             new FormControl (row.nds_id,[]),
       product_count:      new FormControl ((+row.product_count),[]),
-      product_netcost:    new FormControl ((+row.product_netcost).toFixed(2),[]),
+      // product_netcost:    new FormControl ((+row.product_netcost).toFixed(2),[]),
       product_price:      new FormControl ((+row.product_price).toFixed(2),[]),
-      product_sumprice:   new FormControl ((+row.product_count*(+row.product_price)).toFixed(2),[]),
+      product_sumprice: new FormControl (this.numToPrice(row.product_sumprice,2),[]),
     });
   }
   
@@ -1373,6 +1392,57 @@ drawLinkedDocsScheme(){
     }
   } else this.loadingDocsScheme=false;
 }
+//**************************** ПЕЧАТЬ ДОКУМЕНТОВ  ******************************/
+// открывает диалог печати
+  openDialogTemplates() { 
+    const dialogTemplates = this.templatesDialogComponent.open(TemplatesDialogComponent, {
+      maxWidth: '1000px',
+      maxHeight: '95vh',
+      // height: '680px',
+      width: '95vw', 
+      minHeight: '95vh',
+      data:
+      { //отправляем в диалог:
+        company_id: +this.formBaseInformation.get('company_id').value, //предприятие
+        document_id: 32, // id документа из таблицы documents
+      },
+    });
+    dialogTemplates.afterClosed().subscribe(result => {
+      if(result){
+        
+      }
+    });
+  }
+  // при нажатии на кнопку печати - нужно подгрузить список шаблонов для этого типа документа
+  printDocs(){
+    this.gettingTemplatesData=true;
+    this.templatesList=[];
+    this.http.get('/api/auth/getTemplatesList?company_id='+this.formBaseInformation.get('company_id').value+"&document_id="+32+"&is_show="+true).subscribe
+    (data =>{ 
+        this.gettingTemplatesData=false;
+        this.templatesList=data as TemplatesList[];
+      },error => {console.log(error);this.gettingTemplatesData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+  }
+  clickOnTemplate(template:TemplatesList){
+    const baseUrl = '/api/auth/invoiceinPrint/';
+    this.http.get(baseUrl+ 
+                  "?file_name="+template.file_name+
+                  "&doc_id="+this.id+
+                  "&tt_id="+template.template_type_id,
+                  { responseType: 'blob' as 'json', withCredentials: false}).subscribe(
+      (response: any) =>{
+          let dataType = response.type;
+          let binaryData = [];
+          binaryData.push(response);
+          let downloadLink = document.createElement('a');
+          downloadLink.href = window.URL.createObjectURL(new Blob(binaryData, {type: dataType}));
+          downloadLink.setAttribute('download', template.file_original_name);
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+      }, 
+      error => console.log(error),
+    );  
+  }
 //*****************************************************************************************************************************************/
   //------------------------------------------ COMMON UTILITES -----------------------------------------
   //Конвертирует число в строку типа 0.00 например 6.40, 99.25

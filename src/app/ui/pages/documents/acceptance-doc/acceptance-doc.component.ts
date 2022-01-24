@@ -11,6 +11,7 @@ import { SettingsAcceptanceDialogComponent } from 'src/app/modules/settings/sett
 import { AcceptanceProductsTableComponent } from 'src/app/modules/trade-modules/acceptance-products-table/acceptance-products-table.component';
 import { BalanceCagentComponent } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
+import { TemplatesDialogComponent } from 'src/app/modules/settings/templates-dialog/templates-dialog.component';
 import { Router } from '@angular/router';
 import { v4 as uuidv4 } from 'uuid';
 import { CommonUtilitesService } from 'src/app/services/common_utilites.serviсe';
@@ -128,6 +129,19 @@ interface SpravSysNdsSet{
   is_active: string;
   calculated: string;
 }
+interface TemplatesList{
+    id: number;                   // id из таблицы template_docs
+    company_id: number;           // id предприятия, для которого эти настройки
+    template_type_name: string;   // наименование шаблона. Например, Товарный чек
+    template_type: string;        // обозначение типа шаблона. Например, для товарного чека это product_receipt
+    template_type_id: number;     // id типа шаблона
+    file_id: number;              // id из таблицы files
+    file_name: string;            // наименование файла как он хранится на диске
+    file_original_name: string;   // оригинальное наименование файла
+    document_id: number;          // id документа, в котором будет возможность печати данного шаблона (соответствует id в таблице documents)
+    is_show: boolean;             // показывать шаблон в выпадающем списке на печать
+    output_order: number;         // порядок вывода наименований шаблонов в списке на печать
+}
 
 @Component({
   selector: 'app-acceptance-doc',
@@ -172,6 +186,10 @@ export class AcceptanceDocComponent implements OnInit {
   formBaseInformation: FormGroup; //массив форм для накопления информации о Возврате поставщику
   settingsForm: any; // форма с настройками
   formLinkedDocs: any;  // Форма для отправки при создании связанных документов
+
+  //печать документов
+  gettingTemplatesData: boolean = false; // идёт загрузка шаблонов
+  templatesList:TemplatesList[]=[]; // список загруженных шаблонов
 
   //переменные для управления динамическим отображением элементов
   // visAfterCreatingBlocks = true; //блоки, отображаемые ПОСЛЕ создания документа (id >0)
@@ -223,6 +241,7 @@ export class AcceptanceDocComponent implements OnInit {
     public ConfirmDialog: MatDialog,
     public dialogAddFiles: MatDialog,
     private commonUtilites: CommonUtilitesService,
+    private templatesDialogComponent: MatDialog,
     public SettingsAcceptanceDialogComponent: MatDialog,
     public dialogCreateProduct: MatDialog,
     @Optional() @Inject(MAT_DIALOG_DATA) public data: any,
@@ -735,7 +754,8 @@ export class AcceptanceDocComponent implements OnInit {
       product_count:      new FormControl ((+row.product_count),[]),
       product_netcost:    new FormControl ((+row.product_netcost).toFixed(2),[]),
       product_price:      new FormControl ((+row.product_price).toFixed(2),[]),
-      product_sumprice:   new FormControl ((+row.product_count*(+row.product_price)).toFixed(2),[]),
+      //product_sumprice:   new FormControl ((+row.product_count*(+row.product_price)).toFixed(2),[]),
+      product_sumprice: new FormControl (this.numToPrice(row.product_sumprice,2),[])
     });
   }
   
@@ -1312,6 +1332,58 @@ drawLinkedDocsScheme(){
     }
   } else this.loadingDocsScheme=false;
 }
+//**************************** ПЕЧАТЬ ДОКУМЕНТОВ  ******************************/
+// открывает диалог печати
+  openDialogTemplates() { 
+    const dialogTemplates = this.templatesDialogComponent.open(TemplatesDialogComponent, {
+      maxWidth: '1000px',
+      maxHeight: '95vh',
+      // height: '680px',
+      width: '95vw', 
+      minHeight: '95vh',
+      data:
+      { //отправляем в диалог:
+        company_id: +this.formBaseInformation.get('company_id').value, //предприятие
+        document_id: 15, // id документа из таблицы documents
+      },
+    });
+    dialogTemplates.afterClosed().subscribe(result => {
+      if(result){
+        
+      }
+    });
+  }
+  // при нажатии на кнопку печати - нужно подгрузить список шаблонов для этого типа документа
+  printDocs(){
+    this.gettingTemplatesData=true;
+    this.templatesList=[];
+    this.http.get('/api/auth/getTemplatesList?company_id='+this.formBaseInformation.get('company_id').value+"&document_id="+15+"&is_show="+true).subscribe
+    (data =>{ 
+        this.gettingTemplatesData=false;
+        this.templatesList=data as TemplatesList[];
+      },error => {console.log(error);this.gettingTemplatesData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+  }
+  clickOnTemplate(template:TemplatesList){
+    const baseUrl = '/api/auth/acceptancePrint/';
+    this.http.get(baseUrl+ 
+                  "?file_name="+template.file_name+
+                  "&doc_id="+this.id+
+                  "&tt_id="+template.template_type_id,
+                  { responseType: 'blob' as 'json', withCredentials: false}).subscribe(
+      (response: any) =>{
+          let dataType = response.type;
+          let binaryData = [];
+          binaryData.push(response);
+          let downloadLink = document.createElement('a');
+          downloadLink.href = window.URL.createObjectURL(new Blob(binaryData, {type: dataType}));
+          downloadLink.setAttribute('download', template.file_original_name);
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+      }, 
+      error => console.log(error),
+    );  
+  }
+
 //*****************************************************************************************************************************************/
   //------------------------------------------ COMMON UTILITES -----------------------------------------
   //Конвертирует число в строку типа 0.00 например 6.40, 99.25

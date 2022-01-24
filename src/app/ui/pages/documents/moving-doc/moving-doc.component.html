@@ -46,8 +46,7 @@
                 color="primary"
                 (submit)="false"
                 type="button"
-                class="button"
-                style="width: 129px;height: 36px;min-width: 38px;">
+                class="button">
                 <i class="material-icons">add</i> Документ<i class="material-icons">arrow_drop_down</i>
             </button>
             <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
@@ -56,7 +55,6 @@
                 </button>
             </mat-menu>
             <button 
-                style="width: 129px;height: 36px;min-width: 38px;"
                 mat-raised-button 
                 *ngIf=" +id>0 && allowToComplete && !formBaseInformation.get('is_completed').value && movingProductsTableComponent"
                 [disabled]="!childFormValid||movingProductsTableComponent.indivisibleErrorOfProductTable" 
@@ -68,7 +66,6 @@
             </button>
             <button 
                 mat-raised-button 
-                style="width: 129px;height: 36px;min-width: 38px;"
                 *ngIf="+id>0 && allowToUpdate && canGetChilds && !formBaseInformation.get('is_completed').value && movingProductsTableComponent"
                 matTooltip='Сохранить документ'
                 (click)="updateDocument()"
@@ -82,7 +79,6 @@
                 mat-raised-button 
                 matTooltip='Создать документ'
                 (click)="createNewDocument()" 
-                style="width: 129px;height: 36px;min-width: 38px;"
                 *ngIf="allowToCreate && +id==0  && movingProductsTableComponent"
                 [disabled]="!childFormValid||!formBaseInformation.valid||movingProductsTableComponent.indivisibleErrorOfProductTable" 
                 color="primary"
@@ -92,7 +88,6 @@
             </button>
             <a routerLink="../../moving"  [style.display]="(mode=='standart')?'block':'none'">
                 <button 
-                    style="width: 129px;height: 36px;min-width: 38px;"
                     mat-raised-button 
                     [matTooltip]="id>0?'Выйти из документа в меню':'Отменить создание нового документа'"
                     color="accent"

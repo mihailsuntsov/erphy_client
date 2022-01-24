@@ -1540,7 +1540,7 @@ drawLinkedDocsScheme(){
       data:
       { //отправляем в диалог:
         company_id: +this.formBaseInformation.get('company_id').value, //предприятие
-        document_id: 41, // id документа из таблицы documents
+        document_id: 31, // id документа из таблицы documents
       },
     });
     dialogTemplates.afterClosed().subscribe(result => {
@@ -1553,7 +1553,7 @@ drawLinkedDocsScheme(){
   printDocs(){
     this.gettingTemplatesData=true;
     this.templatesList=[];
-    this.http.get('/api/auth/getTemplatesList?company_id='+this.formBaseInformation.get('company_id').value+"&document_id="+41+"&is_show="+true).subscribe
+    this.http.get('/api/auth/getTemplatesList?company_id='+this.formBaseInformation.get('company_id').value+"&document_id="+31+"&is_show="+true).subscribe
     (data =>{ 
         this.gettingTemplatesData=false;
         this.templatesList=data as TemplatesList[];

@@ -4,6 +4,7 @@ import { CustomersordersDocRoutingModule } from './customersorders-doc-routing.m
 import { CustomersordersDocComponent } from './customersorders-doc.component';
 import { ControlMessagesComponent } from './control-messages.component';
 import { ValidationService } from './validation.service';
+import { TemplatesDialogModule } from '../../../../modules/settings/templates-dialog/templates-dialog.module';
 import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SettingsCustomersordersDialogModule } from '../../../../modules/settings/settings-customersorders-dialog/settings-customersorders-dialog.module';
@@ -16,6 +17,7 @@ import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balanc
   imports: [
     CommonModule,
     CustomersordersDocRoutingModule,
+    TemplatesDialogModule,
     SettingsCustomersordersDialogModule,
     ProductSearchAndTableModule,
     BalanceCagentModule,
