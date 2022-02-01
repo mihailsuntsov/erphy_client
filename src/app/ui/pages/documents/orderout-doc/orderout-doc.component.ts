@@ -748,6 +748,56 @@ export class OrderoutDocComponent implements OnInit {
       this.getData();
   }
 
+  decompleteDocument(notShowDialog?:boolean){
+    if(this.allowToComplete){
+      if(!notShowDialog){//notShowDialog=false - показывать диалог
+        const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+          width: '400px',data:{
+            head: 'Отмена проведения расходного ордера',
+            warning: 'Вы хотите отменить проведение данного расходного ордера?',
+            query: ''},});
+        dialogRef.afterClosed().subscribe(result => {
+          if(result==1){
+            this.setDocumentAsDecompleted();
+          }
+        });
+      } else this.setDocumentAsDecompleted();
+    }
+  }
+  setDocumentAsDecompleted(){
+    this.http.post('/api/auth/setOrderoutAsDecompleted',  this.formBaseInformation.value)
+      .subscribe(
+          (data) => 
+          {   
+            let result:number=data as number;
+            switch(result){
+              case null:{// null возвращает если не удалось создать документ из-за ошибки
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка снятия с проведения документа \"Расходный ордер\""}});
+                break;
+              }
+              case -1:{//недостаточно прав
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для данной операции"}});
+                break;
+              }
+              case -30:{//недостаточно средств
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно средств для проведения операции"}});
+                break;
+              }
+              case 1:{// Успешно
+                this.openSnackBar("Документ \"Расходный ордер\" снят с проведения", "Закрыть");
+                this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+                this.formBaseInformation.get('is_completed').setValue(false);
+                this.balanceBoxofficeComponent.getBalance();//пересчитаем баланс кассы предприятия
+                if(this.expenditureType!='moving') // если не внутреннее перемещение - пересчитаем баланс контрагента
+                    this.balanceCagentComponent.getBalance();
+              }
+            }
+          },
+          error => {
+            this.showQueryErrorMessage(error);
+          },
+      );
+  }
   completeDocument(notShowDialog?:boolean){
     if(!notShowDialog){//notShowDialog=false - показывать диалог
       const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {

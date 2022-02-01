@@ -17,7 +17,7 @@ export class BalanceBoxofficeComponent implements OnInit, OnChanges {
   showModule=true;
 
   @Input() company_id:    number;
-  @Input() boxoffice_id:      number;
+  @Input() boxoffice_id:  number;
   @Input() currency:      string;
 
   constructor(
@@ -35,7 +35,7 @@ export class BalanceBoxofficeComponent implements OnInit, OnChanges {
 
   //возвращает баланс по кассе, р.счёту или контрагенту
   getBalance(){
-    if(this.company_id!=null && this.boxoffice_id!=null){
+    if(this.company_id!=null && this.boxoffice_id!=null && +this.company_id!=0 && +this.boxoffice_id!=0){
       this.balanceLoading=true;
       this.balance=null;
       this.http.get('/api/auth/getBoxofficeBalance?companyId='+this.company_id+'&typeId='+this.boxoffice_id) 
