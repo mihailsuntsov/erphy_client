@@ -9,6 +9,7 @@ import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { SettingsPaymentinDialogComponent } from 'src/app/modules/settings/settings-paymentin-dialog/settings-paymentin-dialog.component';
 import { BalanceCagentComponent } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.component';
+import { BalanceAccountComponent } from 'src/app/modules/info-modules/balance/balance-account/balance-account.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { Router } from '@angular/router';
 import { v4 as uuidv4 } from 'uuid';
@@ -127,7 +128,7 @@ interface SpravSysNdsSet{
   selector: 'app-paymentin-doc',
   templateUrl: './paymentin-doc.component.html',
   styleUrls: ['./paymentin-doc.component.css'],
-  providers: [LoadSpravService, CommonUtilitesService,BalanceCagentComponent,
+  providers: [LoadSpravService, CommonUtilitesService,BalanceCagentComponent,BalanceAccountComponent,
     {provide: MAT_DATE_LOCALE, useValue: 'ru'},
     {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},]
@@ -204,9 +205,11 @@ export class PaymentinDocComponent implements OnInit {
 
   isDocNumberUnicalChecking = false;//идёт ли проверка на уникальность номера
   doc_number_isReadOnly=true;
+
   @ViewChild("doc_number", {static: false}) doc_number; //для редактирования номера документа
   @ViewChild("form", {static: false}) form; // связь с формой <form #form="ngForm" ...
   @ViewChild(BalanceCagentComponent, {static: false}) public balanceCagentComponent:BalanceCagentComponent;
+  @ViewChild(BalanceAccountComponent, {static: false}) public balanceAccountComponent:BalanceAccountComponent;
 
   constructor(private activateRoute: ActivatedRoute,
     private cdRef:ChangeDetectorRef,
@@ -759,6 +762,62 @@ export class PaymentinDocComponent implements OnInit {
       this.getData();
   }
 
+  decompleteDocument(notShowDialog?:boolean){
+    if(this.allowToComplete){
+      if(!notShowDialog){//notShowDialog=false - показывать диалог
+        const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+          width: '400px',data:{
+            head: 'Отмена проведения входящего платежа',
+            warning: 'Вы хотите отменить проведение данного входящего платежа?',
+            query: ''},});
+        dialogRef.afterClosed().subscribe(result => {
+          if(result==1){
+            this.setDocumentAsDecompleted();
+          }
+        });
+      } else this.setDocumentAsDecompleted();
+    }
+  }
+  setDocumentAsDecompleted(){
+    this.http.post('/api/auth/setPaymentinAsDecompleted',  this.formBaseInformation.value)
+      .subscribe(
+          (data) => 
+          {   
+            let result:number=data as number;
+            switch(result){
+              case null:{// null возвращает если не удалось завершить операцию из-за ошибки
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка снятия с проведения документа \"Входящий платёж\""}});
+                break;
+              }
+              case -1:{//недостаточно прав
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для данной операции"}});
+                break;
+              }
+              case -30:{//недостаточно средств
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно средств для проведения операции"}});
+                break;
+              }
+              case -60:{//Документ уже снят с проведения
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Данный документ уже снят с проведения"}});
+                break;
+              }
+              case 1:{// Успешно
+                this.openSnackBar("Документ \"Входящий платёж\" снят с проведения", "Закрыть");
+                this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+                this.formBaseInformation.get('is_completed').setValue(false);
+                this.balanceAccountComponent.getBalance();//пересчитаем баланс расчётного счёта
+                if(!this.formBaseInformation.get('internal').value) // если не внутреннее перемещение - пересчитаем баланс контрагента
+                    this.balanceCagentComponent.getBalance();
+                this.getPaymentoutListByAccountId(); // загрузим список платежей для этого расчётного счёта
+                this.getOrderoutListByBoxofficeId(); // загрузим список платежей для этого расчётного счёта
+              }
+            }
+          },
+          error => {
+            this.showQueryErrorMessage(error);
+          },
+      );
+  }
   completeDocument(notShowDialog?:boolean){
     if(!notShowDialog){//notShowDialog=false - показывать диалог
       const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
@@ -803,8 +862,16 @@ export class PaymentinDocComponent implements OnInit {
                 this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно средств для проведения операции"}});
                 break;
               }
+              case -31:{//Документ-отправитель внутреннего платежа не проведён (например, проводим приходный ордер, но незадолго до этого у исходящего платежа сняли проведение)
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Документ-отправитель данного внутреннего платежа не проведён"}});
+                break;
+              }
               case -40:{//дублирование исходящего платежа 
                 this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Входящий платеж с данным "+(this.formBaseInformation.get('moving_type').value=='account'?"исходящим платежом":"расходным ордером")+" уже проведён"}});
+                break;
+              }
+              case -50:{//Документ уже проведён
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Данный документ уже проведён"}});
                 break;
               }
               default:{// Успешно
@@ -812,10 +879,13 @@ export class PaymentinDocComponent implements OnInit {
                 this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                 if(complete) {
                   this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведённости = true
+                  this.balanceAccountComponent.getBalance();//пересчитаем баланс расчётного счёта
                   if(this.settingsForm.get('statusIdOnComplete').value){//если в настройках есть "Статус при проведении" - выставим его
                     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
                   this.setStatusColor();//чтобы обновился цвет статуса
-                  this.balanceCagentComponent.getBalance();//пересчитаем баланс контрагента, ведь он произвел платеж в наш адрес, и баланс поменялся
+                  // если не внутренний перевод
+                  if(!this.formBaseInformation.get('internal').value)
+                    this.balanceCagentComponent.getBalance();//пересчитаем баланс контрагента, ведь он произвел платеж в наш адрес, и баланс поменялся
                 }
               }
             }
@@ -1051,10 +1121,27 @@ export class PaymentinDocComponent implements OnInit {
       this.getPaymentoutListByAccountId();
     }
   }
+
+  // При смене поля "На расчётный счёт"
+  onRecipientChange(){
+    this.setNullOnIncomePayments(); // очистка полей источника входящего платежа
+    if(this.formBaseInformation.get('internal').value){
+      if(this.formBaseInformation.get('moving_type').value=='account'){
+        this.formBaseInformation.get('boxoffice_from_id').setValue(null);
+        this.getPaymentoutListByAccountId();
+      }
+      if(this.formBaseInformation.get('moving_type').value=='boxoffice'){
+        this.formBaseInformation.get('payment_account_from_id').setValue(null);
+        this.getOrderoutListByBoxofficeId();
+      }
+    }
+  }
+
   getPaymentoutListByAccountId(){
     if(+this.formBaseInformation.get('payment_account_from_id').value>0 && !this.formBaseInformation.get('is_completed').value){
       this.paymentoutListLoading=true;
-      this.http.get('/api/auth/getPaymentoutList?account_id='+this.formBaseInformation.get('payment_account_from_id').value).subscribe(
+      this.http.get('/api/auth/getPaymentoutList?account_id='+this.formBaseInformation.get('payment_account_from_id').value+
+      "&recipient_id="+this.formBaseInformation.get('payment_account_id').value).subscribe(
         (data) => { 
           this.paymentoutListLoading=false;
           this.paymentoutList=data as any [];
@@ -1064,6 +1151,7 @@ export class PaymentinDocComponent implements OnInit {
       );
     }
   }
+
   setDefaultPaymentout(){
     if(+this.formBaseInformation.get('paymentout_id').value==0 && this.paymentoutList.length==1)
       this.formBaseInformation.get('paymentout_id').setValue(this.paymentoutList[0].id);
@@ -1076,7 +1164,8 @@ export class PaymentinDocComponent implements OnInit {
   getOrderoutListByBoxofficeId(){
     if(+this.formBaseInformation.get('boxoffice_from_id').value>0 && !this.formBaseInformation.get('is_completed').value){
       this.orderoutListLoading=true;
-      this.http.get('/api/auth/getOrderoutList?boxoffice_id='+this.formBaseInformation.get('boxoffice_from_id').value).subscribe(
+      this.http.get('/api/auth/getOrderoutList?boxoffice_id='+this.formBaseInformation.get('boxoffice_from_id').value+
+      "&recipient_id="+this.formBaseInformation.get('payment_account_id').value).subscribe(
         (data) => { 
           this.orderoutListLoading=false;
           this.orderoutList=data as any [];

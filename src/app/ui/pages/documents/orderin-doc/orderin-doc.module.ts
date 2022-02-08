@@ -9,6 +9,7 @@ import { SettingsOrderinDialogModule } from '../../../../modules/settings/settin
 import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.module';
 import { BalanceKassaModule } from 'src/app/modules/info-modules/balance/balance-kassa/balance-kassa.module';
 import { BalanceBoxofficeModule } from 'src/app/modules/info-modules/balance/balance-boxoffice/balance-boxoffice.module';
+import { BalanceAccountModule } from 'src/app/modules/info-modules/balance/balance-account/balance-account.module';
 
 @NgModule({
   declarations: [OrderinDocComponent,],
@@ -19,7 +20,8 @@ import { BalanceBoxofficeModule } from 'src/app/modules/info-modules/balance/bal
     BalanceCagentModule,
     BalanceKassaModule,
     BalanceBoxofficeModule,
-
+    BalanceAccountModule,
+    
     MaterialModule,
     FormsModule,
     ReactiveFormsModule

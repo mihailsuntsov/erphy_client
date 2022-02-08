@@ -32,15 +32,14 @@
                     mat-button 
                     [matMenuTriggerFor]="addDocMenu"
                     mat-raised-button 
-                    matTooltip='Создать связанные документы'
+                    matTooltip='Создать документы'
                     [disabled]="!formBaseInformation.valid" 
                     *ngIf="+id>0 && canGetChilds"
                     color="primary"
                     (submit)="false"
                     type="button"
-                    class="button"
-                    style="width: 129px;height: 36px;min-width: 38px;">
-                    <i class="material-icons">add</i> Документ<i class="material-icons">arrow_drop_down</i>
+                    class="button small-button">
+                    <i class="material-icons">add</i>
                 </button>
                 <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
                     <button mat-menu-item (click)="goToNewDocument()">
@@ -55,32 +54,41 @@
                     mat-raised-button 
                     matTooltip='Создать и провести документ'
                     (click)="createNewDocument()" 
-                    style="width: 200px;height: 36px;min-width: 38px;"
                     *ngIf="allowToCreate && +id==0 "
                     [disabled]="!formBaseInformation.valid" 
                     color="primary"
                     type="submit"
-                    class="button">
-                    <i class="material-icons">done</i> Создать и провести
+                    class="button small-button">
+                    <i class="material-icons">playlist_add_check</i>
+                </button>
+                <button 
+                    matTooltip='Документ проведён'
+                    mat-raised-button 
+                    *ngIf=" +id>0 && canGetChilds && formBaseInformation.get('is_completed').value"
+                    (click)="decompleteDocument()" 
+                    type="button"
+                    color="primary"
+                    class="button small-button completed">
+                    <i class="material-icons">playlist_add_check</i> 
                 </button>
                 <a routerLink="../../depositing"  [style.display]="(mode=='standart')?'block':'none'">
                     <button 
-                        style="width: 129px;height: 36px;min-width: 38px;"
                         mat-raised-button 
-                        [matTooltip]="id>0?'Выйти из документа в меню':'Отменить создание нового документа'"
+                        [matTooltip]="id>0?'Выйти в меню':'Отмена создания документа'"
                         color="accent"
-                        class="button">
-                        <i class="material-icons">close</i>  {{id>0?'Выйти':'Отмена'}}
+                        class="button small-button">
+                        <i class="material-icons">close</i>
                     </button>
                 </a>
                 <button [style.display]="(mode=='window')?'block':'none'"
                         mat-raised-button
+                        matTooltip='Закрыть окно'
                         style="margin-left:10px"
+                        class="button small-button"
                         [mat-dialog-close]="+id>0"
                         matDialogClose 
                         color="accent">
                         <i class="material-icons">close</i>
-                        <span> Закрыть </span>
                 </button>
             </div>
         </mat-card-title>

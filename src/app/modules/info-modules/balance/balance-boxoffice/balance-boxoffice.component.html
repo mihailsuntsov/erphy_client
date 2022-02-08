@@ -3,5 +3,5 @@
     class="balance"
     matTooltip='Наличные в кассе предприятия'
     *ngIf="showModule && balance!=null && +boxoffice_id>0"
-    >Наличные: {{commonUtilites.getAbs(balance)}} {{currency}}
+    >Наличные: {{balance}} {{currency}}
 </button>

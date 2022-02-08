@@ -886,6 +886,9 @@ export class WithdrawalDocComponent implements OnInit {
     +this.formBaseInformation.get('summ').setValue((+this.balanceKassaComponent.balance-(+this.formBaseInformation.get('balance_after').value)).toFixed(2));
     if(isNaN(this.formBaseInformation.get('summ').value)) this.formBaseInformation.get('summ').setValue(0);
   }
+  decompleteDocument(){
+    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Документ "Выемка" не подлежит снятию с проведения. Для возврата денег в кассу ККМ воспользуйтесь документами "Расходный ордер" и "Внесение"'}});
+  }
   //------------------------------------------ COMMON UTILITIE   -----------------------------------------
   commaToDot(fieldName:string){
     this.formBaseInformation.get(fieldName).setValue(this.formBaseInformation.get(fieldName).value.toString().replace(",", "."));}

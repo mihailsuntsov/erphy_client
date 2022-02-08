@@ -7,6 +7,8 @@ import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SettingsPaymentinDialogModule } from '../../../../modules/settings/settings-paymentin-dialog/settings-paymentin-dialog.module';
 import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.module';
+import { BalanceBoxofficeModule } from 'src/app/modules/info-modules/balance/balance-boxoffice/balance-boxoffice.module';
+import { BalanceAccountModule } from 'src/app/modules/info-modules/balance/balance-account/balance-account.module';
 
 @NgModule({
   declarations: [PaymentinDocComponent, /*ControlMessagesComponent*/],
@@ -15,7 +17,9 @@ import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balanc
     PaymentinDocRoutingModule,
     SettingsPaymentinDialogModule,
     BalanceCagentModule,
-
+    BalanceAccountModule,
+    BalanceBoxofficeModule,
+    
     MaterialModule,
     FormsModule,
     ReactiveFormsModule

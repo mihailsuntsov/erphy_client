@@ -139,3 +139,7 @@ body {
   min-width: 38px !important;
   padding: 0px !important;
 }
+/* проведён (кнопка) */
+.completed{
+  background-color: seagreen !important;
+}

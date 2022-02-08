@@ -9,6 +9,7 @@ import { SettingsOrderoutDialogModule } from '../../../../modules/settings/setti
 import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.module';
 import { BalanceBoxofficeModule } from 'src/app/modules/info-modules/balance/balance-boxoffice/balance-boxoffice.module';
 import { BalanceKassaModule } from 'src/app/modules/info-modules/balance/balance-kassa/balance-kassa.module';
+import { BalanceAccountModule } from 'src/app/modules/info-modules/balance/balance-account/balance-account.module';
 
 @NgModule({
   declarations: [OrderoutDocComponent,],
@@ -19,7 +20,7 @@ import { BalanceKassaModule } from 'src/app/modules/info-modules/balance/balance
     BalanceCagentModule,
     BalanceBoxofficeModule,
     BalanceKassaModule,
-
+    BalanceAccountModule,
     MaterialModule,
     FormsModule,
     ReactiveFormsModule

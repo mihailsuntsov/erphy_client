@@ -779,6 +779,63 @@ export class OrderinDocComponent implements OnInit {
     } else this.updateDocument(true);
   }
 
+  decompleteDocument(notShowDialog?:boolean){
+    if(this.allowToComplete){
+      if(!notShowDialog){//notShowDialog=false - показывать диалог
+        const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+          width: '400px',data:{
+            head: 'Отмена проведения приходного ордера',
+            warning: 'Вы хотите отменить проведение данного приходного ордера?',
+            query: ''},});
+        dialogRef.afterClosed().subscribe(result => {
+          if(result==1){
+            this.setDocumentAsDecompleted();
+          }
+        });
+      } else this.setDocumentAsDecompleted();
+    }
+  }
+  setDocumentAsDecompleted(){
+    this.http.post('/api/auth/setOrderinAsDecompleted',  this.formBaseInformation.value)
+      .subscribe(
+          (data) => 
+          {   
+            let result:number=data as number;
+            switch(result){
+              case null:{// null возвращает если не удалось завершить операцию из-за ошибки
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка снятия с проведения документа \"Приходный ордер\""}});
+                break;
+              }
+              case -1:{//недостаточно прав
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для данной операции"}});
+                break;
+              }
+              case -30:{//недостаточно средств
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно средств для проведения операции"}});
+                break;
+              }
+              case -60:{//Документ уже снят с проведения
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Данный документ уже снят с проведения"}});
+                break;
+              }
+              case 1:{// Успешно
+                this.openSnackBar("Документ \"Приходный ордер\" снят с проведения", "Закрыть");
+                this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+                this.formBaseInformation.get('is_completed').setValue(false);
+                this.balanceBoxofficeComponent.getBalance();//пересчитаем баланс кассы
+                if(!this.formBaseInformation.get('internal').value) // если не внутреннее перемещение - пересчитаем баланс контрагента
+                    this.balanceCagentComponent.getBalance();
+                this.getPaymentoutListByAccountId(); // загрузим список платежей для этого расчётного счёта
+                this.getOrderoutListByBoxofficeId(); // загрузим список платежей для этого расчётного счёта
+                this.getWithdrawalListByKassaId(); // загрузим список платежей для этого расчётного счёта
+              }
+            }
+          },
+          error => {
+            this.showQueryErrorMessage(error);
+          },
+      );
+  }
   updateDocument(complete?:boolean){ 
     let currentStatus:number=this.formBaseInformation.get('status_id').value;
     if(complete){
@@ -808,8 +865,16 @@ export class OrderinDocComponent implements OnInit {
                 this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно средств для проведения операции"}});
                 break;
               }
+              case -31:{//Документ-отправитель внутреннего платежа не проведён (например, проводим приходный ордер, но незадолго до этого у исходящего платежа сняли проведение)
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Документ-отправитель данного внутреннего платежа не проведён"}});
+                break;
+              }
               case -40:{//дублирование исходящего платежа 
                 this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Входящий платеж с данным "+(this.formBaseInformation.get('moving_type').value=='account'?"исходящим платежом":(this.formBaseInformation.get('moving_type').value=='boxoffice'?"расходным ордером":"документом Выемка"))+" уже проведён"}});
+                break;
+              }
+              case -50:{//Документ уже проведён
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Данный документ уже проведён"}});
                 break;
               }
               default:{// Успешно
@@ -817,12 +882,12 @@ export class OrderinDocComponent implements OnInit {
                 this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                 if(complete) {
                   this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведённости = true
-                  this.balanceBoxofficeComponent.getBalance();//пересчитаем баланс кассы предприятия, ведь мы внесли в нее деньги, и теперь их должно быть больше
+                  setTimeout(() => { this.balanceBoxofficeComponent.getBalance();},10);//пересчитаем баланс кассы предприятия
                   if(this.settingsForm.get('statusIdOnComplete').value){//если в настройках есть "Статус при проведении" - выставим его
                     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
                   this.setStatusColor();//чтобы обновился цвет статуса
                   if(!this.formBaseInformation.get('internal').value)//если перевод не внутренний
-                    this.balanceCagentComponent.getBalance();//пересчитаем баланс контрагента, ведь мы получили от него деньги  
+                    this.balanceCagentComponent.getBalance();//пересчитаем баланс контрагента, ведь мы получили от него деньги 
                 }
               }
             }
@@ -1103,11 +1168,26 @@ export class OrderinDocComponent implements OnInit {
     this.formBaseInformation.get('withdrawal').setValue(withdravalName);
     this.formBaseInformation.get('summ').setValue(summ);
   }
-
+  // При смене поля "В кассу"
+  onRecipientChange(){
+    // this.onBoxofficeChange();
+    this.setNullOnIncomePayments(); // очистка полей источника входящего платежа
+    if(this.formBaseInformation.get('internal').value){
+      if(this.formBaseInformation.get('moving_type').value=='account'){
+        this.formBaseInformation.get('boxoffice_from_id').setValue(null);
+        this.getPaymentoutListByAccountId();
+      }
+      if(this.formBaseInformation.get('moving_type').value=='boxoffice'){
+        this.formBaseInformation.get('payment_account_from_id').setValue(null);
+        this.getOrderoutListByBoxofficeId();
+      }
+    }
+  }
   getPaymentoutListByAccountId(){
     if(+this.formBaseInformation.get('payment_account_from_id').value>0 && !this.formBaseInformation.get('is_completed').value){
       this.paymentoutListLoading=true;
-      this.http.get('/api/auth/getPaymentoutList?account_id='+this.formBaseInformation.get('payment_account_from_id').value).subscribe(
+      this.http.get('/api/auth/getPaymentoutList?account_id='+this.formBaseInformation.get('payment_account_from_id').value+
+      "&recipient_id="+this.formBaseInformation.get('boxoffice_id').value).subscribe(
         (data) => { 
           this.paymentoutListLoading=false;
           this.paymentoutList=data as any [];
@@ -1129,7 +1209,8 @@ export class OrderinDocComponent implements OnInit {
   getOrderoutListByBoxofficeId(){
     if(+this.formBaseInformation.get('boxoffice_from_id').value>0 && !this.formBaseInformation.get('is_completed').value){
       this.orderoutListLoading=true;
-      this.http.get('/api/auth/getOrderoutList?boxoffice_id='+this.formBaseInformation.get('boxoffice_from_id').value).subscribe(
+      this.http.get('/api/auth/getOrderoutList?boxoffice_id='+this.formBaseInformation.get('boxoffice_from_id').value+
+      "&recipient_id="+this.formBaseInformation.get('boxoffice_id').value).subscribe(
         (data) => { 
           this.orderoutListLoading=false;
           this.orderoutList=data as any [];

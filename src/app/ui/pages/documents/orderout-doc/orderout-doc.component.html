@@ -55,27 +55,57 @@
                 <div class="separator"></div>
                 <button 
                     mat-raised-button 
-                    style="width: 36px;height: 36px;min-width: 38px;padding: 0px;"
                     color="primary"
-                    matTooltip='Настройки документа "Расходный ордер"'
+                    matTooltip='Пользовательские настройки документа'
                     (click)="openDialogSettings()"
                     type="button"
-                    class="button">
+                    class="button small-button">
                     <i class="material-icons">settings</i>
                 </button>
+                <!-- <button 
+                    mat-raised-button 
+                    [matMenuTriggerFor]="templatesMenu"
+                    *ngIf="+id>0"
+                    matTooltip='Печать документов'
+                    color="primary"                
+                    (click)="printDocs()"
+                    type="button"
+                    (submit)="false"
+                    class="button small-button">
+                    <i class="material-icons">print</i>
+                </button>
+                <mat-menu #templatesMenu="matMenu" yPosition="below" xPosition="before">
+                    <div *ngIf="gettingTemplatesData" style="width:240px; height: 125px;">
+                        <mat-spinner 
+                        strokeWidth="3" 
+                        class="spinner"
+                        style="position: relative;"
+                        [diameter]="50"
+                        *ngIf="gettingTemplatesData"
+                    ></mat-spinner>
+                    </div>                
+                    <button mat-menu-item *ngFor="let template of templatesList">
+                        <div style="width:100%; height: 100%;" (click)="clickOnTemplate(template)">
+                            <span >{{template.template_type_name}}</span>                    
+                        </div>
+                    </button>
+                    <mat-divider></mat-divider>
+                    <button mat-menu-item (click)="openDialogTemplates()" matTooltip='Настроить меню, вызываемое при нажатии кнопки "Печать"'>
+                        <span>Настроить меню печати</span>
+                    </button>
+                </mat-menu> -->
                 <button 
                     mat-button 
                     [matMenuTriggerFor]="addDocMenu"
                     mat-raised-button 
-                    matTooltip='Создать связанные документы'
+                    matTooltip='Создать документы'
                     [disabled]="!formBaseInformation.valid" 
                     *ngIf="+id>0"
                     color="primary"
                     (submit)="false"
                     type="button"
-                    class="button"
-                    style="width: 129px;height: 36px;min-width: 38px;">
-                    <i class="material-icons">add</i> Документ<i class="material-icons">arrow_drop_down</i>
+                    class="button small-button">
+                    <i class="material-icons">add</i>
                 </button>
                 <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
                     <button mat-menu-item (click)="goToNewDocument()">
@@ -107,59 +137,57 @@
                     <!-- Провести -->
                 </button>
                 <button 
-                    style="background-color: seagreen;"
                     matTooltip='Документ проведён'
                     mat-raised-button 
                     *ngIf=" +id>0 && canGetChilds && formBaseInformation.get('is_completed').value"
                     (click)="decompleteDocument()" 
                     type="button"
                     color="primary"
-                    class="button small-button">
+                    class="button small-button completed">
                     <i class="material-icons">playlist_add_check</i> 
                     <!-- Провести -->
                 </button>
                 <button 
                     mat-raised-button 
-                    style="width: 129px;height: 36px;min-width: 38px;"
                     *ngIf="+id>0 && allowToUpdate && canGetChilds && !formBaseInformation.get('is_completed').value"
                     matTooltip='Сохранить документ'
                     (click)="updateDocument()"
                     [disabled]="isFormInvalid" 
                     color="primary"
                     type="button"
-                    class="button">
-                    <i class="material-icons">done</i> Сохранить
+                    class="button small-button">
+                    <i class="material-icons">save</i>
                 </button>
                 <button 
                     mat-raised-button 
                     matTooltip='Создать документ'
                     (click)="createNewDocument()" 
-                    style="width: 129px;height: 36px;min-width: 38px;"
                     *ngIf="allowToCreate && +id==0 "
                     [disabled]="isFormInvalid " 
                     color="primary"
                     type="submit"
-                    class="button">
-                    <i class="material-icons">done</i> Создать
+                    class="button small-button">
+                    <i class="material-icons">done</i>
                 </button>
-                <a routerLink="../../orderout"  [style.display]="(mode=='standart')?'block':'none'">
+                <a routerLink="../../orderout">
                     <button 
-                        style="width: 129px;height: 36px;min-width: 38px;"
+                        [matTooltip]="id>0?'Выйти в меню':'Отмена создания документа'"
                         mat-raised-button 
-                        [matTooltip]="id>0?'Выйти из документа в меню':'Отменить создание нового документа'"
+                        (submit)="false"
                         color="accent"
-                        class="button">
-                        <i class="material-icons">close</i>  {{id>0?'Выйти':'Отмена'}}
+                        type="button"
+                        class="button small-button">
+                        <i class="material-icons">close</i> 
                     </button>
                 </a>
                 <button [style.display]="(mode=='window')?'block':'none'"
                         mat-raised-button
-                        style="margin-left:10px"
+                        matTooltip='Закрыть окно'
+                        class="button small-button"
                         [mat-dialog-close]="formBaseInformation.get('is_completed').value"
                         matDialogClose 
                         color="accent">
                         <i class="material-icons">close</i>
-                        <span> Закрыть </span>
                 </button>
             </div>
         </mat-card-title>
@@ -225,17 +253,23 @@
                                                                                 {{rt.name}}
                                                                         </mat-option> 
                                                                     </mat-select>
+                                                                    <app-balance-boxoffice
+                                                                        [company_id]="formBaseInformation.get('company_id').value"
+                                                                        [boxoffice_id]="formBaseInformation.get('boxoffice_id').value"
+                                                                        [currency]="'руб.'">
+                                                                    </app-balance-boxoffice>
                                                                 </mat-form-field>
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="formBaseInformation.get('is_completed').value">
                                                                     <mat-label>Из кассы</mat-label>
                                                                     <input  matInput [readonly]="true"
-                                                                            [ngModel]="getBoxofficeNameById(formBaseInformation.get('boxoffice_id').value)" [ngModelOptions]="{standalone: true}"/>
+                                                                            [ngModel]="getBoxofficeNameById(formBaseInformation.get('boxoffice_id').value)" 
+                                                                            [ngModelOptions]="{standalone: true}"/>
+                                                                            <app-balance-boxoffice
+                                                                                [company_id]="formBaseInformation.get('company_id').value"
+                                                                                [boxoffice_id]="formBaseInformation.get('boxoffice_id').value"
+                                                                                [currency]="'руб.'">
+                                                                            </app-balance-boxoffice>
                                                                 </mat-form-field>
-                                                                <app-balance-boxoffice style="top: 10px;right: 16px; position: absolute;"
-                                                                    [company_id]="formBaseInformation.get('company_id').value"
-                                                                    [boxoffice_id]="formBaseInformation.get('boxoffice_id').value"
-                                                                    [currency]="'руб.'">
-                                                                </app-balance-boxoffice>
                                                             </div>
                                                             <div class="col-12">    
                                                                 <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: formBaseInformation.get('is_completed').value}">
@@ -317,23 +351,34 @@
                                                                 </mat-form-field>
                                                             </div>
                                                             <div class="col-12"  *ngIf="expenditureType=='moving' && formBaseInformation.get('moving_type').value=='boxoffice'">    
-                                                                <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: formBaseInformation.get('is_completed').value}">
-                                                                    <mat-label>В кассу <span *ngIf="+formBaseInformation.get('boxoffice_to_id').value==0" class="star">*</span></mat-label>
+                                                                <mat-form-field class="mat-form-field-100" *ngIf="!formBaseInformation.get('is_completed').value">
+                                                                    <mat-label>В кассу предприятия<span *ngIf="+formBaseInformation.get('boxoffice_to_id').value==0" class="star">*</span></mat-label>
                                                                     <mat-select formControlName="boxoffice_to_id" 
                                                                                 >                          
                                                                         <mat-option  *ngFor="let rt of boxoffices" [value]="rt.id">
                                                                                 {{rt.name}}
                                                                         </mat-option> 
                                                                     </mat-select>
+                                                                    <app-balance-boxoffice 
+                                                                        [company_id]="formBaseInformation.get('company_id').value"
+                                                                        [boxoffice_id]="formBaseInformation.get('boxoffice_to_id').value"
+                                                                        [currency]="'руб.'">
+                                                                    </app-balance-boxoffice>
                                                                 </mat-form-field>
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="formBaseInformation.get('is_completed').value">
-                                                                    <mat-label>В кассу</mat-label>
+                                                                    <mat-label>В кассу предприятия</mat-label>
                                                                     <input  matInput [readonly]="true"
-                                                                            [ngModel]="getBoxofficeNameById(formBaseInformation.get('boxoffice_to_id').value)" [ngModelOptions]="{standalone: true}"/>
+                                                                            [ngModel]="getBoxofficeNameById(formBaseInformation.get('boxoffice_to_id').value)" 
+                                                                            [ngModelOptions]="{standalone: true}"/>
+                                                                            <app-balance-boxoffice 
+                                                                                [company_id]="formBaseInformation.get('company_id').value"
+                                                                                [boxoffice_id]="formBaseInformation.get('boxoffice_to_id').value"
+                                                                                [currency]="'руб.'">
+                                                                            </app-balance-boxoffice>
                                                                 </mat-form-field>
                                                             </div>
                                                             <div class="col-12"  *ngIf="expenditureType=='moving' && formBaseInformation.get('moving_type').value=='account'">    
-                                                                <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: formBaseInformation.get('is_completed').value}">
+                                                                <mat-form-field class="mat-form-field-100" *ngIf="!formBaseInformation.get('is_completed').value">
                                                                     <mat-label>На расчётный счёт <span *ngIf="+formBaseInformation.get('payment_account_to_id').value==0" class="star">*</span></mat-label>
                                                                     <mat-select formControlName="payment_account_to_id" 
                                                                                 >                          
@@ -342,11 +387,22 @@
                                                                                         {{rt.payment_account}} ({{rt.name}})
                                                                                 </mat-option>  
                                                                     </mat-select>
+                                                                    <app-balance-account 
+                                                                        [company_id]="formBaseInformation.get('company_id').value"
+                                                                        [account_id]="formBaseInformation.get('payment_account_to_id').value"
+                                                                        [currency]="'руб.'">
+                                                                    </app-balance-account>
                                                                 </mat-form-field>
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="formBaseInformation.get('is_completed').value">
                                                                     <mat-label>На расчётный счёт</mat-label>
                                                                     <input  matInput [readonly]="true"
-                                                                            [ngModel]="getPaymentAccountNameById(formBaseInformation.get('payment_account_to_id').value)" [ngModelOptions]="{standalone: true}"/>
+                                                                            [ngModel]="getPaymentAccountNameById(formBaseInformation.get('payment_account_to_id').value)" 
+                                                                            [ngModelOptions]="{standalone: true}"/>
+                                                                            <app-balance-account 
+                                                                                [company_id]="formBaseInformation.get('company_id').value"
+                                                                                [account_id]="formBaseInformation.get('payment_account_to_id').value"
+                                                                                [currency]="'руб.'">
+                                                                            </app-balance-account>
                                                                 </mat-form-field>
                                                             </div>
                                                             
@@ -371,7 +427,7 @@
                                                                 </mat-form-field>
                                                             </div>
                                                             <div class="col-12"  *ngIf="expenditureType=='moving' && formBaseInformation.get('moving_type').value=='kassa' && +formBaseInformation.get('kassa_department_id').value!=0">    
-                                                                <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: formBaseInformation.get('is_completed').value}">
+                                                                <mat-form-field class="mat-form-field-100" *ngIf="!formBaseInformation.get('is_completed').value">
                                                                     <mat-label>В кассу ККМ <span *ngIf="+formBaseInformation.get('kassa_to_id').value==0" class="star">*</span></mat-label>
                                                                     <mat-spinner 
                                                                         strokeWidth="2" 
@@ -385,11 +441,21 @@
                                                                                 {{rt.name}}
                                                                         </mat-option> 
                                                                     </mat-select>
+                                                                    <app-balance-kassa
+                                                                        [company_id]="formBaseInformation.get('company_id').value"
+                                                                        [kassa_id]="formBaseInformation.get('kassa_to_id').value"
+                                                                        [currency]="'руб.'">
+                                                                    </app-balance-kassa>
                                                                 </mat-form-field>
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="formBaseInformation.get('is_completed').value">
                                                                     <mat-label>В кассу KKM</mat-label>
                                                                     <input  matInput [readonly]="true"
                                                                             [ngModel]="formBaseInformation.get('kassa_to').value" [ngModelOptions]="{standalone: true}"/>
+                                                                            <app-balance-kassa
+                                                                                [company_id]="formBaseInformation.get('company_id').value"
+                                                                                [kassa_id]="formBaseInformation.get('kassa_to_id').value"
+                                                                                [currency]="'руб.'">
+                                                                            </app-balance-kassa>
                                                                 </mat-form-field>
                                                             </div>
 

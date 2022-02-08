@@ -12,7 +12,7 @@ class="spinner"
             mat-raised-button 
             style="width: 36px;height: 36px;min-width: 38px;padding: 0px;"
             color="primary"
-            matTooltip='Настройки документа "Расходный ордер"'
+            matTooltip='Пользовательские настройки документа'
             (click)="openDialogSettings()"
             type="button"
             class="button">
@@ -200,7 +200,10 @@ class="spinner"
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='summ'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='summ'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
-                            <td mat-cell *matCellDef="let row"><p style="margin: 5px">{{row.summ}}</p></td>
+                            <td mat-cell *matCellDef="let row" 
+                            [matTooltip]="(row.is_completed && !row.is_delivered && row.expenditure_type=='moving')?'Принимающий документ не проведён':''"
+                            [ngStyle]="(row.is_completed && !row.is_delivered && row.expenditure_type=='moving')?{'background-color': 'rgb(255, 228, 225)'}:{'background-color': 'white'}"
+                            ><p style="margin: 5px">{{row.summ}}</p></td>
                         </ng-container>                      
                         <ng-container matColumnDef="expenditure">
                             <th mat-header-cell *matHeaderCellDef style="width:70px;">

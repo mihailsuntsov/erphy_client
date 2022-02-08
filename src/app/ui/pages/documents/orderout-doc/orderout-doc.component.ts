@@ -764,6 +764,7 @@ export class OrderoutDocComponent implements OnInit {
       } else this.setDocumentAsDecompleted();
     }
   }
+  
   setDocumentAsDecompleted(){
     this.http.post('/api/auth/setOrderoutAsDecompleted',  this.formBaseInformation.value)
       .subscribe(
@@ -779,8 +780,12 @@ export class OrderoutDocComponent implements OnInit {
                 this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для данной операции"}});
                 break;
               }
-              case -30:{//недостаточно средств
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно средств для проведения операции"}});
+              case -32:{// есть проведённый входящий платеж или приходный ордер
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"У данного платежа есть проведённый принимаемый документ"}});
+                break;
+              }
+              case -60:{//Документ уже снят с проведения
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Данный документ уже снят с проведения"}});
                 break;
               }
               case 1:{// Успешно
@@ -842,13 +847,17 @@ export class OrderoutDocComponent implements OnInit {
                 this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно средств для проведения операции"}});
                 break;
               }
+              case -50:{//Документ уже проведён
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Данный документ уже проведён"}});
+                break;
+              }
               default:{// Успешно
                 this.openSnackBar("Документ \"Расходный ордер\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
                 this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                 if(complete) {
                   this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведённости = true
                   this.formBaseInformation.get('cagent').setValue(this.searchCagentCtrl.value);// иначе после проведения пропадет наименование контрагента
-                  this.balanceBoxofficeComponent.getBalance();//пересчитаем баланс кассы предприятия, ведь мы изъяли из нее деньги для внесения в кассу ККМ, и теперь их должно быть меньше
+                  setTimeout(() => { this.balanceBoxofficeComponent.getBalance();},10);//пересчитаем баланс кассы предприятия
                   if(this.settingsForm.get('statusIdOnComplete').value){//если в настройках есть "Статус при проведении" - выставим его
                     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
                   this.setStatusColor();//чтобы обновился цвет статуса
@@ -1297,8 +1306,12 @@ deleteFile(id:number){
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа "+(this.commonUtilites.getDocNameByDocAlias(docname))}});
                       break;
                     }
-                    case -40:{//дублирование расходного ордера
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Внесение с данным расходным ордером уже проведено"}});
+                    case -31:{//Документ-отправитель внутреннего платежа не проведён (например, проводим приходный ордер, но незадолго до этого у исходящего платежа сняли проведение)
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Документ-отправитель данного внутреннего платежа не проведён"}});
+                      break;
+                    }
+                    case -40:{//дублирование исходящего платежа 
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Входящий платеж с данным расходным ордером уже проведён"}});
                       break;
                     }
                     default:{// Документ успешно создался в БД 

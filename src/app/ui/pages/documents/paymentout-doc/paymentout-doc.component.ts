@@ -9,6 +9,7 @@ import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { SettingsPaymentoutDialogComponent } from 'src/app/modules/settings/settings-paymentout-dialog/settings-paymentout-dialog.component';
 import { BalanceCagentComponent } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.component';
+import { BalanceAccountComponent } from 'src/app/modules/info-modules/balance/balance-account/balance-account.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { Router } from '@angular/router';
 import { v4 as uuidv4 } from 'uuid';
@@ -123,7 +124,7 @@ interface SpravSysNdsSet{
   selector: 'app-paymentout-doc',
   templateUrl: './paymentout-doc.component.html',
   styleUrls: ['./paymentout-doc.component.css'],
-  providers: [LoadSpravService, CommonUtilitesService,BalanceCagentComponent,
+  providers: [LoadSpravService, CommonUtilitesService,BalanceCagentComponent,BalanceAccountComponent,
     {provide: MAT_DATE_LOCALE, useValue: 'ru'},
     {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},]
@@ -201,6 +202,7 @@ export class PaymentoutDocComponent implements OnInit {
   @ViewChild("doc_number", {static: false}) doc_number; //для редактирования номера документа
   @ViewChild("form", {static: false}) form; // связь с формой <form #form="ngForm" ...
   @ViewChild(BalanceCagentComponent, {static: false}) public balanceCagentComponent:BalanceCagentComponent;
+  @ViewChild(BalanceAccountComponent, {static: false}) public balanceAccountComponent:BalanceAccountComponent;
 
   constructor(private activateRoute: ActivatedRoute,
     private cdRef:ChangeDetectorRef,
@@ -843,7 +845,60 @@ export class PaymentoutDocComponent implements OnInit {
       this.formBaseInformation.get('id').setValue(this.id);
       this.getData();
   }
-
+  decompleteDocument(notShowDialog?:boolean){
+    if(this.allowToComplete){
+      if(!notShowDialog){//notShowDialog=false - показывать диалог
+        const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+          width: '400px',data:{
+            head: 'Отмена проведения исходящего платежа',
+            warning: 'Вы хотите отменить проведение данного исходящего платежа?',
+            query: ''},});
+        dialogRef.afterClosed().subscribe(result => {
+          if(result==1){
+            this.setDocumentAsDecompleted();
+          }
+        });
+      } else this.setDocumentAsDecompleted();
+    }
+  }
+  setDocumentAsDecompleted(){
+    this.http.post('/api/auth/setPaymentoutAsDecompleted',  this.formBaseInformation.value)
+      .subscribe(
+          (data) => 
+          {   
+            let result:number=data as number;
+            switch(result){
+              case null:{// null возвращает если не удалось создать документ из-за ошибки
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка снятия с проведения документа \"Исходящий платёж\""}});
+                break;
+              }
+              case -1:{//недостаточно прав
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для данной операции"}});
+                break;
+              }
+              case -32:{// есть проведённый входящий платеж или приходный ордер
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"У данного платежа есть проведённый принимаемый документ"}});
+                break;
+              }
+              case -60:{//Документ уже снят с проведения
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Данный документ уже снят с проведения"}});
+                break;
+              }
+              case 1:{// Успешно
+                this.openSnackBar("Документ \"Исходящий платёж\" снят с проведения", "Закрыть");
+                this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+                this.formBaseInformation.get('is_completed').setValue(false);
+                this.balanceAccountComponent.getBalance();//пересчитаем баланс расчётного счёта
+                if(this.expenditureType!='moving') // если не внутреннее перемещение - пересчитаем баланс контрагента
+                    this.balanceCagentComponent.getBalance();
+              }
+            }
+          },
+          error => {
+            this.showQueryErrorMessage(error);
+          },
+      );
+  }
   completeDocument(notShowDialog?:boolean){
     if(!notShowDialog){//notShowDialog=false - показывать диалог
       const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
@@ -888,17 +943,24 @@ export class PaymentoutDocComponent implements OnInit {
                 this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно средств для проведения операции"}});
                 break;
               }
+              case -50:{//Документ уже проведён
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Данный документ уже проведён"}});
+                break;
+              }
               default:{// Успешно
                 this.openSnackBar("Документ \"Исходящий платёж\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
                 this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                 if(complete) {
                   this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведённости = true
                   this.formBaseInformation.get('cagent').setValue(this.searchCagentCtrl.value); // иначе после проведения пропадёт наименование контрагента
+                  this.balanceAccountComponent.getBalance();//пересчитаем баланс расчётного счёта
                   if(this.settingsForm.get('statusIdOnComplete').value){//если в настройках есть "Статус при проведении" - выставим его
                     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
                   this.setStatusColor();//чтобы обновился цвет статуса
-                  this.balanceCagentComponent.getBalance();//пересчитаем баланс покупателя, ведь мы произвели оплату в его адрес, и наш с ним баланс изменился
-                }
+                  // если не внутренний перевод
+                  if(this.formBaseInformation.get('expenditure_id').value!='moving')
+                    this.balanceCagentComponent.getBalance();//пересчитаем баланс покупателя, ведь мы произвели оплату в его адрес, и наш с ним баланс изменился
+                  }
               }
             }
           },

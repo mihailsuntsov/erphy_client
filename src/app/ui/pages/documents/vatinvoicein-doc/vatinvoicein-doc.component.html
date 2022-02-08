@@ -71,7 +71,7 @@
                 mat-button 
                 [matMenuTriggerFor]="addDocMenu"
                 mat-raised-button 
-                matTooltip='Создать связанные документы'
+                matTooltip='Создать документы'
                 [disabled]="!formBaseInformation.valid" 
                 *ngIf="+id>0 && invoiceinProductsTableComponent"
                 color="primary"
@@ -120,7 +120,7 @@
             <a routerLink="../../vatinvoicein"  [style.display]="(mode=='standart')?'block':'none'">
                 <button 
                     mat-raised-button 
-                    [matTooltip]="id>0?'Выйти из документа в меню':'Отменить создание нового документа'"
+                    [matTooltip]="id>0?'Выйти в меню':'Отмена создания документа'"
                     color="accent"
                     class="button small-button">
                     <i class="material-icons">close</i>

@@ -184,7 +184,7 @@ export class DepositingDocComponent implements OnInit {
       orderout: new FormControl           ('',[]),
       summ: new FormControl               ('0.00',[Validators.required, Validators.pattern('^-?[0-9]{1,9}(?:[.,][0-9]{0,2})?\r?$'), ValidationService.numberNotNegative]),
       is_delivered: new FormControl       (false,[]),
-      is_completed: new FormControl       (true,[]), // выемка всегда создается уже проведенной, ибо тут нет смысла делать лишние действия
+      is_completed: new FormControl       (true,[]), // Внесение всегда создается уже проведенной, ибо тут нет смысла делать лишние действия
       uid: new FormControl                ('',[]), // uid идентификатор для создаваемой Розн. продажи. Нужен для построения связанности между документами, или например, чтобы избежать дублей при создании
       linked_doc_id: new FormControl      ('',[]), // id связанного документа (того, из которого инициируется создание данного документа)
       parent_uid: new FormControl         ('',[]), // uid исходящего (родительского) документа
@@ -214,7 +214,7 @@ export class DepositingDocComponent implements OnInit {
       internal: new FormControl           (false,[]),
       moving_type: new FormControl        ('',[]),
       is_completed: new FormControl       (false,[]),
-      linked_doc_id: new FormControl      (null,[]),  // id связанного документа (в данном случае Выемка)
+      linked_doc_id: new FormControl      (null,[]),  // id связанного документа (в данном случае Внесение)
       parent_uid: new FormControl         (null,[]),  // uid родительского документа
       child_uid: new FormControl          (null,[]),  // uid дочернего документа
       linked_doc_name: new FormControl    (null,[]),  // имя (таблицы) связанного документа
@@ -546,7 +546,7 @@ export class DepositingDocComponent implements OnInit {
       if(!this.routerAdditionalData){ // и создается из меню "Выемки" кнопкой "Создать"
         // this.formBaseInformation.get('company_id').setValue(this.settingsForm.get('companyId').value)
         // this.formBaseInformation.get('department_id').setValue(this.settingsForm.get('departmentId').value);
-      } else { // создается из другого документа (например, из "Заказа покупателя"), и routerAdditionalData содержит информацию для нового документа Выемка
+      } else { // создается из другого документа (например, из "Заказа покупателя"), и routerAdditionalData содержит информацию для нового документа Внесение
         this.formBaseInformation.get('company_id').setValue(this.routerAdditionalData.company_id);
         this.formBaseInformation.get('department_id').setValue(this.routerAdditionalData.department_id);
         this.formBaseInformation.get('kassa_id').setValue(this.routerAdditionalData.kassa_id);
@@ -642,7 +642,7 @@ export class DepositingDocComponent implements OnInit {
      }, 1000);
   }
 
-  //создание нового документа Выемка
+  //создание нового документа Внесение
  createNewDocument(){
   this.createdDocId=null;
   this.formBaseInformation.get('uid').setValue(uuidv4());
@@ -653,23 +653,27 @@ export class DepositingDocComponent implements OnInit {
                 this.createdDocId=data as number;
                 switch(this.createdDocId){
                   case null:{// null возвращает если не удалось создать документ из-за ошибки
-                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа Выемка"}});
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа Внесение"}});
                     break;
                   }
                   case -1:{//недостаточно прав
-                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа Выемка"}});
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа Внесение"}});
                     break;
                   }
                   case -30:{//недостаточно средств в кассе
-                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно средств в кассе ККМ для создания документа Выемка"}});
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно средств в кассе ККМ для создания документа Внесение"}});
+                    break;
+                  }
+                  case -31:{//Документ-отправитель внутреннего платежа не проведён (например, проводим приходный ордер, но незадолго до этого у исходящего платежа сняли проведение)
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Документ-отправитель данного внутреннего платежа не проведён"}});
                     break;
                   }
                   case -40:{//дублирование исходящего платежа 
                     this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Входящий платеж с данным расходным ордером уже проведён"}});
                     break;
                   }
-                  default:{// Выемка успешно создалась в БД 
-                    this.openSnackBar("Документ \"Выемка\" успешно создан", "Закрыть");
+                  default:{// Внесение успешно создалась в БД 
+                    this.openSnackBar("Документ \"Внесение\" успешно создан", "Закрыть");
                     this.afterCreateDepositing();
                   }
                 }
@@ -687,25 +691,25 @@ export class DepositingDocComponent implements OnInit {
     this.balanceKassaComponent.getBalance();//пересчитаем баланс кассы ККМ (ведь из нее изъяли деньги, и баланс уменьшился)
   }
 
-  updateDocument(onChequePrinting?:boolean){ 
-    return this.http.post('/api/auth/updateDepositing',  this.formBaseInformation.value)
-      .subscribe(
-          (data) => 
-          {   
-            let response=data as any;
-            this.getData();
-            this.openSnackBar("Документ \"Выемка\" сохранён", "Закрыть");
-            if(response.fail_to_reserve>0){//если у 1 или нескольких позиций резервы при сохранении были отменены
-              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:
-              'У некоторых позиций не был сохранён резерв, т.к. он превышал заказываемое либо доступное количество товара'
-              }});
-            }
-          },
-          error => {
-            this.showQueryErrorMessage(error);
-            },
-      );
-  } 
+  // updateDocument(onChequePrinting?:boolean){ 
+  //   return this.http.post('/api/auth/updateDepositing',  this.formBaseInformation.value)
+  //     .subscribe(
+  //         (data) => 
+  //         {   
+  //           let response=data as any;
+  //           this.getData();
+  //           this.openSnackBar("Документ \"Внесение\" сохранён", "Закрыть");
+  //           if(response.fail_to_reserve>0){//если у 1 или нескольких позиций резервы при сохранении были отменены
+  //             this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:
+  //             'У некоторых позиций не был сохранён резерв, т.к. он превышал заказываемое либо доступное количество товара'
+  //             }});
+  //           }
+  //         },
+  //         error => {
+  //           this.showQueryErrorMessage(error);
+  //           },
+  //     );
+  // } 
 
   showQueryErrorMessage(error:any){
     console.log(error);
@@ -758,7 +762,8 @@ export class DepositingDocComponent implements OnInit {
 getOrderoutListByBoxofficeId(){
     if(+this.formBaseInformation.get('boxoffice_id').value>0 && +this.id==0){
       this.orderoutListLoading=true;
-      this.http.get('/api/auth/getOrderoutList?boxoffice_id='+this.formBaseInformation.get('boxoffice_id').value).subscribe(
+      this.http.get('/api/auth/getOrderoutList?boxoffice_id='+this.formBaseInformation.get('boxoffice_id').value+
+      "&recipient_id="+this.formBaseInformation.get('kassa_id').value).subscribe(
         (data) => { 
           this.orderoutListLoading=false;
           this.orderoutList=data as any [];
@@ -767,11 +772,16 @@ getOrderoutListByBoxofficeId(){
         error => {this.orderoutListLoading=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
       );
     }
-  }
+  } 
+
   setDefaultOrderout(){
-    if(+this.formBaseInformation.get('orderout_id').value==0 && this.orderoutList.length==1)
+    if(+this.formBaseInformation.get('orderout_id').value==0 && this.orderoutList.length==1){
       this.formBaseInformation.get('orderout_id').setValue(this.orderoutList[0].id);
+      this.onSelectOrderout(this.orderoutList[0].doc_number,this.orderoutList[0].summ);
+      setTimeout(() => {this.onChangeDepositingSumm();}, 1000);   // иногда пересчёт не отрабатывает, хз почему, приходится еще раз вызывать
+    }
   }
+
   onSelectOrderout(orderoutName:any,summ:number){
     this.formBaseInformation.get('orderout').setValue(orderoutName);
     this.formBaseInformation.get('summ').setValue(this.numToPrice(summ,2));
@@ -927,6 +937,10 @@ getOrderoutListByBoxofficeId(){
   onChangeDepositingSumm(){
     +this.formBaseInformation.get('balance_after').setValue((+this.balanceKassaComponent.balance+(+this.formBaseInformation.get('summ').value)).toFixed(2));
     if(isNaN(this.formBaseInformation.get('balance_after').value)) this.formBaseInformation.get('balance_after').setValue(0);
+  }
+
+  decompleteDocument(){
+    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Документ "Внесение" не подлежит снятию с проведения. Для возврата денег из кассы ККМ в кассу предприятия воспользуйтесь документом "Выемка"'}});
   }
   //------------------------------------------ COMMON UTILITIE   -----------------------------------------
   commaToDot(fieldName:string){

@@ -30,7 +30,7 @@
                 mat-raised-button 
                 style="width: 36px;height: 36px;min-width: 38px;padding: 0px;"
                 color="primary"
-                matTooltip='Настройки документа "Списание"'
+                matTooltip='Пользовательские настройки документа'
                 (click)="openDialogSettings()"
                 type="button"
                 class="button">
@@ -98,7 +98,7 @@
                 <button 
                     style="width: 129px;height: 36px;min-width: 38px;"
                     mat-raised-button 
-                    [matTooltip]="id>0?'Выйти из документа в меню':'Отменить создание нового документа'"
+                    [matTooltip]="id>0?'Выйти в меню':'Отмена создания документа'"
                     color="accent"
                     class="button">
                     <i class="material-icons">close</i>  {{id>0?'Выйти':'Отмена'}}

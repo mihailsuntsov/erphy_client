@@ -9,6 +9,8 @@ import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { SettingsCorrectionDialogComponent } from 'src/app/modules/settings/settings-correction-dialog/settings-correction-dialog.component';
 import { BalanceCagentComponent } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.component';
+import { BalanceBoxofficeComponent } from 'src/app/modules/info-modules/balance/balance-boxoffice/balance-boxoffice.component';
+import { BalanceAccountComponent } from 'src/app/modules/info-modules/balance/balance-account/balance-account.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { Router } from '@angular/router';
 import { v4 as uuidv4 } from 'uuid';
@@ -101,7 +103,7 @@ interface CanCreateLinkedDoc{//интерфейс ответа на запрос
   selector: 'app-correction-doc',
   templateUrl: './correction-doc.component.html',
   styleUrls: ['./correction-doc.component.css'],
-  providers: [LoadSpravService, CommonUtilitesService,BalanceCagentComponent,
+  providers: [LoadSpravService, CommonUtilitesService,BalanceCagentComponent,BalanceBoxofficeComponent,BalanceAccountComponent,
     {provide: MAT_DATE_LOCALE, useValue: 'ru'},
     {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},]
@@ -175,6 +177,8 @@ export class CorrectionDocComponent implements OnInit {
   @ViewChild("doc_number", {static: false}) doc_number; //для редактирования номера документа
   @ViewChild("form", {static: false}) form; // связь с формой <form #form="ngForm" ...
   @ViewChild(BalanceCagentComponent, {static: false}) public balanceCagentComponent:BalanceCagentComponent;
+  @ViewChild(BalanceBoxofficeComponent, {static: false}) public balanceBoxofficeComponent:BalanceBoxofficeComponent;
+  @ViewChild(BalanceAccountComponent, {static: false}) public balanceAccountComponent:BalanceAccountComponent;
 
   constructor(private activateRoute: ActivatedRoute,
     private cdRef:ChangeDetectorRef,
@@ -802,6 +806,62 @@ export class CorrectionDocComponent implements OnInit {
     } else this.updateDocument(true);
   }
 
+  decompleteDocument(notShowDialog?:boolean){
+    if(this.allowToComplete){
+      if(!notShowDialog){//notShowDialog=false - показывать диалог
+        const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+          width: '400px',data:{
+            head: 'Отмена проведения',
+            warning: 'Вы хотите отменить проведение данного документа?',
+            query: ''},});
+        dialogRef.afterClosed().subscribe(result => {
+          if(result==1){
+            this.setDocumentAsDecompleted();
+          }
+        });
+      } else this.setDocumentAsDecompleted();
+    }
+  }
+  setDocumentAsDecompleted(){
+    this.http.post('/api/auth/setCorrectionAsDecompleted',  this.formBaseInformation.value)
+      .subscribe(
+          (data) => 
+          {   
+            let result:number=data as number;
+            switch(result){
+              case null:{// null возвращает если не удалось завершить операцию из-за ошибки
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка снятия с проведения документа \"Приходный ордер\""}});
+                break;
+              }
+              case -1:{//недостаточно прав
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для данной операции"}});
+                break;
+              }
+              case -30:{//недостаточно средств
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно средств для проведения операции"}});
+                break;
+              }
+              case -60:{//Документ уже снят с проведения
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Данный документ уже снят с проведения"}});
+                break;
+              }
+              case 1:{// Успешно
+                this.openSnackBar("Документ \"Приходный ордер\" снят с проведения", "Закрыть");
+                this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+                this.formBaseInformation.get('is_completed').setValue(false);
+                // switch(this.formBaseInformation.get('type').value){
+                //   case 'cagent':this.balanceCagentComponent.getBalance();break;
+                //   case 'boxoffice':this.balanceBoxofficeComponent.getBalance();break;
+                //   case 'account':this.balanceAccountComponent.getBalance();break;
+                // }
+              }
+            }
+          },
+          error => {
+            this.showQueryErrorMessage(error);
+          },
+      );
+  }
   updateDocument(complete?:boolean){ 
     let currentStatus:number=this.formBaseInformation.get('status_id').value;
     if(complete){
@@ -831,6 +891,10 @@ export class CorrectionDocComponent implements OnInit {
                 this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно средств для проведения операции"}});
                 break;
               }
+              case -50:{//Документ уже проведён
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Данный документ уже проведён"}});
+                break;
+              }
               default:{// Успешно
                 this.openSnackBar("Документ \"Корректировка\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
                 this.getLinkedDocsScheme(true);//обновляем схему связанных документов
@@ -840,7 +904,11 @@ export class CorrectionDocComponent implements OnInit {
                   if(this.settingsForm.get('statusIdOnComplete').value){//если в настройках есть "Статус при проведении" - выставим его
                     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
                   this.setStatusColor();//чтобы обновился цвет статуса
-                  this.balanceCagentComponent.getBalance();//пересчитаем баланс контрагента, ведь мы скорректировали его и он поменялся 
+                  switch(this.formBaseInformation.get('type').value){
+                    case 'cagent':this.balanceCagentComponent.getBalance();break;
+                    case 'boxoffice':this.balanceBoxofficeComponent.getBalance();break;
+                    case 'account':this.balanceAccountComponent.getBalance();break;
+                  }
                 }
               }
             }

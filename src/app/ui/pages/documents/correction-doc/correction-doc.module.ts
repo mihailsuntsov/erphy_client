@@ -7,6 +7,9 @@ import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SettingsCorrectionDialogModule } from '../../../../modules/settings/settings-correction-dialog/settings-correction-dialog.module';
 import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.module';
+// import { BalanceKassaModule } from 'src/app/modules/info-modules/balance/balance-kassa/balance-kassa.module';
+import { BalanceBoxofficeModule } from 'src/app/modules/info-modules/balance/balance-boxoffice/balance-boxoffice.module';
+import { BalanceAccountModule } from 'src/app/modules/info-modules/balance/balance-account/balance-account.module';
 
 @NgModule({
   declarations: [CorrectionDocComponent, /*ControlMessagesComponent*/],
@@ -15,7 +18,9 @@ import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balanc
     CorrectionDocRoutingModule,
     SettingsCorrectionDialogModule,
     BalanceCagentModule,
-
+    BalanceBoxofficeModule,
+    BalanceAccountModule,
+    
     MaterialModule,
     FormsModule,
     ReactiveFormsModule
