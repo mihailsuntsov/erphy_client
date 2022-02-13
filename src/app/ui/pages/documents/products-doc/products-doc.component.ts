@@ -146,7 +146,7 @@ interface docResponse {//интерфейс для получения ответ
     last_purchase_price: number;
     avg_purchase_price: number;
     avg_netcost_price: number;
-    last_operation_price: number;
+    price: number;
   }
   interface ProductPricesTable { //интерфейс для формы, массив из которых будет содержать форма ProductPricesTable, входящая в formBaseInformation, которая будет включаться в formBaseInformation
     price_type_id: number;
@@ -215,8 +215,8 @@ numRows: NumRow[] = [
   {value: '25', viewValue: '25'},
   {value: '50', viewValue: '50'},
   {value: '100', viewValue: '100'},
-  {value: '500', viewValue: '500'},
-  {value: '1000', viewValue: '1000'}
+  // {value: '500', viewValue: '500'},
+  // {value: '1000', viewValue: '1000'}
 ];
 documentsIds: idAndName [] = 
 [
@@ -1416,12 +1416,14 @@ checkProductCodeFreeUnical() {
     this.displayedColumns=[];
     this.displayedColumns.push('department');
     this.displayedColumns.push('docName');
+    this.displayedColumns.push('before');
     this.displayedColumns.push('change');
     this.displayedColumns.push('quantity');
     this.displayedColumns.push('date_time_created');
-    this.displayedColumns.push('last_operation_price');
-    this.displayedColumns.push('last_purchase_price');
-    this.displayedColumns.push('avg_purchase_price');
+    this.displayedColumns.push('price');
+    // this.displayedColumns.push('last_purchase_price');
+    // this.displayedColumns.push('avg_purchase_price');
+    this.displayedColumns.push('netcost');
     this.displayedColumns.push('avg_netcost_price');
   }
   getPricesTableHeaderTitles(){
@@ -1525,5 +1527,8 @@ checkProductCodeFreeUnical() {
           control.controls[row_index].get('price_value').setValue(+price_value);
           row_index++;
         });
+  }
+  round(n:number){
+    return n.toFixed(2);
   }
 }

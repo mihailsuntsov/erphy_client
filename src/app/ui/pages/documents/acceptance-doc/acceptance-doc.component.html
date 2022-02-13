@@ -103,6 +103,16 @@
                 <i class="material-icons">playlist_add_check</i>
             </button>
             <button 
+                matTooltip='Документ проведён'
+                mat-raised-button 
+                *ngIf=" +id>0 && canGetChilds && formBaseInformation.get('is_completed').value && acceptanceProductsTableComponent"
+                (click)="decompleteDocument()" 
+                type="button"
+                color="primary"
+                class="button small-button completed">
+                <i class="material-icons">playlist_add_check</i> 
+            </button>
+            <button 
                 mat-raised-button 
                 *ngIf="+id>0 && allowToUpdate && canGetChilds && !formBaseInformation.get('is_completed').value && acceptanceProductsTableComponent"
                 matTooltip='Сохранить документ'
@@ -227,7 +237,7 @@
                                                                             [currency]="'руб.'">
                                                                     </app-balance-cagent>
                                                                 </mat-form-field>
-                                                                <mat-form-field  class="mat-form-field-100" [ngClass]="{invisible: +id>0}"> 
+                                                                <mat-form-field  class="mat-form-field-100" *ngIf="+id==0"> 
                                                                     <mat-label>Поставщик <span *ngIf="+formBaseInformation.get('cagent_id').value==0" class="star">*</span></mat-label>
                                                                     <input  matInput 
                                                                     [matAutocomplete]="auto4" 

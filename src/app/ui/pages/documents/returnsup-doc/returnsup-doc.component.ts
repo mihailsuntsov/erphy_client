@@ -220,9 +220,14 @@ export class ReturnsupDocComponent implements OnInit {
   allowToCreateMyCompany:boolean = false;
   allowToCreateAllCompanies:boolean = false;
   allowToCreateMyDepartments:boolean = false;
+  allowToCompleteAllCompanies:boolean = false;
+  allowToCompleteMyCompany:boolean = false;
+  allowToCompleteMyDepartments:boolean = false; 
+  allowToCompleteMyDocs:boolean = false;
   allowToView:boolean = false;
   allowToUpdate:boolean = false;
   allowToCreate:boolean = false;
+  allowToComplete:boolean = false;
   showOpenDocIcon:boolean=false;
   editability:boolean = false;//редактируемость. true если есть право на создание и документ создаётся, или есть право на редактирование и документ создан
 
@@ -411,6 +416,12 @@ export class ReturnsupDocComponent implements OnInit {
       (this.allowToUpdateMyDepartments&&documentOfMyCompany&&documentOfMyDepartments)||
       (this.allowToUpdateMyDocs&&documentOfMyCompany&&documentOfMyDepartments&&(this.myId==this.creatorId))
     )?true:false;
+    this.allowToComplete=(
+      (this.allowToCompleteAllCompanies)||
+      (this.allowToCompleteMyCompany&&documentOfMyCompany)||
+      (this.allowToCompleteMyDepartments&&documentOfMyCompany&&documentOfMyDepartments)||
+      (this.allowToCompleteMyDocs&&documentOfMyCompany&&documentOfMyDepartments&&(this.myId==this.creatorId))
+    )?true:false;
     this.allowToCreate=(this.allowToCreateAllCompanies || this.allowToCreateMyCompany||this.allowToCreateMyDepartments)?true:false;
     
     this.editability=((this.allowToCreate && +this.id==0)||(this.allowToUpdate && this.id>0));
@@ -505,6 +516,10 @@ export class ReturnsupDocComponent implements OnInit {
     this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==373)});
     this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==374)});
     this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==375)});
+    this.allowToCompleteAllCompanies = permissionsSet.some(       function(e){return(e==615)});
+    this.allowToCompleteMyCompany = permissionsSet.some(          function(e){return(e==616)});
+    this.allowToCompleteMyDepartments = permissionsSet.some(      function(e){return(e==617)});
+    this.allowToCompleteMyDocs = permissionsSet.some(             function(e){return(e==618)});
    
     if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;this.allowToCreateMyDepartments=true}
     if(this.allowToCreateMyCompany)this.allowToCreateMyDepartments=true;
@@ -514,6 +529,9 @@ export class ReturnsupDocComponent implements OnInit {
     if(this.allowToUpdateAllCompanies){this.allowToUpdateMyCompany=true;this.allowToUpdateMyDepartments=true;this.allowToUpdateMyDocs=true;}
     if(this.allowToUpdateMyCompany){this.allowToUpdateMyDepartments=true;this.allowToUpdateMyDocs=true;}
     if(this.allowToUpdateMyDepartments)this.allowToUpdateMyDocs=true;
+    if(this.allowToCompleteAllCompanies){this.allowToCompleteMyCompany=true;this.allowToCompleteMyDepartments=true;this.allowToCompleteMyDocs=true;}
+    if(this.allowToCompleteMyCompany){this.allowToCompleteMyDepartments=true;this.allowToCompleteMyDocs=true;}
+    if(this.allowToCompleteMyDepartments)this.allowToCompleteMyDocs=true;
     this.getData();
   }
 
@@ -861,6 +879,67 @@ export class ReturnsupDocComponent implements OnInit {
     } else this.updateDocument(true);
   }
 
+  decompleteDocument(notShowDialog?:boolean){
+    if(this.allowToComplete){
+      if(!notShowDialog){//notShowDialog=false - показывать диалог
+        const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+          width: '400px',data:{
+            head: 'Отмена проведения',
+            warning: 'Вы хотите отменить проведение данного документа?',
+            query: ''},});
+        dialogRef.afterClosed().subscribe(result => {
+          if(result==1){
+            this.setDocumentAsDecompleted();
+          }
+        });
+      } else this.setDocumentAsDecompleted();
+    }
+  }
+  setDocumentAsDecompleted(){
+    this.getProductsTable();    
+    this.http.post('/api/auth/setReturnsupAsDecompleted',  this.formBaseInformation.value)
+      .subscribe(
+          (data) => 
+          {   
+            let result:number=data as number;
+            switch(result){
+              case null:{// null возвращает если не удалось завершить операцию из-за ошибки
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка снятия с проведения документа \"Возврат поставщику\""}});
+                break;
+              }
+              case -1:{//недостаточно прав
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для данной операции"}});
+                break;
+              }
+              case -70:{//Отрицательное кол-во товара в истории движения товара
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"В результате пересчёта себестоимости одного из товаров данного возврата, на одном из этапов его движения получено отрицательное количество данного товара"}});
+                break;
+              }
+              case -60:{//Документ уже снят с проведения
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Данный документ уже снят с проведения"}});
+                break;
+              }
+              case -80:{//Отрицательное кол-во товара на складе
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"В результате проводимой операции получено отрицательное количество на скаде одного из товаров документа"}});
+                break;
+              }
+              case 1:{// Успешно
+                this.openSnackBar("Документ \"Возврат поставщику\" снят с проведения", "Закрыть");
+                this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+                this.formBaseInformation.get('is_completed').setValue(false);this.balanceCagentComponent.getBalance();//пересчитаем баланс поставщика, ведь мы приняли ему товар, и теперь он должен больше 
+                this.balanceCagentComponent.getBalance();//пересчитаем баланс поставщика
+                if(this.returnsupProductsTableComponent){
+                  this.returnsupProductsTableComponent.showColumns(); //чтобы показать столбцы после отмены проведения 
+                  this.returnsupProductsTableComponent.getProductsTable();
+                }
+              }
+            }
+          },
+          error => {
+            this.showQueryErrorMessage(error);
+          },
+      );
+  }
   updateDocument(complete?:boolean){ 
     this.getProductsTable();    
     let currentStatus:number=this.formBaseInformation.get('status_id').value;
@@ -887,8 +966,16 @@ export class ReturnsupDocComponent implements OnInit {
                 this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа \"Возврат поставщику\""}});
                 break;
               }
-              case 0:{//недостаточно товара на складе
+              case -50:{//документ уже проведён
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Данный документ уже проведён"}});
+                break;
+              }
+              case -70:{//недостаточно товара на складе
                 this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Количество тоара на складе у одной или нескольких позиций несдостаточно для возврата поставщику"}});
+                break;
+              }
+              case -80:{//Отрицательное кол-во товара на складе
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"В результате проводимой операции получено отрицательное количество на скаде одного из товаров документа"}});
                 break;
               }
               default:{// Успешно
@@ -896,7 +983,10 @@ export class ReturnsupDocComponent implements OnInit {
                 this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                 if(complete) {
                   this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведенности = true
-                  if(this.returnsupProductsTableComponent) this.returnsupProductsTableComponent.showColumns(); //чтобы спрятать столбцы после проведения 
+                  if(this.returnsupProductsTableComponent){
+                    this.returnsupProductsTableComponent.showColumns(); //чтобы спрятать столбцы после проведения 
+                    this.returnsupProductsTableComponent.getProductsTable();
+                  }
                   if(this.settingsForm.get('statusOnFinishId').value){//если в настройках есть "Статус при проведении" - выставим его
                     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);}
                   this.setStatusColor();//чтобы обновился цвет статуса

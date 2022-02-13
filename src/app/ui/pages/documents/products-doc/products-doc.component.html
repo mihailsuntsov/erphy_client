@@ -883,17 +883,25 @@
                                                                     </span>
                                                                     <td mat-cell *matCellDef="let row"> {{row.docName}} </td>
                                                                 </ng-container>
+                                                                <ng-container matColumnDef="before">
+                                                                    <th mat-header-cell *matHeaderCellDef matTooltip="Количество товара до операции">
+                                                                    <span (click)="setSort('before')" class="sortheader"> Количество<br>до 
+                                                                        <i *ngIf="this.formProductHistory.sortAsc=='asc' && this.formProductHistory.sortColumn=='before'" class="material-icons sortarrow">arrow_upward</i>
+                                                                        <i *ngIf="this.formProductHistory.sortAsc=='desc' && this.formProductHistory.sortColumn=='before'" class="material-icons sortarrow">arrow_downward</i>
+                                                                    </span>
+                                                                    <td mat-cell *matCellDef="let row"> {{round(row.quantity-row.change)}} </td>
+                                                                </ng-container>
                                                                 <ng-container matColumnDef="change">
                                                                     <th mat-header-cell *matHeaderCellDef matTooltip="Изменение товара в данной операции">
                                                                     <span (click)="setSort('change')" class="sortheader"> Изменение 
                                                                         <i *ngIf="this.formProductHistory.sortAsc=='asc' && this.formProductHistory.sortColumn=='change'" class="material-icons sortarrow">arrow_upward</i>
                                                                         <i *ngIf="this.formProductHistory.sortAsc=='desc' && this.formProductHistory.sortColumn=='change'" class="material-icons sortarrow">arrow_downward</i>
                                                                     </span>
-                                                                    <td mat-cell *matCellDef="let row"> {{row.change}} </td>
+                                                                    <td mat-cell *matCellDef="let row"> {{(row.change>0?'+':'')}}{{row.change}} </td>
                                                                 </ng-container>
                                                                 <ng-container matColumnDef="quantity">
                                                                     <th mat-header-cell *matHeaderCellDef matTooltip="Количество товара в данной операции">
-                                                                    <span (click)="setSort('quantity')" class="sortheader"> Количество 
+                                                                    <span (click)="setSort('quantity')" class="sortheader"> Количество<br>после
                                                                         <i *ngIf="this.formProductHistory.sortAsc=='asc' && this.formProductHistory.sortColumn=='quantity'" class="material-icons sortarrow">arrow_upward</i>
                                                                         <i *ngIf="this.formProductHistory.sortAsc=='desc' && this.formProductHistory.sortColumn=='quantity'" class="material-icons sortarrow">arrow_downward</i>
                                                                     </span>
@@ -907,32 +915,40 @@
                                                                     </span>
                                                                     <td mat-cell *matCellDef="let row"> {{row.date_time_created}} </td>
                                                                 </ng-container>
-                                                                <ng-container matColumnDef="last_operation_price">
+                                                                <ng-container matColumnDef="price">
                                                                     <th mat-header-cell *matHeaderCellDef matTooltip="Цена, применённая в соответствующей операции">
-                                                                    <span (click)="setSort('last_operation_price')" class="sortheader"> Цена операции 
-                                                                        <i *ngIf="this.formProductHistory.sortAsc=='asc' && this.formProductHistory.sortColumn=='last_operation_price'" class="material-icons sortarrow">arrow_upward</i>
-                                                                        <i *ngIf="this.formProductHistory.sortAsc=='desc' && this.formProductHistory.sortColumn=='last_operation_price'" class="material-icons sortarrow">arrow_downward</i>
+                                                                    <span (click)="setSort('price')" class="sortheader"> Цена<br>операции 
+                                                                        <i *ngIf="this.formProductHistory.sortAsc=='asc' && this.formProductHistory.sortColumn=='price'" class="material-icons sortarrow">arrow_upward</i>
+                                                                        <i *ngIf="this.formProductHistory.sortAsc=='desc' && this.formProductHistory.sortColumn=='price'" class="material-icons sortarrow">arrow_downward</i>
                                                                     </span>
-                                                                    <td mat-cell *matCellDef="let row"> {{row.last_operation_price}} </td>
+                                                                    <td mat-cell *matCellDef="let row"> {{row.price}} </td>
                                                                 </ng-container>
-                                                                <ng-container matColumnDef="last_purchase_price">
+                                                                <!-- <ng-container matColumnDef="last_purchase_price">
                                                                     <th mat-header-cell *matHeaderCellDef matTooltip="Цена, по которой товар поступил на склад в последней операции приёмки или оприходования">
                                                                     <span (click)="setSort('last_purchase_price')" class="sortheader"> Последняя цена<br>получения 
                                                                         <i *ngIf="this.formProductHistory.sortAsc=='asc' && this.formProductHistory.sortColumn=='last_purchase_price'" class="material-icons sortarrow">arrow_upward</i>
                                                                         <i *ngIf="this.formProductHistory.sortAsc=='desc' && this.formProductHistory.sortColumn=='last_purchase_price'" class="material-icons sortarrow">arrow_downward</i>
                                                                     </span>
                                                                     <td mat-cell *matCellDef="let row"> {{row.last_purchase_price}} </td>
-                                                                </ng-container>
-                                                                <ng-container matColumnDef="avg_purchase_price">
+                                                                </ng-container> -->
+                                                                <!-- <ng-container matColumnDef="avg_purchase_price">
                                                                     <th mat-header-cell *matHeaderCellDef matTooltip="Средняя цена, по которой товар поступал на склад. Рассчитывается исходя из цен поступления товара и остатков от предыдущих поступлений.">
                                                                     <span (click)="setSort('avg_purchase_price')" class="sortheader"> Средняя цена<br>получения
                                                                         <i *ngIf="this.formProductHistory.sortAsc=='asc' && this.formProductHistory.sortColumn=='avg_purchase_price'" class="material-icons sortarrow">arrow_upward</i>
                                                                         <i *ngIf="this.formProductHistory.sortAsc=='desc' && this.formProductHistory.sortColumn=='avg_purchase_price'" class="material-icons sortarrow">arrow_downward</i>
                                                                     </span>
                                                                     <td mat-cell *matCellDef="let row"> {{row.avg_purchase_price}} </td>
+                                                                </ng-container> -->
+                                                                <ng-container matColumnDef="netcost">
+                                                                    <th mat-header-cell *matHeaderCellDef matTooltip="Cебестоимость товара при операции">
+                                                                    <span (click)="setSort('netcost')" class="sortheader"> Cебестоимость<br>при операции 
+                                                                        <i *ngIf="this.formProductHistory.sortAsc=='asc' && this.formProductHistory.sortColumn=='netcost'" class="material-icons sortarrow">arrow_upward</i>
+                                                                        <i *ngIf="this.formProductHistory.sortAsc=='desc' && this.formProductHistory.sortColumn=='netcost'" class="material-icons sortarrow">arrow_downward</i>
+                                                                    </span>
+                                                                    <td mat-cell *matCellDef="let row"> {{row.netcost}} </td>
                                                                 </ng-container>
                                                                 <ng-container matColumnDef="avg_netcost_price">
-                                                                    <th mat-header-cell *matHeaderCellDef matTooltip="Средняя себестоимость товара, учитывающая его цену при поступлении на склад и расходы на доставку">
+                                                                    <th mat-header-cell *matHeaderCellDef matTooltip="Средняя себестоимость товара, получаемая из имеющегося количества на складе, текущей себестоимости, себестоимости и количества при операции с товаром">
                                                                     <span (click)="setSort('avg_netcost_price')" class="sortheader"> Средняя<br>себестоимость 
                                                                         <i *ngIf="this.formProductHistory.sortAsc=='asc' && this.formProductHistory.sortColumn=='avg_netcost_price'" class="material-icons sortarrow">arrow_upward</i>
                                                                         <i *ngIf="this.formProductHistory.sortAsc=='desc' && this.formProductHistory.sortColumn=='avg_netcost_price'" class="material-icons sortarrow">arrow_downward</i>
