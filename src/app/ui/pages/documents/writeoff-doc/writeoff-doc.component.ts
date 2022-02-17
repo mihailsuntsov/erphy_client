@@ -171,9 +171,14 @@ export class WriteoffDocComponent implements OnInit {
   allowToCreateMyCompany:boolean = false;
   allowToCreateAllCompanies:boolean = false;
   allowToCreateMyDepartments:boolean = false;
+  allowToCompleteAllCompanies:boolean = false;
+  allowToCompleteMyCompany:boolean = false;
+  allowToCompleteMyDepartments:boolean = false; 
+  allowToCompleteMyDocs:boolean = false;
   allowToView:boolean = false;
   allowToUpdate:boolean = false;
   allowToCreate:boolean = false;
+  allowToComplete:boolean = false;
   showOpenDocIcon:boolean=false;
   editability:boolean = false;//редактируемость. true если есть право на создание и документ создаётся, или есть право на редактирование и документ создан
 
@@ -342,6 +347,12 @@ export class WriteoffDocComponent implements OnInit {
       (this.allowToUpdateMyDepartments&&documentOfMyCompany&&documentOfMyDepartments)||
       (this.allowToUpdateMyDocs&&documentOfMyCompany&&documentOfMyDepartments&&(this.myId==this.creatorId))
     )?true:false;
+    this.allowToComplete=(
+      (this.allowToCompleteAllCompanies)||
+      (this.allowToCompleteMyCompany&&documentOfMyCompany)||
+      (this.allowToCompleteMyDepartments&&documentOfMyCompany&&documentOfMyDepartments)||
+      (this.allowToCompleteMyDocs&&documentOfMyCompany&&documentOfMyDepartments&&(this.myId==this.creatorId))
+    )?true:false;
     this.allowToCreate=(this.allowToCreateAllCompanies || this.allowToCreateMyCompany||this.allowToCreateMyDepartments)?true:false;
     
     this.editability=((this.allowToCreate && +this.id==0)||(this.allowToUpdate && this.id>0));
@@ -400,6 +411,10 @@ export class WriteoffDocComponent implements OnInit {
     this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==228)});
     this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==229)});
     this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==230)});
+    this.allowToCompleteAllCompanies = permissionsSet.some(       function(e){return(e==623)});
+    this.allowToCompleteMyCompany = permissionsSet.some(          function(e){return(e==624)});
+    this.allowToCompleteMyDepartments = permissionsSet.some(      function(e){return(e==625)});
+    this.allowToCompleteMyDocs = permissionsSet.some(             function(e){return(e==626)});
    
     if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;this.allowToCreateMyDepartments=true}
     if(this.allowToCreateMyCompany)this.allowToCreateMyDepartments=true;
@@ -409,6 +424,9 @@ export class WriteoffDocComponent implements OnInit {
     if(this.allowToUpdateAllCompanies){this.allowToUpdateMyCompany=true;this.allowToUpdateMyDepartments=true;this.allowToUpdateMyDocs=true;}
     if(this.allowToUpdateMyCompany){this.allowToUpdateMyDepartments=true;this.allowToUpdateMyDocs=true;}
     if(this.allowToUpdateMyDepartments)this.allowToUpdateMyDocs=true;
+    if(this.allowToCompleteAllCompanies){this.allowToCompleteMyCompany=true;this.allowToCompleteMyDepartments=true;this.allowToCompleteMyDocs=true;}
+    if(this.allowToCompleteMyCompany){this.allowToCompleteMyDepartments=true;this.allowToCompleteMyDocs=true;}
+    if(this.allowToCompleteMyDepartments)this.allowToCompleteMyDocs=true;
     this.getData();
   }
 
@@ -750,6 +768,68 @@ export class WriteoffDocComponent implements OnInit {
     } else this.updateDocument(true);
   }
 
+  decompleteDocument(notShowDialog?:boolean){
+    if(this.allowToComplete){
+      if(!notShowDialog){//notShowDialog=false - показывать диалог
+        const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+          width: '400px',data:{
+            head: 'Отмена проведения',
+            warning: 'Вы хотите отменить проведение данного документа?',
+            query: ''},});
+        dialogRef.afterClosed().subscribe(result => {
+          if(result==1){
+            this.setDocumentAsDecompleted();
+          }
+        });
+      } else this.setDocumentAsDecompleted();
+    }
+  }
+  setDocumentAsDecompleted(){
+    this.getProductsTable();    
+    this.http.post('/api/auth/setWriteoffAsDecompleted',  this.formBaseInformation.value)
+      .subscribe(
+          (data) => 
+          {   
+            let result:number=data as number;
+            switch(result){
+              case null:{// null возвращает если не удалось завершить операцию из-за ошибки
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка снятия с проведения документа \"Списание\""}});
+                break;
+              }
+              case -1:{//недостаточно прав
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для данной операции"}});
+                break;
+              }
+              case -70:{//Отрицательное кол-во товара в истории движения товара
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"В результате пересчёта себестоимости одного из товаров данного возврата, на одном из этапов его движения получено отрицательное количество данного товара"}});
+                break;
+              }
+              case -60:{//Документ уже снят с проведения
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Данный документ уже снят с проведения"}});
+                break;
+              }
+              case -80:{//Отрицательное кол-во товара на складе
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"В результате проводимой операции получено отрицательное количество на скаде одного из товаров документа"}});
+                break;
+              }
+              case 1:{// Успешно
+                this.openSnackBar("Документ \"Списание\" снят с проведения", "Закрыть");
+                this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+                this.formBaseInformation.get('is_completed').setValue(false);
+                // this.balanceCagentComponent.getBalance();//пересчитаем баланс поставщика, ведь мы приняли ему товар, и теперь он должен больше 
+                // this.balanceCagentComponent.getBalance();//пересчитаем баланс поставщика
+                if(this.writeoffProductsTableComponent){
+                  this.writeoffProductsTableComponent.showColumns(); //чтобы показать столбцы после отмены проведения 
+                  this.writeoffProductsTableComponent.getProductsTable();
+                }
+              }
+            }
+          },
+          error => {
+            this.showQueryErrorMessage(error);
+          },
+      );
+  }
   updateDocument(complete?:boolean){ 
     this.getProductsTable();    
     let currentStatus:number=this.formBaseInformation.get('status_id').value;
@@ -780,14 +860,27 @@ export class WriteoffDocComponent implements OnInit {
                 this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа \"Списание\""}});
                 break;
               }
-              default:{// Успешно
+              case -70:{//Отрицательное кол-во товара в истории движения товара
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"В результате пересчёта себестоимости одного из товаров данного возврата, на одном из этапов его движения получено отрицательное количество данного товара"}});
+                break;
+              }
+              case -50:{//документ уже проведён
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Данный документ уже проведён"}});
+                break;
+              }
+              case -80:{//Отрицательное кол-во товара на складе
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"В результате проводимой операции получено отрицательное количество на скаде одного из товаров документа"}});
+                break;
+              }
+              case 1:{// Успешно
                 this.openSnackBar("Документ \"Списание\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
                 this.getLinkedDocsScheme(true);//обновим схему связанных документов )чтобы Проведено сменилось с Нет на Да или обновился статус
                 if(complete) {
                   this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведённости = true
                   if(this.writeoffProductsTableComponent){
                     this.writeoffProductsTableComponent.showColumns(); //чтобы спрятать столбцы после проведения 
-                    this.writeoffProductsTableComponent.tableRecount();
+                    this.writeoffProductsTableComponent.getProductsTable();
+                    // this.writeoffProductsTableComponent.tableRecount();
                   }
                   if(this.settingsForm.get('statusOnFinishId').value){//если в настройках есть "Статус при проведении" - выставим его
                     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);}
@@ -1081,15 +1174,15 @@ deleteFile(id:number){
                 
 //                   switch(createdDocId){
 //                     case null:{// null возвращает если не удалось создать документ из-за ошибки
-//                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа "+(docname=="Returnsup"?"Возврат поставщику":"")}});
+//                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа "+(docname=="Returnsup"?"Списание":"")}});
 //                       break;
 //                     }
 //                     case 0:{//недостаточно прав
-//                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа "+(docname=="Returnsup"?"Возврат поставщику":"")}});
+//                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа "+(docname=="Returnsup"?"Списание":"")}});
 //                       break;
 //                     }
 //                     default:{// Документ успешно создался в БД 
-//                       this.openSnackBar("Документ "+(docname=='Returnsup'?'Возврат поставщику':'')+" успешно создан", "Закрыть");
+//                       this.openSnackBar("Документ "+(docname=='Returnsup'?'Списание':'')+" успешно создан", "Закрыть");
 //                       this.getLinkedDocsList(docname.toLowerCase());//обновляем список этого документа
 //                     }
 //                   }
@@ -1121,7 +1214,7 @@ deleteFile(id:number){
 //   // можно ли создать связанный документ (да - если есть товары, подходящие для этого, и нет уже проведённого документа)
 //   canCreateLinkedDoc(docname:string):CanCreateLinkedDoc{
 //     if(!(this.writeoffProductsTableComponent && this.writeoffProductsTableComponent.getProductTable().length>0)){
-//         return {can:false, reason:'Невозможно создать '+(docname=='Returnsup'?'возврат поставщику':'')+', так как нет товарных позиций'};
+//         return {can:false, reason:'Невозможно создать '+(docname=='Returnsup'?'Списание':'')+', так как нет товарных позиций'};
 //     }else
 //       return {can:true, reason:''};
 //   }
@@ -1143,7 +1236,7 @@ deleteFile(id:number){
 //         data:
 //         { 
 //           head: 'Удаление',
-//           warning: 'Удалить '+(docName=='Returnsup'?'возврат поставщику?':''),
+//           warning: 'Удалить '+(docName=='Returnsup'?'Списание?':''),
 //           query: '',
 //         },
 //       });
@@ -1166,7 +1259,7 @@ deleteFile(id:number){
 //       },
 //     });
 //     dialogRef.afterClosed().subscribe(result => {
-//       if(result) this.getLinkedDocsList('returnsup',true);//если вернулось true - значит, возможно, зайдя в Возврат поставщику, его закрыли. Обновим список возвратов.
+//       if(result) this.getLinkedDocsList('returnsup',true);//если вернулось true - значит, возможно, зайдя в Списание, его закрыли. Обновим список возвратов.
 //   })}
 //   deleteLinkedDoc(docName:string,id:number){
 //     const body = {"checked": id}; 

@@ -926,7 +926,7 @@ export class ReturnsupDocComponent implements OnInit {
               case 1:{// Успешно
                 this.openSnackBar("Документ \"Возврат поставщику\" снят с проведения", "Закрыть");
                 this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
-                this.formBaseInformation.get('is_completed').setValue(false);this.balanceCagentComponent.getBalance();//пересчитаем баланс поставщика, ведь мы приняли ему товар, и теперь он должен больше 
+                this.formBaseInformation.get('is_completed').setValue(false);
                 this.balanceCagentComponent.getBalance();//пересчитаем баланс поставщика
                 if(this.returnsupProductsTableComponent){
                   this.returnsupProductsTableComponent.showColumns(); //чтобы показать столбцы после отмены проведения 

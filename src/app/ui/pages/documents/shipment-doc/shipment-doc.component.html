@@ -12,6 +12,7 @@
                                     formControlName="status_id"
                                     (selectionChange)="setStatusColor();">
                         <mat-option *ngFor="let status of receivedStatusesList" 
+                                    [ngClass]="{invisible: !(allowToUpdate && !formBaseInformation.get('is_completed').value)}"
                                     [value]="status.id"
                                     matTooltip={{status.description}}>
                                     <div style="display: inline;line-height: 20px;">
@@ -113,6 +114,16 @@
                 color="primary"
                 class="button small-button">
                 <i class="material-icons">playlist_add_check</i>
+            </button>
+            <button 
+                matTooltip='Документ проведён'
+                mat-raised-button 
+                *ngIf=" +id>0 && canGetChilds && formBaseInformation.get('is_completed').value && productSearchAndTableComponent"
+                (click)="decompleteDocument()" 
+                type="button"
+                color="primary"
+                class="button small-button completed">
+                <i class="material-icons">playlist_add_check</i> 
             </button>
             <button 
                 mat-raised-button 

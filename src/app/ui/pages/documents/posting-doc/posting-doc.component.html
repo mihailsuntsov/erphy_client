@@ -28,12 +28,11 @@
             </div>
             <button 
                 mat-raised-button 
-                style="width: 36px;height: 36px;min-width: 38px;padding: 0px;"
                 color="primary"
                 matTooltip='Пользовательские настройки документа'
                 (click)="openDialogSettings()"
                 type="button"
-                class="button">
+                class="button small-button">
                 <i class="material-icons">settings</i>
             </button>
             <button 
@@ -46,9 +45,8 @@
                 color="primary"
                 (submit)="false"
                 type="button"
-                class="button"
-                style="width: 129px;height: 36px;min-width: 38px;">
-                <i class="material-icons">add</i> Документ<i class="material-icons">arrow_drop_down</i>
+                class="button small-button">
+                <i class="material-icons">add</i>
             </button>
             <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
                 <button mat-menu-item (click)="goToNewDocument()">
@@ -56,48 +54,55 @@
                 </button>
             </mat-menu>
             <button 
-                style="width: 129px;height: 36px;min-width: 38px;"
                 mat-raised-button 
+                matTooltip='Провести документ'
                 *ngIf=" +id>0 && !formBaseInformation.get('is_completed').value && postingProductsTableComponent"
                 [disabled]="!childFormValid||postingProductsTableComponent.indivisibleErrorOfProductTable" 
                 (click)="completeDocument()" 
                 type="button"
                 color="primary"
-                class="button">
-                <i class="material-icons">playlist_add_check</i> Провести
+                class="button small-button">
+                <i class="material-icons">playlist_add_check</i>
+            </button>
+            <button 
+                matTooltip='Документ проведён'
+                mat-raised-button 
+                *ngIf=" +id>0 && canGetChilds && formBaseInformation.get('is_completed').value && postingProductsTableComponent"
+                (click)="decompleteDocument()" 
+                type="button"
+                color="primary"
+                class="button small-button completed">
+                <i class="material-icons">playlist_add_check</i> 
             </button>
             <button 
                 mat-raised-button 
-                style="width: 129px;height: 36px;min-width: 38px;"
                 *ngIf="+id>0 && allowToUpdate && canGetChilds && !formBaseInformation.get('is_completed').value && postingProductsTableComponent"
                 matTooltip='Сохранить документ'
                 (click)="updateDocument()"
                 [disabled]="!childFormValid||postingProductsTableComponent.indivisibleErrorOfProductTable" 
                 color="primary"
                 type="button"
-                class="button">
-                <i class="material-icons">done</i> Сохранить
+                class="button small-button">
+                <i class="material-icons">save</i>
             </button>
             <button 
                 mat-raised-button 
                 matTooltip='Создать документ'
                 (click)="createNewDocument()" 
-                style="width: 129px;height: 36px;min-width: 38px;"
                 *ngIf="allowToCreate && +id==0  && postingProductsTableComponent"
                 [disabled]="!childFormValid||!formBaseInformation.valid||postingProductsTableComponent.indivisibleErrorOfProductTable" 
                 color="primary"
                 type="submit"
-                class="button">
-                <i class="material-icons">done</i> Создать
+                class="button small-button">
+                <i class="material-icons">done</i>
             </button>
             <a routerLink="../../posting"  [style.display]="(mode=='standart')?'block':'none'">
                 <button 
-                    style="width: 129px;height: 36px;min-width: 38px;"
                     mat-raised-button 
                     [matTooltip]="id>0?'Выйти в меню':'Отмена создания документа'"
                     color="accent"
-                    class="button">
-                    <i class="material-icons">close</i>  {{id>0?'Выйти':'Отмена'}}
+                    class="button small-button">
+                    <i class="material-icons">close</i>
                 </button>
             </a>
             <button [style.display]="(mode=='window')?'block':'none'"
@@ -105,9 +110,9 @@
                     style="margin-left:10px"
                     [mat-dialog-close]="formBaseInformation.get('is_completed').value"
                     matDialogClose 
+                    class="button small-button"
                     color="accent">
                     <i class="material-icons">close</i>
-                    <span> Закрыть </span>
             </button>
         </mat-card-title>
         <mat-card-content> 

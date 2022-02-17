@@ -239,8 +239,8 @@ export class AcceptanceComponent implements OnInit {
     this.displayedColumns.push('department');
     this.displayedColumns.push('cagent');
     this.displayedColumns.push('status');
-    this.displayedColumns.push('sum_price');
     this.displayedColumns.push('product_count');
+    this.displayedColumns.push('sum_price');
     this.displayedColumns.push('is_completed');
     this.displayedColumns.push('description');
     this.displayedColumns.push('creator');

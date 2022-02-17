@@ -12,6 +12,7 @@
                                     (selectionChange)="setStatusColor();">
                         <mat-option *ngFor="let status of receivedStatusesList" 
                                     [value]="status.id"
+                                    [ngClass]="{invisible: !(allowToUpdate && !formBaseInformation.get('is_completed').value)}"
                                     matTooltip={{status.description}}>
                                     <div style="display: inline;line-height: 20px;">
                                         <div class = "circle-wrapper">

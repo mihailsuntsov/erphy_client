@@ -28,12 +28,11 @@
             </div>
             <button 
                 mat-raised-button 
-                style="width: 36px;height: 36px;min-width: 38px;padding: 0px;"
                 color="primary"
                 matTooltip='Пользовательские настройки документа'
                 (click)="openDialogSettings()"
                 type="button"
-                class="button">
+                class="button small-button">
                 <i class="material-icons">settings</i>
             </button><span *ngIf="movingProductsTableComponent"></span>
             <button 
@@ -46,8 +45,8 @@
                 color="primary"
                 (submit)="false"
                 type="button"
-                class="button">
-                <i class="material-icons">add</i> Документ<i class="material-icons">arrow_drop_down</i>
+                class="button small-button">
+                <i class="material-icons">add</i>
             </button>
             <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
                 <button mat-menu-item (click)="goToNewDocument()">
@@ -59,10 +58,21 @@
                 *ngIf=" +id>0 && allowToComplete && !formBaseInformation.get('is_completed').value && movingProductsTableComponent"
                 [disabled]="!childFormValid||movingProductsTableComponent.indivisibleErrorOfProductTable" 
                 (click)="completeDocument()" 
+                matTooltip='Провести документ'
                 type="button"
                 color="primary"
-                class="button">
-                <i class="material-icons">playlist_add_check</i> Провести
+                class="button small-button">
+                <i class="material-icons">playlist_add_check</i>
+            </button>
+            <button 
+                matTooltip='Документ проведён'
+                mat-raised-button 
+                *ngIf=" +id>0 && canGetChilds && formBaseInformation.get('is_completed').value && movingProductsTableComponent"
+                (click)="decompleteDocument()" 
+                type="button"
+                color="primary"
+                class="button small-button completed">
+                <i class="material-icons">playlist_add_check</i> 
             </button>
             <button 
                 mat-raised-button 
@@ -72,8 +82,8 @@
                 [disabled]="!childFormValid||movingProductsTableComponent.indivisibleErrorOfProductTable" 
                 color="primary"
                 type="button"
-                class="button">
-                <i class="material-icons">done</i> Сохранить
+                class="button small-button">
+                <i class="material-icons">save</i>
             </button>
             <button 
                 mat-raised-button 
@@ -83,20 +93,21 @@
                 [disabled]="!childFormValid||!formBaseInformation.valid||movingProductsTableComponent.indivisibleErrorOfProductTable" 
                 color="primary"
                 type="submit"
-                class="button">
-                <i class="material-icons">done</i> Создать
+                class="button small-button">
+                <i class="material-icons">done</i>
             </button>
             <a routerLink="../../moving"  [style.display]="(mode=='standart')?'block':'none'">
                 <button 
                     mat-raised-button 
                     [matTooltip]="id>0?'Выйти в меню':'Отмена создания документа'"
                     color="accent"
-                    class="button">
-                    <i class="material-icons">close</i>  {{id>0?'Выйти':'Отмена'}}
+                    class="button small-button">
+                    <i class="material-icons">close</i>
                 </button>
             </a>
             <button [style.display]="(mode=='window')?'block':'none'"
                     mat-raised-button
+                    class="button small-button"
                     style="margin-left:10px"
                     [mat-dialog-close]="formBaseInformation.get('is_completed').value"
                     matDialogClose 

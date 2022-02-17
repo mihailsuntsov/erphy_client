@@ -261,7 +261,7 @@ export class MovingDocComponent implements OnInit {
       changePriceType: new FormControl          ('procents',[]),
       // убрать десятые (копейки)
       hideTenths: new FormControl               (true,[]),
-      // статус после завершения инвентаризации
+      // статус после проведения инвентаризации
       statusOnFinishId: new FormControl         ('',[]),
       // автодобавление товара из формы поиска в таблицу
       autoAdd:  new FormControl                 (false,[]),
@@ -686,7 +686,7 @@ export class MovingDocComponent implements OnInit {
                 this.getStatusesList();//статусы документа Перемещение
                 // this.getLinkedDocs(); //загрузка связанных документов
                 this.refreshPermissions();//пересчитаем права
-                // if(this.movingProductsTableComponent) this.movingProductsTableComponent.showColumns(); //чтобы спрятать столбцы после завершения 
+                // if(this.movingProductsTableComponent) this.movingProductsTableComponent.showColumns(); //чтобы спрятать столбцы после проведения 
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
         );
@@ -793,12 +793,79 @@ export class MovingDocComponent implements OnInit {
     } else this.updateDocument(true);
   }
 
+  decompleteDocument(notShowDialog?:boolean){
+    if(this.allowToComplete){
+      if(!notShowDialog){//notShowDialog=false - показывать диалог
+        const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+          width: '400px',data:{
+            head: 'Отмена проведения',
+            warning: 'Вы хотите отменить проведение данного документа?',
+            query: ''},});
+        dialogRef.afterClosed().subscribe(result => {
+          if(result==1){
+            this.setDocumentAsDecompleted();
+          }
+        });
+      } else this.setDocumentAsDecompleted();
+    }
+  }
+
+  setDocumentAsDecompleted(){
+    this.getProductsTable();    
+    this.http.post('/api/auth/setMovingAsDecompleted',  this.formBaseInformation.value)
+      .subscribe(
+          (data) => 
+          {   
+            let result:number=data as number;
+            switch(result){
+              case null:{// null возвращает если не удалось завершить операцию из-за ошибки
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка снятия с проведения документа \"Перемещение\""}});
+                break;
+              }
+              case -1:{//недостаточно прав
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для данной операции"}});
+                break;
+              }
+              case 0:{// недостаточно товара на складе
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Количество товара к перемещению в одной из позиций больше доступного количества товара на складе"}});
+                break;
+              }
+              case -60:{//Документ уже снят с проведения
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Данный документ уже снят с проведения"}});
+                break;
+              }
+              case -70:{//Отрицательное кол-во товара в истории движения товара
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"В результате пересчёта себестоимости одного из товаров приёмки, на одном из этапов его движения получено отрицательное количество данного товара"}});
+                break;
+              }
+              case -80:{//Отрицательное кол-во товара на складе
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"В результате проводимой операции получено отрицательное доступное количество одного из товаров документа на скаде-получателе. Если часть или всё кол-во товара на складе-получателе находится в резерве, то для отмены проведения сначала необходимо снять товар с резервирования."}});
+                break;
+              }
+              case 1:{// Успешно
+                this.openSnackBar("Документ \"Перемещение\" снят с проведения", "Закрыть");
+                // this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+                this.formBaseInformation.get('is_completed').setValue(false);
+                // this.balanceCagentComponent.getBalance();//пересчитаем баланс поставщика, ведь мы приняли ему товар, и теперь он должен больше 
+                // this.balanceCagentComponent.getBalance();//пересчитаем баланс поставщика
+                if(this.movingProductsTableComponent){
+                  this.movingProductsTableComponent.showColumns(); //чтобы показать столбцы после отмены проведения 
+                  this.movingProductsTableComponent.getProductsTable();
+                }
+              }
+            }
+          },
+          error => {
+            this.showQueryErrorMessage(error);
+          },
+      );
+  }
   updateDocument(complete?:boolean){ 
     this.getProductsTable();    
     let currentStatus:number=this.formBaseInformation.get('status_id').value;
     if(complete){
-      this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с завершением - временно устанавливаем true, временно - чтобы это ушло в запросе на сервер, но не повлияло на внешний вид документа, если вернется не true
-      if(this.settingsForm.get('statusOnFinishId').value){//если в настройках есть "Статус при завершении" - временно выставляем его
+      this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - временно устанавливаем true, временно - чтобы это ушло в запросе на сервер, но не повлияло на внешний вид документа, если вернется не true
+      if(this.settingsForm.get('statusOnFinishId').value){//если в настройках есть "Статус при проведении" - временно выставляем его
         this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);}
     }
     this.http.post('/api/auth/updateMoving',  this.formBaseInformation.value)
@@ -806,13 +873,13 @@ export class MovingDocComponent implements OnInit {
           (data) => 
           {   
             if(complete){
-              this.formBaseInformation.get('is_completed').setValue(false);//если сохранение с завершением - удаляем временную установку признака завершенности, 
+              this.formBaseInformation.get('is_completed').setValue(false);//если сохранение с проведением - удаляем временную установку признака проведённости, 
               this.formBaseInformation.get('status_id').setValue(currentStatus);//и возвращаем предыдущий статус
             }
             let result:number=data as number;
             switch(result){
               case null:{// null возвращает если не удалось создать документ из-за ошибки
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка "+ (complete?"завершения":"сохренения") + " документа \"Перемещение\""}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка "+ (complete?"проведения":"сохренения") + " документа \"Перемещение\""}});
                 break;
               }
               case -1:{//недостаточно прав
@@ -823,15 +890,28 @@ export class MovingDocComponent implements OnInit {
                 this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Количество товара к перемещению в одной из позиций больше доступного количества товара на складе"}});
                 break;
               }
+              case -50:{//Документ уже проведён
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Данный документ уже проведён"}});
+                break;
+              }
+              case -70:{//Отрицательное кол-во товара в истории движения товара
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"В результате пересчёта себестоимости одного из товаров приёмки, на одном из этапов его движения получено отрицательное количество данного товара"}});
+                break;
+              }
+              case -80:{//Отрицательное кол-во товара на складе
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"В результате проводимой операции получено отрицательное количество на скаде одного из товаров документа"}});
+                break;
+              }
               default:{// Успешно
-                this.openSnackBar("Документ \"Перемещение\" "+ (complete?"завершён.":"сохренён."), "Закрыть");
+                this.openSnackBar("Документ \"Перемещение\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
                 if(complete) {
-                  this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с завершением - окончательно устанавливаем признак завершенности = true
+                  this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведённости = true
                   if(this.movingProductsTableComponent){
-                    this.movingProductsTableComponent.showColumns(); //чтобы спрятать столбцы после завершения 
-                    this.movingProductsTableComponent.tableRecount();
+                    this.movingProductsTableComponent.showColumns(); //чтобы спрятать столбцы после проведения 
+                    // this.movingProductsTableComponent.tableRecount();
+                    this.movingProductsTableComponent.getProductsTable();
                   }
-                  if(this.settingsForm.get('statusOnFinishId').value){//если в настройках есть "Статус при завершении" - выставим его
+                  if(this.settingsForm.get('statusOnFinishId').value){//если в настройках есть "Статус при проведении" - выставим его
                     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);}
                   this.setStatusColor();//чтобы обновился цвет статуса
                 }
@@ -988,7 +1068,7 @@ export class MovingDocComponent implements OnInit {
     totalSumPriceHandler($event: any) {
     }  
 
-  //создание нового документа после завершения текущего
+  //создание нового документа после проведения текущего
   goToNewDocument(){
     this._router.navigate(['ui/movingdoc',0]);
     this.id=0;
@@ -1161,7 +1241,7 @@ deleteFile(id:number){
 //       nds_id:  new FormControl (row.nds_id,[]),
 //     });
 //   }
-//   // можно ли создать связанный документ (да - если есть товары, подходящие для этого, и нет уже завершённого документа)
+//   // можно ли создать связанный документ (да - если есть товары, подходящие для этого, и нет уже проведённого документа)
 //   canCreateLinkedDoc(docname:string):CanCreateLinkedDoc{
 //     if(!(this.movingProductsTableComponent && this.movingProductsTableComponent.getProductTable().length>0)){
 //         return {can:false, reason:'Невозможно создать '+(docname=='Returnsup'?'возврат поставщику':'')+', так как нет товарных позиций'};

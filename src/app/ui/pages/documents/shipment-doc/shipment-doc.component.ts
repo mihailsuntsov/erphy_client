@@ -1138,6 +1138,69 @@ export class ShipmentDocComponent implements OnInit {
     } else this.updateDocument(true);
   }
 
+  decompleteDocument(notShowDialog?:boolean){
+    if(this.allowToComplete){
+      if(!notShowDialog){//notShowDialog=false - показывать диалог
+        const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+          width: '400px',data:{
+            head: 'Отмена проведения',
+            warning: 'Вы хотите отменить проведение данного документа?',
+            query: ''},});
+        dialogRef.afterClosed().subscribe(result => {
+          if(result==1){
+            this.setDocumentAsDecompleted();
+          }
+        });
+      } else this.setDocumentAsDecompleted();
+    }
+  }
+  setDocumentAsDecompleted(){
+    this.getProductsTable();    
+    this.http.post('/api/auth/setShipmentAsDecompleted',  this.formBaseInformation.value)
+      .subscribe(
+          (data) => 
+          {   
+            let result:number=data as number;
+            switch(result){
+              case null:{// null возвращает если не удалось завершить операцию из-за ошибки
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка снятия с проведения документа \"Приёмка\""}});
+                break;
+              }
+              case -1:{//недостаточно прав
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для данной операции"}});
+                break;
+              }
+              case -60:{//Документ уже снят с проведения
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Данный документ уже снят с проведения"}});
+                break;
+              }
+              case -70:{//Отрицательное кол-во товара в истории движения товара
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"В результате пересчёта себестоимости одного из товаров приёмки, на одном из этапов его движения получено отрицательное количество данного товара"}});
+                break;
+              }
+              case 1:{// Успешно
+                this.openSnackBar("Документ \"Приёмка\" снят с проведения", "Закрыть");
+                this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+                this.formBaseInformation.get('is_completed').setValue(false);
+                this.is_completed=false;
+                this.balanceCagentComponent.getBalance();//пересчитаем баланс поставщика
+                if(this.productSearchAndTableComponent){
+                  this.productSearchAndTableComponent.hideOrShowNdsColumn(); //чтобы показать столбцы после отмены проведения 
+                  this.productSearchAndTableComponent.getProductsTable();
+                }
+                break;
+              }
+              default:{// другая ошибка
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"В результате проводимой операции произошла ошибка"}});
+                break;
+              }
+            }
+          },
+          error => {
+            this.showQueryErrorMessage(error);
+          },
+      );
+  }
   updateDocument(complete?:boolean){ 
     this.getProductsTable();    
     let currentStatus:number=this.formBaseInformation.get('status_id').value;
@@ -1168,7 +1231,19 @@ export class ShipmentDocComponent implements OnInit {
                 this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Количество товара к отгрузке в одной из позиций больше доступного количества товара на складе"}});
                 break;
               }
-              default:{// Успешно
+              case -50:{//Документ уже проведён
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Данный документ уже проведён"}});
+                break;
+              }
+              case -70:{//недостаточно товара на складе
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Количество тоара на складе у одной или нескольких позиций несдостаточно для возврата поставщику"}});
+                break;
+              }
+              case -80:{//Отрицательное кол-во товара на складе
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"В результате проводимой операции получено отрицательное количество на скаде одного из товаров документа"}});
+                break;
+              }
+              case 1:{// Успешно
                 this.openSnackBar("Документ \"Отгрузка\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
                 this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                 if(complete) {
@@ -1177,12 +1252,18 @@ export class ShipmentDocComponent implements OnInit {
                   this.balanceCagentComponent.getBalance();//пересчитаем баланс покупателя, ведь мы отгрузили ему товар, и теперь он должен больше 
                   if(this.productSearchAndTableComponent){
                     this.productSearchAndTableComponent.hideOrShowNdsColumn(); //чтобы спрятать столбцы после завершения 
-                    this.productSearchAndTableComponent.tableNdsRecount();
+                    this.productSearchAndTableComponent.getProductsTable();
+                    // this.productSearchAndTableComponent.tableNdsRecount();
                   }
                   if(this.settingsForm.get('statusIdOnComplete').value){//если в настройках есть "Статус при завершении" - выставим его
                     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
                   this.setStatusColor();//чтобы обновился цвет статуса
                 }
+                break;
+              }
+              default:{// другая ошибка
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"В результате проводимой операции произошла ошибка"}});
+                break;
               }
             }
           },

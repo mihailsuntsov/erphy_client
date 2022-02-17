@@ -14,6 +14,7 @@ import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { Router } from '@angular/router';
 import { v4 as uuidv4 } from 'uuid';
 import { MatTabChangeEvent } from '@angular/material/tabs';
+import { TemplatesDialogComponent } from 'src/app/modules/settings/templates-dialog/templates-dialog.component';
 import { graphviz }  from 'd3-graphviz';
 import { KkmComponent } from 'src/app/modules/trade-modules/kkm/kkm.component';
 import { KkmAtolService } from '../../../../services/kkm_atol';
@@ -118,6 +119,19 @@ interface LinkedDocs {//интерфейс для загрузки связан�
   description:string;
   is_completed:boolean;
 }
+interface TemplatesList{
+    id: number;                   // id из таблицы template_docs
+    company_id: number;           // id предприятия, для которого эти настройки
+    template_type_name: string;   // наименование шаблона. Например, Товарный чек
+    template_type: string;        // обозначение типа шаблона. Например, для товарного чека это product_receipt
+    template_type_id: number;     // id типа шаблона
+    file_id: number;              // id из таблицы files
+    file_name: string;            // наименование файла как он хранится на диске
+    file_original_name: string;   // оригинальное наименование файла
+    document_id: number;          // id документа, в котором будет возможность печати данного шаблона (соответствует id в таблице documents)
+    is_show: boolean;             // показывать шаблон в выпадающем списке на печать
+    output_order: number;         // порядок вывода наименований шаблонов в списке на печать
+}
 interface CanCreateLinkedDoc{//интерфейс ответа на запрос о возможности создания связанного документа
   can:boolean;
   reason:string;
@@ -169,6 +183,10 @@ export class ReturnDocComponent implements OnInit {
   LinkedDocsPosting:LinkedDocs[]=[];
   panelReturnOpenState=false;
 
+  //печать документов
+  gettingTemplatesData: boolean = false; // идёт загрузка шаблонов
+  templatesList:TemplatesList[]=[]; // список загруженных шаблонов
+
   // Формы
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
   formBaseInformation: FormGroup; //массив форм для накопления информации о Заказе покупателя
@@ -197,9 +215,14 @@ export class ReturnDocComponent implements OnInit {
   allowToCreateMyCompany:boolean = false;
   allowToCreateAllCompanies:boolean = false;
   allowToCreateMyDepartments:boolean = false;
+  allowToCompleteAllCompanies:boolean = false;
+  allowToCompleteMyCompany:boolean = false;
+  allowToCompleteMyDepartments:boolean = false; 
+  allowToCompleteMyDocs:boolean = false;
   allowToView:boolean = false;
   allowToUpdate:boolean = false;
   allowToCreate:boolean = false;
+  allowToComplete:boolean = false;
   showOpenDocIcon:boolean=false;
   editability:boolean = false;//редактируемость. true если есть право на создание и документ создаётся, или есть право на редактирование и документ создан
 
@@ -225,6 +248,7 @@ export class ReturnDocComponent implements OnInit {
     public ConfirmDialog: MatDialog,
     public dialogAddFiles: MatDialog,
     public SettingsReturnDialogComponent: MatDialog,
+    private templatesDialogComponent: MatDialog,
     public dialogCreateProduct: MatDialog,
     @Optional() @Inject(MAT_DIALOG_DATA) public data: any,
     public MessageDialog: MatDialog,
@@ -380,6 +404,12 @@ export class ReturnDocComponent implements OnInit {
       (this.allowToUpdateMyDepartments&&documentOfMyCompany&&documentOfMyDepartments)||
       (this.allowToUpdateMyDocs&&documentOfMyCompany&&documentOfMyDepartments&&(this.myId==this.creatorId))
     )?true:false;
+    this.allowToComplete=(
+      (this.allowToCompleteAllCompanies)||
+      (this.allowToCompleteMyCompany&&documentOfMyCompany)||
+      (this.allowToCompleteMyDepartments&&documentOfMyCompany&&documentOfMyDepartments)||
+      (this.allowToCompleteMyDocs&&documentOfMyCompany&&documentOfMyDepartments&&(this.myId==this.creatorId))
+    )?true:false;
     this.allowToCreate=(this.allowToCreateAllCompanies || this.allowToCreateMyCompany||this.allowToCreateMyDepartments)?true:false;
     
     this.editability=((this.allowToCreate && +this.id==0)||(this.allowToUpdate && this.id>0));
@@ -474,6 +504,10 @@ export class ReturnDocComponent implements OnInit {
     this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==357)});
     this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==358)});
     this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==359)});
+    this.allowToCompleteAllCompanies = permissionsSet.some(       function(e){return(e==619)});
+    this.allowToCompleteMyCompany = permissionsSet.some(          function(e){return(e==620)});
+    this.allowToCompleteMyDepartments = permissionsSet.some(      function(e){return(e==621)});
+    this.allowToCompleteMyDocs = permissionsSet.some(             function(e){return(e==622)});
    
     if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;this.allowToCreateMyDepartments=true}
     if(this.allowToCreateMyCompany)this.allowToCreateMyDepartments=true;
@@ -483,6 +517,9 @@ export class ReturnDocComponent implements OnInit {
     if(this.allowToUpdateAllCompanies){this.allowToUpdateMyCompany=true;this.allowToUpdateMyDepartments=true;this.allowToUpdateMyDocs=true;}
     if(this.allowToUpdateMyCompany){this.allowToUpdateMyDepartments=true;this.allowToUpdateMyDocs=true;}
     if(this.allowToUpdateMyDepartments)this.allowToUpdateMyDocs=true;
+    if(this.allowToCompleteAllCompanies){this.allowToCompleteMyCompany=true;this.allowToCompleteMyDepartments=true;this.allowToCompleteMyDocs=true;}
+    if(this.allowToCompleteMyCompany){this.allowToCompleteMyDepartments=true;this.allowToCompleteMyDocs=true;}
+    if(this.allowToCompleteMyDepartments)this.allowToCompleteMyDocs=true;
     // console.log("allowToCreateAllCompanies - "+this.allowToCreateAllCompanies);
     // console.log("allowToCreateMyCompany - "+this.allowToCreateMyCompany);
     // console.log("allowToCreateMyDepartments - "+this.allowToCreateMyDepartments);
@@ -830,29 +867,69 @@ export class ReturnDocComponent implements OnInit {
       });
     } else this.updateDocument(true);
   }
-
-  // updateDocument_old(complete?:boolean){ 
-  //   this.getProductsTable();    
-  //   if(complete) {
-  //     if(this.settingsForm.get('statusOnFinishId').value)//если в настройках есть "Статус при проведении" - выставим его
-  //       this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);
-  //     this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением
-  //   }
-  //   return this.http.post('/api/auth/updateReturn',  this.formBaseInformation.value)
-  //     .subscribe(
-  //         (data) => 
-  //         {   
-  //           this.getLinkedDocsScheme(true);//обновим схему связанных документов )чтобы Проведено сменилось с Нет на Да
-  //           this.setStatusColor();//чтобы обновился цвет статуса
-  //           if(this.returnProductsTableComponent) this.returnProductsTableComponent.showColumns(); //чтобы спрятать столбцы после проведения
-  //           this.openSnackBar("Документ \"Возврат покупателя\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
-  //         },
-  //         error => {
-  //           this.showQueryErrorMessage(error);
-  //           },
-  //     );
-  // } 
-
+ 
+  decompleteDocument(notShowDialog?:boolean){
+    if(this.allowToComplete){
+      if(!notShowDialog){//notShowDialog=false - показывать диалог
+        const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+          width: '400px',data:{
+            head: 'Отмена проведения',
+            warning: 'Вы хотите отменить проведение данного документа?',
+            query: ''},});
+        dialogRef.afterClosed().subscribe(result => {
+          if(result==1){
+            this.setDocumentAsDecompleted();
+          }
+        });
+      } else this.setDocumentAsDecompleted();
+    }
+  }
+  setDocumentAsDecompleted(){
+    this.getProductsTable();    
+    this.http.post('/api/auth/setReturnAsDecompleted',  this.formBaseInformation.value)
+      .subscribe(
+          (data) => 
+          {   
+            let result:number=data as number;
+            switch(result){
+              case null:{// null возвращает если не удалось завершить операцию из-за ошибки
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка снятия с проведения документа \"Приёмка\""}});
+                break;
+              }
+              case -1:{//недостаточно прав
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для данной операции"}});
+                break;
+              }
+              case -60:{//Документ уже снят с проведения
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Данный документ уже снят с проведения"}});
+                break;
+              }
+              case -70:{//Отрицательное кол-во товара в истории движения товара
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"В результате пересчёта себестоимости одного из товаров приёмки, на одном из этапов его движения получено отрицательное количество данного товара"}});
+                break;
+              }
+              case -80:{//Отрицательное кол-во товара на складе
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"В результате проводимой операции получено отрицательное количество на скаде одного из товаров документа"}});
+                break;
+              }
+              case 1:{// Успешно
+                this.openSnackBar("Документ \"Приёмка\" снят с проведения", "Закрыть");
+                this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+                this.formBaseInformation.get('is_completed').setValue(false);
+                // this.balanceCagentComponent.getBalance();//пересчитаем баланс поставщика, ведь мы приняли ему товар, и теперь он должен больше 
+                this.balanceCagentComponent.getBalance();//пересчитаем баланс поставщика
+                if(this.returnProductsTableComponent){
+                  this.returnProductsTableComponent.showColumns(); //чтобы показать столбцы после отмены проведения 
+                  this.returnProductsTableComponent.getProductsTable();
+                }
+              }
+            }
+          },
+          error => {
+            this.showQueryErrorMessage(error);
+          },
+      );
+  }
   updateDocument(complete?:boolean){ 
     this.getProductsTable();    
     let currentStatus:number=this.formBaseInformation.get('status_id').value;
@@ -1299,84 +1376,135 @@ export class ReturnDocComponent implements OnInit {
 //*****************************************************************************************************************************************/
 
 
-openDialogAddFiles() {
-  const dialogRef = this.dialogAddFiles.open(FilesComponent, {
-    maxWidth: '95vw',
-    maxHeight: '95vh',
-    height: '95%',
-    width: '95%',
-    data:
-    { 
-      mode: 'select',
-      companyId: this.formBaseInformation.get('company_id').value
-    },
-  });
-  dialogRef.afterClosed().subscribe(result => {
-    console.log(`Dialog result: ${result}`);
-    if(result)this.addFilesToReturn(result);
-  });
-}
-openFileCard(docId:number) {
-  const dialogRef = this.dialogAddFiles.open(FilesDocComponent, {
-    maxWidth: '95vw',
-    maxHeight: '95vh',
-    height: '95%',
-    width: '95%',
-    data:
-    { 
-      mode: 'window',
-      docId: docId
-    },
-  });
-}
-loadFilesInfo(){//                                     загружает информацию по прикрепленным файлам
-  const body = {"id":this.id};
-        return this.http.post('/api/auth/getListOfReturnFiles', body) 
-          .subscribe(
-              (data) => {  
-                          this.filesInfo = data as any[]; 
-                        },
-              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-          );
-}
-addFilesToReturn(filesIds: number[]){
-  const body = {"id1":this.id, "setOfLongs1":filesIds};// передаем id товара и id файлов 
-          return this.http.post('/api/auth/addFilesToReturn', body) 
+  openDialogAddFiles() {
+    const dialogRef = this.dialogAddFiles.open(FilesComponent, {
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      height: '95%',
+      width: '95%',
+      data:
+      { 
+        mode: 'select',
+        companyId: this.formBaseInformation.get('company_id').value
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      console.log(`Dialog result: ${result}`);
+      if(result)this.addFilesToReturn(result);
+    });
+  }
+  openFileCard(docId:number) {
+    const dialogRef = this.dialogAddFiles.open(FilesDocComponent, {
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      height: '95%',
+      width: '95%',
+      data:
+      { 
+        mode: 'window',
+        docId: docId
+      },
+    });
+  }
+  loadFilesInfo(){//                                     загружает информацию по прикрепленным файлам
+    const body = {"id":this.id};
+          return this.http.post('/api/auth/getListOfReturnFiles', body) 
             .subscribe(
                 (data) => {  
-                  this.loadFilesInfo();
-                  this.openSnackBar("Файлы добавлены", "Закрыть");
+                            this.filesInfo = data as any[]; 
                           },
-                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
             );
-}
+  }
+  addFilesToReturn(filesIds: number[]){
+    const body = {"id1":this.id, "setOfLongs1":filesIds};// передаем id товара и id файлов 
+            return this.http.post('/api/auth/addFilesToReturn', body) 
+              .subscribe(
+                  (data) => {  
+                    this.loadFilesInfo();
+                    this.openSnackBar("Файлы добавлены", "Закрыть");
+                            },
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+              );
+  }
 
-clickBtnDeleteFile(id: number): void {
-  const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
-    width: '400px',
-    data:
-    { 
-      head: 'Удаление файла',
-      query: 'Удалить файл из данного документа?',
-      warning: 'Файл не будет удалён безвозвратно, он останется в библиотеке "Файлы".',
-    },
-  });
-  dialogRef.afterClosed().subscribe(result => {
-    if(result==1){this.deleteFile(id);}
-  });        
-}
+  clickBtnDeleteFile(id: number): void {
+    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+      width: '400px',
+      data:
+      { 
+        head: 'Удаление файла',
+        query: 'Удалить файл из данного документа?',
+        warning: 'Файл не будет удалён безвозвратно, он останется в библиотеке "Файлы".',
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){this.deleteFile(id);}
+    });        
+  }
 
-deleteFile(id:number){
-  const body = {id: id, any_id:this.id}; 
-  return this.http.post('/api/auth/deleteReturnFile',body)
-  .subscribe(
-      (data) => {   
-                  this.loadFilesInfo();
-                  this.openSnackBar("Успешно удалено", "Закрыть");
-              },
-      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-  );  
-}
+  deleteFile(id:number){
+    const body = {id: id, any_id:this.id}; 
+    return this.http.post('/api/auth/deleteReturnFile',body)
+    .subscribe(
+        (data) => {   
+                    this.loadFilesInfo();
+                    this.openSnackBar("Успешно удалено", "Закрыть");
+                },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+    );  
+  } 
+
+  //**************************** ПЕЧАТЬ ДОКУМЕНТОВ  ******************************/
+  // открывает диалог печати
+  openDialogTemplates() { 
+    const dialogTemplates = this.templatesDialogComponent.open(TemplatesDialogComponent, {
+      maxWidth: '1000px',
+      maxHeight: '95vh',
+      // height: '680px',
+      width: '95vw', 
+      minHeight: '95vh',
+      data:
+      { //отправляем в диалог:
+        company_id: +this.formBaseInformation.get('company_id').value, //предприятие
+        document_id: 28, // id документа из таблицы documents
+      },
+    });
+    dialogTemplates.afterClosed().subscribe(result => {
+      if(result){
+      }
+    });
+  }
+  // при нажатии на кнопку печати - нужно подгрузить список шаблонов для этого типа документа
+  printDocs(){
+    this.gettingTemplatesData=true;
+    this.templatesList=[];
+    this.http.get('/api/auth/getTemplatesList?company_id='+this.formBaseInformation.get('company_id').value+"&document_id="+28+"&is_show="+true).subscribe
+    (data =>{ 
+        this.gettingTemplatesData=false;
+        this.templatesList=data as TemplatesList[];
+      },error => {console.log(error);this.gettingTemplatesData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+  }
+  clickOnTemplate(template:TemplatesList){
+    const baseUrl = '/api/auth/returnPrint/';
+    this.http.get(baseUrl+ 
+                  "?file_name="+template.file_name+
+                  "&doc_id="+this.id+
+                  "&tt_id="+template.template_type_id,
+                  { responseType: 'blob' as 'json', withCredentials: false}).subscribe(
+      (response: any) =>{
+          let dataType = response.type;
+          let binaryData = [];
+          binaryData.push(response);
+          let downloadLink = document.createElement('a');
+          downloadLink.href = window.URL.createObjectURL(new Blob(binaryData, {type: dataType}));
+          downloadLink.setAttribute('download', template.file_original_name);
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+      }, 
+      error => console.log(error),
+    );  
+  }
   //------------------------------------------ COMMON UTILITES -----------------------------------------
   //Конвертирует число в строку типа 0.00 например 6.40, 99.25
   numToPrice(price:number,charsAfterDot:number) {
@@ -1417,6 +1545,6 @@ deleteFile(id:number){
       {
       if(+i['product_id']==productId){retIndex=formIndex}
       formIndex++;
-    });return retIndex;}
+  });return retIndex;}
 }
 

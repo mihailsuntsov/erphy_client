@@ -228,6 +228,14 @@ class="spinner"
                             </span>
                             <td mat-cell *matCellDef="let row"><p style="margin: 5px">{{row.product_count}}</p></td>
                         </ng-container>
+                        <ng-container matColumnDef="sum_price">
+                            <th mat-header-cell *matHeaderCellDef style="width:70px;">
+                            <span (click)="setSort('sum_price')" class="sortheader"> Сумма 
+                                <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='sum_price'" class="material-icons sortarrow">arrow_upward</i>
+                                <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='sum_price'" class="material-icons sortarrow">arrow_downward</i>
+                            </span>
+                            <td mat-cell *matCellDef="let row"><p style="margin: 5px">{{row.sum_price}}</p></td>
+                        </ng-container>
                         <ng-container matColumnDef="status">
                             <th mat-header-cell *matHeaderCellDef>
                             <span (click)="setSort('status_name')" class="sortheader"> Статус 
