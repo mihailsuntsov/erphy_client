@@ -107,6 +107,16 @@
                 <i class="material-icons">playlist_add_check</i>
             </button>
             <button 
+                matTooltip='Документ проведён'
+                mat-raised-button 
+                *ngIf=" +id>0 && formBaseInformation.get('is_completed').value"
+                (click)="decompleteDocument()" 
+                type="button"
+                color="primary"
+                class="button small-button completed">
+                <i class="material-icons">playlist_add_check</i> 
+            </button>
+            <button 
                 mat-raised-button 
                 *ngIf="+id>0 && allowToUpdate && !formBaseInformation.get('is_completed').value"
                 matTooltip='Сохранить документ'
@@ -300,6 +310,7 @@
                                                                 <mat-form-field  class="mat-form-field-100">
                                                                     <textarea   matInput
                                                                                 maxlength="2000"
+                                                                                [readonly]="this.formBaseInformation.get('is_completed').value"
                                                                                 [rows]="1"
                                                                                 #description
                                                                                 placeholder="Дополнительная информация"

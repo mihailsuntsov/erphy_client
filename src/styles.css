@@ -57,7 +57,10 @@ body {
     font-weight: bold;
     vertical-align:sub;
   }
-
+  .mat-form-field-required-marker{/*звездочка от material design - не показываем*/
+    color:white !important; 
+    font-size: 0px !important;
+  }
   .status{
     border-width: 3px;
     text-align: center;

@@ -94,7 +94,18 @@
                         <button mat-menu-item (click)="createLinkedDoc('Paymentin')">
                             <span>Входящий платёж</span>
                         </button>
-                    </mat-menu>                    
+                    </mat-menu>            
+                    <button 
+                        mat-raised-button 
+                        matTooltip='Сохранить документ'
+                        *ngIf="!is_completed && allowToUpdate && canGetChilds && +id>0"
+                        (click)="updateDocument()"
+                        [disabled]="!childFormValid" 
+                        color="primary"
+                        type="button"
+                        class="button small-button">
+                        <i class="material-icons">save</i>
+                    </button>        
                     <button 
                         mat-raised-button 
                         matTooltip='Провести документ'
@@ -107,15 +118,14 @@
                         <i class="material-icons">playlist_add_check</i>
                     </button>
                     <button 
+                        matTooltip='Документ проведён'
                         mat-raised-button 
-                        matTooltip='Сохранить документ'
-                        *ngIf="!is_completed && allowToUpdate && canGetChilds && +id>0"
-                        (click)="updateDocument()"
-                        [disabled]="!childFormValid" 
-                        color="primary"
+                        *ngIf=" +id>0 && is_completed && productSearchAndTableComponent"
+                        (click)="decompleteDocument()" 
                         type="button"
-                        class="button small-button">
-                        <i class="material-icons">save</i>
+                        color="primary"
+                        class="button small-button completed">
+                        <i class="material-icons">playlist_add_check</i> 
                     </button>
                     <button 
                         mat-raised-button 
@@ -284,6 +294,7 @@
                                                                 <div class="col-12"> 
                                                                     <mat-form-field   class="mat-form-field-100">
                                                                         <input   matInput
+                                                                                [readonly]="is_completed"
                                                                                 placeholder="Наименование заказа"
                                                                                 formControlName="name"/>
                                                                     </mat-form-field>

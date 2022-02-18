@@ -11,6 +11,7 @@
                                     formControlName="status_id"
                                     (selectionChange)="setStatusColor();">
                         <mat-option *ngFor="let status of receivedStatusesList" 
+                                    [style.display]="(!formBaseInformation.get('is_completed').value) ?'block':'none'"
                                     [value]="status.id"
                                     matTooltip={{status.description}}>
                                     <div style="display: inline;line-height: 20px;">
@@ -97,6 +98,17 @@
             </mat-menu>
             <button 
                 mat-raised-button 
+                *ngIf="+id>0 && allowToUpdate && canGetChilds && !formBaseInformation.get('is_completed').value && invoiceinProductsTableComponent"
+                matTooltip='Сохранить документ'
+                (click)="updateDocument()"
+                [disabled]="!childFormValid||!formBaseInformation.valid||invoiceinProductsTableComponent.indivisibleErrorOfProductTable" 
+                color="primary"
+                type="button"
+                class="button small-button">
+                <i class="material-icons">save</i>
+            </button>
+            <button 
+                mat-raised-button 
                 *ngIf=" +id>0 && !formBaseInformation.get('is_completed').value && invoiceinProductsTableComponent"
                 [disabled]="!childFormValid||!formBaseInformation.valid||invoiceinProductsTableComponent.indivisibleErrorOfProductTable" 
                 (click)="completeDocument()" 
@@ -107,15 +119,14 @@
                 <i class="material-icons">playlist_add_check</i>
             </button>
             <button 
+                matTooltip='Документ проведён'
                 mat-raised-button 
-                *ngIf="+id>0 && allowToUpdate && canGetChilds && !formBaseInformation.get('is_completed').value && invoiceinProductsTableComponent"
-                matTooltip='Сохранить документ'
-                (click)="updateDocument()"
-                [disabled]="!childFormValid||!formBaseInformation.valid||invoiceinProductsTableComponent.indivisibleErrorOfProductTable" 
-                color="primary"
+                *ngIf=" +id>0 && canGetChilds && formBaseInformation.get('is_completed').value && invoiceinProductsTableComponent"
+                (click)="decompleteDocument()" 
                 type="button"
-                class="button small-button">
-                <i class="material-icons">save</i>
+                color="primary"
+                class="button small-button completed">
+                <i class="material-icons">playlist_add_check</i> 
             </button>
             <button 
                 mat-raised-button 
@@ -264,6 +275,7 @@
                                                                     <input  matInput
                                                                             placeholder="Наименование заказа"
                                                                             maxlength="500"
+                                                                            [readonly]="formBaseInformation.get('is_completed').value"
                                                                             formControlName="name"/>
                                                                             <mat-hint align="end" *ngIf="formBaseInformation.get('name').value.length>450">{{formBaseInformation.get('name').value.length}} / 500</mat-hint>
                                                                 </mat-form-field>
@@ -346,6 +358,7 @@
                                                                                 maxlength="2000"
                                                                                 [rows]="1"
                                                                                 #description
+                                                                                [readonly]="formBaseInformation.get('is_completed').value"
                                                                                 placeholder="Дополнительная информация"
                                                                                 formControlName="description">
                                                                     </textarea>

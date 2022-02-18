@@ -99,6 +99,19 @@
                 </button>
             </mat-menu>
             <button 
+                mat-raised-button 
+                matTooltip='Сохранить документ'
+                *ngIf="+id>0 && allowToUpdate && canGetChilds && !is_completed"
+                (click)="updateDocument()"
+                [disabled]="!childFormValid" 
+                (submit)="false"
+                color="primary"
+                type="button"
+                class="button small-button">
+                <i class="material-icons">save</i> 
+                <!-- Сохранить -->
+            </button>
+            <button 
                 matTooltip='Провести документ'
                 mat-raised-button 
                 *ngIf=" +id>0 && allowToComplete && !formBaseInformation.get('is_completed').value && productSearchAndTableComponent"
@@ -111,17 +124,14 @@
                 <!-- Провести -->
             </button>
             <button 
+                matTooltip='Документ проведён'
                 mat-raised-button 
-                matTooltip='Сохранить документ'
-                *ngIf="+id>0 && allowToUpdate && canGetChilds && !is_completed"
-                (click)="updateDocument()"
-                [disabled]="!childFormValid" 
-                (submit)="false"
-                color="primary"
+                *ngIf=" +id>0 && canGetChilds && formBaseInformation.get('is_completed').value && productSearchAndTableComponent"
+                (click)="decompleteDocument()" 
                 type="button"
-                class="button small-button">
-                <i class="material-icons">save</i> 
-                <!-- Сохранить -->
+                color="primary"
+                class="button small-button completed">
+                <i class="material-icons">playlist_add_check</i> 
             </button>
             <button 
                 mat-raised-button 

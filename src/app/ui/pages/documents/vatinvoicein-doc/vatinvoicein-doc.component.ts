@@ -445,6 +445,102 @@ export class VatinvoiceinDocComponent implements OnInit {
       });
     } else this.updateDocument(true);
   }
+
+  decompleteDocument(notShowDialog?:boolean){
+    if(this.allowToComplete){
+      if(!notShowDialog){//notShowDialog=false - показывать диалог
+        const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+          width: '400px',data:{
+            head: 'Отмена проведения',
+            warning: 'Вы хотите отменить проведение данного документа?',
+            query: ''},});
+        dialogRef.afterClosed().subscribe(result => {
+          if(result==1){
+            this.setDocumentAsDecompleted();
+          }
+        });
+      } else this.setDocumentAsDecompleted();
+    }
+  }
+
+  setDocumentAsDecompleted(){
+    this.http.post('/api/auth/setVatinvoiceinAsDecompleted',  this.formBaseInformation.value)
+      .subscribe(
+          (data) => 
+          {   
+            let result:number=data as number;
+            switch(result){
+              case null:{// null возвращает если не удалось завершить операцию из-за ошибки
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка снятия с проведения документа \"Счёт-фактура полученный\""}});
+                break;
+              }
+              case -1:{//недостаточно прав
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для данной операции"}});
+                break;
+              }
+              case -60:{//Документ уже снят с проведения
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Данный документ уже снят с проведения"}});
+                break;
+              }
+              case 1:{// Успешно
+                this.openSnackBar("Документ \"Счёт-фактура полученный\" снят с проведения", "Закрыть");
+                // this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+                this.formBaseInformation.get('is_completed').setValue(false);
+              }
+            }
+          },
+          error => {
+            this.showQueryErrorMessage(error);
+          },
+      );
+  }
+  
+  updateDocument(complete?:boolean){ 
+    let currentStatus:number=this.formBaseInformation.get('status_id').value;
+    if(complete){
+      this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - временно устанавливаем true, временно - чтобы это ушло в запросе на сервер, но не повлияло на внешний вид документа, если вернется не true
+      if(this.settingsForm.get('statusIdOnComplete').value){//если в настройках есть "Статус при проведении" - временно выставляем его
+        this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
+    }
+    this.http.post('/api/auth/updateVatinvoicein',  this.formBaseInformation.value)
+      .subscribe(
+          (data) => 
+          {   
+            if(complete){
+              this.formBaseInformation.get('is_completed').setValue(false);//если сохранение с проведением - удаляем временную установку признака проведенности, 
+              this.formBaseInformation.get('status_id').setValue(currentStatus);//и возвращаем предыдущий статус
+            }
+            let result:number=data as number;
+            switch(result){
+              case null:{// null возвращает если не удалось создать документ из-за ошибки
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка "+ (complete?"проведения":"сохренения") + " документа \"Счёт-фактура полученный\""}});
+                break;
+              }
+              case -1:{//недостаточно прав
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа \"Счёт-фактура полученный\""}});
+                break;
+              }
+              case -50:{//Документ уже проведён
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Данный документ уже проведён"}});
+                break;
+              }
+              default:{// Успешно
+                this.openSnackBar("Документ \"Счёт-фактура полученный\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
+                if(complete) {
+                  this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведённости = true
+                  if(this.settingsForm.get('statusIdOnComplete').value){//если в настройках есть "Статус при проведении" - выставим его
+                    this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
+                  // this.setStatusColor();//чтобы обновился цвет статуса
+                }
+                this.getData();
+              }
+            }
+          },
+          error => {
+            this.showQueryErrorMessage(error);
+          },
+      );
+  } 
   //загрузка настроек
   getSettings(){
     let result:any;
@@ -471,48 +567,6 @@ export class VatinvoiceinDocComponent implements OnInit {
       this.receivedCompaniesList.map(i=>{if(i.id==companyId) inList=true;});
     return inList;
   }
-  updateDocument(complete?:boolean){ 
-    let currentStatus:number=this.formBaseInformation.get('status_id').value;
-    if(complete){
-      this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - временно устанавливаем true, временно - чтобы это ушло в запросе на сервер, но не повлияло на внешний вид документа, если вернется не true
-      if(this.settingsForm.get('statusIdOnComplete').value){//если в настройках есть "Статус при проведении" - временно выставляем его
-        this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
-    }
-    this.http.post('/api/auth/updateVatinvoicein',  this.formBaseInformation.value)
-      .subscribe(
-          (data) => 
-          {   
-            if(complete){
-              this.formBaseInformation.get('is_completed').setValue(false);//если сохранение с проведением - удаляем временную установку признака проведенности, 
-              this.formBaseInformation.get('status_id').setValue(currentStatus);//и возвращаем предыдущий статус
-            }
-            let result:number=data as number;
-            switch(result){
-              case null:{// null возвращает если не удалось создать документ из-за ошибки
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка "+ (complete?"проведения":"сохренения") + " документа \"Счёт-фактура полученный\""}});
-                break;
-              }
-              case -1:{//недостаточно прав
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа \"Счёт-фактура полученный\""}});
-                break;
-              }
-              default:{// Успешно
-                this.openSnackBar("Документ \"Счёт-фактура полученный\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
-                if(complete) {
-                  this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведённости = true
-                  if(this.settingsForm.get('statusIdOnComplete').value){//если в настройках есть "Статус при проведении" - выставим его
-                    this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
-                  // this.setStatusColor();//чтобы обновился цвет статуса
-                }
-                this.getData();
-              }
-            }
-          },
-          error => {
-            this.showQueryErrorMessage(error);
-          },
-      );
-  } 
 
   showQueryErrorMessage(error:any){
     console.log(error);

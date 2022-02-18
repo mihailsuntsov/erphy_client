@@ -940,7 +940,7 @@ getOrderoutListByBoxofficeId(){
   }
 
   decompleteDocument(){
-    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Документ "Внесение" не подлежит снятию с проведения. Для возврата денег из кассы ККМ в кассу предприятия воспользуйтесь документом "Выемка"'}});
+    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Документ "Внесение" не подлежит снятию с проведения. Для возврата денег из кассы ККМ в кассу предприятия воспользуйтесь документами "Выемка" и "Приходный ордер"'}});
   }
   //------------------------------------------ COMMON UTILITIE   -----------------------------------------
   commaToDot(fieldName:string){
