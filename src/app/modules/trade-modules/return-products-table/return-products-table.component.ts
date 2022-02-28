@@ -53,7 +53,7 @@ interface ShortInfoAboutProduct{//интерф. для получения инф
   department_type_price:string;
   date_time_created:string;
 }
-interface SpravSysNdsSet{
+interface SpravTaxesSet{
   id: number;
   name: string;
   description: string;
@@ -130,7 +130,7 @@ export class ReturnProductsTableComponent implements OnInit {
   @Input() readonly:boolean;
   @Input() autoAdd:boolean;
   @Input() nds:boolean;
-  @Input() spravSysNdsSet: SpravSysNdsSet[] = []; //массив имен и id для ндс 
+  @Input() spravTaxesSet: SpravTaxesSet[] = []; //массив имен и id для ндс 
   @Output() changeProductsTableLength = new EventEmitter<any>();   //событие изменения таблицы товаров (а именно - количества товаров в ней)
   @Output() totalSumPriceEvent = new EventEmitter<string>();
 

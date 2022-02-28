@@ -200,7 +200,7 @@
                                                                 <mat-form-field style="width:35%;">
                                                                     <mat-label>НДС</mat-label>
                                                                     <mat-select  formControlName="nds_id">                          
-                                                                        <mat-option  *ngFor="let rt of spravSysNdsSet" [value]="rt.id">
+                                                                        <mat-option  *ngFor="let rt of spravTaxesSet" [value]="rt.id">
                                                                                 {{rt.name}}
                                                                         </mat-option> 
                                                                     </mat-select>

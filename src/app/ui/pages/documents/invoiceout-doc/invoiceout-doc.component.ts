@@ -68,7 +68,7 @@ interface InvoiceoutProductTable { //интерфейс для формы, ма�
   ppr_name_api_atol: string; //Признак предмета расчета в системе Атол. Невидимое поле. Нужно для передачи в таблицу товаров в качестве тега для чека на ккм Атол
   is_material: boolean; //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)            
 }
-interface SpravSysNdsSet{
+interface SpravTaxesSet{
   id: number;
   name: string;
   description: string;
@@ -214,7 +214,7 @@ export class InvoiceoutDocComponent implements OnInit {
   department_type_price_id: number; //id тип цены в отделении (Складе), для которого создавался данный документ. Нужен для изменения поля Тип цены
   cagent_type_price_id: number; //id типа цены покупателя, для которого создавался данный документ.  Нужен для изменения поля Тип цены
   default_type_price_id: number; //id типа цены, установленный по умолчанию.  Нужен для изменения поля Тип цены
-  spravSysNdsSet: SpravSysNdsSet[] = []; //массив имен и id для ндс 
+  spravTaxesSet: SpravTaxesSet[] = []; //массив имен и id для ндс 
   // secondaryDepartments:SecondaryDepartment[]=[];// склады в выпадающем списке складов формы поиска товара
   spravSysEdizmOfProductAll: IdAndNameAndShortname[] = [];// массив, куда будут грузиться все единицы измерения товара
   receivedPriceTypesList: IdNameDescription [] = [];//массив для получения списка типов цен
@@ -421,7 +421,7 @@ export class InvoiceoutDocComponent implements OnInit {
     //     getData(------>(если созданный док)--> [getDocumentValuesById] --> refreshPermissions 
     //     |
     //     (если новый док):
-    //     [getCompaniesList, getSpravSysNds* ]
+    //     [getCompaniesList ]
     //     |
     //     [getSettings, doFilterCompaniesList]
     //     |
@@ -506,7 +506,7 @@ export class InvoiceoutDocComponent implements OnInit {
   //нужно загруить всю необходимую информацию, прежде чем вызывать детей (Поиск и добавление товара, Кассовый модуль), иначе их ngOnInit выполнится быстрее, чем загрузится вся информация в родителе
   //вызовы из:
   //getPriceTypesList()*
-  //getSpravSysNds()
+  //getSpravTaxes()
   //refreshPermissions()
   necessaryActionsBeforeGetChilds(){
     this.actionsBeforeGetChilds++;
@@ -582,7 +582,6 @@ export class InvoiceoutDocComponent implements OnInit {
       this.getDocumentValuesById();
     }else {
       this.getCompaniesList(); 
-      this.getSpravSysNds();
     }
   }
 
@@ -614,6 +613,7 @@ export class InvoiceoutDocComponent implements OnInit {
     this.formAboutDocument.get('company').setValue(this.getCompanyNameById(this.formBaseInformation.get('company_id').value));
     this.getDepartmentsList();
     this.getPriceTypesList();
+    this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
   }
 
   onDepartmentChange(){
@@ -820,6 +820,7 @@ export class InvoiceoutDocComponent implements OnInit {
       this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
     this.getDepartmentsList(); 
     this.getPriceTypesList();
+    this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
     
   }
   //определяет, есть ли предприятие в загруженном списке предприятий
@@ -916,7 +917,6 @@ export class InvoiceoutDocComponent implements OnInit {
                 if(!onlyBaseInformation){
                   this.getSettings(); // настройки документа 
                   this.getSpravSysEdizm();//справочник единиц измерения
-                  this.getSpravSysNds();// загрузка справочника НДС
                   this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
                   this.getPriceTypesList();
                   this.getDepartmentsList();//отделения
@@ -1359,10 +1359,10 @@ export class InvoiceoutDocComponent implements OnInit {
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
     );
   }
-  getSpravSysNds(){
-      this.loadSpravService.getSpravSysNds()
+  getSpravTaxes(companyId:number){
+      this.loadSpravService.getSpravTaxes(companyId)
         .subscribe((data) => {
-          this.spravSysNdsSet=data as any[];
+          this.spravTaxesSet=data as any[];
           this.necessaryActionsBeforeGetChilds();
         },
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});

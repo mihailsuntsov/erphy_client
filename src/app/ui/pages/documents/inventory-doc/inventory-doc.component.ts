@@ -371,7 +371,6 @@ export class InventoryDocComponent implements OnInit {
   //нужно загруить всю необходимую информацию, прежде чем вызывать детей (Поиск и добавление товара, Кассовый модуль), иначе их ngOnInit выполнится быстрее, чем загрузится вся информация в родителе
   //вызовы из:
   //getPriceTypesList()*
-  //getSpravSysNds()
   //refreshPermissions()
   necessaryActionsBeforeGetChilds(){
     this.actionsBeforeGetChilds++;

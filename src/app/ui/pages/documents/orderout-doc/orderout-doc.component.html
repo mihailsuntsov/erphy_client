@@ -125,6 +125,28 @@
                     </button>
                 </mat-menu>
                 <button 
+                    mat-raised-button 
+                    *ngIf="+id>0 && allowToUpdate && canGetChilds && !formBaseInformation.get('is_completed').value"
+                    matTooltip='Сохранить документ'
+                    (click)="updateDocument()"
+                    [disabled]="isFormInvalid" 
+                    color="primary"
+                    type="button"
+                    class="button small-button">
+                    <i class="material-icons">save</i>
+                </button>
+                <button 
+                    mat-raised-button 
+                    matTooltip='Создать документ'
+                    (click)="createNewDocument()" 
+                    *ngIf="allowToCreate && +id==0 "
+                    [disabled]="isFormInvalid " 
+                    color="primary"
+                    type="submit"
+                    class="button small-button">
+                    <i class="material-icons">done</i>
+                </button>
+                <button 
                     matTooltip='Провести документ'
                     mat-raised-button 
                     *ngIf=" +id>0 && allowToComplete && canGetChilds && !formBaseInformation.get('is_completed').value"
@@ -146,28 +168,6 @@
                     class="button small-button completed">
                     <i class="material-icons">playlist_add_check</i> 
                     <!-- Провести -->
-                </button>
-                <button 
-                    mat-raised-button 
-                    *ngIf="+id>0 && allowToUpdate && canGetChilds && !formBaseInformation.get('is_completed').value"
-                    matTooltip='Сохранить документ'
-                    (click)="updateDocument()"
-                    [disabled]="isFormInvalid" 
-                    color="primary"
-                    type="button"
-                    class="button small-button">
-                    <i class="material-icons">save</i>
-                </button>
-                <button 
-                    mat-raised-button 
-                    matTooltip='Создать документ'
-                    (click)="createNewDocument()" 
-                    *ngIf="allowToCreate && +id==0 "
-                    [disabled]="isFormInvalid " 
-                    color="primary"
-                    type="submit"
-                    class="button small-button">
-                    <i class="material-icons">done</i>
                 </button>
                 <a routerLink="../../orderout">
                     <button 
@@ -191,14 +191,20 @@
                 </button>
             </div>
         </mat-card-title>
-        <mat-card-content *ngIf="!allowToView && rightsDefined"> <!-- !!! -->
+        <!-- !!! -->
+        <mat-card-content *ngIf="rightsDefined && 
+        (
+            (!allowToView && +id>0) ||
+            (!allowToCreate && +id==0)
+        )"> 
             <mat-card class="internal-card">
                 <mat-card-content style="font-size: 20px;font-weight: bold;color: red;text-align: center;height: 100px;padding: 38px 0;">
-                    Недостаточно прав для просмотра
+                    Недостаточно прав
                 </mat-card-content>
             </mat-card>
         </mat-card-content>
-        <mat-card-content *ngIf="allowToView||!rightsDefined"> 
+        <!-- !!! -->
+        <mat-card-content *ngIf="!rightsDefined || (rightsDefined && (( +id>0 && allowToView)||(+id==0 && allowToCreate)))"> 
             <mat-tab-group
             (focusChange)="myTabFocusChange($event)"
             (selectedIndexChange)="myTabSelectedIndexChange($event)"  

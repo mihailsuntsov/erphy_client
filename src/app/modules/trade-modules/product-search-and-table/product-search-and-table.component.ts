@@ -87,13 +87,15 @@ interface SecondaryDepartment{
   reserved: number;
   total: number;
 }
-interface SpravSysNdsSet{
+interface SpravTaxesSet{
   id: number;
   name: string;
   description: string;
   name_api_atol: string;
-  is_active: string;
-  calculated: string;
+  is_active: boolean;
+  calculated: boolean;
+  value:number;
+  multiplier:number;
 }
 interface idAndCount{ //интерфейс для запроса количества товара
   id: number;
@@ -137,7 +139,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   shortInfoAboutProduct: ShortInfoAboutProduct = null; //получение краткого инфо по товару
   shortInfoAboutProductArray: any[] = []; //получение краткого инфо по товару
   // receivedPriceTypesList: idNameDescription [] = [];//массив для получения списка типов цен
-  // spravSysNdsSet: SpravSysNdsSet[] = []; //массив имен и id для ндс 
+  // spravTaxesSet: SpravTaxesSet[] = []; //массив имен и id для ндс 
   selected_type_price_id: number; //тип цены, выбранный в форме поиска. Нужен для восстановления выбранного типа цены при сбросе формы поиска товара
   selected_price: number = 0; //цена, выбранная через поле Тип цены. Нужна для сравнения с полем Цена для выявления факта изменения его значения, и оставления значения столбце Тип цены пустым
   selected_sklad_id: number; //id склада, выбранный в форме поиска. Нужен для восстановления при сбросе формы поиска товара
@@ -193,7 +195,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   @Input() secondaryDepartments:SecondaryDepartment[]=[];// склады в выпадающем списке складов формы поиска товара
   @Input() saveSettings:boolean;
   @Input() receivedPriceTypesList: idNameDescription[];//массив для получения списка типов цен
-  @Input() spravSysNdsSet: SpravSysNdsSet[]; //массив имен и id для ндс 
+  @Input() spravTaxesSet: SpravTaxesSet[]; //массив имен и id для ндс 
   @Input() readonly:boolean;
   
   // @Input() parent_document_id:string;// из какого документа вызывают. Например, CustomersOrders, RetailSales
@@ -318,7 +320,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
     console.log("secondaryDepartments-"+this.secondaryDepartments);// склады в выпадающем списке складов формы поиска товара
     console.log("saveSettings-"+this.saveSettings);
     console.log("receivedPriceTypesList-"+this.receivedPriceTypesList);//массив для получения списка типов цен
-    console.log("spravSysNdsSet-"+this.spravSysNdsSet); //массив имен и id для ндс 
+    console.log("spravTaxesSet-"+this.spravTaxesSet); //массив имен и id для ндс 
     console.log('-----------------------------------------------------');
   }
 
@@ -488,7 +490,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   }
   getNdsNameBySelectedId(srchId:number):string {
     let name='';
-    this.spravSysNdsSet.forEach(a=>{
+    this.spravTaxesSet.forEach(a=>{
       if(+a.id == srchId) {name=a.name}
     }); return name;}
   getPriceTypeNameBySelectedId(srchId:number):string {
@@ -1108,8 +1110,8 @@ getProductCount(){
   getNdsMultiplifierBySelectedId(srchId:number):number {
     //возвращает множитель по выбранному НДС. например, для 20% будет 1.2, 0% - 1 и т.д 
         let value=0;
-        this.spravSysNdsSet.forEach(a=>{
-          if(+a.id == srchId) {value=(a.name.includes('%')?(+a.name.replace('%','')):0)/100+1}
+        this.spravTaxesSet.forEach(a=>{
+          if(+a.id == srchId) {value=a.multiplier}
         }); return value;}   
 
         //пересчитывает НДС в таблице товаров

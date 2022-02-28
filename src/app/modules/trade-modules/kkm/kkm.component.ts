@@ -76,7 +76,7 @@ interface KassaSettings{
   billing_address:string; // id адреса места расчётов. 'settings' - как в настройках кассы, 'customer' - брать из адреса заказчика, 'custom' произвольный адрес. Если 2 или 3 нет но один из них выбран - печатается settings
   custom_billing_address:string; // кастомный адрес расчетов
 }
-interface SpravSysNdsSet{
+interface SpravTaxesSet{
   id: number;
   name: string;
   description: string;
@@ -151,7 +151,7 @@ export class KkmComponent implements OnInit {
   @Input()  autocreateOnCheque: boolean;
   @Input()  addressString: string;// адрес в родительском документе (может использоваться в качестве места расчетов)
   @Input()  department_id: number; // id отделения. Нужен для загрузки списка касс по отделению
-  @Input()  spravSysNdsSet: SpravSysNdsSet[] = []; //массив имен и id для ндс 
+  @Input()  spravTaxesSet: SpravTaxesSet[] = []; //массив имен и id для ндс 
   @Input()  productTableIsValid:boolean; //валидна ли таблица товаров и можно ли отбивать чек
   @Input()  selectedPaymentType: string;//Оплата чека прихода (наличными - cash, безналичными - electronically, смешанная - mixed)
   @Input()  cheque_nds:boolean;//нужно ли проставлять НДС в чеке. Берется от переключателя "НДС"
@@ -1058,7 +1058,7 @@ export class KkmComponent implements OnInit {
   //достает "наименование НДС по системе Атол" из загруженного справочника НДС
   getNdsApiAtolName(nds_id:number):string{
     let name:string='';
-    this.spravSysNdsSet.map(i=>{
+    this.spravTaxesSet.map(i=>{
       if(i.id==nds_id){
         name=i.name_api_atol;
       }

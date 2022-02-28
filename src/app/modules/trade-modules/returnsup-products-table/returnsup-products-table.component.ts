@@ -53,7 +53,7 @@ interface ShortInfoAboutProduct{//интерф. для получения инф
   department_type_price:string;
   date_time_created:string;
 }
-interface SpravSysNdsSet{
+interface SpravTaxesSet{
   id: number;
   name: string;
   description: string;
@@ -129,7 +129,7 @@ export class ReturnsupProductsTableComponent implements OnInit {
   @Input() readonly:boolean;
   @Input() autoAdd:boolean;
   @Input() nds:boolean;
-  @Input() spravSysNdsSet: SpravSysNdsSet[] = []; //массив имен и id для ндс 
+  @Input() spravTaxesSet: SpravTaxesSet[] = []; //массив имен и id для ндс 
   @Input() pricingType:string;  // тип расценки. priceType - по типу цены, avgCostPrice - средн. себестоимость, lastPurchasePrice - Последняя закупочная цена, avgPurchasePrice - Средняя закупочная цена, manual - вручную
   @Input() priceTypeId:number;  // тип цены (дейстует при pricingType = "priceType")
   @Input() plusMinus:string;

@@ -97,7 +97,7 @@ interface IdAndName_ru{
   id: number;
   name_ru: string;
 }
-interface SpravSysNdsSet{
+interface SpravTaxesSet{
   id: number;
   name: string;
   description: string;
@@ -275,7 +275,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
   department_type_price_id: number; //id тип цены в отделении (Складе), для которого создавался данный документ. Нужен для изменения поля Тип цены
   cagent_type_price_id: number; //id типа цены покупателя, для которого создавался данный документ.  Нужен для изменения поля Тип цены
   default_type_price_id: number; //id типа цены, установленный по умолчанию.  Нужен для изменения поля Тип цены
-  spravSysNdsSet: SpravSysNdsSet[] = []; //массив имен и id для ндс 
+  spravTaxesSet: SpravTaxesSet[] = []; //массив имен и id для ндс 
   secondaryDepartments:SecondaryDepartment[]=[];// склады в выпадающем списке складов формы поиска товара
   spravSysEdizmOfProductAll: idAndNameAndShorname[] = [];// массив, куда будут грузиться все единицы измерения товара
   receivedPriceTypesList: idNameDescription [] = [];//массив для получения списка типов цен
@@ -543,8 +543,6 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
 */
 
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Покупатель"
-
-    this.getSpravSysNds();// загрузка справочника НДС
     this.getSetOfPermissions();//
     
     //   getSetOfPermissions()
@@ -715,7 +713,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
   //getDocumentValuesById()-> getPriceTypesList()*
   //getDocumentValuesById()-> refreshPermissions()
   //getDocumentValuesById()-> getSettings()*
-  //getDocumentValuesById()-> getSpravSysNds()
+  //getDocumentValuesById()-> getSpravTaxes()
   //getDocumentValuesById()-> getSetOfTypePrices() 
   necessaryActionsBeforeGetChilds(){
     this.actionsBeforeGetChilds++;
@@ -792,6 +790,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
 
     this.getDepartmentsList();
     this.getPriceTypesList();
+    this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
     this.formExpansionPanelsString();
   }
 
@@ -1063,6 +1062,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
       this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
     this.getDepartmentsList(); 
     this.getPriceTypesList();
+    this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
   }
   //если новый документ - вставляем Отделение и Покупателя (но только если они принадлежат выбранному предприятию, т.е. предприятие в Основной информации и предприятие, для которого были сохранены настройки совпадают)
   setDefaultInfoOnStart(departmentId:number, customerId:number, customer:string, name:string){
@@ -1631,11 +1631,11 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
     );
   }
-  getSpravSysNds(){
+  getSpravTaxes(companyId:number){
     // alert(4)
-      this.loadSpravService.getSpravSysNds()
+      this.loadSpravService.getSpravTaxes(companyId)
         .subscribe((data) => {
-          this.spravSysNdsSet=data as any[];
+          this.spravTaxesSet=data as any[];
           this.necessaryActionsBeforeGetChilds();
         },
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});

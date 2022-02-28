@@ -136,7 +136,7 @@ interface CanCreateLinkedDoc{//интерфейс ответа на запрос
   can:boolean;
   reason:string;
 }
-interface SpravSysNdsSet{
+interface SpravTaxesSet{
   id: number;
   name: string;
   description: string;
@@ -175,7 +175,7 @@ export class ReturnDocComponent implements OnInit {
   canEditCompAndDepth=true;//можно ли менять предприятие и отделение. Запрещено если уже есть выбранные товары
   panelWriteoffOpenState=false;
   panelPostingOpenState=false;
-  spravSysNdsSet: SpravSysNdsSet[] = []; //массив имен и id для ндс 
+  spravTaxesSet: SpravTaxesSet[] = []; //массив имен и id для ндс 
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
 
   //для загрузки связанных документов
@@ -356,7 +356,6 @@ export class ReturnDocComponent implements OnInit {
 
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Покупатель"
     this.getSetOfPermissions();
-    this.getSpravSysNds();
   }
   //чтобы не было ExpressionChangedAfterItHasBeenCheckedError
   ngAfterContentChecked() {
@@ -452,7 +451,7 @@ export class ReturnDocComponent implements OnInit {
   //нужно загруить всю необходимую информацию, прежде чем вызывать детей (Поиск и добавление товара, Кассовый модуль), иначе их ngOnInit выполнится быстрее, чем загрузится вся информация в родителе
   //вызовы из:
   //getPriceTypesList()*
-  //getSpravSysNds()
+  //getSpravTaxes()
   //refreshPermissions()
   necessaryActionsBeforeGetChilds(){
     this.actionsBeforeGetChilds++;
@@ -488,9 +487,9 @@ export class ReturnDocComponent implements OnInit {
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             );
   }
-  getSpravSysNds(){
-        this.loadSpravService.getSpravSysNds()
-        .subscribe((data) => {this.spravSysNdsSet=data as any[];},
+  getSpravTaxes(companyId:number){
+      this.loadSpravService.getSpravTaxes(companyId)
+        .subscribe((data) => {this.spravTaxesSet=data as any[];},
         error => console.log(error));}
   getCRUD_rights(permissionsSet:any[]){
     this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==345)});
@@ -554,6 +553,7 @@ export class ReturnDocComponent implements OnInit {
     this.actionsBeforeGetChilds=0;
     this.getDepartmentsList();
     this.getPriceTypesList();
+    this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
   }
 
   onDepartmentChange(){
@@ -704,6 +704,7 @@ export class ReturnDocComponent implements OnInit {
     }
     this.getDepartmentsList(); 
     this.getPriceTypesList();
+    this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
   }
   //если новый документ
   setDefaultInfoOnStart(){

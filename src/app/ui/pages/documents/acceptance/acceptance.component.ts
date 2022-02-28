@@ -219,14 +219,14 @@ export class AcceptanceComponent implements OnInit {
   getData(){
     if(this.refreshPermissions() && this.allowToView)
     {
-      console.log('department 1 = '+this.sendingQueryForm.departmentId);
+      // console.log('department 1 = '+this.sendingQueryForm.departmentId);
       this.doFilterCompaniesList(); //если нет просмотра по всем предприятиям - фильтруем список предприятий до своего предприятия
       this.doFilterDepartmentsList();//если нет просмотра по свому предприятию - фильтруем список отделений предприятия до своих отделений
-      console.log('department 2 = '+this.sendingQueryForm.departmentId);
+      // console.log('department 2 = '+this.sendingQueryForm.departmentId);
       this.getTableHeaderTitles();
       this.getPagesList();
       this.getTable();
-    }
+    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
   }
 
   getTableHeaderTitles(){

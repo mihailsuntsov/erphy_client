@@ -209,7 +209,7 @@
           </li>
         </ul>
       </li>
-      <li *ngIf="hasPermission(108)||hasPermission(117)||hasPermission(126)||hasPermission(497)||hasPermission(550)">
+      <li *ngIf="hasPermission(108)||hasPermission(268)||hasPermission(117)||hasPermission(126)||hasPermission(497)||hasPermission(550)||hasPermission(635)||hasPermission(90)">
         <div class="icon-link" (click)="arrowClick($event,1)">
           <a>
             <i class="material-icons unselectable" (click)="arrowClick($event,3)">menu_book</i>
@@ -237,6 +237,10 @@
           <li *ngIf="hasPermission(126)">
             <a routerLink="cagents">
               <span class="unselectable">Контрагенты</span></a>
+          </li>
+          <li *ngIf="hasPermission(635)">
+            <a routerLink="taxes">
+              <span class="unselectable">Налоги</span></a>
           </li>
           <li *ngIf="hasPermission(268)">
             <a routerLink="statuses">

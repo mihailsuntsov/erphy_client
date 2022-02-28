@@ -118,14 +118,6 @@ interface CanCreateLinkedDoc{//интерфейс ответа на запрос
   can:boolean;
   reason:string;
 }
-interface SpravSysNdsSet{
-  id: number;
-  name: string;
-  description: string;
-  name_api_atol: string;
-  is_active: string;
-  calculated: string;
-}
 
 @Component({
   selector: 'app-orderin-doc',
@@ -152,7 +144,6 @@ export class OrderinDocComponent implements OnInit {
   spravSysEdizmOfProductAll: IdAndNameAndShortname[] = [];// массив, куда будут грузиться все единицы измерения товара
   receivedPriceTypesList: IdNameDescription [] = [];//массив для получения списка типов цен
   canEditCompAndDepth=true;
-  spravSysNdsSet: SpravSysNdsSet[] = []; //массив имен и id для ндс 
   movingTypes:any[]=[]; // список типов перемещений: из кассы предприятия - boxoffice, с расч. счета - account, из кассы ККМ - kassa
   paymentAccounts:any[]=[];  // список расчётных счетов предприятия
   kassaList:any[]=[];  // список касс ККМ по отделениям, которые привязаны к кассе предприятия boxoffice_id
@@ -343,7 +334,6 @@ export class OrderinDocComponent implements OnInit {
 
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Поставщик"
     this.getSetOfPermissions();
-    this.getSpravSysNds();
   }
   //чтобы не было ExpressionChangedAfterItHasBeenCheckedError
   ngAfterContentChecked() {
@@ -435,7 +425,6 @@ export class OrderinDocComponent implements OnInit {
 //-------------------------------------------------------------------------------
   //нужно загруить всю необходимую информацию, прежде чем вызывать детей (Поиск и добавление товара, Кассовый модуль), иначе их ngOnInit выполнится быстрее, чем загрузится вся информация в родителе
   //вызовы из:
-  //getSpravSysNds()
   //refreshPermissions()
   necessaryActionsBeforeGetChilds(){
     this.actionsBeforeGetChilds++;
@@ -462,11 +451,6 @@ export class OrderinDocComponent implements OnInit {
         this.getCRUD_rights(this.permissionsSet);
       }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
   }
-
-  getSpravSysNds(){
-        this.loadSpravService.getSpravSysNds()
-        .subscribe((data) => {this.spravSysNdsSet=data as any[];},
-        error => console.log(error));}
 
   getCRUD_rights(permissionsSet:any[]){
     this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==476)});

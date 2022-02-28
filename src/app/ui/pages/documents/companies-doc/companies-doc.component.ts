@@ -105,6 +105,10 @@ interface docResponse {//интерфейс для получения ответ
   jr_ip_ogrnip: string;//ОГРНИП (для ИП)
   jr_ip_svid_num: string; // номер свидетельства (для ИП). string т.к. оно может быть типа "серия 77 №42343232"
   jr_ip_reg_date: string; // дата регистрации ИП (для ИП)
+  //Settings
+  st_prefix_barcode_pieced: number;// prefix of barcode for pieced product
+  st_prefix_barcode_packed: number;// prefix of barcode for packed product
+  st_netcost_policy: string;       // policy of netcost calculation by all company or by each department separately
 }
 
 interface IdAndName{
@@ -309,6 +313,10 @@ constructor(private activateRoute: ActivatedRoute,
       companiesPaymentAccountsTable: new FormArray ([]) ,
       country:  new FormControl      ('',[]),
       jr_country:  new FormControl      ('',[]),
+      //Settings
+      st_prefix_barcode_pieced: new FormControl      ('',[]), // prefix of barcode for pieced product
+      st_prefix_barcode_packed: new FormControl      ('',[]), // prefix of barcode for packed product
+      st_netcost_policy:        new FormControl      ('all',[]), // policy of netcost calculation by "all" company or by "each" department separately
     });
     this.formAboutDocument = new FormGroup({
       id: new FormControl      ('',[]),
@@ -504,6 +512,9 @@ constructor(private activateRoute: ActivatedRoute,
                 this.formBaseInformation.get('director_signature_filename').setValue(this.formBaseInformation.get('director_signature_id').value?documentValues.director_signature_filename:"Файл не добавлен");
                 this.formBaseInformation.get('stamp_filename').setValue(this.formBaseInformation.get('stamp_id').value?documentValues.stamp_filename:"Файл не добавлен");
                 this.formBaseInformation.get('glavbuh_signature_filename').setValue(this.formBaseInformation.get('glavbuh_signature_id').value?documentValues.glavbuh_signature_filename:"Файл не добавлен");
+                this.formBaseInformation.get('st_prefix_barcode_pieced').setValue(documentValues.st_prefix_barcode_pieced);
+                this.formBaseInformation.get('st_prefix_barcode_packed').setValue(documentValues.st_prefix_barcode_packed);
+                this.formBaseInformation.get('st_netcost_policy').setValue(documentValues.st_netcost_policy);
                 this.searchRegionCtrl.setValue(documentValues.region);
                 this.searchJrRegionCtrl.setValue(documentValues.jr_region);
                 this.area=documentValues.area;
@@ -1190,5 +1201,22 @@ constructor(private activateRoute: ActivatedRoute,
       },
       error => console.log(error),
     );  
+  }
+  changeNetcostPolicyAttention(){
+    if(this.formBaseInformation.get('st_netcost_policy').value=='each'){
+      const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+        width: '400px',
+        data:
+        { 
+          head: 'Внимание!',
+          query: 'В результате выбора данной политики расчёта, средняя себестоимость товаров со временем станет разной во всех отделениях.',/* Последующий возврат данной политики обратно на "По всему предприятию" не повлечёт за собой уравнивания средней себестоимости. */
+          warning: 'Изменить политику расчёта?',
+        },
+      });
+      dialogRef.afterClosed().subscribe(result => {
+        if(!(result==1)) this.formBaseInformation.get('st_netcost_policy').setValue('all');
+      }); 
+    }
+    
   }
 }

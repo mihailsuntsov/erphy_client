@@ -119,8 +119,8 @@ export class LoadSpravService{
         return this.http.post('/api/auth/getCagentCategoriesTrees', body);}
     //организационно-правовые формы    
     getSpravSysOPF(){return this.http.post('/api/auth/getSpravSysOPF', '');}
-    // НДС
-    getSpravSysNds(){return this.http.get('/api/auth/getSpravSysNds');}
+    // НДС или другие налоги
+    getSpravTaxes(companyId:number){return this.http.get('/api/auth/getTaxesList?company_id='+companyId);}
     // Типы чеков
     getSpravSysChequeTypes(){return this.http.get('/api/auth/getSpravSysChequeTypes');}
     // Налогообложения виды

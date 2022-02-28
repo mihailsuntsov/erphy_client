@@ -56,13 +56,15 @@ interface ShortInfoAboutProduct{//интерф. для получения инф
   department_type_price:string;
   date_time_created:string;
 }
-interface SpravSysNdsSet{
+interface SpravTaxesSet{
   id: number;
   name: string;
   description: string;
   name_api_atol: string;
-  is_active: string;
-  calculated: string;
+  is_active: boolean;
+  calculated: boolean;
+  value:number;
+  multiplier:number;
 }
 
 @Component({
@@ -133,7 +135,7 @@ export class MovingProductsTableComponent implements OnInit {
   @Input() nds_included:boolean;
   @Input() overhead:number;      // расходы 
   @Input() overhead_netcost_method:number; // метод распределения расходов по себестоимости: распределять (1) или нет (0)
-  @Input() spravSysNdsSet: SpravSysNdsSet[] = []; //массив имен и id для ндс 
+  @Input() spravTaxesSet: SpravTaxesSet[] = []; //массив имен и id для ндс 
   @Input() department_from: string;
   @Output() changeProductsTableLength = new EventEmitter<any>();   //событие изменения таблицы товаров (а именно - количества товаров в ней)
   @Output() totalSumPriceEvent = new EventEmitter<string>();
@@ -588,8 +590,8 @@ export class MovingProductsTableComponent implements OnInit {
   getNdsMultiplifierBySelectedId(srchId:number):number {
     //возвращает множитель по выбранному НДС. например, для 20% будет 1.2, 0% - 1 и т.д 
         let value=0;
-        this.spravSysNdsSet.forEach(a=>{
-          if(+a.id == srchId) {value=(a.name.includes('%')?(+a.name.replace('%','')):0)/100+1}
+        this.spravTaxesSet.forEach(a=>{
+          if(+a.id == srchId) {value=a.multiplier}
         }); return value;}   
 
   getShortInfoAboutProduct(){

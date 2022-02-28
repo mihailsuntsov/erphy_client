@@ -128,8 +128,9 @@ export class CorrectionDocComponent implements OnInit {
   correctionTypesList:any[]=[]; // список коррекции
   correctionType:string='';// тип коррекции boxoffice - коррекция кассы, cagent - коррекция баланса с контрагентом, account - коррекция расчётного счёта
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
-  rightsDefined:boolean; // определены ли права
-  lastCheckedDocNumber:string='';
+
+  rightsDefined:boolean; // определены ли права !!!
+  lastCheckedDocNumber:string=''; //!!!
 
   //для загрузки связанных документов
   linkedDocsReturn:LinkedDocs[]=[];
@@ -333,7 +334,6 @@ export class CorrectionDocComponent implements OnInit {
   }
 
   refreshPermissions(){
-//!!!
     let documentOfMyCompany:boolean = (+this.formBaseInformation.get('company_id').value==this.myCompanyId);
 
     this.allowToView=(
@@ -615,7 +615,7 @@ export class CorrectionDocComponent implements OnInit {
                   this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
                   this.loadFilesInfo();
                   this.getStatusesList();//статусы документа
-                  this.getSettings(); // настройки документа
+                  this.getSettings(); // настройки документа !!!
                   this.getBoxofficesList();   // кассы предприятия
                   this.getCompaniesPaymentAccounts();// р. счета предприятия
                   this.getCorrectionTypesList();  // типы внутреннего перемещения
@@ -733,7 +733,7 @@ export class CorrectionDocComponent implements OnInit {
     else
       this.createLinkedDoc('Vatinvoicein');
   }
-
+// !!!
   checkDocNumberUnical(tableName:string) {
     let docNumTmp=this.formBaseInformation.get('doc_number').value;
     setTimeout(() => {
@@ -788,6 +788,7 @@ export class CorrectionDocComponent implements OnInit {
       this.id=+this.createdDocId;
       this._router.navigate(['/ui/correctiondoc', this.id]);
       this.formBaseInformation.get('id').setValue(this.id);
+      this.rightsDefined=false; //!!!
       this.getData();
   }
 

@@ -105,14 +105,6 @@ interface CanCreateLinkedDoc{//интерфейс ответа на запрос
   can:boolean;
   reason:string;
 }
-interface SpravSysNdsSet{
-  id: number;
-  name: string;
-  description: string;
-  name_api_atol: string;
-  is_active: string;
-  calculated: string;
-}
 interface TemplatesList{
     id: number;                   // id из таблицы template_docs
     company_id: number;           // id предприятия, для которого эти настройки
@@ -152,7 +144,6 @@ export class VatinvoiceoutDocComponent implements OnInit {
   spravSysEdizmOfProductAll: IdAndNameAndShortname[] = [];// массив, куда будут грузиться все единицы измерения товара
   receivedPriceTypesList: IdNameDescription [] = [];//массив для получения списка типов цен
   canEditCompAndDepth=true;
-  spravSysNdsSet: SpravSysNdsSet[] = []; //массив имен и id для ндс 
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
 
   //для загрузки связанных документов
@@ -205,6 +196,9 @@ export class VatinvoiceoutDocComponent implements OnInit {
   allowToComplete:boolean = false;
   showOpenDocIcon:boolean=false;
   editability:boolean = false;//редактируемость. true если есть право на создание и документ создаётся, или есть право на редактирование и документ создан
+
+  rightsDefined:boolean; // определены ли права !!!
+  lastCheckedDocNumber:string=''; //!!!
 
   isDocNumberUnicalChecking = false;//идёт ли проверка на уникальность номера
   doc_number_isReadOnly=true;
@@ -353,13 +347,14 @@ export class VatinvoiceoutDocComponent implements OnInit {
     this.editability=((this.allowToCreate && +this.id==0)||(this.allowToUpdate && this.id>0));
     // console.log("myCompanyId - "+this.myCompanyId);
     // console.log("documentOfMyCompany - "+documentOfMyCompany);
-    console.log("allowToView - "+this.allowToView);
-    console.log("allowToUpdate - "+this.allowToUpdate);
-    console.log("allowToCreate - "+this.allowToCreate);
+    // console.log("allowToView - "+this.allowToView);
+    // console.log("allowToUpdate - "+this.allowToUpdate);
+    // console.log("allowToCreate - "+this.allowToCreate);
+    this.rightsDefined=true;//!!!
     // return true;
   }
- //  -------------     ***** поиск по подстроке для поставщика ***    --------------------------
- onCagentSearchValueChanges(){
+  //  -------------     ***** поиск по подстроке для поставщика ***    --------------------------
+  onCagentSearchValueChanges(){
   this.searchCagentCtrl.valueChanges
   .pipe(
     debounceTime(500),
@@ -478,8 +473,8 @@ export class VatinvoiceoutDocComponent implements OnInit {
           {
             this.receivedCompaniesList=data as any [];
             this.formAboutDocument.get('company').setValue(this.getCompanyNameById(this.formBaseInformation.get('company_id').value));
-            
-            this.getSettings();
+            if(+this.id==0)//!!!!! отсюда загружаем настройки только если документ новый. Если уже создан - настройки грузятся из get<Document>ValuesById
+              this.getSettings();
           },                      
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
@@ -499,37 +494,41 @@ export class VatinvoiceoutDocComponent implements OnInit {
         .subscribe(
             data => { 
                 let documentValues: DocResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
-                this.formBaseInformation.get('id').setValue(+documentValues.id);
-                this.formBaseInformation.get('company_id').setValue(documentValues.company_id);
-                this.formBaseInformation.get('cagent_id').setValue(documentValues.cagent_id);
-                this.formBaseInformation.get('cagent').setValue(documentValues.cagent);
-                this.formBaseInformation.get('cagent2_id').setValue(documentValues.cagent2_id);
-                this.formBaseInformation.get('cagent2').setValue(documentValues.cagent2);
-                this.searchCagentCtrl.setValue(documentValues.cagent);
-                this.searchCagent2Ctrl.setValue(documentValues.cagent2);
-                this.formBaseInformation.get('gov_id').setValue(documentValues.gov_id);
-                this.formBaseInformation.get('doc_number').setValue(documentValues.doc_number);
-                this.formBaseInformation.get('paydoc_number').setValue(documentValues.paydoc_number);
-                this.formBaseInformation.get('paydoc_date').setValue(documentValues.paydoc_date?moment(documentValues.paydoc_date,'DD.MM.YYYY'):"");
-                this.formBaseInformation.get('summ').setValue(documentValues.summ);
-                this.formBaseInformation.get('description').setValue(documentValues.description);
-                this.formAboutDocument.get('master').setValue(documentValues.master);
-                this.formAboutDocument.get('creator').setValue(documentValues.creator);
-                this.formAboutDocument.get('changer').setValue(documentValues.changer);
-                this.formAboutDocument.get('company').setValue(documentValues.company);
-                this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
-                this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
-                this.formBaseInformation.get('status_id').setValue(documentValues.status_id);
-                this.formBaseInformation.get('status_name').setValue(documentValues.status_name);
-                this.formBaseInformation.get('status_color').setValue(documentValues.status_color);
-                this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
-                this.formBaseInformation.get('is_completed').setValue(documentValues.is_completed);
-                this.formBaseInformation.get('uid').setValue(documentValues.uid);
-                this.creatorId=+documentValues.creator_id;
-                this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
-                this.loadFilesInfo();
-                this.getStatusesList();//статусы документа Счёт-фактура выданный
-                this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+                if(data!=null&&documentValues.company_id!=null){
+                  this.formBaseInformation.get('id').setValue(+documentValues.id);
+                  this.formBaseInformation.get('company_id').setValue(documentValues.company_id);
+                  this.formBaseInformation.get('cagent_id').setValue(documentValues.cagent_id);
+                  this.formBaseInformation.get('cagent').setValue(documentValues.cagent);
+                  this.formBaseInformation.get('cagent2_id').setValue(documentValues.cagent2_id);
+                  this.formBaseInformation.get('cagent2').setValue(documentValues.cagent2);
+                  this.searchCagentCtrl.setValue(documentValues.cagent);
+                  this.searchCagent2Ctrl.setValue(documentValues.cagent2);
+                  this.formBaseInformation.get('gov_id').setValue(documentValues.gov_id);
+                  this.formBaseInformation.get('doc_number').setValue(documentValues.doc_number);
+                  this.formBaseInformation.get('paydoc_number').setValue(documentValues.paydoc_number);
+                  this.formBaseInformation.get('paydoc_date').setValue(documentValues.paydoc_date?moment(documentValues.paydoc_date,'DD.MM.YYYY'):"");
+                  this.formBaseInformation.get('summ').setValue(documentValues.summ);
+                  this.formBaseInformation.get('description').setValue(documentValues.description);
+                  this.formAboutDocument.get('master').setValue(documentValues.master);
+                  this.formAboutDocument.get('creator').setValue(documentValues.creator);
+                  this.formAboutDocument.get('changer').setValue(documentValues.changer);
+                  this.formAboutDocument.get('company').setValue(documentValues.company);
+                  this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
+                  this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
+                  this.formBaseInformation.get('status_id').setValue(documentValues.status_id);
+                  this.formBaseInformation.get('status_name').setValue(documentValues.status_name);
+                  this.formBaseInformation.get('status_color').setValue(documentValues.status_color);
+                  this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
+                  this.formBaseInformation.get('is_completed').setValue(documentValues.is_completed);
+                  this.formBaseInformation.get('uid').setValue(documentValues.uid);
+                  this.creatorId=+documentValues.creator_id;
+                  this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
+                  this.loadFilesInfo();
+                  this.getStatusesList();//статусы документа Счёт-фактура выданный
+                  this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+                  this.getSettings(); // настройки документа !!!
+                  //!!!
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
         );
@@ -621,7 +620,7 @@ export class VatinvoiceoutDocComponent implements OnInit {
                 break;
               }
               case -1:{//недостаточно прав
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа \"Счёт-фактура выданный\""}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для "+ (complete?"проведения":"сохренения") + " документа \"Счёт-фактура выданный\""}});
                 break;
               }
               case -50:{//Документ уже проведён
@@ -714,21 +713,27 @@ export class VatinvoiceoutDocComponent implements OnInit {
       });  
     } 
   }
-  checkDocNumberUnical() {
-    if(!this.formBaseInformation.get('doc_number').errors)
-    {
-      let Unic: boolean;
-      this.isDocNumberUnicalChecking=true;
-      return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table=vatinvoiceout')
-      .subscribe(
-          (data) => {   
-                      Unic = data as boolean;
-                      if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Введённый номер документа не является уникальным.',}});
-                      this.isDocNumberUnicalChecking=false;
-                  },
-          error => {console.log(error),this.isDocNumberUnicalChecking=false;}
-      );
-    }
+  
+  // !!!
+  checkDocNumberUnical(tableName:string) {
+    let docNumTmp=this.formBaseInformation.get('doc_number').value;
+    setTimeout(() => {
+      if(!this.formBaseInformation.get('doc_number').errors && this.lastCheckedDocNumber!=docNumTmp && docNumTmp!='' && docNumTmp==this.formBaseInformation.get('doc_number').value)
+        {
+          let Unic: boolean;
+          this.isDocNumberUnicalChecking=true;
+          this.lastCheckedDocNumber=docNumTmp;
+          return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table='+tableName)
+          .subscribe(
+              (data) => {   
+                          Unic = data as boolean;
+                          if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Введённый номер документа не является уникальным.',}});
+                          this.isDocNumberUnicalChecking=false;
+                      },
+              error => {console.log(error);this.isDocNumberUnicalChecking=false;}
+          );
+        }
+    }, 1000);
   }
   //открывает диалог настроек
   openDialogSettings() { 

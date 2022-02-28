@@ -173,7 +173,7 @@ export class InvoiceinComponent implements OnInit {
 
     // -------------------------------------- *** ПРАВА *** ------------------------------------
    getSetOfPermissions(){
-    return this.http.get('/api/auth/getMyPermissions?id=39')
+    return this.http.get('/api/auth/getMyPermissions?id=32')
             .subscribe(
                 (data) => {   
                             this.permissionsSet=data as any [];
@@ -185,21 +185,21 @@ export class InvoiceinComponent implements OnInit {
 
 
   getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==425)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==426)});
-    this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==427)});
-    this.allowToDeleteAllCompanies = permissionsSet.some(         function(e){return(e==428)});
-    this.allowToDeleteMyCompany = permissionsSet.some(            function(e){return(e==429)});
-    this.allowToDeleteMyDepartments = permissionsSet.some(        function(e){return(e==430)});
-    this.allowToDeleteMyDocs = permissionsSet.some(               function(e){return(e==431)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==432)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==433)});
-    this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==434)});
-    this.allowToViewMyDocs = permissionsSet.some(                 function(e){return(e==435)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==436)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==437)});
-    this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==438)});
-    this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==439)});
+    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==445)});
+    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==446)});
+    this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==447)});  
+    this.allowToDeleteAllCompanies = permissionsSet.some(         function(e){return(e==448)});
+    this.allowToDeleteMyCompany = permissionsSet.some(            function(e){return(e==449)});
+    this.allowToDeleteMyDepartments = permissionsSet.some(        function(e){return(e==450)});
+    this.allowToDeleteMyDocs = permissionsSet.some(               function(e){return(e==451)});
+    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==452)});
+    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==453)});
+    this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==454)});
+    this.allowToViewMyDocs = permissionsSet.some(                 function(e){return(e==455)});
+    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==456)});
+    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==457)});
+    this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==458)});
+    this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==459)});
     this.getData();
   }
 
@@ -210,12 +210,11 @@ export class InvoiceinComponent implements OnInit {
     this.allowToDelete=(this.allowToDeleteAllCompanies || this.allowToDeleteMyCompany || this.allowToDeleteMyDepartments || this.allowToDeleteMyDocs)?true:false;
     this.showOpenDocIcon=(this.allowToUpdate||this.allowToView);
     this.visBtnAdd = (this.allowToCreate)?true:false;
-    
-    console.log("allowToView - "+this.allowToView);
-    console.log("allowToUpdate - "+this.allowToUpdate);
-    console.log("allowToCreate - "+this.allowToCreate);
-    console.log("allowToDelete - "+this.allowToDelete);
-    console.log("allowToDeleteAllCompanies - "+this.allowToDeleteAllCompanies);
+    // console.log("allowToView - "+this.allowToView);
+    // console.log("allowToUpdate - "+this.allowToUpdate);
+    // console.log("allowToCreate - "+this.allowToCreate);
+    // console.log("allowToDelete - "+this.allowToDelete);
+    // console.log("allowToDeleteAllCompanies - "+this.allowToDeleteAllCompanies);
     return true;
   }
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------

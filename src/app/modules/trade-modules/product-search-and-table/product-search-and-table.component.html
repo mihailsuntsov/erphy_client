@@ -421,7 +421,7 @@
                                                                 <mat-form-field  class="mat-form-field-100" *ngIf="nds">
                                                                     <mat-label>НДС</mat-label>
                                                                     <mat-select  formControlName="nds_id"  (selectionChange)="tableNdsRecount()" [disabled]=false>                          
-                                                                        <mat-option  *ngFor="let rt of spravSysNdsSet" [value]="rt.id">
+                                                                        <mat-option  *ngFor="let rt of spravTaxesSet" [value]="rt.id">
                                                                                 {{rt.name}}
                                                                         </mat-option> 
                                                                     </mat-select>
@@ -687,7 +687,7 @@
                                             (selectionChange)="onChangeProductNds()" 
                                             [ngClass]="{'table-field-editable':!readonly}"
                                             [disabled]=false>                          
-                                                <mat-option  *ngFor="let rt of spravSysNdsSet" [value]="rt.id">
+                                                <mat-option  *ngFor="let rt of spravTaxesSet" [value]="rt.id">
                                                         {{rt.name}}
                                                 </mat-option> 
                                             </mat-select>

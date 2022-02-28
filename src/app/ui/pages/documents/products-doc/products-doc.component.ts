@@ -81,7 +81,7 @@ interface docResponse {//интерфейс для получения ответ
   not_sell: boolean;
   indivisible: boolean;
   }
-  interface SpravSysNdsSet{
+  interface SpravTaxesSet{
     id: number;
     name: string;
     description: string;
@@ -284,7 +284,7 @@ cagentsInfo : cagentsInfo [] = []; //массив для получения ин
 barcodesInfo : barcodesInfo [] = []; //массив для получения информации 
 // ******  справочники  ******************
 spravSysPPRSet: any[];//сет признаков предмета расчета 
-spravSysNdsSet: SpravSysNdsSet[];//сет НДС 
+spravTaxesSet: SpravTaxesSet[];//сет НДС 
 spravSysMarkableGroupSet: idAndName[] = [];//сет маркированных товаров
 filteredSpravSysMarkableGroupSet: Observable<idAndName[]>;//сет маркированных товаров
 spravSysEdizmOfProductAll: idAndName[] = [];// массив, куда будут грузиться все единицы измерения товара
@@ -379,7 +379,6 @@ constructor(private activateRoute: ActivatedRoute,
 
     this.onProductGroupValueChanges();//отслеживание изменений поля "Группа товаров"
     this.loadMainImage();// при создании документа загрузится картинка "no image"
-    this.getSpravSysNds();//загрузка справочника НДС
     this.getSpravSysPPR();//загрузка справочника признаков предмета расчёта
     this.getTableHeaderTitles();//столбцы таблицы с историей изменений товара
     this.getPricesTableHeaderTitles();//столбцы таблицы с ценами товара
@@ -491,6 +490,7 @@ refreshPermissions():boolean{
       this.getDepartmentsList();
     }else{//если еще не создан - устанавливаем дефолтное предприятие для документа
       this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+      this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
       this.getSpravSysEdizm();
       this.refreshPermissions();
     }
@@ -568,6 +568,7 @@ refreshPermissions():boolean{
                 this.getSpravSysEdizm(); //загрузка единиц измерения
                 this.getProductBarcodesPrefixes(); //загрузка префиксов штрих-кодов
                 this.getProductPrices(); // загрузка типов цен
+                this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
                 this.refreshPermissions();
 
             },
@@ -767,15 +768,15 @@ refreshPermissions():boolean{
   }
 
   getSpravSysPPR(){
-          return this.loadSpravService.getSpravSysPPR()
+      return this.loadSpravService.getSpravSysPPR()
           .subscribe((data) => {this.spravSysPPRSet=data as any[];},
           error => console.log(error));}
-  getSpravSysNds(){
-        this.loadSpravService.getSpravSysNds()
-        .subscribe((data) => {this.spravSysNdsSet=data as any[];},
+  getSpravTaxes(companyId:number){
+      this.loadSpravService.getSpravTaxes(companyId)
+        .subscribe((data) => {this.spravTaxesSet=data as any[];},
         error => console.log(error));}
   getSpravSysMarkableGroup(){
-          return this.http.post('/api/auth/getSpravSysMarkableGroup', {}) 
+      return this.http.post('/api/auth/getSpravSysMarkableGroup', {}) 
           .subscribe((data) => {
             this.spravSysMarkableGroupSet=data as any[];
             this.updateValuesSpravSysMarkableGroup()},

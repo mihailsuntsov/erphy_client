@@ -89,6 +89,8 @@ const routes: Routes = [
       { path: 'mutualpayment', loadChildren: () => import('./pages/documents/mutualpayment/mutualpayment.module').then(m => m.MutualpaymentModule) },
       { path: 'moneyflow', loadChildren: () => import('./pages/documents/moneyflow/moneyflow.module').then(m => m.MoneyflowModule) },
       { path: 'profitloss', loadChildren: () => import('./pages/documents/profitloss/profitloss.module').then(m => m.ProfitlossModule) },
+      { path: 'taxes', loadChildren: () => import('./pages/documents/taxes/taxes.module').then(m => m.TaxesModule) },
+      { path: 'taxesdoc', loadChildren: () => import('./pages/documents/taxes-doc/taxes-doc.module').then(m => m.TaxesDocModule) },
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
       { path: '**', redirectTo: 'dashboard',pathMatch: 'full' },
     ]  

@@ -242,7 +242,7 @@ export class DepositingDocComponent implements OnInit {
     //     getData(------>(если созданный док)--> [getDocumentValuesById] --> refreshPermissions 
     //     |
     //     (если новый док):
-    //     [getCompaniesList, getSpravSysNds* ]
+    //     [getCompaniesList]
     //     |
     //     [getSettings, doFilterCompaniesList]
     //     |

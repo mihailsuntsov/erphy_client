@@ -121,7 +121,7 @@ interface CanCreateLinkedDoc{//интерфейс ответа на запрос
   can:boolean;
   reason:string;
 }
-interface SpravSysNdsSet{
+interface SpravTaxesSet{
   id: number;
   name: string;
   description: string;
@@ -174,7 +174,7 @@ export class AcceptanceDocComponent implements OnInit {
   canEditCompAndDepth=true;
   panelWriteoffOpenState=false;
   panelPostingOpenState=false;
-  spravSysNdsSet: SpravSysNdsSet[] = []; //массив имен и id для ндс 
+  spravTaxesSet: SpravTaxesSet[] = []; //массив имен и id для налогов 
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
 
   //для загрузки связанных документов
@@ -232,6 +232,9 @@ export class AcceptanceDocComponent implements OnInit {
   showOpenDocIcon:boolean=false;
   editability:boolean = false;//редактируемость. true если есть право на создание и документ создаётся, или есть право на редактирование и документ создан
 
+  rightsDefined:boolean; // определены ли права !!!
+  lastCheckedDocNumber:string=''; //!!!
+  
   isDocNumberUnicalChecking = false;//идёт ли проверка на уникальность номера
   doc_number_isReadOnly=true;
   @ViewChild("doc_number", {static: false}) doc_number; //для редактирования номера документа
@@ -362,7 +365,6 @@ export class AcceptanceDocComponent implements OnInit {
 
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Поставщик"
     this.getSetOfPermissions();
-    this.getSpravSysNds();
   }
   //чтобы не было ExpressionChangedAfterItHasBeenCheckedError
   ngAfterContentChecked() {
@@ -415,6 +417,7 @@ export class AcceptanceDocComponent implements OnInit {
     this.allowToCreate=(this.allowToCreateAllCompanies || this.allowToCreateMyCompany||this.allowToCreateMyDepartments)?true:false;
     
     this.editability=((this.allowToCreate && +this.id==0)||(this.allowToUpdate && this.id>0));
+    this.rightsDefined=true;//!!!
     this.necessaryActionsBeforeGetChilds();
   }
  //  -------------     ***** поиск по подстроке для поставщика ***    --------------------------
@@ -454,7 +457,7 @@ export class AcceptanceDocComponent implements OnInit {
   //нужно загруить всю необходимую информацию, прежде чем вызывать детей (Поиск и добавление товара, Кассовый модуль), иначе их ngOnInit выполнится быстрее, чем загрузится вся информация в родителе
   //вызовы из:
   //getPriceTypesList()*
-  //getSpravSysNds()
+  //getTaxesList()
   //refreshPermissions()
   necessaryActionsBeforeGetChilds(){
     this.actionsBeforeGetChilds++;
@@ -490,9 +493,8 @@ export class AcceptanceDocComponent implements OnInit {
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             );
   }
-  getSpravSysNds(){
-        this.loadSpravService.getSpravSysNds()
-        .subscribe((data) => {this.spravSysNdsSet=data as any[];},
+  getSpravTaxes(companyId:number){
+        this.loadSpravService.getSpravTaxes(companyId).subscribe((data) => {this.spravTaxesSet=data as any[];},
         error => console.log(error));}
   getCRUD_rights(permissionsSet:any[]){
     this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==184)});
@@ -551,6 +553,7 @@ export class AcceptanceDocComponent implements OnInit {
     this.formBaseInformation.get('department_id').setValue(null);
     this.formBaseInformation.get('status_id').setValue(null);
     this.actionsBeforeGetChilds=0;
+    this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
     this.getDepartmentsList();
     this.getPriceTypesList();
   }
@@ -644,7 +647,8 @@ export class AcceptanceDocComponent implements OnInit {
       this.receivedCompaniesList=[];
       this.receivedCompaniesList.push(myCompany);
     }
-    this.getSettings(); // настройки документа Приёмка
+    if(+this.id==0)//!!!!! отсюда загружаем настройки только если документ новый. Если уже создан - настройки грузятся из get<Document>ValuesById
+      this.getSettings(); // настройки документа Приёмка
   }
   doFilterDepartmentsList(){
     if(!this.allowToCreateAllCompanies && !this.allowToCreateMyCompany && this.allowToCreateMyDepartments){
@@ -699,6 +703,7 @@ export class AcceptanceDocComponent implements OnInit {
   setDefaultCompany(){
     if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим своё по дефолту
       this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+    this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
     this.getDepartmentsList(); 
     this.getPriceTypesList();
   }
@@ -724,40 +729,44 @@ export class AcceptanceDocComponent implements OnInit {
         .subscribe(
             data => { 
                 let documentValues: DocResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
-                this.formBaseInformation.get('id').setValue(+documentValues.id);
-                this.formBaseInformation.get('company_id').setValue(documentValues.company_id);
-                this.formBaseInformation.get('department_id').setValue(documentValues.department_id);
-                this.formBaseInformation.get('department').setValue(documentValues.department);
-                this.formBaseInformation.get('cagent_id').setValue(documentValues.cagent_id);
-                this.formBaseInformation.get('cagent').setValue(documentValues.cagent);
-                this.formBaseInformation.get('acceptance_date').setValue(documentValues.acceptance_date?moment(documentValues.acceptance_date,'DD.MM.YYYY'):"");
-                this.formBaseInformation.get('doc_number').setValue(documentValues.doc_number);
-                this.formBaseInformation.get('nds').setValue(documentValues.nds);
-                this.formBaseInformation.get('nds_included').setValue(documentValues.nds_included);
-                this.formBaseInformation.get('description').setValue(documentValues.description);
-                this.formBaseInformation.get('overhead').setValue(documentValues.overhead);//расходы на доставку, накладные расходы
-                this.formBaseInformation.get('overhead_netcost_method').setValue(documentValues.overhead_netcost_method);//распределение расходов на доставку по товарам 0 - нет, 1 - по весу цены в поставке
-                this.formAboutDocument.get('master').setValue(documentValues.master);
-                this.formAboutDocument.get('creator').setValue(documentValues.creator);
-                this.formAboutDocument.get('changer').setValue(documentValues.changer);
-                this.formAboutDocument.get('company').setValue(documentValues.company);
-                this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
-                this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
-                this.formBaseInformation.get('status_id').setValue(documentValues.status_id);
-                this.formBaseInformation.get('status_name').setValue(documentValues.status_name);
-                this.formBaseInformation.get('status_color').setValue(documentValues.status_color);
-                this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
-                this.formBaseInformation.get('is_completed').setValue(documentValues.is_completed);
-                this.formBaseInformation.get('uid').setValue(documentValues.uid);
-                this.creatorId=+documentValues.creator_id;
-                this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
-                this.getPriceTypesList();
-                this.loadFilesInfo();
-                this.getDepartmentsList();//отделения
-                this.getStatusesList();//статусы документа Приёмка
-                this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
-                this.refreshPermissions();//пересчитаем права
-                // if(this.acceptanceProductsTableComponent) this.acceptanceProductsTableComponent.showColumns(); //чтобы спрятать столбцы после проведения 
+                //!!!
+                if(data!=null&&documentValues.company_id!=null){
+                  this.formBaseInformation.get('id').setValue(+documentValues.id);
+                  this.formBaseInformation.get('company_id').setValue(documentValues.company_id);
+                  this.formBaseInformation.get('department_id').setValue(documentValues.department_id);
+                  this.formBaseInformation.get('department').setValue(documentValues.department);
+                  this.formBaseInformation.get('cagent_id').setValue(documentValues.cagent_id);
+                  this.formBaseInformation.get('cagent').setValue(documentValues.cagent);
+                  this.formBaseInformation.get('acceptance_date').setValue(documentValues.acceptance_date?moment(documentValues.acceptance_date,'DD.MM.YYYY'):"");
+                  this.formBaseInformation.get('doc_number').setValue(documentValues.doc_number);
+                  this.formBaseInformation.get('nds').setValue(documentValues.nds);
+                  this.formBaseInformation.get('nds_included').setValue(documentValues.nds_included);
+                  this.formBaseInformation.get('description').setValue(documentValues.description);
+                  this.formBaseInformation.get('overhead').setValue(documentValues.overhead);//расходы на доставку, накладные расходы
+                  this.formBaseInformation.get('overhead_netcost_method').setValue(documentValues.overhead_netcost_method);//распределение расходов на доставку по товарам 0 - нет, 1 - по весу цены в поставке
+                  this.formAboutDocument.get('master').setValue(documentValues.master);
+                  this.formAboutDocument.get('creator').setValue(documentValues.creator);
+                  this.formAboutDocument.get('changer').setValue(documentValues.changer);
+                  this.formAboutDocument.get('company').setValue(documentValues.company);
+                  this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
+                  this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
+                  this.formBaseInformation.get('status_id').setValue(documentValues.status_id);
+                  this.formBaseInformation.get('status_name').setValue(documentValues.status_name);
+                  this.formBaseInformation.get('status_color').setValue(documentValues.status_color);
+                  this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
+                  this.formBaseInformation.get('is_completed').setValue(documentValues.is_completed);
+                  this.formBaseInformation.get('uid').setValue(documentValues.uid);
+                  this.creatorId=+documentValues.creator_id;
+                  this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
+                  this.getPriceTypesList();
+                  this.loadFilesInfo();
+                  this.getDepartmentsList();//отделения
+                  this.getStatusesList();//статусы документа Приёмка
+                  this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+                //!!!
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
+                this.refreshPermissions();
+
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
         );
@@ -795,24 +804,27 @@ export class AcceptanceDocComponent implements OnInit {
       });  
     } 
   }
-
-  checkDocNumberUnical() {
-    if(!this.formBaseInformation.get('doc_number').errors)
-    {
-      let Unic: boolean;
-      this.isDocNumberUnicalChecking=true;
-      return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table=acceptance')
-      .subscribe(
-          (data) => {   
-                      Unic = data as boolean;
-                      if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Введённый номер документа не является уникальным.',}});
-                      this.isDocNumberUnicalChecking=false;
-                  },
-          error => {console.log(error);this.isDocNumberUnicalChecking=false;}
-      );
-    }
-  }
-
+// !!!
+checkDocNumberUnical(tableName:string) {
+  let docNumTmp=this.formBaseInformation.get('doc_number').value;
+  setTimeout(() => {
+    if(!this.formBaseInformation.get('doc_number').errors && this.lastCheckedDocNumber!=docNumTmp && docNumTmp!='' && docNumTmp==this.formBaseInformation.get('doc_number').value)
+      {
+        let Unic: boolean;
+        this.isDocNumberUnicalChecking=true;
+        this.lastCheckedDocNumber=docNumTmp;
+        return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table='+tableName)
+        .subscribe(
+            (data) => {   
+                        Unic = data as boolean;
+                        if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Введённый номер документа не является уникальным.',}});
+                        this.isDocNumberUnicalChecking=false;
+                    },
+            error => {console.log(error);this.isDocNumberUnicalChecking=false;}
+        );
+      }
+   }, 1000);
+}
   //создание нового документа Приёмка
   createNewDocument(){
     console.log('Создание нового документа Приёмка');
@@ -848,6 +860,7 @@ export class AcceptanceDocComponent implements OnInit {
       this.id=+this.createdDocId;
       this._router.navigate(['/ui/acceptancedoc', this.id]);
       this.formBaseInformation.get('id').setValue(this.id);
+      this.rightsDefined=false; //!!!
       this.getData();
   }
 
@@ -951,7 +964,7 @@ export class AcceptanceDocComponent implements OnInit {
                 break;
               }
               case -1:{//недостаточно прав
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа \"Приёмка\""}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для "+ (complete?"проведения":"сохренения") + " документа \"Приёмка\""}});
                 break;
               }
               case -50:{//Документ уже проведён
