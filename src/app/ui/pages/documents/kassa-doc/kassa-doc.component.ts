@@ -126,6 +126,8 @@ export class KassaDocComponent implements OnInit {
   allowToUpdate:boolean = false;
   allowToCreate:boolean = false;
   showOpenDocIcon:boolean=false;
+  rightsDefined:boolean; // определены ли права !!!
+
 
   //взаимодействие с кассой
   test_status:string=''; // статус соединения (200, 404 и т.д.)
@@ -148,7 +150,8 @@ export class KassaDocComponent implements OnInit {
     public MessageDialog: MatDialog,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar
-  ) {this.id = +activateRoute.snapshot.params['id'];}
+  ) {if(activateRoute.snapshot.params['id'])
+        this.id = +activateRoute.snapshot.params['id'];}
 
   ngOnInit(): void {
     this.formBaseInformation = new FormGroup({              
@@ -245,26 +248,17 @@ export class KassaDocComponent implements OnInit {
       (this.allowToUpdateMyDepartments&&documentOfMyCompany&&documentOfMyDepartments)
     )?true:false;
     this.allowToCreate=(this.allowToCreateAllCompanies || this.allowToCreateMyCompany||this.allowToCreateMyDepartments)?true:false;
-    
-    if(this.id>0){//если в документе есть id
-      this.visAfterCreatingBlocks = true;
-      this.visBeforeCreatingBlocks = false;
-      this.visBtnUpdate = this.allowToUpdate;
-    }else{
-      this.visAfterCreatingBlocks = false;
-      this.visBeforeCreatingBlocks = true;
+    // console.log("myCompanyId - "+this.myCompanyId);
+    // console.log("documentOfMyCompany - "+documentOfMyCompany);
+    // console.log("allowToView - "+this.allowToView);
+    // console.log("allowToUpdate - "+this.allowToUpdate);
+    // console.log("allowToCreate - "+this.allowToCreate);
+    this.rightsDefined=true;//!!!
+    return true;
   }
-  // console.log("myCompanyId - "+this.myCompanyId);
-  // console.log("documentOfMyCompany - "+documentOfMyCompany);
-  // console.log("allowToView - "+this.allowToView);
-  // console.log("allowToUpdate - "+this.allowToUpdate);
-  // console.log("allowToCreate - "+this.allowToCreate);
-  return true;
-
-}
-// -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
-//  -------------     ***** поиск по подстроке для контрагента ***    --------------------------
-onCagentSearchValueChanges(){
+  // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
+  //  -------------     ***** поиск по подстроке для контрагента ***    --------------------------
+  onCagentSearchValueChanges(){
   this.searchCagentCtrl.valueChanges
   .pipe(
     debounceTime(500),
@@ -456,47 +450,51 @@ onServiceSearchValueChanges(){
             data => { 
               
                 let documentValues: docResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
-                //Заполнение формы из интерфейса documentValues:
-                this.formBaseInformation.get('id').setValue(+documentValues.id);
-                this.formBaseInformation.get('company_id').setValue(documentValues.company_id);
-                this.formBaseInformation.get('department_id').setValue(+documentValues.department_id);
-                this.formBaseInformation.get('name').setValue(documentValues.name);
-                this.formBaseInformation.get('server_type').setValue(documentValues.server_type);
-                this.formBaseInformation.get('sno1_id').setValue(documentValues.sno1_id);
-                this.formBaseInformation.get('billing_address').setValue(documentValues.billing_address);
-                this.formBaseInformation.get('device_server_uid').setValue(documentValues.device_server_uid);
-                this.formBaseInformation.get('additional').setValue(documentValues.additional);
-                this.formBaseInformation.get('server_address').setValue(documentValues.server_address);
-                this.formBaseInformation.get('allow_to_use').setValue(documentValues.allow_to_use);
-                this.formBaseInformation.get('zn_kkt').setValue(documentValues.zn_kkt);
+                //!!!
+                if(data!=null&&documentValues.company_id!=null){
+                  //Заполнение формы из интерфейса documentValues:
+                  this.formBaseInformation.get('id').setValue(+documentValues.id);
+                  this.formBaseInformation.get('company_id').setValue(documentValues.company_id);
+                  this.formBaseInformation.get('department_id').setValue(+documentValues.department_id);
+                  this.formBaseInformation.get('name').setValue(documentValues.name);
+                  this.formBaseInformation.get('server_type').setValue(documentValues.server_type);
+                  this.formBaseInformation.get('sno1_id').setValue(documentValues.sno1_id);
+                  this.formBaseInformation.get('billing_address').setValue(documentValues.billing_address);
+                  this.formBaseInformation.get('device_server_uid').setValue(documentValues.device_server_uid);
+                  this.formBaseInformation.get('additional').setValue(documentValues.additional);
+                  this.formBaseInformation.get('server_address').setValue(documentValues.server_address);
+                  this.formBaseInformation.get('allow_to_use').setValue(documentValues.allow_to_use);
+                  this.formBaseInformation.get('zn_kkt').setValue(documentValues.zn_kkt);
 
-                this.formBaseInformation.get('is_virtual').setValue(documentValues.is_virtual);
-                this.formBaseInformation.get('allow_acquiring').setValue(documentValues.allow_acquiring);
-                this.formBaseInformation.get('acquiring_bank_id').setValue(documentValues.acquiring_bank_id);
-                this.formBaseInformation.get('acquiring_bank').setValue(documentValues.acquiring_bank);
-                this.formBaseInformation.get('acquiring_precent').setValue(documentValues.acquiring_precent);  
-                this.formBaseInformation.get('acquiring_service_id').setValue(documentValues.acquiring_service_id);  
-                this.formBaseInformation.get('acquiring_service').setValue(documentValues.acquiring_service);    
-                this.searchCagentCtrl.setValue(documentValues.acquiring_bank);
-                this.searchServiceCtrl.setValue(documentValues.acquiring_service);
+                  this.formBaseInformation.get('is_virtual').setValue(documentValues.is_virtual);
+                  this.formBaseInformation.get('allow_acquiring').setValue(documentValues.allow_acquiring);
+                  this.formBaseInformation.get('acquiring_bank_id').setValue(documentValues.acquiring_bank_id);
+                  this.formBaseInformation.get('acquiring_bank').setValue(documentValues.acquiring_bank);
+                  this.formBaseInformation.get('acquiring_precent').setValue(documentValues.acquiring_precent);  
+                  this.formBaseInformation.get('acquiring_service_id').setValue(documentValues.acquiring_service_id);  
+                  this.formBaseInformation.get('acquiring_service').setValue(documentValues.acquiring_service);    
+                  this.searchCagentCtrl.setValue(documentValues.acquiring_bank);
+                  this.searchServiceCtrl.setValue(documentValues.acquiring_service);
 
-                this.formBaseInformation.get('payment_account_id').setValue(documentValues.payment_account_id);    
-                this.formBaseInformation.get('payment_account').setValue(documentValues.payment_account);    
-                this.formBaseInformation.get('expenditure_id').setValue(documentValues.expenditure_id);    
-                this.formBaseInformation.get('expenditure').setValue(documentValues.expenditure);    
+                  this.formBaseInformation.get('payment_account_id').setValue(documentValues.payment_account_id);    
+                  this.formBaseInformation.get('payment_account').setValue(documentValues.payment_account);    
+                  this.formBaseInformation.get('expenditure_id').setValue(documentValues.expenditure_id);    
+                  this.formBaseInformation.get('expenditure').setValue(documentValues.expenditure);    
 
-                this.formAboutDocument.get('master').setValue(documentValues.master);
-                this.formAboutDocument.get('creator').setValue(documentValues.creator);
-                this.formAboutDocument.get('changer').setValue(documentValues.changer);
-                this.formAboutDocument.get('company').setValue(documentValues.company);
-                this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
-                this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
-                this.creatorId=+documentValues.creator_id;
-                this.loadFilesInfo();
-                this.getDepartmentsList(false);
-                this.getExpenditureItemsList();
-                this.getCompaniesPaymentAccounts();
-                this.refreshPermissions();
+                  this.formAboutDocument.get('master').setValue(documentValues.master);
+                  this.formAboutDocument.get('creator').setValue(documentValues.creator);
+                  this.formAboutDocument.get('changer').setValue(documentValues.changer);
+                  this.formAboutDocument.get('company').setValue(documentValues.company);
+                  this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
+                  this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
+                  this.creatorId=+documentValues.creator_id;
+                  this.loadFilesInfo();
+                  this.getDepartmentsList(false);
+                  this.getExpenditureItemsList();
+                  this.getCompaniesPaymentAccounts();
+                  //!!!
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
+                this.refreshPermissions();                  
             },
             error => console.log(error)
         );
@@ -517,6 +515,7 @@ onServiceSearchValueChanges(){
                                 if(+this.createdDocId!=0){
                                   this.id=+this.createdDocId[0];
                                   this.formBaseInformation.get('id').setValue(this.id);
+                                  this.rightsDefined=false; //!!!
                                   this.getData();
                                   this.openSnackBar("Документ \"Касса\" успешно создан", "Закрыть");
                                 }else{
@@ -535,12 +534,17 @@ onServiceSearchValueChanges(){
             (data) => 
             {   
               let result=data as number;
-              if(+result!=0){
+              if(+result==1){
                 this.getData();
                 this.openSnackBar("Документ \"Касса\" сохранён", "Закрыть");
-              }else{
+              }else if(+result==0){
                 this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Касса с данным заводским номером (ЗН) уже есть в базе данных предприятия. ЗН должен быть уникальным. Если в списке касс \"Кассы онлайн\" нет кассы с таким ЗН, проверьте список удалённых касс, и, если необходимо, восстановите удалённую кассу'}})
                 this.openSnackBar("Ошибка сохранения документа \"Касса\"", "Закрыть");
+              }else if(+result==null){
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Ошибка сохранения документа'}})
+                this.openSnackBar("Ошибка сохранения документа \"Касса\"", "Закрыть");
+              }else if(+result==-1){
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав для данной операции'}})
               }
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},

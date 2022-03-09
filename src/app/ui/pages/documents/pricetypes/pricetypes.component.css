@@ -61,3 +61,23 @@ table {width: 100%;}
 .sortheader{
     cursor: default;
 }
+/******* опции *******/
+.emptyspace{ flex-grow: 1;}
+li {list-style: none;}
+.div-100{
+    width:100%;
+    text-align: center;
+}
+.card-name{ flex-grow: 1; }
+.options-button{
+ margin: 5px 15px 0
+}
+/*Данные не найдены*/
+.spinner{
+    position: absolute;
+    top: 7%;
+    left: 50%;
+    margin-left: -25px;
+    margin-top: 100px;
+    z-index: 100;
+}

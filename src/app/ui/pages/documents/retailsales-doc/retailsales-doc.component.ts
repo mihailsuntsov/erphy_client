@@ -221,6 +221,9 @@ export class RetailsalesDocComponent implements OnInit {
   allowToCreate:boolean = false;
   showOpenDocIcon:boolean=false;
   editability:boolean = false;//редактируемость. true если есть право на создание и документ создаётся, или есть право на редактирование и документ создан
+  rightsDefined:boolean; // определены ли права !!!
+  lastCheckedDocNumber:string=''; //!!!
+
 
   //для построения диаграмм связанности
   tabIndex=0;// индекс текущего отображаемого таба (вкладки)
@@ -468,6 +471,7 @@ export class RetailsalesDocComponent implements OnInit {
     // console.log("allowToUpdate - "+this.allowToUpdate);
     // console.log("allowToCreate - "+this.allowToCreate);
     // return true;
+    this.rightsDefined=true;//!!!
     this.necessaryActionsBeforeGetChilds();
   }
 
@@ -680,7 +684,8 @@ export class RetailsalesDocComponent implements OnInit {
       this.receivedCompaniesList=[];
       this.receivedCompaniesList.push(myCompany);
     }
-    this.getSettings(); // настройки документа Розничная продажа
+    if(+this.id==0)//!!!!! отсюда загружаем настройки только если документ новый. Если уже создан - настройки грузятся из get<Document>ValuesById
+      this.getSettings();
   }
   doFilterDepartmentsList(){
     if(!this.allowToCreateAllCompanies && !this.allowToCreateMyCompany && this.allowToCreateMyDepartments){
@@ -862,48 +867,52 @@ export class RetailsalesDocComponent implements OnInit {
             data => { 
               
                 let documentValues: DocResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
-                //Заполнение формы из интерфейса documentValues:
-                this.formAboutDocument.get('id').setValue(+documentValues.id);
-                this.formAboutDocument.get('master').setValue(documentValues.master);
-                this.formAboutDocument.get('creator').setValue(documentValues.creator);
-                this.formAboutDocument.get('changer').setValue(documentValues.changer);
-                this.formAboutDocument.get('company').setValue(documentValues.company);
-                this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
-                this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
-                this.formBaseInformation.get('id').setValue(+documentValues.id);
-                this.formBaseInformation.get('company_id').setValue(documentValues.company_id);
-                this.formBaseInformation.get('cagent_id').setValue(documentValues.cagent_id);
-                this.formBaseInformation.get('cagent').setValue(documentValues.cagent);
-                this.formBaseInformation.get('department_id').setValue(documentValues.department_id);
-                this.formBaseInformation.get('department').setValue(documentValues.department);
-                // this.formBaseInformation.get('shipment_date').setValue(documentValues.shipment_date?moment(documentValues.shipment_date,'DD.MM.YYYY'):"");
-                this.formBaseInformation.get('doc_number').setValue(documentValues.doc_number);
-                this.formBaseInformation.get('description').setValue(documentValues.description);
-                this.formBaseInformation.get('nds').setValue(documentValues.nds);
-                this.formBaseInformation.get('nds_included').setValue(documentValues.nds_included);
-                this.formBaseInformation.get('name').setValue(documentValues.name);
-                this.formBaseInformation.get('status_id').setValue(documentValues.status_id);
-                this.formBaseInformation.get('status_name').setValue(documentValues.status_name);
-                this.formBaseInformation.get('status_color').setValue(documentValues.status_color);
-                this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
-                this.formBaseInformation.get('uid').setValue(documentValues.uid);
-                this.formBaseInformation.get('customers_orders_id').setValue(documentValues.customers_orders_id);
-                this.formBaseInformation.get('is_completed').setValue(true);// на данный момент существующая розн. продажа всегда проведена
-                this.department_type_price_id=documentValues.department_type_price_id;
-                this.cagent_type_price_id=documentValues.cagent_type_price_id;
-                this.default_type_price_id=documentValues.default_type_price_id;
-                this.creatorId=+documentValues.creator_id;
-                this.searchCagentCtrl.setValue(documentValues.cagent);
-                this.receipt_id = documentValues.receipt_id; //id чека этой розничной продажи (0 - чека нет)
-                this.getSpravSysEdizm();//справочник единиц измерения
-                this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
-                this.getPriceTypesList();
-                this.getDepartmentsList();//отделения
-                this.getStatusesList();//статусы документа Розничная продажа
-                this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
-                this.hideOrShowNdsColumn();//расчет прятать или показывать колонку НДС
-                this.refreshPermissions();//пересчитаем права
-                this.cheque_nds=documentValues.nds;//нужно ли передавать в кассу (в чек) данные об НДС
+                //!!!
+                if(data!=null&&documentValues.company_id!=null){
+                  //Заполнение формы из интерфейса documentValues:
+                  this.formAboutDocument.get('id').setValue(+documentValues.id);
+                  this.formAboutDocument.get('master').setValue(documentValues.master);
+                  this.formAboutDocument.get('creator').setValue(documentValues.creator);
+                  this.formAboutDocument.get('changer').setValue(documentValues.changer);
+                  this.formAboutDocument.get('company').setValue(documentValues.company);
+                  this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
+                  this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
+                  this.formBaseInformation.get('id').setValue(+documentValues.id);
+                  this.formBaseInformation.get('company_id').setValue(documentValues.company_id);
+                  this.formBaseInformation.get('cagent_id').setValue(documentValues.cagent_id);
+                  this.formBaseInformation.get('cagent').setValue(documentValues.cagent);
+                  this.formBaseInformation.get('department_id').setValue(documentValues.department_id);
+                  this.formBaseInformation.get('department').setValue(documentValues.department);
+                  // this.formBaseInformation.get('shipment_date').setValue(documentValues.shipment_date?moment(documentValues.shipment_date,'DD.MM.YYYY'):"");
+                  this.formBaseInformation.get('doc_number').setValue(documentValues.doc_number);
+                  this.formBaseInformation.get('description').setValue(documentValues.description);
+                  this.formBaseInformation.get('nds').setValue(documentValues.nds);
+                  this.formBaseInformation.get('nds_included').setValue(documentValues.nds_included);
+                  this.formBaseInformation.get('name').setValue(documentValues.name);
+                  this.formBaseInformation.get('status_id').setValue(documentValues.status_id);
+                  this.formBaseInformation.get('status_name').setValue(documentValues.status_name);
+                  this.formBaseInformation.get('status_color').setValue(documentValues.status_color);
+                  this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
+                  this.formBaseInformation.get('uid').setValue(documentValues.uid);
+                  this.formBaseInformation.get('customers_orders_id').setValue(documentValues.customers_orders_id);
+                  this.formBaseInformation.get('is_completed').setValue(true);// на данный момент существующая розн. продажа всегда проведена
+                  this.department_type_price_id=documentValues.department_type_price_id;
+                  this.cagent_type_price_id=documentValues.cagent_type_price_id;
+                  this.default_type_price_id=documentValues.default_type_price_id;
+                  this.creatorId=+documentValues.creator_id;
+                  this.searchCagentCtrl.setValue(documentValues.cagent);
+                  this.receipt_id = documentValues.receipt_id; //id чека этой розничной продажи (0 - чека нет)
+                  this.getSpravSysEdizm();//справочник единиц измерения
+                  this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
+                  this.getPriceTypesList();
+                  this.getDepartmentsList();//отделения
+                  this.getStatusesList();//статусы документа Розничная продажа
+                  this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+                  this.hideOrShowNdsColumn();//расчет прятать или показывать колонку НДС
+                  this.cheque_nds=documentValues.nds;//нужно ли передавать в кассу (в чек) данные об НДС
+                  //!!!
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
+                this.refreshPermissions();
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
         );
@@ -1015,22 +1024,27 @@ export class RetailsalesDocComponent implements OnInit {
     } 
   }
 
-  checkDocNumberUnical() {
-    if(!this.formBaseInformation.get('doc_number').errors)
-    {
-      let Unic: boolean;
-      this.isDocNumberUnicalChecking=true;
-      return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table=retail_sales')
-      .subscribe(
-          (data) => {   
-                      Unic = data as boolean;
-                      if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Введённый номер документа не является уникальным.',}});
-                      this.isDocNumberUnicalChecking=false;
-                  },
-          error => {console.log(error);this.isDocNumberUnicalChecking=false;}
-      );
-    }
-  }
+// !!!
+checkDocNumberUnical(tableName:string) {
+  let docNumTmp=this.formBaseInformation.get('doc_number').value;
+  setTimeout(() => {
+    if(!this.formBaseInformation.get('doc_number').errors && this.lastCheckedDocNumber!=docNumTmp && docNumTmp!='' && docNumTmp==this.formBaseInformation.get('doc_number').value)
+      {
+        let Unic: boolean;
+        this.isDocNumberUnicalChecking=true;
+        this.lastCheckedDocNumber=docNumTmp;
+        return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table='+tableName)
+        .subscribe(
+            (data) => {   
+                        Unic = data as boolean;
+                        if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Введённый номер документа не является уникальным.',}});
+                        this.isDocNumberUnicalChecking=false;
+                    },
+            error => {console.log(error);this.isDocNumberUnicalChecking=false;}
+        );
+      }
+   }, 1000);
+}
 
   //создание нового документа Розничная продажа
   createNewDocument(withReceipt:boolean){// с true запрос придет при нажатии на кнопку Отбить чек
@@ -1088,9 +1102,14 @@ export class RetailsalesDocComponent implements OnInit {
     this.balanceCagentComponent.getBalance();//пересчитаем баланс покупателя (в данный момент тут это не имеет смысла, т.к. в сейчас в РП происходит обмен 100% товара на 100% денег)
     // this.getData();
 
+    // this.getData();
     //если чек не отбивается, и стоит чекбокс Автосоздание нового после создания Розничной продажи:
     if(!withReceipt && this.settingsForm.get('autocreateOnCheque').value)
       this.goToNewDocument();
+    else{
+      this.rightsDefined=false; //!!!
+      this.getData();
+    }
 
   }
 
@@ -1291,6 +1310,10 @@ export class RetailsalesDocComponent implements OnInit {
     this.formBaseInformation.get('status_color').setValue('ff0000');
     this.formBaseInformation.get('status_description').setValue('');
     this.receivedStatusesList = [];
+  }
+  
+  decompleteDocument(){
+    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Документ "Розничная продажа" не подлежит снятию с проведения'}});
   }
 //**********************************************************************************************************************************************/  
 //*************************************************          СВЯЗАННЫЕ ДОКУМЕНТЫ          ******************************************************/

@@ -1,3 +1,9 @@
+<mat-spinner 
+strokeWidth="3" 
+class="spinner"
+[diameter]="50"
+*ngIf="gettingTableData"
+></mat-spinner>
 <mat-drawer-container class="doc-container" autosize>
     <mat-drawer #drawer class="categories-sidenav" mode="side" opened *ngIf="allowToView">
         
@@ -204,7 +210,7 @@
                                         </div>
                                     </div>
                                 </form>
-                                <div id="result_form" *ngIf="allowToView">
+                                <div id="result_form">
                 
                                         <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
                     
@@ -344,6 +350,19 @@
                                        
                                                 <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                                                 <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                                                <!-- !!! Блок "Данные не найдены" -->
+                                                <ng-container matColumnDef="data_not_found">
+                                                    <td mat-footer-cell *matFooterCellDef colspan="13" class="text-center">
+                                                    Данные не найдены
+                                                    </td>
+                                                </ng-container>
+                                                <ng-container matColumnDef="nocolumn">
+                                                    <td mat-footer-cell *matFooterCellDef colspan="13" style="display: none;"></td>
+                                                </ng-container>
+                                                <tr mat-footer-row 
+                                                *matFooterRowDef="[dataSource.data.length==0?'data_not_found':'nocolumn']" 
+                                                [ngStyle]="(dataSource.data.length==0 && !gettingTableData)?{}:{'display': 'none'}"></tr>
+                                                <!-- Конец блока "Данные не найдены" -->        
                                         </table>
                                     <div class="flex">
                                         <div class="col-sm">

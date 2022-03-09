@@ -94,6 +94,7 @@ export class ProductsComponent implements OnInit {
   allowCategoryDelete:boolean = false;
 
   showOpenDocIcon:boolean=false;
+  gettingTableData:boolean=true;
 
 
   numRows: NumRow[] = [
@@ -246,7 +247,7 @@ export class ProductsComponent implements OnInit {
       this.getTable();
       this.doFilterCompaniesList();
       this.loadTrees();
-    }
+    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
   }
 
   getTableHeaderTitles(){
@@ -277,6 +278,7 @@ export class ProductsComponent implements OnInit {
   }
 
   getTable(){
+    this.gettingTableData=true;
     this.getPagesList();
     this.queryFormService.getTable(this.sendingQueryForm)
             .subscribe(
@@ -284,10 +286,12 @@ export class ProductsComponent implements OnInit {
                   this.receivedMatTable=data as any []; 
                   this.dataSource.data = this.receivedMatTable;
                   if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
+                  this.gettingTableData=false;
                 },
-                error => console.log(error) 
+                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
             );
   }
+  
   onCompanySelection(){
     Cookie.set('products_companyId',this.sendingQueryForm.companyId);
     this.resetSelectedCategory(false);

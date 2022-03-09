@@ -284,7 +284,6 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
   gettingTemplatesData: boolean = false; // идёт загрузка шаблонов
   templatesList:TemplatesList[]=[]; // список загруженных шаблонов
 
-
   //поиск адреса и юр. адреса (Страна, Район, Город):
   // Страны 
   spravSysCountries: IdAndName_ru[] = [];// массив, куда будут грузиться все страны 
@@ -350,6 +349,8 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
   allowToComplete:boolean = false;
   showOpenDocIcon:boolean=false;
   editability:boolean = false;//редактируемость. true если есть право на создание и документ создаётся, или есть право на редактирование и документ создан
+  rightsDefined:boolean; // определены ли права !!!
+  lastCheckedDocNumber:string=''; //!!!
 
   //****************************                   Взаимодействие с ККМ                    ************************************
   cheque_nds=false; //нужно ли проставлять НДС в чеке.
@@ -673,6 +674,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
     // console.log("allowToUpdate - "+this.allowToUpdate);
     // console.log("allowToCreate - "+this.allowToCreate);
     // return true;
+    this.rightsDefined=true;//!!!
     this.necessaryActionsBeforeAutoCreateNewDoc();
     this.necessaryActionsBeforeGetChilds();
   }
@@ -919,7 +921,8 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
       this.receivedCompaniesList=[];
       this.receivedCompaniesList.push(myCompany);
     }
-    this.getSettings(); // настройки документа Заказ покупателя
+    if(+this.id==0)//!!!!! отсюда загружаем настройки только если документ новый. Если уже создан - настройки грузятся из get<Document>ValuesById
+      this.getSettings(); // настройки документа Заказ покупателя
   }
   doFilterDepartmentsList(){
     // console.log('doFilterDepartmentsList');
@@ -1117,76 +1120,82 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
             data => { 
               
                 let documentValues: docResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
-                //Заполнение формы из интерфейса documentValues:
-                this.formAboutDocument.get('id').setValue(+documentValues.id);
-                this.formAboutDocument.get('master').setValue(documentValues.master);
-                this.formAboutDocument.get('creator').setValue(documentValues.creator);
-                this.formAboutDocument.get('changer').setValue(documentValues.changer);
-                this.formAboutDocument.get('company').setValue(documentValues.company);
-                this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
-                this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
-                this.formBaseInformation.get('id').setValue(+documentValues.id);
-                this.formBaseInformation.get('company_id').setValue(documentValues.company_id);
-                this.formBaseInformation.get('cagent_id').setValue(documentValues.cagent_id);
-                this.formBaseInformation.get('cagent').setValue(documentValues.cagent);
-                this.formBaseInformation.get('department_id').setValue(documentValues.department_id);
-                this.formBaseInformation.get('department').setValue(documentValues.department);
-                this.formBaseInformation.get('shipment_date').setValue(documentValues.shipment_date?moment(documentValues.shipment_date,'DD.MM.YYYY'):"");
-                this.formBaseInformation.get('doc_number').setValue(documentValues.doc_number);
-                this.formBaseInformation.get('description').setValue(documentValues.description);
-                this.formBaseInformation.get('nds').setValue(documentValues.nds);
-                this.formBaseInformation.get('nds_included').setValue(documentValues.nds_included);
-                this.formBaseInformation.get('name').setValue(documentValues.name);
-                this.formBaseInformation.get('status_id').setValue(documentValues.status_id);
-                this.formBaseInformation.get('status_name').setValue(documentValues.status_name);
-                this.formBaseInformation.get('status_color').setValue(documentValues.status_color);
-                this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
-                this.formBaseInformation.get('fio').setValue(documentValues.fio);
-                this.formBaseInformation.get('email').setValue(documentValues.email);
-                this.formBaseInformation.get('telephone').setValue(documentValues.telephone);
-                this.formBaseInformation.get('zip_code').setValue(documentValues.zip_code);
-                this.formBaseInformation.get('country_id').setValue(documentValues.country_id);
-                this.formBaseInformation.get('region_id').setValue(documentValues.region_id);
-                this.formBaseInformation.get('city_id').setValue(documentValues.city_id);
-                this.formBaseInformation.get('country_id').setValue(documentValues.country_id);
-                this.formBaseInformation.get('street').setValue(documentValues.street);
-                this.formBaseInformation.get('home').setValue(documentValues.home);
-                this.formBaseInformation.get('flat').setValue(documentValues.flat);
-                this.formBaseInformation.get('additional_address').setValue(documentValues.additional_address);
-                this.formBaseInformation.get('track_number').setValue(documentValues.track_number);
-                this.formBaseInformation.get('country').setValue(documentValues.country);
-                this.formBaseInformation.get('region').setValue(documentValues.region);
-                this.formBaseInformation.get('city').setValue(documentValues.city);
-                this.formBaseInformation.get('uid').setValue(documentValues.uid);
-                this.searchRegionCtrl.setValue(documentValues.region);
-                this.area=documentValues.area;
-                this.searchCityCtrl.setValue(this.area!=''?(documentValues.city+' ('+this.area+')'):documentValues.city);
-                if(+this.formBaseInformation.get('country_id').value!=0)
-                {
-                  this.spravSysCountries.forEach(x => {
-                    if(x.id==this.formBaseInformation.get('country_id').value){
-                      this.formBaseInformation.get('country').setValue(x.name_ru);
-                    }
-                  })
-                }
-                this.department_type_price_id=documentValues.department_type_price_id;
-                this.cagent_type_price_id=documentValues.cagent_type_price_id;
-                this.default_type_price_id=documentValues.default_type_price_id;
-                this.creatorId=+documentValues.creator_id;
-                this.searchCagentCtrl.setValue(documentValues.cagent);
-                this.is_completed=documentValues.is_completed;
-                this.getSpravSysEdizm();//справочник единиц измерения
-                this.getSetOfTypePrices(); //загрузка цен по типам цен для выбранных значений (предприятие, отделение, контрагент)
-                this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
-                this.formExpansionPanelsString();
-                this.getPriceTypesList();
-                this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
-                this.getDepartmentsList();//отделения
-                this.getStatusesList();//статусы документа Заказ покупателя
-                this.getSpravSysCountries();//Страны
-                this.hideOrShowNdsColumn();//расчет прятать или показывать колонку НДС
-                this.refreshPermissions();//пересчитаем права
-                this.cheque_nds=documentValues.nds;//нужно ли передавать в кассу (в чек) данные об НДС
+                //!!!
+                if(data!=null&&documentValues.company_id!=null){
+                  //Заполнение формы из интерфейса documentValues:
+                  this.formAboutDocument.get('id').setValue(+documentValues.id);
+                  this.formAboutDocument.get('master').setValue(documentValues.master);
+                  this.formAboutDocument.get('creator').setValue(documentValues.creator);
+                  this.formAboutDocument.get('changer').setValue(documentValues.changer);
+                  this.formAboutDocument.get('company').setValue(documentValues.company);
+                  this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
+                  this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
+                  this.formBaseInformation.get('id').setValue(+documentValues.id);
+                  this.formBaseInformation.get('company_id').setValue(documentValues.company_id);
+                  this.formBaseInformation.get('cagent_id').setValue(documentValues.cagent_id);
+                  this.formBaseInformation.get('cagent').setValue(documentValues.cagent);
+                  this.formBaseInformation.get('department_id').setValue(documentValues.department_id);
+                  this.formBaseInformation.get('department').setValue(documentValues.department);
+                  this.formBaseInformation.get('shipment_date').setValue(documentValues.shipment_date?moment(documentValues.shipment_date,'DD.MM.YYYY'):"");
+                  this.formBaseInformation.get('doc_number').setValue(documentValues.doc_number);
+                  this.formBaseInformation.get('description').setValue(documentValues.description);
+                  this.formBaseInformation.get('nds').setValue(documentValues.nds);
+                  this.formBaseInformation.get('nds_included').setValue(documentValues.nds_included);
+                  this.formBaseInformation.get('name').setValue(documentValues.name);
+                  this.formBaseInformation.get('status_id').setValue(documentValues.status_id);
+                  this.formBaseInformation.get('status_name').setValue(documentValues.status_name);
+                  this.formBaseInformation.get('status_color').setValue(documentValues.status_color);
+                  this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
+                  this.formBaseInformation.get('fio').setValue(documentValues.fio);
+                  this.formBaseInformation.get('email').setValue(documentValues.email);
+                  this.formBaseInformation.get('telephone').setValue(documentValues.telephone);
+                  this.formBaseInformation.get('zip_code').setValue(documentValues.zip_code);
+                  this.formBaseInformation.get('country_id').setValue(documentValues.country_id);
+                  this.formBaseInformation.get('region_id').setValue(documentValues.region_id);
+                  this.formBaseInformation.get('city_id').setValue(documentValues.city_id);
+                  this.formBaseInformation.get('country_id').setValue(documentValues.country_id);
+                  this.formBaseInformation.get('street').setValue(documentValues.street);
+                  this.formBaseInformation.get('home').setValue(documentValues.home);
+                  this.formBaseInformation.get('flat').setValue(documentValues.flat);
+                  this.formBaseInformation.get('additional_address').setValue(documentValues.additional_address);
+                  this.formBaseInformation.get('track_number').setValue(documentValues.track_number);
+                  this.formBaseInformation.get('country').setValue(documentValues.country);
+                  this.formBaseInformation.get('region').setValue(documentValues.region);
+                  this.formBaseInformation.get('city').setValue(documentValues.city);
+                  this.formBaseInformation.get('uid').setValue(documentValues.uid);
+                  this.searchRegionCtrl.setValue(documentValues.region);
+                  this.area=documentValues.area;
+                  this.searchCityCtrl.setValue(this.area!=''?(documentValues.city+' ('+this.area+')'):documentValues.city);
+                  if(+this.formBaseInformation.get('country_id').value!=0)
+                  {
+                    this.spravSysCountries.forEach(x => {
+                      if(x.id==this.formBaseInformation.get('country_id').value){
+                        this.formBaseInformation.get('country').setValue(x.name_ru);
+                      }
+                    })
+                  }
+                  this.department_type_price_id=documentValues.department_type_price_id;
+                  this.cagent_type_price_id=documentValues.cagent_type_price_id;
+                  this.default_type_price_id=documentValues.default_type_price_id;
+                  this.creatorId=+documentValues.creator_id;
+                  this.searchCagentCtrl.setValue(documentValues.cagent);
+                  this.is_completed=documentValues.is_completed;
+                  this.getSpravSysEdizm();//справочник единиц измерения
+                  this.getSetOfTypePrices(); //загрузка цен по типам цен для выбранных значений (предприятие, отделение, контрагент)
+                  this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
+                  this.formExpansionPanelsString();
+                  this.getPriceTypesList();
+                  this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+                  this.getDepartmentsList();//отделения
+                  this.getStatusesList();//статусы документа Заказ покупателя
+                  this.getSpravSysCountries();//Страны
+                  this.hideOrShowNdsColumn();//расчет прятать или показывать колонку НДС
+                  this.getSettings(); // настройки документа Заказ покупателя
+                  this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
+                  this.cheque_nds=documentValues.nds;//нужно ли передавать в кассу (в чек) данные об НДС
+                  //!!!
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
+                this.refreshPermissions();                
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
         );
@@ -1308,21 +1317,26 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
     } 
   }
 
-  checkDocNumberUnical() {
-    if(!this.formBaseInformation.get('doc_number').errors)
-    {
-      let Unic: boolean;
-      this.isDocNumberUnicalChecking=true;
-      return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table=customers_orders')
-      .subscribe(
-          (data) => {   
-                      Unic = data as boolean;
-                      if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Введённый номер документа не является уникальным.',}});
-                      this.isDocNumberUnicalChecking=false;
-                  },
-          error => {console.log(error),this.isDocNumberUnicalChecking=false;}
-      );
-    }
+  // !!!
+  checkDocNumberUnical(tableName:string) {
+    let docNumTmp=this.formBaseInformation.get('doc_number').value;
+    setTimeout(() => {
+      if(!this.formBaseInformation.get('doc_number').errors && this.lastCheckedDocNumber!=docNumTmp && docNumTmp!='' && docNumTmp==this.formBaseInformation.get('doc_number').value)
+        {
+          let Unic: boolean;
+          this.isDocNumberUnicalChecking=true;
+          this.lastCheckedDocNumber=docNumTmp;
+          return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table='+tableName)
+          .subscribe(
+              (data) => {   
+                          Unic = data as boolean;
+                          if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Введённый номер документа не является уникальным.',}});
+                          this.isDocNumberUnicalChecking=false;
+                      },
+              error => {console.log(error);this.isDocNumberUnicalChecking=false;}
+          );
+        }
+    }, 1000);
   }
 
   createNewDocument(){
@@ -1351,6 +1365,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
                   }
                   this.productSearchAndTableComponent.parentDocId=response.id;
                   this.productSearchAndTableComponent.getProductsTable();
+                  this.rightsDefined=false; //!!!
                   this.getData();
                 
                 //создание документа было не успешным

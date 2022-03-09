@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { FormGroup, Validators, FormControl } from '@angular/forms';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
@@ -70,6 +71,7 @@ export class ExpenditureDocComponent implements OnInit {
   allowToView:boolean = false;
   allowToUpdate:boolean = false;
   allowToCreate:boolean = false;
+  rightsDefined:boolean = false;//!!!
 
   statusColor: string;
   expenditureList : expenditureList [] = []; //массив для получения всех статусов текущего документа
@@ -77,11 +79,12 @@ export class ExpenditureDocComponent implements OnInit {
   constructor(
     private activateRoute: ActivatedRoute,
     private http: HttpClient,
-    private MessageDialog: MatDialog,
+    public MessageDialog: MatDialog,
     private loadSpravService:   LoadSpravService,
     private _router:Router,
     private _snackBar: MatSnackBar) { 
-      this.id = +activateRoute.snapshot.params['id'];// +null returns 0
+      if(activateRoute.snapshot.params['id'])
+        this.id = +activateRoute.snapshot.params['id'];// +null returns 0
     }
 
   ngOnInit() {
@@ -153,49 +156,38 @@ getSetOfPermissions(){
     this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==503)});
     this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==504)});
     this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==505)});
-    this. refreshPermissions();
+    if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;}
+    if(this.allowToViewAllCompanies){this.allowToViewMyCompany=true;}
+    if(this.allowToUpdateAllCompanies){this.allowToUpdateMyCompany=true;}
+    this.getData();
   }
 
   refreshPermissions(){
-    let documentOfMyCompany:boolean = (this.formBaseInformation.get('company_id').value==this.myCompanyId);
-    this.allowToView=((this.allowToViewAllCompanies)||(this.allowToViewMyCompany&&documentOfMyCompany))?true:false;
-    this.allowToUpdate=((this.allowToUpdateAllCompanies)||(this.allowToUpdateMyCompany&&documentOfMyCompany))?true:false;
+    let documentOfMyCompany:boolean = (+this.formBaseInformation.get('company_id').value==this.myCompanyId);
+    this.allowToView=(
+      (this.allowToViewAllCompanies)||
+      (this.allowToViewMyCompany&&documentOfMyCompany)
+    )?true:false;
+    this.allowToUpdate=(
+      (this.allowToUpdateAllCompanies)||
+      (this.allowToUpdateMyCompany&&documentOfMyCompany)
+    )?true:false;
     this.allowToCreate=(this.allowToCreateAllCompanies || this.allowToCreateMyCompany)?true:false;
-    
-    if(this.id>0){//если в документе есть id
-      this.visAfterCreatingBlocks = true;
-      this.visBeforeCreatingBlocks = false;
-      this.visBtnUpdate = this.allowToUpdate;
-    }else{
-      this.visAfterCreatingBlocks = false;
-      this.visBeforeCreatingBlocks = true;
-
-      
+    console.log("formBaseInformation.get('company_id').value - "+ (+this.formBaseInformation.get('company_id').value));
+    console.log("myCompanyId - "+this.myCompanyId);
+    console.log("documentOfMyCompany - "+documentOfMyCompany);
+    console.log("allowToView - "+this.allowToView);
+    console.log("allowToUpdate - "+this.allowToUpdate);
+    console.log("allowToCreate - "+this.allowToCreate);
+    // return true;
+    this.rightsDefined=true;//!!!
   }
-  this.getData();
-  // console.log("myCompanyId - "+this.myCompanyId);
-  // console.log("documentOfMyCompany - "+documentOfMyCompany);
-  // console.log("allowToView - "+this.allowToView);
-  // console.log("allowToUpdate - "+this.allowToUpdate);
-  // console.log("allowToCreate - "+this.allowToCreate);
-  }
-// -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
+  // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
   getData(){
     if(+this.id>0){
       this.getDocumentValuesById();
     }else {
       this.getCompaniesList();
-    }
-  }
-
-  refreshShowAllTabs(){
-    if(this.id>0){//если в документе есть id
-      this.visAfterCreatingBlocks = true;
-      this.visBeforeCreatingBlocks = false;
-      this.visBtnUpdate = this.allowToUpdate;
-    }else{
-      this.visAfterCreatingBlocks = false;
-      this.visBeforeCreatingBlocks = true;
     }
   }
 
@@ -218,6 +210,7 @@ getSetOfPermissions(){
       this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
     }
     this.setDefaultExpenditureType();
+    this.refreshPermissions();
   }
 
   setDefaultExpenditureType(){
@@ -244,17 +237,21 @@ getSetOfPermissions(){
               
                 let documentValues: docResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
                 //Заполнение формы из интерфейса documentValues:
-                this.formBaseInformation.get('id').setValue(+documentValues.id);
-                this.formBaseInformation.get('company_id').setValue(+documentValues.company_id);
-                this.formBaseInformation.get('name').setValue(documentValues.name);
-                this.formBaseInformation.get('type').setValue(documentValues.type);
-                this.formAboutDocument.get('master').setValue(documentValues.master);
-                this.formAboutDocument.get('creator').setValue(documentValues.creator);
-                this.formAboutDocument.get('changer').setValue(documentValues.changer);
-                this.formAboutDocument.get('company').setValue(documentValues.company);
-                this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
-                this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
-                // this.getExpenditureList();
+                if(data!=null&&documentValues.company_id!=null){
+                  this.formBaseInformation.get('id').setValue(+documentValues.id);
+                  this.formBaseInformation.get('company_id').setValue(+documentValues.company_id);
+                  this.formBaseInformation.get('name').setValue(documentValues.name);
+                  this.formBaseInformation.get('type').setValue(documentValues.type);
+                  this.formAboutDocument.get('master').setValue(documentValues.master);
+                  this.formAboutDocument.get('creator').setValue(documentValues.creator);
+                  this.formAboutDocument.get('changer').setValue(documentValues.changer);
+                  this.formAboutDocument.get('company').setValue(documentValues.company);
+                  this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
+                  this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
+                  // this.getExpenditureList();
+                  //!!!
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
+                this.refreshPermissions();
             },
             error => console.log(error)
         );
@@ -271,21 +268,23 @@ getSetOfPermissions(){
     return(name);
   }
   createNewDocument(){
-    this.createdDocId=null;
     this.http.post('/api/auth/insertExpenditure', this.formBaseInformation.value)
-            .subscribe(
-                (data) =>   {
-                                this.createdDocId=data as string [];
-                                this.id=+this.createdDocId[0];
-                                this.formBaseInformation.get('id').setValue(this.id);
-                                this.afterCreateDoc();
-                                this.openSnackBar("Статья расходов успешно создана", "Закрыть");
-                            },
-                error => console.log(error),
-            );
-  }
+    .subscribe(
+        (data) =>   {
+          let result=data as any;
+          switch(result){
+            case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе операции проиошла ошибка")}});break;}
+            case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+            default:{
+                        this.id=result;
+                        this.afterCreateDoc();
+                        this.openSnackBar("Статья расходов успешно создана", "Закрыть");
+                      } 
+                    }
+          },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+    }
 
-  updateDocument(complete:boolean){ 
+  updateDocument(){ 
     const body= {
       "id":                       this.formBaseInformation.get('id').value,
       "company_id":               this.formBaseInformation.get('company_id').value,
@@ -293,15 +292,16 @@ getSetOfPermissions(){
       "type":                     this.formBaseInformation.get('type').value,
     }
       return this.http.post('/api/auth/updateExpenditure', body)
-        .subscribe(
-            (data) => 
-            {   
-              this.getData();
-                this.openSnackBar("Статья расходов сохранена", "Закрыть");
-            },
-            error => console.log(error),
-        );
-  } 
+      .subscribe((data) => {   
+        let result=data as any;
+        switch(result){
+          case 1:{this.getData();this.openSnackBar("Успешно сохранено", "Закрыть");break;} 
+          case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе операции проиошла ошибка")}});break;}
+          case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+        }
+      },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+  }
+
 
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
@@ -312,7 +312,7 @@ getSetOfPermissions(){
   // Действия после создания нового документа Счёт покупателю (это самый последний этап).
   afterCreateDoc(){// с true запрос придет при отбиваемом в данный момент чеке
     // Сначала обживаем текущий документ:
-    this.id=+this.createdDocId;
+    this.rightsDefined=false; //!!!
     this._router.navigate(['/ui/expendituredoc', this.id]);
     this.formBaseInformation.get('id').setValue(this.id);
     this.getData();

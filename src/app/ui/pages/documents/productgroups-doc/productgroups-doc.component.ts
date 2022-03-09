@@ -1,10 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
-import { LoadSpravService } from './loadsprav';
+import { LoadSpravService } from '../../../../services/loadsprav';
 import { Validators, FormGroup, FormControl} from '@angular/forms';
 import { HttpClient} from '@angular/common/http';
+import { Router } from '@angular/router';
 import { MatSnackBar} from '@angular/material/snack-bar';
 import { QueryFormService } from './get-productgroups-fields-list.service';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { QueryForm } from './query-form';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { MatDialog } from '@angular/material/dialog';
@@ -51,7 +53,7 @@ interface docResponse {//интерфейс для получения ответ
   providers: [LoadSpravService,QueryFormService]
 })
 export class ProductgroupsDocComponent implements OnInit {
-  id: number;// id документа
+  id: number=0;// id документа
   createdDocId: string[];//массив для получение id созданного документа
   updateDocumentResponse: string;//массив для получения данных
   receivedCompaniesList: any [];//массив для получения списка предприятий
@@ -66,6 +68,8 @@ export class ProductgroupsDocComponent implements OnInit {
   maxCountOfFields:number =0;//максимальное кол-во полей в одном из сетов. Нужно, чтобы знать показывать ли кнопку "Изменить порядок".
   panelSetId: number;// id сета у которого открыта панель
 
+  myCompanyId:number=0;
+  myId:number=0;
 
   //Формы
   formBaseInformation:any;//форма для основной информации, содержащейся в документе
@@ -74,40 +78,44 @@ export class ProductgroupsDocComponent implements OnInit {
   //переменные для управления динамическим отображением элементов
   visBeforeCreatingBlocks = true; //блоки, отображаемые ДО создания документа (до получения id)
   visAfterCreatingBlocks = true; //блоки, отображаемые ПОСЛЕ создания документа (id >0)
-  visBtnUpdate = false;
   
   visBtnChangeFieldsOrder = true;
   visChangingFieldsOrder = false;
 
-
   //переменные прав
   permissionsSet: any[];//сет прав на документ
+  allowToCreateAllCompanies:boolean = false;
+  allowToCreateMyCompany:boolean = false;
   allowToCreate:boolean = false;
   allowToUpdateAllCompanies:boolean = false;//разрешение на...
   allowToUpdateMyCompany:boolean = false;
+  allowToViewAllCompanies:boolean = false;
+  allowToViewMyCompany:boolean = false;
   allowToUpdateMyDepartments:boolean = false;
   allowToUpdateMy:boolean = false;
   itIsDocumentOfMyCompany:boolean = false;//набор проверок на документ (документ моего предприятия?/документ моих отделений?/документ мой?/)
   itIsDocumentOfMyMastersCompanies:boolean = false;
-  canUpdateThisDoc:boolean = false;
-
+  allowToUpdate:boolean = false;
+  allowToView:boolean = false;
+  rightsDefined:boolean = false;//!!!
 
   constructor(
     private activateRoute: ActivatedRoute,
     private http: HttpClient,
     private loadSpravService:   LoadSpravService,
+    public MessageDialog: MatDialog,
+    private _router:Router,
     private queryFormService:   QueryFormService,
     private _snackBar: MatSnackBar,
     public productGroupFieldsDialog: MatDialog,
     public ConfirmDialog: MatDialog) { 
-      //console.log(this.activateRoute);
-      this.id = +activateRoute.snapshot.params['id'];// +null returns 0
+
+      if(activateRoute.snapshot.params['id']){
+        this.id = +activateRoute.snapshot.params['id'];// +null returns 0
+      }
     }
 
   ngOnInit() {
-    // this.sendingQueryForm.field_type="1";
-    //   this.sendingQueryForm.sortColumn="p.name";
-    //   this.sendingQueryForm.offset=0;
 
     this.formBaseInformation = new FormGroup({
       id: new FormControl      (this.id,[]),
@@ -126,66 +134,107 @@ export class ProductgroupsDocComponent implements OnInit {
       date_time_changed: new FormControl      ('',[]),
     });
    // this.checkedList = [];
-
-    this.getSetOfPermissions();
+    
+   this.getSetOfPermissions();
   }
   // -------------------------------------- *** ПРАВА *** ------------------------------------
   getSetOfPermissions(){
     return this.http.get('/api/auth/getMyPermissions?id=10')
+      .subscribe(
+          (data) => {   
+                      this.permissionsSet=data as any [];
+                      this.getMyId();
+                  },
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+      );
+  }
+  
+  getMyId(){
+    this.loadSpravService.getMyId()
             .subscribe(
-                (data) => {   
-                            this.permissionsSet=data as any [];
-                            // console.log("permissions:"+this.permissionsSet);
-                            if(+this.id>0) this.IsItMy_DocCheckings(+this.id); else this.getCRUD_rights(this.permissionsSet);
-                            //this.getCRUD_rights(this.permissionsSet);
-                        },
-                error => console.log(error),
+                (data) => {this.myId=data as any;
+                  this.getMyCompanyId();},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             );
   }
   IsItMy_DocCheckings(id:number){// проверки на документ (документ моего предприятия?)
     const body = {"documentId": id};//
-          return this.http.post('/api/auth/getIsItMy_ProductGroups_JSON', body) 
+    return this.http.post('/api/auth/getIsItMy_ProductGroups_JSON', body) 
             .subscribe(
                 (data) => {   let isItMy_Doc: isIt_Doc_Response=data as any;  
                   this.itIsDocumentOfMyCompany = isItMy_Doc.itIsDocumentOfMyCompany;
                   this.itIsDocumentOfMyMastersCompanies= isItMy_Doc.itIsDocumentOfMyMastersCompanies;
                             this.getCRUD_rights(this.permissionsSet);
                         },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             );
   }
+  
   getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreate = permissionsSet.some(this.isAllowToCreate);
-    this.allowToUpdateAllCompanies = permissionsSet.some(this.isAllowToUpdateAllCompanies);
-    this.allowToUpdateMyCompany = permissionsSet.some(this.isAllowToUpdateMyCompany);
-    
-  if  (this.allowToUpdateAllCompanies ||                                     //если есть права изменять доки всех предприятий
-      (this.itIsDocumentOfMyCompany && this.allowToUpdateMyCompany)||             //или это мое предприятие и есть права изменять доки своего предприятия
-      ((this.allowToUpdateAllCompanies||this.allowToUpdateAllCompanies) && this.allowToCreate && +this.id==0))//или документ только создаётся и я могу всё что выше
-      {this.canUpdateThisDoc=true;}
-
-    this.visAfterCreatingBlocks=!this.allowToCreate;
-
+    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==111)});
+    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==111)});
+    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==113)});
+    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==114)});
+    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==115)});
+    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==116)});
+   
+    if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;}
+    if(this.allowToViewAllCompanies){this.allowToViewMyCompany=true;}
+    if(this.allowToUpdateAllCompanies){this.allowToUpdateMyCompany=true;}
     this.getData();
   }
-  isAllowToCreate   (e){return(e==111);}   //  Cоздание
-  isAllowToUpdateAllCompanies(e){return(e==115);}    //редактирование доков всех доступных предприятий
-  isAllowToUpdateMyCompany(e){return(e==116);}       //редактирование доков моего предприятия
 
-  // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
+  refreshPermissions(){
+    let documentOfMyCompany:boolean = (+this.formBaseInformation.get('company_id').value==this.myCompanyId);
 
+    this.allowToView=(
+      (this.allowToViewAllCompanies)||
+      (this.allowToViewMyCompany&&documentOfMyCompany)
+    )?true:false;
+    this.allowToUpdate=(
+      (this.allowToUpdateAllCompanies)||
+      (this.allowToUpdateMyCompany&&documentOfMyCompany)
+    )?true:false;
+    this.allowToCreate=(this.allowToCreateAllCompanies || this.allowToCreateMyCompany)?true:false;
+    // console.log("myCompanyId - "+this.myCompanyId);
+    // console.log("documentOfMyCompany - "+documentOfMyCompany);
+    // console.log("allowToView - "+this.allowToView);
+    // console.log("allowToUpdate - "+this.allowToUpdate);
+    // console.log("allowToCreate - "+this.allowToCreate);
+    // return true;
+    this.rightsDefined=true;//!!!
+  }
+  
   getData(){
     if(+this.id>0){
-      this.getDocumentValuesById();
-      console.log("getDocumentValuesById");
-      this.maxCountOfFields=0;//обнулили максималное кол-во полей в одном из сетов, т.к. после удаления сета или поля maxCountOfFields нужно пересчитывать
+      this.getDocumentValuesById();this.maxCountOfFields=0;//обнулили максималное кол-во полей в одном из сетов, т.к. после удаления сета или поля maxCountOfFields нужно пересчитывать
       this.getSets(this.id,"1","0")//загрузить сеты и поля этого документа
     }else {
-      this.getCompaniesList();
-      console.log("getCompaniesList");
+      this.getCompaniesList(); 
     }
-    this.refreshShowAllTabs();
   }
+
+  getMyCompanyId(){
+    this.loadSpravService.getMyCompanyId().subscribe(
+      (data) => {
+        this.myCompanyId=data as number;
+        this.getCRUD_rights(this.permissionsSet);
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+  }
+  // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
+
+  // getData(){
+  //   if(+this.id>0){
+  //     this.getDocumentValuesById();
+  //     // console.log("getDocumentValuesById");
+  //     this.maxCountOfFields=0;//обнулили максималное кол-во полей в одном из сетов, т.к. после удаления сета или поля maxCountOfFields нужно пересчитывать
+  //     this.getSets(this.id,"1","0")//загрузить сеты и поля этого документа
+  //   }else {
+  //     this.getCompaniesList();
+  //     // console.log("getCompaniesList");
+  //   }
+  //   this.refreshShowAllTabs();
+  // }
 
   clickBtnAddField(): void {
     const dialogRef = this.productGroupFieldsDialog.open(ProductGroupFieldsDialogComponent, {
@@ -298,7 +347,7 @@ export class ProductgroupsDocComponent implements OnInit {
                     this.openSnackBar("Успешно удалено", "Закрыть");
                     this.getSets(this.id,"1","0");
                 },
-        error => console.log(error),
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
     );
   }
   //Загрузка групп (сетов) полей
@@ -347,7 +396,6 @@ export class ProductgroupsDocComponent implements OnInit {
     if(this.id>0){//если в документе есть id
       this.visAfterCreatingBlocks = true;
       this.visBeforeCreatingBlocks = false;
-      this.visBtnUpdate = this.canUpdateThisDoc;
     }else{
       this.visAfterCreatingBlocks = false;
       this.visBeforeCreatingBlocks = true;
@@ -365,31 +413,33 @@ export class ProductgroupsDocComponent implements OnInit {
                 error => console.log(error)
             );
   }
+
   setDefaultCompany(){
-    if(this.receivedCompaniesList.length==1)
-    {
-      this.receivedCompaniesList.forEach(data =>{this.defaultId=+data.id;});
-      this.formBaseInformation.get('company_id').setValue(this.defaultId);
-      //this.getDepartmentsList();
-    }//else this.getDepartmentsList();
+    this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+    this.refreshPermissions();
   }
+
   getDocumentValuesById(){
     const docId = {"id": this.id};
-          this.http.post('/api/auth/getProductGroupValuesById', docId)
+        this.http.post('/api/auth/getProductGroupValuesById', docId)
         .subscribe(
             data => {  let documentResponse: docResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
                 //Заполнение формы из интерфейса documentResponse:
-                this.formAboutDocument.get('id').setValue(+documentResponse.id);
-                this.formAboutDocument.get('master').setValue(documentResponse.master);
-                this.formAboutDocument.get('creator').setValue(documentResponse.creator);
-                this.formAboutDocument.get('changer').setValue(documentResponse.changer);
-                this.formAboutDocument.get('company').setValue(documentResponse.company);
-                this.formAboutDocument.get('date_time_created').setValue(documentResponse.date_time_created);
-                this.formAboutDocument.get('date_time_changed').setValue(documentResponse.date_time_changed);
-                this.formBaseInformation.get('company_id').setValue(+documentResponse.company_id);
-                this.formBaseInformation.get('company').setValue(documentResponse.company);
-                this.formBaseInformation.get('name').setValue(documentResponse.name);
-                this.formBaseInformation.get('description').setValue(documentResponse.description);
+                if(data!=null&&documentResponse.company_id!=null){
+                  this.formAboutDocument.get('id').setValue(+documentResponse.id);
+                  this.formAboutDocument.get('master').setValue(documentResponse.master);
+                  this.formAboutDocument.get('creator').setValue(documentResponse.creator);
+                  this.formAboutDocument.get('changer').setValue(documentResponse.changer);
+                  this.formAboutDocument.get('company').setValue(documentResponse.company);
+                  this.formAboutDocument.get('date_time_created').setValue(documentResponse.date_time_created);
+                  this.formAboutDocument.get('date_time_changed').setValue(documentResponse.date_time_changed);
+                  this.formBaseInformation.get('company_id').setValue(+documentResponse.company_id);
+                  this.formBaseInformation.get('company').setValue(documentResponse.company);
+                  this.formBaseInformation.get('name').setValue(documentResponse.name);
+                  this.formBaseInformation.get('description').setValue(documentResponse.description);
+                  //!!!
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
+                this.refreshPermissions();
             },
             error => console.log(error)
         );
@@ -399,18 +449,22 @@ export class ProductgroupsDocComponent implements OnInit {
   }
 
   createNewDocument(){
-    this.createdDocId=null;
     this.http.post('/api/auth/insertProductGroups', this.formBaseInformation.value)
-            .subscribe(
-                (data) =>   {
-                                this.createdDocId=data as string [];
-                                this.id=+this.createdDocId[0];
-                                this.formBaseInformation.get('id').setValue(this.id);
-                                this.getData();
-                                this.openSnackBar("Документ \"Группы товаров\" успешно создан", "Закрыть");
-                            },
-                error => console.log(error),
-            );
+    .subscribe((data) => {   
+      let result=data as any;
+      switch(result){
+        case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе операции проиошла ошибка")}});break;}
+        case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+        default:{
+          this.id=result;
+          this._router.navigate(['/ui/productgroupsdoc', this.id]);
+          this.formBaseInformation.get('id').setValue(this.id);
+          this.rightsDefined=false; //!!!
+          this.getData();
+          this.openSnackBar("Документ успешно создан", "Закрыть");
+        } 
+      }
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
   }
 
   openSnackBar(message: string, action: string) {
@@ -461,7 +515,7 @@ export class ProductgroupsDocComponent implements OnInit {
                             this.getData();
                             this.openSnackBar("Порядок полей успешно сохранён", "Закрыть");
                         },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             );
   }
   
@@ -469,14 +523,15 @@ export class ProductgroupsDocComponent implements OnInit {
   updateDocument(){
     this.updateDocumentResponse=null;
     return this.http.post('/api/auth/updateProductGroups', this.formBaseInformation.value)
-            .subscribe(
-                (data) => {   
-                            this.updateDocumentResponse=data as string;
-                            this.getData();
-                            this.openSnackBar("Документ \"Группы товаров\" сохранён", "Закрыть");
-                        },
-                error => console.log(error),
-            );
+            
+    .subscribe((data) => {   
+      let result=data as any;
+      switch(result){
+        case 1:{this.getData();this.openSnackBar("Успешно сохранено", "Закрыть");break;} 
+        case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе операции проиошла ошибка")}});break;}
+        case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+      }
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
   }
 
   dropSet(event: CdkDragDrop<string[]>) {

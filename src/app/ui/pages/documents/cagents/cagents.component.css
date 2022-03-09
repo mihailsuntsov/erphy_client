@@ -128,4 +128,13 @@ min-width:150px;
 flex: 1 1 auto;
 
 }
+/*Данные не найдены*/
+.spinner{
+    position: absolute;
+    top: 7%;
+    left: 50%;
+    margin-left: -25px;
+    margin-top: 100px;
+    z-index: 100;
+}
 

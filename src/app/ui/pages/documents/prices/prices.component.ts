@@ -10,6 +10,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { LoadSpravService } from './loadsprav';
 import { QueryFormService } from './get-prices-table.service';
 import { PricesDialogComponent } from 'src/app/ui/dialogs/prices-dialog/prices-dialog.component';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { FormControl  } from '@angular/forms';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
@@ -79,6 +80,7 @@ export class PricesComponent implements OnInit {
   allowToUpdate:boolean = false;
 
   showOpenDocIcon:boolean=false;
+  gettingTableData:boolean=true;
 
 
   numRows: NumRow[] = [
@@ -141,6 +143,7 @@ export class PricesComponent implements OnInit {
     public pricesDialogComponent: MatDialog,
     private Cookie: Cookie,
     public ConfirmDialog: MatDialog,
+    private MessageDialog: MatDialog,
     public ProductDuplicateDialog: MatDialog,
     private http: HttpClient,
     public deleteDialog: MatDialog) { 
@@ -209,6 +212,8 @@ export class PricesComponent implements OnInit {
       this.getTableHeaderTitles();
       this.doFilterCompaniesList();
       this.getPriceTypesList(true);
+    }  else{
+      this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})
     }
   }
   //3я группа параллельных стартовых запросов
@@ -273,12 +278,14 @@ export class PricesComponent implements OnInit {
 
   getTable(){
     let dataObjectArray: any;
+    this.gettingTableData=true;
     this.sendingQueryForm.filterOptionsIds=this.checkedOptionsList;
     this.clearCheckboxSelection();
     this.sendingQueryForm.priceTypesIdsList=JSON.stringify(this.getIds(this.receivedPriceTypesList)).replace("[", "").replace("]", "");
     this.queryFormService.getTable(this.sendingQueryForm)
             .subscribe(
                 (data) => {
+                  this.gettingTableData=false;
                   dataObjectArray=data as TableAndPagesData; 
                   this.receivedMatTable=dataObjectArray.table;
                   this.dataSource.data = this.receivedMatTable;
@@ -290,7 +297,7 @@ export class PricesComponent implements OnInit {
                   this.listsize=this.receivedPagesList[2];
                   this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1]);
                 },
-                error => {console.log(error);
+                error => {this.gettingTableData=false;console.log(error);
                 if(+this.sendingQueryForm.offset>0) this.setPage(0);
               }
             );

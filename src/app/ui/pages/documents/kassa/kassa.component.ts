@@ -5,6 +5,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpClient } from '@angular/common/http';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { QueryFormService } from './get-table.service';
@@ -69,6 +70,7 @@ export class KassaComponent implements OnInit {
   allowCategoryUpdate:boolean = false;
   allowCategoryDelete:boolean = false;
 
+  gettingTableData:boolean=true;
   showOpenDocIcon:boolean=false;
 
   
@@ -105,6 +107,7 @@ export class KassaComponent implements OnInit {
     private http: HttpClient,
     private Cookie: Cookie,
     public deleteDialog: MatDialog,
+    private MessageDialog: MatDialog,
     public dialogRef1: MatDialogRef<KassaComponent>,) { }
 
   ngOnInit(): void {
@@ -196,7 +199,7 @@ export class KassaComponent implements OnInit {
         this.getTableHeaderTitles();
         this.getPagesList();
         this.getTable();
-      }
+      } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
     }
   
     getTableHeaderTitles(){
@@ -223,13 +226,15 @@ export class KassaComponent implements OnInit {
     }
   
     getTable(){
+      this.gettingTableData=true;
       this.queryFormService.getTable(this.sendingQueryForm)
               .subscribe(
                   (data) => {
                     this.dataSource.data = data as any []; 
                     if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
+                    this.gettingTableData=false;
                   },
-                  error => console.log(error) 
+                  error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
               );
     }
   

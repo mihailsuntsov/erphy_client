@@ -189,7 +189,7 @@ export class MovingComponent implements OnInit {
   
       // -------------------------------------- *** ПРАВА *** ------------------------------------
     getSetOfPermissions(){
-          return this.http.get('/api/auth/getMyPermissions?id=29')
+          return this.http.get('/api/auth/getMyPermissions?id=30')
             .subscribe(
                 (data) => {   
                             this.permissionsSet=data as any [];
@@ -200,21 +200,21 @@ export class MovingComponent implements OnInit {
     }
   
     getCRUD_rights(permissionsSet:any[]){
-      this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==361)});
-      this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==362)});
-      this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==363)});
-      this.allowToDeleteAllCompanies = permissionsSet.some(         function(e){return(e==364)});
-      this.allowToDeleteMyCompany = permissionsSet.some(            function(e){return(e==365)});
-      this.allowToDeleteMyDepartments = permissionsSet.some(        function(e){return(e==366)});
-      this.allowToDeleteMyDocs = permissionsSet.some(               function(e){return(e==367)});
-      this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==368)});
-      this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==369)});
-      this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==370)});
-      this.allowToViewMyDocs = permissionsSet.some(                 function(e){return(e==371)});
-      this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==372)});
-      this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==373)});
-      this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==374)});
-      this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==375)});
+      this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==377)});
+      this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==378)});
+      this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==379)});
+      this.allowToDeleteAllCompanies = permissionsSet.some(         function(e){return(e==380)});
+      this.allowToDeleteMyCompany = permissionsSet.some(            function(e){return(e==381)});
+      this.allowToDeleteMyDepartments = permissionsSet.some(        function(e){return(e==382)});
+      this.allowToDeleteMyDocs = permissionsSet.some(               function(e){return(e==383)});
+      this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==384)});
+      this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==385)});
+      this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==386)});
+      this.allowToViewMyDocs = permissionsSet.some(                 function(e){return(e==387)});
+      this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==388)});
+      this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==389)});
+      this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==390)});
+      this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==391)});
       this.getData();
     }
   
@@ -245,7 +245,7 @@ export class MovingComponent implements OnInit {
         this.getTableHeaderTitles();
         this.getPagesList();
         this.getTable();
-      }
+      } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
     }
   
     getTableHeaderTitles(){
@@ -275,18 +275,18 @@ export class MovingComponent implements OnInit {
               ); 
     }
   
-    getTable(){
-    this.gettingTableData=true;
-    this.queryFormService.getTable(this.sendingQueryForm)
-            .subscribe(
-                (data) => {
-                  this.dataSource.data = data as any []; 
-                  if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
-                  this.gettingTableData=false;
-                },
-                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
-            );
-  }
+    getTable(){//!!!
+      this.gettingTableData=true;
+      this.queryFormService.getTable(this.sendingQueryForm)
+              .subscribe(
+                  (data) => {
+                    this.dataSource.data = data as any []; 
+                    if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
+                    this.gettingTableData=false;
+                  },
+                  error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
+              );
+    }
   
    
   

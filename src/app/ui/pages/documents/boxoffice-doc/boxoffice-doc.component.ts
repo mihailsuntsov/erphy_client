@@ -62,6 +62,7 @@ export class BoxofficeDocComponent implements OnInit {
   allowToView:boolean = false;
   allowToUpdate:boolean = false;
   allowToCreate:boolean = false;
+  rightsDefined:boolean; // определены ли права !!!
 
   statusColor: string;
   boxofficeList : boxofficeList [] = []; //массив для получения всех статусов текущего документа
@@ -73,7 +74,8 @@ export class BoxofficeDocComponent implements OnInit {
     private loadSpravService:   LoadSpravService,
     private _router:Router,
     private _snackBar: MatSnackBar) { 
-      this.id = +activateRoute.snapshot.params['id'];// +null returns 0
+      if(activateRoute.snapshot.params['id'])
+        this.id = +activateRoute.snapshot.params['id'];// +null returns 0
     }
 
   ngOnInit() {
@@ -144,7 +146,12 @@ getSetOfPermissions(){
     this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==556)});
     this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==557)});
     this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==558)});
-    this. refreshPermissions();
+    
+    if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;}
+    if(this.allowToViewAllCompanies){this.allowToViewMyCompany=true;}
+    if(this.allowToUpdateAllCompanies){this.allowToUpdateMyCompany=true;}
+    
+    this.getData();
   }
 
   refreshPermissions(){
@@ -153,7 +160,7 @@ getSetOfPermissions(){
     this.allowToUpdate=((this.allowToUpdateAllCompanies)||(this.allowToUpdateMyCompany&&documentOfMyCompany))?true:false;
     this.allowToCreate=(this.allowToCreateAllCompanies || this.allowToCreateMyCompany)?true:false;
     
-    this.getData();
+    this.rightsDefined=true;//!!!
   // console.log("myCompanyId - "+this.myCompanyId);
   // console.log("documentOfMyCompany - "+documentOfMyCompany);
   // console.log("allowToView - "+this.allowToView);
@@ -177,17 +184,12 @@ getSetOfPermissions(){
                 {
                   this.receivedCompaniesList=data as any [];
                   this.doFilterCompaniesList();
-                  this.setDefaultCompany();
                 },                      
                 error => console.log(error)
             );
   }
 
-  setDefaultCompany(){
-    if(this.id==0){
-      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
-    }
-  }
+ 
   
   doFilterCompaniesList(){
     let myCompany:idAndName;
@@ -197,26 +199,40 @@ getSetOfPermissions(){
       this.receivedCompaniesList=[];
       this.receivedCompaniesList.push(myCompany);
     }
+    if(+this.id==0)//!!!!! отсюда загружаем настройки только если документ новый. Если уже создан - настройки грузятся из get<Document>ValuesById
+      this.setDefaultCompany();
+  }
+
+  setDefaultCompany(){
+    if(this.id==0){
+      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+    }
+    this.refreshPermissions();
   }
 
   getDocumentValuesById(){
-          this.http.get('/api/auth/getBoxofficeValuesById?id='+this.id)
+    this.http.get('/api/auth/getBoxofficeValuesById?id='+this.id)
         .subscribe(
             data => { 
               
                 let documentValues: docResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
                 //Заполнение формы из интерфейса documentValues:
-                this.formBaseInformation.get('id').setValue(+documentValues.id);
-                this.formBaseInformation.get('company_id').setValue(+documentValues.company_id);
-                this.formBaseInformation.get('name').setValue(documentValues.name);
-                this.formBaseInformation.get('description').setValue(documentValues.description);
-                this.formAboutDocument.get('master').setValue(documentValues.master);
-                this.formAboutDocument.get('creator').setValue(documentValues.creator);
-                this.formAboutDocument.get('changer').setValue(documentValues.changer);
-                this.formAboutDocument.get('company').setValue(documentValues.company);
-                this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
-                this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
-                // this.getBoxofficeList();
+                //!!!
+                if(data!=null&&documentValues.company_id!=null){
+                  this.formBaseInformation.get('id').setValue(+documentValues.id);
+                  this.formBaseInformation.get('company_id').setValue(+documentValues.company_id);
+                  this.formBaseInformation.get('name').setValue(documentValues.name);
+                  this.formBaseInformation.get('description').setValue(documentValues.description);
+                  this.formAboutDocument.get('master').setValue(documentValues.master);
+                  this.formAboutDocument.get('creator').setValue(documentValues.creator);
+                  this.formAboutDocument.get('changer').setValue(documentValues.changer);
+                  this.formAboutDocument.get('company').setValue(documentValues.company);
+                  this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
+                  this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
+                  // this.getBoxofficeList();
+                  //!!!
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
+                this.refreshPermissions();
             },
             error => console.log(error)
         );
@@ -291,6 +307,7 @@ getSetOfPermissions(){
     this.id=+this.createdDocId;
     this._router.navigate(['/ui/boxofficedoc', this.id]);
     this.formBaseInformation.get('id').setValue(this.id);
+    this.rightsDefined=false; //!!!
     this.getData();
   }
 

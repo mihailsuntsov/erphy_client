@@ -65,7 +65,7 @@ export class CorrectionComponent implements OnInit {
 
   showOpenDocIcon:boolean=false;
 
-  gettingTableData:boolean=true;
+  gettingTableData:boolean=true;//!!!
   
   settingsForm: any; // форма с настройками
 
@@ -194,6 +194,7 @@ export class CorrectionComponent implements OnInit {
       this.getTableHeaderTitles();
       this.getPagesList();
       this.getTable();
+      //!!!
     } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
   }
 
@@ -226,7 +227,7 @@ export class CorrectionComponent implements OnInit {
             ); 
   }
 
-  getTable(){
+  getTable(){//!!!
     this.gettingTableData=true;
     this.queryFormService.getTable(this.sendingQueryForm)
             .subscribe(
@@ -471,7 +472,7 @@ export class CorrectionComponent implements OnInit {
       data:
       { 
         head: 'Восстановление',
-        query: 'Восстановить выбранные счета покупателям из удалённых?',
+        query: 'Восстановить выбранные документы из удалённых?',
         warning: '',
       },
     });

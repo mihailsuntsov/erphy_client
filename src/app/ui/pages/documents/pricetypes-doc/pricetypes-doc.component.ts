@@ -1,6 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
-import { LoadSpravService } from './loadsprav';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
+import { Router } from '@angular/router';
+import { LoadSpravService } from '../../../../services/loadsprav';
+import { MatDialog } from '@angular/material/dialog';
 import { Validators, FormGroup, FormControl} from '@angular/forms';
 import {HttpClient} from '@angular/common/http';
 import {MatSnackBar} from '@angular/material/snack-bar';
@@ -38,8 +41,9 @@ interface docResponse {//интерфейс для получения ответ
 })
 export class PricetypesDocComponent implements OnInit {
 
-  id: number;// id документа
-  createdDocId: string[];//массив для получение id созданного документа
+  id: number=0;// id документа
+  myCompanyId:number=0;
+  myId:number=0;
   updateDocumentResponse: string;//массив для получения данных
   receivedCompaniesList: any [];//массив для получения списка предприятий
   defaultId:number=0;//для подстановки дефолтных значений выпадающих списков
@@ -56,21 +60,30 @@ export class PricetypesDocComponent implements OnInit {
 
   //переменные прав
   permissionsSet: any[];//сет прав на документ
+  allowToCreateAllCompanies:boolean = false;
+  allowToCreateMyCompany:boolean = false;
   allowToCreate:boolean = false;
   allowToUpdateAllCompanies:boolean = false;//разрешение на...
   allowToUpdateMyCompany:boolean = false;
+  allowToViewAllCompanies:boolean = false;
+  allowToViewMyCompany:boolean = false;
   allowToUpdateMyDepartments:boolean = false;
   allowToUpdateMy:boolean = false;
   itIsDocumentOfMyCompany:boolean = false;//набор проверок на документ (документ моего предприятия?/документ моих отделений?/документ мой?/)
   itIsDocumentOfMyMastersCompanies:boolean = false;
-  canUpdateThisDoc:boolean = false;
+  allowToUpdate:boolean = false;
+  allowToView:boolean = false;
+  rightsDefined:boolean = false;//!!!
 
   constructor(private activateRoute: ActivatedRoute,
     private http: HttpClient,
+    public MessageDialog: MatDialog,
     private loadSpravService:   LoadSpravService,
+    private _router:Router,
     private _snackBar: MatSnackBar) { 
-      console.log(this.activateRoute);
-      this.id = +activateRoute.snapshot.params['id'];// +null returns 0
+      
+      if(activateRoute.snapshot.params['id'])
+        this.id = +activateRoute.snapshot.params['id'];// +null returns 0
     }
 
   ngOnInit() {
@@ -97,72 +110,93 @@ export class PricetypesDocComponent implements OnInit {
     this.getSetOfPermissions();
   }
 // -------------------------------------- *** ПРАВА *** ------------------------------------
-  getSetOfPermissions(){
-    return this.http.get('/api/auth/getMyPermissions?id=9')
+getSetOfPermissions(){
+  return this.http.get('/api/auth/getMyPermissions?id=9')
+    .subscribe(
+        (data) => {   
+                    this.permissionsSet=data as any [];
+                    this.getMyId();
+                },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+    );
+}
+
+  getMyId(){
+    this.loadSpravService.getMyId()
             .subscribe(
-                (data) => {   
-                            this.permissionsSet=data as any [];
-                            // console.log("permissions:"+this.permissionsSet);
-                            if(+this.id>0) this.IsItMy_DocCheckings(+this.id); else this.getCRUD_rights(this.permissionsSet);
-                            //this.getCRUD_rights(this.permissionsSet);
-                        },
-                error => console.log(error),
+                (data) => {this.myId=data as any;
+                  this.getMyCompanyId();},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             );
   }
+
+  getMyCompanyId(){
+    this.loadSpravService.getMyCompanyId().subscribe(
+      (data) => {
+        this.myCompanyId=data as number;
+        this.getCRUD_rights(this.permissionsSet);
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+  }
+
   IsItMy_DocCheckings(id:number){// проверки на документ (документ моего предприятия?)
     const body = {"documentId": id};//
-          return this.http.post('/api/auth/getIsItMy_TypePrices_JSON', body) 
+            return this.http.post('/api/auth/getIsItMy_TypePrices_JSON', body) 
             .subscribe(
                 (data) => {   let isItMy_Doc: isIt_Doc_Response=data as any;  
                   this.itIsDocumentOfMyCompany = isItMy_Doc.itIsDocumentOfMyCompany;
                   this.itIsDocumentOfMyMastersCompanies= isItMy_Doc.itIsDocumentOfMyMastersCompanies;
                             this.getCRUD_rights(this.permissionsSet);
                         },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             );
   }
+ 
   getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreate = permissionsSet.some(this.isAllowToCreate);
-    this.allowToUpdateAllCompanies = permissionsSet.some(this.isAllowToUpdateAllCompanies);
-    this.allowToUpdateMyCompany = permissionsSet.some(this.isAllowToUpdateMyCompany);
-    
-  if  (this.allowToUpdateAllCompanies ||                                     //если есть права изменять доки всех предприятий
-      (this.itIsDocumentOfMyCompany && this.allowToUpdateMyCompany)||             //или это мое предприятие и есть права изменять доки своего предприятия
-      ((this.allowToUpdateAllCompanies||this.allowToUpdateAllCompanies) && this.allowToCreate && +this.id==0))//или документ только создаётся и я могу всё что выше
-      {this.canUpdateThisDoc=true;}
-
-    //this.visAfterCreatingBlocks=!this.allowToCreate;
-
+    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==93)});
+    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==93)});
+    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==95)});
+    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==96)});
+    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==97)});
+    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==98)});
+   
+    if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;}
+    if(this.allowToViewAllCompanies){this.allowToViewMyCompany=true;}
+    if(this.allowToUpdateAllCompanies){this.allowToUpdateMyCompany=true;}
     this.getData();
   }
-  isAllowToCreate   (e){return(e==93);}
-  isAllowToUpdateAllCompanies(e){return(e==97);}    //редактирование доков всех доступных предприятий
-  isAllowToUpdateMyCompany(e){return(e==98);}       //редактирование доков моего предприятия
 
+  refreshPermissions(){
+    let documentOfMyCompany:boolean = (+this.formBaseInformation.get('company_id').value==this.myCompanyId);
+    this.allowToView=(
+      (this.allowToViewAllCompanies)||
+      (this.allowToViewMyCompany&&documentOfMyCompany)
+    )?true:false;
+    this.allowToUpdate=(
+      (this.allowToUpdateAllCompanies)||
+      (this.allowToUpdateMyCompany&&documentOfMyCompany)
+    )?true:false;
+    this.allowToCreate=(this.allowToCreateAllCompanies || this.allowToCreateMyCompany)?true:false;
+    // console.log("myCompanyId - "+this.myCompanyId);
+    // console.log("documentOfMyCompany - "+documentOfMyCompany);
+    // console.log("allowToView - "+this.allowToView);
+    // console.log("allowToUpdate - "+this.allowToUpdate);
+    // console.log("allowToCreate - "+this.allowToCreate);
+    // return true;
+    this.rightsDefined=true;//!!!
+  }
   // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
 
   getData(){
     if(+this.id>0){
       this.getDocumentValuesById();
-      console.log("getDocumentValuesById");
+      // console.log("getDocumentValuesById");
     }else {
       this.getCompaniesList();
-      console.log("getCompaniesList");
+      // console.log("getCompaniesList");
     }
     this.getSpravSysPriceRole();
-    this.refreshShowAllTabs();
   }
 
-  refreshShowAllTabs(){
-    if(this.id>0){//если в документе есть id
-      this.visAfterCreatingBlocks = true;
-      this.visBeforeCreatingBlocks = false;
-      this.visBtnUpdate = this.canUpdateThisDoc;
-    }else{
-      this.visAfterCreatingBlocks = false;
-      this.visBeforeCreatingBlocks = true;
-    }
-  }
   getCompaniesList(){
     this.receivedCompaniesList=null;
     this.loadSpravService.getCompaniesList()
@@ -172,56 +206,63 @@ export class PricetypesDocComponent implements OnInit {
                   this.receivedCompaniesList=data as any [];
                   this.setDefaultCompany();
                 },                      
-                error => console.log(error)
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             );
   }
+
   setDefaultCompany(){
-    if(this.receivedCompaniesList.length==1)
-    {
-      this.receivedCompaniesList.forEach(data =>{this.defaultId=+data.id;});
-      this.formBaseInformation.get('company_id').setValue(this.defaultId);
-    }
+    this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+    this.refreshPermissions();
   }
+
   getDocumentValuesById(){
     const docId = {"id": this.id};
           this.http.post('/api/auth/getTypePricesValuesById', docId)
         .subscribe(
             data => {  let documentResponse: docResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
                 //Заполнение формы из интерфейса documentResponse:
-                this.formAboutDocument.get('id').setValue(+documentResponse.id);
-                this.formAboutDocument.get('master').setValue(documentResponse.master);
-                this.formAboutDocument.get('creator').setValue(documentResponse.creator);
-                this.formAboutDocument.get('changer').setValue(documentResponse.changer);
-                this.formAboutDocument.get('company').setValue(documentResponse.company);
-                this.formAboutDocument.get('date_time_created').setValue(documentResponse.date_time_created);
-                this.formAboutDocument.get('date_time_changed').setValue(documentResponse.date_time_changed);
-                this.formBaseInformation.get('company_id').setValue(+documentResponse.company_id);
-                this.formBaseInformation.get('company').setValue(documentResponse.company);
-                this.formBaseInformation.get('pricerole_id').setValue(+documentResponse.pricerole_id);
-                this.formBaseInformation.get('pricerole').setValue(documentResponse.pricerole);
-                this.formBaseInformation.get('name').setValue(documentResponse.name);
-                this.formBaseInformation.get('description').setValue(documentResponse.description);
+                if(data!=null&&documentResponse.company_id!=null){
+                  this.formAboutDocument.get('id').setValue(+documentResponse.id);
+                  this.formAboutDocument.get('master').setValue(documentResponse.master);
+                  this.formAboutDocument.get('creator').setValue(documentResponse.creator);
+                  this.formAboutDocument.get('changer').setValue(documentResponse.changer);
+                  this.formAboutDocument.get('company').setValue(documentResponse.company);
+                  this.formAboutDocument.get('date_time_created').setValue(documentResponse.date_time_created);
+                  this.formAboutDocument.get('date_time_changed').setValue(documentResponse.date_time_changed);
+                  this.formBaseInformation.get('company_id').setValue(+documentResponse.company_id);
+                  this.formBaseInformation.get('company').setValue(documentResponse.company);
+                  this.formBaseInformation.get('pricerole_id').setValue(+documentResponse.pricerole_id);
+                  this.formBaseInformation.get('pricerole').setValue(documentResponse.pricerole);
+                  this.formBaseInformation.get('name').setValue(documentResponse.name);
+                  this.formBaseInformation.get('description').setValue(documentResponse.description);
+                  //!!!
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
+                this.refreshPermissions();
             },
-            error => console.log(error)
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
         );
-  }
-  clickBtnCreateNewDocument(){// Нажатие кнопки Записать
-    this.createNewDocument();
   }
   
   createNewDocument(){
-    this.createdDocId=null;
     this.http.post('/api/auth/insertTypePrices', this.formBaseInformation.value)
-            .subscribe(
-                (data) =>   {
-                                this.createdDocId=data as string [];
-                                this.id=+this.createdDocId[0];
-                                this.formBaseInformation.get('id').setValue(this.id);
-                                this.getData();
-                                this.openSnackBar("Документ \"Типы цен\" успешно создан", "Закрыть");
-                            },
-                error => console.log(error),
-            );
+      .subscribe(
+        (data) =>   {
+          let result=data as any;
+          switch(result){
+            case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе операции проиошла ошибка")}});break;}
+            case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+            default:{           
+                      this.id=result;
+                      this._router.navigate(['/ui/pricetypesdoc', this.id]);
+                      this.formBaseInformation.get('id').setValue(this.id);
+                      this.rightsDefined=false; //!!!
+                      this.getData();
+                      this.openSnackBar("Документ успешно создан", "Закрыть");
+                    }
+          }
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+      );
   }
   
   openSnackBar(message: string, action: string) {
@@ -229,20 +270,23 @@ export class PricetypesDocComponent implements OnInit {
       duration: 3000,
     });
   }
+
   clickBtnUpdate(){// Нажатие кнопки Сохранить
     this.updateDocument();
   }
+
   updateDocument(){
     this.updateDocumentResponse=null;
     return this.http.post('/api/auth/updateTypePrices', this.formBaseInformation.value)
-            .subscribe(
-                (data) => {   
-                            this.updateDocumentResponse=data as string;
-                            this.getData();
-                            this.openSnackBar("Документ \"Типы цен\" сохранён", "Закрыть");
-                        },
-                error => console.log(error),
-            );
+    .subscribe(
+        (data) => {   
+          let result=data as any;
+          switch(result){
+            case 1:{this.getData();this.openSnackBar("Успешно сохранено", "Закрыть");break;} 
+            case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе операции проиошла ошибка")}});break;}
+            case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+          }
+        },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
   }
 
   getSpravSysPriceRole(){
@@ -250,7 +294,7 @@ export class PricetypesDocComponent implements OnInit {
     this.loadSpravService.getSpravSysPriceRole()
             .subscribe(
                 (data) => {this.receivedSpravSysPriceRole=data as any [];},
-                error => console.log(error)
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             );
   }
 

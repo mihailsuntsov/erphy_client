@@ -4,6 +4,7 @@ import { LoadSpravService } from '../../../../services/loadsprav';
 import { FormGroup, Validators, FormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { Router } from '@angular/router';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { MatDialog } from '@angular/material/dialog';
@@ -79,6 +80,8 @@ export class StatusesDocComponent implements OnInit {
   allowToView:boolean = false;
   allowToUpdate:boolean = false;
   allowToCreate:boolean = false;
+  rightsDefined:boolean; // определены ли права !!!
+
 
   statusColor: string;
   statusesList : statusesList [] = []; //массив для получения всех статусов текущего документа
@@ -90,7 +93,8 @@ export class StatusesDocComponent implements OnInit {
     private loadSpravService:   LoadSpravService,
     private _router:Router,
     private _snackBar: MatSnackBar) { 
-      this.id = +activateRoute.snapshot.params['id'];// +null returns 0
+      if(activateRoute.snapshot.params['id'])
+        this.id = +activateRoute.snapshot.params['id'];// +null returns 0
     }
 
   ngOnInit() {
@@ -152,29 +156,26 @@ getSetOfPermissions(){
     this.getDocumentsList();
   }
 
-  refreshPermissions():boolean{
-    let documentOfMyCompany:boolean = (this.formBaseInformation.get('company_id').value==this.myCompanyId);
-    this.allowToView=((this.allowToViewAllCompanies)||(this.allowToViewMyCompany&&documentOfMyCompany))?true:false;
-    this.allowToUpdate=((this.allowToUpdateAllCompanies)||(this.allowToUpdateMyCompany&&documentOfMyCompany))?true:false;
+  refreshPermissions():boolean{//!!!
+    let documentOfMyCompany:boolean = (+this.formBaseInformation.get('company_id').value==this.myCompanyId);
+    this.allowToView=(
+      (this.allowToViewAllCompanies)||
+      (this.allowToViewMyCompany&&documentOfMyCompany)
+    )?true:false;
+    this.allowToUpdate=(
+      (this.allowToUpdateAllCompanies)||
+      (this.allowToUpdateMyCompany&&documentOfMyCompany)
+    )?true:false;
     this.allowToCreate=(this.allowToCreateAllCompanies || this.allowToCreateMyCompany)?true:false;
-    
-    if(this.id>0){//если в документе есть id
-      this.visAfterCreatingBlocks = true;
-      this.visBeforeCreatingBlocks = false;
-      this.visBtnUpdate = this.allowToUpdate;
-    }else{
-      this.visAfterCreatingBlocks = false;
-      this.visBeforeCreatingBlocks = true;
+    // console.log("myCompanyId - "+this.myCompanyId);
+    // console.log("documentOfMyCompany - "+documentOfMyCompany);
+    // console.log("allowToView - "+this.allowToView);
+    // console.log("allowToUpdate - "+this.allowToUpdate);
+    // console.log("allowToCreate - "+this.allowToCreate);
+    // return true;
+    this.rightsDefined=true;//!!!
+    return true;
   }
-
-  console.log("myCompanyId - "+this.myCompanyId);
-  console.log("documentOfMyCompany - "+documentOfMyCompany);
-  console.log("allowToView - "+this.allowToView);
-  console.log("allowToUpdate - "+this.allowToUpdate);
-  console.log("allowToCreate - "+this.allowToCreate);
-  return true;
-
-}
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
   getData(){
     if(+this.id>0){
@@ -269,43 +270,50 @@ getSetOfPermissions(){
               
                 let documentValues: docResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
                 //Заполнение формы из интерфейса documentValues:
-                this.formBaseInformation.get('id').setValue(+documentValues.id);
-                this.formBaseInformation.get('company_id').setValue(+documentValues.company_id);
-                this.formBaseInformation.get('doc_id').setValue(+documentValues.doc_id);
-                this.formBaseInformation.get('doc').setValue(documentValues.doc);
-                this.formBaseInformation.get('color').setValue(documentValues.color);
-                this.formBaseInformation.get('name').setValue(documentValues.name);
-                this.formBaseInformation.get('description').setValue(documentValues.description);
-                this.formBaseInformation.get('status_type').setValue(+documentValues.status_type);
-                this.formAboutDocument.get('master').setValue(documentValues.master);
-                this.formAboutDocument.get('creator').setValue(documentValues.creator);
-                this.formAboutDocument.get('changer').setValue(documentValues.changer);
-                this.formAboutDocument.get('company').setValue(documentValues.company);
-                this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
-                this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
-                
-                this.getStatusesList();
+                //!!!
+                if(data!=null&&documentValues.company_id!=null){
+                  this.formBaseInformation.get('id').setValue(+documentValues.id);
+                  this.formBaseInformation.get('company_id').setValue(+documentValues.company_id);
+                  this.formBaseInformation.get('doc_id').setValue(+documentValues.doc_id);
+                  this.formBaseInformation.get('doc').setValue(documentValues.doc);
+                  this.formBaseInformation.get('color').setValue(documentValues.color);
+                  this.formBaseInformation.get('name').setValue(documentValues.name);
+                  this.formBaseInformation.get('description').setValue(documentValues.description);
+                  this.formBaseInformation.get('status_type').setValue(+documentValues.status_type);
+                  this.formAboutDocument.get('master').setValue(documentValues.master);
+                  this.formAboutDocument.get('creator').setValue(documentValues.creator);
+                  this.formAboutDocument.get('changer').setValue(documentValues.changer);
+                  this.formAboutDocument.get('company').setValue(documentValues.company);
+                  this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
+                  this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
+                  this.getStatusesList();
+                  //!!!
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
+                this.refreshPermissions();         
+
             },
             error => console.log(error)
         );
   }
 
   createNewDocument(){
-    this.createdDocId=null;
     this.http.post('/api/auth/insertSpravStatusDocs', this.formBaseInformation.value)
-            .subscribe(
-                (data) =>   {
-                                this.createdDocId=data as string [];
-                                this.id=+this.createdDocId[0];
-                                this.formBaseInformation.get('id').setValue(this.id);
-                                this.afterCreateDoc();
-                                this.openSnackBar("Статус документа успешно создан", "Закрыть");
-                            },
-                error => console.log(error),
-            );
+    .subscribe((data) => {   
+      let result=data as any;
+      switch(result){
+        case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе операции проиошла ошибка")}});break;}
+        case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+        default:{
+          this.id=result;
+          this.afterCreateDoc();
+          this.openSnackBar("Статус документа успешно создан", "Закрыть");
+          break;
+        } 
+      }
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
   }
 
-  updateDocument(complete:boolean){ 
+  updateDocument(){ 
     const body= {
       "id":                       this.formBaseInformation.get('id').value,
       "doc_id":                  this.formBaseInformation.get('doc_id').value,
@@ -317,15 +325,16 @@ getSetOfPermissions(){
       "statusesIdsInOrderOfList": this.getStatusesIdsInOrderOfList()
     }
       return this.http.post('/api/auth/updateSpravStatusDocs', body)
-        .subscribe(
-            (data) => 
-            {   
-              this.getData();
-                this.openSnackBar("Статус документа сохранён", "Закрыть");
-            },
-            error => console.log(error),
-        );
-  } 
+        
+    .subscribe((data) => {   
+      let result=data as any;
+      switch(result){
+        case 1:{this.getData();this.openSnackBar("Успешно сохранено", "Закрыть");break;} 
+        case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе операции проиошла ошибка")}});break;}
+        case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+      }
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+  }
 
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
@@ -368,7 +377,7 @@ getSetOfPermissions(){
   // Действия после создания нового документа Счёт покупателю (это самый последний этап).
   afterCreateDoc(){// с true запрос придет при отбиваемом в данный момент чеке
     // Сначала обживаем текущий документ:
-    this.id=+this.createdDocId;
+    this.rightsDefined=false; //!!!
     this._router.navigate(['/ui/statusesdoc', this.id]);
     this.formBaseInformation.get('id').setValue(this.id);
     this.getData();
@@ -382,6 +391,8 @@ getSetOfPermissions(){
     this.formBaseInformation.get('name').setValue('');
     this.formBaseInformation.get('color').setValue('#d0d0d0');
     this.formBaseInformation.get('status_type').setValue(1);
+    this.statusesList=[];
+    this.getData();
 }
 
 

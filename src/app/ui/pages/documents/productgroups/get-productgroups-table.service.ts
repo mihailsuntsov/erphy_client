@@ -18,7 +18,8 @@ getTable(queryForm: QueryForm){
                         offset:queryForm.offset, 
                         sortAsc:queryForm.sortAsc, 
                         result:queryForm.result,
-                        companyId: queryForm.companyId };
+                        companyId: queryForm.companyId,
+                        filterOptionsIds: queryForm.filterOptionsIds };
                         console.log("перед вызовом getProductGroupsTable");
         return this.http.post('/api/auth/getProductGroupsTable', body); 
     }
@@ -29,7 +30,8 @@ getPagesList(queryForm: QueryForm){
                             offset:queryForm.offset, 
                             sortAsc:queryForm.sortAsc, 
                             result:queryForm.result,
-                            companyId: queryForm.companyId
+                            companyId: queryForm.companyId,
+                            filterOptionsIds: queryForm.filterOptionsIds
                           };
             return this.http.post('/api/auth/getProductGroupsPagesList', body); 
         }

@@ -90,6 +90,27 @@ flex: 1 1 auto;
     display: flex;
     justify-content: center;
 }
+.doc_container_select_mode { /*для открытия документа в окне*/
+    left: 0;
+    top: 0;
+    height: 100%;
+    width:100%;
+    border: 0px solid black;
+  }
+
+.doc_container {/*для открытия документа в нормальном режиме*/
+position: absolute;
+left: 0;
+top: 0;
+height: 100%;
+width:100%;
+border: 0px solid black;
+  }
+.icon{
+    color: rgba(0,0,0,.54); 
+    cursor: pointer; 
+    margin:12px 0px 0px 10px;
+}
 /*--------------- стили для статуса------------------*/
 /*для цветного круга в статусах*/
 .circle-wrapper {

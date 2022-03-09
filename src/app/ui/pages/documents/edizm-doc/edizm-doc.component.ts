@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
-import { LoadSpravService } from './loadsprav';
+import { LoadSpravService } from '../../../../services/loadsprav';
 import { Validators, FormGroup, FormControl} from '@angular/forms';
 import {HttpClient} from '@angular/common/http';
 import {MatSnackBar} from '@angular/material/snack-bar';
@@ -44,6 +44,9 @@ export class EdizmDocComponent implements OnInit {
   defaultId:number=0;//для подстановки дефолтных значений выпадающих списков
   receivedSpravSysPriceRole: any [];//Справочник роли цены (Основная, Скидочная)
 
+  myCompanyId:number=0;
+  myId:number=0;
+
   //Формы
   formBaseInformation:any;//форма для основной информации, содержащейся в документе
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
@@ -55,14 +58,20 @@ export class EdizmDocComponent implements OnInit {
 
   //переменные прав
   permissionsSet: any[];//сет прав на документ
+  allowToCreateAllCompanies:boolean = false;
+  allowToCreateMyCompany:boolean = false;
   allowToCreate:boolean = false;
   allowToUpdateAllCompanies:boolean = false;//разрешение на...
   allowToUpdateMyCompany:boolean = false;
+  allowToViewAllCompanies:boolean = false;
+  allowToViewMyCompany:boolean = false;
   allowToUpdateMyDepartments:boolean = false;
   allowToUpdateMy:boolean = false;
   itIsDocumentOfMyCompany:boolean = false;//набор проверок на документ (документ моего предприятия?/документ моих отделений?/документ мой?/)
   itIsDocumentOfMyMastersCompanies:boolean = false;
-  canUpdateThisDoc:boolean = false;
+  allowToUpdate:boolean = false;
+  allowToView:boolean = false;
+  rightsDefined:boolean = false;
 
   type_short_name:string = '';
 
@@ -71,8 +80,10 @@ export class EdizmDocComponent implements OnInit {
     private MessageDialog: MatDialog,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar) { 
-      console.log(this.activateRoute);
-      this.id = +activateRoute.snapshot.params['id'];// +null returns 0
+     
+      if(activateRoute.snapshot.params['id']){
+        this.id = +activateRoute.snapshot.params['id'];// +null returns 0
+      }
     }
 
   ngOnInit() {
@@ -103,71 +114,76 @@ export class EdizmDocComponent implements OnInit {
 // -------------------------------------- *** ПРАВА *** ------------------------------------
   getSetOfPermissions(){
     return this.http.get('/api/auth/getMyPermissions?id=11')
+      .subscribe(
+          (data) => {   
+                      this.permissionsSet=data as any [];
+                      this.getMyId();
+                  },
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+      );
+  }
+  
+  getMyId(){
+    this.loadSpravService.getMyId()
             .subscribe(
-                (data) => {   
-                            this.permissionsSet=data as any [];
-                            console.log("perm="+this.permissionsSet);
-                            if(+this.id>0) this.IsItMy_DocCheckings(+this.id); else this.getCRUD_rights(this.permissionsSet);
-                        },
-                error => console.log(error),
+                (data) => {this.myId=data as any;
+                  this.getMyCompanyId();},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             );
   }
-  IsItMy_DocCheckings(id:number){// проверки на документ (документ моего предприятия?) 
-    const body = {"documentId": id};//
-          return this.http.post('/api/auth/getIsItMy_SpravSysEdizm_JSON', body) 
-            .subscribe(
-                (data) => {   let isItMy_Doc: isIt_Doc_Response=data as any;  
-                  this.itIsDocumentOfMyCompany = isItMy_Doc.itIsDocumentOfMyCompany;
-                  this.itIsDocumentOfMyMastersCompanies= isItMy_Doc.itIsDocumentOfMyMastersCompanies;
-                            this.getCRUD_rights(this.permissionsSet);
-                        },
-                error => console.log(error),
-            );
-  }
+
   getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreate = permissionsSet.some(this.isAllowToCreate);
-    this.allowToUpdateAllCompanies = permissionsSet.some(this.isAllowToUpdateAllCompanies);
-    this.allowToUpdateMyCompany = permissionsSet.some(this.isAllowToUpdateMyCompany);
-  console.log("perm="+this.permissionsSet);  
-
-  if  (this.allowToUpdateAllCompanies ||                                     //если есть права изменять доки всех предприятий
-      (this.itIsDocumentOfMyCompany && this.allowToUpdateMyCompany)||             //или это мое предприятие и есть права изменять доки своего предприятия
-      ((this.allowToUpdateAllCompanies||this.allowToUpdateAllCompanies) && this.allowToCreate && +this.id==0))//или документ только создаётся и я могу всё что выше
-      {this.canUpdateThisDoc=true;}
-
-    // this.visAfterCreatingBlocks=!this.allowToCreate;
-    // console.log("visAfterCreatingBlocks="+this.visAfterCreatingBlocks);
-
-
+    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==120)});
+    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==120)});
+    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==122)});
+    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==123)});
+    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==124)});
+    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==125)});
+   
+    if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;}
+    if(this.allowToViewAllCompanies){this.allowToViewMyCompany=true;}
+    if(this.allowToUpdateAllCompanies){this.allowToUpdateMyCompany=true;}
     this.getData();
   }
-  isAllowToCreate   (e){return(e==120);}             //создание
-  isAllowToUpdateAllCompanies(e){return(e==124);}    //редактирование доков всех доступных предприятий
-  isAllowToUpdateMyCompany(e){return(e==125);}       //редактирование доков моего предприятия
+  
+  refreshPermissions(){
+    let documentOfMyCompany:boolean = (+this.formBaseInformation.get('company_id').value==this.myCompanyId);
 
+    this.allowToView=(
+      (this.allowToViewAllCompanies)||
+      (this.allowToViewMyCompany&&documentOfMyCompany)
+    )?true:false;
+    this.allowToUpdate=(
+      (this.allowToUpdateAllCompanies)||
+      (this.allowToUpdateMyCompany&&documentOfMyCompany)
+    )?true:false;
+    this.allowToCreate=(this.allowToCreateAllCompanies || this.allowToCreateMyCompany)?true:false;
+    // console.log("myCompanyId - "+this.myCompanyId);
+    // console.log("documentOfMyCompany - "+documentOfMyCompany);
+    // console.log("allowToView - "+this.allowToView);
+    // console.log("allowToUpdate - "+this.allowToUpdate);
+    // console.log("allowToCreate - "+this.allowToCreate);
+    // return true;
+    this.rightsDefined=true;//!!!
+  }
+
+  getMyCompanyId(){
+    this.loadSpravService.getMyCompanyId().subscribe(
+      (data) => {
+        this.myCompanyId=data as number;
+        this.getCRUD_rights(this.permissionsSet);
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+  }
   // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
 
   getData(){
     if(+this.id>0){
       this.getDocumentValuesById();
-      console.log("getDocumentValuesById");
     }else {
-      this.getCompaniesList();
-      console.log("getCompaniesList");
+      this.getCompaniesList(); 
     }
-    this.refreshShowAllTabs();
   }
 
-  refreshShowAllTabs(){
-    if(this.id>0){//если в документе есть id
-      this.visAfterCreatingBlocks = true;
-      this.visBeforeCreatingBlocks = false;
-      this.visBtnUpdate = this.canUpdateThisDoc;
-    }else{
-      this.visAfterCreatingBlocks = false;
-      this.visBeforeCreatingBlocks = true;
-    }
-  }
   getCompaniesList(){
     this.receivedCompaniesList=null;
     this.loadSpravService.getCompaniesList()
@@ -180,35 +196,39 @@ export class EdizmDocComponent implements OnInit {
                 error => console.log(error)
             );
   }
+
   setDefaultCompany(){
-    if(this.receivedCompaniesList.length==1)
-    {
-      this.receivedCompaniesList.forEach(data =>{this.defaultId=+data.id;});
-      this.formBaseInformation.get('company_id').setValue(this.defaultId);
-      //this.getDepartmentsList();
-    }//else this.getDepartmentsList();
+    this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+    this.refreshPermissions();
   }
+
   getDocumentValuesById(){
     const docId = {"id": this.id};
-          this.http.post('/api/auth/getSpravSysEdizmValuesById', docId)
+    this.http.post('/api/auth/getSpravSysEdizmValuesById', docId)
         .subscribe(
             data => {  let documentResponse: docResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
                 //Заполнение формы из интерфейса documentResponse:
-                this.formAboutDocument.get('id').setValue(+documentResponse.id);
-                this.formAboutDocument.get('master').setValue(documentResponse.master);
-                this.formAboutDocument.get('creator').setValue(documentResponse.creator);
-                this.formAboutDocument.get('changer').setValue(documentResponse.changer);
-                this.formAboutDocument.get('company').setValue(documentResponse.company);
-                this.formAboutDocument.get('date_time_created').setValue(documentResponse.date_time_created);
-                this.formAboutDocument.get('date_time_changed').setValue(documentResponse.date_time_changed);
-                this.formBaseInformation.get('company_id').setValue(+documentResponse.company_id);
-                this.formBaseInformation.get('company').setValue(documentResponse.company);
-                this.formBaseInformation.get('name').setValue(documentResponse.name);
-                this.formBaseInformation.get('short_name').setValue(documentResponse.short_name);
-                this.formBaseInformation.get('type_id').setValue(+documentResponse.type_id);
-                this.formBaseInformation.get('equals_si').setValue(documentResponse.equals_si);
+                //Заполнение формы из интерфейса documentResponse:
+                if(data!=null&&documentResponse.company_id!=null){
+                  this.formAboutDocument.get('id').setValue(+documentResponse.id);
+                  this.formAboutDocument.get('master').setValue(documentResponse.master);
+                  this.formAboutDocument.get('creator').setValue(documentResponse.creator);
+                  this.formAboutDocument.get('changer').setValue(documentResponse.changer);
+                  this.formAboutDocument.get('company').setValue(documentResponse.company);
+                  this.formAboutDocument.get('date_time_created').setValue(documentResponse.date_time_created);
+                  this.formAboutDocument.get('date_time_changed').setValue(documentResponse.date_time_changed);
+                  this.formBaseInformation.get('company_id').setValue(+documentResponse.company_id);
+                  this.formBaseInformation.get('company').setValue(documentResponse.company);
+                  this.formBaseInformation.get('name').setValue(documentResponse.name);
+                  this.formBaseInformation.get('short_name').setValue(documentResponse.short_name);
+                  this.formBaseInformation.get('type_id').setValue(+documentResponse.type_id);
+                  this.formBaseInformation.get('equals_si').setValue(documentResponse.equals_si);
 
-                this.changeTypeId();
+                  this.changeTypeId();
+                  //!!!
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
+                this.refreshPermissions();
+
             },
             error => console.log(error)
         );
@@ -254,8 +274,7 @@ export class EdizmDocComponent implements OnInit {
   }
 
 
-  changeTypeId(){
-    
+  changeTypeId(){    
     switch (+this.formBaseInformation.get('type_id').value) {
       case 2:
         this.type_short_name='1 килограмму';

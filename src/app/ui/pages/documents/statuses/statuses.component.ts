@@ -363,26 +363,29 @@ export class StatusesComponent implements OnInit {
   undeleteDocs(){
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
-      return this.http.post('/api/auth/undeleteSpravStatusDocs', body) 
-    .subscribe(
-        (data) => {   
-                    this.getData();
-                    this.openSnackBar("Успешно восстановлено", "Закрыть");
-                  },
-        error => console.log(error),
-    );
+      return this.http.post('/api/auth/undeleteSpravStatusDocs', body) 
+    .subscribe((data) => {   
+      let result=data as any;
+      switch(result){
+        case 1:{this.getData();this.openSnackBar("Успешно восстановлено", "Закрыть");break;} 
+        case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе восстановления проиошла ошибка")}});break;}
+        case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+      }
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
   }
   deleteDocs(){
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
-          return this.http.post('/api/auth/deleteSpravStatusDocs', body) 
-            .subscribe(
-                (data) => {   
-                            this.getData();
-                          },
-                error => console.log(error),
-            );
-    }
+      return this.http.post('/api/auth/deleteSpravStatusDocs', body) 
+    .subscribe((data) => {   
+      let result=data as any;
+      switch(result){
+        case 1:{this.getData();this.openSnackBar("Успешно удалено", "Закрыть");break;} 
+        case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе удаления проиошла ошибка")}});break;}
+        case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+      }
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+  }
     
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {

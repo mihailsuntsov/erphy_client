@@ -34,6 +34,7 @@
                                         panelClass="statuseslist"
                                         formControlName="status_id"
                                         (selectionChange)="setStatusColor();">
+                                        <!-- !!! -->
                             <mat-option *ngFor="let status of receivedStatusesList" 
                                         [ngClass]="{invisible: !(allowToUpdate && !formBaseInformation.get('is_completed').value)}"
                                         [value]="status.id"
@@ -51,7 +52,7 @@
                         </mat-hint>
                     </mat-form-field>
                 </div>
-                <div class="separator"></div>
+                <div class="separator"></div><!-- !!! -->
                 <button 
                     mat-raised-button 
                     color="primary"
@@ -140,7 +141,6 @@
                         matDialogClose 
                         color="accent">
                         <i class="material-icons">close</i>
-                        <span> Закрыть </span>
                 </button>
             </div>
         </mat-card-title>

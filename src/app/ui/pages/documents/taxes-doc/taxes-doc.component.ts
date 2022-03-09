@@ -78,6 +78,7 @@ export class TaxesDocComponent implements OnInit {
   allowToView:boolean = false;
   allowToUpdate:boolean = false;
   allowToCreate:boolean = false;
+  rightsDefined:boolean; // определены ли права !!!
 
   statusColor: string;
   taxesList : TaxesList [] = []; //массив для получения всех налогов текущего документа
@@ -89,7 +90,8 @@ export class TaxesDocComponent implements OnInit {
     private loadSpravService:   LoadSpravService,
     private _router:Router,
     private _snackBar: MatSnackBar) { 
-      this.id = +activateRoute.snapshot.params['id'];// +null returns 0
+      if(activateRoute.snapshot.params['id'])
+        this.id = +activateRoute.snapshot.params['id'];// +null returns 0
     }
 
   ngOnInit() {
@@ -136,7 +138,7 @@ export class TaxesDocComponent implements OnInit {
 //---------------------------------------------------------------------------------------------------------------------------------------
 
 getSetOfPermissions(){
-  return this.http.get('/api/auth/getMyPermissions?id=22')
+  return this.http.get('/api/auth/getMyPermissions?id=50')
     .subscribe(
         (data) => {   
                     this.permissionsSet=data as any [];
@@ -147,27 +149,33 @@ getSetOfPermissions(){
 }
 
   getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==271)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==272)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==275)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==276)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==277)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==278)});
+    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==636)});
+    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==637)});
+    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==640)});
+    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==641)});
+    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==642)});
+    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==643)});
     this.getData();
   }
 
   refreshPermissions():boolean{
-    let documentOfMyCompany:boolean = (this.formBaseInformation.get('company_id').value==this.myCompanyId);
-    this.allowToView=((this.allowToViewAllCompanies)||(this.allowToViewMyCompany&&documentOfMyCompany))?true:false;
-    this.allowToUpdate=((this.allowToUpdateAllCompanies)||(this.allowToUpdateMyCompany&&documentOfMyCompany))?true:false;
+    let documentOfMyCompany:boolean = (+this.formBaseInformation.get('company_id').value==this.myCompanyId);
+    this.allowToView=(
+      (this.allowToViewAllCompanies)||
+      (this.allowToViewMyCompany&&documentOfMyCompany)
+    )?true:false;
+    this.allowToUpdate=(
+      (this.allowToUpdateAllCompanies)||
+      (this.allowToUpdateMyCompany&&documentOfMyCompany)
+    )?true:false;
     this.allowToCreate=(this.allowToCreateAllCompanies || this.allowToCreateMyCompany)?true:false;
-    
-
-  // console.log("myCompanyId - "+this.myCompanyId);
-  // console.log("documentOfMyCompany - "+documentOfMyCompany);
-  // console.log("allowToView - "+this.allowToView);
-  // console.log("allowToUpdate - "+this.allowToUpdate);
-  // console.log("allowToCreate - "+this.allowToCreate);
+    // console.log("myCompanyId - "+this.myCompanyId);
+    // console.log("documentOfMyCompany - "+documentOfMyCompany);
+    // console.log("allowToView - "+this.allowToView);
+    // console.log("allowToUpdate - "+this.allowToUpdate);
+    // console.log("allowToCreate - "+this.allowToCreate);
+    // return true;
+    this.rightsDefined=true;//!!!
   return true;
 
 }
@@ -197,7 +205,6 @@ getSetOfPermissions(){
   }
 
   getCompaniesList(){
-    console.log("getCompaniesList");
     this.receivedCompaniesList=null;
     this.loadSpravService.getCompaniesList()
             .subscribe(
@@ -232,26 +239,29 @@ getSetOfPermissions(){
               
                 let documentValues: docResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
                 //Заполнение формы из интерфейса documentValues:
-                this.formBaseInformation.get('id').setValue(+documentValues.id);
-                this.formBaseInformation.get('company_id').setValue(+documentValues.company_id);
-                this.formBaseInformation.get('name').setValue(documentValues.name);
-                this.formBaseInformation.get('description').setValue(documentValues.description);
-                this.formBaseInformation.get('value').setValue(documentValues.value);
-                this.formBaseInformation.get('multiplier').setValue(documentValues.multiplier);
-                this.formBaseInformation.get('is_active').setValue(documentValues.is_active);
-                this.formBaseInformation.get('is_deleted').setValue(documentValues.is_deleted);
-                this.formBaseInformation.get('name_api_atol').setValue(documentValues.name_api_atol);
+                //!!!
+                if(data!=null&&documentValues.company_id!=null){
+                  this.formBaseInformation.get('id').setValue(+documentValues.id);
+                  this.formBaseInformation.get('company_id').setValue(+documentValues.company_id);
+                  this.formBaseInformation.get('name').setValue(documentValues.name);
+                  this.formBaseInformation.get('description').setValue(documentValues.description);
+                  this.formBaseInformation.get('value').setValue(documentValues.value);
+                  this.formBaseInformation.get('multiplier').setValue(documentValues.multiplier);
+                  this.formBaseInformation.get('is_active').setValue(documentValues.is_active);
+                  this.formBaseInformation.get('is_deleted').setValue(documentValues.is_deleted);
+                  this.formBaseInformation.get('name_api_atol').setValue(documentValues.name_api_atol);
 
-                this.formAboutDocument.get('master').setValue(documentValues.master);
-                this.formAboutDocument.get('creator').setValue(documentValues.creator);
-                this.formAboutDocument.get('changer').setValue(documentValues.changer);
-                this.formAboutDocument.get('company').setValue(documentValues.company);
-                this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
-                this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
-                
+                  this.formAboutDocument.get('master').setValue(documentValues.master);
+                  this.formAboutDocument.get('creator').setValue(documentValues.creator);
+                  this.formAboutDocument.get('changer').setValue(documentValues.changer);
+                  this.formAboutDocument.get('company').setValue(documentValues.company);
+                  this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
+                  this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
+                  this.getTaxesList();
+                  //!!!
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
+                this.refreshPermissions();                  
 
-                
-                this.getTaxesList();
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});},
         );
@@ -272,7 +282,7 @@ getSetOfPermissions(){
             );
   }
 
-  updateDocument(complete:boolean){ 
+  updateDocument(){ 
     // const body= {
     //   "id":                       this.formBaseInformation.get('id').value,
     //   // "doc_id":                  this.formBaseInformation.get('doc_id').value,
@@ -329,6 +339,7 @@ getSetOfPermissions(){
   afterCreateDoc(){// с true запрос придет при отбиваемом в данный момент чеке
     // Сначала обживаем текущий документ:
     this.id=+this.createdDocId;
+    this.rightsDefined=false; //!!!
     this._router.navigate(['/ui/taxesdoc', this.id]);
     this.formBaseInformation.get('id').setValue(this.id);
     this.getData();

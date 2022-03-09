@@ -1,5 +1,5 @@
 <mat-drawer-container  [ngClass]="{doc_container: mode=='standart',doc_container_select_mode: mode!='standart'}" autosize>
-    <mat-drawer #drawer class="categories-sidenav" mode="side" opened>
+    <mat-drawer #drawer class="categories-sidenav" mode="side" opened *ngIf="!rightsDefined || (rightsDefined && (( +id>0 && allowToView)||(+id==0 && allowToCreate)))">
         <div class="category-toolbar-search flex">
             <span style="flex-grow: 1;"></span>
                 <div>
@@ -66,62 +66,81 @@
     <div class="categories-sidenav-content">
         <mat-card class="card">
         
-            <mat-card-title class="flex">
-                <div class="card-name">Товары и услуги</div>
-                        <button 
-                            MatSnackBar="Создать новый документ"
+
+
+            <!-- !!! -->
+            <mat-card-title class="top-bar container-fluid"> 
+                <div class="row" id="topBlock">
+                    <div id="cardname">
+                        <div class="nowrap"><span *ngIf="+id>0">{{formBaseInformation.get('name').value}}</span></div>
+                    </div>
+                    <div class="separator"></div><!-- !!! -->
+                    <button 
+                        mat-raised-button 
+                        *ngIf="+id>0 && allowToUpdate"
+                        matTooltip='Сохранить документ'
+                        (click)="updateDocument()"
+                        [disabled]="!formBaseInformation.valid" 
+                        color="primary"
+                        type="button"
+                        class="button small-button">
+                        <i class="material-icons">save</i>
+                    </button>
+                    <button 
+                        mat-raised-button 
+                        matTooltip='Создать документ'
+                        (click)="createNewDocument()" 
+                        *ngIf="allowToCreate && +id==0 "
+                        [disabled]="!formBaseInformation.valid" 
+                        color="primary"
+                        type="submit"
+                        class="button small-button">
+                        <i class="material-icons">done</i>
+                    </button>
+                    <button  
                             mat-raised-button 
-                            [style.display]="visAfterCreatingBlocks==true?'none':'block'"
-                            (click)="clickBtnCreateNewDocument()" 
-                            [disabled]="!formBaseInformation.valid" 
-                            *ngIf="allowToCreate"
-                            color="primary"
-                            class="button">
-                            <i class="material-icons">add_circle_outline</i> Создать
-                        </button>
-                        <!-- (click)="clickBtnUpdate()" -->
-                        <button  
-                                mat-raised-button 
-                                matTooltip="Выбрать товар и закрыть окно"
-                                [mat-dialog-close]="formBaseInformation.get('product_code_free').value" 
-                                *ngIf="(mode=='createForAcceptance' || mode=='createForPosting') && (+id>0)"
-                                color="primary">
-                                <i class="material-icons">star</i>
-                            <span> Выбрать</span>
-                        </button>
+                            matTooltip="Выбрать и закрыть окно"
+                            [mat-dialog-close]="formBaseInformation.get('product_code_free').value" 
+                            *ngIf="(mode=='createForAcceptance' || mode=='createForPosting') && (+id>0)"
+                            color="primary">
+                            <i class="material-icons">star</i>
+                        <span> Выбрать</span>
+                    </button>
+                    <a routerLink="../../products">
                         <button 
-                            matTooltip="Сохранть изменения"
                             mat-raised-button 
-                            [style.display]="visBtnUpdate==true?'block':'none'"
-                            (click)="clickBtnUpdate()"
-                            [disabled]="!formBaseInformation.valid" 
-                            color="primary"
-                            class="button">
-                            <i class="material-icons">done</i> Сохранить
+                            [matTooltip]="id>0?'Выйти в меню':'Отмена создания документа'"
+                            color="accent"
+                            *ngIf="mode=='standart'" 
+                            class="button small-button">
+                            <i class="material-icons">close</i>
                         </button>
-                        <a routerLink="../../products">
-                            <button 
-                                matTooltip="Выйти из документа"
-                                mat-raised-button
-                                *ngIf="mode=='standart'" 
-                                color="accent"
-                                class="button">
-                                <i class="material-icons">close</i> {{id>0?'Выйти':'Отмена'}}
-                            </button>
-                        </a>
-                        <button 
-                                matTooltip="Закрыть окно"
-                                mat-raised-button 
-                                *ngIf="mode!='standart'"
-                                color="accent"
-                                (click)="onNoClick()"
-                                class="button">
-                                <i class="material-icons">close</i> Отмена
-                        </button>
-                        
+                    </a>
+                    <button 
+                            matTooltip="Закрыть окно"
+                            mat-raised-button 
+                            *ngIf="mode!='standart'"
+                            color="accent"
+                            (click)="onNoClick()"
+                            class="button small-button">
+                            <i class="material-icons">close</i>
+                    </button>
+                </div>
             </mat-card-title>
-            <mat-card-subtitle [ngClass]="{invisible: visBeforeCreatingBlocks}">Предприятие: {{formBaseInformation.get('company').value}}</mat-card-subtitle>
-            <mat-card-content> 
+            <!-- !!! -->
+            <mat-card-content *ngIf="rightsDefined && 
+            (
+                (!allowToView && +id>0) ||
+                (!allowToCreate && +id==0)
+            )"> 
+                <mat-card class="internal-card">
+                    <mat-card-content style="font-size: 20px;font-weight: bold;color: red;text-align: center;height: 100px;padding: 38px 0;">
+                        Недостаточно прав
+                    </mat-card-content>
+                </mat-card>
+            </mat-card-content>
+            <!-- !!! -->
+            <mat-card-content *ngIf="!rightsDefined || (rightsDefined && (( +id>0 && allowToView)||(+id==0 && allowToCreate)))"> 
 
                 <form  class="form-horizontal" id="formControl" method="post" action="" style="margin-bottom: 0px;">
                         <div class="form-group" style="display: none;">
@@ -716,8 +735,8 @@
                                                             </mat-card-header>
 
                                                             <div class="div-foto hand"> 
-                                                            <img *ngIf="imagesInfo.length==0" matTooltip="Для данного товара изображений нет" class="img" src="{{noImageAddress}}" width=100%>
-                                                            <img *ngIf="imagesInfo.length>0" matTooltip="Посмотреть изображение" class="img" (click)="showMainImage()" [src]="imageToShow" width=100%>
+                                                            <img *ngIf="imagesInfo && imagesInfo.length==0" matTooltip="Для данного товара изображений нет" class="img" src="{{noImageAddress}}" width=100%>
+                                                            <img *ngIf="imagesInfo && imagesInfo.length>0" matTooltip="Посмотреть изображение" class="img" (click)="showMainImage()" [src]="imageToShow" width=100%>
                                                             </div> 
                                                         <div class="box-list" cdkDropList (cdkDropListDropped)="dropImage($event)">
                                                             <ng-container *ngFor="let i of imagesInfo">

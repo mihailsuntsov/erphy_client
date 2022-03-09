@@ -1,3 +1,9 @@
+<mat-spinner 
+strokeWidth="3" 
+class="spinner"
+[diameter]="50"
+*ngIf="gettingTableData"
+></mat-spinner>
 <mat-drawer-container class="doc-container" autosize>
     <mat-drawer #drawer class="categories-sidenav" mode="side" opened *ngIf="allowToView">
         

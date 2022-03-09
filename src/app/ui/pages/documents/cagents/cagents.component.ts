@@ -3,6 +3,7 @@ import { Component, OnInit, Optional, Inject } from '@angular/core';
 import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
 import { QueryForm } from './query-form';
 import { SelectionModel } from '@angular/cdk/collections';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpClient } from '@angular/common/http';
@@ -80,6 +81,8 @@ export class CagentsComponent implements OnInit {
   allowCategoryDelete:boolean = false;
 
   showOpenDocIcon:boolean=false;
+  gettingTableData:boolean=true;//!!!
+  
 
 
   numRows: NumRow[] = [
@@ -129,6 +132,7 @@ export class CagentsComponent implements OnInit {
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
     private universalCategoriesDialog: MatDialog,
+    private MessageDialog: MatDialog,
     private Cookie: Cookie,
     private ConfirmDialog: MatDialog,
     private http: HttpClient,
@@ -228,12 +232,14 @@ export class CagentsComponent implements OnInit {
   getData(){
     if(this.refreshPermissions() && this.allowToView)
     {
+      this.doFilterCompaniesList(); //если нет просмотра по всем предприятиям - фильтруем список предприятий до своего предприятия
       this.updateSortOptions(); 
       this.getTableHeaderTitles();
-      this.getPagesList(this.sendingQueryForm);
-      this.getTable(this.sendingQueryForm);
+      this.getPagesList();
+      this.getTable();
       this.loadTrees();
-    }
+      //!!!
+    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
   }
 
   getTableHeaderTitles(){
@@ -246,9 +252,9 @@ export class CagentsComponent implements OnInit {
     this.displayedColumns.push('date_time_created');
   }
 
-  getPagesList(sendingQueryForm: QueryForm){
+  getPagesList(){
     // this.receivedPagesList=null;
-    this.queryFormService.getPagesList(sendingQueryForm)
+    this.queryFormService.getPagesList(this.sendingQueryForm)
             .subscribe(
                 data => {this.receivedPagesList=data as string [];
                 this.size=this.receivedPagesList[0];
@@ -259,17 +265,28 @@ export class CagentsComponent implements OnInit {
             ); 
   }
 
-  getTable(sendingQueryForm: QueryForm){
-    this.queryFormService.getTable(sendingQueryForm)
-            .subscribe(
-                (data) => {
-                  this.dataSource.data = data as any []; 
-                  if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
-                },
-                error => console.log(error) 
-            );
+  getTable(){//!!!
+    this.gettingTableData=true;
+    this.queryFormService.getTable(this.sendingQueryForm)
+      .subscribe(
+          (data) => {
+            this.dataSource.data = data as any []; 
+            if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
+            this.gettingTableData=false;
+          },
+          error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
+      );
   }
 
+  doFilterCompaniesList(){
+    let myCompany:idAndName;
+    if(!this.allowToViewAllCompanies){
+      this.receivedCompaniesList.forEach(company=>{
+      if(this.myCompanyId==company.id) myCompany={id:company.id, name:company.name}});
+      this.receivedCompaniesList=[];
+      this.receivedCompaniesList.push(myCompany);
+    }
+  }
   isAllSelected() {
     const numSelected = this.selection.selected.length;
     const numRows = this.dataSource.data.length;
@@ -602,9 +619,9 @@ export class CagentsComponent implements OnInit {
     this.sendingQueryForm.selectedNodeId=node.id;
     this.sendingQueryForm.selectedNodeName=node.name;
     this.recountNumChildsOfSelectedCategory();
-    this.getPagesList(this.sendingQueryForm);
+    this.getPagesList();
     this.sendingQueryForm.offset=0;
-    this.getTable(this.sendingQueryForm);
+    this.getTable();
   }
   getNodeId(node: any):number{
     return(node.id);

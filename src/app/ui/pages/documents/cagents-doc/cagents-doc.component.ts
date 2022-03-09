@@ -4,6 +4,8 @@ import { LoadSpravService } from '../../../../services/loadsprav';
 import { Validators, FormGroup, FormArray, FormControl, FormBuilder } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog,  MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
+import { Router } from '@angular/router';
 import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
 import { FlatTreeControl } from '@angular/cdk/tree';
 import { HttpClient } from '@angular/common/http';
@@ -179,7 +181,7 @@ interface PaymentAccountsForm { //интерфейс для формы paymentAc
 })
 
 export class CagentsDocComponent implements OnInit {
-  id: number;// id документа
+  id: number=0;// id документа
   createdDocId: string[];//массив для получение id созданного документа
   receivedCompaniesList: any [];//массив для получения списка предприятий
   myCompanyId:number=0;
@@ -229,15 +231,6 @@ export class CagentsDocComponent implements OnInit {
   formBaseInformation:any;//форма для основной информации, содержащейся в документе
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
   selectedCagentCategory:any;//форма, содержащая информацию о выбранной категории товара (id, name)
-  // public сontactsFormArray: FormGroup; // массив форм сontactsForm
-  // public paymentAccountsFormArray: FormGroup; //массив форм paymentAccountsForm
-  // сontactsForm: ContactsForm; //форма, из которой будет состоять массив сontactsFormArray
-  // paymentAccountsForm: PaymentAccountsForm; //форма, из которой будет состоять массив paymentAccountsFormArray
-
-  //переменные для управления динамическим отображением элементов
-  visBeforeCreatingBlocks = true; //блоки, отображаемые ДО создания документа (до получения id)
-  visAfterCreatingBlocks = true; //блоки, отображаемые ПОСЛЕ создания документа (id >0)
-  visBtnUpdate = false;
 
   //переменные прав
   permissionsSet: any[];//сет прав на документ
@@ -247,6 +240,7 @@ export class CagentsDocComponent implements OnInit {
   allowToUpdateMyCompany:boolean = false;
   allowToCreateMyCompany:boolean = false;
   allowToCreateAllCompanies:boolean = false;
+  rightsDefined:boolean; // определены ли права !!!
   allowToView:boolean = false;
   allowToUpdate:boolean = false;
   allowToCreate:boolean = false;
@@ -275,15 +269,16 @@ export class CagentsDocComponent implements OnInit {
 
 constructor(private activateRoute: ActivatedRoute,
   private http: HttpClient,
-  
+  public MessageDialog: MatDialog,
+  private _router:Router,
   private loadSpravService:   LoadSpravService,
-  // private httpService:   LoadSpravService,
   private _snackBar: MatSnackBar,
   private _fb: FormBuilder, //чтобы билдить группу форм myForm: FormBuilder, //для билдинга групп форм по контактным лицам и банковским реквизитам
   @Optional() @Inject(MAT_DIALOG_DATA) public data: any,
   public ConfirmDialog: MatDialog) { 
-    console.log(this.activateRoute);
-    this.id = +activateRoute.snapshot.params['id'];// +null returns 0
+    // console.log(this.activateRoute);
+    if(activateRoute.snapshot.params['id'])
+      this.id = +activateRoute.snapshot.params['id'];// +null returns 0
   }
 
   ngOnInit() {
@@ -402,30 +397,29 @@ constructor(private activateRoute: ActivatedRoute,
     this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==134)});
     this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==135)});
     this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==136)});
+    
+    if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;}
+    if(this.allowToViewAllCompanies){this.allowToViewMyCompany=true;}
+    if(this.allowToUpdateAllCompanies){this.allowToUpdateMyCompany=true;}
+    
     this.getData();
   }
 
   refreshPermissions():boolean{
     let documentOfMyCompany:boolean = (this.formBaseInformation.get('company_id').value==this.myCompanyId);
-    this.allowToView=((documentOfMyCompany && (this.allowToViewAllCompanies || this.allowToViewMyCompany))||(documentOfMyCompany==false && this.allowToViewAllCompanies))?true:false;
-    this.allowToUpdate=((documentOfMyCompany && (this.allowToUpdateAllCompanies || this.allowToUpdateMyCompany))||(documentOfMyCompany==false && this.allowToUpdateAllCompanies))?true:false;
-    this.allowToCreate=((documentOfMyCompany && (this.allowToCreateAllCompanies || this.allowToCreateMyCompany))||(documentOfMyCompany==false && this.allowToCreateAllCompanies))?true:false;
     
-    if(this.id>0){//если в документе есть id
-      this.visAfterCreatingBlocks = true;
-      this.visBeforeCreatingBlocks = false;
-      this.visBtnUpdate = this.allowToUpdate;
-      console.log("visBtnUpdate - "+this.visBtnUpdate);
-    }else{
-      this.visAfterCreatingBlocks = false;
-      this.visBeforeCreatingBlocks = true;
-    }
-    // console.log("вызов loadTrees");
-    this.loadTrees();
-
+    this.allowToView=(
+      (this.allowToViewAllCompanies)||
+      (this.allowToViewMyCompany&&documentOfMyCompany)
+    )?true:false;
+    this.allowToUpdate=(
+      (this.allowToUpdateAllCompanies)||
+      (this.allowToUpdateMyCompany&&documentOfMyCompany)
+    )?true:false;
+    this.allowToCreate=(this.allowToCreateAllCompanies || this.allowToCreateMyCompany)?true:false;
     this.editability=((this.allowToCreate && +this.id==0)||(this.allowToUpdate && this.id>0));
+    this.rightsDefined=true;//!!!
     // console.log("formBaseInformation.get('company_id').value - "+this.formBaseInformation.get('company_id').value);
-
     // console.log("myCompanyId - "+this.myCompanyId);
     // console.log("documentOfMyCompany - "+documentOfMyCompany);
     // console.log(" - ");
@@ -436,9 +430,6 @@ constructor(private activateRoute: ActivatedRoute,
   }
   
   // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
-
-
-
 
   getData(){
       if(+this.id>0){
@@ -457,7 +448,6 @@ constructor(private activateRoute: ActivatedRoute,
                 {
                   this.receivedCompaniesList=data as any [];
                   this.doFilterCompaniesList();
-                  this.setDefaultCompany();
                 },                      
                 error => console.log(error)
             );
@@ -470,6 +460,8 @@ constructor(private activateRoute: ActivatedRoute,
       this.receivedCompaniesList=[];
       this.receivedCompaniesList.push(myCompany);
     }
+    if(+this.id==0)//!!!!! отсюда загружаем настройки только если документ новый. Если уже создан - настройки грузятся из get<Document>ValuesById
+      this.setDefaultCompany();
   }
   getMyCompanyId(){
     this.loadSpravService.getMyCompanyId().subscribe(
@@ -497,77 +489,82 @@ constructor(private activateRoute: ActivatedRoute,
     const docId = {"id": this.id};
           this.http.post('/api/auth/getCagentValues', docId)
         .subscribe(
-            data => { 
+              data => 
+              { 
                 let documentValues: docResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
                 //Заполнение формы из интерфейса documentValues:
-                this.formAboutDocument.get('id').setValue(+documentValues.id);
-                this.formAboutDocument.get('master').setValue(documentValues.master);
-                this.formAboutDocument.get('creator').setValue(documentValues.creator);
-                this.formAboutDocument.get('changer').setValue(documentValues.changer);
-                this.formAboutDocument.get('company').setValue(documentValues.company);
-                this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
-                this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
-                this.formBaseInformation.get('company_id').setValue(+documentValues.company_id);
-                this.formBaseInformation.get('company').setValue(documentValues.company);
-                this.formBaseInformation.get('opf_id').setValue(+documentValues.opf_id);
-                this.formBaseInformation.get('opf').setValue(documentValues.opf);
-                this.formBaseInformation.get('name').setValue(documentValues.name);
-                this.formBaseInformation.get('description').setValue(documentValues.description);
-                this.formBaseInformation.get('code').setValue(documentValues.code);
-                this.formBaseInformation.get('telephone').setValue(documentValues.telephone);
-                this.formBaseInformation.get('site').setValue(documentValues.site);
-                this.formBaseInformation.get('email').setValue(documentValues.email);
-                this.formBaseInformation.get('zip_code').setValue(documentValues.zip_code);
-                this.formBaseInformation.get('country_id').setValue(documentValues.country_id);
-                this.formBaseInformation.get('region_id').setValue(documentValues.region_id);
-                this.formBaseInformation.get('city_id').setValue(documentValues.city_id);
-                this.formBaseInformation.get('street').setValue(documentValues.street);
-                this.formBaseInformation.get('home').setValue(documentValues.home);
-                this.formBaseInformation.get('flat').setValue(documentValues.flat);
-                this.formBaseInformation.get('additional_address').setValue(documentValues.additional_address);
-                this.formBaseInformation.get('status_id').setValue(documentValues.status_id);
-                this.formBaseInformation.get('price_type_id').setValue(documentValues.price_type_id);
-                this.formBaseInformation.get('discount_card').setValue(documentValues.discount_card);
-                this.formBaseInformation.get('jr_jur_full_name').setValue(documentValues.jr_jur_full_name);
-                this.formBaseInformation.get('jr_jur_kpp').setValue(documentValues.jr_jur_kpp);
-                this.formBaseInformation.get('jr_jur_ogrn').setValue(documentValues.jr_jur_ogrn);
-                this.formBaseInformation.get('jr_zip_code').setValue(documentValues.jr_zip_code);
-                this.formBaseInformation.get('jr_country_id').setValue(documentValues.jr_country_id);
-                this.formBaseInformation.get('jr_region_id').setValue(documentValues.jr_region_id);
-                this.formBaseInformation.get('jr_city_id').setValue(documentValues.jr_city_id);
-                this.formBaseInformation.get('jr_street').setValue(documentValues.jr_street);
-                this.formBaseInformation.get('jr_home').setValue(documentValues.jr_home);
-                this.formBaseInformation.get('jr_flat').setValue(documentValues.jr_flat);
-                this.formBaseInformation.get('jr_additional_address').setValue(documentValues.jr_additional_address);
-                this.formBaseInformation.get('jr_inn').setValue(documentValues.jr_inn);
-                this.formBaseInformation.get('jr_okpo').setValue(documentValues.jr_okpo);
-                this.formBaseInformation.get('jr_fio_family').setValue(documentValues.jr_fio_family);
-                this.formBaseInformation.get('jr_fio_name').setValue(documentValues.jr_fio_name);
-                this.formBaseInformation.get('jr_fio_otchestvo').setValue(documentValues.jr_fio_otchestvo);
-                this.formBaseInformation.get('jr_ip_ogrnip').setValue(documentValues.jr_ip_ogrnip);
-                this.formBaseInformation.get('jr_ip_svid_num').setValue(documentValues.jr_ip_svid_num);
-                this.formBaseInformation.get('jr_ip_reg_date').setValue(documentValues.jr_ip_reg_date?moment(documentValues.jr_ip_reg_date,'DD.MM.YYYY'):"");
-                
-                this.checkedList=documentValues.cagent_categories_id;
+                //!!!
+                if(data!=null&&documentValues.company_id!=null){
+                  this.formAboutDocument.get('id').setValue(+documentValues.id);
+                  this.formAboutDocument.get('master').setValue(documentValues.master);
+                  this.formAboutDocument.get('creator').setValue(documentValues.creator);
+                  this.formAboutDocument.get('changer').setValue(documentValues.changer);
+                  this.formAboutDocument.get('company').setValue(documentValues.company);
+                  this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
+                  this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
+                  this.formBaseInformation.get('company_id').setValue(+documentValues.company_id);
+                  this.formBaseInformation.get('company').setValue(documentValues.company);
+                  this.formBaseInformation.get('opf_id').setValue(+documentValues.opf_id);
+                  this.formBaseInformation.get('opf').setValue(documentValues.opf);
+                  this.formBaseInformation.get('name').setValue(documentValues.name);
+                  this.formBaseInformation.get('description').setValue(documentValues.description);
+                  this.formBaseInformation.get('code').setValue(documentValues.code);
+                  this.formBaseInformation.get('telephone').setValue(documentValues.telephone);
+                  this.formBaseInformation.get('site').setValue(documentValues.site);
+                  this.formBaseInformation.get('email').setValue(documentValues.email);
+                  this.formBaseInformation.get('zip_code').setValue(documentValues.zip_code);
+                  this.formBaseInformation.get('country_id').setValue(documentValues.country_id);
+                  this.formBaseInformation.get('region_id').setValue(documentValues.region_id);
+                  this.formBaseInformation.get('city_id').setValue(documentValues.city_id);
+                  this.formBaseInformation.get('street').setValue(documentValues.street);
+                  this.formBaseInformation.get('home').setValue(documentValues.home);
+                  this.formBaseInformation.get('flat').setValue(documentValues.flat);
+                  this.formBaseInformation.get('additional_address').setValue(documentValues.additional_address);
+                  this.formBaseInformation.get('status_id').setValue(documentValues.status_id);
+                  this.formBaseInformation.get('price_type_id').setValue(documentValues.price_type_id);
+                  this.formBaseInformation.get('discount_card').setValue(documentValues.discount_card);
+                  this.formBaseInformation.get('jr_jur_full_name').setValue(documentValues.jr_jur_full_name);
+                  this.formBaseInformation.get('jr_jur_kpp').setValue(documentValues.jr_jur_kpp);
+                  this.formBaseInformation.get('jr_jur_ogrn').setValue(documentValues.jr_jur_ogrn);
+                  this.formBaseInformation.get('jr_zip_code').setValue(documentValues.jr_zip_code);
+                  this.formBaseInformation.get('jr_country_id').setValue(documentValues.jr_country_id);
+                  this.formBaseInformation.get('jr_region_id').setValue(documentValues.jr_region_id);
+                  this.formBaseInformation.get('jr_city_id').setValue(documentValues.jr_city_id);
+                  this.formBaseInformation.get('jr_street').setValue(documentValues.jr_street);
+                  this.formBaseInformation.get('jr_home').setValue(documentValues.jr_home);
+                  this.formBaseInformation.get('jr_flat').setValue(documentValues.jr_flat);
+                  this.formBaseInformation.get('jr_additional_address').setValue(documentValues.jr_additional_address);
+                  this.formBaseInformation.get('jr_inn').setValue(documentValues.jr_inn);
+                  this.formBaseInformation.get('jr_okpo').setValue(documentValues.jr_okpo);
+                  this.formBaseInformation.get('jr_fio_family').setValue(documentValues.jr_fio_family);
+                  this.formBaseInformation.get('jr_fio_name').setValue(documentValues.jr_fio_name);
+                  this.formBaseInformation.get('jr_fio_otchestvo').setValue(documentValues.jr_fio_otchestvo);
+                  this.formBaseInformation.get('jr_ip_ogrnip').setValue(documentValues.jr_ip_ogrnip);
+                  this.formBaseInformation.get('jr_ip_svid_num').setValue(documentValues.jr_ip_svid_num);
+                  this.formBaseInformation.get('jr_ip_reg_date').setValue(documentValues.jr_ip_reg_date?moment(documentValues.jr_ip_reg_date,'DD.MM.YYYY'):"");
+                  
+                  this.checkedList=documentValues.cagent_categories_id;
 
-                this.searchRegionCtrl.setValue(documentValues.region);
-                this.searchJrRegionCtrl.setValue(documentValues.jr_region);
-                this.area=documentValues.area;
-                this.jr_area=documentValues.jr_area;
-                this.searchCityCtrl.setValue(this.area!=''?(documentValues.city+' ('+this.area+')'):documentValues.city);
-                this.searchJrCityCtrl.setValue(this.jr_area!=''?(documentValues.jr_city+' ('+this.jr_area+')'):documentValues.jr_city);
-                
-                this.getStatusesList();
-                this.getPriceTypesList();
+                  this.searchRegionCtrl.setValue(documentValues.region);
+                  this.searchJrRegionCtrl.setValue(documentValues.jr_region);
+                  this.area=documentValues.area;
+                  this.jr_area=documentValues.jr_area;
+                  this.searchCityCtrl.setValue(this.area!=''?(documentValues.city+' ('+this.area+')'):documentValues.city);
+                  this.searchJrCityCtrl.setValue(this.jr_area!=''?(documentValues.jr_city+' ('+this.jr_area+')'):documentValues.jr_city);
+                  this.getStatusesList();
+                  this.getPriceTypesList();
+                  this.loadTrees();
+                  this.getSpravSysCountries();
+                  this.setJurElementsVisible();
+                  this.getCagentsContacts();
+                  this.getCagentsPaymentAccounts();
+                  //!!!
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
                 this.refreshPermissions();
-                this.getSpravSysCountries();
-                this.setJurElementsVisible();
-                this.getCagentsContacts();
-                this.getCagentsPaymentAccounts();
-            },
-            error => console.log(error)
-        );
-  }
+              },
+              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+          );
+    }
 
   clickBtnCreateNewDocument(){// Нажатие кнопки Записать
     this.createNewDocument();
@@ -581,7 +578,9 @@ constructor(private activateRoute: ActivatedRoute,
                 (data) =>   {
                                 this.createdDocId=data as string [];
                                 this.id=+this.createdDocId[0];
+                                this._router.navigate(['/ui/cagentsdoc', this.id]);
                                 this.formBaseInformation.get('id').setValue(this.id);
+                                this.rightsDefined=false; //!!!
                                 this.getData();
                                 this.openSnackBar("Документ \"Контрагенты\" успешно создан", "Закрыть");
                             },
@@ -616,7 +615,8 @@ constructor(private activateRoute: ActivatedRoute,
     this.loadSpravService.getPriceTypesList(+this.formBaseInformation.get('company_id').value)
       .subscribe(
           (data) => {this.receivedPriceTypesList=data as any [];
-            this.refreshPermissions();
+          this.loadTrees();
+          this.refreshPermissions();
           },
           error => console.log(error)
       );
@@ -1083,7 +1083,9 @@ constructor(private activateRoute: ActivatedRoute,
     this.loadSpravService.getStatusList(this.formBaseInformation.get('company_id').value,12) //12 - id документа из таблицы documents
             .subscribe(
                 (data) => {this.receivedStatusesList=data as statusInterface[];
-                  if(this.id==0){this.setDefaultStatus();}
+                  if(this.id==0){
+                    this.setDefaultStatus();
+                  }
                   this.setStatusColor();},
                 error => console.log(error)
             );

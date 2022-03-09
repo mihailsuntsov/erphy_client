@@ -258,6 +258,9 @@ export class InvoiceoutDocComponent implements OnInit {
   showOpenDocIcon:boolean=false;
   editability:boolean = false;//редактируемость. true если есть право на создание и документ создаётся, или есть право на редактирование и документ создан
 
+  rightsDefined:boolean; // определены ли права !!!
+  lastCheckedDocNumber:string=''; //!!!
+
   //для построения диаграмм связанности
   tabIndex=0;// индекс текущего отображаемого таба (вкладки)
   linkedDocsCount:number = 0; // кол-во документов в группе, ЗА ИСКЛЮЧЕНИЕМ текущего
@@ -500,6 +503,7 @@ export class InvoiceoutDocComponent implements OnInit {
     // console.log("allowToUpdate - "+this.allowToUpdate);
     // console.log("allowToCreate - "+this.allowToCreate);
     // return true;
+    this.rightsDefined=true;//!!!
     this.necessaryActionsBeforeGetChilds();
   }
 
@@ -881,52 +885,56 @@ export class InvoiceoutDocComponent implements OnInit {
             data => { 
               
                 let documentValues: DocResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
-                //Заполнение формы из интерфейса documentValues:
-                this.formAboutDocument.get('id').setValue(+documentValues.id);
-                this.formAboutDocument.get('master').setValue(documentValues.master);
-                this.formAboutDocument.get('creator').setValue(documentValues.creator);
-                this.formAboutDocument.get('changer').setValue(documentValues.changer);
-                this.formAboutDocument.get('company').setValue(documentValues.company);
-                this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
-                this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
-                this.formBaseInformation.get('id').setValue(+documentValues.id);
-                this.formBaseInformation.get('company_id').setValue(documentValues.company_id);
-                this.formBaseInformation.get('cagent_id').setValue(documentValues.cagent_id);
-                this.formBaseInformation.get('cagent').setValue(documentValues.cagent);
-                this.formBaseInformation.get('department_id').setValue(documentValues.department_id);
-                this.formBaseInformation.get('department').setValue(documentValues.department);
-                this.formBaseInformation.get('invoiceout_date').setValue(documentValues.invoiceout_date?moment(documentValues.invoiceout_date,'DD.MM.YYYY'):"");
-                this.formBaseInformation.get('doc_number').setValue(documentValues.doc_number);
-                this.formBaseInformation.get('description').setValue(documentValues.description);
-                this.formBaseInformation.get('nds').setValue(documentValues.nds);
-                this.formBaseInformation.get('nds_included').setValue(documentValues.nds_included);
-                // this.formBaseInformation.get('name').setValue(documentValues.name);
-                this.formBaseInformation.get('status_id').setValue(documentValues.status_id);
-                this.formBaseInformation.get('status_name').setValue(documentValues.status_name);
-                this.formBaseInformation.get('status_color').setValue(documentValues.status_color);
-                this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
-                this.formBaseInformation.get('uid').setValue(documentValues.uid);
-                this.formBaseInformation.get('is_completed').setValue(documentValues.is_completed);
-                this.formBaseInformation.get('customers_orders_id').setValue(documentValues.customers_orders_id);
-                this.is_completed=documentValues.is_completed;
-                this.department_type_price_id=documentValues.department_type_price_id;
-                this.cagent_type_price_id=documentValues.cagent_type_price_id;
-                this.default_type_price_id=documentValues.default_type_price_id;
-                this.creatorId=+documentValues.creator_id;
-                this.searchCagentCtrl.setValue(documentValues.cagent);
-                if(!onlyBaseInformation){
-                  this.getSettings(); // настройки документа 
-                  this.getSpravSysEdizm();//справочник единиц измерения
-                  this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
-                  this.getPriceTypesList();
-                  this.getDepartmentsList();//отделения
-                  this.getStatusesList();//статусы документа 
-                  this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
-                  this.hideOrShowNdsColumn();//расчет прятать или показывать колонку НДС
-                  this.refreshPermissions();//пересчитаем права
-                }
-                
-                this.cheque_nds=documentValues.nds;//нужно ли передавать в кассу (в чек) данные об НДС
+                //!!!
+                if(data!=null&&documentValues.company_id!=null){
+                  //Заполнение формы из интерфейса documentValues:
+                  this.formAboutDocument.get('id').setValue(+documentValues.id);
+                  this.formAboutDocument.get('master').setValue(documentValues.master);
+                  this.formAboutDocument.get('creator').setValue(documentValues.creator);
+                  this.formAboutDocument.get('changer').setValue(documentValues.changer);
+                  this.formAboutDocument.get('company').setValue(documentValues.company);
+                  this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
+                  this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
+                  this.formBaseInformation.get('id').setValue(+documentValues.id);
+                  this.formBaseInformation.get('company_id').setValue(documentValues.company_id);
+                  this.formBaseInformation.get('cagent_id').setValue(documentValues.cagent_id);
+                  this.formBaseInformation.get('cagent').setValue(documentValues.cagent);
+                  this.formBaseInformation.get('department_id').setValue(documentValues.department_id);
+                  this.formBaseInformation.get('department').setValue(documentValues.department);
+                  this.formBaseInformation.get('invoiceout_date').setValue(documentValues.invoiceout_date?moment(documentValues.invoiceout_date,'DD.MM.YYYY'):"");
+                  this.formBaseInformation.get('doc_number').setValue(documentValues.doc_number);
+                  this.formBaseInformation.get('description').setValue(documentValues.description);
+                  this.formBaseInformation.get('nds').setValue(documentValues.nds);
+                  this.formBaseInformation.get('nds_included').setValue(documentValues.nds_included);
+                  // this.formBaseInformation.get('name').setValue(documentValues.name);
+                  this.formBaseInformation.get('status_id').setValue(documentValues.status_id);
+                  this.formBaseInformation.get('status_name').setValue(documentValues.status_name);
+                  this.formBaseInformation.get('status_color').setValue(documentValues.status_color);
+                  this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
+                  this.formBaseInformation.get('uid').setValue(documentValues.uid);
+                  this.formBaseInformation.get('is_completed').setValue(documentValues.is_completed);
+                  this.formBaseInformation.get('customers_orders_id').setValue(documentValues.customers_orders_id);
+                  this.is_completed=documentValues.is_completed;
+                  this.department_type_price_id=documentValues.department_type_price_id;
+                  this.cagent_type_price_id=documentValues.cagent_type_price_id;
+                  this.default_type_price_id=documentValues.default_type_price_id;
+                  this.creatorId=+documentValues.creator_id;
+                  this.searchCagentCtrl.setValue(documentValues.cagent);
+                  if(!onlyBaseInformation){
+                    this.getSettings(); // настройки документа 
+                    this.getSpravSysEdizm();//справочник единиц измерения
+                    this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
+                    this.getPriceTypesList();
+                    this.getDepartmentsList();//отделения
+                    this.getStatusesList();//статусы документа 
+                    this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+                    this.hideOrShowNdsColumn();//расчет прятать или показывать колонку НДС
+                  }                
+                  this.cheque_nds=documentValues.nds;//нужно ли передавать в кассу (в чек) данные об НДС
+                    //!!!
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
+                this.refreshPermissions();
+
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
         );
@@ -1038,21 +1046,27 @@ export class InvoiceoutDocComponent implements OnInit {
     } 
   }
 
-  checkDocNumberUnical() {
-    if(!this.formBaseInformation.get('doc_number').errors)
-    {
-      let Unic: boolean;
-      this.isDocNumberUnicalChecking=true;
-      return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table=retail_sales')
-      .subscribe(
-          (data) => {   
-                      Unic = data as boolean;
-                      if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Введённый номер документа не является уникальным.',}});
-                      this.isDocNumberUnicalChecking=false;
-                  },
-          error => {console.log(error);this.isDocNumberUnicalChecking=false;}
-      );
-    }
+  
+  // !!!
+  checkDocNumberUnical(tableName:string) {
+    let docNumTmp=this.formBaseInformation.get('doc_number').value;
+    setTimeout(() => {
+      if(!this.formBaseInformation.get('doc_number').errors && this.lastCheckedDocNumber!=docNumTmp && docNumTmp!='' && docNumTmp==this.formBaseInformation.get('doc_number').value)
+        {
+          let Unic: boolean;
+          this.isDocNumberUnicalChecking=true;
+          this.lastCheckedDocNumber=docNumTmp;
+          return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table='+tableName)
+          .subscribe(
+              (data) => {   
+                          Unic = data as boolean;
+                          if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Введённый номер документа не является уникальным.',}});
+                          this.isDocNumberUnicalChecking=false;
+                      },
+              error => {console.log(error);this.isDocNumberUnicalChecking=false;}
+          );
+        }
+    }, 1000);
   }
 
   //создание нового документа 
@@ -1094,6 +1108,7 @@ export class InvoiceoutDocComponent implements OnInit {
     this.setStatusColor();//чтобы обновился цвет статуса
     this.formBaseInformation.get('cagent_id').enable();//иначе при сохранении он не будет отпраляться
     this.productSearchAndTableComponent.hideOrShowNdsColumn();//чтобы убрать столбцы выбора и удаления товара из таблицы
+    this.rightsDefined=false; //!!!
     this.getDocumentValuesById(true);//чтобы обновить значения в Основной информации (например, Покупателя)
   }
 
@@ -1156,7 +1171,7 @@ export class InvoiceoutDocComponent implements OnInit {
                 this.is_completed=false;
                 if(this.productSearchAndTableComponent){
                   this.productSearchAndTableComponent.getProductsTable();
-                  this.productSearchAndTableComponent.hideOrShowNdsColumn(); //чтобы спрятать столбцы после завершения 
+                  this.productSearchAndTableComponent.hideOrShowNdsColumn(); //чтобы спрятать столбцы после проведения 
                   this.productSearchAndTableComponent.tableNdsRecount();
                 }
               }
@@ -1186,11 +1201,11 @@ export class InvoiceoutDocComponent implements OnInit {
             let result:number=data as number;
             switch(result){
               case null:{// null возвращает если не удалось создать документ из-за ошибки
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка "+ (complete?"завершения":"сохренения") + " документа \"Счёт покупателю\""}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка "+ (complete?"проведения":"сохренения") + " документа \"Счёт покупателю\""}});
                 break;
               }
               case -1:{//недостаточно прав
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для сохранения или проведения документа \"Счёт покупателю\""}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для "+ (complete?"проведения":"сохренения") + " документа \"Счёт покупателю\""}});
                 break;
               }
               case 0:{// недостаточно товара на складе
@@ -1208,7 +1223,7 @@ export class InvoiceoutDocComponent implements OnInit {
                   this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с завершением - окончательно устанавливаем признак завершенности = true
                   this.is_completed=true;
                   if(this.productSearchAndTableComponent){
-                    this.productSearchAndTableComponent.hideOrShowNdsColumn(); //чтобы спрятать столбцы после завершения 
+                    this.productSearchAndTableComponent.hideOrShowNdsColumn(); //чтобы спрятать столбцы после проведения 
                     this.productSearchAndTableComponent.tableNdsRecount();
                   }
                   if(this.settingsForm.get('statusIdOnComplete').value){//если в настройках есть "Статус при завершении" - выставим его

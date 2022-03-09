@@ -131,7 +131,7 @@ export class TaxesComponent implements OnInit {
 
     // -------------------------------------- *** ПРАВА *** ------------------------------------
    getSetOfPermissions(){
-    return this.http.get('/api/auth/getMyPermissions?id=22')
+    return this.http.get('/api/auth/getMyPermissions?id=50')
             .subscribe(
                 (data) => {   
                             this.permissionsSet=data as any [];
@@ -142,26 +142,24 @@ export class TaxesComponent implements OnInit {
   }
 
   getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==271)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==272)});
-    this.allowToDeleteAllCompanies = permissionsSet.some(         function(e){return(e==273)});
-    this.allowToDeleteMyCompany = permissionsSet.some(            function(e){return(e==274)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==275)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==276)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==277)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==278)});
+    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==636)});
+    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==637)});
+    this.allowToDeleteAllCompanies = permissionsSet.some(         function(e){return(e==638)});
+    this.allowToDeleteMyCompany = permissionsSet.some(            function(e){return(e==639)});
+    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==640)});
+    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==641)});
+    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==642)});
+    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==643)});
     this.getData();
   }
 
   refreshPermissions():boolean{
-    let documentOfMyCompany:boolean = (this.sendingQueryForm.companyId==this.myCompanyId);
     this.allowToView=(this.allowToViewAllCompanies||this.allowToViewMyCompany)?true:false;
     this.allowToUpdate=(this.allowToUpdateAllCompanies||this.allowToUpdateMyCompany)?true:false;
     this.allowToCreate=(this.allowToCreateAllCompanies||this.allowToCreateMyCompany)?true:false;
     this.allowToDelete=(this.allowToDeleteAllCompanies || this.allowToDeleteMyCompany)?true:false;
     this.showOpenDocIcon=(this.allowToUpdate||this.allowToView);
     this.visBtnAdd = (this.allowToCreate)?true:false;
-    
     // console.log("allowToView - "+this.allowToView);
     // console.log("allowToUpdate - "+this.allowToUpdate);
     // console.log("allowToCreate - "+this.allowToCreate);
@@ -209,7 +207,7 @@ export class TaxesComponent implements OnInit {
             ); 
   }
 
-  getTable(){
+  getTable(){//!!!
     this.gettingTableData=true;
     this.queryFormService.getTable(this.sendingQueryForm)
             .subscribe(

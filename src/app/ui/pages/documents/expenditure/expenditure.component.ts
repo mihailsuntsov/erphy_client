@@ -75,7 +75,7 @@ export class ExpenditureComponent implements OnInit {
   maxpage: any;  // - Последняя страница в пагинаторe (т.е. maxpage=8 при пагинаторе [345678])
   listsize: any; // - Последняя страница в пагинации (но не в пагинаторе. т.е. в пагинаторе может быть [12345] а listsize =10)
 
-  gettingTableData:boolean=true;
+  gettingTableData:boolean=true;//!!!
 
   //переменные для управления динамическим отображением элементов
   visBtnAdd:boolean;
@@ -183,6 +183,7 @@ export class ExpenditureComponent implements OnInit {
       this.updateSortOptions();
       this.getPagesList();
       this.getTable();
+      //!!!
     } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
   }
 
@@ -210,7 +211,7 @@ export class ExpenditureComponent implements OnInit {
             ); 
   }
 
-  getTable(){
+  getTable(){//!!!
     this.gettingTableData=true;
     this.queryFormService.getTable(this.sendingQueryForm)
             .subscribe(
@@ -360,35 +361,42 @@ export class ExpenditureComponent implements OnInit {
       this.showOnlyVisBtnAdd();
     });        
   }
-  undeleteDocs(){
-    const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
-    this.clearCheckboxSelection();
-      return this.http.post('/api/auth/undeleteExpenditure', body) 
-    .subscribe(
-        (data) => {   
-                    this.getData();
-                    this.openSnackBar("Успешно восстановлено", "Закрыть");
-                  },
-        error => console.log(error),
-    );
-  }
+    
   deleteDocs(){
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
-          return this.http.post('/api/auth/deleteExpenditure', body) 
-            .subscribe(
-                (data) => {   
-                            this.getData();
-                          },
-                error => console.log(error),
-            );
-    }
-    
+        return this.http.post('/api/auth/deleteExpenditure', body) 
+    .subscribe((data) => {   
+      let result=data as any;
+      switch(result){
+        case 1:{this.getData();this.openSnackBar("Успешно удалено", "Закрыть");break;} 
+        case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе удаления проиошла ошибка")}});break;}
+        case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+      }
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+  }
+
+  undeleteDocs(){
+    const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
+    this.clearCheckboxSelection();
+     return this.http.post('/api/auth/undeleteExpenditure', body) 
+    .subscribe(
+        (data) => {   
+          let result=data as any;
+          switch(result){
+            case 1:{this.getData();this.openSnackBar("Успешно удалено", "Закрыть");break;} 
+            case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе операции проиошла ошибка")}});break;}
+            case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+          }
+        },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+  }  
+
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
       duration: 3000,
     });
   }
+
   getCompaniesList(){
     this.receivedCompaniesList=null;
     this.loadSpravService.getCompaniesList()
@@ -430,11 +438,11 @@ export class ExpenditureComponent implements OnInit {
 
   showCheckbox(row:CheckBox):boolean{
     if(
-        (this.allowToDeleteAllCompanies)||
-        (this.allowToDeleteMyCompany && row.company_id==this.myCompanyId)
-      )
-      return true; else return false;
-    }
+      (this.allowToDeleteAllCompanies)||
+      (this.allowToDeleteMyCompany && row.company_id==this.myCompanyId)
+    )
+    return true; else return false;
+  }
 
   doFilterCompaniesList(){
     let myCompany:idAndName;

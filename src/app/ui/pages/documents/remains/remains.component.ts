@@ -11,9 +11,9 @@ import { LoadSpravService } from './loadsprav';
 import { QueryFormService } from './get-remains-table.service';
 import { ProductCategoriesDialogComponent } from 'src/app/ui/dialogs/product-categories-dialog/product-categories-dialog.component';
 import { RemainsDialogComponent } from 'src/app/ui/dialogs/remains-dialog/remains-dialog.component';
-import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { FormControl  } from '@angular/forms';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 
 interface CategoryNode {
@@ -75,6 +75,7 @@ export class RemainsComponent implements OnInit {
   allowToUpdate:boolean = false;
 
   showOpenDocIcon:boolean=false;
+  gettingTableData:boolean=true;
 
 
   numRows: NumRow[] = [
@@ -135,6 +136,7 @@ export class RemainsComponent implements OnInit {
     private httpService:   LoadSpravService,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
+    private MessageDialog: MatDialog,
     public productCategoriesDialog: MatDialog,
     public remainsDialogComponent: MatDialog,
     private Cookie: Cookie,
@@ -194,20 +196,22 @@ export class RemainsComponent implements OnInit {
   onStartQueries(){
     this.completedStartQueries++;
     if(this.completedStartQueries==3 && this.allowToView){
-      console.log("Все стартовые запросы 1 выполнены!");
+      // console.log("Все стартовые запросы 1 выполнены!");
       this.completedStartQueries=0;
       this.getTableHeaderTitles();
       this.doFilterCompaniesList();
       this.setDefaultCompany();
       this.getDepartmentsList();
       this.getMyDepartmentsList();
+    } else if(this.completedStartQueries==3 && !this.allowToView){  
+      this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})
     }
   }  
   //3я группа параллельных стартовых запросов
   onStartQueries2(){
     this.completedStartQueries++;
     if(this.completedStartQueries==4){
-      console.log("Все стартовые запросы 2 выполнены!");
+      // console.log("Все стартовые запросы 2 выполнены!");
       this.completedStartQueries=0;
       this.doFilterDepartmentsList();//если нет просмотра по своему предприятию - фильтруем список отделений предприятия до своих отделений
       this.setDefaultDepartment();
@@ -216,7 +220,7 @@ export class RemainsComponent implements OnInit {
   onStartQueries3(){
     this.completedStartQueries++;
     if(this.completedStartQueries==2){
-      console.log("Все стартовые запросы 3 выполнены!");
+      // console.log("Все стартовые запросы 3 выполнены!");
       this.getTable();
       this.loadTrees();
     }
@@ -225,24 +229,24 @@ export class RemainsComponent implements OnInit {
  // -------------------------------------- *** ПРАВА *** ------------------------------------
   getSetOfPermissions(){
     return this.http.get('/api/auth/getMyPermissions?id=18')
-            .subscribe(
-                (data) => {   
-                          this.permissionsSet=data as any [];
-                          this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==232)});
-                          this.allowToUpdateMyCompany =this. permissionsSet.some(            function(e){return(e==233)});
-                          this.allowToUpdateMyDepartments = this.permissionsSet.some(        function(e){return(e==234)});
-                          this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==235)});
-                          this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==236)});
-                          this.allowToViewMyDepartments = this.permissionsSet.some(          function(e){return(e==237)});
-                          this.allowToView=(this.allowToViewAllCompanies||this.allowToViewMyCompany||this.allowToViewMyDepartments)?true:false;
-                          this.allowToUpdate=(this.allowToUpdateAllCompanies||this.allowToUpdateMyCompany||this.allowToUpdateMyDepartments)?true:false;
-                          this.showOpenDocIcon=(this.allowToUpdate||this.allowToView);
-                          console.log("allowToView - "+this.allowToView);
-                          console.log("allowToUpdate - "+this.allowToUpdate); 
-                          this.onStartQueries();
-                        },
-                error => console.log(error),
-            );
+    .subscribe(
+      (data) => {   
+        this.permissionsSet=data as any [];
+        this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==232)});
+        this.allowToUpdateMyCompany =this. permissionsSet.some(            function(e){return(e==233)});
+        this.allowToUpdateMyDepartments = this.permissionsSet.some(        function(e){return(e==234)});
+        this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==235)});
+        this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==236)});
+        this.allowToViewMyDepartments = this.permissionsSet.some(          function(e){return(e==237)});
+        this.allowToView=(this.allowToViewAllCompanies||this.allowToViewMyCompany||this.allowToViewMyDepartments)?true:false;
+        this.allowToUpdate=(this.allowToUpdateAllCompanies||this.allowToUpdateMyCompany||this.allowToUpdateMyDepartments)?true:false;
+        this.showOpenDocIcon=(this.allowToUpdate||this.allowToView);
+        // console.log("allowToView - "+this.allowToView);
+        // console.log("allowToUpdate - "+this.allowToUpdate); 
+        this.onStartQueries();
+      },
+      error => this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}}),
+    );
   }
 
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
@@ -266,6 +270,7 @@ export class RemainsComponent implements OnInit {
 
   getTable(){
     let dataObjectArray: any;
+    this.gettingTableData=true;
     this.sendingQueryForm.filterOptionsIds=this.checkedOptionsList;
     this.clearCheckboxSelection();
     //здесь ↓ надо будет сделать в зависимости от прав - слать только свои отделения или все отделения предприятия
@@ -273,6 +278,7 @@ export class RemainsComponent implements OnInit {
     this.queryFormService.getTable(this.sendingQueryForm)
             .subscribe(
                 (data) => {
+                  this.gettingTableData=false;
                   dataObjectArray=data as TableAndPagesData; 
                   this.receivedMatTable=dataObjectArray.table;
                   this.dataSource.data = this.receivedMatTable;
@@ -283,7 +289,7 @@ export class RemainsComponent implements OnInit {
                   this.listsize=this.receivedPagesList[2];
                   this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1]);
                 },
-                error => {console.log(error);
+                error => {this.gettingTableData=false;console.log(error);
                   if(+this.sendingQueryForm.offset>0) this.setPage(0);
                 }
             );

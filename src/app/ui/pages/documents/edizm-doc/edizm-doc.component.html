@@ -1,36 +1,56 @@
 <mat-card class="card">
   
-    <mat-card-title class="flex">
-        <div class="card-name">Единицы измерения</div>
+    <mat-card-title class="top-bar container-fluid">
+        <div class="row" id="topBlock">
+            <div class="card-name">{{formBaseInformation.get('name').value}}</div>
+            
+            <button 
+                mat-raised-button 
+                *ngIf="+id>0 && allowToUpdate"
+                matTooltip='Сохранить документ'
+                (click)="updateDocument()"
+                [disabled]="!formBaseInformation.valid" 
+                color="primary"
+                type="button"
+                class="button small-button">
+                <i class="material-icons">save</i>
+            </button>
+            <button 
+                mat-raised-button 
+                matTooltip='Создать документ'
+                (click)="clickBtnCreateNewDocument()" 
+                *ngIf="allowToCreate && +id==0 "
+                [disabled]="!formBaseInformation.valid" 
+                color="primary"
+                type="submit"
+                class="button small-button">
+                <i class="material-icons">done</i>
+            </button>
+            <a routerLink="../../edizm">
                 <button 
+                    [matTooltip]="id>0?'Выйти в меню':'Отмена создания документа'"
                     mat-raised-button 
-                    [style.display]="(visBeforeCreatingBlocks==true && allowToCreate)?'block':'none'"
-                    (click)="clickBtnCreateNewDocument()" 
-                    [disabled]="!formBaseInformation.valid" 
-                    color="primary"
-                    class="button">
-                    <i class="material-icons">add_circle_outline</i> Создать
+                    color="accent"
+                    class="button small-button">
+                    <i class="material-icons">close</i>
                 </button>
-                <button 
-                    mat-raised-button 
-                    [style.display]="visBtnUpdate==true?'block':'none'"
-                    (click)="clickBtnUpdate()"
-                    [disabled]="!formBaseInformation.valid" 
-                    color="primary"
-                    class="button">
-                    <i class="material-icons">done</i> Сохранить
-                </button>
-                <a routerLink="../../edizm">
-                    <button 
-                        mat-raised-button 
-                        color="accent"
-                        class="button">
-                        <i class="material-icons">close</i> {{id>0?'Выйти':'Отмена'}}
-                    </button>
-                </a>
+            </a>
+        </div>
     </mat-card-title>
-    <mat-card-subtitle [ngClass]="{invisible: visBeforeCreatingBlocks}">Предприятие: {{formBaseInformation.get('company').value}}</mat-card-subtitle>
-    <mat-card-content> 
+    <!-- !!! -->
+    <mat-card-content *ngIf="rightsDefined && 
+    (
+        (!allowToView && +id>0) ||
+        (!allowToCreate && +id==0)
+    )"> 
+        <mat-card class="internal-card">
+            <mat-card-content style="font-size: 20px;font-weight: bold;color: red;text-align: center;height: 100px;padding: 38px 0;">
+                Недостаточно прав
+            </mat-card-content>
+        </mat-card>
+    </mat-card-content>
+    <!-- !!! -->
+    <mat-card-content *ngIf="!rightsDefined || (rightsDefined && (( +id>0 && allowToView)||(+id==0 && allowToCreate)))"> 
 
         <form [formGroup]="formBaseInformation">   
 
@@ -38,58 +58,74 @@
 
                         <mat-tab label="Информация">
         
-                                <mat-card slyle="margin:10px;">
+                            <div class="container-fluid">
+                                <div class="row" style="padding: 10px">
+                                    <div class="col-lg-4  col-md-12">    
+        
+                                        <mat-card class="card-block">
 
-                                    <mat-card-content class="input-form">
+                                            <mat-card-content class="input-form">
 
-                                            <mat-form-field style="display: none">
-                                                <input  matInput
-                                                        placeholder="id"
-                                                        formControlName="id"/>
-                                            </mat-form-field>
+                                                    <mat-form-field style="display: none">
+                                                        <input  matInput
+                                                                placeholder="id"
+                                                                formControlName="id"/>
+                                                    </mat-form-field>
 
-                                            <mat-form-field [ngClass]="{invisible: visAfterCreatingBlocks}">
-                                                <mat-label>Предприятие</mat-label>
-                                                <mat-select  formControlName="company_id">                          
-                                                    <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
-                                                            {{rt.name}}
-                                                    </mat-option> 
-                                                </mat-select>
-                                            </mat-form-field>
-                                            <mat-form-field>
-                                                <input   matInput
-                                                        placeholder="Наименование"
-                                                        formControlName="name"/>
-                                            </mat-form-field>
-                                            <mat-form-field>
-                                                <input   matInput
-                                                        placeholder="Сокращение (например, Кг., м., Шт.)"
-                                                        formControlName="short_name"/>
-                                            </mat-form-field>
-                                            <mat-form-field>
-                                                <mat-label>Тип ед. измерения</mat-label>
-                                                <mat-select formControlName="type_id"
-                                                            (selectionChange)="changeTypeId()"
-                                                           >
-                                                    <mat-option [value]="1">Предмет</mat-option>
-                                                    <mat-option [value]="2">Масса</mat-option>
-                                                    <mat-option [value]="3">Длина</mat-option>
-                                                    <mat-option [value]="4">Площадь</mat-option>
-                                                    <mat-option [value]="5">Объём</mat-option>
-                                                </mat-select>
-                                            </mat-form-field>
-                                            <mat-form-field [ngClass]="{invisible: +formBaseInformation.get('type_id').value<2}"> 
-                                                <input   matInput
-                                                    placeholder="Множитель для приведения к {{type_short_name}}"
-                                                    formControlName="equals_si"/>
-                                                    <button mat-button matSuffix mat-icon-button aria-label="search" style="font-size: 150%;color: gray;" (click)="aboutMultiplify()">
-                                                        <mat-icon>contact_support</mat-icon>
-                                                    </button>
-                                            </mat-form-field>
+                                                    <mat-form-field *ngIf="+id==0">
+                                                        <mat-label>Предприятие</mat-label>
+                                                        <mat-select  formControlName="company_id">                          
+                                                            <mat-option  *ngFor="let rt of receivedCompaniesList" 
+                                                            
+                                                            [value]="rt.id">
+                                                                    {{rt.name}}
+                                                            </mat-option> 
+                                                        </mat-select>
+                                                    </mat-form-field>
+                                                    
+                                                    <mat-form-field class="mat-form-field-100" *ngIf="+id>0">
+                                                        <mat-label>Предприятие</mat-label>
+                                                        <input  matInput [readonly]="true"
+                                                                [ngModel]="formAboutDocument.get('company').value" [ngModelOptions]="{standalone: true}"/>
+                                                    </mat-form-field>
+                                                    <mat-form-field>
+                                                        <input   matInput
+                                                                placeholder="Наименование"
+                                                                formControlName="name"/>
+                                                    </mat-form-field>
+                                                    <mat-form-field>
+                                                        <input   matInput
+                                                                placeholder="Сокращение (например, Кг., м., Шт.)"
+                                                                formControlName="short_name"/>
+                                                    </mat-form-field>
+                                                    <mat-form-field>
+                                                        <mat-label>Тип ед. измерения</mat-label>
+                                                        <mat-select formControlName="type_id"
+                                                                    (selectionChange)="changeTypeId()"
+                                                                >
+                                                            <mat-option [value]="1">Предмет</mat-option>
+                                                            <mat-option [value]="2">Масса</mat-option>
+                                                            <mat-option [value]="3">Длина</mat-option>
+                                                            <mat-option [value]="4">Площадь</mat-option>
+                                                            <mat-option [value]="5">Объём</mat-option>
+                                                        </mat-select>
+                                                    </mat-form-field>
+                                                    <mat-form-field [ngClass]="{invisible: +formBaseInformation.get('type_id').value<2}"> 
+                                                        <input   matInput
+                                                            placeholder="Множитель для приведения к {{type_short_name}}"
+                                                            formControlName="equals_si"/>
+                                                            <button mat-button matSuffix mat-icon-button aria-label="search" style="font-size: 150%;color: gray;" (click)="aboutMultiplify()">
+                                                                <mat-icon>contact_support</mat-icon>
+                                                            </button>
+                                                    </mat-form-field>
 
-                                    </mat-card-content>
+                                            </mat-card-content>
 
-                                </mat-card>
+                                        </mat-card>
+                                    </div>
+                                </div>
+                            </div>
+
 
                         </mat-tab>
                         <mat-tab  *ngIf="visAfterCreatingBlocks"  label="О документе">

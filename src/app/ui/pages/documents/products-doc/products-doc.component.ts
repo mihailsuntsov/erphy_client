@@ -196,6 +196,7 @@ visBtnUpdate = false;
  allowToView:boolean = false;
  allowToUpdate:boolean = false;
  allowToCreate:boolean = false;
+ rightsDefined:boolean; // определены ли права !!!
 
  // Отчет по товарам Изменения
 formProductHistory: ProductHistoryQuery=new ProductHistoryQuery();//форма, содержащая информацию для запроса отчета об истории изменения количества товара на складе
@@ -444,6 +445,7 @@ refreshPermissions():boolean{
     this.visBeforeCreatingBlocks = true;
   }
   this.loadTrees();
+  this.rightsDefined=true;//!!!
   return true;
 }
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
@@ -530,45 +532,48 @@ refreshPermissions():boolean{
               
                 let documentValues: docResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
                 //Заполнение формы из интерфейса documentValues:
-                this.formAboutDocument.get('id').setValue(+documentValues.id);
-                this.formAboutDocument.get('master').setValue(documentValues.master);
-                this.formAboutDocument.get('creator').setValue(documentValues.creator);
-                this.formAboutDocument.get('changer').setValue(documentValues.changer);
-                this.formAboutDocument.get('company').setValue(documentValues.company);
-                this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
-                this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
-                this.formBaseInformation.get('company_id').setValue(+documentValues.company_id);
-                this.formBaseInformation.get('company').setValue(documentValues.company);
-                this.formBaseInformation.get('productgroup_id').setValue(+documentValues.productgroup_id);
-                this.formBaseInformation.get('name').setValue(documentValues.name);
-                this.formBaseInformation.get('description').setValue(documentValues.description);
-                this.formBaseInformation.get('article').setValue(documentValues.article);
-                this.formBaseInformation.get('product_code').setValue(documentValues.product_code?this.PrependZeros(documentValues.product_code,5,''):'');
-                this.formBaseInformation.get('product_code_free').setValue(documentValues.product_code_free?this.PrependZeros(documentValues.product_code_free,10,''):'');
-                this.formBaseInformation.get('ppr_id').setValue(+documentValues.ppr_id);
-                this.formBaseInformation.get('by_weight').setValue(documentValues.by_weight);
-                this.formBaseInformation.get('edizm_id').setValue(+documentValues.edizm_id);
-                this.formBaseInformation.get('nds_id').setValue(+documentValues.nds_id);
-                this.formBaseInformation.get('weight').setValue(documentValues.weight);
-                this.formBaseInformation.get('volume').setValue(documentValues.volume);
-                this.formBaseInformation.get('weight_edizm_id').setValue(+documentValues.weight_edizm_id);
-                this.formBaseInformation.get('volume_edizm_id').setValue(+documentValues.volume_edizm_id);
-                this.formBaseInformation.get('markable').setValue(documentValues.markable);
-                this.formBaseInformation.get('markable_group_id').setValue(+documentValues.markable_group_id);
-                this.formBaseInformation.get('excizable').setValue(documentValues.excizable);
-                this.formBaseInformation.get('not_buy').setValue(documentValues.not_buy);
-                this.formBaseInformation.get('not_sell').setValue(documentValues.not_sell);
-                this.formBaseInformation.get('indivisible').setValue(documentValues.indivisible);
-                
+                if(data!=null&&documentValues.company_id!=null){
+                  this.formAboutDocument.get('id').setValue(+documentValues.id);
+                  this.formAboutDocument.get('master').setValue(documentValues.master);
+                  this.formAboutDocument.get('creator').setValue(documentValues.creator);
+                  this.formAboutDocument.get('changer').setValue(documentValues.changer);
+                  this.formAboutDocument.get('company').setValue(documentValues.company);
+                  this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
+                  this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
+                  this.formBaseInformation.get('company_id').setValue(+documentValues.company_id);
+                  this.formBaseInformation.get('company').setValue(documentValues.company);
+                  this.formBaseInformation.get('productgroup_id').setValue(+documentValues.productgroup_id);
+                  this.formBaseInformation.get('name').setValue(documentValues.name);
+                  this.formBaseInformation.get('description').setValue(documentValues.description);
+                  this.formBaseInformation.get('article').setValue(documentValues.article);
+                  this.formBaseInformation.get('product_code').setValue(documentValues.product_code?this.PrependZeros(documentValues.product_code,5,''):'');
+                  this.formBaseInformation.get('product_code_free').setValue(documentValues.product_code_free?this.PrependZeros(documentValues.product_code_free,10,''):'');
+                  this.formBaseInformation.get('ppr_id').setValue(+documentValues.ppr_id);
+                  this.formBaseInformation.get('by_weight').setValue(documentValues.by_weight);
+                  this.formBaseInformation.get('edizm_id').setValue(+documentValues.edizm_id);
+                  this.formBaseInformation.get('nds_id').setValue(+documentValues.nds_id);
+                  this.formBaseInformation.get('weight').setValue(documentValues.weight);
+                  this.formBaseInformation.get('volume').setValue(documentValues.volume);
+                  this.formBaseInformation.get('weight_edizm_id').setValue(+documentValues.weight_edizm_id);
+                  this.formBaseInformation.get('volume_edizm_id').setValue(+documentValues.volume_edizm_id);
+                  this.formBaseInformation.get('markable').setValue(documentValues.markable);
+                  this.formBaseInformation.get('markable_group_id').setValue(+documentValues.markable_group_id);
+                  this.formBaseInformation.get('excizable').setValue(documentValues.excizable);
+                  this.formBaseInformation.get('not_buy').setValue(documentValues.not_buy);
+                  this.formBaseInformation.get('not_sell').setValue(documentValues.not_sell);
+                  this.formBaseInformation.get('indivisible').setValue(documentValues.indivisible);
+                  
 
-                this.searchProductGroupsCtrl.setValue(documentValues.productgroup);
-                this.checkedList=documentValues.product_categories_id;
-                
-                this.getSpravSysMarkableGroup(); //загрузка справочника маркированных групп товаров
-                this.getSpravSysEdizm(); //загрузка единиц измерения
-                this.getProductBarcodesPrefixes(); //загрузка префиксов штрих-кодов
-                this.getProductPrices(); // загрузка типов цен
-                this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
+                  this.searchProductGroupsCtrl.setValue(documentValues.productgroup);
+                  this.checkedList=documentValues.product_categories_id;
+                  
+                  this.getSpravSysMarkableGroup(); //загрузка справочника маркированных групп товаров
+                  this.getSpravSysEdizm(); //загрузка единиц измерения
+                  this.getProductBarcodesPrefixes(); //загрузка префиксов штрих-кодов
+                  this.getProductPrices(); // загрузка типов цен
+                  this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
+                  //!!!
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
                 this.refreshPermissions();
 
             },
@@ -730,6 +735,7 @@ refreshPermissions():boolean{
                                 this.createdDocId=data as string [];
                                 this.id=+this.createdDocId[0];
                                 this.formBaseInformation.get('id').setValue(this.id);
+                                this.rightsDefined=false; //!!!
                                 this.getData();
                                 this.openSnackBar("Документ \"Товары и услуги\" успешно создан", "Закрыть");
                             },

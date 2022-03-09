@@ -92,6 +92,7 @@ export class RetailsalesComponent implements OnInit {
   allowToDelete:boolean = false;
 
   showOpenDocIcon:boolean=false;
+  gettingTableData:boolean=true;
 
   numRows: NumRow[] = [
     {value: '5', viewValue: '5'},
@@ -262,8 +263,7 @@ export class RetailsalesComponent implements OnInit {
       this.getTableHeaderTitles();
       this.getPagesList();
       this.getTable();
-      // this.getPriceTypesList();
-    }
+    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
   }
 
   getTableHeaderTitles(){
@@ -287,13 +287,15 @@ export class RetailsalesComponent implements OnInit {
   }
 
   getTable(){
+    this.gettingTableData=true;
     this.queryFormService.getTable(this.sendingQueryForm)
             .subscribe(
                 (data) => {
                   this.dataSource.data = data as any []; 
                   if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
+                  this.gettingTableData=false;
                 },
-                error => console.log(error) 
+                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
             );
   }
 

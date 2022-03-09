@@ -1,121 +1,162 @@
 <mat-card class="card">
     <form #form="ngForm" [formGroup]="formBaseInformation">
-        <div class="top-bar-plug"></div>
-        <mat-card-title class="flex top-bar">
-            <div class="card-name">Оприходование <span [ngClass]="{invisible: +id==0}"> №{{formBaseInformation.get('doc_number').value}}</span></div>
-            <div  id="status" style=" font-size: 15px;"> 
-                <div class = "circle-in-selected" *ngIf="+formBaseInformation.get('status_id').value>0" [style.background-color]="formBaseInformation.get('status_color').value"></div>
-                <mat-form-field  class="mat-form-field-100" style="margin-top: -25px;">
-                    <mat-select     style="padding: 0px 0px 0px 23px" 
-                                    panelClass="statuseslist"
-                                    formControlName="status_id"
-                                    (selectionChange)="setStatusColor();">
-                        <mat-option *ngFor="let status of receivedStatusesList" 
-                                    [value]="status.id"
-                                    matTooltip={{status.description}}>
-                                    <div style="display: inline;line-height: 20px;">
-                                        <div class = "circle-wrapper">
-                                            <div class = "circle-in-list" [style.background-color]="status.color"></div>
+        <!-- !!! -->
+        <mat-card-title class="top-bar container-fluid"> 
+            <div class="row" id="topBlock">
+                <div id="cardname">
+                    <div class="nowrap">Оприходование №
+                        <mat-form-field class="docnumber" *ngIf="doc_number_isReadOnly && +id==0 && (+formBaseInformation.get('company_id').value>0)">                                                               
+                            <input  matInput
+                                    (click)="EditDocNumber()"
+                                    formControlName="doc_number"
+                                    [readonly]=true/>
+                        </mat-form-field>
+                        <mat-form-field class="docnumber" *ngIf="!doc_number_isReadOnly && +id==0 && (+formBaseInformation.get('company_id').value>0)">
+                            <input  matInput
+                                    #doc_number 
+                                    maxlength="10"
+                                    (keypress)="numberOnly($event)"
+                                    (keyup)="checkDocNumberUnical('posting')"
+                                    formControlName="doc_number"/>
+                            <mat-hint  align="start" style="font-size: x-small;margin-top: -1px;" *ngIf="formBaseInformation.get('doc_number').touched && formBaseInformation.get('doc_number').invalid">
+                                <i *ngIf="formBaseInformation.get('doc_number').errors.pattern" class="form-invalid">Номер должен состоять из цифр</i>
+                            </mat-hint>
+                            <mat-hint align="end" *ngIf="doc_number.value.length>5 && !formBaseInformation.get('is_completed').value" style="font-size: x-small;margin-top: -1px;">{{doc_number.value.length}} / 10</mat-hint>
+                            <mat-progress-bar *ngIf="isDocNumberUnicalChecking" mode="indeterminate"></mat-progress-bar>
+                        </mat-form-field>
+                        <span [ngClass]="{invisible: +id==0}"> {{formBaseInformation.get('doc_number').value}}</span>
+                    </div>
+                </div>
+                <div  id="status" style=" font-size: 15px;"> 
+                    <div class = "circle-in-selected" *ngIf="+formBaseInformation.get('status_id').value>0" [style.background-color]="formBaseInformation.get('status_color').value"></div>
+                    <mat-form-field  class="mat-form-field-100" style="margin-top: -25px;">
+                        <mat-select     style="padding: 0px 0px 0px 23px" 
+                                        panelClass="statuseslist"
+                                        formControlName="status_id"
+                                        (selectionChange)="setStatusColor();">
+                                        <!-- !!! -->
+                            <mat-option *ngFor="let status of receivedStatusesList" 
+                                        [ngClass]="{invisible: !(allowToUpdate && !formBaseInformation.get('is_completed').value)}"
+                                        [value]="status.id"
+                                        matTooltip={{status.description}}>
+                                        <div style="display: inline;line-height: 20px;">
+                                            <div class = "circle-wrapper">
+                                                <div class = "circle-in-list" [style.background-color]="status.color"></div>
+                                            </div>
+                                            <div class = "status-name">{{status.name}}</div>
                                         </div>
-                                        <div class = "status-name">{{status.name}}</div>
-                                    </div>
-                        </mat-option>
-                    </mat-select>
-                    <mat-hint  align="start" *ngIf="formBaseInformation.get('status_id').touched && formBaseInformation.get('status_id').invalid">
-                        <i class="form-invalid">Статус документа не выбран.</i>
-                    </mat-hint>
-                </mat-form-field>
-            </div>
-            <button 
-                mat-raised-button 
-                color="primary"
-                matTooltip='Пользовательские настройки документа'
-                (click)="openDialogSettings()"
-                type="button"
-                class="button small-button">
-                <i class="material-icons">settings</i>
-            </button>
-            <button 
-                mat-button 
-                [matMenuTriggerFor]="addDocMenu"
-                mat-raised-button 
-                matTooltip='Создать документы'
-                [disabled]="!childFormValid||!formBaseInformation.valid||postingProductsTableComponent.indivisibleErrorOfProductTable" 
-                *ngIf="+id>0 && postingProductsTableComponent"
-                color="primary"
-                (submit)="false"
-                type="button"
-                class="button small-button">
-                <i class="material-icons">add</i>
-            </button>
-            <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
-                <button mat-menu-item (click)="goToNewDocument()">
-                    <span>Оприходование</span>
-                </button>
-            </mat-menu>
-            <button 
-                mat-raised-button 
-                matTooltip='Провести документ'
-                *ngIf=" +id>0 && !formBaseInformation.get('is_completed').value && postingProductsTableComponent"
-                [disabled]="!childFormValid||postingProductsTableComponent.indivisibleErrorOfProductTable" 
-                (click)="completeDocument()" 
-                type="button"
-                color="primary"
-                class="button small-button">
-                <i class="material-icons">playlist_add_check</i>
-            </button>
-            <button 
-                matTooltip='Документ проведён'
-                mat-raised-button 
-                *ngIf=" +id>0 && canGetChilds && formBaseInformation.get('is_completed').value && postingProductsTableComponent"
-                (click)="decompleteDocument()" 
-                type="button"
-                color="primary"
-                class="button small-button completed">
-                <i class="material-icons">playlist_add_check</i> 
-            </button>
-            <button 
-                mat-raised-button 
-                *ngIf="+id>0 && allowToUpdate && canGetChilds && !formBaseInformation.get('is_completed').value && postingProductsTableComponent"
-                matTooltip='Сохранить документ'
-                (click)="updateDocument()"
-                [disabled]="!childFormValid||postingProductsTableComponent.indivisibleErrorOfProductTable" 
-                color="primary"
-                type="button"
-                class="button small-button">
-                <i class="material-icons">save</i>
-            </button>
-            <button 
-                mat-raised-button 
-                matTooltip='Создать документ'
-                (click)="createNewDocument()" 
-                *ngIf="allowToCreate && +id==0  && postingProductsTableComponent"
-                [disabled]="!childFormValid||!formBaseInformation.valid||postingProductsTableComponent.indivisibleErrorOfProductTable" 
-                color="primary"
-                type="submit"
-                class="button small-button">
-                <i class="material-icons">done</i>
-            </button>
-            <a routerLink="../../posting"  [style.display]="(mode=='standart')?'block':'none'">
+                            </mat-option>
+                        </mat-select>
+                        <mat-hint  align="start" *ngIf="formBaseInformation.get('status_id').touched && formBaseInformation.get('status_id').invalid">
+                            <i class="form-invalid">Статус документа не выбран.</i>
+                        </mat-hint>
+                    </mat-form-field>
+                </div>
+                <div class="separator"></div><!-- !!! -->
                 <button 
                     mat-raised-button 
-                    [matTooltip]="id>0?'Выйти в меню':'Отмена создания документа'"
-                    color="accent"
+                    color="primary"
+                    matTooltip='Пользовательские настройки документа'
+                    (click)="openDialogSettings()"
+                    type="button"
                     class="button small-button">
-                    <i class="material-icons">close</i>
+                    <i class="material-icons">settings</i>
                 </button>
-            </a>
-            <button [style.display]="(mode=='window')?'block':'none'"
-                    mat-raised-button
-                    style="margin-left:10px"
-                    [mat-dialog-close]="formBaseInformation.get('is_completed').value"
-                    matDialogClose 
-                    class="button small-button"
-                    color="accent">
-                    <i class="material-icons">close</i>
-            </button>
+                <button 
+                    mat-button 
+                    [matMenuTriggerFor]="addDocMenu"
+                    mat-raised-button 
+                    matTooltip='Создать документы'
+                    [disabled]="!childFormValid||!formBaseInformation.valid||postingProductsTableComponent.indivisibleErrorOfProductTable" 
+                    *ngIf="+id>0 && postingProductsTableComponent"
+                    color="primary"
+                    (submit)="false"
+                    type="button"
+                    class="button small-button">
+                    <i class="material-icons">add</i>
+                </button>
+                <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
+                    <button mat-menu-item (click)="goToNewDocument()">
+                        <span>Оприходование</span>
+                    </button>
+                </mat-menu>
+                <button 
+                    mat-raised-button 
+                    *ngIf="+id>0 && allowToUpdate && canGetChilds && !formBaseInformation.get('is_completed').value && postingProductsTableComponent"
+                    matTooltip='Сохранить документ'
+                    (click)="updateDocument()"
+                    [disabled]="!childFormValid||postingProductsTableComponent.indivisibleErrorOfProductTable" 
+                    color="primary"
+                    type="button"
+                    class="button small-button">
+                    <i class="material-icons">save</i>
+                </button>
+                <button 
+                    mat-raised-button 
+                    matTooltip='Создать документ'
+                    (click)="createNewDocument()" 
+                    *ngIf="allowToCreate && +id==0  && postingProductsTableComponent"
+                    [disabled]="!childFormValid||!formBaseInformation.valid||postingProductsTableComponent.indivisibleErrorOfProductTable" 
+                    color="primary"
+                    type="submit"
+                    class="button small-button">
+                    <i class="material-icons">done</i>
+                </button>
+                <button 
+                    mat-raised-button 
+                    matTooltip='Провести документ'
+                    *ngIf=" +id>0 && allowToComplete && canGetChilds && !formBaseInformation.get('is_completed').value && postingProductsTableComponent"
+                    [disabled]="!childFormValid||postingProductsTableComponent.indivisibleErrorOfProductTable" 
+                    (click)="completeDocument()" 
+                    type="button"
+                    color="primary"
+                    class="button small-button">
+                    <i class="material-icons">playlist_add_check</i>
+                </button>
+                <button 
+                    matTooltip='Документ проведён'
+                    mat-raised-button 
+                    *ngIf=" +id>0 && canGetChilds && formBaseInformation.get('is_completed').value && postingProductsTableComponent"
+                    (click)="decompleteDocument()" 
+                    type="button"
+                    color="primary"
+                    class="button small-button completed">
+                    <i class="material-icons">playlist_add_check</i> 
+                </button>
+                <a routerLink="../../posting"  [style.display]="(mode=='standart')?'block':'none'">
+                    <button 
+                        mat-raised-button 
+                        [matTooltip]="id>0?'Выйти в меню':'Отмена создания документа'"
+                        color="accent"
+                        class="button small-button">
+                        <i class="material-icons">close</i>
+                    </button>
+                </a>
+                <button [style.display]="(mode=='window')?'block':'none'"
+                        mat-raised-button
+                        style="margin-left:10px"
+                        [mat-dialog-close]="formBaseInformation.get('is_completed').value"
+                        matDialogClose 
+                        class="button small-button"
+                        color="accent">
+                        <i class="material-icons">close</i>
+                </button>
+            </div>
         </mat-card-title>
-        <mat-card-content> 
+        <!-- !!! -->
+        <mat-card-content *ngIf="rightsDefined && 
+        (
+            (!allowToView && +id>0) ||
+            (!allowToCreate && +id==0)
+        )"> 
+            <mat-card class="internal-card">
+                <mat-card-content style="font-size: 20px;font-weight: bold;color: red;text-align: center;height: 100px;padding: 38px 0;">
+                    Недостаточно прав
+                </mat-card-content>
+            </mat-card>
+        </mat-card-content>
+        <!-- !!! -->
+        <mat-card-content *ngIf="!rightsDefined || (rightsDefined && (( +id>0 && allowToView)||(+id==0 && allowToCreate)))"> 
             <mat-tab-group
             (focusChange)="myTabFocusChange($event)"
             (selectedIndexChange)="myTabSelectedIndexChange($event)"  
@@ -188,29 +229,6 @@
                                                 <div class="col-xl-6 col-sm-12">
                                                     <div class="container-fluid">
                                                         <div class="row">
-                                                            <div class="col-lg-6  col-md-12"> 
-                                                                <mat-form-field class="mat-form-field-100" *ngIf="doc_number_isReadOnly && (+formBaseInformation.get('company_id').value>0)">                                                               
-                                                                    <input  matInput
-                                                                            (click)="EditDocNumber()"
-                                                                            placeholder="Номер документа"
-                                                                            formControlName="doc_number"
-                                                                            [readonly]=true/>
-                                                                </mat-form-field>
-                                                                <mat-form-field class="mat-form-field-100" *ngIf="!doc_number_isReadOnly && (+formBaseInformation.get('company_id').value>0)">
-                                                                    <input  matInput
-                                                                            #doc_number 
-                                                                            maxlength="10"
-                                                                            placeholder="Номер документа"
-                                                                            (keypress)="numberOnly($event)"
-                                                                            (change)="checkDocNumberUnical()"
-                                                                            formControlName="doc_number"/>
-                                                                    <mat-hint  align="start" *ngIf="formBaseInformation.get('doc_number').touched && formBaseInformation.get('doc_number').invalid">
-                                                                        <i *ngIf="formBaseInformation.get('doc_number').errors.pattern" class="form-invalid">Номер должен состоять из цифр</i>
-                                                                    </mat-hint>
-                                                                    <mat-hint align="end">{{doc_number.value.length}} / 10</mat-hint>
-                                                                    <mat-progress-bar *ngIf="isDocNumberUnicalChecking" mode="indeterminate"></mat-progress-bar>
-                                                                </mat-form-field>
-                                                            </div>
                                                             <div class="col-lg-6  col-md-12"> 
                                                                 <mat-form-field  class="mat-form-field-100">
                                                                     <input  matInput 

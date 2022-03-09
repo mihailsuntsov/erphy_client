@@ -11,13 +11,22 @@ li {list-style: none;}
 
 .card{
     width:100%;
-    max-width: 1000px;
-    margin-top: 10px;
 }
 .invisible{display:none;}
 
 .card-name{ flex-grow: 1; }
 
+.internal-card{
+    padding: 10px 0 10px;
+    margin: 10px 0 10px 0;
+}
+.expansion-card-top{
+    margin: 10px 0 10px 0;
+}
+.invisible{display:none;}
+::ng-deep .mat-card-header-text {
+    margin: 0px 0px !important;
+}
 .button{
     margin-left: 10px;
 }
