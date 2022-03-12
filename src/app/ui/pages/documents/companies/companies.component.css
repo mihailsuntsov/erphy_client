@@ -56,3 +56,12 @@ li {list-style: none;}
 .sortheader{
     cursor: default;
 }
+/*Данные не найдены*/
+.spinner{
+    position: absolute;
+    top: 7%;
+    left: 50%;
+    margin-left: -25px;
+    margin-top: 100px;
+    z-index: 100;
+}

@@ -4,7 +4,7 @@
         <mat-card-title class="top-bar container-fluid"> 
             <div class="row" id="topBlock">
                 <div id="cardname">
-                    <div class="nowrap">Корректировка №
+                    <div class="nowrap">Возврат покупателя №
                         <mat-form-field class="docnumber" *ngIf="doc_number_isReadOnly && +id==0 && (+formBaseInformation.get('company_id').value>0)">                                                               
                             <input  matInput
                                     (click)="EditDocNumber()"

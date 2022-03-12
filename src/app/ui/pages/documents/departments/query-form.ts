@@ -1,16 +1,12 @@
 //1. Здесь определен класс QueryForm, который представляет отправляемые и получаемые данные:
 export class QueryForm{
-
     // отправляемые данные
     searchString: string;
     sortColumn: string;
     offset: any;
     sortAsc: any;
-    result: any;//количество записей на странице
+    result: any;
     companyId:any;
-
-    //получаемые данные
-    arrClients: string [];
-    htmlPagination: string [];
-
+    searchCategoryString:any;
+    filterOptionsIds: number[];
 }

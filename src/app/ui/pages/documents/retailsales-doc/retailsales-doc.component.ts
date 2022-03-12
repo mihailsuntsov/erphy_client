@@ -585,7 +585,7 @@ export class RetailsalesDocComponent implements OnInit {
     this.formAboutDocument.get('company').setValue(this.getCompanyNameById(this.formBaseInformation.get('company_id').value));
     this.getDepartmentsList();
     this.getPriceTypesList();
-    this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
+    this.getSpravTaxes();//загрузка налогов
   }
 
   onDepartmentChange(){
@@ -792,7 +792,7 @@ export class RetailsalesDocComponent implements OnInit {
       this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
     this.getDepartmentsList(); 
     this.getPriceTypesList();
-    this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
+    this.getSpravTaxes();//загрузка налогов
   }
 
   //определяет, есть ли предприятие в загруженном списке предприятий
@@ -905,6 +905,7 @@ export class RetailsalesDocComponent implements OnInit {
                   this.getSpravSysEdizm();//справочник единиц измерения
                   this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
                   this.getPriceTypesList();
+                  this.getSpravTaxes();//загрузка налогов
                   this.getDepartmentsList();//отделения
                   this.getStatusesList();//статусы документа Розничная продажа
                   this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
@@ -1241,8 +1242,8 @@ checkDocNumberUnical(tableName:string) {
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
     );
   }
-  getSpravTaxes(companyId:number){
-      this.loadSpravService.getSpravTaxes(companyId)
+  getSpravTaxes(){
+      this.loadSpravService.getSpravTaxes(this.formBaseInformation.get('company_id').value)
         .subscribe((data) => {
           this.spravTaxesSet=data as any[];
           this.necessaryActionsBeforeGetChilds();

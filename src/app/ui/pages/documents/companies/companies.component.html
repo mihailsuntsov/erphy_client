@@ -1,18 +1,23 @@
+<mat-spinner 
+strokeWidth="3" 
+class="spinner"
+[diameter]="50"
+*ngIf="gettingTableData"
+></mat-spinner>
 <mat-card class="card">
   
     <mat-card-title class="flex" style="height: 30px;">
         <div *ngIf="!displayingDeletedDocs" class="card-name">Предприятия</div>
         <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> предприятия</div>
-        <!-- {{!displayingDeletedDocs}} -->
         <div [style.display]="(visBtnAdd && !displayingDeletedDocs)?'block':'none' " class="col-sm-auto justify-content-center" style="margin-bottom:10px">
             <a [routerLink]="['../../companiesdoc', '']">
                 <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> Создать</button>
             </a>   
         </div>
-        <!-- {{displayingDeletedDocs}} && {{visBtnDelete}} -->
-        <div *ngIf="!displayingDeletedDocs && visBtnDelete" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
+        <div [style.display]="(!displayingDeletedDocs && visBtnDelete)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
             <button mat-raised-button (click)="clickBtnDelete()" color="warn"><i class="material-icons">delete_forever</i> Удалить</button>
         </div>
+
         <div *ngIf="displayingDeletedDocs && visBtnDelete" class="col-sm-auto justify-content-center" style="margin:0px 10px 10px 0px">
             <button mat-raised-button (click)="clickBtnRestore()" color="accent"><i class="material-icons">restore_from_trash</i> Восстановить</button>
         </div>
@@ -43,8 +48,8 @@
                         </div>
                     </div>
                     <div class="flex">
-                        <mat-form-field style="width:80px;">
-                            <mat-label>Строк в таблице</mat-label>
+                        <mat-form-field style="width:50px;">
+                            <mat-label>Строк</mat-label>
                             <mat-select [(value)]="sendingQueryForm.result" (selectionChange)="setNumOfPages()" class="form-control" id="selectRowsPerPage" name="result">                           
                                 <mat-option  *ngFor="let num of numRows" [value]="num.value">
                                         {{num.viewValue}}
@@ -180,6 +185,19 @@
                         
                         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                         <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                        <!-- !!! Блок "Данные не найдены" -->
+                        <ng-container matColumnDef="data_not_found">
+                            <td mat-footer-cell *matFooterCellDef colspan="13" class="text-center">
+                            Данные не найдены
+                            </td>
+                        </ng-container>
+                        <ng-container matColumnDef="nocolumn">
+                            <td mat-footer-cell *matFooterCellDef colspan="13" style="display: none;"></td>
+                        </ng-container>
+                        <tr mat-footer-row 
+                        *matFooterRowDef="[dataSource.data.length==0?'data_not_found':'nocolumn']" 
+                        [ngStyle]="(dataSource.data.length==0 && !gettingTableData)?{}:{'display': 'none'}"></tr>
+                        <!-- Конец блока "Данные не найдены" -->        
                     </table>
 
 

@@ -1,6 +1,7 @@
 // Сервис для работы со справочниками
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
+import { Observable } from 'rxjs';
 export interface idAndName {
     id: any;
     name:string;
@@ -33,6 +34,10 @@ export class LoadSpravService{
         const body = {id:depId};
         return this.http.post('/api/auth/getUsersListByDepartmentId', body);}     
           
+    getUserGroupListByCompanyId(companyId: number){
+        const body = {companyId: companyId};
+        return this.http.post('/api/auth/getUserGroupListByCompanyId', body);}
+        
     //отдает сотрудников (пользователей) по id отделения
     getEmployeeListByDepartmentId(id:number){return this.http.get('/api/auth/getEmployeeListByDepartmentId?id='+id);}
 
@@ -137,5 +142,12 @@ export class LoadSpravService{
     getUserByLoginInfo(username:string,password:string){return this.http.get('/api/auth/getUserByLoginInfo?username='+username+'&password='+password)}
     // Налогообложения виды
     getProductPrices(productId:number){return this.http.get('/api/auth/getProductPrices?productId='+productId);}
+    //загружает деревья категорий для файлов
+    getFileCategoriesTrees(companyId: number){
+        const body = {companyId: companyId};
+        return this.http.post('/api/auth/getFileCategoriesTrees', body);}
+    // загружает картинку
+    getImage(imageUrl: string): Observable<Blob> {return this.http.get(imageUrl, { responseType: 'blob' });
+      }
 
 }

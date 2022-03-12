@@ -40,16 +40,19 @@ body {
   .top-bar {/*закреплённый при перемотке бар с названием документа и кнопками (например Сохранить Выйти)*/
     position: sticky;
     top: 16px;
+    margin-top: -16px;
     z-index: 1000;
-    background: white;
+    /* background: white; */
   }
-  .top-bar-plug{
+  #topBlock {    
+    position: -webkit-sticky;
     position: sticky;
-    top: 0px;
-    margin-top: -12px;
-    height: 16px;
-    z-index: 1000;
-    background: white;
+    top: 0;
+  }
+  .for-sticky-header{
+    height: 100vh;
+    overflow: auto;
+    padding-top: 0px !important;
   }
   .star{/*звездочка обязательного поля*/
     color:crimson;
@@ -104,6 +107,16 @@ body {
 #topBlock .button{/*Для кнопок верхней панели*/
   margin: 0 5px 5px 0 !important;
 }
+/*.card .top-bar .row {Для кнопок верхней панели*/
+/*   
+  position: fixed !important;
+  width:fit-content; */
+/* background-color: azure;
+  top: 6px;
+  right: 0px;
+  width: 100%;
+  height: 20px; */
+/* } */
 .separator{
   flex-grow: 1;
 }

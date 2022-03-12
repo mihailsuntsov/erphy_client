@@ -1,56 +1,71 @@
 <mat-card class="card">
-    <mat-card-title class="flex">
-        <div class="card-name">Предприятие</div>
+    <mat-card-title class="top-bar container-fluid"> 
+        <div class="row" id="topBlock">
+            <div class="card-name">Предприятие</div>
+            <button 
+                mat-raised-button 
+                (click)="getCompanyCard(formBaseInformation.get('card_template_filename').value)"
+                color="primary"
+                matTooltip="Карточка предприятия"
+                *ngIf="allowToView&&formBaseInformation.get('card_template_filename').value != '' && +id>0"
+                class="button small-button">
+                <i class="material-icons">cloud_download</i> 
+            </button>
+            <button 
+                mat-raised-button 
+                [style.display]="id>0?'none':'block'"
+                (click)="clickBtnCreateNewDocument()" 
+                [disabled]="!formBaseInformation.valid" 
+                matTooltip='Создать документ'
+                *ngIf="allowToCreate"
+                color="primary"
+                class="button small-button">
+                <i class="material-icons">done</i>
+            </button>
+            <button 
+                mat-raised-button 
+                [style.display]="allowToUpdate"
+                (click)="clickBtnUpdate()"
+                [style.display]="id>0?'block':'none'"
+                *ngIf="allowToView"
+                [disabled]="!formBaseInformation.valid" 
+                matTooltip='Сохранить документ'
+                color="primary"
+                class="button small-button">
+                <i class="material-icons">save</i>
+            </button>
+            <a routerLink="../../companies" style="text-decoration: none;" [style.display]="(mode=='standart')?'block':'none'" >
                 <button 
                     mat-raised-button 
-                    (click)="getCompanyCard(formBaseInformation.get('card_template_filename').value)"
-                    color="primary"
-                    *ngIf="formBaseInformation.get('card_template_filename').value != '' && +id>0"
-                    class="button">
-                    <i class="material-icons">cloud_download</i> Карточка предприятия
+                    color="accent"
+                    [matTooltip]="id>0?'Выйти в меню':'Отмена создания документа'"
+                    class="button small-button">
+                    <i class="material-icons">close</i>
                 </button>
-                <!-- 1-{{formBaseInformation.get('card_template_filename').value}}-1 -->
-                <button 
-                    mat-raised-button 
-                    [style.display]="visAfterCreatingBlocks==true?'none':'block'"
-                    (click)="clickBtnCreateNewDocument()" 
-                    [disabled]="!formBaseInformation.valid" 
-                    *ngIf="allowToCreate"
-                    color="primary"
-                    class="button">
-                    <i class="material-icons">add_circle_outline</i> Создать
-                </button>
-                <!-- (click)="clickBtnUpdate()" -->
-                <button 
-                    mat-raised-button 
-                    [style.display]="visBtnUpdate==true?'block':'none'"
-                    (click)="clickBtnUpdate()"
-                    [disabled]="!formBaseInformation.valid" 
-                    color="primary"
-                    class="button">
-                    <i class="material-icons">done</i> Сохранить
-                </button>
-                <a routerLink="../../companies" style="text-decoration: none;" [style.display]="(mode=='standart')?'block':'none'" >
-                    <button 
-                        mat-raised-button 
-                        color="accent"
-                        class="button">
-                        <i class="material-icons">close</i> {{id>0?'Выйти':'Отмена'}}
-                    </button>
-                </a>
-                <button [style.display]="(mode=='window')?'block':'none'"
+            </a>
+            <button [style.display]="(mode=='window')?'block':'none'"
                 mat-raised-button
-                style="margin-left:10px"
+                class="button small-button"
+                matTooltip='Закрыть это окно'
                 matDialogClose 
                 color="accent">
-                <i class="material-icons">close</i>
-                    <span> Отмена</span>
-                </button>
+            </button>
+        </div>
     </mat-card-title>
-    <!-- <mat-card-subtitle [ngClass]="{invisible: visBeforeCreatingBlocks}">
-        Предприятие: {{formBaseInformation.get('company').value}}
-    </mat-card-subtitle> -->
-    <mat-card-content> 
+    <!-- !!! -->
+    <mat-card-content *ngIf="rightsDefined && 
+    (
+        (!allowToView && +id>0) ||
+        (!allowToCreate && +id==0)
+    )"> 
+        <mat-card class="internal-card">
+            <mat-card-content style="font-size: 20px;font-weight: bold;color: red;text-align: center;height: 100px;padding: 38px 0;">
+                Недостаточно прав
+            </mat-card-content>
+        </mat-card>
+    </mat-card-content>
+    <!-- !!! -->
+    <mat-card-content *ngIf="!rightsDefined || (rightsDefined && (( +id>0 && allowToView)||(+id==0 && allowToCreate)))">
         <form [formGroup]="formBaseInformation">   
             <mat-tab-group>
                 <mat-tab label="Информация">
@@ -69,7 +84,7 @@
                                         </mat-form-field>
                                         <!-- Наименование -->
                                         <mat-form-field>
-                                            <mat-label>Наименование{{formBaseInformation.get('name').value==''?'*':''}}</mat-label>
+                                            <mat-label>Наименование <span *ngIf="formBaseInformation.get('name').value==''||formBaseInformation.get('name').value==null" class="star">*</span></mat-label>
                                             <input   matInput
                                                     [readonly]=!editability
                                                     maxlength="500"
@@ -81,7 +96,7 @@
                                         </mat-form-field>
                                         <!-- Организационно-правовая форма -->
                                         <mat-form-field>
-                                            <mat-label>Организационно-правовая форма{{+formBaseInformation.get('opf_id').value==0?'*':''}}</mat-label>
+                                            <mat-label>Организационно-правовая форма <span *ngIf="+formBaseInformation.get('opf_id').value==0||formBaseInformation.get('opf_id').value==null" class="star">*</span></mat-label>
                                             <mat-select [disabled]=!editability
                                                         formControlName="opf_id" 
                                                         (selectionChange)="setJurElementsVisible()">                          
@@ -901,7 +916,7 @@
                     </div>
                 </mat-tab>
                 <!-- Настройки/Settings -->
-                <mat-tab  *ngIf="visAfterCreatingBlocks"  label="Настройки">
+                <mat-tab  *ngIf="+id>0"  label="Настройки">
                     <div class="container-fluid">
                         <div class="row" style="padding: 10px">
                             <div class="col-xl-5 col-lg-9 col-md-12">
@@ -950,7 +965,7 @@
                 </mat-tab>
 
 
-                <mat-tab  *ngIf="visAfterCreatingBlocks"  label="О документе">
+                <mat-tab  *ngIf="+id>0"  label="О документе">
                     <div class="container-fluid">
                         <div class="row" style="padding: 10px">
                             <div class="col-xl-5 col-lg-9 col-md-12">
@@ -958,27 +973,27 @@
                                     <mat-card>
                                         <mat-card-content class="input-form">
                     
-                                            <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                            <mat-form-field [ngClass]="{invisible: +id==0}">
                                                 <input  matInput
                                                         placeholder="Предприятие"
                                                         formControlName="company" [readonly]=true/>
                                             </mat-form-field>
-                                            <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                            <mat-form-field [ngClass]="{invisible: +id==0}">
                                                 <input  matInput
                                                         placeholder="Создатель"
                                                         formControlName="creator" [readonly]=true/>
                                             </mat-form-field>
-                                            <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                            <mat-form-field [ngClass]="{invisible: +id==0}">
                                                 <input  matInput
                                                         placeholder="Дата создания"
                                                         formControlName="date_time_created" [readonly]=true/>
                                             </mat-form-field>
-                                            <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                            <mat-form-field [ngClass]="{invisible: +id==0}">
                                                 <input  matInput
                                                         placeholder="Изменение"
                                                         formControlName="changer" [readonly]=true/>
                                             </mat-form-field>
-                                            <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                            <mat-form-field [ngClass]="{invisible: +id==0}">
                                                 <input  matInput
                                                         placeholder="Дата изменения"
                                                         formControlName="date_time_changed" [readonly]=true/>

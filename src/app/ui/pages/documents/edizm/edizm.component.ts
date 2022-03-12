@@ -143,18 +143,18 @@ export class EdizmComponent implements OnInit {
             );
   }
 
-  getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==120)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==120)});
-    this.allowToDeleteAllCompanies = permissionsSet.some(         function(e){return(e==121)});
-    this.allowToDeleteMyCompany = permissionsSet.some(            function(e){return(e==121)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==122)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==123)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==124)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==125)});
+  getCRUD_rights(){
+    this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==120)});
+    this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==120)});
+    this.allowToDeleteAllCompanies = this.permissionsSet.some(         function(e){return(e==121)});
+    this.allowToDeleteMyCompany = this.permissionsSet.some(            function(e){return(e==121)});
+    this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==122)});
+    this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==123)});
+    this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==124)});
+    this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==125)});
     this.getData();
   }
-
+ 
   refreshPermissions():boolean{
     this.allowToView=(this.allowToViewAllCompanies||this.allowToViewMyCompany)?true:false;
     this.allowToUpdate=(this.allowToUpdateAllCompanies||this.allowToUpdateMyCompany)?true:false;
@@ -385,7 +385,7 @@ export class EdizmComponent implements OnInit {
       this.sendingQueryForm.companyId=this.myCompanyId;
       Cookie.set('edizm_companyId',this.sendingQueryForm.companyId);
     }
-    this.getCRUD_rights(this.permissionsSet);
+    this.getCRUD_rights();
   }
 
   showCheckbox(row:CheckBox):boolean{

@@ -1,32 +1,27 @@
-import { Component, OnInit } from '@angular/core';
-import { QueryFormService } from './query-forms.service';
+import { Component, OnInit} from '@angular/core';
 import { QueryForm } from './query-form';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource } from '@angular/material/table';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpClient } from '@angular/common/http';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { LoadSpravService } from '../../../../services/loadsprav';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
+import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
+import { Cookie } from 'ng2-cookies/ng2-cookies';
+import { QueryFormService } from './get-departments-table.service';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
-import { MatDialog } from '@angular/material/dialog';
-import { LoadSpravService } from './loadsprav';
 
-export interface DepartmentsTable {
+export interface CheckBox {
   id: number;
-  name: string;
-  date_time_created: string;
-  date_time_changed: string;
-  owner_id: number;
-  creator_id: number;
-  changer_id: number;
-  owner: string;
-  creator: string;
-  changer: number;
-  address: string;
-  additional: string;
   company_id: number;
-  parent_id: number;
-  num_childrens: number;
-  row_status: string; // open close nochilds
+  is_default: boolean;
+  name: string;
 }
-
+export interface idAndName {
+  id: any;
+  name:string;
+}
 export interface NumRow {//интерфейс для списка количества строк
   value: string;
   viewValue: string;
@@ -36,34 +31,38 @@ export interface NumRow {//интерфейс для списка количес
   selector: 'app-departments',
   templateUrl: './departments.component.html',
   styleUrls: ['./departments.component.css'],
-
-  providers: [QueryFormService,
-              LoadSpravService]
-  
+  providers: [QueryFormService,LoadSpravService,Cookie]
 })
 export class DepartmentsComponent implements OnInit {
-
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
-  donePagesList: boolean = false;
-  receivedPagesList: string [];//массив для получения данных пагинации
-  receivedMatTable: DepartmentsTable []=[];//массив для получения данных для материал таблицы
-  receivedChildrens: DepartmentsTable [];//массив для получения детей
-  resultTable: DepartmentsTable [];//массив для формирования таблицы с родителями и детьми
-  dataSource = new MatTableDataSource<DepartmentsTable>(this.receivedMatTable); //источник данных для материал таблицы
-  displayedColumns: string[]=[];//массив отображаемых столбцов таблицы//displayedColumns: string[] = ['select','show_childrens', 'opendoc', 'name', 'address', 'creator', 'date_time_created'];//массив отображаемых столбцов таблицы
-  selection = new SelectionModel<DepartmentsTable>(true, []);//Class to be used to power selecting one or more options from a list.
-  receivedCompaniesList: any [];//массив для получения списка предприятий
- 
+  receivedPagesList: string [] ;//массив для получения данных пагинации
+  dataSource = new MatTableDataSource<CheckBox>(); //массив данных для таблицы и чекбоксов (чекбоксы берут из него id, таблица -всё)
+  displayedColumns: string[] = [];//массив отображаемых столбцов таблицы
+  selection = new SelectionModel<CheckBox>(true, []);//Class to be used to power selecting one or more options from a list.
+  receivedCompaniesList: idAndName [] = [];//массив для получения списка предприятий
+  // receivedDepartmentsList: idAndName [] = [];//массив для получения списка расходов
+  myCompanyId:number=0;//
+  myId:number=0;
+  checkedList:number[]=[]; //строка для накапливания id чекбоксов вида [2,5,27...]
+
   //переменные прав
   permissionsSet: any[];//сет прав на документ
+  allowToViewAllCompanies:boolean = false;
+  allowToViewMyCompany:boolean = false;
+  allowToUpdateAllCompanies:boolean = false;
+  allowToUpdateMyCompany:boolean = false;
+  allowToCreateMyCompany:boolean = false;
+  allowToCreateAllCompanies:boolean = false;
+  allowToDeleteMyCompany:boolean = false;
+  allowToDeleteAllCompanies:boolean = false;
+
+  allowToView:boolean = false;
+  allowToUpdate:boolean = false;
   allowToCreate:boolean = false;
   allowToDelete:boolean = false;
-  allowToUpdateMy:boolean = false;
-  allowToUpdateAll:boolean = false;
-  allowToViewMy:boolean = false;
-  allowToViewAll:boolean = false;
-  isItMyDoc:boolean = false;
- 
+
+  showOpenDocIcon:boolean=false;
+
   numRows: NumRow[] = [
     {value: '5', viewValue: '5'},
     {value: '10', viewValue: '10'},
@@ -76,223 +75,231 @@ export class DepartmentsComponent implements OnInit {
   maxpage: any;  // - Последняя страница в пагинаторe (т.е. maxpage=8 при пагинаторе [345678])
   listsize: any; // - Последняя страница в пагинации (но не в пагинаторе. т.е. в пагинаторе может быть [12345] а listsize =10)
 
+  gettingTableData:boolean=true;//!!!
+
   //переменные для управления динамическим отображением элементов
   visBtnAdd:boolean;
+  visBtnCopy = false;
   visBtnDelete = false;
-
-  //Управление чекбоксами
-  checkedList:any; //строка для накапливания id вида [2,5,27...]
-
+  //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
+  selectionFilterOptions = new SelectionModel<idAndName>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние
+  optionsIds: idAndName [];
+  displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
+  displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
+  //***********************************************************************************************************************/
   constructor(private queryFormService:   QueryFormService,
-    private httpService:   LoadSpravService,
+    private loadSpravService:   LoadSpravService,
+    private _snackBar: MatSnackBar,
+    public universalCategoriesDialog: MatDialog,
+    public ConfirmDialog: MatDialog,
+    private MessageDialog: MatDialog,
     private http: HttpClient,
-    public deleteDialog: MatDialog) { }
+    private Cookie: Cookie,
+    public deleteDialog: MatDialog,
+    public dialogRef1: MatDialogRef<DepartmentsComponent>,) { }
 
-  ngOnInit() {
-    this.sendingQueryForm.sortAsc="asc";
-    this.sendingQueryForm.sortColumn="name";
-    this.sendingQueryForm.offset=0;
-    this.sendingQueryForm.result="10";
-    this.sendingQueryForm.companyId="0";
-    this.getCompaniesList();
-    this.getSetOfPermissions();
-  }
-// -------------------------------------- *** ПРАВА *** ------------------------------------
-getSetOfPermissions(){
-  return this.http.get('/api/auth/getMyPermissions?id=4')
-          .subscribe(
-              (data) => {   
-                          this.permissionsSet=data as any [];
-                          console.log("permissions:"+this.permissionsSet);
-                          this.getCRUD_rights(this.permissionsSet);
-                      },
-              error => console.log(error),
-          );
-}
-getCRUD_rights(permissionsSet:any[]){
-  this.allowToCreate = permissionsSet.some(this.isAllowToCreate);
-  this.allowToDelete = permissionsSet.some(this.isAllowToDelete);
-  this.allowToUpdateMy = permissionsSet.some(this.isAllowToUpdateMy);
-  this.allowToUpdateAll = permissionsSet.some(this.isAllowToUpdateAll);
-  this.allowToViewMy = permissionsSet.some(this.isAllowToViewMy);
-  this.allowToViewAll = permissionsSet.some(this.isAllowToViewAll);
-  // console.log("allowToCreate:"+this.allowToCreate);
-  // console.log("allowToDelete:"+this.allowToDelete);
-  // console.log("allowToUpdateMy:"+this.allowToUpdateMy);
-  // console.log("allowToUpdateAll:"+this.allowToUpdateAll);
-  this.visBtnAdd=this.allowToCreate;
-  this.getTableHeaderTitles();
-  this.getData();
-}
-isAllowToCreate   (e){return(e==11);}
-isAllowToDelete   (e){return(e==12);}
-isAllowToUpdateMy (e){return(e==15);}
-isAllowToUpdateAll(e){return(e==16);}
-isAllowToViewMy   (e){return(e==13);}
-isAllowToViewAll  (e){return(e==14);}
+    ngOnInit() {
+      this.sendingQueryForm.companyId='0';
+      this.sendingQueryForm.sortAsc='asc';
+      this.sendingQueryForm.sortColumn='name';
+      this.sendingQueryForm.offset='0';
+      this.sendingQueryForm.result='10';
+      this.sendingQueryForm.searchCategoryString="";
+      this.sendingQueryForm.filterOptionsIds = [];
 
-getTableHeaderTitles(){
-  if(this.allowToDelete) this.displayedColumns.push('select');
-  if(this.allowToUpdateMy||this.allowToUpdateAll||this.allowToViewMy||this.allowToViewAll) this.displayedColumns.push('opendoc');
-  this.displayedColumns.push('name');
-  this.displayedColumns.push('address');
-  this.displayedColumns.push('creator');
-  this.displayedColumns.push('date_time_created');
-}
-// -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
-  isAllSelected() {
-    const numSelected = this.selection.selected.length;
-    const numRows = this.dataSource.data.length;
-    return numSelected === numRows;//true если все строки выбраны
-  }  
-  
-  /** Selects all rows if they are not all selected; otherwise clear selection. */
-  masterToggle() {
-    this.isAllSelected() ?
-        this.selection.clear() :
-        this.dataSource.data.forEach(row => this.selection.select(row));
-        this.createCheckedList();
+      if(Cookie.get('departments_companyId')=='undefined' || Cookie.get('departments_companyId')==null)     
+        Cookie.set('departments_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('departments_companyId')=="0"?"0":+Cookie.get('departments_companyId'));
+      if(Cookie.get('departments_sortAsc')=='undefined' || Cookie.get('departments_sortAsc')==null)       
+        Cookie.set('departments_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('departments_sortAsc');
+      if(Cookie.get('departments_sortColumn')=='undefined' || Cookie.get('departments_sortColumn')==null)    
+        Cookie.set('departments_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('departments_sortColumn');
+      if(Cookie.get('departments_offset')=='undefined' || Cookie.get('departments_offset')==null)        
+        Cookie.set('departments_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('departments_offset');
+      if(Cookie.get('departments_result')=='undefined' || Cookie.get('departments_result')==null)        
+        Cookie.set('departments_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('departments_result');
+
+      this.fillOptionsList();//заполняем список опций фильтра
+      this.getCompaniesList();// 
+      // -> getSetOfPermissions() 
+      // -> getMyId()
+      // -> getMyCompanyId() 
+      // -> setDefaultCompany() 
+      // -> getDocumentsList()
+      // -> setDefaultDocument()
+      // -> getCRUD_rights() 
+      // -> getData() 
+      //API: getCompaniesList         giveMeMyPermissions      getMyCompanyId
+    }
+
+    // -------------------------------------- *** ПРАВА *** ------------------------------------
+   getSetOfPermissions(){
+    return this.http.get('/api/auth/getMyPermissions?id=4')
+            .subscribe(
+                (data) => {   
+                            this.permissionsSet=data as any [];
+                            this.getMyId();
+                        },
+                error => console.log(error),
+            );
   }
  
-  /** The label for the checkbox on the passed row */
-  checkboxLabel(row?: DepartmentsTable): string {
-    if (!row) {
-      return `${this.isAllSelected() ? 'select' : 'deselect'} all`;
-    }
-    return `${this.selection.isSelected(row) ? 'deselect' : 'select'} row ${row.id}`;
+  getCRUD_rights(){
+    this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==11)});
+    this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==11)});
+    this.allowToDeleteAllCompanies = this.permissionsSet.some(         function(e){return(e==12)});
+    this.allowToDeleteMyCompany = this.permissionsSet.some(            function(e){return(e==12)});
+    this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==14)});
+    this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==13)});
+    this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==16)});
+    this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==15)});
+    this.getData();
   }
 
-  getCompaniesList(){
-    this.receivedCompaniesList=null;
-    this.httpService.getCompaniesList()
-            .subscribe(
-                (data) => {this.receivedCompaniesList=data as any [];console.log("receivedCompaniesList-"+this.receivedCompaniesList)},
-                error => console.log(error)
-            );
+  refreshPermissions():boolean{
+    let documentOfMyCompany:boolean = (this.sendingQueryForm.companyId==this.myCompanyId);
+    this.allowToView=(this.allowToViewAllCompanies||this.allowToViewMyCompany)?true:false;
+    this.allowToUpdate=(this.allowToUpdateAllCompanies||this.allowToUpdateMyCompany)?true:false;
+    this.allowToCreate=(this.allowToCreateAllCompanies||this.allowToCreateMyCompany)?true:false;
+    this.allowToDelete=(this.allowToDeleteAllCompanies || this.allowToDeleteMyCompany)?true:false;
+    this.showOpenDocIcon=(this.allowToUpdate||this.allowToView);
+    this.visBtnAdd = (this.allowToCreate)?true:false;
+    
+    // console.log("allowToView - "+this.allowToView);
+    // console.log("allowToUpdate - "+this.allowToUpdate);
+    // console.log("allowToCreate - "+this.allowToCreate);
+    // console.log("allowToDelete - "+this.allowToDelete);
+    // console.log("allowToDeleteAllCompanies - "+this.allowToDeleteAllCompanies);
+    return true;
   }
-
-  showChildrens(parentId:number){
-    this.receivedChildrens=[];
-    this.receivedMatTable=this.dataSource.data;
-    this.resultTable = [];
-    var i:number = 0;
-    var x:number = 0;
-    this.queryFormService.getChildrens(parentId).subscribe(
-        (data) => {
-          this.receivedChildrens=data as any []; 
-          for(i=0;i<this.receivedMatTable.length;i++) {
-            if(this.receivedMatTable[i].id==parentId){
-              this.receivedMatTable[i].row_status="open";
-            }
-            this.resultTable.push(this.receivedMatTable[i]);
-            if(this.receivedMatTable[i].id==parentId){
-              for(x=0; x < this.receivedChildrens.length;x++) {
-                this.resultTable.push(this.receivedChildrens[x]);
-          } } }  
-          this.dataSource.data = this.resultTable;
-        },
-        error => console.log(error) 
-    );
-  }
-
-  hideChildrens(parentId:number){
-    this.receivedMatTable=this.dataSource.data;
-    this.resultTable = [];
-    var i:number = 0;
-    for(i=0;i<this.receivedMatTable.length;i++) {
-      if(this.receivedMatTable[i].id==parentId){
-        this.receivedMatTable[i].row_status="close";
-      }
-      if(this.receivedMatTable[i].parent_id!=parentId){
-        this.resultTable.push(this.receivedMatTable[i]);
-      }
-    }
-    this.dataSource.data = this.resultTable;
-  }
-  
-
-  clickTableCheckbox(row){
-    this.selection.toggle(row); 
-    this.createCheckedList();
-  }
-
-  createCheckedList(){
-    this.checkedList = [];
-
-    for (var i = 0; i < this.receivedMatTable.length; i++) {
-      if(this.selection.isSelected(this.receivedMatTable[i]))
-        this.checkedList.push(this.receivedMatTable[i].id);
-    }
-    this.checkedList = JSON.stringify(this.checkedList);
-    if(this.checkedList.length>2){
-        this.hideAllBtns();
-        if(this.allowToDelete) this.visBtnDelete = true;
-    }else{this.showOnlyVisBtnAdd()}
-    console.log("checkedList - "+this.checkedList);
-
-  }
-
+// -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
   getData(){
-    this.getPagesList(this.sendingQueryForm);
-    this.getTable(this.sendingQueryForm);
+    // console.log('before if!');
+    if(this.refreshPermissions() && this.allowToView)
+    {
+      // console.log('after if!');
+      this.doFilterCompaniesList(); //если нет просмотра по всем предприятиям - фильтруем список предприятий до своего предприятия
+      this.getTableHeaderTitles();
+      this.updateSortOptions();
+      this.getPagesList();
+      this.getTable();
+      //!!!
+    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
   }
 
-  setRowsStatus(){//после загрузки таблицы устанавливает статусы строк (open / close / nochilds)
-    var i:number = 0;
-    for(i=0;i<this.receivedMatTable.length;i++) {
-      if(this.receivedMatTable[i].num_childrens>0){
-        this.receivedMatTable[i].row_status="close";
-      } else {
-        this.receivedMatTable[i].row_status="nochilds";
-      }
-    }  
+  getTableHeaderTitles(){
+    this.displayedColumns=[];
+    if(this.allowToDelete) this.displayedColumns.push('select');
+    if(this.showOpenDocIcon) this.displayedColumns.push('opendoc');
+    this.displayedColumns.push('name');
+    this.displayedColumns.push('address');
+    // this.displayedColumns.push('company');
+    this.displayedColumns.push('creator');
+    this.displayedColumns.push('date_time_created');
   }
 
-  getTable(sendingQueryForm: QueryForm){
-    this.queryFormService.getTable(sendingQueryForm)
-            .subscribe(
-                (data) => {
-                  this.receivedMatTable=data as any []; 
-                  this.dataSource.data = this.receivedMatTable;
-                  this.setRowsStatus();
-                },
-                error => console.log(error) 
-            );
-  }
-
-  getPagesList(sendingQueryForm: QueryForm){
-    this.donePagesList = false;
+  getPagesList(){
     // this.receivedPagesList=null;
-    this.queryFormService.getPagesList(sendingQueryForm)
+    this.queryFormService.getPagesList(this.sendingQueryForm)
             .subscribe(
-                data => {this.receivedPagesList=data as string []; this.donePagesList=true;
+                data => {this.receivedPagesList=data as string [];
                 this.size=this.receivedPagesList[0];
                 this.pagenum=this.receivedPagesList[1];
                 this.listsize=this.receivedPagesList[2];
                 this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
-                error => console.log(error)
+                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
             ); 
   }
-  
+
+  getTable(){//!!!
+    this.gettingTableData=true;
+    this.queryFormService.getTable(this.sendingQueryForm)
+            .subscribe(
+                (data) => {
+                  this.dataSource.data = data as any []; 
+                  if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
+                  this.gettingTableData=false;
+                },
+                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
+            );
+  }
+
+  isAllSelected() {//все выбраны
+    const numSelected = this.selection.selected.length;
+    const numRows = this.dataSource.data.length;
+    return  numSelected === numRows;//true если все строки выбраны
+  }  
+
+  isThereSelected() {//есть выбранные
+    return this.selection.selected.length>0;
+  }  
+
+  /** Selects all rows if they are not all selected; otherwise clear selection. */
+  masterToggle() {
+    this.isThereSelected() ?
+    this.resetSelecion() :
+        this.dataSource.data.forEach(row => {
+          if(this.showCheckbox(row)){this.selection.select(row);}//если чекбокс отображаем, значит можно удалять этот документ
+        });
+        this.createCheckedList();
+    this.isAllSelected();
+    this.isThereSelected();
+  }
+
+  resetSelecion(){
+    this.selection.clear(); 
+  }
+
+  clickTableCheckbox(row){
+    this.selection.toggle(row); 
+    this.createCheckedList();
+    this.isAllSelected();
+    this.isThereSelected();
+  }
+
+  createCheckedList(){
+    this.checkedList = [];
+    for (var i = 0; i < this.dataSource.data.length; i++) {
+      if(this.selection.isSelected(this.dataSource.data[i]))
+        this.checkedList.push(this.dataSource.data[i].id);
+    }
+    if(this.checkedList.length>0){
+        this.hideAllBtns();
+        if(this.allowToDelete) this.visBtnDelete = true;
+        if(this.checkedList.length==1){this.visBtnCopy = true}
+    }else{this.showOnlyVisBtnAdd()}
+  }
+
+  hideAllBtns(){
+    this.visBtnAdd = false;
+    this.visBtnDelete = false;
+  }
+  showOnlyVisBtnAdd(){
+    if(this.allowToCreate) this.visBtnAdd = true;
+    this.visBtnDelete = false;
+  }
+
   setNumOfPages(){
     this.clearCheckboxSelection();
     this.createCheckedList();
     this.sendingQueryForm.offset=0;
+    Cookie.set('departments_result',this.sendingQueryForm.result);
     this.getData();
   }
-  
+
   setPage(value:any) // set pagination
   {
     this.clearCheckboxSelection();
     this.sendingQueryForm.offset=value;
+    Cookie.set('departments_offset',value);
     this.getData();
   }
-  
+
   clearCheckboxSelection(){
     this.selection.clear();
+    this.createCheckedList();//тут перерасчитывается vizBtnDelete
     this.dataSource.data.forEach(row => this.selection.deselect(row));
   }
-  
+
   setSort(valueSortColumn:any) // set sorting column
   {
       this.clearCheckboxSelection();
@@ -302,13 +309,20 @@ getTableHeaderTitles(){
           } else {  
               this.sendingQueryForm.sortAsc="asc"
           }
+      Cookie.set('departments_sortAsc',this.sendingQueryForm.sortAsc);
       } else {
           this.sendingQueryForm.sortColumn=valueSortColumn;
           this.sendingQueryForm.sortAsc="asc";
+          Cookie.set('departments_sortAsc',"asc");
+          Cookie.set('departments_sortColumn',valueSortColumn);
       }
       this.getData();
   }
-
+  onCompanySelection(){
+    Cookie.set('departments_companyId',this.sendingQueryForm.companyId);
+    this.resetOptions();
+    this.getData();
+  }
 
   clickBtnDelete(): void {
     const dialogRef = this.deleteDialog.open(DeleteDialog, {
@@ -320,29 +334,171 @@ getTableHeaderTitles(){
       this.showOnlyVisBtnAdd();
     });        
   }
+  
+  // getDepartmentsNameById(id:string):string{
+  //   let name:string = 'Не установлен';
+  //   if(this.receivedDepartmentsList){
+  //     this.receivedDepartmentsList.forEach(a=>{
+  //       if(a.id==id) name=a.name;
+  //     })}
+  //   return(name);
+  // }
 
+  clickBtnRestore(): void {
+    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+      width: '400px',
+      data:
+      { 
+        head: 'Восстановление',
+        query: 'Восстановить выбранные документы из удалённых?',
+        warning: '',
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){this.undeleteDocs();}
+      this.clearCheckboxSelection();
+      this.showOnlyVisBtnAdd();
+    });        
+  }
+    
   deleteDocs(){
-    const body = {"checked": this.checkedList};
+    const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
         return this.http.post('/api/auth/deleteDepartments', body) 
-        .subscribe(
-            (data) => {   
-                        this.receivedMatTable=data as any []; 
-                        this.dataSource.data = this.receivedMatTable;
-                        this.getData();
-                    },
-            error => console.log(error),
-        );
+    .subscribe((data) => {   
+      let result=data as any;
+      switch(result){
+        case 1:{this.getData();this.openSnackBar("Успешно удалено", "Закрыть");break;} 
+        case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе удаления проиошла ошибка")}});break;}
+        case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+      }
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
   }
 
-  hideAllBtns(){
-    this.visBtnAdd = false;
-    this.visBtnDelete = false;
+  undeleteDocs(){
+    const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
+    this.clearCheckboxSelection();
+     return this.http.post('/api/auth/undeleteDepartments', body) 
+    .subscribe(
+        (data) => {   
+          let result=data as any;
+          switch(result){
+            case 1:{this.getData();this.openSnackBar("Успешно удалено", "Закрыть");break;} 
+            case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе операции проиошла ошибка")}});break;}
+            case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+          }
+        },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+  }  
+
+  openSnackBar(message: string, action: string) {
+    this._snackBar.open(message, action, {
+      duration: 3000,
+    });
   }
 
-  showOnlyVisBtnAdd(){
-    if(this.allowToCreate) this.visBtnAdd = true;
-    this.visBtnDelete = false;
+  getCompaniesList(){
+    this.receivedCompaniesList=null;
+    this.loadSpravService.getCompaniesList()
+            .subscribe(
+                (data) => {this.receivedCompaniesList=data as any [];
+                  this.getSetOfPermissions();
+                },
+                error => console.log(error)
+            );
+  }
+  getMyId(){
+    this.loadSpravService.getMyId()
+            .subscribe(
+                (data) => {this.myId=data as any;
+                  this.getMyCompanyId();},
+                error => console.log(error)
+            );
+  }
+  getMyCompanyId(){
+    this.loadSpravService.getMyCompanyId().subscribe(
+      (data) => {
+        this.myCompanyId=data as number;
+        this.setDefaultCompany();
+      }, error => console.log(error));
   }
 
+  setDefaultCompany(){
+    if(Cookie.get('departments_companyId')=='0'){
+      this.sendingQueryForm.companyId=this.myCompanyId;
+      Cookie.set('departments_companyId',this.sendingQueryForm.companyId);
+    }
+      this.getCRUD_rights();
+  }
+  // getDepartmentsList(newdoc?:boolean){
+  //   this.receivedDepartmentsList=null;
+  //   this.loadSpravService.getDepartmentsListByCompanyId(this.sendingQueryForm.companyId,false)
+  //     .subscribe(
+  //         (data) => {this.receivedDepartmentsList=data as any [];
+  //           this.getCRUD_rights();
+  //         },
+  //         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+  //     );
+  // }
+  // getDepartmentsList(){
+  //   this.receivedDepartmentsList=this.loadSpravService.getDepartmentsListByCompanyId();
+  //   this.getCRUD_rights(this.permissionsSet);
+  // }
+
+  showCheckbox(row:CheckBox):boolean{
+    if(
+      (this.allowToDeleteAllCompanies)||
+      (this.allowToDeleteMyCompany && row.company_id==this.myCompanyId)
+    )
+    return true; else return false;
+  }
+
+  doFilterCompaniesList(){
+    let myCompany:idAndName;
+    if(!this.allowToViewAllCompanies){
+      this.receivedCompaniesList.forEach(company=>{
+      if(this.myCompanyId==company.id) myCompany={id:company.id, name:company.name}});
+      this.receivedCompaniesList=[];
+      this.receivedCompaniesList.push(myCompany);
+    }
+  }
+
+  //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
+  resetOptions(){
+    this.displayingDeletedDocs=false;
+    this.fillOptionsList();//перезаполняем список опций
+    this.selectionFilterOptions.clear();
+    this.sendingQueryForm.filterOptionsIds = [];
+  }
+  fillOptionsList(){
+    this.optionsIds=[{id:1, name:"Показать только удалённые"},];
+  }
+  clickApplyFilters(){
+    let showOnlyDeletedCheckboxIsOn:boolean = false; //присутствует ли включенный чекбокс "Показывать только удалённые"
+    this.selectionFilterOptions.selected.forEach(z=>{
+      if(z.id==1){showOnlyDeletedCheckboxIsOn=true;}
+    })
+    this.displayingDeletedDocs=showOnlyDeletedCheckboxIsOn;
+    this.clearCheckboxSelection();
+    this.sendingQueryForm.offset=0;//сброс пагинации
+    this.getData();
+  }
+  updateSortOptions(){//после определения прав пересматриваем опции на случай, если права не разрешают действия с определенными опциями, и исключаем эти опции
+    let i=0; 
+    this.optionsIds.forEach(z=>{
+      console.log("allowToDelete - "+this.allowToDelete);
+      if(z.id==1 && !this.allowToDelete){this.optionsIds.splice(i,1)}//исключение опции Показывать удаленные, если нет прав на удаление
+      i++;
+    });
+    if (this.optionsIds.length>0) this.displaySelectOptions=true; else this.displaySelectOptions=false;//если опций нет - не показываем меню опций
+  }
+  clickFilterOptionsCheckbox(row){
+    this.selectionFilterOptions.toggle(row); 
+    this.createFilterOptionsCheckedList();
+  } 
+  createFilterOptionsCheckedList(){//this.sendingQueryForm.filterOptionsIds - массив c id выбранных чекбоксов вида "7,5,1,3,6,2,4", который заполняется при нажатии на чекбокс
+    this.sendingQueryForm.filterOptionsIds = [];//                                                     
+    this.selectionFilterOptions.selected.forEach(z=>{
+      this.sendingQueryForm.filterOptionsIds.push(+z.id);
+    });
+  }
 }

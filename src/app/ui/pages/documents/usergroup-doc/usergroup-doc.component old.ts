@@ -5,13 +5,11 @@ import { Component, OnInit } from '@angular/core';
 // поэтому в конструкторе мы можем получить его.
 import { ActivatedRoute} from '@angular/router';
 import { SelectionModel } from '@angular/cdk/collections';
-import { LoadSpravService } from '../../../../services/loadsprav';
-import { Router } from '@angular/router';
-import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
-import { Validators, FormGroup, FormControl } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
-import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { LoadSpravService } from './loadsprav';
+import { Validators, FormGroup, FormControl} from '@angular/forms';
+import {HttpClient} from '@angular/common/http';
+import {MatDialog} from '@angular/material/dialog';
+import {MatSnackBar} from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
 
 
@@ -59,9 +57,7 @@ export class UsergroupDocComponent implements OnInit {
 
   visBtnUpdate = false;
 
-  id: number=0;// id документа
-  myCompanyId:number=0;
-  myId:number=0;
+  id: number;// id документа
 
   //Формы
   formBaseInformation:any;//форма для основной информации, содержащейся в документе
@@ -79,33 +75,25 @@ export class UsergroupDocComponent implements OnInit {
   
   //переменные прав
   permissionsSet: any[];//сет прав на документ
-  allowToCreateAllCompanies:boolean = false;
-  allowToCreateMyCompany:boolean = false;
   allowToCreate:boolean = false;
-  allowToUpdateAllCompanies:boolean = false;//разрешение на...
-  allowToUpdateMyCompany:boolean = false;
-  allowToViewAllCompanies:boolean = false;
-  allowToViewMyCompany:boolean = false;
-  allowToUpdateMyDepartments:boolean = false;
+  allowToDelete:boolean = false;
   allowToUpdateMy:boolean = false;
-  itIsDocumentOfMyCompany:boolean = false;//набор проверок на документ (документ моего предприятия?/документ моих отделений?/документ мой?/)
-  itIsDocumentOfMyMastersCompanies:boolean = false;
-  allowToUpdate:boolean = false;
-  allowToView:boolean = false;
-  rightsDefined:boolean = false;
+  allowToUpdateAll:boolean = false;
+  allowToViewMy:boolean = false;
+  allowToViewAll:boolean = false;
+  isItMyDoc:boolean = false;
+  canUpdateThisDoc:boolean = false;
 
 
   constructor(
     private activateRoute: ActivatedRoute,
     private http: HttpClient,
-    public MessageDialog: MatDialog,
     private loadSpravService:   LoadSpravService,
-    private _router:Router,
     //public dialogCreateDepartment: MatDialog,
     private _snackBar: MatSnackBar) 
     {
-      if(activateRoute.snapshot.params['id'])
-        this.id = +activateRoute.snapshot.params['id'];// +null returns 0 
+      console.log(this.activateRoute);
+      this.id = +activateRoute.snapshot.params['id'];// +null returns 0 
     }
 
   ngOnInit() {
@@ -129,78 +117,83 @@ export class UsergroupDocComponent implements OnInit {
     this.getSetOfPermissions();
   }
 
+  getData(){
+    this.getCompaniesList();
+    // console.log("('company_id').value->"+this.formBaseInformation.get('company_id').value+"<-")
+    if(+this.id>0){
+      this.getDocumentValuesById();
+      //this.formBaseInformation.controls.password.disable();
+    }
+    this.refreshShowAllTabs();
+  }
+
 // -------------------------------------- *** ПРАВА *** ------------------------------------
 getSetOfPermissions(){
   return this.http.get('/api/auth/getMyPermissions?id=6')
-    .subscribe(
-        (data) => {   
-                    this.permissionsSet=data as any [];
-                    this.getMyId();
-                },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-    );
-}
-
-getMyId(){
-  this.loadSpravService.getMyId()
           .subscribe(
-              (data) => {this.myId=data as any;
-                this.getMyCompanyId();},
-              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+              (data) => {   
+                          this.permissionsSet=data as any [];
+                          // console.log("permissions:"+this.permissionsSet);
+                          if(+this.id>0) this.isItMyDocument(+this.id); else this.getCRUD_rights(this.permissionsSet);
+                          //this.getCRUD_rights(this.permissionsSet);
+                      },
+              error => console.log(error),
           );
 }
-
-getMyCompanyId(){
-  this.loadSpravService.getMyCompanyId().subscribe(
-    (data) => {
-      this.myCompanyId=data as number;
-      this.getCRUD_rights();
-    }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+isItMyDocument(id:number){// В данном случае:  моего ли предприятия эта группа пользователей
+  const body = {"documentId": id};//
+        return this.http.post('/api/auth/isItMyUserGroup', body) 
+          .subscribe(
+              (data) => {   
+                          this.isItMyDoc=data as boolean;
+                          // console.log("isItMyDoc-1:"+this.isItMyDoc);
+                          this.getCRUD_rights(this.permissionsSet);
+                      },
+              error => console.log(error),
+          );
 }
-
-getCRUD_rights(){
-  this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==31)});
-  this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==31)});
-  this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==29)});
-  this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==30)});
-  this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==34)});
-  this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==33)});
- 
-  if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;}
-  if(this.allowToViewAllCompanies){this.allowToViewMyCompany=true;}
-  if(this.allowToUpdateAllCompanies){this.allowToUpdateMyCompany=true;}
+getCRUD_rights(permissionsSet:any[]){
+  this.allowToCreate = permissionsSet.some(this.isAllowToCreate);
+  //this.allowToDelete = permissionsSet.some(this.isAllowToDelete);
+  this.allowToUpdateMy = permissionsSet.some(this.isAllowToUpdateMy);
+  this.allowToUpdateAll = permissionsSet.some(this.isAllowToUpdateAll);
+  if(this.allowToUpdateMy||this.allowToUpdateAll)
+  {  
+    this.canUpdateThisDoc=true;
+    if(!this.allowToUpdateAll){//если нет прав на Группы пользователей: "Редактирование всех"
+      if(!this.isItMyDoc)//значит остаются на "Редактирование своей", НО если это не моего предприятия группа пользователей:
+      this.canUpdateThisDoc=false;
+    }
+    if(!this.allowToUpdateMy){//если нет прав на Группы пользователей: "Редактирование своей"
+      if(this.isItMyDoc)//значит остаются на "Редактирование всех", НО если это моего предприятия группа пользователей:
+      this.canUpdateThisDoc=false;
+    }
+  }
+  this.visAfterCreatingBlocks=!this.allowToCreate;
+  // console.log("isItMyDoc-2:"+this.isItMyDoc);
+  // console.log("allowToCreate:"+this.allowToCreate);
+  // console.log("allowToDelete:"+this.allowToDelete);
+  // console.log("allowToUpdateMy:"+this.allowToUpdateMy);
+  // console.log("allowToUpdateAll:"+this.allowToUpdateAll);
+  // console.log("canUpdateThisDoc:"+this.canUpdateThisDoc);
   this.getData();
 }
-
-getData(){
-  if(+this.id>0){
-    this.getDocumentValuesById();
-  }else {
-    this.getCompaniesList(); 
-  }
-}
-
-refreshPermissions(){
-  let documentOfMyCompany:boolean = (+this.formBaseInformation.get('company_id').value==this.myCompanyId);
-  this.allowToView=(
-    (this.allowToViewAllCompanies)||
-    (this.allowToViewMyCompany&&documentOfMyCompany)
-  )?true:false;
-  this.allowToUpdate=(
-    (this.allowToUpdateAllCompanies)||
-    (this.allowToUpdateMyCompany&&documentOfMyCompany)
-  )?true:false;
-  this.allowToCreate=(this.allowToCreateAllCompanies || this.allowToCreateMyCompany)?true:false;
-  // console.log("myCompanyId - "+this.myCompanyId);
-  // console.log("documentOfMyCompany - "+documentOfMyCompany);
-  // console.log("allowToView - "+this.allowToView);
-  // console.log("allowToUpdate - "+this.allowToUpdate);
-  // console.log("allowToCreate - "+this.allowToCreate);
-  this.rightsDefined=true;//!!!
-}
-
+isAllowToCreate   (e){return(e==31);}
+isAllowToDelete   (e){return(e==32);}
+isAllowToUpdateMy (e){return(e==33);}//своего предприятия
+isAllowToUpdateAll(e){return(e==34);}//всех предприятий
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
 
+  refreshShowAllTabs(){
+    if(this.id>0){//если в документе есть id
+      this.visAfterCreatingBlocks = true;
+      this.visBeforeCreatingBlocks = false;
+      this.visBtnUpdate = this.canUpdateThisDoc;
+    }else{
+      this.visAfterCreatingBlocks = false;
+      this.visBeforeCreatingBlocks = true;
+    }
+  }
   getCompaniesList(){
     this.receivedCompaniesList=null;
     this.loadSpravService.getCompaniesList()
@@ -208,26 +201,12 @@ refreshPermissions(){
                 (data) => 
                 {
                   this.receivedCompaniesList=data as any [];
-                  this.doFilterCompaniesList();
-                  this.setDefaultCompany();
-                }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
-  }
-
-  doFilterCompaniesList(){
-    let myCompany:any;
-    if(!this.allowToCreateAllCompanies){
-      this.receivedCompaniesList.forEach(company=>{
-      if(this.myCompanyId==company.id) myCompany={id:company.id, name:company.name}});
-      this.receivedCompaniesList=[];
-      this.receivedCompaniesList.push(myCompany);
-    }
-  }
-
-  setDefaultCompany(){
-    this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
-    this.refreshPermissions();
-  }
-
+                  //this.getDepartmentsList();
+                },
+                        
+                error => console.log(error)
+            );
+  } 
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
       duration: 3000,
@@ -236,23 +215,18 @@ refreshPermissions(){
   clickBtnUpdate(){// Нажатие кнопки Сохранить
     this.updateDocument();
   }
-  
-  onCompanyChange(){
-    this.refreshPermissions();
-  }
-
   updateDocument(){
     this.updateDocumentResponse=null;
     this.formBaseInformation.get('selectedUserGroupPermissions').setValue(this.checkedList);
     return this.http.post('/api/auth/updateUserGroup', this.formBaseInformation.value)
-        .subscribe(
-          (data) => {   
-                      this.updateDocumentResponse=data as string;
-                      this.getData();
-                      this.openSnackBar("Группа пользователей сохранена", "Закрыть");
-                    },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-        );
+            .subscribe(
+                (data) => {   
+                            this.updateDocumentResponse=data as string;
+                            this.getData();
+                            this.openSnackBar("Группа пользователей сохранена", "Закрыть");
+                        },
+                error => console.log(error),
+            );
   }
   getDocumentValuesById(){
     const docId = {"id": this.id};
@@ -260,24 +234,20 @@ refreshPermissions(){
         .subscribe(
             data => {  let documentResponse: docResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
                 //Заполнение формы из интерфейса documentResponse:
-                if(data!=null&&documentResponse.company_id!=null){
-                  this.formAboutDocument.get('id').setValue(+documentResponse.id);
-                  this.formAboutDocument.get('master').setValue(documentResponse.master);
-                  this.formAboutDocument.get('creator').setValue(documentResponse.creator);
-                  this.formAboutDocument.get('changer').setValue(documentResponse.changer);
-                  this.formAboutDocument.get('company').setValue(documentResponse.company);
-                  this.formAboutDocument.get('date_time_created').setValue(documentResponse.date_time_created);
-                  this.formAboutDocument.get('date_time_changed').setValue(documentResponse.date_time_changed);
-                  this.formBaseInformation.get('name').setValue(documentResponse.name);
-                  this.formBaseInformation.get('company_id').setValue(+documentResponse.company_id);
-                  this.formBaseInformation.get('description').setValue(documentResponse.description);
-                  this.checkedList=documentResponse.userGroupPermissionsId;
-                  this.getDocumentsWithPermissionList();
-                  //!!!
-                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
-                this.refreshPermissions();
+                this.formAboutDocument.get('id').setValue(+documentResponse.id);
+                this.formAboutDocument.get('master').setValue(documentResponse.master);
+                this.formAboutDocument.get('creator').setValue(documentResponse.creator);
+                this.formAboutDocument.get('changer').setValue(documentResponse.changer);
+                this.formAboutDocument.get('company').setValue(documentResponse.company);
+                this.formAboutDocument.get('date_time_created').setValue(documentResponse.date_time_created);
+                this.formAboutDocument.get('date_time_changed').setValue(documentResponse.date_time_changed);
+                this.formBaseInformation.get('name').setValue(documentResponse.name);
+                this.formBaseInformation.get('company_id').setValue(+documentResponse.company_id);
+                this.formBaseInformation.get('description').setValue(documentResponse.description);
+                this.checkedList=documentResponse.userGroupPermissionsId;
+                this.getDocumentsWithPermissionList();
             },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+            error => console.log(error)
         );
   }
   getDocumentsWithPermissionList(){
@@ -300,7 +270,7 @@ refreshPermissions(){
                     });
                 });
             },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+            error => console.log(error)
         );
   }
   isSelectedPermission(){
@@ -331,26 +301,17 @@ refreshPermissions(){
   createNewDocument(){
     this.createdDocId=null;
     this.http.post('/api/auth/insertUserGroup', this.formBaseInformation.value)
-    .subscribe(
-      (data) =>   {
-        let result=data as any;
-        switch(result){
-          case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе операции проиошла ошибка")}});break;}
-          case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
-          default:{  
-                      this.id=result;
-                      this._router.navigate(['/ui/usergroupdoc', this.id]);
-                      this.formBaseInformation.get('id').setValue(this.id);
-                      this.rightsDefined=false; //!!!
-                      this.getData();
-                      this.openSnackBar("Роль создана", "Закрыть");
-          }
-        }
-      },
-    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-  );
-}
-
+            .subscribe(
+                (data) =>   {
+                                this.createdDocId=data as string [];
+                                this.id=+this.createdDocId[0];
+                                this.formBaseInformation.get('id').setValue(this.id);
+                                this.getData();
+                                this.openSnackBar("Группа пользователей создана", "Закрыть");
+                            },
+                error => console.log(error),
+            );
+  }
   createCheckedList(){//массив c id выбранных чекбоксов вида "7,5,1,3,6,2,4", который заполняется при загрузке страницы и при нажатии на чекбокс, а при 
     this.checkedList = [];//                                                       отправке данных внедряется в поле формы selectedUserGroupPermissions
     for (var i = 0; i < this.receivedDocumentsWithPermissions.length; i++) 

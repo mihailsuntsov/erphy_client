@@ -4,8 +4,9 @@ import { Component, OnInit } from '@angular/core';
 // параметры строки запроса и прочее. Он внедряется в приложение через механизм dependency injection, 
 // поэтому в конструкторе мы можем получить его.
 import { ActivatedRoute} from '@angular/router';
-import { LoadSpravService } from './loadsprav';
+import { LoadSpravService } from '../../../../services/loadsprav';
 import { Validators, FormGroup, FormControl} from '@angular/forms';
+import { Router } from '@angular/router';
 import {HttpClient} from '@angular/common/http';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -52,11 +53,13 @@ export class DepartmentsDocComponent implements OnInit {
   receivedDepartmentsList: any [];//массив для получения списка отеделний
   receivedPriceTypesList: idNameDescription [] = [];//массив для получения списка типов цен
   paymentAccounts:any[]=[];// список расчётных счетов предприятия
-  boxoffices:any[]=[];// список касс предприятия (не путать с ККМ!!!)
+  boxoffices:any[]=[];// список касс предприятия (не путать с ККМ!)
 
   visBtnUpdate = false;
 
-  id: number;// id документа
+  id: number=0;// id документа
+  myCompanyId:number=0;
+  myId:number=0;
 
   //Формы
   formBaseInformation:any;//форма основной информации и банк. реквизитов
@@ -68,25 +71,32 @@ export class DepartmentsDocComponent implements OnInit {
 
   //переменные прав
   permissionsSet: any[];//сет прав на документ
+  allowToCreateAllCompanies:boolean = false;
+  allowToCreateMyCompany:boolean = false;
   allowToCreate:boolean = false;
-  allowToDelete:boolean = false;
+  allowToUpdateAllCompanies:boolean = false;//разрешение на...
+  allowToUpdateMyCompany:boolean = false;
+  allowToViewAllCompanies:boolean = false;
+  allowToViewMyCompany:boolean = false;
+  allowToUpdateMyDepartments:boolean = false;
   allowToUpdateMy:boolean = false;
-  allowToUpdateAll:boolean = false;
-  allowToViewMy:boolean = false;
-  allowToViewAll:boolean = false;
-  isItMyDoc:boolean = false;
-  canUpdateThisDoc:boolean = false;
+  itIsDocumentOfMyCompany:boolean = false;//набор проверок на документ (документ моего предприятия?/документ моих отделений?/документ мой?/)
+  itIsDocumentOfMyMastersCompanies:boolean = false;
+  allowToUpdate:boolean = false;
+  allowToView:boolean = false;
+  rightsDefined:boolean = false;
 
   constructor(
     private activateRoute: ActivatedRoute,
     private http: HttpClient,
     private loadSpravService:   LoadSpravService,
+    private _router:Router,
     public MessageDialog: MatDialog,
     private _snackBar: MatSnackBar
     ){
-    this.id = +activateRoute.snapshot.params['id'];// +null returns 0
+      if(activateRoute.snapshot.params['id'])
+        this.id = +activateRoute.snapshot.params['id'];// +null returns 0
   }
-
 
   ngOnInit() {
     this.formBaseInformation = new FormGroup({
@@ -110,82 +120,79 @@ export class DepartmentsDocComponent implements OnInit {
       date_time_created: new FormControl        ('',[]),
       date_time_changed: new FormControl        ('',[]),
     });
-    this.getCompaniesList();
     this.getSetOfPermissions();
   }
 
-  getData(){
-    if(+this.id==0 && +this.formBaseInformation.get('company_id').value!=0)
-    {
-      this.formBaseInformation.get('parent_id').setValue(0);
-      this.getDepartmentsList();
-      this.getPriceTypesList(); 
-    };
-    if(+this.id>0){this.getDocumentValuesById();}
-
-    this.refreshShowAllTabs();
-  }
-// -------------------------------------- *** ПРАВА *** ------------------------------------
   getSetOfPermissions(){
     return this.http.get('/api/auth/getMyPermissions?id=4')
+      .subscribe(
+          (data) => {   
+                      this.permissionsSet=data as any [];
+                      this.getMyId();
+                  },
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+      );
+  }
+
+  getMyId(){
+    this.loadSpravService.getMyId()
             .subscribe(
-                (data) => {   
-                            this.permissionsSet=data as any [];
-                            // console.log("permissions:"+this.permissionsSet);
-                            if(+this.id>0) this.isItMyDocument(+this.id); else this.getCRUD_rights(this.permissionsSet);
-                        },
-                error => console.log(error),
+                (data) => {this.myId=data as any;
+                  this.getMyCompanyId();},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             );
   }
-  isItMyDocument(id:number){// В данном случае:  мое ли это отделение
-    const body = {"documentId": id};//
-          return this.http.post('/api/auth/isItMyDepartment', body) 
-            .subscribe(
-                (data) => {   
-                            this.isItMyDoc=data as boolean;
-                            // console.log("isItMyDoc-1:"+this.isItMyDoc);
-                            this.getCRUD_rights(this.permissionsSet);
-                        },
-                error => console.log(error),
-            );
+
+  getMyCompanyId(){
+    this.loadSpravService.getMyCompanyId().subscribe(
+      (data) => {
+        this.myCompanyId=data as number;
+        this.getCRUD_rights();
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
   }
-  getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreate = permissionsSet.some(this.isAllowToCreate);
-    //this.allowToDelete = permissionsSet.some(this.isAllowToDelete);
-    this.allowToUpdateMy = permissionsSet.some(this.isAllowToUpdateMy);
-    this.allowToUpdateAll = permissionsSet.some(this.isAllowToUpdateAll);
-    if(this.allowToUpdateMy||this.allowToUpdateAll)
-    {  
-      this.canUpdateThisDoc=true;
-      if(!this.allowToUpdateAll){//если нет прав на Отделения: "Редактирование всех"
-        if(!this.isItMyDoc)//значит остаются на "Редактирование своего", НО если это не мое отделение:
-          this.canUpdateThisDoc=false;
-      }
-      if(!this.allowToUpdateMy){//если нет прав на Отделения: "Редактирование своего"
-        if(this.isItMyDoc)//значит остаются на "Редактирование всех", НО если это мое отделение:
-          this.canUpdateThisDoc=false;
-      }
-    }
-    this.visAfterCreatingBlocks=!this.allowToCreate;
+  
+  getCRUD_rights(){
+    this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==11)});
+    this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==11)});
+    this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==14)});
+    this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==13)});
+    this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==16)});
+    this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==15)});
+   
+    if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;}
+    if(this.allowToViewAllCompanies){this.allowToViewMyCompany=true;}
+    if(this.allowToUpdateAllCompanies){this.allowToUpdateMyCompany=true;}
     this.getData();
   }
-  isAllowToCreate   (e){return(e==11);}
-  isAllowToDelete   (e){return(e==12);}
-  isAllowToUpdateMy (e){return(e==15);}
-  isAllowToUpdateAll(e){return(e==16);}
-  isAllowToViewMy   (e){return(e==13);}
-  isAllowToViewAll  (e){return(e==14);}
 
-  // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
-  getDepartmentsList(){
-    this.receivedDepartmentsList=null;
-    console.log("gettingDepthList");
-    this.loadSpravService.getDepartmentsListByCompanyId(this.formBaseInformation.get('company_id').value,false)
-            .subscribe(
-                (data) => {this.receivedDepartmentsList=data as any [];console.log("receivedDepartmentsList-"+this.receivedDepartmentsList)},
-                error => console.log(error)
-            );
+  getData(){
+    if(+this.id>0){
+      this.getDocumentValuesById();
+    }else {
+      this.getCompaniesList(); 
+    }
   }
+
+  refreshPermissions(){
+    let documentOfMyCompany:boolean = (+this.formBaseInformation.get('company_id').value==this.myCompanyId);
+    this.allowToView=(
+      (this.allowToViewAllCompanies)||
+      (this.allowToViewMyCompany&&documentOfMyCompany)
+    )?true:false;
+    this.allowToUpdate=(
+      (this.allowToUpdateAllCompanies)||
+      (this.allowToUpdateMyCompany&&documentOfMyCompany)
+    )?true:false;
+    this.allowToCreate=(this.allowToCreateAllCompanies || this.allowToCreateMyCompany)?true:false;
+    // console.log("myCompanyId - "+this.myCompanyId);
+    // console.log("documentOfMyCompany - "+documentOfMyCompany);
+    // console.log("allowToView - "+this.allowToView);
+    // console.log("allowToUpdate - "+this.allowToUpdate);
+    // console.log("allowToCreate - "+this.allowToCreate);
+    this.rightsDefined=true;//!!!
+  }
+
+
 
   clickBtnCreateNewDocument(){// Нажатие кнопки Записать
     this.createNewDocument();
@@ -199,14 +206,13 @@ export class DepartmentsDocComponent implements OnInit {
     this.updateDocumentResponse=null;
     return this.http.post('/api/auth/updateDepartment', this.formBaseInformation.value)
             .subscribe(
-                (data) => {   
-                            this.updateDocumentResponse=data as string;
-                            this.getData();
-                            this.openSnackBar("Отделение сохранено", "Закрыть");
-                        },
-                error => console.log(error),
-            );
-  }
+        (data) => {   
+                    this.updateDocumentResponse=data as string;
+                    this.getData();
+                    this.openSnackBar("Успешно сохранено", "Закрыть");
+                  }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+    }
+
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
       duration: 3000,
@@ -214,52 +220,62 @@ export class DepartmentsDocComponent implements OnInit {
   }
   getDocumentValuesById(){
     const docId = {"id": this.id};
-        this.http.post('/api/auth/getDepartmentValuesById', docId)
+    this.http.post('/api/auth/getDepartmentValuesById', docId)
         .subscribe(
             data => {  let documentResponse: docResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
                 //Заполнение формы из интерфейса documentResponse:
-                this.formBaseInformation.get('name').setValue(documentResponse.name);
-                this.formBaseInformation.get('company_id').setValue(documentResponse.company_id);
-                this.formBaseInformation.get('parent_id').setValue(documentResponse.parent_id);
-                this.formBaseInformation.get('price_id').setValue(documentResponse.price_id);
-                this.formBaseInformation.get('address').setValue(documentResponse.address);
-                this.formBaseInformation.get('additional').setValue(documentResponse.additional);
-                this.formBaseInformation.get('boxoffice_id').setValue(documentResponse.boxoffice_id);
-                this.formBaseInformation.get('payment_account_id').setValue(documentResponse.payment_account_id);
-                this.formAboutDocument.get('id').setValue(+documentResponse.id);
-                this.formAboutDocument.get('owner').setValue(documentResponse.owner);
-                this.formAboutDocument.get('creator').setValue(documentResponse.creator);
-                this.formAboutDocument.get('changer').setValue(documentResponse.changer);
-                this.formAboutDocument.get('parent').setValue(documentResponse.parent);
-                this.formAboutDocument.get('company').setValue(documentResponse.company);
-                this.formAboutDocument.get('date_time_created').setValue(documentResponse.date_time_created);
-                this.formAboutDocument.get('date_time_changed').setValue(documentResponse.date_time_changed);
-
-                
-                this.getBoxofficesList();
-                this.getCompaniesPaymentAccounts();
-                this.getDepartmentsList();  // если отделения и типы цен грузить не здесь, а в месте где вызывалась getDocumentValuesById,
-                this.getPriceTypesList();   // то из-за асинхронной передачи данных company_id будет еще null, 
-                                            // и запрашиваемые списки не загрузятся
+                if(data!=null&&documentResponse.company_id!=null){
+                  this.formBaseInformation.get('name').setValue(documentResponse.name);
+                  this.formBaseInformation.get('company_id').setValue(documentResponse.company_id);
+                  this.formBaseInformation.get('parent_id').setValue(documentResponse.parent_id);
+                  this.formBaseInformation.get('price_id').setValue(documentResponse.price_id);
+                  this.formBaseInformation.get('address').setValue(documentResponse.address);
+                  this.formBaseInformation.get('additional').setValue(documentResponse.additional);
+                  this.formBaseInformation.get('boxoffice_id').setValue(documentResponse.boxoffice_id);
+                  this.formBaseInformation.get('payment_account_id').setValue(documentResponse.payment_account_id);
+                  this.formAboutDocument.get('id').setValue(+documentResponse.id);
+                  this.formAboutDocument.get('owner').setValue(documentResponse.owner);
+                  this.formAboutDocument.get('creator').setValue(documentResponse.creator);
+                  this.formAboutDocument.get('changer').setValue(documentResponse.changer);
+                  this.formAboutDocument.get('parent').setValue(documentResponse.parent);
+                  this.formAboutDocument.get('company').setValue(documentResponse.company);
+                  this.formAboutDocument.get('date_time_created').setValue(documentResponse.date_time_created);
+                  this.formAboutDocument.get('date_time_changed').setValue(documentResponse.date_time_changed);
+                  this.getBoxofficesList();
+                  this.getCompaniesPaymentAccounts();
+                  // this.getDepartmentsList();  // если отделения и типы цен грузить не здесь, а в месте где вызывалась getDocumentValuesById,
+                  this.getPriceTypesList();   // то из-за асинхронной передачи данных company_id будет еще null, 
+                                              // и запрашиваемые списки не загрузятся
+                  //!!!
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
+                this.refreshPermissions();
             },
-            error => console.log(error)
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
         );
   }
 
   createNewDocument(){
-    this.createdDocId=null;
     this.http.post('/api/auth/insertDepartment', this.formBaseInformation.value)
-            .subscribe(
-                (data) =>   {
-                                this.createdDocId=data as string [];
-                                this.id=+this.createdDocId[0];
-                                this.formBaseInformation.get('id').setValue(this.id);
-                                this.getData();
-                                this.openSnackBar("Отделение создано", "Закрыть");
-                            },
-                error => console.log(error),
-            );
+      .subscribe(
+          (data) =>   {
+            let result=data as any;
+            switch(result){
+              case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе операции проиошла ошибка")}});break;}
+              case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+              default:{  
+                          this.id=result;
+                          this._router.navigate(['/ui/departmentsdoc', this.id]);
+                          this.formBaseInformation.get('id').setValue(this.id);
+                          this.rightsDefined=false; //!!!
+                          this.getData();
+                          this.openSnackBar("Отделение создано", "Закрыть");
+              }
+            }
+          },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+      );
   }
+
   getCompaniesList(){
     this.receivedCompaniesList=null;
     this.loadSpravService.getCompaniesList()
@@ -267,11 +283,27 @@ export class DepartmentsDocComponent implements OnInit {
                 (data) => 
                 {
                   this.receivedCompaniesList=data as any [];
-                  //this.getDepartmentsList();
-                },
-                        
-                error => console.log(error)
-            );
+                  this.doFilterCompaniesList();
+                  this.setDefaultCompany();
+                }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+  }
+
+  doFilterCompaniesList(){
+    let myCompany:any;
+    if(!this.allowToCreateAllCompanies){
+      this.receivedCompaniesList.forEach(company=>{
+      if(this.myCompanyId==company.id) myCompany={id:company.id, name:company.name}});
+      this.receivedCompaniesList=[];
+      this.receivedCompaniesList.push(myCompany);
+    }
+  }
+
+  setDefaultCompany(){
+    this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+    this.getCompaniesPaymentAccounts();
+    this.getBoxofficesList();
+    this.getPriceTypesList(); 
+    this.refreshPermissions();
   }
   
   getCompaniesPaymentAccounts(){
@@ -283,6 +315,7 @@ export class DepartmentsDocComponent implements OnInit {
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
     );
   }
+
   getBoxofficesList(){
     return this.http.get('/api/auth/getBoxofficesList?id='+this.formBaseInformation.get('company_id').value).subscribe(
         (data) => { 
@@ -291,6 +324,7 @@ export class DepartmentsDocComponent implements OnInit {
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
     );
   }
+
   getBoxofficeNameById(id:string):string{
     let name:string = 'Не установлен';
     if(this.boxoffices){
@@ -299,6 +333,7 @@ export class DepartmentsDocComponent implements OnInit {
       })}
     return(name);
   }
+
   getPaymentAccountNameById(id:string):string{
     let name:string = 'Не установлен';
     if(this.paymentAccounts){
@@ -315,21 +350,9 @@ export class DepartmentsDocComponent implements OnInit {
     this.formBaseInformation.get('price_id').setValue(null);
     this.getBoxofficesList();
     this.getCompaniesPaymentAccounts();
-    this.getDepartmentsList();
     this.getPriceTypesList(); 
   }
 
-  refreshShowAllTabs(){
-    console.log("Id of company = "+this.id);
-    if(this.id>0){//если в документе есть id
-      this.visAfterCreatingBlocks = true;
-      this.visBeforeCreatingBlocks = false;
-      this.visBtnUpdate = this.canUpdateThisDoc;
-      }else{
-      this.visAfterCreatingBlocks = false;
-      this.visBeforeCreatingBlocks = true;
-    }
-  }
   getPriceTypesList(){
     this.receivedPriceTypesList=null;
     this.loadSpravService.getPriceTypesList(+this.formBaseInformation.get('company_id').value)

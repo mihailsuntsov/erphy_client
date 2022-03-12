@@ -18,6 +18,7 @@ getTable(queryForm: QueryForm){
                         offset:queryForm.offset, 
                         sortAsc:queryForm.sortAsc, 
                         result:queryForm.result,
+                        filterOptionsIds: queryForm.filterOptionsIds,
                         companyId: queryForm.companyId };
 
         return this.http.post('/api/auth/getUsersTable', body); 
@@ -29,6 +30,7 @@ getPagesList(queryForm: QueryForm){
                             offset:queryForm.offset, 
                             sortAsc:queryForm.sortAsc, 
                             result:queryForm.result,
+                            filterOptionsIds: queryForm.filterOptionsIds,
                             companyId: queryForm.companyId  };
     
             return this.http.post('/api/auth/getUsersPagesList', body); 

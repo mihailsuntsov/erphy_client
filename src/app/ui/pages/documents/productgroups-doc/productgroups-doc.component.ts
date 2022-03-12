@@ -440,10 +440,10 @@ export class ProductgroupsDocComponent implements OnInit {
                   //!!!
                 } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
                 this.refreshPermissions();
-            },
-            error => console.log(error)
-        );
-  }
+              },
+              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+          );
+    }
   clickBtnCreateNewDocument(){// Нажатие кнопки Записать
     this.createNewDocument();
   }

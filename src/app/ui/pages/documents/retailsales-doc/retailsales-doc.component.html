@@ -55,13 +55,12 @@
                 <div class="separator"></div><!-- !!! -->
                 <button 
                     mat-raised-button 
-                    style="width: 36px;height: 36px;min-width: 38px;padding: 0px;"
                     color="primary"
                     matTooltip='Пользовательские настройки документа'
                     (click)="openDialogSettings()"
                     type="button"
                     (submit)="false"
-                    class="button">
+                    class="button small-button">
                     <i class="material-icons">settings</i>
                 </button>
                 <button 
@@ -74,9 +73,8 @@
                     color="primary"
                     (submit)="false"
                     type="button"
-                    class="button"
-                    style="width: 129px;height: 36px;min-width: 38px;">
-                    <i class="material-icons">add</i> Документ<i class="material-icons">arrow_drop_down</i>
+                    class="button small-button">
+                    <i class="material-icons">add</i>
                 </button>
                 <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
                     <button mat-menu-item (click)="goToNewDocument()">
@@ -88,15 +86,15 @@
                 </mat-menu>
                 <button 
                     mat-raised-button 
-                    style="width: 129px;height: 36px;"
-                    *ngIf="+id>0 && allowToUpdate && canGetChilds"
+                    *ngIf="+id>0 && !formBaseInformation.get('is_completed').value && allowToUpdate && canGetChilds"
                     (click)="updateDocument()"
                     [disabled]="!childFormValid" 
+                    matTooltip='Сохранить документ'
                     (submit)="false"
                     color="primary"
                     type="button"
-                    class="button">
-                    <i class="material-icons">done</i> Сохранить
+                    class="button small-button">
+                    <i class="material-icons">save</i>
                 </button>
                 <button 
                     matTooltip='Документ проведён'
@@ -123,11 +121,10 @@
                 <a routerLink="../../retailsales">
                     <button 
                         mat-raised-button 
-                        (submit)="false"
+                        [matTooltip]="id>0?'Выйти в меню':'Отмена создания документа'"
                         color="accent"
-                        type="button"
-                        class="button">
-                        <i class="material-icons">close</i> {{id>0?'Выйти':'Отмена'}}
+                        class="button small-button">
+                        <i class="material-icons">close</i>
                     </button>
                 </a>
             </div>

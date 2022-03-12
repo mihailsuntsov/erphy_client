@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
+import { Router } from '@angular/router';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { FormGroup, Validators, FormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -148,6 +149,7 @@ export class KassaDocComponent implements OnInit {
     public dialogAddFiles: MatDialog,
     private kkmAtolService: KkmAtolService,
     public MessageDialog: MatDialog,
+    private _router:Router,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar
   ) {if(activateRoute.snapshot.params['id'])
@@ -514,6 +516,7 @@ onServiceSearchValueChanges(){
                                 this.createdDocId=data as number;
                                 if(+this.createdDocId!=0){
                                   this.id=+this.createdDocId[0];
+                                  this._router.navigate(['/ui/taxesdoc', this.id]);
                                   this.formBaseInformation.get('id').setValue(this.id);
                                   this.rightsDefined=false; //!!!
                                   this.getData();

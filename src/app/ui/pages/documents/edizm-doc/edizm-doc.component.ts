@@ -3,6 +3,7 @@ import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { Validators, FormGroup, FormControl} from '@angular/forms';
 import {HttpClient} from '@angular/common/http';
+import { Router } from '@angular/router';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatDialog } from '@angular/material/dialog';
@@ -37,7 +38,7 @@ interface docResponse {//интерфейс для получения ответ
   providers: [LoadSpravService,]
 })
 export class EdizmDocComponent implements OnInit {
-  id: number;// id документа
+  id: number=0;// id документа
   createdDocId: string[];//массив для получение id созданного документа
   updateDocumentResponse: string;//массив для получения данных
   receivedCompaniesList: any [];//массив для получения списка предприятий
@@ -77,6 +78,7 @@ export class EdizmDocComponent implements OnInit {
 
   constructor(private activateRoute: ActivatedRoute,
     private http: HttpClient,
+    private _router:Router,
     private MessageDialog: MatDialog,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar) { 
@@ -192,10 +194,8 @@ export class EdizmDocComponent implements OnInit {
                 {
                   this.receivedCompaniesList=data as any [];
                   this.setDefaultCompany();
-                },                      
-                error => console.log(error)
-            );
-  }
+                }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+    }
 
   setDefaultCompany(){
     this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
@@ -228,9 +228,8 @@ export class EdizmDocComponent implements OnInit {
                   //!!!
                 } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
                 this.refreshPermissions();
-
             },
-            error => console.log(error)
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
         );
   }
   clickBtnCreateNewDocument(){// Нажатие кнопки Записать
@@ -244,6 +243,7 @@ export class EdizmDocComponent implements OnInit {
                 (data) =>   {
                                 this.createdDocId=data as string [];
                                 this.id=+this.createdDocId[0];
+                                this._router.navigate(['/ui/taxesdoc', this.id]);
                                 this.formBaseInformation.get('id').setValue(this.id);
                                 this.getData();
                                 this.openSnackBar("Документ \"Типы цен\" успешно создан", "Закрыть");

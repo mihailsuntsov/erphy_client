@@ -1,6 +1,7 @@
-<mat-card class="card">
-    <form #formBI="ngForm" [formGroup]="formBaseInformation">
+<form #formBI="ngForm" [formGroup]="formBaseInformation">
+    <mat-card class="card for-sticky-header">
         <!-- !!! -->
+        <!-- <div class="top-bar-plug"></div> -->
         <mat-card-title class="top-bar container-fluid"> 
             <div class="row" id="topBlock">
                 <div id="cardname">
@@ -148,7 +149,7 @@
                     <button 
                         mat-raised-button 
                         matTooltip='Провести документ'
-                        *ngIf=" +id>0 && allowToComplete && canGetChilds && !is_completed && productSearchAndTableComponent"
+                        *ngIf=" +id>0 && allowToComplete&& canGetChilds && !is_completed && productSearchAndTableComponent"
                         [disabled]="!childFormValid||productSearchAndTableComponent.indivisibleErrorOfProductTable" 
                         (click)="completeDocument()" 
                         type="button"
@@ -786,8 +787,8 @@
             </mat-tab-group>
             
         </mat-card-content> 
-    </form>
-    <!-- <code><pre>{{receivedDepartmentsList | json}}</pre></code> -->
-</mat-card>
+        <!-- <code><pre>{{receivedDepartmentsList | json}}</pre></code> -->
+    </mat-card>
 
+</form>
 

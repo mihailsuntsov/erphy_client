@@ -8,16 +8,6 @@ class="spinner"
     <mat-card-title class="flex" style="height: 30px;">
         <div *ngIf="!displayingDeletedDocs" class="emptyspace">Единицы измерения</div>
         <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> единицы измерения</div>
-        <!-- <button 
-            mat-raised-button 
-            style="width: 36px;height: 36px;min-width: 38px;padding: 0px;"
-            color="primary"
-            matTooltip='Пользовательские настройки документа'
-            (click)="openDialogSettings()"
-            type="button"
-            class="button">
-            <i class="material-icons">settings</i>
-        </button> -->
         <div [style.display]="(visBtnAdd==true&&!displayingDeletedDocs)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
             <a [routerLink]="['../../edizmdoc', '']">
                 <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> Создать</button>

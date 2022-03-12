@@ -8,6 +8,8 @@ export class QueryForm{
     sortAsc: any;
     result: any;//количество записей на странице
     companyId:any;
+    searchCategoryString:any;
+    filterOptionsIds: number[];
 
     //получаемые данные
     arrClients: string [];

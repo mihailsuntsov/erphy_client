@@ -390,13 +390,13 @@ constructor(private activateRoute: ActivatedRoute,
     );
   }
 
-  getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==129)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==130)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==133)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==134)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==135)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==136)});
+  getCRUD_rights(){
+    this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==129)});
+    this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==130)});
+    this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==133)});
+    this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==134)});
+    this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==135)});
+    this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==136)});
     
     if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;}
     if(this.allowToViewAllCompanies){this.allowToViewMyCompany=true;}
@@ -467,8 +467,8 @@ constructor(private activateRoute: ActivatedRoute,
     this.loadSpravService.getMyCompanyId().subscribe(
       (data) => {
         this.myCompanyId=data as number;
-        this.getCRUD_rights(this.permissionsSet);
-      }, error => console.log(error));
+        this.getCRUD_rights();
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
   }
 
   setDefaultCompany(){
@@ -574,18 +574,18 @@ constructor(private activateRoute: ActivatedRoute,
     this.createdDocId=null;
     this.formBaseInformation.get('selectedCagentCategories').setValue(this.checkedList);
     this.http.post('/api/auth/insertCagent', this.formBaseInformation.value)
-            .subscribe(
-                (data) =>   {
-                                this.createdDocId=data as string [];
-                                this.id=+this.createdDocId[0];
-                                this._router.navigate(['/ui/cagentsdoc', this.id]);
-                                this.formBaseInformation.get('id').setValue(this.id);
-                                this.rightsDefined=false; //!!!
-                                this.getData();
-                                this.openSnackBar("Документ \"Контрагенты\" успешно создан", "Закрыть");
-                            },
-                error => console.log(error),
-            );
+    .subscribe(
+    (data) =>   {
+                    this.createdDocId=data as string [];
+                    this.id=+this.createdDocId[0];
+                    this._router.navigate(['/ui/cagentsdoc', this.id]);
+                    this.formBaseInformation.get('id').setValue(this.id);
+                    this.rightsDefined=false; //!!!
+                    this.getData();
+                    this.openSnackBar("Документ успешно создан", "Закрыть");
+    },
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+    );
   }
   
   openSnackBar(message: string, action: string) {

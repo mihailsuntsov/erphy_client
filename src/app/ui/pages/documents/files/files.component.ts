@@ -2,10 +2,11 @@ import { FlatTreeControl } from '@angular/cdk/tree';
 import { Component, OnInit , Inject, Optional} from '@angular/core';
 import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
 import { QueryForm } from './query-form';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog,  MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { LoadSpravService } from './loadsprav';
+import { LoadSpravService } from '../../../../services/loadsprav';
 import { QueryFormService } from './get-files-table.service';
 import { UniversalCategoriesDialogComponent } from 'src/app/ui/dialogs/universal-categories-dialog/universal-categories-dialog.component';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
@@ -70,7 +71,9 @@ export class FilesComponent implements OnInit {
   TREE_DATA: TreeNode[]=[];
   numRootCategories: number=0;
   numChildsOfSelectedCategory: number=0;
+  myId:number=0;
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, select - оконный режим выбора файлов
+  gettingTableData:boolean=true;//!!!
   
   files: File[] = [];//массив данных для таблицы, картинок-миниатюр и чекбоксов (чекбоксы берут из него id, таблица -всё)
 
@@ -164,6 +167,7 @@ viewMode:string = "grid"; // способ отображения файлов - 
     public universalCategoriesDialog: MatDialog,
     public filesUploadDialog: MatDialog,
     public ConfirmDialog: MatDialog,
+    private MessageDialog: MatDialog,
     private http: HttpClient,
     public deleteDialog: MatDialog,
     private Cookie: Cookie,
@@ -197,7 +201,7 @@ viewMode:string = "grid"; // способ отображения файлов - 
       this.sendingQueryForm.searchCategoryString="";
       this.sendingQueryForm.trash=false;
       console.log("Cookie.get('files_result') - "+Cookie.get('files_result'));
-        this.getCompaniesList();// -> getSetOfPermissions() -> getMyCompanyId() -> setDefaultCompany() -> getCRUD_rights() -> getData() 
+      this.getCompaniesList();// -> getSetOfPermissions() -> getMyCompanyId() -> setDefaultCompany() -> getCRUD_rights() -> getData() 
       //API: getCompaniesList         giveMeMyPermissions      getMyCompanyId
 
       //сохраненные в куках параметры
@@ -228,32 +232,32 @@ viewMode:string = "grid"; // способ отображения файлов - 
           .subscribe(
               (data) => {   
                           this.permissionsSet=data as any [];
-                          this.getMyCompanyId();
+                          this.getMyId();
                       },
               error => console.log(error),
           );
   }
-  getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==146)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==147)});
-    this.allowToDeleteAllCompanies = permissionsSet.some(         function(e){return(e==148)});
-    this.allowToDeleteMyCompany = permissionsSet.some(            function(e){return(e==149)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==150)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==151)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==152)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==153)});
-    this.allowCategoryCreateAllCompanies = permissionsSet.some(   function(e){return(e==154)});
-    this.allowCategoryCreateMyCompany = permissionsSet.some(      function(e){return(e==155)});
-    this.allowCategoryUpdateAllCompanies = permissionsSet.some(   function(e){return(e==156)});
-    this.allowCategoryUpdateMyCompany = permissionsSet.some(      function(e){return(e==157)});
-    this.allowCategoryDeleteAllCompanies = permissionsSet.some(   function(e){return(e==158)});
-    this.allowCategoryDeleteMyCompany = permissionsSet.some(      function(e){return(e==159)});
-    this.allowToRecoverFilesAllCompanies = permissionsSet.some(   function(e){return(e==177)});
-    this.allowToRecoverFilesMyCompany = permissionsSet.some(      function(e){return(e==178)});
-    this.allowToDeleteFromTrashAllCompanies = permissionsSet.some(function(e){return(e==179)});
-    this.allowToDeleteFromTrashMyCompany = permissionsSet.some(   function(e){return(e==180)});
-    this.allowToClearTrashAllCompanies = permissionsSet.some(     function(e){return(e==181)});
-    this.allowToClearTrashMyCompany = permissionsSet.some(       function(e){return(e==182)});
+  getCRUD_rights(){
+    this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==146)});
+    this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==147)});
+    this.allowToDeleteAllCompanies = this.permissionsSet.some(         function(e){return(e==148)});
+    this.allowToDeleteMyCompany = this.permissionsSet.some(            function(e){return(e==149)});
+    this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==150)});
+    this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==151)});
+    this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==152)});
+    this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==153)});
+    this.allowCategoryCreateAllCompanies = this.permissionsSet.some(   function(e){return(e==154)});
+    this.allowCategoryCreateMyCompany = this.permissionsSet.some(      function(e){return(e==155)});
+    this.allowCategoryUpdateAllCompanies = this.permissionsSet.some(   function(e){return(e==156)});
+    this.allowCategoryUpdateMyCompany = this.permissionsSet.some(      function(e){return(e==157)});
+    this.allowCategoryDeleteAllCompanies = this.permissionsSet.some(   function(e){return(e==158)});
+    this.allowCategoryDeleteMyCompany = this.permissionsSet.some(      function(e){return(e==159)});
+    this.allowToRecoverFilesAllCompanies = this.permissionsSet.some(   function(e){return(e==177)});
+    this.allowToRecoverFilesMyCompany = this.permissionsSet.some(      function(e){return(e==178)});
+    this.allowToDeleteFromTrashAllCompanies = this.permissionsSet.some(function(e){return(e==179)});
+    this.allowToDeleteFromTrashMyCompany = this.permissionsSet.some(   function(e){return(e==180)});
+    this.allowToClearTrashAllCompanies = this.permissionsSet.some(     function(e){return(e==181)});
+    this.allowToClearTrashMyCompany = this.permissionsSet.some(        function(e){return(e==182)});
     
     this.getData();
   }
@@ -307,17 +311,18 @@ viewMode:string = "grid"; // способ отображения файлов - 
     if(this.refreshPermissions() && this.allowToView)
     {
         this.getTableHeaderTitles();
-        this.getPagesList(this.sendingQueryForm);
-        this.getTable(this.sendingQueryForm);
+        this.getPagesList();
+        this.getTable();
         this.doFilterCompaniesList();
         this.loadTrees();
+        //!!!
+      } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
     }
-  }
 
-  getPagesList(sendingQueryForm: QueryForm){
+  getPagesList(){
     this.donePagesList = false;
     // this.receivedPagesList=null;
-    this.queryFormService.getPagesList(sendingQueryForm)
+    this.queryFormService.getPagesList(this.sendingQueryForm)
             .subscribe(
                 data => {this.receivedPagesList=data as string []; this.donePagesList=true;
                 this.size=this.receivedPagesList[0];
@@ -336,8 +341,8 @@ viewMode:string = "grid"; // способ отображения файлов - 
       this.sendingQueryForm.offset=0;
       Cookie.set('files_trash',this.sendingQueryForm.trash?"true":"false");
       
-      this.getPagesList(this.sendingQueryForm);
-      this.getTable(this.sendingQueryForm);
+      this.getPagesList();
+      this.getTable();
       if(this.allowToCreate && !this.sendingQueryForm.trash) this.visBtnAdd = true; else  this.visBtnAdd = false;
       //сброс категорий
       this.sendingQueryForm.selectedNodeId='';
@@ -352,17 +357,19 @@ viewMode:string = "grid"; // способ отображения файлов - 
       this.sendingQueryForm.offset=0;
       Cookie.set('files_show_only_anonyme',this.sendingQueryForm.showOnlyAnonymeAccessFiles?"true":"false");
       
-      this.getPagesList(this.sendingQueryForm);
-      this.getTable(this.sendingQueryForm);
+      this.getPagesList();
+      this.getTable();
       //if(this.allowToCreate && !this.sendingQueryForm.trash) this.visBtnAdd = true; else  this.visBtnAdd = false;
 
     }
 
-    getTable(sendingQueryForm: QueryForm){
+    getTable(){
       //console.log("перед вызовом 1");
-      this.queryFormService.getTable(sendingQueryForm)
+      this.gettingTableData=true;
+      this.queryFormService.getTable(this.sendingQueryForm)
         .subscribe(
             (data) => {
+              this.gettingTableData=false;
               this.files=data as File[]; 
               // загрузка картинок в полученный массив. Поясняю: Мы запрашиваем картинки через GET-запрос, отправляя JWT-ключ (иначе по /api/auth/.. ничего не получить)
               // ссылка на картинку приходит в data
@@ -378,7 +385,7 @@ viewMode:string = "grid"; // способ отображения файлов - 
                 }
               }
             },
-            error => console.log(error) 
+            error => {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})} 
         );
     }
 
@@ -524,28 +531,32 @@ viewMode:string = "grid"; // способ отображения файлов - 
     deleteDocs(){
       const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
       this.clearCheckboxSelection();
-        return this.http.post('/api/auth/deleteFiles', body) 
-              .subscribe(
-                  (data) => {   
-                              this.openSnackBar("Файлы успешно удалены в корзину", "Закрыть");
-                              this.getData();
-                          },
-                  error => console.log(error),
-              );
-      }
+      return this.http.post('/api/auth/deleteFiles', body) 
+        .subscribe(
+          (data) => {   
+            let result=data as any;
+            switch(result){
+              case 1:{this.getData();this.openSnackBar("Успешно удалено в корзину", "Закрыть");break;} 
+              case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе операции проиошла ошибка")}});break;}
+              case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+            }
+          },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+    }  
       
     clickBtnRecover() {
       const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
       this.clearCheckboxSelection();
-        return this.http.post('/api/auth/recoverFilesFromTrash', body) 
-            .subscribe(
-                (data) => {   
-                  this.openSnackBar("Файлы успешно восстановлены", "Закрыть");
-                  this.getData();
-                          },
-                  error => console.log(error),
-            );        
-    }
+      return this.http.post('/api/auth/recoverFilesFromTrash', body) 
+          .subscribe(
+            (data) => {   
+              let result=data as any;
+              switch(result){
+                case 1:{this.getData();this.openSnackBar("Файлы успешно восстановлены", "Закрыть");break;} 
+                case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе операции проиошла ошибка")}});break;}
+                case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+              }
+            },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+      }  
 
     clickBtnDeleteFromTrash(): void {
       const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
@@ -565,15 +576,17 @@ viewMode:string = "grid"; // способ отображения файлов - 
     deleteFromTrash(){
       const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
       this.clearCheckboxSelection();
-        return this.http.post('/api/auth/deleteFilesFromTrash', body) 
+      return this.http.post('/api/auth/deleteFilesFromTrash', body) 
               .subscribe(
-                  (data) => {   
-                              this.openSnackBar("Файлы успешно удалены", "Закрыть");
-                              this.getData();
-                          },
-                  error => console.log(error),
-              );  
-    }
+                (data) => {   
+                  let result=data as any;
+                  switch(result){
+                    case 1:{this.getData();this.openSnackBar("Успешно удалено из корзины", "Закрыть");break;} 
+                    case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе операции проиошла ошибка")}});break;}
+                    case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+                  }
+                },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+          }  
 
     clickBtnClearTrash(): void {
       const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
@@ -592,15 +605,18 @@ viewMode:string = "grid"; // способ отображения файлов - 
     clearTrash(){
       const body = {"company_id": this.sendingQueryForm.companyId}; 
       this.clearCheckboxSelection();
-        return this.http.post('/api/auth/clearTrash', body) 
-              .subscribe(
-                  (data) => {   
-                              this.openSnackBar("Корзина успешно очищена", "Закрыть");
-                              this.getData();
-                          },
-                  error => console.log(error),
-              );  
-    }
+      return this.http.post('/api/auth/clearTrash', body) 
+        .subscribe(
+          (data) => {   
+            let result=data as any;
+            switch(result){
+              case 1:{this.getData();this.openSnackBar("Корзина успешно очищена", "Закрыть");break;} 
+              case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе операции проиошла ошибка")}});break;}
+              case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+            }
+          },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+    }  
+
     openSnackBar(message: string, action: string) {
       this._snackBar.open(message, action, {
         duration: 3000,
@@ -618,6 +634,15 @@ viewMode:string = "grid"; // способ отображения файлов - 
               );
     }
 
+    getMyId(){
+      this.loadSpravService.getMyId()
+              .subscribe(
+                  (data) => {this.myId=data as any;
+                    this.getMyCompanyId();},
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+              );
+    }
+
     getMyCompanyId(){
       this.loadSpravService.getMyCompanyId().subscribe(
         (data) => {
@@ -629,15 +654,10 @@ viewMode:string = "grid"; // способ отображения файлов - 
 
     setDefaultCompany(){
       if(this.data)
-      {
         this.sendingQueryForm.companyId=this.data.companyId;
-        this.getCRUD_rights(this.permissionsSet);
-      } 
       else 
-      {
         this.sendingQueryForm.companyId=this.myCompanyId;
-        this.getCRUD_rights(this.permissionsSet);
-      }
+      this.getCRUD_rights();
     }
 
     clickBtnAddCategory(): void {
@@ -771,9 +791,9 @@ viewMode:string = "grid"; // способ отображения файлов - 
     this.sendingQueryForm.selectedNodeId=node.id;
     this.sendingQueryForm.selectedNodeName=node.name;
     this.recountNumChildsOfSelectedCategory();
-    this.getPagesList(this.sendingQueryForm);
+    this.getPagesList();
     this.sendingQueryForm.offset=0;
-    this.getTable(this.sendingQueryForm);
+    this.getTable();
   }
   getNodeId(node: any):number{
     return(node.id);
@@ -876,8 +896,8 @@ clickBtnFileUplioad(){
     this.sendingQueryForm.sortAsc='asc'; // установится asc, setSort перевернёт ее в desc
     this.setSort('date_time_created_sort')
 
-    this.getPagesList(this.sendingQueryForm);
-    this.getTable(this.sendingQueryForm);
+    this.getPagesList();
+    this.getTable();
   });   
 
 }

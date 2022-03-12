@@ -52,7 +52,7 @@ class="spinner"
                     </div>
                     <div class="flex">
                         <mat-form-field style="width:50px;" class="num-of-rows">
-                            <mat-label>Строк в таблице</mat-label>
+                            <mat-label>Строк</mat-label>
                             <mat-select [(value)]="sendingQueryForm.result" (selectionChange)="setNumOfPages()" class="form-control" id="selectRowsPerPage" name="result">                           
                                 <mat-option  *ngFor="let num of numRows" [value]="num.value">
                                         {{num.viewValue}}
