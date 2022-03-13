@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import {MessageDialog} from 'src/app/ui/dialogs/messagedialog.component';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
+import { TranslocoService } from '@ngneat/transloco';
 
 /** @title Fixed sidenav */
 @Component({
@@ -27,7 +28,8 @@ export class UiComponent implements OnInit {
     private loadSpravService: LoadSpravService, 
     public MessageDialog: MatDialog,
     private _router:Router,
-    private http: HttpClient,) {
+    private http: HttpClient,
+    private service: TranslocoService) {
      
   }
   
@@ -42,6 +44,11 @@ export class UiComponent implements OnInit {
       this.getAllMyPermissions();// -> getPermissions()
     else this._router.navigate(['/login']);
   }
+  
+  change(lang: string) {
+    this.service.setActiveLang(lang);
+  }
+
   getAllMyPermissions()
   {
     // alert("getAllMyPermissions");

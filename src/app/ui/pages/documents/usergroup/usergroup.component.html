@@ -4,10 +4,10 @@ class="spinner"
 [diameter]="50"
 *ngIf="gettingTableData"
 ></mat-spinner>
-<mat-card class="card">
+<mat-card class="card" *transloco="let t">
   
     <mat-card-title class="flex" style="height: 30px;">
-        <div *ngIf="!displayingDeletedDocs" class="card-name">Роли</div>
+        <div *ngIf="!displayingDeletedDocs" class="card-name">{{t('usergroup.roles')}}</div>
         <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> роли</div>
         <div [style.display]="(visBtnAdd  && !displayingDeletedDocs)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
             <a [routerLink]="['../../usergroupdoc', '']">

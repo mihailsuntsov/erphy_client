@@ -7,6 +7,7 @@ import { AppComponent } from './app.component';
 import { httpInterceptorProviders } from './auth/auth-interceptor';
 // import { ValidationService } from './services/validation.service';
 import { MatDialogRef } from '@angular/material/dialog';
+import { TranslocoRootModule } from './transloco-root.module';
 
 @NgModule({
   declarations: [
@@ -17,12 +18,12 @@ import { MatDialogRef } from '@angular/material/dialog';
     BrowserAnimationsModule,
     AppRoutingModule,
     HttpClientModule,
+    TranslocoRootModule,
   ],
   exports: [
   ],
   providers: [
     httpInterceptorProviders,
-    // ValidationService,
     {
       provide: MatDialogRef,
       useValue: {}

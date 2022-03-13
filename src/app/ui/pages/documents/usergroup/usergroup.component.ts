@@ -11,6 +11,7 @@ import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { QueryFormService } from './query-forms.service';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
+import { TranslocoService } from '@ngneat/transloco';
 
 export interface CheckBox {
   id: number;
@@ -95,9 +96,28 @@ export class UsergroupComponent implements OnInit {
     private http: HttpClient,
     private Cookie: Cookie,
     public deleteDialog: MatDialog,
-    public dialogRef1: MatDialogRef<UsergroupComponent>,) { }
+    public dialogRef1: MatDialogRef<UsergroupComponent>,
+    private service: TranslocoService,) { }
 
     ngOnInit() {
+
+      // this.service.load('ru').subscribe();
+      
+      // this.service.translate('roles');
+
+      // this.service.selectTranslate('roles').subscribe(t => {
+      //   console.log({t}.t);
+      // });
+
+      this.service
+      .selectTranslate("roles", {}, "usergroup")
+      .subscribe(t => {
+        console.log({t}.t);
+      });
+
+
+// translate('roles');
+
       this.sendingQueryForm.companyId='0';
       this.sendingQueryForm.sortAsc='asc';
       this.sendingQueryForm.sortColumn='name';
