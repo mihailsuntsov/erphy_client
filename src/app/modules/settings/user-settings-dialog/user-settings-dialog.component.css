@@ -80,33 +80,12 @@ li {list-style: none;}
     line-height:0 !important;
     vertical-align: middle;
 }
-/*--------------- стили для статуса------------------*/
-/*для цветного круга в статусах*/
-.circle-wrapper {
-    width: 30px;
-    height: 100%;
-    vertical-align: middle;
-    text-align: center;
-    display: inline-block;
+.clear-button{
+    position: relative;
+    right: 0px;
+    top: 6px;
+    flex: 0 0 0%;
+    color: black;
+    z-index: 1000;
+    line-height: 34px !important;
 }
-.circle-in-list {
-    width: 20px;
-    height: 20px;
-    -moz-border-radius: 10px;
-    -webkit-border-radius: 10px;
-    border-radius: 10px;
-} 
-.circle-in-selected{
-    width: 20px;
-    height: 20px;
-    -moz-border-radius: 10px;
-    -webkit-border-radius: 10px;
-    border-radius: 10px;
-    position:absolute;
-    top: 20px;
-}
-/*название статуса*/
-.status-name {
-    display: inline-block;
-    line-height: 20px;
-} 

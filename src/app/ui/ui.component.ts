@@ -157,7 +157,7 @@ export class UiComponent implements OnInit {
             this.locale=result.locale?result.locale:'en-us';// en-us
             this.suffix=result.suffix?result.suffix:'en';// suffix - at same time means language for Transloco
 
-            this.setLanguage(this.suffix); // setting language in Transloco
+            this.setLanguage(this.suffix); // setting language in Transloco by suffixes like en es ru etc
             this.setLocale  (this.locale); // setting locale in moment.js
           },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
@@ -170,31 +170,32 @@ export class UiComponent implements OnInit {
       maxWidth: '95vw',
       maxHeight: '95vh',
       width: '400px', 
-      minHeight: '650px',
+      minHeight: '350px',
       data:
       { //sending data to dialog:
         timeZoneId:   this.settingsForm.get('timeZoneId').value,
         languageId:   this.settingsForm.get('languageId').value,
         localeId:     this.settingsForm.get('localeId').value,
-        locale:       this.locale, 
+        // locale:       this.locale, 
         suffix:       this.suffix,
       },
     });
-    // dialogSettings.afterClosed().subscribe(result => {
-    //   if(result){
-    //     //если нажата кнопка Сохранить настройки - вставляем настройки в форму настроек и сохраняем
-    //     if(result.get('timeZoneId')) this.settingsForm.get('timeZoneId').setValue(result.get('timeZoneId').value);
-    //     if(result.get('languageId')) this.settingsForm.get('languageId').setValue(result.get('languageId').value);
-    //     if(result.get('localeId')) this.settingsForm.get('localeId').setValue(result.get('localeId').value);
-    //     this.saveUserSettings();
-    //   }
-    // });
+    dialogSettings.afterClosed().subscribe(result => {
+      if(result){
+        //если нажата кнопка Сохранить настройки - вставляем настройки в форму настроек и сохраняем
+        if(result.get('timeZoneId')) this.settingsForm.get('timeZoneId').setValue(result.get('timeZoneId').value);
+        if(result.get('languageId')) this.settingsForm.get('languageId').setValue(result.get('languageId').value);
+        if(result.get('localeId')) this.settingsForm.get('localeId').setValue(result.get('localeId').value);
+        this.saveUserSettings();
+      }
+    });
   }
 
   saveUserSettings(){
     return this.http.post('/api/auth/saveUserSettings', this.settingsForm.value)
             .subscribe(
                 (data) => {   
+                          this.getSettings();
                           this.openSnackBar("Настройки успешно сохранены", "Закрыть");
                         },
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
