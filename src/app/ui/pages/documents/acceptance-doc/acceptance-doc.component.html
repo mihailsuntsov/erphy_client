@@ -99,7 +99,6 @@
                     [matMenuTriggerFor]="addDocMenu"
                     mat-raised-button 
                     matTooltip='Создать документы'
-                    [disabled]="!childFormValid||!formBaseInformation.valid||acceptanceProductsTableComponent.indivisibleErrorOfProductTable" 
                     *ngIf="+id>0 && acceptanceProductsTableComponent"
                     color="primary"
                     (submit)="false"
@@ -312,29 +311,12 @@
                                                 <div class="col-xl-4 col-sm-12">
                                                     <div class="container-fluid">
                                                         <div class="row">
-                                                            <div class="col-lg-6  col-md-12"> 
-                                                                <mat-form-field class="mat-form-field-100" *ngIf="doc_number_isReadOnly && (+formBaseInformation.get('company_id').value>0)">                                                               
-                                                                    <input  matInput
-                                                                            (click)="EditDocNumber()"
-                                                                            placeholder="Номер документа"
-                                                                            formControlName="doc_number"
-                                                                            [readonly]=true/>
-                                                                </mat-form-field>
-                                                                <mat-form-field class="mat-form-field-100" *ngIf="!doc_number_isReadOnly && (+formBaseInformation.get('company_id').value>0)">
-                                                                    <input  matInput
-                                                                            #doc_number 
-                                                                            maxlength="10"
-                                                                            placeholder="Номер документа"
-                                                                            (keypress)="numberOnly($event)"
-                                                                            (change)="checkDocNumberUnical('acceptance')"
-                                                                            formControlName="doc_number"/>
-                                                                    <mat-hint  align="start" *ngIf="formBaseInformation.get('doc_number').touched && formBaseInformation.get('doc_number').invalid">
-                                                                        <i *ngIf="formBaseInformation.get('doc_number').errors.pattern" class="form-invalid">Номер должен состоять из цифр</i>
-                                                                    </mat-hint>
-                                                                    <mat-hint align="end">{{doc_number.value.length}} / 10</mat-hint>
-                                                                    <mat-progress-bar *ngIf="isDocNumberUnicalChecking" mode="indeterminate"></mat-progress-bar>
-                                                                </mat-form-field>
-                                                            </div>
+                                                            <!--div class="col-lg-6  col-md-12">                                                
+                                                                <button mat-button (click)="fr()">fr</button>
+                                                                <button mat-button (click)="en()">en</button>
+                                                                <button mat-button (click)="ru()">ru</button>
+                                                                <button mat-button (click)="ja()">ja</button>
+                                                            </div-->
                                                             <div class="col-lg-6  col-md-12"> 
                                                                 <mat-form-field  class="mat-form-field-100">
                                                                     <input  matInput 
@@ -435,7 +417,7 @@
                                 </mat-card>
                             </div>  
                         </div>  
-
+-{{locale}}-
                         <div class="row">
                             <div class="col-12" style="padding-right: 0px; padding-left: 0px;">
                                 <app-acceptance-products-table 
@@ -587,7 +569,7 @@
             
         </mat-card-content> 
     </form>
-    <!-- <code><pre>{{LinkedDocsWriteoff | json}}</pre></code> -->
+    <code><pre>{{formBaseInformation.value | json}}</pre></code>
 </mat-card>
 
 

@@ -1,4 +1,73 @@
 {
-    "dokio": "ДОКИО"
-}
+    "sidebar":{
+        "title": "ДОКИО",
+        "menu":{
+            "headers":{
+                "purchases":"Закупки",
+                "sales":"Продажи",
+                "retail":"Розница",
+                "goods":"Товары",
+                "money":"Деньги",
+                "registries":"Справочники",
+                "docs":"Документы",
+                "reports":"Отчёты",
+                "settings":"Настройки"
+            },
+            "items":{
+                "returnsup":"Возвраты поставщикам",
+                "ordersup":"Заказы поставщикам",
+                "acceptance":"Приёмки",
+                "invoicein":"Счета поставщиков",
+                "vatinvoicein":"Счета-фактуры полученные",
 
+                "return":"Возвраты покупателей",
+                "customersorders":"Заказы покупателей",
+                "shipment":"Отгрузки",
+                "invoiceout":"Счета покупателям",
+                "vatinvoiceout":"Счета-фактуры выданные",
+
+                "retailsales":"Розничные продажи",
+                "shifts":"Кассовые смены",
+                "receipts":"Кассовые чеки",
+                "kassa":"Кассы онлайн",
+                "withdrawal":"Выемки",
+                "depositing":"Внесения",
+
+                "products":"Товары и услуги",
+                "remains":"Товарные остатки",
+                "prices":"Цены",
+                "inventory":"Инвентаризации",
+                "writeoff":"Списания",
+                "posting":"Оприходования",
+                "moving":"Перемещения",
+
+                "paymentin":"Входящие платежи",
+                "paymentout":"Исходящие платежи",
+                "orderin":"Приходные ордеры",
+                "orderout":"Расходные ордеры",
+                "correction":"Корректировки",
+                "profitloss":"Прибыли и убытки",
+                "mutualpayment":"Взаиморасчёты",
+                "moneyflow":"Движение ден. средств",
+
+                "productgroups":"Группы товаров",
+                "edizm":"Единицы измерения",
+                "boxoffice":"Кассы предприятия",
+                "cagents":"Контрагенты",
+                "taxes":"Налоги",
+                "statuses":"Статусы документов",
+                "expenditure":"Статьи расходов",
+                "pricetypes":"Типы цен",
+
+                "files":"Файлы",
+
+                "traderesults":"Итоги смен",
+
+                "companies":"Предприятия",
+                "departments":"Отделения",
+                "users":"Пользователи",
+                "usergroup":"Роли"
+            }
+        }
+    }
+}

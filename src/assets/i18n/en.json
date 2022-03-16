@@ -1,3 +1,74 @@
 {
-    "dokio": "DOKIO"
+    "sidebar":{
+        "title": "DOKIO",
+        "menu":{
+            "headers":{
+                "purchases":"Purchases",
+                "sales":"Sales",
+                "retail":"Retail",
+                "goods":"Goods",
+                "money":"Money",
+                "registries":"Registries",
+                "docs":"Documents",
+                "reports":"Reports",
+                "settings":"Settings"
+            },
+            "items":{
+                "returnsup":"Returns to suppliers",
+                "ordersup":"Orders to suppliers",
+                "acceptance":"Acceptances",
+                "invoicein":"Suppliers' invoices",
+                "vatinvoicein":"Received VAT invoices",
+
+                "return":"Buyers' returns",
+                "customersorders":"Customers orders",
+                "shipment":"Shipments",
+                "invoiceout":"Invoices to customers",
+                "vatinvoiceout":"Issued VAT invoices",
+
+                "retailsales":"Retail sales",
+                "shifts":"Cashier's shifts",
+                "receipts":"Сashier's checks",
+                "kassa":"Sales registers",
+                "withdrawal":"Withdrawals",
+                "depositing":"Depositings",
+
+                "products":"Products",
+                "remains":"Product remains",
+                "prices":"Prices",
+                "inventory":"Inventories",
+                "writeoff":"Writeoffs",
+                "posting":"Postings",
+                "moving":"Movings",
+
+                "paymentin":"Payments in",
+                "paymentout":"Payments out",
+                "orderin":"Orders in",
+                "orderout":"Orders out",
+                "correction":"Corrections",
+                "profitloss":"P&L report",
+                "mutualpayment":"Mutual payments",
+                "moneyflow":"Money flows",
+
+                "productgroups":"Products groups",
+                "edizm":"Units of measure",
+                "boxoffice":"Сash rooms",
+                "cagents":"Counterparties",
+                "taxes":"Taxes",
+                "statuses":"Documents statuses",
+                "expenditure":"Expenditures",
+                "pricetypes":"Price types",
+
+                "files":"Files",
+
+                "traderesults":"Trade results",
+
+                "companies":"Companies",
+                "departments":"Departments",
+                "users":"Users",
+                "usergroup":"Roles"
+            }
+        }
+    }
+    
 }

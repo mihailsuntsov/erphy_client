@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Inject, OnInit, Optional, ViewChild} from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, Input, OnInit, Optional, ViewChild} from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl } from '@angular/forms';
@@ -19,22 +19,13 @@ import { MatTabChangeEvent } from '@angular/material/tabs';
 import { graphviz }  from 'd3-graphviz';
 import { FilesComponent } from '../files/files.component';
 import { FilesDocComponent } from '../files-doc/files-doc.component';
-import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from '@angular/material/core';
-import { MomentDateAdapter} from '@angular/material-moment-adapter';
-import * as _moment from 'moment';
-import {default as _rollupMoment} from 'moment';
-const moment = _rollupMoment || _moment;
-moment.defaultFormat = "DD.MM.YYYY";
-moment.fn.toJSON = function() { return this.format('DD.MM.YYYY'); }
-export const MY_FORMATS = {
-  parse: {dateInput: 'DD.MM.YYYY',},
-  display: {
-    dateInput: 'DD.MM.YYYY',
-    monthYearLabel: 'MMM YYYY',
-    dateA11yLabel: 'DD.MM.YYYY',
-    monthYearA11yLabel: 'MMMM YYYY',
-  },
-};
+
+import { MomentDefault } from 'src/app/services/moment-default';
+import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
+import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+const MY_FORMATS = MomentDefault.getMomentFormat();
+const moment = MomentDefault.getMomentDefault();
+
 interface AcceptanceProductTable { //интерфейс для товаров, (т.е. для формы, массив из которых будет содержать форма acceptanceProductTable, входящая в formBaseInformation)
   id: number;                     // id строки с товаром товара в таблице return_product
   row_id: number;                 // id строки 
@@ -148,9 +139,9 @@ interface TemplatesList{
   templateUrl: './acceptance-doc.component.html',
   styleUrls: ['./acceptance-doc.component.css'],
   providers: [LoadSpravService, CommonUtilitesService,BalanceCagentComponent,
-    {provide: MAT_DATE_LOCALE, useValue: 'ru'},
-    {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
-    {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},]
+    { provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]},
+    {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
+  ]
 })
 export class AcceptanceDocComponent implements OnInit {
 
@@ -241,6 +232,7 @@ export class AcceptanceDocComponent implements OnInit {
   @ViewChild("form", {static: false}) form; // связь с формой <form #form="ngForm" ...
   @ViewChild(AcceptanceProductsTableComponent, {static: false}) public acceptanceProductsTableComponent:AcceptanceProductsTableComponent;
   @ViewChild(BalanceCagentComponent, {static: false}) public balanceCagentComponent:BalanceCagentComponent;
+  @Input() locale:string;
 
   constructor(private activateRoute: ActivatedRoute,
     private cdRef:ChangeDetectorRef,
@@ -256,7 +248,8 @@ export class AcceptanceDocComponent implements OnInit {
     public MessageDialog: MatDialog,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
-    private _router:Router) 
+    private _router:Router,
+    private _adapter: DateAdapter<any>) 
     { 
       if(activateRoute.snapshot.params['id'])
         this.id = +activateRoute.snapshot.params['id'];
@@ -330,41 +323,14 @@ export class AcceptanceDocComponent implements OnInit {
       this.mode=this.data.mode;
       if(this.mode=='window'){this.id=this.data.id; this.formBaseInformation.get('id').setValue(this.id);}
     } 
-   
-    //     getSetOfPermissions
-    //     |
-    //     getMyId
-    //     |
-    //     getMyCompanyId
-    //     |
-    //     getMyDepartmentsList
-    //     |
-    //     getCRUD_rights
-    //     |
-    //     getData(------>(если созданный док)--> [getDocumentValuesById] --> refreshPermissions 
-    //     |
-    //     (если новый док):
-    //     [getCompaniesList ]
-    //     |
-    //     [getSettings, doFilterCompaniesList]
-    //     |
-    //     setDefaultInfoOnStart
-    //     |
-    //     setDefaultCompany 
-    //     |
-    //     [getDepartmentsList, getPriceTypesList*] 
-    //     |
-    //     [setDefaultDepartment, doFilterDepartmentsList]
-    //     | (если идет стартовая загрузка):
-    //     getStatusesList,       checkAnyCases
-    //     |        		          |
-    //     setDefaultStatus       refreshPermissions*  
-    //     |
-    //     setStatusColor, getSpravSysEdizm
-    // *необходимое действие для загрузки дочерних компонентов 
+    
 
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Поставщик"
     this.getSetOfPermissions();
+    // moment.locale('en');
+    // console.log(moment(1316116057189).fromNow()); // an hour ago
+    // moment.locale('ru');
+    // console.log(moment(1316116057189).fromNow()); // il y a une heure
   }
   //чтобы не было ExpressionChangedAfterItHasBeenCheckedError
   ngAfterContentChecked() {
@@ -381,7 +347,26 @@ export class AcceptanceDocComponent implements OnInit {
   //---------------------------------------------------------------------------------------------------------------------------------------                            
   // ----------------------------------------------------- *** ПРАВА *** ------------------------------------------------------------------
   //---------------------------------------------------------------------------------------------------------------------------------------
-
+  // ru(){
+  //   this._adapter.setLocale('ru');
+  //   // moment.locale('ru');
+  //   console.log(moment(1316116057189).fromNow());
+  // }
+  // fr(){
+  //   this._adapter.setLocale('fr');
+  //   // moment.locale('fr');
+  //   console.log(moment(1316116057189).fromNow());
+  // }
+  // en(){
+  //   this._adapter.setLocale('en-US');
+  //   // moment.locale('en');
+  //   console.log(moment(1316116057189).fromNow());
+  // }
+  // ja(){
+  //   this._adapter.setLocale('ja');
+  //   // moment.locale('ja');
+  //   console.log(moment(1316116057189).fromNow());
+  // }
   getSetOfPermissions(){
     return this.http.get('/api/auth/getMyPermissions?id=15')
       .subscribe(
@@ -1104,6 +1089,7 @@ checkDocNumberUnical(tableName:string) {
   }
   setDefaultDate(){
     this.formBaseInformation.get('acceptance_date').setValue(moment());
+    // this.formBaseInformation.get('acceptance_date').setValue('');
   }
   getCompanyNameById(id:number):string{
     let name:string;

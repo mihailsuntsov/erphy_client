@@ -437,7 +437,7 @@ export class UsersDocComponent implements OnInit {
     return this.spravSysTimeZones.filter(option => option.name_rus.toLowerCase().includes(filterValue));
   }
   getSpravSysTimeZones():void {    
-    this.http.post('/api/auth/getSpravSysTimeZones', {})  // 
+    this.http.get('/api/auth/getSpravSysTimeZones', {})  // 
     .subscribe((data) => {this.spravSysTimeZones = data as any[];
     this.updateValuesSpravSysTimeZones(); },
     error => console.log(error));
