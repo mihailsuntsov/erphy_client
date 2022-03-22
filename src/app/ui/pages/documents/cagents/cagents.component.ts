@@ -1,5 +1,5 @@
 import { FlatTreeControl } from '@angular/cdk/tree';
-import { Component, OnInit, Optional, Inject } from '@angular/core';
+import { Component, OnInit, Optional, Inject, Output, EventEmitter } from '@angular/core';
 import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
 import { QueryForm } from './query-form';
 import { SelectionModel } from '@angular/cdk/collections';
@@ -14,6 +14,8 @@ import { UniversalCategoriesDialogComponent } from 'src/app/ui/dialogs/universal
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
+import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
+import { translate, TranslocoService } from '@ngneat/transloco'; //+++
 
 interface TreeNode {
   id: string;
@@ -21,7 +23,7 @@ interface TreeNode {
   children?: TreeNode[];
 }
 interface idAndName{ //универсалный интерфейс для выбора из справочников
-  id: string;
+  id: number;
   name: string;
 }
 interface FlatNode {
@@ -41,7 +43,7 @@ export interface NumRow {//интерфейс для списка количес
   selector: 'app-cagents',
   templateUrl: './cagents.component.html',
   styleUrls: ['./cagents.component.css'],
-  providers: [QueryFormService,LoadSpravService,Cookie]
+  providers: [QueryFormService,LoadSpravService,Cookie,CommonUtilitesService]
 })
 export class CagentsComponent implements OnInit {
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
@@ -105,6 +107,8 @@ export class CagentsComponent implements OnInit {
   //Управление чекбоксами
   checkedList:number[]=[]; //строка для накапливания id вида [2,5,27...]
 
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
+  
   //tree
   private _transformer = (node: TreeNode, level: number) => {
     return {
@@ -128,17 +132,19 @@ export class CagentsComponent implements OnInit {
   hasChild = (_: number, node: FlatNode) => node.expandable;
 
   constructor(private queryFormService:   QueryFormService,
-    private httpService:   LoadSpravService,
-    private loadSpravService:   LoadSpravService,
-    private _snackBar: MatSnackBar,
-    private universalCategoriesDialog: MatDialog,
-    private MessageDialog: MatDialog,
-    private Cookie: Cookie,
-    private ConfirmDialog: MatDialog,
-    private http: HttpClient,
-    private deleteDialog: MatDialog,
-    private dialogRef1: MatDialogRef<CagentsComponent>,
-   @Optional() @Inject(MAT_DIALOG_DATA) public data: any) { 
+      private httpService:   LoadSpravService,
+      private loadSpravService:   LoadSpravService,
+      private _snackBar: MatSnackBar,
+      private universalCategoriesDialog: MatDialog,
+      private MessageDialog: MatDialog,
+      private Cookie: Cookie,
+      private ConfirmDialog: MatDialog,
+      private http: HttpClient,
+      private deleteDialog: MatDialog,
+      private dialogRef1: MatDialogRef<CagentsComponent>,
+      public cu: CommonUtilitesService, //+++
+      private service: TranslocoService,
+      @Optional() @Inject(MAT_DIALOG_DATA) public data: any) { 
     }
       
   ngOnInit() {
@@ -166,6 +172,11 @@ export class CagentsComponent implements OnInit {
       this.mode=this.data.mode;
       this.sendingQueryForm.companyId=this.data.companyId;
     }
+    
+      //+++ getting base data from parent component
+      this.getBaseData('myId');    
+      this.getBaseData('myCompanyId');  
+      this.getBaseData('companiesList');      
 
     this.fillOptionsList();//заполняем список опций фильтра
     this.getCompaniesList();// -> getSetOfPermissions() -> getMyCompanyId() -> setDefaultCompany() -> getCRUD_rights() -> getData() 
@@ -176,13 +187,13 @@ export class CagentsComponent implements OnInit {
  // -------------------------------------- *** ПРАВА *** ------------------------------------
   getSetOfPermissions(){
     return this.http.get('/api/auth/getMyPermissions?id=12')
-            .subscribe(
-                (data) => {   
-                            this.permissionsSet=data as any [];
-                            this.getMyCompanyId();
-                        },
-                error => console.log(error),
-            );
+    .subscribe(
+        (data) => {   
+            this.permissionsSet=data as any [];
+            this.getMyCompanyId();
+        },
+        error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+    );
   }
 
   getCRUD_rights(permissionsSet:any[]){
@@ -239,7 +250,7 @@ export class CagentsComponent implements OnInit {
       this.getTable();
       this.loadTrees();
       //!!!
-    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
+    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})} 
   }
 
   getTableHeaderTitles(){
@@ -261,7 +272,7 @@ export class CagentsComponent implements OnInit {
                 this.pagenum=this.receivedPagesList[1];
                 this.listsize=this.receivedPagesList[2];
                 this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
-                error => console.log(error)
+                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
             ); 
   }
 
@@ -274,8 +285,8 @@ export class CagentsComponent implements OnInit {
             if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
             this.gettingTableData=false;
           },
-          error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
-      );
+          error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+            ); 
   }
 
   doFilterCompaniesList(){
@@ -378,35 +389,6 @@ export class CagentsComponent implements OnInit {
         this.getData();
     }
 
-    clickBtnDeleteCagentCategory(): void {
-      const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
-        width: '400px',
-        data:
-        { 
-          head: 'Удаление категории контрагентов',
-          query: 'Удалить категорию "'+this.sendingQueryForm.selectedNodeName+'"?',
-          warning: 'Контрагенты данной категории не удалятся, но их привязка к категории будет утрачена.',
-        },
-      });
-      dialogRef.afterClosed().subscribe(result => {
-        if(result==1){this.deleteCagentCategory(+this.sendingQueryForm.selectedNodeId);}
-      });        
-    }
-
-    deleteCagentCategory(id:number){
-      const body = {categoryId: id}; 
-      console.log("this.getParent(this.getNodeById(id)): "+this.getParent(this.getNodeById(id)))
-      const parentId = this.getParent(this.getNodeById(id))!=null?this.getNodeId(this.getParent(this.getNodeById(id))):0;//возвращает id родителя или 0 если корневая категория
-      return this.http.post('/api/auth/deleteCagentCategory',body)
-      .subscribe(
-          (data) => {   
-                      this.openSnackBar("Успешно удалено", "Закрыть");
-                      if (parentId>0) {this.loadTreesAndOpenNode(parentId)} else {this.loadTrees()};
-                      this.resetSelectedCategory();
-                  },
-          error => console.log(error),
-      );  
-    }
     clickBtnDelete(): void {
       const dialogRef = this.deleteDialog.open(DeleteDialog, {
         width: '300px',
@@ -422,8 +404,8 @@ export class CagentsComponent implements OnInit {
         width: '400px',
         data:
         { 
-          head: 'Восстановление',
-          query: 'Восстановить выбранные контрагенты из удалённых?',
+          head: translate('menu.dialogs.restore'), //+++
+        query: translate('menu.dialogs.q_restore'),
           warning: '',
         },
       });
@@ -433,54 +415,61 @@ export class CagentsComponent implements OnInit {
         this.showOnlyVisBtnAdd();
       });        
     }
-    undeleteDocs(){
-      const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
+
+    deleteDocs(){
+      const body = {"checked": this.checkedList.join()};
       this.clearCheckboxSelection();
-      return this.http.post('/api/auth/undeleteCagents', body) 
+          return this.http.post('/api/auth/deleteCagents', body) 
+      .subscribe((data) => {   
+        let result=data as any;
+        switch(result){ //+++
+          case 1:{this.getData();this.openSnackBar(translate('menu.msg.del_success'), translate('menu.msg.close'));break;}  //+++
+          case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+          case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+        }
+      },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
+    }
+  
+    undeleteDocs(){
+      const body = {"checked": this.checkedList.join()};
+      this.clearCheckboxSelection();
+        return this.http.post('/api/auth/undeleteCagents', body) 
       .subscribe(
           (data) => {   
-                      this.getData();
-                      this.openSnackBar("Успешно восстановлено", "Закрыть");
-                    },
-          error => console.log(error),
-      );
-    }
-    deleteDocs(){
-      const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
-      this.clearCheckboxSelection();
-        return this.http.post('/api/auth/deleteCagents', body) 
-              .subscribe(
-                  (data) => {   
-                              this.getData();
-                              this.openSnackBar("Успешно удалено", "Закрыть");
-                            },
-                  error => console.log(error),
-              );
-      }
-      
+            let result=data as any;
+            switch(result){ //+++
+              case 1:{this.getData();this.openSnackBar(translate('menu.msg.rec_success'), translate('menu.msg.close'));break;}  //+++
+              case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+              case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+            }
+          },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
+    }  
     openSnackBar(message: string, action: string) {
       this._snackBar.open(message, action, {
         duration: 3000,
       });
     }
 
-    getCompaniesList(){
-      this.receivedCompaniesList=null;
-      this.httpService.getCompaniesList()
-              .subscribe(
+    getCompaniesList(){ //+++
+      if(this.receivedCompaniesList.length==0)
+        this.loadSpravService.getCompaniesList()
+                .subscribe(
                   (data) => {this.receivedCompaniesList=data as any [];
                     this.getSetOfPermissions();
                   },
-                  error => console.log(error)
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
               );
+      else this.getSetOfPermissions();
     }
-    getMyCompanyId(){
-      this.loadSpravService.getMyCompanyId().subscribe(
+    getMyCompanyId(){ //+++
+      if(+this.myCompanyId==0)
+        this.loadSpravService.getMyCompanyId().subscribe(
         (data) => {
           this.myCompanyId=data as number;
           this.setDefaultCompany();
-        }, error => console.log(error));
-    }
+        }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
+      else this.setDefaultCompany();
+    } 
 
     setDefaultCompany(){
       if(this.data)//если документ открыт в окне - ставим предприятие родительского документа (из которгого открыт)
@@ -505,7 +494,7 @@ export class CagentsComponent implements OnInit {
           actionType:"create",
           parentCategoryName: this.sendingQueryForm.selectedNodeName , 
           parentCategoryId: +this.sendingQueryForm.selectedNodeId,
-          title:"Создание категории",
+          title:translate('menu.dialogs.ctg_creation'),
           companyId:+this.sendingQueryForm.companyId,
           docName:"Cagent"
         },
@@ -524,7 +513,7 @@ export class CagentsComponent implements OnInit {
           actionType:"update",
           categoryName: this.sendingQueryForm.selectedNodeName , 
           categoryId: +this.sendingQueryForm.selectedNodeId,
-          title:"Редактирование категории",
+          title:translate('menu.dialogs.ctg_edit'),
           docName:"Cagent"
         },
       });
@@ -548,7 +537,7 @@ export class CagentsComponent implements OnInit {
         { 
           actionType:"changeOrder",
           parentCategoryId: +this.sendingQueryForm.selectedNodeId,
-          title:"Изменение порядка вывода",
+          title:translate('menu.dialogs.order_edit'), //+++
           companyId: +this.sendingQueryForm.companyId,
           docName:"Cagent"
         },
@@ -578,6 +567,39 @@ export class CagentsComponent implements OnInit {
       this.sendingQueryForm.offset=0;
       this.resetOptions();
       this.getData();
+    }
+    getBaseData(data) {    //+++ emit data to parent component
+      this.baseData.emit(data);
+    }
+
+    clickBtnDeleteCagentCategory(): void {
+      const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+        width: '400px',
+        data:
+        { 
+          head: translate('menu.dialogs.deleting_ctg'), //+++
+          query: translate('menu.dialogs.q_del_ctg',{name: this.sendingQueryForm.selectedNodeName}),
+          warning: translate('menu.dialogs.del_ctg_f_wrn'),
+        },
+      });
+      dialogRef.afterClosed().subscribe(result => {
+        if(result==1){this.deleteCagentCategory(+this.sendingQueryForm.selectedNodeId);}
+      });        
+    }
+
+    deleteCagentCategory(id:number){
+      const body = {categoryId: id}; 
+      console.log("this.getParent(this.getNodeById(id)): "+this.getParent(this.getNodeById(id)))
+      const parentId = this.getParent(this.getNodeById(id))!=null?this.getNodeId(this.getParent(this.getNodeById(id))):0;//возвращает id родителя или 0 если корневая категория
+      return this.http.post('/api/auth/deleteCagentCategory',body)
+      .subscribe(
+          (data) => {   
+                      this.openSnackBar(translate('menu.msg.del_success'), translate('menu.msg.close'));
+                      if (parentId>0) {this.loadTreesAndOpenNode(parentId)} else {this.loadTrees()};
+                      this.resetSelectedCategory();
+                  },
+          error => console.log(error),
+      );  
     }
 
 //*****************************************************************************************************************************************/
@@ -659,7 +681,7 @@ export class CagentsComponent implements OnInit {
   }
   expandWayToNodeAndItsChildrensByIndex(index: any) {
     try{
-  // взять node по индексу
+    // взять node по индексу
     let currentNode:any = this.treeControl.dataNodes[index];
     //console.log("currentNode:"+currentNode.name);
     this.expandParents(currentNode);
@@ -699,12 +721,12 @@ recountNumChildsOfSelectedCategory(){//считает количество по�
     this.sendingQueryForm.filterOptionsIds = [];
   }
   fillOptionsList(){
-    this.optionsIds=[{id:"1", name:"Показать только удалённые"},];
+    this.optionsIds=[{id:1, name: 'menu.top.only_del'},]; //+++
   }
   clickApplyFilters(){
     let showOnlyDeletedCheckboxIsOn:boolean = false; //присутствует ли включенный чекбокс "Показывать только удалённые"
     this.selectionFilterOptions.selected.forEach(z=>{
-      if(z.id=='1'){showOnlyDeletedCheckboxIsOn=true;}
+      if(z.id==1){showOnlyDeletedCheckboxIsOn=true;}
     })
     this.displayingDeletedDocs=showOnlyDeletedCheckboxIsOn;
     this.clearCheckboxSelection();
@@ -715,7 +737,7 @@ recountNumChildsOfSelectedCategory(){//считает количество по�
     let i=0; 
     this.optionsIds.forEach(z=>{
       console.log("allowToDelete - "+this.allowToDelete);
-      if(z.id=='1' && !this.allowToDelete){this.optionsIds.splice(i,1)}//исключение опции Показывать удаленные, если нет прав на удаление
+      if(z.id==1 && !this.allowToDelete){this.optionsIds.splice(i,1)}//исключение опции Показывать удаленные, если нет прав на удаление
       i++;
     });
     if (this.optionsIds.length>0) this.displaySelectOptions=true; else this.displaySelectOptions=false;//если опций нет - не показываем меню опций

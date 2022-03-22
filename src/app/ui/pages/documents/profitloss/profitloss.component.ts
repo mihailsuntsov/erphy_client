@@ -1,17 +1,15 @@
-import { Component, OnInit} from '@angular/core';
+import { Component, EventEmitter, OnInit, Output} from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
-// import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
-// import { ProfitlossDetComponent } from 'src/app/modules/info-modules/profitloss_det/profitloss_det.component';
 import { HttpClient } from '@angular/common/http';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
-import { CommonUtilitesService } from 'src/app/services/common_utilites.serviсe';
-// import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { FormGroup, FormControl } from '@angular/forms';
+import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
+import { translate, TranslocoService } from '@ngneat/transloco'; //+++
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE}  from '@angular/material/core';
 import { MomentDateAdapter} from '@angular/material-moment-adapter';
 import * as _moment from 'moment';
@@ -116,19 +114,19 @@ export class ProfitlossComponent implements OnInit {
   displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
   //***********************************************************************************************************************/
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
+  
   constructor(
-    /*private queryFormService:   QueryFormService,*/
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
     public universalCategoriesDialog: MatDialog,
     private MessageDialog: MatDialog,
-    // public profitlossDetDialog: MatDialog,
     public confirmDialog: MatDialog,
     private http: HttpClient,
-    public commonUtilites: CommonUtilitesService,
-    // private settingsProfitlossDialogComponent: MatDialog,
+    public cu: CommonUtilitesService,
     public deleteDialog: MatDialog,
-    public dialogRef1: MatDialogRef<ProfitlossComponent>,) { }
+    public dialogRef1: MatDialogRef<ProfitlossComponent>, //+++
+    private service: TranslocoService,) { }
 
     ngOnInit() {
       this.queryForm = new FormGroup({ //форма для отправки запроса 
@@ -140,28 +138,15 @@ export class ProfitlossComponent implements OnInit {
 
       if(Cookie.get('profitloss_companyId')=='undefined' || Cookie.get('profitloss_companyId')==null)     
         Cookie.set('profitloss_companyId',this.queryForm.get('companyId').value); else this.queryForm.get('companyId').setValue(Cookie.get('profitloss_companyId')=="0"?"0":+Cookie.get('profitloss_companyId'));
-      
+
+        //+++ getting base data from parent component
+        this.getBaseData('myId');    
+        this.getBaseData('myCompanyId');  
+        this.getBaseData('companiesList');      
+
       this.fillOptionsList();//заполняем список опций фильтра
-    //   // Форма настроек
-    // this.settingsForm = new FormGroup({
-    //   //покупатель по умолчанию
-    //   cagentId: new FormControl                 (null,[]),
-    //   //наименование покупателя
-    //   cagent: new FormControl                   ('',[]),
-    //   //предприятие, для которого создаются настройки
-    //   companyId: new FormControl                (null,[]),
-    //   //статус после успешного отбития чека, перед созданием нового документа
-    //   statusIdOnComplete: new FormControl       ('',[]),
-    // });
 
       this.getCompaniesList();// 
-      // -> getSetOfPermissions() 
-      // -> getMyId()
-      // -> getMyCompanyId() 
-      // -> setDefaultCompany() 
-      // -> getCRUD_rights() 
-      // -> getData() 
-      //API: getCompaniesList         giveMeMyPermissions      getMyCompanyId
     }
 
     // -------------------------------------- *** ПРАВА *** ------------------------------------
@@ -172,7 +157,7 @@ export class ProfitlossComponent implements OnInit {
                             this.permissionsSet=data as any [];
                             this.getMyId();
                         },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
             );
   }
 
@@ -196,7 +181,7 @@ export class ProfitlossComponent implements OnInit {
       this.getTableHeaderTitles();
       // this.getTable();
       this.getProfitlossBalances();
-    } else {this.gettingTableData=false;;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
+    } else {this.gettingTableData=false;;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})}
   }
 
   getTableHeaderTitles(){
@@ -222,7 +207,7 @@ export class ProfitlossComponent implements OnInit {
                     this.operational=documentValues.operational;                // список операционных расходов типа Имя - Значение
                     this.dataSource.data = documentValues.operational;
                 },
-                error => {this.gettingTableData=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+                error => {this.gettingTableData=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error}})}
             );
       }
     
@@ -246,31 +231,36 @@ export class ProfitlossComponent implements OnInit {
       duration: 3000,
     });
   }
-  getCompaniesList(){
-    this.receivedCompaniesList=null;
-    this.loadSpravService.getCompaniesList()
-            .subscribe(
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+      this.loadSpravService.getCompaniesList()
+              .subscribe(
                 (data) => {this.receivedCompaniesList=data as any [];
                   this.getSetOfPermissions();
                 },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
             );
-  }
-  getMyId(){
-    this.loadSpravService.getMyId()
+    else this.getSetOfPermissions();
+  }  
+  getMyId(){ //+++
+    if(+this.myId==0)
+     this.loadSpravService.getMyId()
             .subscribe(
                 (data) => {this.myId=data as any;
                   this.getMyCompanyId();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
             );
+      else this.getMyCompanyId();
   }
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
       (data) => {
         this.myCompanyId=data as number;
         this.setDefaultCompany();
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
-  }
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
+    else this.setDefaultCompany();
+  } 
 
   setDefaultCompany(){
     if(Cookie.get('profitloss_companyId')=='0'){
@@ -331,4 +321,7 @@ export class ProfitlossComponent implements OnInit {
       // this.queryForm.filterOptionsIds.push(+z.id);
     });
   } 
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
+  }
 }

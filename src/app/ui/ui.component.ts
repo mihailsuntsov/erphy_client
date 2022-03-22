@@ -10,6 +10,7 @@ import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { TranslocoService } from '@ngneat/transloco';
 import { UserSettingsDialogComponent } from 'src/app/modules/settings/user-settings-dialog/user-settings-dialog.component';
 import { FormControl, FormGroup } from '@angular/forms';
+import { filter } from 'rxjs/operators';
 
 /** @title Fixed sidenav */
 @Component({
@@ -25,10 +26,16 @@ export class UiComponent implements OnInit {
   permissionsSet: any[] = [];//сет прав на документ
   userInfo: any;//информация о пользователе
   authorized:boolean=false;
+  // localized:boolean=false;
   locale:string='en-us';// locale (for dates, calendar etc.)
   suffix:string='en';   // en es ru etc
   component:any;
-  settingsForm: any; // форма с настройками
+  settingsForm: any; // form for settings
+  isSettingsLoaded:boolean = false; // settigns must be loaded only once. After we need just send into router-outlet info about language & locale on every rout
+  myId:number=null;
+  myCompanyId:number=null;
+  myDepartmentsList:any[]=[];
+  companiesList:any[]=[];
 
   constructor(
     private token: TokenStorageService,
@@ -44,6 +51,16 @@ export class UiComponent implements OnInit {
   
   ngOnInit() 
   {
+    this.service.load('en').subscribe();
+    this.service.events$.pipe(filter(event => event.type==='translationLoadSuccess'));
+    // .subscribe(() => {
+      // console.log(111)
+      // setTimeout(() => { 
+        // this.localized=true;
+      // }, 1000);
+      // 
+    // });
+    
     // Форма настроек
     this.settingsForm = new FormGroup({
       timeZoneId: new FormControl               (null,[]),            // user's timezone
@@ -62,22 +79,83 @@ export class UiComponent implements OnInit {
     }     
     else this._router.navigate(['/login']);
   }
-  // when child component loaded - it gets locale from here
+  // when child component loaded - it gets locale and language from here
   onOutletLoaded(component) {
-    // if(component._adapter){
-      // component._adapter.setLocale(this.service.getDefaultLang());
-      // component._adapter.setLocale('en-ca');
-      this.component=component;
+    this.component=component;
+
+
+
+
+
+
+
+    if(this.isSettingsLoaded){
+      this.setLanguage(this.suffix); // setting language in Transloco by suffixes like en es ru etc
+      this.setLocale  (this.locale); // setting locale in moment.js
+      // this.setMyId();
+      // this.setMyCompanyId();
+    } else {
       this.getSettings();
-    // }
+      this.getMyId();
+      this.getMyCompanyId();
+      this.getCompaniesList();
+    }
+
+    //Below will subscribe to the searchItem emitter
+    component.baseData.subscribe((data) => {
+       // Will receive the data from child here 
+       let query=data as string;
+       switch (query) {
+        case 'myId': {
+          component.myId=this.myId;;
+          break;}
+        case 'myCompanyId': {
+          component.myCompanyId=this.myCompanyId;
+          break;}
+        case 'myDepartmentsList': {
+          component.receivedMyDepartmentsList=this.myDepartmentsList;
+          break;}
+        case 'companiesList': {
+          component.receivedCompaniesList=this.companiesList;
+          break;}
+      }
+    })
+    
+
   }
+  
+//   onActivate(component) {
+//     console.log(component)
+//     component.anyFunction();
+//     //Below will subscribe to the searchItem emitter
+//     alert(1)
+//     component.searchItem.subscribe((data) => {
+//       alert(11)
+//        // Will receive the data from child here 
+//        let query=data as string;
+//        switch (query) {
+//         case 'myId': {
+//           component.myId=this.myId;;
+//           break;}
+//         case 'myCompanyId': {
+//           component.myCompanyId=this.myCompanyId;
+//           break;}
+//       }
+//     })
+//  }
+
   setLanguage(lang: string) {
     this.service.setActiveLang(lang);    
   }
   setLocale(locale:string){
     try{ this.component._adapter.setLocale(locale);} catch (e) {console.log('There is no _adapter in this component')}
   }
-
+  // setMyId(){
+  //   try{ this.component._adapter.myId=this.myId;} catch (e) {console.log('Error on setting myId')}
+  // }
+  // setMyCompanyId(){
+  //   try{ this.component._adapter.myCompanyId = this.myCompanyId;} catch (e) {console.log('Error on setting myCompanyId')}
+  // }
   getAllMyPermissions()
   {
     // alert("getAllMyPermissions");
@@ -159,6 +237,7 @@ export class UiComponent implements OnInit {
 
             this.setLanguage(this.suffix); // setting language in Transloco by suffixes like en es ru etc
             this.setLocale  (this.locale); // setting locale in moment.js
+            this.isSettingsLoaded = true;
           },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
       );
@@ -201,7 +280,25 @@ export class UiComponent implements OnInit {
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
             );
   }
-
+  getMyId(){
+    this.loadSpravService.getMyId()
+    .subscribe((data) => {this.myId=data as number;/*this.setMyId();*/},error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+  }
+  getMyCompanyId(){
+    this.loadSpravService.getMyCompanyId().subscribe(
+    (data) => {this.myCompanyId=data as number;
+      /*this.setMyCompanyId();*/
+      this.getMyDepartmentsList()
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+  }
+  getCompaniesList(){
+    this.loadSpravService.getCompaniesList()
+      .subscribe((data) => {this.companiesList=data as any [];},error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+  }
+  getMyDepartmentsList(){
+    this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
+      .subscribe((data) => {this.myDepartmentsList=data as any [];},error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+  }
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
       duration: 3000,

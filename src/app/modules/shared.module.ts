@@ -7,7 +7,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MaterialModule } from '../modules/material.module';
 import { MatButtonModule } from '@angular/material/button';
 import { DragDropModule } from '@angular/cdk/drag-drop';
-//Диалоги
+// Dialogs
 import { MatDialogModule } from '@angular/material/dialog';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component'
 import { UniversalCategoriesDialogComponent } from 'src/app/ui/dialogs/universal-categories-dialog/universal-categories-dialog.component'
@@ -24,6 +24,8 @@ import { ProductDuplicateDialog } from 'src/app/ui/dialogs/product-duplicate-dia
 import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component'
 import { ProductReservesDialogComponent } from 'src/app/ui/dialogs/product-reserves-dialog/product-reserves-dialog.component';
 import { PricingDialogComponent } from 'src/app/ui/dialogs/pricing-dialog/pricing-dialog.component';
+// translations
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [
@@ -52,6 +54,7 @@ import { PricingDialogComponent } from 'src/app/ui/dialogs/pricing-dialog/pricin
     FormsModule,
     ReactiveFormsModule,
     DragDropModule,
+    TranslocoModule,
     
   ],
   exports: [

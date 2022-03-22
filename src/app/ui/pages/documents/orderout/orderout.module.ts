@@ -9,9 +9,13 @@ import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balanc
 
 import { FormsModule } from '@angular/forms';
 import { MaterialModule } from '../../../../modules/material.module';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [OrderoutComponent],
+  providers: [
+    { provide: TRANSLOCO_SCOPE, useValue: 'menu' }
+  ],
   imports: [
     CommonModule,
     OrderoutRoutingModule,
@@ -19,7 +23,8 @@ import { MaterialModule } from '../../../../modules/material.module';
     BalanceCagentModule,
     
     FormsModule,
-    MaterialModule
+    MaterialModule,
+    TranslocoModule
   ]
 })
 export class OrderoutModule { }

@@ -6,11 +6,15 @@ import { MoneyflowComponent } from './moneyflow.component';
 
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MaterialModule } from '../../../../modules/material.module';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 import { MoneyflowDetModule } from 'src/app/modules/info-modules/moneyflow_det/moneyflow_det.module';
 
 @NgModule({
   declarations: [MoneyflowComponent],
+  providers: [
+    { provide: TRANSLOCO_SCOPE, useValue: 'menu' }
+  ],
   imports: [
     CommonModule,
     MoneyflowRoutingModule,
@@ -18,7 +22,8 @@ import { MoneyflowDetModule } from 'src/app/modules/info-modules/moneyflow_det/m
     MoneyflowDetModule,
     
     FormsModule,
-    MaterialModule
+    MaterialModule,
+    TranslocoModule
   ]
 })
 export class MoneyflowModule { }

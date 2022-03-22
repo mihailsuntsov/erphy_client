@@ -56,27 +56,27 @@ export class LoadSpravService{
             let docList: idAndName [] = [];
             docList = [
                 // {id:3, name:'Предприятия'},
-                {id:28, name:'Возврат покупателя'},
-                {id:29, name:'Возврат поставщику'},
-                {id:33, name:'Входящий платеж'},
-                {id:23, name:'Заказ покупателя'},
-                {id:39, name:'Заказ поставщику'},
-                {id:27, name:'Инвентаризация'},
-                {id:34, name:'Исходящий платеж'},
-                {id:12, name:'Контрагент'},
-                {id:41, name:'Корректировка'},
-                {id:16, name:'Оприходование'},
-                {id:21, name:'Отгрузка'},
-                {id:30, name:'Перемещение'},
-                {id:15, name:'Приёмка'},
-                {id:35, name:'Приходный ордер'},   
-                {id:36, name:'Расходный ордер'},
-                {id:25, name:'Розничная продажа'},
-                {id:17, name:'Списание'},
-                {id:31, name:'Счёт покупателю'},
-                {id:32, name:'Счет поставщика'},
-                {id:37, name:'Счет-фактура выданный'},
-                {id:38, name:'Счет-фактура полученный'},
+                {id:28, name:'.docs.return'},
+                {id:29, name:'.docs.returnsup'},
+                {id:33, name:'.docs.paymentin'},
+                {id:23, name:'.docs.c_order'},
+                {id:39, name:'.docs.ordersup'},
+                {id:27, name:'.docs.inventory'},
+                {id:34, name:'.docs.paymentout'},
+                {id:12, name:'.docs.cparty'},
+                {id:41, name:'.docs.correction'},
+                {id:16, name:'.docs.posting'},
+                {id:21, name:'.docs.shipment'},
+                {id:30, name:'.docs.moving'},
+                {id:15, name:'.docs.acceptance'},
+                {id:35, name:'.docs.orderin'},   
+                {id:36, name:'.docs.orderout'},
+                {id:25, name:'.docs.retailsale'},
+                {id:17, name:'.docs.writeoff'},
+                {id:31, name:'.docs.invoiceout'},
+                {id:32, name:'.docs.invoicein'},
+                {id:37, name:'.docs.v_invoiceout'},
+                {id:38, name:'.docs.v_invoicein'},
             ];
             return docList; 
         }
@@ -149,5 +149,5 @@ export class LoadSpravService{
     // загружает картинку
     getImage(imageUrl: string): Observable<Blob> {return this.http.get(imageUrl, { responseType: 'blob' });
       }
-
+        
 }

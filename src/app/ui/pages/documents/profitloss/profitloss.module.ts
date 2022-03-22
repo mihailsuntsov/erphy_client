@@ -6,11 +6,15 @@ import { ProfitlossComponent } from './profitloss.component';
 
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MaterialModule } from '../../../../modules/material.module';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 // import { ProfitlossDetModule } from 'src/app/modules/info-modules/moneyflow_det/moneyflow_det.module';
 
 @NgModule({
   declarations: [ProfitlossComponent],
+  providers: [
+    { provide: TRANSLOCO_SCOPE, useValue: 'menu' }
+  ],
   imports: [
     CommonModule,
     ProfitlossRoutingModule,
@@ -18,7 +22,8 @@ import { MaterialModule } from '../../../../modules/material.module';
     // ProfitlossDetModule,
     
     FormsModule,
-    MaterialModule
+    MaterialModule,
+    TranslocoModule
   ]
 })
 export class ProfitlossModule { }

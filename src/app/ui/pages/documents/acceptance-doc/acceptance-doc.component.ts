@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Inject, Input, OnInit, Optional, ViewChild} from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Inject, Input, OnInit, Optional, Output, ViewChild} from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl } from '@angular/forms';
@@ -233,7 +233,8 @@ export class AcceptanceDocComponent implements OnInit {
   @ViewChild(AcceptanceProductsTableComponent, {static: false}) public acceptanceProductsTableComponent:AcceptanceProductsTableComponent;
   @ViewChild(BalanceCagentComponent, {static: false}) public balanceCagentComponent:BalanceCagentComponent;
   @Input() locale:string;
-
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
+  
   constructor(private activateRoute: ActivatedRoute,
     private cdRef:ChangeDetectorRef,
     private _fb: FormBuilder, //чтобы билдить группу форм acceptanceProductTable
@@ -327,16 +328,22 @@ export class AcceptanceDocComponent implements OnInit {
 
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Поставщик"
     this.getSetOfPermissions();
-    // moment.locale('en');
+    //+++ getting base data from parent component
+    this.getBaseData('myId');    
+    this.getBaseData('myCompanyId');  
+    this.getBaseData('companiesList');  
+    this.getBaseData('myDepartmentsList');    
+
+      // moment.locale('en');
     // console.log(moment(1316116057189).fromNow()); // an hour ago
     // moment.locale('ru');
     // console.log(moment(1316116057189).fromNow()); // il y a une heure
   }
-  //чтобы не было ExpressionChangedAfterItHasBeenCheckedError
+  //to avoid ExpressionChangedAfterItHasBeenCheckedError
   ngAfterContentChecked() {
     this.cdRef.detectChanges();
   }
-  //чтобы "на лету" чекать валидность таблицы с товарами
+  // to check 'on the fly' correctness of table with products
   get childFormValid() {
     // проверяем, чтобы не было ExpressionChangedAfterItHasBeenCheckedError. Т.к. форма создается пустая и с .valid=true, а потом уже при заполнении проверяется еще раз.
     if(this.acceptanceProductsTableComponent!=undefined) 
@@ -453,50 +460,54 @@ export class AcceptanceDocComponent implements OnInit {
     }
   }
   
-  getMyId(){
-    this.receivedMyDepartmentsList=null;
-    this.loadSpravService.getMyId()
+  getMyId(){ //+++
+    if(+this.myId==0)
+      this.loadSpravService.getMyId()
             .subscribe(
                 (data) => {this.myId=data as any;
                   this.getMyCompanyId();},
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             );
+    else this.getMyCompanyId();
   }
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
-      (data) => {
-        this.myCompanyId=data as number;
-        this.getMyDepartmentsList();
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
+        (data) => {
+          this.myCompanyId=data as number;
+          this.getMyDepartmentsList();
+        }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+    else this.getMyDepartmentsList();
   }
-  getMyDepartmentsList(){
-    this.receivedMyDepartmentsList=null;
+  getMyDepartmentsList(){ //+++
+    if(this.receivedMyDepartmentsList.length==0)
     this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
             .subscribe(
                 (data) => {this.receivedMyDepartmentsList=data as any [];
-                  this.getCRUD_rights(this.permissionsSet);},
+                  this.getCRUD_rights();},
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             );
+    else this.getCRUD_rights();
   }
   getSpravTaxes(companyId:number){
         this.loadSpravService.getSpravTaxes(companyId).subscribe((data) => {this.spravTaxesSet=data as any[];},
         error => console.log(error));}
-  getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==184)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==185)});
-    this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==192)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==188)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==189)});
-    this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==195)});
-    this.allowToViewMyDocs = permissionsSet.some(                 function(e){return(e==196)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==190)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==191)});
-    this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==197)});
-    this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==198)});
-    this.allowToCompleteAllCompanies = permissionsSet.some(       function(e){return(e==611)});
-    this.allowToCompleteMyCompany = permissionsSet.some(          function(e){return(e==612)});
-    this.allowToCompleteMyDepartments = permissionsSet.some(      function(e){return(e==613)});
-    this.allowToCompleteMyDocs = permissionsSet.some(             function(e){return(e==614)});
+  getCRUD_rights(){
+    this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==184)});
+    this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==185)});
+    this.allowToCreateMyDepartments = this.permissionsSet.some(        function(e){return(e==192)});
+    this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==188)});
+    this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==189)});
+    this.allowToViewMyDepartments = this.permissionsSet.some(          function(e){return(e==195)});
+    this.allowToViewMyDocs = this.permissionsSet.some(                 function(e){return(e==196)});
+    this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==190)});
+    this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==191)});
+    this.allowToUpdateMyDepartments = this.permissionsSet.some(        function(e){return(e==197)});
+    this.allowToUpdateMyDocs = this.permissionsSet.some(               function(e){return(e==198)});
+    this.allowToCompleteAllCompanies = this.permissionsSet.some(       function(e){return(e==611)});
+    this.allowToCompleteMyCompany = this.permissionsSet.some(          function(e){return(e==612)});
+    this.allowToCompleteMyDepartments = this.permissionsSet.some(      function(e){return(e==613)});
+    this.allowToCompleteMyDocs = this.permissionsSet.some(             function(e){return(e==614)});
 
     if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;this.allowToCreateMyDepartments=true}
     if(this.allowToCreateMyCompany)this.allowToCreateMyDepartments=true;
@@ -521,17 +532,18 @@ export class AcceptanceDocComponent implements OnInit {
     }
   }
 
-  getCompaniesList(){
-    this.receivedCompaniesList=null;
-    this.loadSpravService.getCompaniesList()
-      .subscribe(
-          (data) => 
-          {
-            this.receivedCompaniesList=data as any [];
-            this.doFilterCompaniesList();
-           },                      
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-      );
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+      this.loadSpravService.getCompaniesList()
+        .subscribe(
+            (data) => 
+            {
+              this.receivedCompaniesList=data as any [];
+              this.doFilterCompaniesList();
+            },                      
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+        );
+    else this.doFilterCompaniesList();
   }
 
   onCompanyChange(){
@@ -1483,6 +1495,9 @@ drawLinkedDocsScheme(){
     //если не целое число
     const b = charsAfterDot - (a.length - dot) + 1;
     return b > 0 ? (a + "0".repeat(b)) : a;
+  }
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
   }
   getTotalProductCount() {//бежим по столбцу product_count и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
     this.getProductsTable();

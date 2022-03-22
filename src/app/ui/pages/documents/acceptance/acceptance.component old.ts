@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output} from '@angular/core';
+import { Component, OnInit} from '@angular/core';
 import { QueryForm } from './query-form';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource } from '@angular/material/table';
@@ -13,8 +13,6 @@ import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
 import { FormGroup, FormControl } from '@angular/forms';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { SettingsAcceptanceDialogComponent } from 'src/app/modules/settings/settings-acceptance-dialog/settings-acceptance-dialog.component';
-import { TranslocoService } from '@ngneat/transloco';
-
 export interface CheckBox {
   id: number;
   is_completed:boolean;
@@ -104,8 +102,6 @@ export class AcceptanceComponent implements OnInit {
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
   //***********************************************************************************************************************/
 
-  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
-  
   constructor(private queryFormService:   QueryFormService,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
@@ -115,8 +111,7 @@ export class AcceptanceComponent implements OnInit {
     private settingsAcceptanceDialogComponent: MatDialog,
     private MessageDialog: MatDialog,
     public deleteDialog: MatDialog,
-    public dialogRef1: MatDialogRef<AcceptanceComponent>,
-    private service: TranslocoService,) { }
+    public dialogRef1: MatDialogRef<AcceptanceComponent>,) { }
 
     ngOnInit() {
       this.sendingQueryForm.companyId='0';
@@ -156,12 +151,6 @@ export class AcceptanceComponent implements OnInit {
         // автовыставление цены из последней закупочной цены
         autoPrice: new FormControl                (false,[]),           // автовыставление цены из последней закупочной цены
       });
-
-    //+++ getting base data from parent component
-    this.getBaseData('myId');    
-    this.getBaseData('myCompanyId');  
-    this.getBaseData('companiesList');  
-    this.getBaseData('myDepartmentsList');    
 
       this.getCompaniesList();// 
       // -> getSetOfPermissions() 
@@ -217,11 +206,11 @@ export class AcceptanceComponent implements OnInit {
     this.showOpenDocIcon=(this.allowToUpdate||this.allowToView);
     this.visBtnAdd = (this.allowToCreate)?true:false;
     
-    // console.log("allowToView - "+this.allowToView);
-    // console.log("allowToUpdate - "+this.allowToUpdate);
-    // console.log("allowToCreate - "+this.allowToCreate);
-    // console.log("allowToDelete - "+this.allowToDelete);
-    // console.log("allowToDeleteAllCompanies - "+this.allowToDeleteAllCompanies);
+    console.log("allowToView - "+this.allowToView);
+    console.log("allowToUpdate - "+this.allowToUpdate);
+    console.log("allowToCreate - "+this.allowToCreate);
+    console.log("allowToDelete - "+this.allowToDelete);
+    console.log("allowToDeleteAllCompanies - "+this.allowToDeleteAllCompanies);
     return true;
   }
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
@@ -423,8 +412,8 @@ export class AcceptanceComponent implements OnInit {
       duration: 3000,
     });
   }
-  getCompaniesList(){ //+++
-    if(this.receivedCompaniesList.length==0)
+  getCompaniesList(){
+    this.receivedCompaniesList=null;
     this.loadSpravService.getCompaniesList()
             .subscribe(
                 (data) => {this.receivedCompaniesList=data as any [];
@@ -432,27 +421,23 @@ export class AcceptanceComponent implements OnInit {
                 },
                 error => console.log(error)
             );
-    else this.getSetOfPermissions();
   }
-  getMyId(){ //+++
-    if(+this.myId==0)
-     this.loadSpravService.getMyId()
+  getMyId(){
+    this.receivedMyDepartmentsList=null;
+    this.loadSpravService.getMyId()
             .subscribe(
                 (data) => {this.myId=data as any;
                   this.getMyCompanyId();},
                 error => console.log(error)
             );
-      else this.getMyCompanyId();
   }
-  getMyCompanyId(){ //+++
-    if(+this.myCompanyId==0)
-      this.loadSpravService.getMyCompanyId().subscribe(
+  getMyCompanyId(){
+    this.loadSpravService.getMyCompanyId().subscribe(
       (data) => {
         this.myCompanyId=data as number;
         this.setDefaultCompany();
       }, error => console.log(error));
-    else this.setDefaultCompany();
-  } 
+  }
 
   setDefaultCompany(){
     // try
@@ -471,24 +456,24 @@ export class AcceptanceComponent implements OnInit {
     }
 
   getDepartmentsList(){
+    this.receivedDepartmentsList=null;
     this.loadSpravService.getDepartmentsListByCompanyId(+this.sendingQueryForm.companyId,false)
-      .subscribe(
-          (data) => {this.receivedDepartmentsList=data as any [];
-                      this.getMyDepartmentsList();},
-          error => console.log(error)
-      );
+            .subscribe(
+                (data) => {this.receivedDepartmentsList=data as any [];
+                            this.getMyDepartmentsList();},
+                error => console.log(error)
+            );
   }
 
-  getMyDepartmentsList(){ //+++
-    if(this.receivedMyDepartmentsList.length==0)
+  getMyDepartmentsList(){
+    this.receivedMyDepartmentsList=null;
     this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
-      .subscribe(
-          (data) => {this.receivedMyDepartmentsList=data as any [];
-            this.setDefaultDepartment();},
-          error => console.log(error)
-      );
-    else this.setDefaultDepartment();
-}
+            .subscribe(
+                (data) => {this.receivedMyDepartmentsList=data as any [];
+                  this.setDefaultDepartment();},
+                error => console.log(error)
+            );
+  }
   setDefaultDepartment(){
     if(this.receivedDepartmentsList.length==1)
     {
@@ -640,8 +625,5 @@ export class AcceptanceComponent implements OnInit {
     this.selectionFilterOptions.selected.forEach(z=>{
       this.sendingQueryForm.filterOptionsIds.push(+z.id);
     });
-  }
-  getBaseData(data) {    //+++ emit data to parent component
-    this.baseData.emit(data);
   }
 }

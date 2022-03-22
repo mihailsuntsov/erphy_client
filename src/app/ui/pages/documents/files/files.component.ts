@@ -1,5 +1,5 @@
 import { FlatTreeControl } from '@angular/cdk/tree';
-import { Component, OnInit , Inject, Optional} from '@angular/core';
+import { Component, OnInit , Inject, Optional, Output, EventEmitter} from '@angular/core';
 import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
 import { QueryForm } from './query-form';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
@@ -15,6 +15,8 @@ import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { HttpClient} from '@angular/common/http';
 import { FilesUploadDialogComponent } from 'src/app/ui/dialogs/files-upload-dialog/files-upload-dialog.component';
 import { Observable } from 'rxjs';
+import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
+import { translate, TranslocoService } from '@ngneat/transloco'; //+++
 
 interface TreeNode {
   id: string;
@@ -57,7 +59,7 @@ export interface NumRow {//интерфейс для списка количес
   selector: 'app-files',
   templateUrl: './files.component.html',
   styleUrls: ['./files.component.css'],
-  providers: [QueryFormService,LoadSpravService,Cookie
+  providers: [QueryFormService,LoadSpravService,Cookie,CommonUtilitesService //+++
   ]
 })
 export class FilesComponent implements OnInit {
@@ -134,6 +136,8 @@ export class FilesComponent implements OnInit {
   visBtnDelete = false;
   visBtnRecover = false;
 
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
+  
   // *****  переменные картинок  ***** 
 // imagesInfo : imagesInfo []; //массив для получения информации по картинкам товара
 selectedFiles: FileList;
@@ -172,6 +176,8 @@ viewMode:string = "grid"; // способ отображения файлов - 
     public deleteDialog: MatDialog,
     private Cookie: Cookie,
     public dialogRef1: MatDialogRef<FilesComponent>,
+    public cu: CommonUtilitesService, //+++
+    private service: TranslocoService,
    @Optional() @Inject(MAT_DIALOG_DATA) public data: any
 ) { 
       //this.treeDataSource.data = TREE_DATA;
@@ -200,7 +206,15 @@ viewMode:string = "grid"; // способ отображения файлов - 
       this.sendingQueryForm.selectedNodeId="0";
       this.sendingQueryForm.searchCategoryString="";
       this.sendingQueryForm.trash=false;
-      console.log("Cookie.get('files_result') - "+Cookie.get('files_result'));
+      
+      // console.log("Cookie.get('files_result') - "+Cookie.get('files_result'));
+
+      
+      //+++ getting base data from parent component
+      this.getBaseData('myId');    
+      this.getBaseData('myCompanyId');  
+      this.getBaseData('companiesList');      
+
       this.getCompaniesList();// -> getSetOfPermissions() -> getMyCompanyId() -> setDefaultCompany() -> getCRUD_rights() -> getData() 
       //API: getCompaniesList         giveMeMyPermissions      getMyCompanyId
 
@@ -278,21 +292,21 @@ viewMode:string = "grid"; // способ отображения файлов - 
     this.showOpenDocIcon=(this.allowToUpdate||this.allowToView);
     this.visBtnAdd = (this.allowToCreate && !this.sendingQueryForm.trash)?true:false;
     
-    console.log("documentOfMyCompany - "+documentOfMyCompany);
-    console.log("allowToRecoverFilesMyCompany - "+this.allowToRecoverFilesMyCompany);
-    console.log("allowToRecoverFilesAllCompanies - "+this.allowToRecoverFilesAllCompanies);
-    console.log(" - ");
-    console.log("allowToView - "+this.allowToView);
-    console.log("allowToUpdate - "+this.allowToUpdate);
-    console.log("allowToCreate - "+this.allowToCreate);
-    console.log("allowToDelete - "+this.allowToDelete);
-    console.log("allowToRecoverFiles - "+this.allowToRecoverFiles);
-    console.log("allowToDeleteFromTrash - "+this.allowToDeleteFromTrash);
-    console.log("allowToClearTrash - "+this.allowToClearTrash);
-    console.log("allowCategoryCreate - "+this.allowCategoryCreate);
-    console.log("allowCategoryUpdate - "+this.allowCategoryUpdate);
-    console.log("allowCategoryUpdate - "+this.allowCategoryUpdate);
-    console.log("allowCategoryDelete - "+this.allowCategoryDelete);
+    // console.log("documentOfMyCompany - "+documentOfMyCompany);
+    // console.log("allowToRecoverFilesMyCompany - "+this.allowToRecoverFilesMyCompany);
+    // console.log("allowToRecoverFilesAllCompanies - "+this.allowToRecoverFilesAllCompanies);
+    // console.log(" - ");
+    // console.log("allowToView - "+this.allowToView);
+    // console.log("allowToUpdate - "+this.allowToUpdate);
+    // console.log("allowToCreate - "+this.allowToCreate);
+    // console.log("allowToDelete - "+this.allowToDelete);
+    // console.log("allowToRecoverFiles - "+this.allowToRecoverFiles);
+    // console.log("allowToDeleteFromTrash - "+this.allowToDeleteFromTrash);
+    // console.log("allowToClearTrash - "+this.allowToClearTrash);
+    // console.log("allowCategoryCreate - "+this.allowCategoryCreate);
+    // console.log("allowCategoryUpdate - "+this.allowCategoryUpdate);
+    // console.log("allowCategoryUpdate - "+this.allowCategoryUpdate);
+    // console.log("allowCategoryDelete - "+this.allowCategoryDelete);
     return true;
   }
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
@@ -316,7 +330,7 @@ viewMode:string = "grid"; // способ отображения файлов - 
         this.doFilterCompaniesList();
         this.loadTrees();
         //!!!
-      } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
+      } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})} 
     }
 
   getPagesList(){
@@ -329,7 +343,7 @@ viewMode:string = "grid"; // способ отображения файлов - 
                 this.pagenum=this.receivedPagesList[1];
                 this.listsize=this.receivedPagesList[2];
                 this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
-                error => console.log(error)
+                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
             ); 
   }
 
@@ -368,26 +382,26 @@ viewMode:string = "grid"; // способ отображения файлов - 
       this.gettingTableData=true;
       this.queryFormService.getTable(this.sendingQueryForm)
         .subscribe(
-            (data) => {
-              this.gettingTableData=false;
-              this.files=data as File[]; 
-              // загрузка картинок в полученный массив. Поясняю: Мы запрашиваем картинки через GET-запрос, отправляя JWT-ключ (иначе по /api/auth/.. ничего не получить)
-              // ссылка на картинку приходит в data
-              // картинка приходит в виде blob, который отправляется на конвертацию в createImageFromBlob, там она догружается 
-              // (т.к. цикл бежи быстрее загрузки) и после загрузки пишется в массив files
-              for (let i = 0; i < this.files.length; i++) {
-                if( this.files[i].extention.toUpperCase() == '.PNG' || 
-                    this.files[i].extention.toUpperCase() == '.JPG' || 
-                    this.files[i].extention.toUpperCase() == '.JPEG'){
-                    this.getImage('/api/auth/getFileImageThumb/' + this.files[i].name).subscribe(blob => {
-                        this.createImageFromBlob(blob,i);
-                    });
-                }
-              }
-            },
-            error => {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})} 
-        );
-    }
+        (data) => {
+          this.gettingTableData=false;
+          this.files=data as File[]; 
+          // загрузка картинок в полученный массив. Поясняю: Мы запрашиваем картинки через GET-запрос, отправляя JWT-ключ (иначе по /api/auth/.. ничего не получить)
+          // ссылка на картинку приходит в data
+          // картинка приходит в виде blob, который отправляется на конвертацию в createImageFromBlob, там она догружается 
+          // (т.к. цикл бежи быстрее загрузки) и после загрузки пишется в массив files
+          for (let i = 0; i < this.files.length; i++) {
+            if( this.files[i].extention.toUpperCase() == '.PNG' || 
+                this.files[i].extention.toUpperCase() == '.JPG' || 
+                this.files[i].extention.toUpperCase() == '.JPEG'){
+                this.getImage('/api/auth/getFileImageThumb/' + this.files[i].name).subscribe(blob => {
+                    this.createImageFromBlob(blob,i);
+                });
+            }
+          }
+        },
+        error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+        ); 
+  }
 
     setViewMode(value){
       this.viewMode=value;
@@ -493,9 +507,9 @@ viewMode:string = "grid"; // способ отображения файлов - 
         width: '400px',
         data:
         { 
-          head: 'Удаление категории файлов',
-          query: 'Удалить категорию "'+this.sendingQueryForm.selectedNodeName+'"?',
-          warning: 'Файлы, привязакнные к данной категории не удалятся, но их привязка к ней будет утрачена.',
+          head: translate('menu.dialogs.deleting_ctg'), //+++
+          query: translate('menu.dialogs.q_del_ctg',{name: this.sendingQueryForm.selectedNodeName}),
+          warning: translate('menu.dialogs.del_ctg_f_wrn'),
         },
       });
       dialogRef.afterClosed().subscribe(result => {
@@ -510,7 +524,7 @@ viewMode:string = "grid"; // способ отображения файлов - 
       return this.http.post('/api/auth/deleteFileCategory',body)
       .subscribe(
           (data) => {   
-                      this.openSnackBar("Успешно удалено", "Закрыть");
+                      this.openSnackBar(translate('menu.msg.del_success'), translate('menu.msg.close')); //+++
                       if (parentId>0) {this.loadTreesAndOpenNode(parentId)} else {this.loadTrees()};
                       this.resetSelectedCategory();
                   },
@@ -536,11 +550,11 @@ viewMode:string = "grid"; // способ отображения файлов - 
           (data) => {   
             let result=data as any;
             switch(result){
-              case 1:{this.getData();this.openSnackBar("Успешно удалено в корзину", "Закрыть");break;} 
-              case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе операции проиошла ошибка")}});break;}
-              case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+              case 1:{this.getData();this.openSnackBar(translate('menu.msg.del_bin_succ'), translate('menu.msg.close'));break;}  //+++
+              case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+              case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
             }
-          },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+          },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
     }  
       
     clickBtnRecover() {
@@ -551,11 +565,11 @@ viewMode:string = "grid"; // способ отображения файлов - 
             (data) => {   
               let result=data as any;
               switch(result){
-                case 1:{this.getData();this.openSnackBar("Файлы успешно восстановлены", "Закрыть");break;} 
-                case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе операции проиошла ошибка")}});break;}
-                case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+                case 1:{this.getData();this.openSnackBar(translate('menu.msg.rec_file_succ'), translate('menu.msg.close'));break;}  //+++
+                case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+                case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
               }
-            },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+            },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
       }  
 
     clickBtnDeleteFromTrash(): void {
@@ -563,9 +577,9 @@ viewMode:string = "grid"; // способ отображения файлов - 
         width: '400px',
         data:
         { 
-          head: 'Удаление',
-          query: 'Удалить выбранные файлы из корзины"?',
-          warning: 'Внимание: файлы, привязанные к документам (например, картинки товаров в документе "Товары и услуги") также удалятся из содержащих их документов.',
+          head: translate('menu.dialogs.deleting_bin'), //+++
+          query: translate('menu.dialogs.q_d_s_bin_fls'),
+          warning: translate('menu.dialogs.del_bin_fls_w'),
         },
       });
       dialogRef.afterClosed().subscribe(result => {
@@ -581,11 +595,11 @@ viewMode:string = "grid"; // способ отображения файлов - 
                 (data) => {   
                   let result=data as any;
                   switch(result){
-                    case 1:{this.getData();this.openSnackBar("Успешно удалено из корзины", "Закрыть");break;} 
-                    case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе операции проиошла ошибка")}});break;}
-                    case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+                    case 1:{this.getData();this.openSnackBar(translate('menu.msg.del_success'), translate('menu.msg.close'));break;}  //+++
+                    case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+                    case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
                   }
-                },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+                },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
           }  
 
     clickBtnClearTrash(): void {
@@ -593,9 +607,9 @@ viewMode:string = "grid"; // способ отображения файлов - 
         width: '400px',
         data:
         { 
-          head: 'Очистка корзины',
-          query: 'Удалить все файлы из корзины?',
-          warning: 'Внимание: файлы, привязанные к документам (например, картинки товаров в документе "Товары и услуги") также удалятся из содержащих их документов.',
+          head: translate('menu.dialogs.bin_clearing'), //+++
+          query: translate('menu.dialogs.q_d_a_bin_fls'),
+          warning: translate('menu.dialogs.del_bin_fls_w'),
         },
       });
       dialogRef.afterClosed().subscribe(result => {
@@ -610,11 +624,11 @@ viewMode:string = "grid"; // способ отображения файлов - 
           (data) => {   
             let result=data as any;
             switch(result){
-              case 1:{this.getData();this.openSnackBar("Корзина успешно очищена", "Закрыть");break;} 
-              case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе операции проиошла ошибка")}});break;}
-              case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+              case 1:{this.getData();this.openSnackBar(translate('menu.msg.bin_clr_succ'), translate('menu.msg.close'));break;}  //+++
+              case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+              case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
             }
-          },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+          },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
     }  
 
     openSnackBar(message: string, action: string) {
@@ -623,34 +637,38 @@ viewMode:string = "grid"; // способ отображения файлов - 
       });
     }
 
-    getCompaniesList(){
-      this.receivedCompaniesList=null;
-      this.httpService.getCompaniesList()
-              .subscribe(
+    
+    getCompaniesList(){ //+++
+      if(this.receivedCompaniesList.length==0)
+        this.loadSpravService.getCompaniesList()
+                .subscribe(
                   (data) => {this.receivedCompaniesList=data as any [];
                     this.getSetOfPermissions();
                   },
-                  error => console.log(error)
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
               );
+      else this.getSetOfPermissions();
     }
-
-    getMyId(){
+    
+    getMyId(){ //+++
+      if(+this.myId==0)
       this.loadSpravService.getMyId()
               .subscribe(
                   (data) => {this.myId=data as any;
                     this.getMyCompanyId();},
-                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
               );
+        else this.getMyCompanyId();
     }
-
-    getMyCompanyId(){
-      this.loadSpravService.getMyCompanyId().subscribe(
+    getMyCompanyId(){ //+++
+      if(+this.myCompanyId==0)
+        this.loadSpravService.getMyCompanyId().subscribe(
         (data) => {
           this.myCompanyId=data as number;
-          //console.log("myCompanyId="+this.myCompanyId);
           this.setDefaultCompany();
-        }, error => console.log(error));
-    }
+        }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
+      else this.setDefaultCompany();
+    } 
 
     setDefaultCompany(){
       if(this.data)
@@ -668,7 +686,7 @@ viewMode:string = "grid"; // способ отображения файлов - 
           actionType:"create",
           parentCategoryName: this.sendingQueryForm.selectedNodeName , 
           parentCategoryId: +this.sendingQueryForm.selectedNodeId,
-          title:"Создание категории",
+          title:translate('menu.dialogs.ctg_creation'), //+++
           companyId:+this.sendingQueryForm.companyId,
           docName:"File"
         },
@@ -687,7 +705,7 @@ viewMode:string = "grid"; // способ отображения файлов - 
           actionType:"update",
           categoryName: this.sendingQueryForm.selectedNodeName , 
           categoryId: +this.sendingQueryForm.selectedNodeId,
-          title:"Редактирование категории",
+          title:translate('menu.dialogs.ctg_edit'), //+++
           docName:"File"
         },
       });
@@ -715,7 +733,7 @@ viewMode:string = "grid"; // способ отображения файлов - 
         { 
           actionType:"changeOrder",
           parentCategoryId: +this.sendingQueryForm.selectedNodeId,
-          title:"Изменение порядка вывода",
+          title:translate('menu.dialogs.order_edit'), //+++
           companyId: +this.sendingQueryForm.companyId,
           docName:"File"
         },
@@ -847,19 +865,22 @@ viewMode:string = "grid"; // способ отображения файлов - 
     }
     console.log("this.numRootCategories: "+this.numRootCategories);
   }
-recountNumChildsOfSelectedCategory(){//считает количество подкатегорий в выбранной категории
-  let parentNode:any;
-  let parentOfCurrentNode:any;
-  parentNode=this.getNodeById(+this.sendingQueryForm.selectedNodeId);
-  this.numChildsOfSelectedCategory=0;
-  for (let i = 0; i < this.treeControl.dataNodes.length; i++) {
-    parentOfCurrentNode=this.getParent(this.treeControl.dataNodes[i]);
-    if(parentOfCurrentNode){
-      console.log("parentOfCurrentNode: "+parentOfCurrentNode.id);
-      if(parentOfCurrentNode.id==parentNode.id){
-        this.numChildsOfSelectedCategory++;
-  }}}
-}
+  recountNumChildsOfSelectedCategory(){//считает количество подкатегорий в выбранной категории
+    let parentNode:any;
+    let parentOfCurrentNode:any;
+    parentNode=this.getNodeById(+this.sendingQueryForm.selectedNodeId);
+    this.numChildsOfSelectedCategory=0;
+    for (let i = 0; i < this.treeControl.dataNodes.length; i++) {
+      parentOfCurrentNode=this.getParent(this.treeControl.dataNodes[i]);
+      if(parentOfCurrentNode){
+        console.log("parentOfCurrentNode: "+parentOfCurrentNode.id);
+        if(parentOfCurrentNode.id==parentNode.id){
+          this.numChildsOfSelectedCategory++;
+    }}}
+  }
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
+  }
 //*****************************************************************************************************************************************/
 //*******************************************************        F I L E S      ***********************************************************/
 //*****************************************************************************************************************************************/
@@ -885,7 +906,7 @@ clickBtnFileUplioad(){
     { 
       categoryId: +this.sendingQueryForm.selectedNodeId,
       categoryName: this.sendingQueryForm.selectedNodeName , 
-      title:"Загрузка файлов",
+      title:translate('menu.dialogs.files_upload'), //+++
       companyId:+this.sendingQueryForm.companyId,
     },
   });
@@ -917,17 +938,17 @@ clickBtnFileUplioad(){
   //   });        
   // }
 
-  deleteImage(id:number){
-    const body = {id: id, any_id:/*this.id*/1}; 
-    return this.http.post('/api/auth/deleteProductImage',body)
-    .subscribe(
-        (data) => {   
-                    this.openSnackBar("Успешно удалено", "Закрыть");
-                    //this.refreshImages();
-                },
-        error => console.log(error),
-    );  
-  }
+  // deleteImage(id:number){
+  //   const body = {id: id, any_id:/*this.id*/1}; 
+  //   return this.http.post('/api/auth/deleteProductImage',body)
+  //   .subscribe(
+  //       (data) => {   
+  //                   this.openSnackBar("Успешно удалено", "Закрыть");
+  //                   //this.refreshImages();
+  //               },
+  //       error => console.log(error),
+  //   );  
+  // }
 
   ConvertBytes(bytes, decimals = 1) {
       if (bytes === 0) return '0 Bytes';

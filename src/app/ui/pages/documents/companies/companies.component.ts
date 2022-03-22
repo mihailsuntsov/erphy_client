@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { QueryFormService } from './query-forms.service';
 import { QueryForm } from './query-form';
 import { SelectionModel } from '@angular/cdk/collections';
@@ -11,6 +11,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
+import { translate, TranslocoService } from '@ngneat/transloco'; //+++
 
 export interface CompaniesTable {
   id: number;
@@ -51,12 +53,12 @@ export interface NumRow {//интерфейс для списка количес
   templateUrl: './companies.component.html',
   styleUrls: ['./companies.component.css'],
 
-  providers: [QueryFormService,Cookie]
+  providers: [QueryFormService,Cookie,CommonUtilitesService] //+++
 })
 export class CompaniesComponent {
 
-  myCompanyId:number=0;//
-  myId:number=0;
+  // myCompanyId:number=0;//
+  // myId:number=0;
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
   donePagesList: boolean = false;
   receivedPagesList: string [];//массив для получения данных пагинации
@@ -106,10 +108,11 @@ export class CompaniesComponent {
 
 //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
   selectionFilterOptions = new SelectionModel<idAndName>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние
-  optionsIds: idAndName [] = [{id:"1", name:"Показать только удалённые"},]
+  optionsIds: idAndName [] = [{id:"1", name: 'menu.top.only_del'},]
   displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
 //***********************************************************************************************************************/
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
 
   constructor(
   private loadSpravService:   LoadSpravService,
@@ -117,9 +120,11 @@ export class CompaniesComponent {
   private queryFormService:   QueryFormService,
   private http: HttpClient,
   private MessageDialog: MatDialog,
+  public cu: CommonUtilitesService, //+++
   private Cookie: Cookie,
   public deleteDialog: MatDialog,
-  public ConfirmDialog: MatDialog) {}
+  public ConfirmDialog: MatDialog,
+  private service: TranslocoService,) {}
 
   ngOnInit() 
   {
@@ -138,8 +143,16 @@ export class CompaniesComponent {
       Cookie.set('companies_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('companies_offset');
     if(Cookie.get('companies_result')=='undefined' || Cookie.get('companies_result')==null)        
       Cookie.set('companies_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('companies_result');
+     
+    //+++ getting base data from parent component
+    // this.getBaseData('myId');    
+    // this.getBaseData('myCompanyId');  
+    // this.getBaseData('companiesList');      
+
   }
 
+
+    
   getData(){
     if(this.refreshPermissions() && this.allowToView)
     {
@@ -147,7 +160,7 @@ export class CompaniesComponent {
       this.getPagesList();
       this.getTable();
       //!!!
-    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
+    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})}
   }
 // -------------------------------------- *** ПРАВА *** ------------------------------------
   getSetOfPermissions(){
@@ -195,7 +208,7 @@ export class CompaniesComponent {
   //           .subscribe(
   //               (data) => {this.myId=data as any;
   //                 this.getMyCompanyId();},
-  //               error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+  //               error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}
   //           );
   // }
   // getMyCompanyId(){
@@ -203,7 +216,7 @@ export class CompaniesComponent {
   //     (data) => {
   //       this.myCompanyId=data as number;
   //       this.getCRUD_rights();
-  //     }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+  //     }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})});
   // }
 
   getTableHeaderTitles(){
@@ -264,7 +277,7 @@ export class CompaniesComponent {
             if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
             this.gettingTableData=false;
           },
-          error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
+          error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})} 
       );
   }
   
@@ -326,16 +339,14 @@ export class CompaniesComponent {
   deleteCompanies(){
     const body = {"checked": this.checkedList.join()};
     this.clearCheckboxSelection();
-        return this.http.post('/api/auth/deleteCompanies', body) 
-            .subscribe(
-                (data) => {   
-                            this.receivedMatTable=data as any []; 
-                            this.dataSource.data = this.receivedMatTable;
-                            this.openSnackBar("Успешно удалено", "Закрыть");
-                            this.getData();
-                        },
-                error => console.log(error),
-            );
+    return this.http.post('/api/auth/deleteCompanies', body) 
+    .subscribe(
+    (data) => {   
+      this.receivedMatTable=data as any []; 
+      this.dataSource.data = this.receivedMatTable;
+      this.openSnackBar(translate('menu.msg.del_success'), translate('menu.msg.close'));
+      this.getData();
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
   }
 
   openSnackBar(message: string, action: string) {
@@ -346,17 +357,16 @@ export class CompaniesComponent {
   undeleteCompanies(){
     const body = {"checked": this.checkedList.join()};
     this.clearCheckboxSelection();
-        return this.http.post('/api/auth/undeleteCompanies', body) 
-            .subscribe(
-                (data) => {   
-                            this.receivedMatTable=data as any []; 
-                            this.dataSource.data = this.receivedMatTable;
-                            this.openSnackBar("Успешно восстановлено", "Закрыть");
-                            this.getData();
-                        },
-                error => console.log(error),
-            );
+    return this.http.post('/api/auth/undeleteCompanies', body) 
+      .subscribe(
+      (data) => {   
+        this.receivedMatTable=data as any []; 
+        this.dataSource.data = this.receivedMatTable;
+        this.openSnackBar(translate('menu.msg.rec_success'), translate('menu.msg.close'));
+        this.getData();
+      },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
   }
+
   clickBtnDelete(): void {
     const dialogRef = this.deleteDialog.open(DeleteDialog, {
       width: '300px',
@@ -372,8 +382,8 @@ export class CompaniesComponent {
       width: '400px',
       data:
       { 
-        head: 'Восстановление',
-        query: 'Восстановить предприятие из удалённых?',
+        head: translate('menu.dialogs.restore'),
+        query: translate('menu.dialogs.q_restore'),
         warning: '',
       },
     });
@@ -424,5 +434,8 @@ export class CompaniesComponent {
     });
     
   }
+  // getBaseData(data) {    //+++ emit data to parent component
+  //   this.baseData.emit(data);
+  // }
 }
 

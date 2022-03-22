@@ -38,6 +38,8 @@ export class CommonUtilitesService{
     return resultPriceText;
   }
 
+  cap(word) // Make first letter big 
+  {return word.charAt(0).toUpperCase() + word.slice(1);}
 
   //Конвертирует число в строку типа 0.00 например 6.40, 99.25
   numToPrice(price:number,charsAfterDot:number,withSpaces?:boolean) {

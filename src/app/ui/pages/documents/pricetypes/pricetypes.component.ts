@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { QueryForm } from './query-form';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -12,6 +12,8 @@ import { MatDialog } from '@angular/material/dialog';
 // import { LoadSpravService } from './loadsprav';
 import { QueryFormService } from './get-pricetypes-table.service';
 import { LoadSpravService } from '../../../../services/loadsprav';
+import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
+import { translate, TranslocoService } from '@ngneat/transloco'; //+++
 
 export interface NumRow {//интерфейс для списка количества строк
   value: string;
@@ -34,7 +36,7 @@ export interface idAndName {
   selector: 'app-pricetypes',
   templateUrl: './pricetypes.component.html',
   styleUrls: ['./pricetypes.component.css'],
-  providers: [QueryFormService,LoadSpravService,Cookie]
+  providers: [QueryFormService,LoadSpravService,Cookie,CommonUtilitesService]
 })
 
 export class PricetypesComponent implements OnInit {
@@ -74,6 +76,7 @@ export class PricetypesComponent implements OnInit {
   displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
   //***********************************************************************************************************************/
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
 
   numRows: NumRow[] = [
     {value: '5', viewValue: '5'},
@@ -100,7 +103,9 @@ export class PricetypesComponent implements OnInit {
     private MessageDialog: MatDialog,
     public confirmDialog: MatDialog,
     private http: HttpClient,
-    public deleteDialog: MatDialog) { }
+    public deleteDialog: MatDialog,
+    public cu: CommonUtilitesService, //+++
+    private service: TranslocoService,) { }
       
     ngOnInit() {
       this.sendingQueryForm.companyId='0';
@@ -121,6 +126,11 @@ export class PricetypesComponent implements OnInit {
       if(Cookie.get('pricetypes_result')=='undefined' || Cookie.get('pricetypes_result')==null)        
         Cookie.set('pricetypes_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('pricetypes_result');
       
+      //+++ getting base data from parent component
+      this.getBaseData('myId');    
+      this.getBaseData('myCompanyId');  
+      this.getBaseData('companiesList');      
+
         this.fillOptionsList();//заполняем список опций фильтра
       this.getCompaniesList();// 
     }
@@ -161,31 +171,38 @@ refreshPermissions():boolean{
   console.log("allowToDeleteAllCompanies - "+this.allowToDeleteAllCompanies);
   return true;
 }
-getCompaniesList(){
-  this.receivedCompaniesList=null;
-  this.loadSpravService.getCompaniesList()
-          .subscribe(
+
+getCompaniesList(){ //+++
+  if(this.receivedCompaniesList.length==0)
+    this.loadSpravService.getCompaniesList()
+            .subscribe(
               (data) => {this.receivedCompaniesList=data as any [];
                 this.getSetOfPermissions();
               },
-              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
           );
+  else this.getSetOfPermissions();
 }
-getMyId(){
-  this.loadSpravService.getMyId()
+
+getMyId(){ //+++
+  if(+this.myId==0)
+   this.loadSpravService.getMyId()
           .subscribe(
               (data) => {this.myId=data as any;
                 this.getMyCompanyId();},
-              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
           );
+    else this.getMyCompanyId();
 }
-getMyCompanyId(){
-  this.loadSpravService.getMyCompanyId().subscribe(
+getMyCompanyId(){ //+++
+  if(+this.myCompanyId==0)
+    this.loadSpravService.getMyCompanyId().subscribe(
     (data) => {
       this.myCompanyId=data as number;
       this.setDefaultCompany();
-    }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
-}
+    }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
+  else this.setDefaultCompany();
+} 
 
 setDefaultCompany(){
   if(Cookie.get('pricetypes_companyId')=='0'){
@@ -200,7 +217,7 @@ getTableHeaderTitles(){
   if(this.showOpenDocIcon) this.displayedColumns.push('opendoc');
   this.displayedColumns.push('name');
   this.displayedColumns.push('description');
-  this.displayedColumns.push('pricerole');
+  // this.displayedColumns.push('pricerole');
   this.displayedColumns.push('is_default');
   this.displayedColumns.push('creator');
   this.displayedColumns.push('date_time_created');
@@ -214,7 +231,7 @@ getTableHeaderTitles(){
         this.getPagesList();
         this.getTable();
       //!!!
-    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
+    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})}
   }
   doFilterCompaniesList(){
     let myCompany:idAndName;
@@ -233,7 +250,7 @@ getTableHeaderTitles(){
                 this.pagenum=this.receivedPagesList[1];
                 this.listsize=this.receivedPagesList[2];
                 this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}
             ); 
   }
 
@@ -247,7 +264,7 @@ getTableHeaderTitles(){
                 this.setPage(0);
               this.gettingTableData=false;
             },
-            error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
+            error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})} 
         );
     }
 
@@ -370,11 +387,11 @@ getTableHeaderTitles(){
       .subscribe((data) => {   
         let result=data as any;
         switch(result){
-          case 1:{this.getData();this.openSnackBar("Успешно удалено", "Закрыть");break;} 
-          case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе удаления проиошла ошибка")}});break;}
-          case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+          case 1:{this.getData();this.openSnackBar(translate('menu.msg.del_success'), translate('menu.msg.close'));break;}  //+++
+        case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+        case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
         }
-      },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+      },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
     }
       
     undeleteDocs(){
@@ -386,11 +403,11 @@ getTableHeaderTitles(){
           (data) => {   
             let result=data as any;
             switch(result){
-              case 1:{this.getData();this.openSnackBar("Успешно восстановлено", "Закрыть");break;} 
-              case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе операции проиошла ошибка")}});break;}
-              case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+              case 1:{this.getData();this.openSnackBar(translate('menu.msg.rec_success'), translate('menu.msg.close'));break;}  //+++
+            case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+            case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
             }
-          },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+          },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
     }  
 
     getSpravSysPriceRole(){
@@ -409,9 +426,9 @@ getTableHeaderTitles(){
       .subscribe(
           (data) => {   
             this.getData();
-                      this.openSnackBar("Тип цены "+name+" успешно установлен по-умолчанию", "Закрыть");
+                      this.openSnackBar(translate('menu.msg.pricetype_set',{name: name}), translate('menu.msg.close'));
                     },
-          error => {this.openSnackBar("Недостаточно прав!", "Закрыть"); console.log(error);this.getData();},
+          error => {this.openSnackBar(translate('menu.msg.ne_perm'), translate('menu.msg.close')); console.log(error);this.getData();},
       );
     }
     openSnackBar(message: string, action: string) {
@@ -425,8 +442,8 @@ getTableHeaderTitles(){
       width: '400px',
       data:
       { 
-        head: 'Восстановление',
-        query: 'Восстановить выбранные документы из удалённых?',
+        head: translate('menu.dialogs.restore'), //+++
+        query: translate('menu.dialogs.q_restore'),
         warning: '',
       },
     });
@@ -443,7 +460,7 @@ getTableHeaderTitles(){
     this.sendingQueryForm.filterOptionsIds = [];
   }
   fillOptionsList(){
-    this.optionsIds=[{id:1, name:"Показать только удалённые"},];
+    this.optionsIds=[{id:1, name: 'menu.top.only_del'},]; //+++
   }
   clickApplyFilters(){
     let showOnlyDeletedCheckboxIsOn:boolean = false; //присутствует ли включенный чекбокс "Показывать только удалённые"
@@ -475,4 +492,7 @@ getTableHeaderTitles(){
     });
   }
  
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
+  }
 }

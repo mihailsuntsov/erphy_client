@@ -6,7 +6,7 @@ class="spinner"
 ></mat-spinner>
 <mat-card class="card">
     <mat-card-title class="flex" style="height: 30px;">
-        <div *ngIf="!displayingDeletedDocs" class="emptyspace">Приёмки</div>
+        <div *ngIf="!displayingDeletedDocs" class="emptyspace">{{myId}}-{{myCompanyId}}-Приёмки</div>
         <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> приёмки</div>
         <button 
             mat-raised-button 

@@ -4,20 +4,21 @@ class="spinner"
 [diameter]="50"
 *ngIf="gettingTableData"
 ></mat-spinner>
-<mat-card class="card">
+<mat-card class="card" *transloco="let t">
     <mat-card-title class="flex" style="height: 30px;">
-        <div *ngIf="!displayingDeletedDocs" class="emptyspace">Единицы измерения</div>
-        <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> единицы измерения</div>
+        <div *ngIf="!displayingDeletedDocs" class="emptyspace">{{cu.cap(t('menu.docs.units'))}}</div>
+        <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">{{t('menu.top.deleted')}}</span> {{t('menu.docs.units')}}</div>
         <div [style.display]="(visBtnAdd==true&&!displayingDeletedDocs)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
             <a [routerLink]="['../../edizmdoc', '']">
-                <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> Создать</button>
+                <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> {{t('menu.top.btn_create')}}</button>
             </a>   
         </div>
-        <div [style.display]="(!displayingDeletedDocs&&visBtnDelete)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
-            <button mat-raised-button (click)="clickBtnDelete()" color="warn"><i class="material-icons">delete_forever</i> Удалить</button>
+        <div [style.display]="(!displayingDeletedDocs && visBtnDelete)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
+            <button mat-raised-button (click)="clickBtnDelete()" color="warn"><i class="material-icons">delete_forever</i> {{t('menu.top.btn_delete')}}</button>
         </div>
+
         <div *ngIf="displayingDeletedDocs && visBtnDelete" class="col-sm-auto justify-content-center" style="margin:0px 10px 10px 0px">
-            <button mat-raised-button (click)="clickBtnRestore()" color="accent"><i class="material-icons">restore_from_trash</i> Восстановить</button>
+            <button mat-raised-button (click)="clickBtnRestore()" color="accent"><i class="material-icons">restore_from_trash</i> {{t('menu.top.btn_restore')}}</button>
         </div>
     </mat-card-title>
     <mat-card-content>
@@ -40,16 +41,16 @@ class="spinner"
                         </div>
                     </div>
                     <div class="flex">
-                        <mat-form-field style="width:50px;" class="num-of-rows">
-                            <mat-label>Строк</mat-label>
+                        <mat-form-field style="width:50px;" class="num-of-rows"> <!--+++-->
+                            <mat-label>{{t('menu.top.rows')}}</mat-label>
                             <mat-select [(value)]="sendingQueryForm.result" (selectionChange)="setNumOfPages()" class="form-control" id="selectRowsPerPage" name="result">                           
                                 <mat-option  *ngFor="let num of numRows" [value]="num.value">
                                         {{num.viewValue}}
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
-                        <mat-form-field class="company-select" style="margin-left: 10px; max-width: 250px;">
-                            <mat-label>Предприятие</mat-label>
+                        <mat-form-field class="company-select" style="margin-left: 10px; max-width: 250px;"><!--+++-->
+                            <mat-label>{{t('menu.top.company')}}</mat-label>
                             <mat-select  [(value)]="sendingQueryForm.companyId" 
                             (selectionChange)="onCompanySelection()">                          
                                 <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
@@ -63,7 +64,7 @@ class="spinner"
                             class="options-button"
                             [matMenuTriggerFor]="oper"
                             type="button"
-                            matTooltip='Выбрать опции для фильтра'
+                            matTooltip="{{t('menu.tip.select_opt')}}" 
                             matSuffix mat-icon-button>
                             <mat-icon>list_alt</mat-icon>
                         </button>
@@ -75,13 +76,13 @@ class="spinner"
                                         (click)="$event.stopPropagation()"
                                         (change)="$event ? clickFilterOptionsCheckbox(row) : null"
                                         [checked]="selectionFilterOptions.isSelected(row)"
-                                        >{{row.name}}</mat-checkbox>
+                                        >{{t(row.name)}}</mat-checkbox>
                                     </li>
                                 </ul>
                             </div>
                             <div class="div-100"> 
                                 <div style="width:100%; height: 38px; padding-bottom: 15px;">
-                                    <button matTooltip="Применить фильтры" 
+                                    <button matTooltip="{{t('menu.tip.apply_filters')}}" 
                                             mat-mini-fab 
                                             color="primary" 
                                             (click)="clickApplyFilters()">
@@ -94,7 +95,7 @@ class="spinner"
                         <div class="flex">     
                             <mat-form-field class="emptyspace">
                                     <input matInput 
-                                    placeholder="Поиск..." 
+                                    placeholder="{{t('menu.top.search')}}" 
                                     [(ngModel)]="sendingQueryForm.searchString" 
                                     type="text"  
                                     id="search_input" 
@@ -143,7 +144,7 @@ class="spinner"
                                 </ng-container>
                                 <ng-container matColumnDef="company">
                                     <th mat-header-cell *matHeaderCellDef>
-                                    <span (click)="setSort('company')" class="sortheader"> Предприятие 
+                                    <span (click)="setSort('company')" class="sortheader"> {{t('menu.table.company')}} 
                                         <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='company'" class="material-icons sortarrow">arrow_upward</i>
                                         <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='company'" class="material-icons sortarrow">arrow_downward</i>
                                     </span>
@@ -151,7 +152,7 @@ class="spinner"
                                 </ng-container>
                                 <ng-container matColumnDef="name">
                                     <th mat-header-cell *matHeaderCellDef>
-                                    <span (click)="setSort('p.name')" class="sortheader"> Наименование 
+                                    <span (click)="setSort('p.name')" class="sortheader"> {{t('menu.table.name')}} 
                                         <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='p.name'" class="material-icons sortarrow">arrow_upward</i>
                                         <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='p.name'" class="material-icons sortarrow">arrow_downward</i>
                                     </span>
@@ -159,7 +160,7 @@ class="spinner"
                                 </ng-container>
                                 <ng-container matColumnDef="short_name">
                                     <th mat-header-cell *matHeaderCellDef>
-                                    <span (click)="setSort('p.short_name')" class="sortheader"> Сокращённое 
+                                    <span (click)="setSort('p.short_name')" class="sortheader"> {{t('menu.table.short')}} 
                                         <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='p.short_name'" class="material-icons sortarrow">arrow_upward</i>
                                         <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='p.short_name'" class="material-icons sortarrow">arrow_downward</i>
                                     </span>
@@ -167,7 +168,7 @@ class="spinner"
                                 </ng-container>
                                 <ng-container matColumnDef="creator">
                                     <th mat-header-cell *matHeaderCellDef>
-                                    <span (click)="setSort('creator')" class="sortheader"> Создатель 
+                                    <span (click)="setSort('creator')" class="sortheader"> {{t('menu.table.creator')}} 
                                         <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='creator'" class="material-icons sortarrow">arrow_upward</i>
                                         <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='creator'" class="material-icons sortarrow">arrow_downward</i>
                                     </span>
@@ -176,7 +177,7 @@ class="spinner"
 
                                 <ng-container matColumnDef="date_time_created">
                                     <th mat-header-cell *matHeaderCellDef>
-                                    <span (click)="setSort('date_time_created_sort')" class="sortheader"> Дата создания 
+                                    <span (click)="setSort('date_time_created_sort')" class="sortheader"> {{t('menu.table.created')}} 
                                         <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='date_time_created_sort'" class="material-icons sortarrow">arrow_upward</i>
                                         <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='date_time_created_sort'" class="material-icons sortarrow">arrow_downward</i>
                                     </span>
@@ -184,10 +185,10 @@ class="spinner"
                                 </ng-container>
                                 <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                                 <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-                                <!-- Блок "Данные не найдены" -->
+                                <!-- Part "Data not founded" --> <!--+++-->
                                 <ng-container matColumnDef="data_not_found">
                                     <td mat-footer-cell *matFooterCellDef colspan="13" class="text-center">
-                                    Данные не найдены
+                                        {{t('menu.msg.dt_not_fnd')}}
                                     </td>
                                 </ng-container>
                                 <ng-container matColumnDef="nocolumn">
@@ -196,7 +197,7 @@ class="spinner"
                                 <tr mat-footer-row 
                                 *matFooterRowDef="[dataSource.data.length==0?'data_not_found':'nocolumn']" 
                                 [ngStyle]="(dataSource.data.length==0 && !gettingTableData)?{}:{'display': 'none'}"></tr>
-                                <!-- Конец блока "Данные не найдены" -->        
+                                <!-- End of Part "Data not founded" -->
                         </table>
 
 
@@ -204,7 +205,7 @@ class="spinner"
               
                     <div class="flex">
                         <div class="col-sm">
-                            <p> Найдено: {{size}}, страница {{pagenum}} из {{listsize}}</p>
+                            <p> {{t('menu.bottom.founded')}}: {{size}}, {{t('menu.bottom.page')}} {{pagenum}}  {{t('menu.bottom.of')}} {{listsize}}</p> <!--+++-->
                         </div>
                         <span  class="emptyspace"></span><!-- разделитель -->
                         <div class="col-sm-auto justify-content-end">
