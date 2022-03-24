@@ -1,4 +1,4 @@
-import { Component, OnInit} from '@angular/core';
+import { Component, EventEmitter, OnInit, Output} from '@angular/core';
 import { QueryForm } from './query-form';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource } from '@angular/material/table';
@@ -14,6 +14,8 @@ import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { FormGroup, FormControl } from '@angular/forms';
 import { SettingsWriteoffDialogComponent } from 'src/app/modules/settings/settings-writeoff-dialog/settings-writeoff-dialog.component';
+import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
+import { translate, TranslocoService } from '@ngneat/transloco'; //+++
 
 export interface CheckBox {
   id: number;
@@ -35,7 +37,7 @@ export interface NumRow {//интерфейс для списка количес
   selector: 'app-writeoff',
   templateUrl: './writeoff.component.html',
   styleUrls: ['./writeoff.component.css'],
-  providers: [QueryFormService,LoadSpravService,Cookie]
+  providers: [QueryFormService,LoadSpravService,Cookie,CommonUtilitesService] //+++
 })
 export class WriteoffComponent implements OnInit {
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
@@ -101,6 +103,8 @@ export class WriteoffComponent implements OnInit {
   displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
   //***********************************************************************************************************************/
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
+
   constructor(private queryFormService:   QueryFormService,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
@@ -110,7 +114,9 @@ export class WriteoffComponent implements OnInit {
     private http: HttpClient,
     private settingsWriteoffDialogComponent: MatDialog,
     public deleteDialog: MatDialog,
-    public dialogRef1: MatDialogRef<WriteoffComponent>,) { }
+    public dialogRef1: MatDialogRef<WriteoffComponent>,
+    public cu: CommonUtilitesService, //+++
+    private service: TranslocoService,) { }
 
     ngOnInit() {
       this.sendingQueryForm.companyId='0';
@@ -135,6 +141,12 @@ export class WriteoffComponent implements OnInit {
       if(Cookie.get('writeoff_result')=='undefined' || Cookie.get('writeoff_result')==null)        
         Cookie.set('writeoff_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('writeoff_result');
       
+        //+++ getting base data from parent component
+        this.getBaseData('myId');    
+        this.getBaseData('myCompanyId');  
+        this.getBaseData('companiesList');      
+        this.getBaseData('myDepartmentsList');
+
       this.fillOptionsList();//заполняем список опций фильтра
       // Форма настроек
       this.settingsForm = new FormGroup({
@@ -173,18 +185,17 @@ export class WriteoffComponent implements OnInit {
       //API: getCompaniesList         giveMeMyPermissions      getMyCompanyId
     }
 
-    // -------------------------------------- *** ПРАВА *** ------------------------------------
-   getSetOfPermissions(){
+  // -------------------------------------- *** ПРАВА *** ------------------------------------
+  getSetOfPermissions(){
     return this.http.get('/api/auth/getMyPermissions?id=17')
-            .subscribe(
-                (data) => {   
-                            this.permissionsSet=data as any [];
-                            this.getMyId();
-                        },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-            );
+    .subscribe(
+    (data) => {   
+                this.permissionsSet=data as any [];
+                this.getMyId();
+    },
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+    );
   }
-
 
   getCRUD_rights(permissionsSet:any[]){
     this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==216)});
@@ -214,11 +225,11 @@ export class WriteoffComponent implements OnInit {
     this.showOpenDocIcon=(this.allowToUpdate||this.allowToView);
     this.visBtnAdd = (this.allowToCreate)?true:false;
     
-    console.log("allowToView - "+this.allowToView);
-    console.log("allowToUpdate - "+this.allowToUpdate);
-    console.log("allowToCreate - "+this.allowToCreate);
-    console.log("allowToDelete - "+this.allowToDelete);
-    console.log("allowToDeleteAllCompanies - "+this.allowToDeleteAllCompanies);
+    // console.log("allowToView - "+this.allowToView);
+    // console.log("allowToUpdate - "+this.allowToUpdate);
+    // console.log("allowToCreate - "+this.allowToCreate);
+    // console.log("allowToDelete - "+this.allowToDelete);
+    // console.log("allowToDeleteAllCompanies - "+this.allowToDeleteAllCompanies);
     return true;
   }
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
@@ -228,15 +239,14 @@ export class WriteoffComponent implements OnInit {
   getData(){
     if(this.refreshPermissions() && this.allowToView)
     {
-      console.log('department 1 = '+this.sendingQueryForm.departmentId);
+      // console.log('department 1 = '+this.sendingQueryForm.departmentId);
       this.doFilterCompaniesList(); //если нет просмотра по всем предприятиям - фильтруем список предприятий до своего предприятия
       this.doFilterDepartmentsList();//если нет просмотра по свому предприятию - фильтруем список отделений предприятия до своих отделений
-      console.log('department 2 = '+this.sendingQueryForm.departmentId);
+      // console.log('department 2 = '+this.sendingQueryForm.departmentId);
       this.getTableHeaderTitles();
       this.getPagesList();
       this.getTable();
-      //!!!
-    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
+    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})} //+++
   }
 
   getTableHeaderTitles(){
@@ -259,27 +269,27 @@ export class WriteoffComponent implements OnInit {
   getPagesList(){
     // this.receivedPagesList=null;
     this.queryFormService.getPagesList(this.sendingQueryForm)
-            .subscribe(
-                data => {this.receivedPagesList=data as string [];
-                this.size=this.receivedPagesList[0];
-                this.pagenum=this.receivedPagesList[1];
-                this.listsize=this.receivedPagesList[2];
-                this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-            ); 
+    .subscribe(
+        data => {this.receivedPagesList=data as string [];
+        this.size=this.receivedPagesList[0];
+        this.pagenum=this.receivedPagesList[1];
+        this.listsize=this.receivedPagesList[2];
+        this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
+        error =>  {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+    ); 
   }
 
   getTable(){
     this.gettingTableData=true;
     this.queryFormService.getTable(this.sendingQueryForm)
-            .subscribe(
-                (data) => {
-                  this.dataSource.data = data as any []; 
-                  if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
-                  this.gettingTableData=false;
-                },
-                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
-            );
+    .subscribe(
+        (data) => {
+          this.dataSource.data = data as any []; 
+          if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
+          this.gettingTableData=false;
+        },
+        error =>  {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+    );
   }
 
   isAllSelected() {//все выбраны
@@ -407,54 +417,97 @@ export class WriteoffComponent implements OnInit {
       this.showOnlyVisBtnAdd();
     });        
   }
-
+  clickBtnRestore(): void {
+    const dialogRef = this.confirmDialog.open(ConfirmDialog, {
+      width: '400px',
+      data:
+      { 
+        head: translate('menu.dialogs.restore'), //+++
+        query: translate('menu.dialogs.q_restore'),
+        warning: '',
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){this.undeleteDocs();}
+      this.clearCheckboxSelection();
+      this.showOnlyVisBtnAdd();
+    });        
+  }
+  undeleteDocs(){
+    const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
+    this.clearCheckboxSelection();
+    return this.http.post('/api/auth/undeleteWriteoff', body) 
+    .subscribe(
+    (data) => {   
+      let result=data as any;
+      switch(result){ //+++
+        case 1:{this.getData();this.openSnackBar(translate('menu.msg.rec_success'), translate('menu.msg.close'));break;}  //+++
+        case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+        case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+      }
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
+  }  
   deleteDocs(){
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
-          return this.http.post('/api/auth/deleteWriteoff', body) 
-  .subscribe((data) => {   
+    return this.http.post('/api/auth/deleteWriteoff', body) 
+    .subscribe((data) => {   
     let result=data as any;
     switch(result.result){
-      case 0:{this.getData();this.openSnackBar("Успешно удалено", "Закрыть");break;} 
-      case 1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе удаления "+(this.checkedList.length>1?"документов":"документа")+" проиошла ошибка")}});break;}
-      case 2:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для операции удаления"}});break;}
+      case 0:{this.getData();this.openSnackBar(translate('menu.msg.del_success'), translate('menu.msg.close'));break;} 
+      case 1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+      case 2:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
       case 3:{let numbers:string='';
-        for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="/ui/writeoffdoc/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
-        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Удаление невозможно - у следующих номеров документов есть производные (связанные с ними дочерние) документы:'+numbers}});break;}
-    }
-  },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
-}
+        for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="/ui/paymentindoc/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
+        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.no_del_childs')+numbers}});break;}
+      }
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
+  }
     
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
       duration: 3000,
     });
   }
-  getCompaniesList(){
-    this.receivedCompaniesList=null;
-    this.loadSpravService.getCompaniesList()
-            .subscribe(
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+      this.loadSpravService.getCompaniesList()
+              .subscribe(
                 (data) => {this.receivedCompaniesList=data as any [];
                   this.getSetOfPermissions();
                 },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
             );
-  }
-  getMyId(){
-    this.receivedMyDepartmentsList=null;
-    this.loadSpravService.getMyId()
+    else this.getSetOfPermissions();
+  }  
+  getMyId(){ //+++
+    if(+this.myId==0)
+     this.loadSpravService.getMyId()
             .subscribe(
                 (data) => {this.myId=data as any;
                   this.getMyCompanyId();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
             );
+      else this.getMyCompanyId();
   }
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
       (data) => {
         this.myCompanyId=data as number;
         this.setDefaultCompany();
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
+    else this.setDefaultCompany();
+  } 
+  getMyDepartmentsList(){ //+++
+    if(this.receivedMyDepartmentsList.length==0)
+      this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
+      .subscribe(
+          (data) => {this.receivedMyDepartmentsList=data as any [];
+            this.setDefaultDepartment();},
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+      );
+      else this.setDefaultDepartment();
   }
 
   setDefaultCompany(){
@@ -471,16 +524,6 @@ export class WriteoffComponent implements OnInit {
             .subscribe(
                 (data) => {this.receivedDepartmentsList=data as any [];
                             this.getMyDepartmentsList();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-            );
-  }
-
-  getMyDepartmentsList(){
-    this.receivedMyDepartmentsList=null;
-    this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
-            .subscribe(
-                (data) => {this.receivedMyDepartmentsList=data as any [];
-                  this.setDefaultDepartment();},
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
             );
   }
@@ -529,82 +572,57 @@ export class WriteoffComponent implements OnInit {
       this.receivedDepartmentsList=this.receivedMyDepartmentsList;}
   }
       //*************************************************************   НАСТРОЙКИ   ************************************************************/    
-    // открывает диалог настроек
-    openDialogSettings() { 
-      const dialogSettings = this.settingsWriteoffDialogComponent.open(SettingsWriteoffDialogComponent, {
-        maxWidth: '95vw',
-        maxHeight: '95vh',
-        // height: '680px',
-        width: '400px', 
-        minHeight: '650px',
-        data:
-        { //отправляем в диалог:
-          receivedCompaniesList: this.receivedCompaniesList, //список предприятий
-          receivedDepartmentsList: this.receivedDepartmentsList,//список отделений
-          company_id: +this.sendingQueryForm.companyId, //предприятие (нужно для поиска покупателя)
-          department_type_price_id: null,
-          cagent_type_price_id: null,
-          default_type_price_id: null,
-          id: 0, //чтобы понять, новый док или уже созданный
-        },
-      });
-      dialogSettings.afterClosed().subscribe(result => {
-        if(result){
-          //если нажата кнопка Сохранить настройки - вставляем настройки в форму настроек и сохраняем
-          if(result.get('companyId')) this.settingsForm.get('companyId').setValue(result.get('companyId').value);
-          if(result.get('departmentId')) this.settingsForm.get('departmentId').setValue(result.get('departmentId').value);
-          if(result.get('pricingType')) this.settingsForm.get('pricingType').setValue(result.get('pricingType').value);
-          if(result.get('priceTypeId')) this.settingsForm.get('priceTypeId').setValue(result.get('priceTypeId').value);
-          if(result.get('plusMinus')) this.settingsForm.get('plusMinus').setValue(result.get('plusMinus').value);
-          if(result.get('changePrice')) this.settingsForm.get('changePrice').setValue(result.get('changePrice').value);
-          if(result.get('changePriceType')) this.settingsForm.get('changePriceType').setValue(result.get('changePriceType').value);
-          this.settingsForm.get('hideTenths').setValue(result.get('hideTenths').value);
-          this.settingsForm.get('statusOnFinishId').setValue(result.get('statusOnFinishId').value);
-          this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
-          this.saveSettingsWriteoff();
-        }
-      });
-    }
-    // Сохраняет настройки
-    saveSettingsWriteoff(){
-      return this.http.post('/api/auth/saveSettingsWriteoff', this.settingsForm.value)
-              .subscribe(
-                  (data) => {   
-                            this.openSnackBar("Настройки успешно сохранены", "Закрыть");
-                            
-                          },
-                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-              );
-    }
-  //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
-  clickBtnRestore(): void {
-    const dialogRef = this.confirmDialog.open(ConfirmDialog, {
-      width: '400px',
+  // открывает диалог настроек
+  openDialogSettings() { 
+    const dialogSettings = this.settingsWriteoffDialogComponent.open(SettingsWriteoffDialogComponent, {
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      // height: '680px',
+      width: '400px', 
+      minHeight: '650px',
       data:
-      { 
-        head: 'Восстановление',
-        query: 'Восстановить выбранные списания из удалённых?',
-        warning: '',
+      { //отправляем в диалог:
+        receivedCompaniesList: this.receivedCompaniesList, //список предприятий
+        receivedDepartmentsList: this.receivedDepartmentsList,//список отделений
+        company_id: +this.sendingQueryForm.companyId, //предприятие (нужно для поиска покупателя)
+        department_type_price_id: null,
+        cagent_type_price_id: null,
+        default_type_price_id: null,
+        id: 0, //чтобы понять, новый док или уже созданный
       },
     });
-    dialogRef.afterClosed().subscribe(result => {
-      if(result==1){this.undeleteDocs();}
-      this.clearCheckboxSelection();
-      this.showOnlyVisBtnAdd();
-    });        
+    dialogSettings.afterClosed().subscribe(result => {
+      if(result){
+        //если нажата кнопка Сохранить настройки - вставляем настройки в форму настроек и сохраняем
+        if(result.get('companyId')) this.settingsForm.get('companyId').setValue(result.get('companyId').value);
+        if(result.get('departmentId')) this.settingsForm.get('departmentId').setValue(result.get('departmentId').value);
+        if(result.get('pricingType')) this.settingsForm.get('pricingType').setValue(result.get('pricingType').value);
+        if(result.get('priceTypeId')) this.settingsForm.get('priceTypeId').setValue(result.get('priceTypeId').value);
+        if(result.get('plusMinus')) this.settingsForm.get('plusMinus').setValue(result.get('plusMinus').value);
+        if(result.get('changePrice')) this.settingsForm.get('changePrice').setValue(result.get('changePrice').value);
+        if(result.get('changePriceType')) this.settingsForm.get('changePriceType').setValue(result.get('changePriceType').value);
+        this.settingsForm.get('hideTenths').setValue(result.get('hideTenths').value);
+        this.settingsForm.get('statusOnFinishId').setValue(result.get('statusOnFinishId').value);
+        this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
+        this.saveSettingsWriteoff();
+      }
+    });
   }
-  undeleteDocs(){
-    const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
-    this.clearCheckboxSelection();
-      return this.http.post('/api/auth/undeleteWriteoff', body) 
-    .subscribe(
-        (data) => {   
-                    this.getData();
-                    this.openSnackBar("Успешно восстановлено", "Закрыть");
-                  },
-        error => console.log(error),
-    );
-  }  
+  // Сохраняет настройки
+  saveSettingsWriteoff(){
+    return this.http.post('/api/auth/saveSettingsWriteoff', this.settingsForm.value)
+            .subscribe(
+                (data) => {   
+                          this.openSnackBar("Настройки успешно сохранены", "Закрыть");
+                          
+                        },
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+            );
+  }
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
+  }
+  //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
   resetOptions(){
     this.displayingDeletedDocs=false;
     this.fillOptionsList();//перезаполняем список опций
@@ -612,7 +630,7 @@ export class WriteoffComponent implements OnInit {
     this.sendingQueryForm.filterOptionsIds = [];
   }
   fillOptionsList(){
-    this.optionsIds=[{id:1, name:"Показать только удалённые"},];
+    this.optionsIds=[{id:1, name: 'menu.top.only_del'},]; //+++
   }
   clickApplyFilters(){
     let showOnlyDeletedCheckboxIsOn:boolean = false; //присутствует ли включенный чекбокс "Показывать только удалённые"

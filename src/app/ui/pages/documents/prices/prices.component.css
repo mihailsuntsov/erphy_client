@@ -42,7 +42,18 @@ li {list-style: none;}
 .active{
     color:rgb(27, 27, 27);
 }
-
+/******* опции *******/
+.emptyspace{ flex-grow: 1;}
+li {list-style: none;}
+.div-100{
+    width:100%;
+    text-align: center;
+}
+.card-name{ flex-grow: 1; }
+.options-button{
+ margin: 5px 15px 0
+}
+/**********************/
 .inactive{
     color:gray;
 }

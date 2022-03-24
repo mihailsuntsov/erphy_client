@@ -4,31 +4,9 @@ class="spinner"
 [diameter]="50"
 *ngIf="gettingTableData"
 ></mat-spinner>
-<mat-card class="card">
+<mat-card class="card" *transloco="let t"> <!--+++-->
     <mat-card-title class="flex" style="height: 30px;">
-        <div *ngIf="!displayingDeletedDocs" class="emptyspace">Движение денежных средств</div>
-        <!-- <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> входящие платежи</div> -->
-        <!-- <button 
-            mat-raised-button 
-            style="width: 36px;height: 36px;min-width: 38px;padding: 0px;"
-            color="primary"
-            matTooltip='Пользовательские настройки документа'
-            (click)="openDialogSettings()"
-            type="button"
-            class="button">
-            <i class="material-icons">settings</i>
-        </button> -->
-        <!-- <div [style.display]="(visBtnAdd==true&&!displayingDeletedDocs)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
-            <a [routerLink]="['../../mutualpaymentdoc', '']">
-                <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> Создать</button>
-            </a>   
-        </div> -->
-        <!-- <div [style.display]="(!displayingDeletedDocs&&visBtnDelete)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
-            <button mat-raised-button (click)="clickBtnDelete()" color="warn"><i class="material-icons">delete_forever</i> Удалить</button>
-        </div>
-        <div *ngIf="displayingDeletedDocs && visBtnDelete" class="col-sm-auto justify-content-center" style="margin:0px 10px 10px 0px">
-            <button mat-raised-button (click)="clickBtnRestore()" color="accent"><i class="material-icons">restore_from_trash</i> Восстановить</button>
-        </div> -->
+        <div *ngIf="!displayingDeletedDocs" class="emptyspace">{{cu.cap(t('menu.docs.moneyflow'))}}</div>
     </mat-card-title>
     <mat-card-content>
         <div class="card  w-100">
@@ -63,54 +41,45 @@ class="spinner"
                         </div>
                     </div>
                     <div class="flex">
-                        <mat-form-field style="width:50px;" class="num-of-rows">
-                            <mat-label>Строк</mat-label>
-                            <mat-select formControlName="result" (selectionChange)="setNumOfPages()" class="form-control" id="selectRowsPerPage" name="result">                           
+                        <mat-form-field style="width:50px;" class="num-of-rows"> <!--+++-->
+                            <mat-label>{{t('menu.top.rows')}}</mat-label>
+                            <mat-select [(value)]="queryForm.result" (selectionChange)="setNumOfPages()" class="form-control" id="selectRowsPerPage" name="result">                           
                                 <mat-option  *ngFor="let num of numRows" [value]="num.value">
                                         {{num.viewValue}}
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
-                        <mat-form-field class="company-select" style="margin-left: 10px; max-width: 250px;">
-                            <mat-label>Предприятие</mat-label>
-                            <mat-select formControlName="companyId"
+                        <mat-form-field class="company-select" style="margin-left: 10px; max-width: 250px;"><!--+++-->
+                            <mat-label>{{t('menu.top.company')}}</mat-label>
+                            <mat-select  [(value)]="queryForm.companyId" 
                             (selectionChange)="onCompanySelection()">                          
                                 <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
                                         {{rt.name}}
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
-
-
-
-
-
-
-
-
-
-                                <mat-form-field style="width: 100px; margin: 0 10px;">
-                                    <input  matInput 
-                                            formControlName="dateFrom"
-                                            placeholder="С даты"
-                                            [matDatepicker]="dpFrom"
-                                            (dateChange)="getData()"
-                                            />
-                                            <mat-datepicker-toggle matSuffix [for]="dpFrom"></mat-datepicker-toggle>
-                                    <mat-datepicker #dpFrom></mat-datepicker>
-                                </mat-form-field>
-                                <mat-form-field style="width: 100px; margin: 0 10px;">
-                                    <input  matInput 
-                                            formControlName="dateTo"
-                                            placeholder="По дату"
-                                            [matDatepicker]="dpTo"
-                                            (dateChange)="getData()"
-                                            />
-                                            <mat-datepicker-toggle 
-                                            matSuffix [for]="dpTo" 
-                                            ></mat-datepicker-toggle>
-                                    <mat-datepicker #dpTo></mat-datepicker>
-                                </mat-form-field>
+                        <mat-form-field style="width: 100px; margin: 0 10px;">
+                            <input  matInput 
+                                    formControlName="dateFrom"
+                                    placeholder="{{t('menu.top.date_from')}}"
+                                    [matDatepicker]="dpFrom"
+                                    (dateChange)="getData()"
+                                    />
+                                    <mat-datepicker-toggle matSuffix [for]="dpFrom"></mat-datepicker-toggle>
+                            <mat-datepicker #dpFrom></mat-datepicker>
+                        </mat-form-field>
+                        <mat-form-field style="width: 100px; margin: 0 10px;">
+                            <input  matInput 
+                                    formControlName="dateTo"
+                                    placeholder="{{t('menu.top.date_to')}}"
+                                    [matDatepicker]="dpTo"
+                                    (dateChange)="getData()"
+                                    />
+                                    <mat-datepicker-toggle 
+                                    matSuffix [for]="dpTo" 
+                                    ></mat-datepicker-toggle>
+                            <mat-datepicker #dpTo></mat-datepicker>
+                        </mat-form-field>
 
 
 
@@ -137,7 +106,7 @@ class="spinner"
                                         (click)="$event.stopPropagation()"
                                         (change)="$event ? clickFilterOptionsCheckbox(row) : null"
                                         [checked]="selectionFilterOptions.isSelected(row)"
-                                        >{{row.name}}</mat-checkbox>
+                                        >{{t(row.name)}}</mat-checkbox>
                                     </li>
                                 </ul>
                             </div>
@@ -181,67 +150,67 @@ class="spinner"
                         </ng-container>
                         <ng-container matColumnDef="date_created">
                             <th mat-header-cell *matHeaderCellDef class="padded">
-                            <span class="sortheader"> Дата </span></th>
+                            <span class="sortheader"> {{t('menu.table.date')}} </span></th>
                             <td mat-cell class="padded" *matCellDef="let row"> {{row.date_created}} </td>
                             <td mat-footer-cell *matFooterCellDef></td>
                         </ng-container>
                         <ng-container matColumnDef="summ_in_pa" >
                             <th mat-header-cell *matHeaderCellDef class="padded bg-account" style="width:9%">
-                            <span class="sortheader"> Приход </span></th>
+                            <span class="sortheader"> {{t('menu.table.income')}} </span></th>
                             <td mat-cell class="padded bg-account" *matCellDef="let row"> {{row.summ_in_pa}} </td>
                             <td mat-footer-cell *matFooterCellDef></td>
                         </ng-container>
                         <ng-container matColumnDef="summ_out_pa">
                             <th mat-header-cell *matHeaderCellDef class="padded bg-account" style="width:9%">
-                            <span class="sortheader"> Расход </span></th>
+                            <span class="sortheader"> {{t('menu.table.expendtr')}} </span></th>
                             <td mat-cell class="padded bg-account" *matCellDef="let row"><p style="margin: 5px">{{row.summ_out_pa}}</p></td>
                             <td mat-footer-cell *matFooterCellDef></td>
                         </ng-container>
                         <ng-container matColumnDef="summ_result_pa" >
                             <th mat-header-cell *matHeaderCellDef class="padded bg-account" style="width:9%">
-                            <span class="sortheader"> Баланс </span></th>
+                            <span class="sortheader"> {{t('menu.table.balance')}} </span></th>
                             <td mat-cell class="padded bg-account" *matCellDef="let row"> {{row.summ_result_pa}} </td>
                             <td mat-footer-cell *matFooterCellDef> 0</td>
                         </ng-container>
                         <ng-container matColumnDef="summ_in_bx" >
                             <th mat-header-cell *matHeaderCellDef class="padded bg-kassa" style="width:9%">
-                            <span class="sortheader"> Приход </span></th>
+                            <span class="sortheader"> {{t('menu.table.income')}} </span></th>
                             <td mat-cell class="padded bg-kassa" *matCellDef="let row"> {{row.summ_in_bx}} </td>
                             <td mat-footer-cell *matFooterCellDef></td>
                         </ng-container>
                         <ng-container matColumnDef="summ_out_bx">
                             <th mat-header-cell *matHeaderCellDef class="padded bg-kassa" style="width:9%">
-                            <span class="sortheader"> Расход </span></th>
+                            <span class="sortheader"> {{t('menu.table.expendtr')}} </span></th>
                             <td mat-cell class="padded bg-kassa" *matCellDef="let row"><p style="margin: 5px">{{row.summ_out_bx}}</p></td>
                             <td mat-footer-cell *matFooterCellDef></td>
                         </ng-container>
                         <ng-container matColumnDef="summ_result_bx" >
                             <th mat-header-cell *matHeaderCellDef class="padded bg-kassa" style="width:9%">
-                            <span class="sortheader"> Баланс </span></th>
+                            <span class="sortheader"> {{t('menu.table.balance')}} </span></th>
                             <td mat-cell class="padded bg-kassa" *matCellDef="let row"> {{row.summ_result_bx}} </td>
                             <td mat-footer-cell *matFooterCellDef></td>
                         </ng-container>
                         <ng-container matColumnDef="summ_in_all" >
                             <th mat-header-cell *matHeaderCellDef class="padded bg-all" style="width:9%">
-                            <span class="sortheader"> Приход </span></th>
+                            <span class="sortheader"> {{t('menu.table.income')}} </span></th>
                             <td mat-cell class="padded bg-all" *matCellDef="let row"> {{row.summ_in_all}} </td>
                             <td mat-footer-cell *matFooterCellDef></td>
                         </ng-container>
                         <ng-container matColumnDef="summ_out_all">
                             <th mat-header-cell *matHeaderCellDef class="padded bg-all" style="width:9%">
-                            <span class="sortheader"> Расход  </span></th>
+                            <span class="sortheader"> {{t('menu.table.expendtr')}}  </span></th>
                             <td mat-cell class="padded bg-all" *matCellDef="let row"><p style="margin: 5px">{{row.summ_out_all}}</p></td>
                             <td mat-footer-cell *matFooterCellDef></td>
                         </ng-container>
                         <ng-container matColumnDef="summ_result_all" >
                             <th mat-header-cell *matHeaderCellDef class="padded bg-all" style="width:9%">
-                            <span class="sortheader"> Баланс </span></th>
+                            <span class="sortheader"> {{t('menu.table.balance')}} </span></th>
                             <td mat-cell class="padded bg-all" *matCellDef="let row"> {{row.summ_result_all}} </td>
                             <td mat-footer-cell *matFooterCellDef></td>
                         </ng-container>
                         <!-- Начальные и конечные остатки -->
                         <ng-container matColumnDef="begin_balance_name">
-                            <th colspan="4" class="padded balance-bar" mat-header-cell *matHeaderCellDef>Начальный остаток</th>
+                            <th colspan="4" class="padded balance-bar" mat-header-cell *matHeaderCellDef>{{t('menu.table.opng_balance')}}</th>
                         </ng-container>
                         <ng-container matColumnDef="summ_top_pa">
                             <th colspan="3" class="padded balance-bar" mat-header-cell *matHeaderCellDef>{{summ_before_pa}}</th>
@@ -253,7 +222,7 @@ class="spinner"
                             <th             class="padded balance-bar" mat-header-cell *matHeaderCellDef>{{summ_before_all}}</th>
                         </ng-container>
                         <ng-container matColumnDef="end_balance_name">
-                            <th colspan="4" style="padding-left:25px" class="padded balance-bar balance-bar-bottom" mat-footer-cell *matFooterCellDef>Конечный остаток</th>
+                            <th colspan="4" style="padding-left:25px" class="padded balance-bar balance-bar-bottom" mat-footer-cell *matFooterCellDef>{{t('menu.table.clsng_balance')}}</th>
                         </ng-container>
                         <ng-container matColumnDef="summ_bottom_pa">
                             <th colspan="3" class="padded balance-bar balance-bar-bottom" mat-footer-cell *matFooterCellDef>{{summ_result_pa}}</th>
@@ -266,7 +235,7 @@ class="spinner"
                         </ng-container>
                         <!-- totals -->
                         <ng-container matColumnDef="totals_name">
-                            <th colspan="2" style="padding-left:25px" class="padded balance-bar balance-bar-bottom" mat-footer-cell *matFooterCellDef>Сумма за период</th>
+                            <th colspan="2" style="padding-left:25px" class="padded balance-bar balance-bar-bottom" mat-footer-cell *matFooterCellDef>{{t('menu.table.sum_period')}}</th>
                         </ng-container>
                         <ng-container matColumnDef="total_summ_in_pa">
                             <th             class="padded balance-bar balance-bar-bottom" mat-footer-cell *matFooterCellDef>{{total_summ_in_pa}}</th>
@@ -291,13 +260,13 @@ class="spinner"
                             <th colspan="2" class="padded balance-bar top-bar" mat-header-cell *matHeaderCellDef></th>
                         </ng-container>
                         <ng-container matColumnDef="account">
-                            <th colspan="3" class="padded balance-bar top-bar" mat-header-cell *matHeaderCellDef>Расчётные счета</th>
+                            <th colspan="3" class="padded balance-bar top-bar" mat-header-cell *matHeaderCellDef>{{t('menu.table.bank_accnts')}}</th>
                         </ng-container>
                         <ng-container matColumnDef="boxoffice">
-                            <th colspan="3" class="padded balance-bar top-bar" mat-header-cell *matHeaderCellDef>Кассы предприятия</th>
+                            <th colspan="3" class="padded balance-bar top-bar" mat-header-cell *matHeaderCellDef>{{t('menu.table.cash_rooms')}}</th>
                         </ng-container>
                         <ng-container matColumnDef="all">
-                            <th colspan="3" class="padded balance-bar top-bar" mat-header-cell *matHeaderCellDef>Все</th>
+                            <th colspan="3" class="padded balance-bar top-bar" mat-header-cell *matHeaderCellDef>{{t('menu.table.all')}}</th>
                         </ng-container>
                         <tr mat-header-row *matHeaderRowDef="['empty','account','boxoffice','all']" [hidden]="!(dataSource.data && dataSource.data.length>0)"></tr>
                         <tr mat-header-row *matHeaderRowDef="displayedColumns" style="height: 48px;"></tr>
@@ -306,49 +275,24 @@ class="spinner"
                         <tr mat-footer-row *matFooterRowDef="['end_balance_name','summ_bottom_pa','summ_bottom_bx','summ_bottom_all']" [hidden]="!(dataSource.data && dataSource.data.length>0)"></tr>
                         <tr mat-footer-row *matFooterRowDef="['totals_name','total_summ_in_pa','total_summ_out_pa','total_summ_in_bx','total_summ_out_bx','total_summ_in_all','total_summ_out_all']" [hidden]="!(dataSource.data && dataSource.data.length>0)" style="background-color: lightgrey;"></tr>
 
-                        <!-- Group header -->
-
-
-                        
-
-  <!-- <ng-container matColumnDef="beginBalance">
-    <td colspan="4" mat-cell *matCellDef="let groupBy"><strong>Начальный остаток</strong></td>
-  </ng-container>
-  <ng-container matColumnDef="summ_before_pa">
-    <td colspan="1" mat-cell *matCellDef="let groupBy"class="padded"><strong>{{dataSource.data[0].summ_before_pa}}</strong></td>
-  </ng-container>
-  <ng-container matColumnDef="shift">
-    <td colspan="2" mat-cell *matCellDef="let groupBy"><strong></strong></td>
-  </ng-container>
-  <ng-container matColumnDef="summ_before_bx">
-    <td colspan="1" mat-cell *matCellDef="let groupBy"class="padded"><strong>{{dataSource.data[0].summ_before_bx}}</strong></td>
-  </ng-container>
-  <ng-container matColumnDef="summ_before_all">
-    <td colspan="1" mat-cell *matCellDef="let groupBy"class="padded"><strong>{{dataSource.data[0].summ_before_all}}</strong></td>
-  </ng-container> -->
-
-  <!-- <tr mat-row *matRowDef="let row; columns: ['beginBalance','summ_before_pa','shift','summ_before_bx','shift','summ_before_all']; when: isGroup"> </tr> -->
-
-
-
-                        <!-- Блок "Данные не найдены" -->
+                        <!-- Part "Data not founded" --> <!--+++-->
                         <ng-container matColumnDef="data_not_found">
                             <td mat-footer-cell *matFooterCellDef colspan="13" class="text-center">
-                            Данные не найдены
+                                {{t('menu.msg.dt_not_fnd')}}
                             </td>
                         </ng-container>
                         <ng-container matColumnDef="nocolumn">
                             <td mat-footer-cell *matFooterCellDef colspan="13" style="display: none;"></td>
                         </ng-container>
-                        <tr mat-footer-row  style="height: 48px;"
+                        <tr mat-footer-row 
                         *matFooterRowDef="[dataSource.data.length==0?'data_not_found':'nocolumn']" 
                         [ngStyle]="(dataSource.data.length==0 && !gettingTableData)?{}:{'display': 'none'}"></tr>
-                        <!-- Конец блока "Данные не найдены" -->        
-                    </table>
-              
-                    <div class="flex">
-                        <div class="col-sm">
-                            <p> Найдено: {{size}}, страница {{pagenum}} из {{listsize}}</p>
+                        <!-- End of Part "Data not founded" -->
+                </table>
+      
+                <div class="flex">
+                    <div class="col-sm">
+                        <p> {{t('menu.bottom.founded')}}: {{size}}, {{t('menu.bottom.page')}} {{pagenum}}  {{t('menu.bottom.of')}} {{listsize}}</p> <!--+++-->
                         </div>
                         <span  class="emptyspace"></span><!-- разделитель -->
                         <div class="col-sm-auto justify-content-end">

@@ -7,9 +7,13 @@ import { ProductCategoriesSelectModule } from 'src/app/modules/trade-modules/pro
 import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, } from '@angular/forms';
 import { DragDropModule } from '@angular/cdk/drag-drop';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [ProductsComponent],
+  providers: [
+    { provide: TRANSLOCO_SCOPE, useValue: 'menu' }
+  ],
   imports: [
     CommonModule,
     ProductsRoutingModule,
@@ -17,7 +21,8 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 
     MaterialModule,
     FormsModule,
-    DragDropModule
+    DragDropModule,
+    TranslocoModule
   ]
 })
 export class ProductsModule { }

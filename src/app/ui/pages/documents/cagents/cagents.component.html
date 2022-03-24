@@ -4,14 +4,14 @@ class="spinner"
 [diameter]="50"
 *ngIf="gettingTableData"
 ></mat-spinner>
-<mat-drawer-container [ngClass]="{'doc-container': mode=='standart','doc-container-select-mode': mode=='select'}" autosize *transloco="let t">
+<mat-drawer-container [ngClass]="{'doc-container': mode=='standart','doc-container-select-mode': mode=='select'}" autosize *transloco="let t"> <!--+++-->
     <mat-drawer #drawer class="categories-sidenav" mode="side" opened  *ngIf="allowToView">
         
             <div class="category-toolbar-search flex">
                 <span style="flex-grow: 1;"></span>
                     <div>
                         <form  class="form-horizontal" method="post" action="">
-                            <mat-form-field>
+                            <mat-form-field><!--+++-->
                                 <input matInput 
                                     placeholder="{{t('menu.top.search')}}" 
                                     [(ngModel)]="sendingQueryForm.searchCategoryString" 

@@ -107,7 +107,6 @@ export class CagentsComponent implements OnInit {
   //Управление чекбоксами
   checkedList:number[]=[]; //строка для накапливания id вида [2,5,27...]
 
-  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
   
   //tree
   private _transformer = (node: TreeNode, level: number) => {
@@ -125,6 +124,7 @@ export class CagentsComponent implements OnInit {
   displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
   //***********************************************************************************************************************/
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
 
   treeControl = new FlatTreeControl<FlatNode>(node => node.level, node => node.expandable);
   treeFlattener = new MatTreeFlattener(this._transformer, node => node.level, node => node.expandable, node => node.children);
@@ -192,7 +192,7 @@ export class CagentsComponent implements OnInit {
             this.permissionsSet=data as any [];
             this.getMyCompanyId();
         },
-        error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
     );
   }
 
@@ -272,7 +272,7 @@ export class CagentsComponent implements OnInit {
                 this.pagenum=this.receivedPagesList[1];
                 this.listsize=this.receivedPagesList[2];
                 this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
-                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
             ); 
   }
 
@@ -405,7 +405,7 @@ export class CagentsComponent implements OnInit {
         data:
         { 
           head: translate('menu.dialogs.restore'), //+++
-        query: translate('menu.dialogs.q_restore'),
+          query: translate('menu.dialogs.q_restore'),
           warning: '',
         },
       });
@@ -579,7 +579,7 @@ export class CagentsComponent implements OnInit {
         { 
           head: translate('menu.dialogs.deleting_ctg'), //+++
           query: translate('menu.dialogs.q_del_ctg',{name: this.sendingQueryForm.selectedNodeName}),
-          warning: translate('menu.dialogs.del_ctg_f_wrn'),
+          warning: translate('menu.dialogs.del_ctg_f_wrn',{name:this.cu.cap(translate('menu.docs.cparties'))}),
         },
       });
       dialogRef.afterClosed().subscribe(result => {

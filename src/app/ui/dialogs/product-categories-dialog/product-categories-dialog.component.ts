@@ -36,7 +36,7 @@ export class ProductCategoriesDialogComponent implements OnInit {
     // console.log("data.actionType:"+this.data.actionType);
     // console.log("data.parentCategoryName:"+this.data.parentCategoryName);
     // console.log("data.parentCategoryId:"+this.data.parentCategoryId);
-    // console.log("data.docName:"+this.data.docName);
+    console.log("data.docName:"+this.data.docName);
 
     this.formBaseInformation = new FormGroup({
       parentCategoryId: new FormControl(+this.data.parentCategoryId,[]),//id РОДИТЕЛЬСКОЙ категории для создаваемой категории (ПУСТО - КОРНЕВАЯ БУДЕТ)

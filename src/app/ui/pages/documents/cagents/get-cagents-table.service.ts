@@ -3,17 +3,17 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {QueryForm} from './query-form';
-  
+ 
 @Injectable()
 export class QueryFormService{
-  
-    constructor(private http: HttpClient){ }
+ 
+  constructor(private http: HttpClient){ }
 
 //Здесь определен метод getTable, который получает для отправки объект QueryForm. 
 //Сами отправляемые данные представляют объект body. 
 //Для отправки применяется метод http.post(), в который передается адрес сервера и отправляемый объект.      
 getTable(queryForm: QueryForm){
-        const body = {  searchString: queryForm.searchString, 
+  const body = {  searchString: queryForm.searchString, 
                         sortColumn:queryForm.sortColumn, 
                         offset:queryForm.offset, 
                         sortAsc:queryForm.sortAsc, 
@@ -22,11 +22,11 @@ getTable(queryForm: QueryForm){
                         categoryId: queryForm.selectedNodeId,
                         filterOptionsIds: queryForm.filterOptionsIds,};
                         // console.log("перед вызовом getCagentsTable");
-        return this.http.post('/api/auth/getCagentsTable', body); 
-    }
+  return this.http.post('/api/auth/getCagentsTable', body); 
+  }
 
 getPagesList(queryForm: QueryForm){
-            const body = {  searchString: queryForm.searchString, 
+    const body = {  searchString: queryForm.searchString, 
                             sortColumn:queryForm.sortColumn, 
                             offset:queryForm.offset, 
                             sortAsc:queryForm.sortAsc, 
@@ -35,8 +35,8 @@ getPagesList(queryForm: QueryForm){
                             categoryId: queryForm.selectedNodeId,
                             filterOptionsIds: queryForm.filterOptionsIds,
                           };
-            return this.http.post('/api/auth/getCagentsPagesList', body); 
-        }
+  return this.http.post('/api/auth/getCagentsPagesList', body); 
+}
 
 
 }

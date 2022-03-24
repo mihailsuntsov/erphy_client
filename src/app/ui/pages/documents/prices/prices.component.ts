@@ -1,5 +1,5 @@
 import { FlatTreeControl } from '@angular/cdk/tree';
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
 import { QueryForm } from './query-form';
 import { SelectionModel } from '@angular/cdk/collections';
@@ -14,6 +14,9 @@ import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { FormControl  } from '@angular/forms';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
+import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
+import { translate, TranslocoService } from '@ngneat/transloco'; //+++
+
 
 interface CategoryNode {
   id: string;
@@ -50,7 +53,7 @@ interface idNameDescription{ //универсалный интерфейс дл�
   selector: 'app-prices',
   templateUrl: './prices.component.html',
   styleUrls: ['./prices.component.css'],
-  providers: [QueryFormService,LoadSpravService,Cookie]
+  providers: [QueryFormService,LoadSpravService,Cookie,CommonUtilitesService]//+++
 })
 export class PricesComponent implements OnInit {
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
@@ -125,14 +128,15 @@ export class PricesComponent implements OnInit {
   isCagentListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canCagentAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredCagents: any;
-
-  // опции для фильтра
+  //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
   optionsIds: idAndName [] = [{id:"3", name:"Скрывать не закупаемые товары"},
                               {id:"4", name:"Скрывать снятые с продажи"},
                               // {id:"1", name:"Мало"},
                               // {id:"2 ", name:"Достаточно"},
                             ]//список опций для вывода во всплывающем меню опций для фильтра
   checkedOptionsList:number[]=[]; //массив для накапливания id выбранных опций чекбоксов вида [2,5,27...], а так же для заполнения загруженными значениями чекбоксов
+//***********************************************************************************************************************/
+@Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
 
 
   constructor(private queryFormService:   QueryFormService,
@@ -146,7 +150,9 @@ export class PricesComponent implements OnInit {
     private MessageDialog: MatDialog,
     public ProductDuplicateDialog: MatDialog,
     private http: HttpClient,
-    public deleteDialog: MatDialog) { 
+    public deleteDialog: MatDialog,
+    public cu: CommonUtilitesService, //+++
+    private service: TranslocoService,) { 
       //this.treeDataSource.data = TREE_DATA;
     }
       
@@ -184,17 +190,32 @@ export class PricesComponent implements OnInit {
     if(Cookie.get('prices_selectedCagentName')=='undefined' || Cookie.get('prices_selectedCagentName')==null)        
       Cookie.set('prices_selectedCagentName',this.searchCagentCtrl.value); else this.searchCagentCtrl.setValue(Cookie.get('prices_selectedCagentName'));
 
+    //+++ getting base data from parent component
+    this.getBaseData('myId');    
+    this.getBaseData('myCompanyId');  
+    this.getBaseData('companiesList');   
+    // this.getBaseData('myDepartmentsList');      
+
     this.optionsIds.forEach(z=>{this.selectionFilterOptions.select(z);this.checkedOptionsList.push(+z.id);});//включаем все чекбоксы в фильтре, и заполняем ими список для отправки запроса
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Поставщик"
-    this.getData();
+    this.getStartData();
   
      
   }
+
+  getStartData(){
+    this.getCompaniesList();
+    this.getMyCompanyId();// ->
+    this.getSetOfPermissions();// -> 
+  }
+
   //1я группа параллельных стартовых запросов
   getData(){
-    this.getMyCompanyId();// ->
-    this.getCompaniesList();
-    this.getSetOfPermissions();// -> 
+    if(this.allowToView)
+    {
+      this.getTable();
+      this.loadTrees();
+    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})} //+++
   }
   //2я группа параллельных стартовых запросов
   onStartQueries(){
@@ -213,7 +234,7 @@ export class PricesComponent implements OnInit {
       this.doFilterCompaniesList();
       this.getPriceTypesList(true);
     }  else{
-      this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})
+      this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})
     }
   }
   //3я группа параллельных стартовых запросов
@@ -225,29 +246,35 @@ export class PricesComponent implements OnInit {
     }
   }
   onStartQueries3(){
-      this.getTable();
-      this.loadTrees();
+    this.getData();
   }
 
  // -------------------------------------- *** ПРАВА *** ------------------------------------
   getSetOfPermissions(){
     return this.http.get('/api/auth/getMyPermissions?id=19')
-            .subscribe(
-                (data) => {   
-                          this.permissionsSet=data as any [];
-                          this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==239)});
-                          this.allowToUpdateMyCompany =this. permissionsSet.some(            function(e){return(e==240)});
-                          this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==242)});
-                          this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==243)});
-                          // console.log("allowToUpdateAllCompanies - "+this.allowToUpdateAllCompanies);
-                          // console.log("allowToUpdateMyCompany - "+this.allowToUpdateMyCompany);
-                          // console.log("allowToViewAllCompanies - "+this.allowToViewAllCompanies);
-                          // console.log("allowToViewMyCompany - "+this.allowToViewMyCompany);
-                          this.onStartQueries();
-                          
-                        },
-                error => console.log(error),
-            );
+      .subscribe(
+        (data) => {   
+                  this.permissionsSet=data as any [];
+                  this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==239)});
+                  this.allowToUpdateMyCompany =this. permissionsSet.some(            function(e){return(e==240)});
+                  this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==242)});
+                  this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==243)});
+                  this.refreshPermissions();
+                  this.onStartQueries();                          
+                },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+      );
+  }
+  refreshPermissions():boolean{
+    let documentOfMyCompany:boolean = (this.sendingQueryForm.companyId==this.myCompanyId);
+    this.allowToView=((documentOfMyCompany && (this.allowToViewAllCompanies || this.allowToViewMyCompany))||(documentOfMyCompany==false && this.allowToViewAllCompanies))?true:false;
+    this.allowToUpdate=((documentOfMyCompany && (this.allowToUpdateAllCompanies || this.allowToUpdateMyCompany))||(documentOfMyCompany==false && this.allowToUpdateAllCompanies))?true:false;
+    this.showOpenDocIcon=(this.allowToUpdate||this.allowToView);
+    // console.log("documentOfMyCompany - "+documentOfMyCompany);
+    // console.log(" - ");
+    // console.log("allowToView - "+this.allowToView);
+    // console.log("allowToUpdate - "+this.allowToUpdate);
+    return true;
   }
 
   definePermissions(start:boolean){
@@ -416,23 +443,26 @@ export class PricesComponent implements OnInit {
     });
   }
 
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
       (data) => {
         this.myCompanyId=data as number;
         this.onStartQueries();
       }, error => console.log(error));
-  }
+    else this.onStartQueries();
+  } 
   
-  getCompaniesList(){
-    this.receivedCompaniesList=null;
-    this.httpService.getCompaniesList()
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+    this.loadSpravService.getCompaniesList()
             .subscribe(
                 (data) => {this.receivedCompaniesList=data as any [];
                   this.onStartQueries();
                 },
                 error => console.log(error)
             );
+    else this.onStartQueries();
   }
 
   setDefaultCompany(){
@@ -550,6 +580,9 @@ export class PricesComponent implements OnInit {
   }
 
   
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
+  }
 
   //  -------------     ***** поиск по подстроке для поставщика ***    --------------------------
   onCagentSearchValueChanges(){

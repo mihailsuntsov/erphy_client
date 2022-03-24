@@ -65,10 +65,10 @@ export interface NumRow {//интерфейс для списка количес
 export class FilesComponent implements OnInit {
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
   donePagesList: boolean = false;
-  receivedPagesList: string [];//массив для получения данных пагинации
+  receivedPagesList: string []=[];//массив для получения данных пагинации
   displayedColumns: string[]=[];//массив отображаемых столбцов таблицы
   selection = new SelectionModel<CheckBox>(true, []);//Class to be used to power selecting one or more options from a list.
-  receivedCompaniesList: any [];//массив для получения списка предприятий
+  receivedCompaniesList: any []=[];//массив для получения списка предприятий
   myCompanyId:number=0;//
   TREE_DATA: TreeNode[]=[];
   numRootCategories: number=0;
@@ -509,7 +509,7 @@ viewMode:string = "grid"; // способ отображения файлов - 
         { 
           head: translate('menu.dialogs.deleting_ctg'), //+++
           query: translate('menu.dialogs.q_del_ctg',{name: this.sendingQueryForm.selectedNodeName}),
-          warning: translate('menu.dialogs.del_ctg_f_wrn'),
+          warning: translate('menu.dialogs.del_ctg_f_wrn',{name:this.cu.cap(translate('menu.docs.files'))}),
         },
       });
       dialogRef.afterClosed().subscribe(result => {

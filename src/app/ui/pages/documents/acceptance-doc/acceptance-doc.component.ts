@@ -232,7 +232,7 @@ export class AcceptanceDocComponent implements OnInit {
   @ViewChild("form", {static: false}) form; // связь с формой <form #form="ngForm" ...
   @ViewChild(AcceptanceProductsTableComponent, {static: false}) public acceptanceProductsTableComponent:AcceptanceProductsTableComponent;
   @ViewChild(BalanceCagentComponent, {static: false}) public balanceCagentComponent:BalanceCagentComponent;
-  @Input() locale:string;
+  // @Input() locale:string;
   @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
   
   constructor(private activateRoute: ActivatedRoute,
@@ -250,7 +250,7 @@ export class AcceptanceDocComponent implements OnInit {
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
     private _router:Router,
-    private _adapter: DateAdapter<any>) 
+    private _adapter: DateAdapter<any>) //+++
     { 
       if(activateRoute.snapshot.params['id'])
         this.id = +activateRoute.snapshot.params['id'];

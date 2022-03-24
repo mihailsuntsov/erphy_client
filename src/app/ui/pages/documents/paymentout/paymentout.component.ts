@@ -477,7 +477,7 @@ export class PaymentoutComponent implements OnInit {
                             this.openSnackBar("Настройки успешно сохранены", "Закрыть");
                             
                           },
-                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
               );
     }
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/

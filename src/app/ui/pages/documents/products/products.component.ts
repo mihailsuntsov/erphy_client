@@ -1,5 +1,5 @@
 import { FlatTreeControl } from '@angular/cdk/tree';
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
 import { QueryForm } from './query-form';
 import { SelectionModel } from '@angular/cdk/collections';
@@ -16,6 +16,8 @@ import { ProductCategoriesDialogComponent } from 'src/app/ui/dialogs/product-cat
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
+import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
+import { translate, TranslocoService } from '@ngneat/transloco'; //+++
 
 interface FoodNode {
   id: string;
@@ -43,7 +45,7 @@ interface IdAndName {
   selector: 'app-products',
   templateUrl: './products.component.html',
   styleUrls: ['./products.component.css'],
-  providers: [QueryFormService,LoadSpravService,Cookie,ProductCategoriesSelectComponent]
+  providers: [QueryFormService,LoadSpravService,Cookie,ProductCategoriesSelectComponent,CommonUtilitesService] //+++
 })
 export class ProductsComponent implements OnInit {
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
@@ -133,6 +135,13 @@ export class ProductsComponent implements OnInit {
   treeFlattener = new MatTreeFlattener(this._transformer, node => node.level, node => node.expandable, node => node.children);
   treeDataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
   hasChild = (_: number, node: ExampleFlatNode) => node.expandable;
+  //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
+  selectionFilterOptions = new SelectionModel<IdAndName>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние
+  optionsIds: IdAndName [];
+  displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
+  displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
+  //***********************************************************************************************************************/
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
 
   constructor(private queryFormService:   QueryFormService,
     private httpService:   LoadSpravService,
@@ -145,7 +154,9 @@ export class ProductsComponent implements OnInit {
     public ConfirmDialog: MatDialog,
     public ProductDuplicateDialog: MatDialog,
     private http: HttpClient,
-    public deleteDialog: MatDialog) { 
+    public deleteDialog: MatDialog,
+    public cu: CommonUtilitesService, //+++
+    private service: TranslocoService,) {//+++ 
       //this.treeDataSource.data = TREE_DATA;
     }
       
@@ -157,6 +168,7 @@ export class ProductsComponent implements OnInit {
       this.sendingQueryForm.companyId="0";
       this.sendingQueryForm.selectedNodeId="0";
       this.sendingQueryForm.searchCategoryString="";
+      this.sendingQueryForm.filterOptionsIds = [];
 
       if(Cookie.get('products_companyId')=='undefined' || Cookie.get('products_companyId')==null)     
         Cookie.set('products_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('products_companyId')=="0"?"0":+Cookie.get('products_companyId'));
@@ -173,6 +185,15 @@ export class ProductsComponent implements OnInit {
       if(Cookie.get('products_selectedNodeName')=='undefined' || Cookie.get('products_selectedNodeName')==null)        
         Cookie.set('products_selectedNodeName',this.sendingQueryForm.selectedNodeName); else this.sendingQueryForm.selectedNodeName=Cookie.get('products_selectedNodeName');
 
+        
+      //+++ getting base data from parent component
+      this.getBaseData('myId');    
+      this.getBaseData('myCompanyId');  
+      this.getBaseData('companiesList');   
+      this.getBaseData('myDepartmentsList');     
+
+      this.fillOptionsList();//заполняем список опций фильтра
+
       this.getCompaniesList();// -> getSetOfPermissions() -> getMyCompanyId() -> setDefaultCompany() -> getCRUD_rights() -> getData() 
     //API: getCompaniesList         giveMeMyPermissions      getMyCompanyId
 
@@ -188,7 +209,7 @@ export class ProductsComponent implements OnInit {
                             this.permissionsSet=data as any [];
                             this.getMyCompanyId();
                         },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
             );
   }
 
@@ -223,18 +244,18 @@ export class ProductsComponent implements OnInit {
     this.showOpenDocIcon=(this.allowToUpdate||this.allowToView);
     this.visBtnAdd = (this.allowToCreate)?true:false;
     
-    console.log("documentOfMyCompany - "+documentOfMyCompany);
-    console.log("allowToRecoverFilesMyCompany - "+this.allowToRecoverFilesMyCompany);
-    console.log("allowToRecoverFilesAllCompanies - "+this.allowToRecoverFilesAllCompanies);
-    console.log(" - ");
-    console.log("allowToView - "+this.allowToView);
-    console.log("allowToUpdate - "+this.allowToUpdate);
-    console.log("allowToCreate - "+this.allowToCreate);
-    console.log("allowToDelete - "+this.allowToDelete);
-    console.log("allowCategoryCreate - "+this.allowCategoryCreate);
-    console.log("allowCategoryUpdate - "+this.allowCategoryUpdate);
-    console.log("allowCategoryUpdate - "+this.allowCategoryUpdate);
-    console.log("allowCategoryDelete - "+this.allowCategoryDelete);
+    // console.log("documentOfMyCompany - "+documentOfMyCompany);
+    // console.log("allowToRecoverFilesMyCompany - "+this.allowToRecoverFilesMyCompany);
+    // console.log("allowToRecoverFilesAllCompanies - "+this.allowToRecoverFilesAllCompanies);
+    // console.log(" - ");
+    // console.log("allowToView - "+this.allowToView);
+    // console.log("allowToUpdate - "+this.allowToUpdate);
+    // console.log("allowToCreate - "+this.allowToCreate);
+    // console.log("allowToDelete - "+this.allowToDelete);
+    // console.log("allowCategoryCreate - "+this.allowCategoryCreate);
+    // console.log("allowCategoryUpdate - "+this.allowCategoryUpdate);
+    // console.log("allowCategoryUpdate - "+this.allowCategoryUpdate);
+    // console.log("allowCategoryDelete - "+this.allowCategoryDelete);
     return true;
   }
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
@@ -243,11 +264,11 @@ export class ProductsComponent implements OnInit {
     if(this.refreshPermissions() && this.allowToView)
     {
       this.getTableHeaderTitles();
-
+      this.updateSortOptions(); 
       this.getTable();
       this.doFilterCompaniesList();
       this.loadTrees();
-    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
+    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})} //+++
   }
 
   getTableHeaderTitles(){
@@ -273,7 +294,7 @@ export class ProductsComponent implements OnInit {
                 this.pagenum=this.receivedPagesList[1];
                 this.listsize=this.receivedPagesList[2];
                 this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
-                error => console.log(error)
+                error =>  {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
             ); 
   }
 
@@ -288,7 +309,7 @@ export class ProductsComponent implements OnInit {
                   if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
                   this.gettingTableData=false;
                 },
-                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
+                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
             );
   }
   
@@ -395,9 +416,9 @@ export class ProductsComponent implements OnInit {
       width: '400px',
       data:
       { 
-        head: 'Удаление категории товаров',
-        query: 'Удалить категорию "'+this.sendingQueryForm.selectedNodeName+'"?',
-        warning: 'Товары данной категории не удалятся, но их привязка к категории будет утрачена.',
+        head: translate('menu.dialogs.deleting_ctg'), //+++
+          query: translate('menu.dialogs.q_del_ctg',{name: this.sendingQueryForm.selectedNodeName}),
+          warning: translate('menu.dialogs.del_ctg_f_wrn',{name:this.cu.cap(translate('menu.docs.products'))}),
       },
     });
     dialogRef.afterClosed().subscribe(result => {
@@ -412,7 +433,7 @@ export class ProductsComponent implements OnInit {
     return this.http.post('/api/auth/deleteProductCategory',body)
     .subscribe(
         (data) => {   
-                    this.openSnackBar("Успешно удалено", "Закрыть");
+                    this.openSnackBar(translate('menu.msg.del_success'), translate('menu.msg.close')); //+++
                     if (parentId>0) {this.loadTreesAndOpenNode(parentId)} else {this.loadTrees()};
                     this.resetSelectedCategory(true);
                 },
@@ -429,44 +450,77 @@ export class ProductsComponent implements OnInit {
       this.showOnlyVisBtnAdd();
     });        
   }
-
+  clickBtnUndelete(){
+    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+      width: '400px',
+      data:
+      { 
+        head: translate('menu.dialogs.restore'), //+++
+        query: translate('menu.dialogs.q_restore'),
+        warning: '',
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){this.undeleteDocs();}
+      this.clearCheckboxSelection();
+      this.showOnlyVisBtnAdd();
+    });        
+  }
   deleteDocs(){
-    const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
+    const body = {"checked": this.checkedList.join()};
     this.clearCheckboxSelection();
-        return this.http.post('/api/auth/deleteProducts', body) 
-            .subscribe(
-                (data) => {   
-                            this.receivedMatTable=data as any []; 
-                            this.dataSource.data = this.receivedMatTable;
-                            this.getData();
-                        },
-                error => console.log(error),
-            );
-    }
-    
+        return this.http.post('/api/auth/deleteProducts', body) 
+    .subscribe((data) => {   
+      let result=data as any;
+      switch(result){ //+++
+        case 1:{this.getData();this.openSnackBar(translate('menu.msg.del_success'), translate('menu.msg.close'));break;}  //+++
+        case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+        case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+      }
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
+  }
+
+  undeleteDocs(){
+    const body = {"checked": this.checkedList.join()};
+    this.clearCheckboxSelection();
+      return this.http.post('/api/auth/undeleteProducts', body) 
+    .subscribe(
+        (data) => {   
+          let result=data as any;
+          switch(result){ //+++
+            case 1:{this.getData();this.openSnackBar(translate('menu.msg.rec_success'), translate('menu.msg.close'));break;}  //+++
+            case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+            case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+          }
+        },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
+  }  
+
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
       duration: 3000,
     });
   }
 
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
       (data) => {
         this.myCompanyId=data as number;
         this.setDefaultCompany();
-      }, error => console.log(error));
-  }
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
+    else this.setDefaultCompany();
+  } 
   
-  getCompaniesList(){
-    this.receivedCompaniesList=null;
-    this.httpService.getCompaniesList()
-            .subscribe(
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+      this.loadSpravService.getCompaniesList()
+              .subscribe(
                 (data) => {this.receivedCompaniesList=data as any [];
                   this.getSetOfPermissions();
                 },
-                error => console.log(error)
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
             );
+    else this.getSetOfPermissions();
   }
 
   setDefaultCompany(){
@@ -485,7 +539,7 @@ export class ProductsComponent implements OnInit {
         actionType:"create",
         parentCategoryName: this.sendingQueryForm.selectedNodeName , 
         parentCategoryId: +this.sendingQueryForm.selectedNodeId,
-        docName:"Создание категории",
+        docName:translate('menu.dialogs.ctg_creation'), //+++
         companyId:+this.sendingQueryForm.companyId
       },
     });
@@ -503,7 +557,7 @@ export class ProductsComponent implements OnInit {
         actionType:"update",
         categoryName: this.sendingQueryForm.selectedNodeName , 
         categoryId: +this.sendingQueryForm.selectedNodeId,
-        docName:"Редактирование категории",
+        docName:translate('menu.dialogs.ctg_edit'), //+++
       },
     });
     dialogRef.afterClosed().subscribe(result => {
@@ -528,7 +582,7 @@ export class ProductsComponent implements OnInit {
       { 
         actionType:"changeOrder",
         parentCategoryId: +this.sendingQueryForm.selectedNodeId,
-        docName:"Изменение порядка вывода",
+        docName:translate('menu.dialogs.order_edit'), //+++
         companyId: +this.sendingQueryForm.companyId
       },
     });
@@ -556,11 +610,11 @@ export class ProductsComponent implements OnInit {
 
   clickBtnDuplicateProduct(): void {
     const dialogRef = this.ProductDuplicateDialog.open(ProductDuplicateDialog, {
-      width: '600px',
+      width: '600px', //+++
       data:
       { 
-        head: 'Дублирование',
-        warning: 'Выберите нужные опиции дублирования:',
+        head: translate('menu.dialogs.duplication'), //+++
+        warning: translate('menu.dialogs.sel_dup_optio'),
         productId: this.checkedList[0]
       },
     });
@@ -579,6 +633,9 @@ export class ProductsComponent implements OnInit {
       this.receivedCompaniesList=[];
       this.receivedCompaniesList.push(myCompany);
     }
+  }
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
   }
 //*****************************************************************************************************************************************/
 //*********************************************           T R E E           ***************************************************************/
@@ -627,7 +684,7 @@ export class ProductsComponent implements OnInit {
     Cookie.set('products_selectedNodeName',this.sendingQueryForm.selectedNodeName);
     this.getTable();
   }
-  getNodeId(node: any):number{
+  getNodeId(node: any):number{ 
     return(node.id);
   }
   getParent(node: any) {
@@ -723,26 +780,64 @@ export class ProductsComponent implements OnInit {
       width: '400px',
       data:
       { 
-        head: 'Присвоение категорий товарам',
-        query: 'Сохранить категории, которые уже есть у товаров?',
-        warning: 'Можно сохранить категории, которые уже есть у товаров, и добавить к ним выбранные.',
+        head: translate('menu.dialogs.cat_adding'), //+++
+        query: translate('menu.dialogs.q_save_p_cat'),
+        warning: translate('menu.dialogs.save_p_cat_ad'),
       },
     });
     dialogRef.afterClosed().subscribe(result => {
       const body = {"setOfLongs1":  this.checkedList,
                     "setOfLongs2":  this.selectedObjects,
                     "yesNo":        result==1?true:false
-      }; //join переводит из массива в строку
+      };
       this.clearCheckboxSelection();
-          return this.http.post('/api/auth/setCategoriesToProducts', body) 
-              .subscribe(
-                  (data) => {   
-                          this.openSnackBar("Назначение категорий успешно завершено", "Закрыть");
-                          },
-                          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-              );
+      return this.http.post('/api/auth/setCategoriesToProducts', body) 
+        .subscribe(
+            (data) => {   
+              this.openSnackBar(translate('menu.msg.sep_prod_cat'), translate('menu.msg.close')); //+++
+            },
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+        );
     });      
   }
-
+//***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
+  resetOptions(){
+    this.displayingDeletedDocs=false;
+    this.fillOptionsList();//перезаполняем список опций
+    this.selectionFilterOptions.clear();
+    this.sendingQueryForm.filterOptionsIds = [];
+  }
+  fillOptionsList(){
+    this.optionsIds=[{id:1, name: 'menu.top.only_del'},]; //+++
+  }
+  clickApplyFilters(){
+    let showOnlyDeletedCheckboxIsOn:boolean = false; //присутствует ли включенный чекбокс "Показывать только удалённые"
+    this.selectionFilterOptions.selected.forEach(z=>{
+      if(z.id==1){showOnlyDeletedCheckboxIsOn=true;}
+    })
+    this.displayingDeletedDocs=showOnlyDeletedCheckboxIsOn;
+    this.clearCheckboxSelection();
+    this.sendingQueryForm.offset=0;//сброс пагинации
+    this.getData();
+  }
+  updateSortOptions(){//после определения прав пересматриваем опции на случай, если права не разрешают действия с определенными опциями, и исключаем эти опции
+    let i=0; 
+    this.optionsIds.forEach(z=>{
+      console.log("allowToDelete - "+this.allowToDelete);
+      if(z.id==1 && !this.allowToDelete){this.optionsIds.splice(i,1)}//исключение опции Показывать удаленные, если нет прав на удаление
+      i++;
+    });
+    if (this.optionsIds.length>0) this.displaySelectOptions=true; else this.displaySelectOptions=false;//если опций нет - не показываем меню опций
+  }
+  clickFilterOptionsCheckbox(row){
+    this.selectionFilterOptions.toggle(row); 
+    this.createFilterOptionsCheckedList();
+  } 
+  createFilterOptionsCheckedList(){//this.sendingQueryForm.filterOptionsIds - массив c id выбранных чекбоксов вида "7,5,1,3,6,2,4", который заполняется при нажатии на чекбокс
+    this.sendingQueryForm.filterOptionsIds = [];//                                                     
+    this.selectionFilterOptions.selected.forEach(z=>{
+      this.sendingQueryForm.filterOptionsIds.push(+z.id);
+    });
+  }
 
 }

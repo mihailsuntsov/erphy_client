@@ -10,24 +10,14 @@ import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { FormGroup, FormControl } from '@angular/forms';
 import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
 import { translate, TranslocoService } from '@ngneat/transloco'; //+++
-import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE}  from '@angular/material/core';
-import { MomentDateAdapter} from '@angular/material-moment-adapter';
-import * as _moment from 'moment';
-import { default as _rollupMoment} from 'moment';
-const moment = _rollupMoment || _moment;
-moment.defaultFormat = "DD.MM.YYYY";
-moment.fn.toJSON = function() { return this.format('DD.MM.YYYY'); }
-export const MY_FORMATS = {
-  parse: {
-    dateInput: 'DD.MM.YYYY',
-  },
-  display: {
-    dateInput: 'DD.MM.YYYY',
-    monthYearLabel: 'MMM YYYY',
-    dateA11yLabel: 'DD.MM.YYYY',
-    monthYearA11yLabel: 'MMMM YYYY',
-  },
-};
+
+import { MomentDefault } from 'src/app/services/moment-default';
+import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
+import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+const MY_FORMATS = MomentDefault.getMomentFormat();
+const moment = MomentDefault.getMomentDefault();
+
+
 interface ProfitLossSerie{
   name:string;
   value:number;
@@ -62,11 +52,10 @@ export interface NumRow {//интерфейс для списка количес
   selector: 'app-profitloss',
   templateUrl: './profitloss.component.html',
   styleUrls: ['./profitloss.component.css'],
-  providers: [
-    {provide: MAT_DATE_LOCALE, useValue: 'ru'},
-    {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
+  providers: [LoadSpravService, CommonUtilitesService, Cookie,
+    { provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]},
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
-    /*QueryFormService,*/LoadSpravService, CommonUtilitesService, Cookie]
+  ]
 })
 export class ProfitlossComponent implements OnInit {
   queryForm:any;//форма для отправки запроса 
@@ -126,7 +115,8 @@ export class ProfitlossComponent implements OnInit {
     public cu: CommonUtilitesService,
     public deleteDialog: MatDialog,
     public dialogRef1: MatDialogRef<ProfitlossComponent>, //+++
-    private service: TranslocoService,) { }
+    private service: TranslocoService,
+    private _adapter: DateAdapter<any>) { }
 
     ngOnInit() {
       this.queryForm = new FormGroup({ //форма для отправки запроса 

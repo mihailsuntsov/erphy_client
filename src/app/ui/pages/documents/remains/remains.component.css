@@ -19,7 +19,18 @@ li {list-style: none;}
     width:100%;
     text-align: center;
 }
-
+/******* опции *******/
+.emptyspace{ flex-grow: 1;}
+li {list-style: none;}
+.div-100{
+    width:100%;
+    text-align: center;
+}
+.card-name{ flex-grow: 1; }
+.options-button{
+ margin: 5px 15px 0
+}
+/**********************/
 .emptyspace{ flex-grow: 1;}
 
 .searchcategory{

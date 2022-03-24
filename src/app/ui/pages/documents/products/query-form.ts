@@ -11,6 +11,7 @@ export class QueryForm{
     selectedNodeId:any;
     selectedNodeName:any;
     searchCategoryString:any;
+    filterOptionsIds: number[];
 
     //departmentId:any;
 

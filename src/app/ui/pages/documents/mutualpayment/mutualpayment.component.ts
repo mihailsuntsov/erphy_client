@@ -1,35 +1,26 @@
-import { Component, OnInit} from '@angular/core';
+import { Component, EventEmitter, OnInit, Output} from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource } from '@angular/material/table';
 import { ActivatedRoute} from '@angular/router'; //!!!
 import { MatSnackBar } from '@angular/material/snack-bar';
-// import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { MutualpaymentDetComponent } from 'src/app/modules/info-modules/mutualpayment_det/mutualpayment_det.component';
 import { HttpClient } from '@angular/common/http';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
-// import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { FormGroup, FormControl } from '@angular/forms';
-import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE}  from '@angular/material/core';
-import { MomentDateAdapter} from '@angular/material-moment-adapter';
-import * as _moment from 'moment';
-import { default as _rollupMoment} from 'moment';
-const moment = _rollupMoment || _moment;
-moment.defaultFormat = "DD.MM.YYYY";
-moment.fn.toJSON = function() { return this.format('DD.MM.YYYY'); }
-export const MY_FORMATS = {
-  parse: {
-    dateInput: 'DD.MM.YYYY',
-  },
-  display: {
-    dateInput: 'DD.MM.YYYY',
-    monthYearLabel: 'MMM YYYY',
-    dateA11yLabel: 'DD.MM.YYYY',
-    monthYearA11yLabel: 'MMMM YYYY',
-  },
-};
+import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
+import { translate, TranslocoService } from '@ngneat/transloco'; //+++
+
+import { MomentDefault } from 'src/app/services/moment-default';
+import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
+import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+const MY_FORMATS = MomentDefault.getMomentFormat();
+const moment = MomentDefault.getMomentDefault();
+
+
+
 export interface CheckBox {
   id: number;
   is_completed:boolean;
@@ -50,11 +41,9 @@ export interface NumRow {//интерфейс для списка количес
   selector: 'app-mutualpayment',
   templateUrl: './mutualpayment.component.html',
   styleUrls: ['./mutualpayment.component.css'],
-  providers: [
-    {provide: MAT_DATE_LOCALE, useValue: 'ru'},
-    {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
-    {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
-    /*QueryFormService,*/LoadSpravService,Cookie]
+  providers: [LoadSpravService,Cookie,CommonUtilitesService,
+    { provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]},
+    {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},]
 })
 export class MutualpaymentComponent implements OnInit {
   queryForm:any;//форма для отправки запроса 
@@ -96,6 +85,8 @@ export class MutualpaymentComponent implements OnInit {
   option:number=0; // опция для фильтра при переходе в данный модуль по роутеру // !!!
   company:number = 0; // опция для фильтра при переходе в данный модуль по роутеру // !!!
   //***********************************************************************************************************************/
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
+  
   constructor(
     /*private queryFormService:   QueryFormService,*/
     private loadSpravService:   LoadSpravService,
@@ -108,7 +99,10 @@ export class MutualpaymentComponent implements OnInit {
     private http: HttpClient,
     // private settingsMutualpaymentDialogComponent: MatDialog,
     public deleteDialog: MatDialog,
-    public dialogRef1: MatDialogRef<MutualpaymentComponent>,) {
+    public dialogRef1: MatDialogRef<MutualpaymentComponent>,
+    public cu: CommonUtilitesService, //+++
+    private service: TranslocoService,
+    private _adapter: DateAdapter<any>) {
       if(activateRoute.snapshot.params['option']){
         this.option = +activateRoute.snapshot.params['option'];
         this.company = +activateRoute.snapshot.params['company'];
@@ -142,7 +136,12 @@ export class MutualpaymentComponent implements OnInit {
       }
       if(Cookie.get('mutualpayment_result')=='undefined' || Cookie.get('mutualpayment_result')==null)        
         Cookie.set('mutualpayment_result',this.queryForm.get('result').value); else this.queryForm.get('result').setValue(Cookie.get('mutualpayment_result'));
-      
+
+        //+++ getting base data from parent component
+        this.getBaseData('myId');    
+        this.getBaseData('myCompanyId');  
+        this.getBaseData('companiesList');      
+
       this.fillOptionsList();//заполняем список опций фильтра
     //   // Форма настроек
     // this.settingsForm = new FormGroup({
@@ -174,7 +173,7 @@ export class MutualpaymentComponent implements OnInit {
                             this.permissionsSet=data as any [];
                             this.getMyId();
                         },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
             );
   }
 
@@ -186,7 +185,6 @@ export class MutualpaymentComponent implements OnInit {
 
   refreshPermissions():boolean{
     this.allowToView=(this.allowToViewAllCompanies||this.allowToViewMyCompany)?true:false;
-    console.log("allowToView - "+this.allowToView);
     return true;
   }
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
@@ -200,7 +198,7 @@ export class MutualpaymentComponent implements OnInit {
       this.getTableHeaderTitles();
       this.getPagesList();
       this.getTable();
-    } else {this.gettingTableData=false;;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
+    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})} //+++
   }
 
   getTableHeaderTitles(){
@@ -221,7 +219,7 @@ export class MutualpaymentComponent implements OnInit {
                 this.pagenum=this.receivedPagesList[1];
                 this.listsize=this.receivedPagesList[2];
                 this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}
             ); 
   }
 
@@ -234,7 +232,7 @@ export class MutualpaymentComponent implements OnInit {
                   if(this.dataSource.data.length==0 && +this.queryForm.get('offset').value>0) this.setPage(0);
                   this.gettingTableData=false;
                 },
-                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
+                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})} 
             );
   }
 
@@ -279,31 +277,37 @@ export class MutualpaymentComponent implements OnInit {
       duration: 3000,
     });
   }
-  getCompaniesList(){
-    this.receivedCompaniesList=null;
-    this.loadSpravService.getCompaniesList()
-            .subscribe(
+  
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+      this.loadSpravService.getCompaniesList()
+              .subscribe(
                 (data) => {this.receivedCompaniesList=data as any [];
                   this.getSetOfPermissions();
                 },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
             );
-  }
-  getMyId(){
-    this.loadSpravService.getMyId()
+    else this.getSetOfPermissions();
+  }  
+  getMyId(){ //+++
+    if(+this.myId==0)
+     this.loadSpravService.getMyId()
             .subscribe(
                 (data) => {this.myId=data as any;
                   this.getMyCompanyId();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
             );
+      else this.getMyCompanyId();
   }
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
       (data) => {
         this.myCompanyId=data as number;
         this.setDefaultCompany();
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
-  }
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
+    else this.setDefaultCompany();
+  } 
 
   setDefaultCompany(){
     if(Cookie.get('mutualpayment_companyId')=='0'){
@@ -339,6 +343,9 @@ export class MutualpaymentComponent implements OnInit {
       },
     });
   } 
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
+  }
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
 
   resetOptions(){
@@ -349,8 +356,8 @@ export class MutualpaymentComponent implements OnInit {
   }
   fillOptionsList(){
     this.optionsIds=[
-      {id:1, name:"Показать только должников"},
-      {id:2, name:"Показать только кому мы должны"}];
+      {id:1, name: 'menu.top.only_debtors'},
+      {id:2, name: 'menu.top.only_u_owe'}];
   }
   clickApplyFilters(){
     let showOnlyDeletedCheckboxIsOn:boolean = false; //присутствует ли включенный чекбокс "Показывать только удалённые"

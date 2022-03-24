@@ -1,5 +1,5 @@
 import { FlatTreeControl } from '@angular/cdk/tree';
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
 import { QueryForm } from './query-form';
 import { SelectionModel } from '@angular/cdk/collections';
@@ -15,6 +15,8 @@ import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { FormControl  } from '@angular/forms';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
+import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
+import { translate, TranslocoService } from '@ngneat/transloco'; //+++
 
 interface CategoryNode {
   id: string;
@@ -46,7 +48,7 @@ interface idAndName{ //универсалный интерфейс для выб
   selector: 'app-remains',
   templateUrl: './remains.component.html',
   styleUrls: ['./remains.component.css'],
-  providers: [QueryFormService,LoadSpravService,Cookie]
+  providers: [QueryFormService,LoadSpravService,Cookie,CommonUtilitesService]//+++
 })
 export class RemainsComponent implements OnInit {
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
@@ -121,15 +123,17 @@ export class RemainsComponent implements OnInit {
   isCagentListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canCagentAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredCagents: any;
-
-  // опции для фильтра
-  optionsIds: idAndName [] = [{id:"3", name:"Скрывать не закупаемые товары"},
-                              {id:"4", name:"Скрывать снятые с продажи товары"},
-                              {id:"0", name:"Отсутствует"},
-                              {id:"1", name:"Мало"},
-                              {id:"2 ", name:"Достаточно"},
+  //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
+  optionsIds: idAndName [] = [{id:"3", name:translate('menu.top.hide_nonbuy')},
+                              {id:"4", name:translate('menu.top.hide_selloff')},
+                              {id:"0", name:translate('menu.top.not_available')},
+                              {id:"1", name:translate('menu.top.few')},
+                              {id:"2", name:translate('menu.top.enough')},
                             ]//список опций для вывода во всплывающем меню опций для фильтра
   checkedOptionsList:number[]=[]; //массив для накапливания id выбранных опций чекбоксов вида [2,5,27...], а так же для заполнения загруженными значениями чекбоксов
+  //***********************************************************************************************************************/
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
+
 
 
   constructor(private queryFormService:   QueryFormService,
@@ -143,7 +147,9 @@ export class RemainsComponent implements OnInit {
     public ConfirmDialog: MatDialog,
     public ProductDuplicateDialog: MatDialog,
     private http: HttpClient,
-    public deleteDialog: MatDialog) { 
+    public deleteDialog: MatDialog,
+    public cu: CommonUtilitesService, //+++
+    private service: TranslocoService,) { 
     }
       
   ngOnInit() {
@@ -180,17 +186,31 @@ export class RemainsComponent implements OnInit {
     if(Cookie.get('remains_selectedCagentName')=='undefined' || Cookie.get('remains_selectedCagentName')==null)        
       Cookie.set('remains_selectedCagentName',this.searchCagentCtrl.value); else this.searchCagentCtrl.setValue(Cookie.get('remains_selectedCagentName'));
 
+    //+++ getting base data from parent component
+    this.getBaseData('myId');    
+    this.getBaseData('myCompanyId');  
+    this.getBaseData('companiesList');   
+    this.getBaseData('myDepartmentsList');      
+      
     this.optionsIds.forEach(z=>{this.selectionFilterOptions.select(z);this.checkedOptionsList.push(+z.id);});//включаем все чекбоксы в фильтре, и заполняем ими список для отправки запроса
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Поставщик"
-    this.getData();
-    //console.log("TOKEN_COOKIE_REMAINS - "+Cookie.get('dokio_token'));
-     
+    
+      
+    this.getStartData();
+
+  }
+  getStartData(){
+    this.getCompaniesList();
+    this.getMyCompanyId();// ->
+    this.getSetOfPermissions();// -> 
   }
   //1я группа параллельных стартовых запросов
   getData(){
-    this.getCompaniesList();
-    this.getSetOfPermissions();// -> 
-    this.getMyCompanyId();// ->
+    if(this.allowToView)
+    {
+      this.getTable();
+      this.loadTrees();
+    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})} //+++
   }
   //2я группа параллельных стартовых запросов
   onStartQueries(){
@@ -204,7 +224,7 @@ export class RemainsComponent implements OnInit {
       this.getDepartmentsList();
       this.getMyDepartmentsList();
     } else if(this.completedStartQueries==3 && !this.allowToView){  
-      this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})
+      this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})
     }
   }  
   //3я группа параллельных стартовых запросов
@@ -221,8 +241,7 @@ export class RemainsComponent implements OnInit {
     this.completedStartQueries++;
     if(this.completedStartQueries==2){
       // console.log("Все стартовые запросы 3 выполнены!");
-      this.getTable();
-      this.loadTrees();
+      this.getData();
     }
   }
 
@@ -238,15 +257,24 @@ export class RemainsComponent implements OnInit {
         this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==235)});
         this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==236)});
         this.allowToViewMyDepartments = this.permissionsSet.some(          function(e){return(e==237)});
-        this.allowToView=(this.allowToViewAllCompanies||this.allowToViewMyCompany||this.allowToViewMyDepartments)?true:false;
-        this.allowToUpdate=(this.allowToUpdateAllCompanies||this.allowToUpdateMyCompany||this.allowToUpdateMyDepartments)?true:false;
         this.showOpenDocIcon=(this.allowToUpdate||this.allowToView);
-        // console.log("allowToView - "+this.allowToView);
-        // console.log("allowToUpdate - "+this.allowToUpdate); 
+        this.refreshPermissions();
         this.onStartQueries();
       },
-      error => this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}}),
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
     );
+  }
+
+  refreshPermissions():boolean{
+    let documentOfMyCompany:boolean = (this.sendingQueryForm.companyId==this.myCompanyId);
+    this.allowToView=((documentOfMyCompany && (this.allowToViewAllCompanies || this.allowToViewMyCompany))||(documentOfMyCompany==false && this.allowToViewAllCompanies))?true:false;
+    this.allowToUpdate=((documentOfMyCompany && (this.allowToUpdateAllCompanies || this.allowToUpdateMyCompany))||(documentOfMyCompany==false && this.allowToUpdateAllCompanies))?true:false;
+    this.showOpenDocIcon=(this.allowToUpdate||this.allowToView);
+    // console.log("documentOfMyCompany - "+documentOfMyCompany);
+    // console.log(" - ");
+    // console.log("allowToView - "+this.allowToView);
+    // console.log("allowToUpdate - "+this.allowToUpdate);
+    return true;
   }
 
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
@@ -273,7 +301,6 @@ export class RemainsComponent implements OnInit {
     this.gettingTableData=true;
     this.sendingQueryForm.filterOptionsIds=this.checkedOptionsList;
     this.clearCheckboxSelection();
-    //здесь ↓ надо будет сделать в зависимости от прав - слать только свои отделения или все отделения предприятия
     this.sendingQueryForm.departmentsIdsList=JSON.stringify(this.getIds(this.receivedDepartmentsList)).replace("[", "").replace("]", "");
     this.queryFormService.getTable(this.sendingQueryForm)
             .subscribe(
@@ -402,35 +429,38 @@ export class RemainsComponent implements OnInit {
     });
   }
 
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
       (data) => {
         this.myCompanyId=data as number;
         this.onStartQueries();
       }, error => console.log(error));
-  }
+    else this.onStartQueries();
+  } 
   
-  getCompaniesList(){
-    this.receivedCompaniesList=null;
-    this.httpService.getCompaniesList()
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+    this.loadSpravService.getCompaniesList()
             .subscribe(
                 (data) => {this.receivedCompaniesList=data as any [];
                   this.onStartQueries();
                 },
                 error => console.log(error)
             );
+    else this.onStartQueries();
   }
   setDefaultCompany(){
-    console.log("sendingQueryForm.companyId = "+this.sendingQueryForm.companyId);
-    console.log("Cookie.get('remains_companyId') = "+Cookie.get('remains_companyId'));
-    console.log("Cookie.get('acceptance_companyId')=='0' - "+Cookie.get('acceptance_companyId')=='0');
+    // console.log("sendingQueryForm.companyId = "+this.sendingQueryForm.companyId);
+    // console.log("Cookie.get('remains_companyId') = "+Cookie.get('remains_companyId'));
+    // console.log("Cookie.get('acceptance_companyId')=='0' - "+Cookie.get('acceptance_companyId')=='0');
     if(this.sendingQueryForm.companyId=="0"){
       this.sendingQueryForm.companyId=this.myCompanyId;
       Cookie.set('remains_companyId',this.sendingQueryForm.companyId);
     }
     this.onStartQueries2();
-
   }
+
   getDepartmentsList(){
     this.receivedDepartmentsList=null;
     this.loadSpravService.getDepartmentsListByCompanyId(+this.sendingQueryForm.companyId,false)
@@ -440,15 +470,18 @@ export class RemainsComponent implements OnInit {
                 error => console.log(error)
             );
   }
-  getMyDepartmentsList(){
-    this.receivedMyDepartmentsList=null;
+  
+  getMyDepartmentsList(){ //+++
+    if(this.receivedMyDepartmentsList.length==0)
     this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
-            .subscribe(
-                (data) => {this.receivedMyDepartmentsList=data as any [];
-                  this.onStartQueries2()},
-                error => console.log(error)
-            );
+      .subscribe(
+          (data) => {this.receivedMyDepartmentsList=data as any [];
+            this.onStartQueries2();},
+          error => console.log(error)
+      );
+    else this.onStartQueries2();
   }
+
   setDefaultDepartment(){
     console.log("this.receivedDepartmentsList.length="+this.receivedDepartmentsList.length);
     if(this.receivedDepartmentsList.length==1)
@@ -480,7 +513,7 @@ export class RemainsComponent implements OnInit {
       { 
         actionType:"changeOrder",
         parentCategoryId: +this.sendingQueryForm.selectedNodeId,
-        docName:"Изменение порядка вывода",
+        docName:translate('menu.dialogs.order_edit'), //+++
         companyId: +this.sendingQueryForm.companyId
       },
     });
@@ -499,11 +532,9 @@ export class RemainsComponent implements OnInit {
       .subscribe(
         (data) => {
           this.treeDataSource.data=data as any [];
-          // this.recountNumRootCategories();//пересчитать кол-во корневых категорий (level=0)
-    
         }, error => console.log(error)
         );
-      } else this.getData();
+      } else this.loadTrees();
   }
 
   doFilterCompaniesList(){
@@ -531,7 +562,7 @@ export class RemainsComponent implements OnInit {
         departmentId:+this.sendingQueryForm.departmentId,//выбранное отделение. если отправится 0 то будет уже отрабатывать departmentsList
         departmentsList: this.receivedDepartmentsList,//здесь надо будет сделать в зависимости от прав - слать только свои отделения или все отделения предприятия
         productsIds: this.checkedList,
-        docName:"Минимальный остаток для товаров",
+        docName:translate('menu.dialogs.min_remains'),
       },
     });
     dialogRef.afterClosed().subscribe(result => {
@@ -539,9 +570,9 @@ export class RemainsComponent implements OnInit {
     });        
   }
   calcVisBtnSetRemains(){//отображать ли кнопку "Установить минимальное количество"
-    console.log("allowToUpdateAllCompanies  - "+this.allowToUpdateAllCompanies);
-    console.log("allowToUpdateMyCompany     - "+this.allowToUpdateMyCompany);
-    console.log("allowToUpdateMyDepartments - "+this.allowToUpdateMyDepartments);
+    // console.log("allowToUpdateAllCompanies  - "+this.allowToUpdateAllCompanies);
+    // console.log("allowToUpdateMyCompany     - "+this.allowToUpdateMyCompany);
+    // console.log("allowToUpdateMyDepartments - "+this.allowToUpdateMyDepartments);
     if
     (   this.allowToUpdateAllCompanies ||//если есть право на установку мин. количества у всех предприятий головной учетной записи
         (this.allowToUpdateMyCompany && this.sendingQueryForm.companyId==this.myCompanyId)||//или есть право на установку мин. количества у всех отделений своего предприятия, и выбрано своё предприятие
@@ -616,6 +647,10 @@ export class RemainsComponent implements OnInit {
       }else return [];
     } catch (e) {
       return [];}}
+
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
+  }
 //-------------------------------------------------------------------------------
 //*****************************************************************************************************************************************/
 //*********************************************           T R E E           ***************************************************************/

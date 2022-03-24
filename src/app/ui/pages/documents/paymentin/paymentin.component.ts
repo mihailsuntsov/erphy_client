@@ -91,7 +91,6 @@ export class PaymentinComponent implements OnInit {
   displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
   //***********************************************************************************************************************/
-  //***********************************************************************************************************************/
   @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
 
   constructor(private queryFormService:   QueryFormService,
@@ -160,13 +159,13 @@ export class PaymentinComponent implements OnInit {
     // -------------------------------------- *** ПРАВА *** ------------------------------------
    getSetOfPermissions(){
     return this.http.get('/api/auth/getMyPermissions?id=33')
-            .subscribe(
-                (data) => {   
-                            this.permissionsSet=data as any [];
-                            this.getMyId();
-                        },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-            );
+    .subscribe(
+        (data) => {   
+                    this.permissionsSet=data as any [];
+                    this.getMyId();
+                },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+    );
   }
 
   getCRUD_rights(permissionsSet:any[]){
@@ -227,27 +226,27 @@ export class PaymentinComponent implements OnInit {
 
   getPagesList(){
     this.queryFormService.getPagesList(this.sendingQueryForm)
-            .subscribe(
-                data => {this.receivedPagesList=data as string [];
-                this.size=this.receivedPagesList[0];
-                this.pagenum=this.receivedPagesList[1];
-                this.listsize=this.receivedPagesList[2];
-                this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
-                error =>  {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
-            ); 
+    .subscribe(
+        data => {this.receivedPagesList=data as string [];
+        this.size=this.receivedPagesList[0];
+        this.pagenum=this.receivedPagesList[1];
+        this.listsize=this.receivedPagesList[2];
+        this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
+        error =>  {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+    ); 
   }
 
   getTable(){
     this.gettingTableData=true;
     this.queryFormService.getTable(this.sendingQueryForm)
-            .subscribe(
-                (data) => {
-                  this.dataSource.data = data as any []; 
-                  if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
-                  this.gettingTableData=false;
-                },
-                error =>  {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
-            );
+    .subscribe(
+        (data) => {
+          this.dataSource.data = data as any []; 
+          if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
+          this.gettingTableData=false;
+        },
+        error =>  {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+    );
   }
 
   isAllSelected() {//все выбраны
@@ -461,7 +460,7 @@ export class PaymentinComponent implements OnInit {
                             this.openSnackBar("Настройки успешно сохранены", "Закрыть");
                             
                           },
-                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
               );
     }
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
@@ -533,7 +532,7 @@ export class PaymentinComponent implements OnInit {
   updateSortOptions(){//после определения прав пересматриваем опции на случай, если права не разрешают действия с определенными опциями, и исключаем эти опции
     let i=0; 
     this.optionsIds.forEach(z=>{
-      console.log("allowToDelete - "+this.allowToDelete);
+      // console.log("allowToDelete - "+this.allowToDelete);
       if(z.id==1 && !this.allowToDelete){this.optionsIds.splice(i,1)}//исключение опции Показывать удаленные, если нет прав на удаление
       i++;
     });

@@ -163,7 +163,7 @@ export class OrderinComponent implements OnInit {
                             this.permissionsSet=data as any [];
                             this.getMyId();
                         },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
             );
   }
 
@@ -505,7 +505,7 @@ export class OrderinComponent implements OnInit {
                             this.openSnackBar("Настройки успешно сохранены", "Закрыть");
                             
                           },
-                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
               );
     }
     getBaseData(data) {    //+++ emit data to parent component
