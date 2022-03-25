@@ -9,9 +9,13 @@ import { SettingsVatinvoiceoutDialogModule } from '../../../../modules/settings/
 
 import { FormsModule } from '@angular/forms';
 import { MaterialModule } from '../../../../modules/material.module';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [VatinvoiceoutComponent],
+  providers: [
+    { provide: TRANSLOCO_SCOPE, useValue: 'menu' }
+  ],
   imports: [
     CommonModule,
     VatinvoiceoutRoutingModule,
@@ -19,7 +23,8 @@ import { MaterialModule } from '../../../../modules/material.module';
     TemplatesDialogModule,
     
     FormsModule,
-    MaterialModule
+    MaterialModule,
+    TranslocoModule
   ]
 })
 export class VatinvoiceoutModule { }

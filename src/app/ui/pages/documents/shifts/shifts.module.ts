@@ -8,16 +8,21 @@ import { ShiftsComponent } from './shifts.component';
 
 import { FormsModule } from '@angular/forms';
 import { MaterialModule } from '../../../../modules/material.module';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [ShiftsComponent],
+  providers: [
+    { provide: TRANSLOCO_SCOPE, useValue: 'menu' }
+  ],
   imports: [
     CommonModule,
     ShiftsRoutingModule,
     // SettingsShiftsDialogModule,
     
     FormsModule,
-    MaterialModule
+    MaterialModule,
+    TranslocoModule
   ]
 })
 export class ShiftsModule { }

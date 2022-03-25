@@ -6,9 +6,13 @@ import { SettingsCustomersordersDialogModule } from '../../../../modules/setting
 
 import { FormsModule } from '@angular/forms';
 import { MaterialModule } from '../../../../modules/material.module';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [CustomersordersComponent],
+  providers: [
+    { provide: TRANSLOCO_SCOPE, useValue: 'menu' }
+  ],
   imports: [
     CommonModule,
     CustomersordersRoutingModule,
@@ -16,6 +20,7 @@ import { MaterialModule } from '../../../../modules/material.module';
     
     MaterialModule,
     FormsModule,
+    TranslocoModule
   ]
 })
 export class CustomersordersModule { }

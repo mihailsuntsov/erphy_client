@@ -8,16 +8,21 @@ import { ReceiptsComponent } from './receipts.component';
 
 import { FormsModule } from '@angular/forms';
 import { MaterialModule } from '../../../../modules/material.module';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [ReceiptsComponent],
+  providers: [
+    { provide: TRANSLOCO_SCOPE, useValue: 'menu' }
+  ],
   imports: [
     CommonModule,
     ReceiptsRoutingModule,
     // SettingsReceiptsDialogModule,
     
     FormsModule,
-    MaterialModule
+    MaterialModule,
+    TranslocoModule
   ]
 })
 export class ReceiptsModule { }

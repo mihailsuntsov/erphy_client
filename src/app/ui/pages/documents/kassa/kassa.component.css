@@ -14,6 +14,11 @@ table {width: 100%;}
 }
 
 
+.company-select{
+    flex-grow: 1; 
+    max-width: 400px;
+    margin-left: 10px;
+}
 /******* опции *******/
 .emptyspace{ flex-grow: 1;}
 li {list-style: none;}
@@ -33,11 +38,6 @@ li {list-style: none;}
     margin-left: 5px;}
 .num-of-rows{flex-grow: 0;}
 
-.company-select{   
-    -webkit-box-flex: 1;
-    flex-grow: 1;
-    max-width: 400px;
-}
 .depatrment-select{flex-grow: 1;}
 
 .pagination {

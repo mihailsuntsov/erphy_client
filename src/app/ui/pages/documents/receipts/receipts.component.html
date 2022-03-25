@@ -4,9 +4,9 @@ class="spinner"
 [diameter]="50"
 *ngIf="gettingTableData"
 ></mat-spinner>
-<mat-card class="card">
-    <mat-card-title class="flex" style="height: 30px;">
-        <div *ngIf="!displayingDeletedDocs" class="emptyspace">Кассовые чеки</div>
+<mat-card class="card" *transloco="let t">
+    <mat-card-title class="flex" style="height: 30px;"> <!--+++-->
+        <div *ngIf="!displayingDeletedDocs" class="emptyspace">{{cu.cap(t('menu.docs.receipts'))}}</div>
         <!-- <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> кассовые чеки</div> -->
         <!-- <button 
             mat-raised-button 
@@ -25,18 +25,18 @@ class="spinner"
         </div> -->
         <button [style.display]="(mode=='viewInWindow')?'block':'none'"
                 mat-raised-button
-                style="margin-left:10px;width:110px;height: 36px;padding: 0px;"
                 matDialogClose 
+                matTooltip="{{t('menu.dialogs.close_window')}}"
+                class="button small-button"
                 color="accent">
                 <i class="material-icons">close</i>
-                <span> Закрыть </span>
         </button>
-        <div [style.display]="(!displayingDeletedDocs&&visBtnDelete)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
+        <!-- <div [style.display]="(!displayingDeletedDocs&&visBtnDelete)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
             <button mat-raised-button (click)="clickBtnDelete()" color="warn"><i class="material-icons">delete_forever</i> Удалить</button>
         </div>
         <div *ngIf="displayingDeletedDocs && visBtnDelete" class="col-sm-auto justify-content-center" style="margin:0px 10px 10px 0px">
             <button mat-raised-button (click)="clickBtnRestore()" color="accent"><i class="material-icons">restore_from_trash</i> Восстановить</button>
-        </div>
+        </div> -->
     </mat-card-title>
     <mat-card-content>
         <div class="card  w-100">
@@ -60,15 +60,15 @@ class="spinner"
                     </div>
                     <div class="flex">
                         <mat-form-field style="width:50px;" class="num-of-rows">
-                            <mat-label>Строк</mat-label>
+                            <mat-label>{{t('menu.top.rows')}}</mat-label>
                             <mat-select [(value)]="sendingQueryForm.result" (selectionChange)="setNumOfPages()" class="form-control" id="selectRowsPerPage" name="result">                           
                                 <mat-option  *ngFor="let num of numRows" [value]="num.value">
                                         {{num.viewValue}}
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
-                        <mat-form-field  class="company-select" style="margin-left: 10px; max-width: 200px;" *ngIf="mode!='viewInWindow'">
-                            <mat-label>Предприятие</mat-label>
+                        <mat-form-field  class="company-select" style="margin-left: 10px; max-width: 200px;">
+                            <mat-label>{{t('menu.top.company')}}</mat-label>
                             <mat-select  [(value)]="sendingQueryForm.companyId" 
                             (selectionChange)="onCompanySelection()">                          
                                 <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
@@ -76,28 +76,28 @@ class="spinner"
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
-                        <mat-form-field  class="company-select" style="margin-left: 10px; max-width: 200px;" *ngIf="mode!='viewInWindow'">
-                            <mat-label>Отделение</mat-label>
+                        <mat-form-field  class="company-select" style="margin-left: 10px; max-width: 200px;">
+                            <mat-label>{{t('menu.top.department')}}</mat-label>
                             <mat-select  [(value)]="sendingQueryForm.departmentId" (selectionChange)="onDepartmentSelection();">                          
-                                <mat-option value="0" selected>Все доступные отделения</mat-option>
+                                <mat-option value="0" selected>{{t('menu.top.all_acc_depar')}}</mat-option>
                                 <mat-option  *ngFor="let rdl of receivedDepartmentsList" [value]="rdl.id">
                                         {{rdl.name}}
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
-                        <mat-form-field  class="company-select" style="margin-left: 10px; max-width: 200px;" *ngIf="mode!='viewInWindow'">
-                            <mat-label>Касса</mat-label>
+                        <mat-form-field  class="company-select" style="margin-left: 10px; max-width: 200px;">
+                            <mat-label>{{t('menu.top.sales_regstr')}}</mat-label>
                             <mat-select  [(value)]="sendingQueryForm.kassaId" (selectionChange)="onKassaSelection();">                          
-                                <mat-option value="0" selected>Все доступные кассы</mat-option>
+                                <mat-option value="0" selected>{{t('menu.top.all_av_c_regs')}}</mat-option>
                                 <mat-option  *ngFor="let rdl of shiftsKassaList" [value]="rdl.id">
                                         {{rdl.name}}
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
                         <mat-form-field  class="company-select" style="margin-left: 10px; max-width: 200px;">
-                            <mat-label>Кассир</mat-label>
+                            <mat-label>{{t('menu.top.cashier')}}</mat-label>
                             <mat-select  [(value)]="sendingQueryForm.cashierId" (selectionChange)="onCashierSelection();">                          
-                                <mat-option value="0" selected>Все доступные кассиры</mat-option>
+                                <mat-option value="0" selected>{{t('menu.top.all_av_cashrs')}}</mat-option>
                                 <mat-option  *ngFor="let rdl of shiftsCashiersList" [value]="rdl.id">
                                         {{rdl.name}}
                                 </mat-option>
@@ -109,11 +109,11 @@ class="spinner"
                             class="options-button"
                             [matMenuTriggerFor]="oper"
                             type="button"
-                            matTooltip='Выбрать опции для фильтра'
+                            matTooltip="{{t('menu.tip.select_opt')}}"
                             matSuffix mat-icon-button>
                             <mat-icon>list_alt</mat-icon>
                         </button> -->
-                        <mat-menu #oper="matMenu" xPosition="before">
+                        <!-- <mat-menu #oper="matMenu" xPosition="before">
                             <div style="width: 300px;">
                                 <ul>
                                     <li *ngFor="let row of optionsIds">
@@ -127,7 +127,7 @@ class="spinner"
                             </div>
                             <div class="div-100"> 
                                 <div style="width:100%; height: 38px; padding-bottom: 15px;">
-                                    <button matTooltip="Применить фильтры" 
+                                    <button matTooltip="{{t('menu.tip.apply_filters')}}" 
                                             mat-mini-fab 
                                             color="primary" 
                                             (click)="clickApplyFilters()">
@@ -135,12 +135,12 @@ class="spinner"
                                     </button>
                                 </div>
                             </div> 
-                        </mat-menu>
+                        </mat-menu> -->
                         <span  class="emptyspace" style="display: none"></span>
                         <div class="flex">     
-                            <mat-form-field class="emptyspace">
+                            <mat-form-field class="emptyspace"> <!--+++-->
                                     <input matInput 
-                                    placeholder="Поиск..." 
+                                    placeholder="{{t('menu.top.search')}}" 
                                     [(ngModel)]="sendingQueryForm.searchString" 
                                     type="text"  
                                     id="search_input" 
@@ -187,7 +187,7 @@ class="spinner"
 
                         <ng-container matColumnDef="company">
                             <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('company')" class="sortheader"> Предприятие 
+                            <span (click)="setSort('company')" class="sortheader"> {{t('menu.table.company')}} 
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='company'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='company'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
@@ -195,7 +195,7 @@ class="spinner"
                         </ng-container>
                         <ng-container matColumnDef="department">
                             <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('department')" class="sortheader"> Отделение 
+                            <span (click)="setSort('department')" class="sortheader"> {{t('menu.table.department')}} 
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='department'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='department'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
@@ -203,7 +203,7 @@ class="spinner"
                         </ng-container>
                         <ng-container matColumnDef="kassa">
                             <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('kassa')" class="sortheader"> Касса 
+                            <span (click)="setSort('kassa')" class="sortheader"> {{t('menu.table.cash_regstr')}} 
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='kassa'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='kassa'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
@@ -211,7 +211,7 @@ class="spinner"
                         </ng-container>
                         <ng-container matColumnDef="creator">
                             <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('creator')" class="sortheader"> Кассир 
+                            <span (click)="setSort('creator')" class="sortheader"> {{t('menu.table.cashier')}} 
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='creator'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='creator'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
@@ -219,7 +219,7 @@ class="spinner"
                         </ng-container>
                         <ng-container matColumnDef="summ">
                             <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('summ')" class="sortheader"> Сумма 
+                            <span (click)="setSort('summ')" class="sortheader"> {{t('menu.table.sum')}} 
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='summ'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='summ'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
@@ -227,7 +227,7 @@ class="spinner"
                         </ng-container>
                         <ng-container matColumnDef="date_time_created">
                             <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('date_time_created_sort')" class="sortheader"> Время 
+                            <span (click)="setSort('date_time_created_sort')" class="sortheader"> {{t('menu.table.time')}} 
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='date_time_created_sort'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='date_time_created_sort'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
@@ -235,7 +235,7 @@ class="spinner"
                         </ng-container>
                         <ng-container matColumnDef="payment_type">
                             <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('payment_type')" class="sortheader"> Вид расчёта 
+                            <span (click)="setSort('payment_type')" class="sortheader"> {{t('menu.table.pay_type')}} 
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='payment_type'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='payment_type'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
@@ -244,27 +244,27 @@ class="spinner"
                                     <mat-chip 
                                     *ngIf="row.payment_type=='electronically'" 
                                     style="color:rgb(2, 0, 143)">
-                                    Безналичные
+                                    {{t('menu.table.non_cash')}}
                                     </mat-chip>
                                     <mat-chip 
                                     *ngIf="row.payment_type=='cash'"
                                     style="color:rgb(8, 95, 0)"
                                     >
-                                    Наличные
+                                    {{t('menu.table.cash')}}
                                     </mat-chip>
                                     <mat-chip 
                                     *ngIf="row.payment_type=='mixed'"
-                                    matTooltip="Наличными: {{row.cash}}  Безналичными: {{row.electronically}}"
+                                    matTooltip="{{t('menu.table.cash')}}: {{row.cash}}  {{t('menu.table.non_cash')}}: {{row.electronically}}"
                                     style="color:rgb(156, 0, 0)"
                                     >
-                                    Смешанный
+                                    {{t('menu.table.mixed')}}
                                     </mat-chip>
                                 </mat-chip-list>
                             </td>
                         </ng-container>
                         <ng-container matColumnDef="shift_number">
                             <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('shift_number')" class="sortheader"> Смена
+                            <span (click)="setSort('shift_number')" class="sortheader"> {{t('menu.table.shift')}}
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='shift_number'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='shift_number'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
@@ -272,17 +272,17 @@ class="spinner"
                         </ng-container>
                         <ng-container matColumnDef="document">
                             <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('document')" class="sortheader"> Документ 
+                            <span (click)="setSort('document')" class="sortheader"> {{t('menu.table.doc')}} 
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='document'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='document'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
                             <td mat-cell *matCellDef="let row"> 
-                                <span matTooltip='Открыть документ, из которого был создан чек' class="hand" (click)="openDocWindow(row.retail_sales_id, row.shipment_id, row.return_id)" style="cursor:pointer">{{row.document}}</span>
+                                <span matTooltip="{{t('menu.tip.open_doc_rece')}}" class="hand" (click)="openDocWindow(row.retail_sales_id, row.shipment_id, row.return_id)" style="cursor:pointer">{{row.document}}</span>
                                  </td>
                         </ng-container>
                         <ng-container matColumnDef="operation_id">
                             <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('operation_id')" class="sortheader"> Операция
+                            <span (click)="setSort('operation_id')" class="sortheader"> {{t('menu.table.operation')}}
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='operation_id'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='operation_id'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
@@ -291,26 +291,26 @@ class="spinner"
                                     <!-- !!! добить остальными операциями -->
                                     <mat-chip 
                                     *ngIf="row.operation_id=='return'" 
-                                    matTooltip="Возврат прихода"
-                                    style="color:orange">
-                                    Возврат прихода
+                                    matTooltip="{{t('menu.table.income_return')}}"
+                                    style="color:darkorange">
+                                    {{t('menu.table.income_return')}}
                                     </mat-chip>
                                     <mat-chip 
                                     *ngIf="row.operation_id=='sell'"
-                                    matTooltip="Приход"
+                                    matTooltip="{{t('menu.table.income')}}"
                                     style="color:green"
                                     >
-                                    Приход
+                                    {{t('menu.table.income')}}
                                     </mat-chip>
                                 </mat-chip-list>
                             </td>
                         </ng-container>
                         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                         <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-                        <!-- Блок "Данные не найдены" -->
+                        <!-- Part "Data not founded" --> <!--+++-->
                         <ng-container matColumnDef="data_not_found">
                             <td mat-footer-cell *matFooterCellDef colspan="13" class="text-center">
-                            Данные не найдены
+                                {{t('menu.msg.dt_not_fnd')}}
                             </td>
                         </ng-container>
                         <ng-container matColumnDef="nocolumn">
@@ -319,12 +319,12 @@ class="spinner"
                         <tr mat-footer-row 
                         *matFooterRowDef="[dataSource.data.length==0?'data_not_found':'nocolumn']" 
                         [ngStyle]="(dataSource.data.length==0 && !gettingTableData)?{}:{'display': 'none'}"></tr>
-                        <!-- Конец блока "Данные не найдены" -->        
-                    </table>
-              
-                    <div class="flex">
-                        <div class="col-sm">
-                            <p> Найдено: {{size}}, страница {{pagenum}} из {{listsize}}</p>
+                        <!-- End of Part "Data not founded" -->
+                </table>
+      
+            <div class="flex">
+                <div class="col-sm">
+                    <p> {{t('menu.bottom.founded')}}: {{size}}, {{t('menu.bottom.page')}} {{pagenum}}  {{t('menu.bottom.of')}} {{listsize}}</p> <!--+++-->
                         </div>
                         <span  class="emptyspace"></span><!-- разделитель -->
                         <div class="col-sm-auto justify-content-end">
@@ -355,10 +355,6 @@ class="spinner"
                                         <ng-container *ngIf="pagenum == listsize && page==maxpage">
                                             <li><mat-icon class="pagearrow inactive">last_page</mat-icon></li>
                                         </ng-container>
-                                    <!-- pagenum - Страница, которая сейчас выбрана в пагинаторе
-                                        listsize - Последняя страница в пагинации (но не в пагинаторе. т.е. в пагинаторе может быть 1.2.3.4.5 а listsize =10)
-                                        maxpage - Последняя страница в пагинации 
-                                        page -    Страница пагинатора в текущем цикле -->
                                     </ng-container>
                                 </ng-container>
                             </ul>  

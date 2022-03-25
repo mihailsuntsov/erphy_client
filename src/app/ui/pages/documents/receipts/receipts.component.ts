@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, Optional} from '@angular/core';
+import { Component, EventEmitter, Inject, OnInit, Optional, Output} from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { QueryForm } from './query-form';
 import { SelectionModel } from '@angular/cdk/collections';
@@ -7,15 +7,15 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { HttpClient } from '@angular/common/http';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-// import { Validators } from '@angular/forms';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { QueryFormService } from './get-receipts-table.service';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
-import { FormGroup, FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
-// import { SettingsReceiptsDialogComponent } from 'src/app/modules/settings/settings-receipts-dialog/settings-receipts-dialog.component';
+import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
+import { translate, TranslocoService } from '@ngneat/transloco'; //+++
+
 
 export interface CheckBox {
   id: number;
@@ -37,7 +37,7 @@ export interface NumRow {//интерфейс для списка количес
   selector: 'app-receipts',
   templateUrl: './receipts.component.html',
   styleUrls: ['./receipts.component.css'],
-  providers: [QueryFormService,LoadSpravService,Cookie]
+  providers: [QueryFormService,LoadSpravService,Cookie,CommonUtilitesService] //+++
 })
 export class ReceiptsComponent implements OnInit {
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
@@ -107,6 +107,8 @@ export class ReceiptsComponent implements OnInit {
   displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
   //***********************************************************************************************************************/
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
+  
   constructor(
     private activateRoute: ActivatedRoute,
     private queryFormService:   QueryFormService,
@@ -120,6 +122,8 @@ export class ReceiptsComponent implements OnInit {
     // private settingsReceiptsDialogComponent: MatDialog,
     public deleteDialog: MatDialog,
     public dialogRef1: MatDialogRef<ReceiptsComponent>,
+    public cu: CommonUtilitesService, //+++
+    private service: TranslocoService,
     @Optional() @Inject(MAT_DIALOG_DATA) public data: any) {
     //   if(activateRoute.snapshot.params['id'])
     //     this.shift_id = +activateRoute.snapshot.params['id'];
@@ -153,6 +157,13 @@ export class ReceiptsComponent implements OnInit {
         Cookie.set('receipts_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('receipts_offset');
       if(Cookie.get('receipts_result')=='undefined' || Cookie.get('receipts_result')==null)        
         Cookie.set('receipts_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('receipts_result');
+  
+        //+++ getting base data from parent component
+        this.getBaseData('myId');    
+        this.getBaseData('myCompanyId');  
+        this.getBaseData('companiesList');      
+        this.getBaseData('myDepartmentsList');
+    
       
       this.fillOptionsList();//заполняем список опций фильтра
       // Форма настроек
@@ -178,16 +189,6 @@ export class ReceiptsComponent implements OnInit {
     });*/
 
       this.getCompaniesList();// 
-      // -> getSetOfPermissions() 
-      // -> getMyId()
-      // -> getMyCompanyId() 
-      // -> setDefaultCompany() 
-      // -> getDepartmentsList()
-      // -> getMyDepartmentsList()
-      // -> setDefaultDepartment()
-      // -> getCRUD_rights() 
-      // -> getData() 
-      //API: getCompaniesList         giveMeMyPermissions      getMyCompanyId
 
       if(this.data)//если документ вызывается в окне из другого документа
       {
@@ -207,16 +208,17 @@ export class ReceiptsComponent implements OnInit {
     }
 
     // -------------------------------------- *** ПРАВА *** ------------------------------------
-   getSetOfPermissions(){
+  getSetOfPermissions(){
     return this.http.get('/api/auth/getMyPermissions?id=44')
             .subscribe(
                 (data) => {   
                             this.permissionsSet=data as any [];
                             this.getMyId();
-                        },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-            );
+    },
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+    );
   }
+
 
 
   getCRUD_rights(permissionsSet:any[]){
@@ -267,7 +269,7 @@ export class ReceiptsComponent implements OnInit {
       this.getTableAndPagesList();
       this.getShiftsKassa();
       this.getShiftsCashiers();
-    } else {this.gettingTableData=false;;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
+    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})} //+++
   }
 
   getTableAndPagesList(){
@@ -301,8 +303,8 @@ export class ReceiptsComponent implements OnInit {
                 this.pagenum=this.receivedPagesList[1];
                 this.listsize=this.receivedPagesList[2];
                 this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-            ); 
+      error =>  {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+    ); 
   }
 
   getTable(){
@@ -313,32 +315,32 @@ export class ReceiptsComponent implements OnInit {
                   this.dataSource.data = data as any []; 
                   if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
                   this.gettingTableData=false;
-                },
-                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
-            );
+        },
+        error =>  {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+    );
   }
   getShiftsKassa(){
-    this.http.get('/api/auth/getShiftsKassa?company_id='+this.sendingQueryForm.companyId+"&department_id="+(+this.sendingQueryForm.departmentId)+"&docName='receipts'")
+    this.http.get('/api/auth/getShiftsKassa?company_id='+this.sendingQueryForm.companyId+"&department_id="+(+this.sendingQueryForm.departmentId)+"&docName='shifts'")
       .subscribe(
           data => { 
             this.shiftsKassaList=data as any[];
             if(this.shiftsKassaList==null){
-              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка загрузки списка касс (ККМ)"}});
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.reg_load_err')}}); //+++
             } 
         },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})} //+++
     );
   }
   getShiftsCashiers(){
-    this.http.get('/api/auth/getShiftsCashiers?company_id='+this.sendingQueryForm.companyId+"&department_id="+(+this.sendingQueryForm.departmentId)+"&docName='receipts'")
+    this.http.get('/api/auth/getShiftsCashiers?company_id='+this.sendingQueryForm.companyId+"&department_id="+(+this.sendingQueryForm.departmentId)+"&docName='shifts'")
       .subscribe(
           data => { 
             this.shiftsCashiersList=data as any[];
             if(this.shiftsCashiersList==null){
-              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка загрузки списка кассиров"}});
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.cas_load_err')}}); //+++
             } 
         },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})} //+++
     );
   }
   onKassaSelection(){
@@ -493,64 +495,78 @@ export class ReceiptsComponent implements OnInit {
       document.location.href = "ui/"+docName+"/"+docId;
   } 
 
-  clickBtnDelete(): void {
-    const dialogRef = this.deleteDialog.open(DeleteDialog, {
-      width: '300px',
-    });
-    dialogRef.afterClosed().subscribe(result => {
-      if(result==1){this.deleteDocs();}
-      this.clearCheckboxSelection();
-      this.showOnlyVisBtnAdd();
-    });        
-  }
+  // clickBtnDelete(): void {
+  //   const dialogRef = this.deleteDialog.open(DeleteDialog, {
+  //     width: '300px',
+  //   });
+  //   dialogRef.afterClosed().subscribe(result => {
+  //     if(result==1){this.deleteDocs();}
+  //     this.clearCheckboxSelection();
+  //     this.showOnlyVisBtnAdd();
+  //   });        
+  // }
 
-  deleteDocs(){
-    const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
-    this.clearCheckboxSelection();
-          return this.http.post('/api/auth/deleteReceipts', body) 
-  .subscribe((data) => {   
-    let result=data as any;
-    switch(result.result){
-      case 0:{this.getData();this.openSnackBar("Успешно удалено", "Закрыть");break;} 
-      case 1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе удаления "+(this.checkedList.length>1?"документов":"документа")+" проиошла ошибка")}});break;}
-      case 2:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для операции удаления"}});break;}
-      case 3:{let numbers:string='';
-        for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="/ui/receiptsdoc/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
-        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Удаление невозможно - у следующих номеров документов есть производные (связанные с ними дочерние) документы:'+numbers}});break;}
-    }
-  },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
-}
+//   deleteDocs(){
+//     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
+//     this.clearCheckboxSelection();
+//           return this.http.post('/api/auth/deleteReceipts', body) 
+//   .subscribe((data) => {   
+//     let result=data as any;
+//     switch(result.result){
+//       case 0:{this.getData();this.openSnackBar("Успешно удалено", "Закрыть");break;} 
+//       case 1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе удаления "+(this.checkedList.length>1?"документов":"документа")+" проиошла ошибка")}});break;}
+//       case 2:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для операции удаления"}});break;}
+//       case 3:{let numbers:string='';
+//         for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="/ui/receiptsdoc/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
+//         this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Удаление невозможно - у следующих номеров документов есть производные (связанные с ними дочерние) документы:'+numbers}});break;}
+//     }
+//   },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+// }
     
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
       duration: 3000,
     });
   }
-  getCompaniesList(){
-    this.receivedCompaniesList=null;
-    this.loadSpravService.getCompaniesList()
-            .subscribe(
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+      this.loadSpravService.getCompaniesList()
+              .subscribe(
                 (data) => {this.receivedCompaniesList=data as any [];
                   this.getSetOfPermissions();
                 },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
             );
-  }
-  getMyId(){
-    this.receivedMyDepartmentsList=null;
-    this.loadSpravService.getMyId()
+    else this.getSetOfPermissions();
+  }  
+  getMyId(){ //+++
+    if(+this.myId==0)
+     this.loadSpravService.getMyId()
             .subscribe(
                 (data) => {this.myId=data as any;
                   this.getMyCompanyId();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
             );
+      else this.getMyCompanyId();
   }
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
       (data) => {
         this.myCompanyId=data as number;
         this.setDefaultCompany();
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
+    else this.setDefaultCompany();
+  } 
+  getMyDepartmentsList(){ //+++
+    if(this.receivedMyDepartmentsList.length==0)
+      this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
+      .subscribe(
+        (data) => {this.receivedMyDepartmentsList=data as any [];
+        this.setDefaultDepartment();},
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+      );
+    else this.setDefaultDepartment();
   }
 
   setDefaultCompany(){
@@ -564,23 +580,12 @@ export class ReceiptsComponent implements OnInit {
   getDepartmentsList(){
     this.receivedDepartmentsList=null;
     this.loadSpravService.getDepartmentsListByCompanyId(+this.sendingQueryForm.companyId,false)
-            .subscribe(
-                (data) => {this.receivedDepartmentsList=data as any [];
-                            this.getMyDepartmentsList();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-            );
+    .subscribe(
+      (data) => {this.receivedDepartmentsList=data as any [];
+      this.getMyDepartmentsList();},
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})} //+++
+    );
   }
-
-  getMyDepartmentsList(){
-    this.receivedMyDepartmentsList=null;
-    this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
-            .subscribe(
-                (data) => {this.receivedMyDepartmentsList=data as any [];
-                  this.setDefaultDepartment();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-            );
-  }
-
   setDefaultDepartment(){
     if(this.receivedDepartmentsList.length==1)
     {
@@ -623,6 +628,9 @@ export class ReceiptsComponent implements OnInit {
     if( (!this.allowToViewAllCompanies && !this.allowToViewMyCompany && this.allowToViewMyDepartments)||
         (!this.allowToViewAllCompanies && !this.allowToViewMyCompany && !this.allowToViewMyDepartments && this.allowToViewMyDocs)){
       this.receivedDepartmentsList=this.receivedMyDepartmentsList;}
+  }
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
   }
       //*************************************************************   НАСТРОЙКИ   ************************************************************/    
     // открывает диалог настроек

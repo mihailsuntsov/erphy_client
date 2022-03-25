@@ -11,6 +11,7 @@
         "only_del":     "Show only deleted",
         "only_debtors": "Show only debtors",
         "only_u_owe":   "Show only to whom you owe",
+        "only_overdue": "Only overdue invoices",
         "btn_new_corr": "Create new correction",
         "date_from":    "From",
         "date_to":      "To",
@@ -34,7 +35,11 @@
         "all_acc_depar":"All available departments",
         "different":    "Different",
         "from_depart":  "From department",
-        "to_depart":    "To department"
+        "to_depart":    "To department",
+        "cashier":      "Cashier",
+        "sales_regstr": "Sales register",
+        "all_av_c_regs":"All available sales registers",
+        "all_av_cashrs":"All available cashiers"
     },
     "tip":{
         "select_opt":   "Select options for the filter",
@@ -90,7 +95,13 @@
         "_for_any_prty":"for any of the price types",
         "_for_this_typ":"for this type of price",
         "pr_eq_all":    "The price is the same for all price types",
-        "pr_for_sel_pt":"The price of the product on the selected price type"
+        "pr_for_sel_pt":"The price of the product on the selected price type",
+        "no_receipt":   "Receipt not printed",
+        "yes_receipt":  "Receipt printed",
+        "shift_opened": "The shift is opened",
+        "shift_closed": "The shift is closed",
+        "show_receipts":"Show receipts of this shift",
+        "open_doc_rece":"Open the document from which the receipt was created"
     },
     "table":{
         "name":         "Name",
@@ -119,7 +130,6 @@
         "profit":       "Profit",
         "bal_on_begin": "Beginning balance",
         "bal_on_end":   "Closing balance",
-        "income":       "Income",
         "expendtr":     "Expenditure",
         "date":         "Date",
         "balance":      "Balance",
@@ -142,7 +152,33 @@
         "posting_date": "Posting date",
         "department":   "Department",
         "from_depart":  "From department",
-        "to_depart":    "To department"
+        "to_depart":    "To department",
+        "buyer":        "Buyer",
+        "receipt":      "Receipt",
+        "cashier":      "Cashier",
+        "sales_regstr": "Sales register",
+        "number":       "Number",
+        "cnt_recepts":  "Receipts",
+        "date_open":    "Opened",
+        "date_close":   "Closed",
+        "opened_by":    "Opened by",
+        "closed_by":    "Closed by",
+        "revenue":      "Revenue",
+        "aq_bank":      "Acquiring bank",
+        "cash_regstr":  "Cash register",
+        "shift":        "Shift",
+        "doc":          "Document",
+        "operation":    "Operation",
+        "time":         "Time",
+        "pay_type":     "Payment type",
+        "income":       "Income",
+        "income_return":"Income return",
+        "cash":         "Cash",
+        "non_cash":     "Non cash",
+        "mixed":        "Mixed",    
+        "opened":       "Opened",
+        "closed":       "Closed",
+        "due_date":     "Due date"
     },
     "bottom":{
         "founded":      "Founded",
@@ -165,7 +201,11 @@
         "no_del_childs":"Deletion is not possible - the following document numbers have derived (related child) documents:",
         "close":        "Close",
         "settngs_saved":"Settings saved successfully",
-        "sep_prod_cat": "Category assignment completed successfully"
+        "sep_prod_cat": "Category assignment completed successfully",
+        "reg_load_err": "Error loading list of cash registers",
+        "cas_load_err": "Error loading list of cashiers",
+        "vii_can_creat":"\"Issued VAT invoices\" can be created only from next documents: \"Order in\", \"Payment in\", \"Shipment\"",
+        "vio_can_creat":"\"Received VAT invoices\" can be created only from next documents: \"Order out\", \"Payment out\", \"Acceptance\""
     },
     "dialogs":{
         "restore":      "Restore",

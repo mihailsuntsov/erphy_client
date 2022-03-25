@@ -1,4 +1,4 @@
-import { Component, OnInit} from '@angular/core';
+import { Component, EventEmitter, OnInit, Output} from '@angular/core';
 import { QueryForm } from './query-form';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource } from '@angular/material/table';
@@ -13,6 +13,8 @@ import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { FormGroup, FormControl } from '@angular/forms';
 import { SettingsVatinvoiceoutDialogComponent } from 'src/app/modules/settings/settings-vatinvoiceout-dialog/settings-vatinvoiceout-dialog.component';
+import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
+import { translate, TranslocoService } from '@ngneat/transloco'; //+++
 
 export interface CheckBox {
   id: number;
@@ -34,7 +36,7 @@ export interface NumRow {//интерфейс для списка количес
   selector: 'app-vatinvoiceout',
   templateUrl: './vatinvoiceout.component.html',
   styleUrls: ['./vatinvoiceout.component.css'],
-  providers: [QueryFormService,LoadSpravService,Cookie]
+  providers: [QueryFormService,LoadSpravService,Cookie,CommonUtilitesService] //+++
 })
 export class VatinvoiceoutComponent implements OnInit {
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
@@ -89,6 +91,8 @@ export class VatinvoiceoutComponent implements OnInit {
   displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
   //***********************************************************************************************************************/
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
+
   constructor(private queryFormService:   QueryFormService,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
@@ -98,7 +102,9 @@ export class VatinvoiceoutComponent implements OnInit {
     private http: HttpClient,
     private settingsVatinvoiceoutDialogComponent: MatDialog,
     public deleteDialog: MatDialog,
-    public dialogRef1: MatDialogRef<VatinvoiceoutComponent>,) { }
+    public dialogRef1: MatDialogRef<VatinvoiceoutComponent>,
+    public cu: CommonUtilitesService, //+++
+    private service: TranslocoService,) { }
 
     ngOnInit() {
       this.sendingQueryForm.companyId='0';
@@ -120,6 +126,13 @@ export class VatinvoiceoutComponent implements OnInit {
         Cookie.set('vatinvoiceout_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('vatinvoiceout_offset');
       if(Cookie.get('vatinvoiceout_result')=='undefined' || Cookie.get('vatinvoiceout_result')==null)        
         Cookie.set('vatinvoiceout_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('vatinvoiceout_result');
+    
+        //+++ getting base data from parent component
+        this.getBaseData('myId');    
+        this.getBaseData('myCompanyId');  
+        this.getBaseData('companiesList');      
+        // this.getBaseData('myDepartmentsList');
+    
       
       this.fillOptionsList();//заполняем список опций фильтра
       // Форма настроек
@@ -155,10 +168,10 @@ export class VatinvoiceoutComponent implements OnInit {
                 (data) => {   
                             this.permissionsSet=data as any [];
                             this.getMyId();
-                        },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-            );
-  }
+      },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+      );
+    }
 
   getCRUD_rights(permissionsSet:any[]){
     this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==487)});
@@ -180,11 +193,11 @@ export class VatinvoiceoutComponent implements OnInit {
     this.showOpenDocIcon=(this.allowToUpdate||this.allowToView);
     this.visBtnAdd = (this.allowToCreate)?true:false;
     
-    console.log("allowToView - "+this.allowToView);
-    console.log("allowToUpdate - "+this.allowToUpdate);
-    console.log("allowToCreate - "+this.allowToCreate);
-    console.log("allowToDelete - "+this.allowToDelete);
-    console.log("allowToDeleteAllCompanies - "+this.allowToDeleteAllCompanies);
+    // console.log("allowToView - "+this.allowToView);
+    // console.log("allowToUpdate - "+this.allowToUpdate);
+    // console.log("allowToCreate - "+this.allowToCreate);
+    // console.log("allowToDelete - "+this.allowToDelete);
+    // console.log("allowToDeleteAllCompanies - "+this.allowToDeleteAllCompanies);
     return true;
   }
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
@@ -198,7 +211,7 @@ export class VatinvoiceoutComponent implements OnInit {
       this.getTableHeaderTitles();
       this.getPagesList();
       this.getTable();
-    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
+    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})} //+++
   }
 
   getTableHeaderTitles(){
@@ -218,27 +231,27 @@ export class VatinvoiceoutComponent implements OnInit {
 
   getPagesList(){
     this.queryFormService.getPagesList(this.sendingQueryForm)
-            .subscribe(
-                data => {this.receivedPagesList=data as string [];
-                this.size=this.receivedPagesList[0];
-                this.pagenum=this.receivedPagesList[1];
-                this.listsize=this.receivedPagesList[2];
-                this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-            ); 
+    .subscribe(
+        data => {this.receivedPagesList=data as string [];
+        this.size=this.receivedPagesList[0];
+        this.pagenum=this.receivedPagesList[1];
+        this.listsize=this.receivedPagesList[2];
+        this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
+    error =>  {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+    ); 
   }
 
   getTable(){
     this.gettingTableData=true;
     this.queryFormService.getTable(this.sendingQueryForm)
-            .subscribe(
-                (data) => {
-                  this.dataSource.data = data as any []; 
-                  if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
-                  this.gettingTableData=false;
-                },
-                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
-            );
+    .subscribe(
+    (data) => {
+      this.dataSource.data = data as any []; 
+      if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
+      this.gettingTableData=false;
+    },
+      error =>  {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+    );
   }
 
   isAllSelected() {//все выбраны
@@ -354,54 +367,89 @@ export class VatinvoiceoutComponent implements OnInit {
       this.showOnlyVisBtnAdd();
     });        
   }
-
+  clickBtnRestore(): void {
+    const dialogRef = this.confirmDialog.open(ConfirmDialog, {
+      width: '400px',
+      data:
+      { 
+        head: translate('menu.dialogs.restore'), //+++
+        query: translate('menu.dialogs.q_restore'),
+        warning: '',
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){this.undeleteDocs();}
+      this.clearCheckboxSelection();
+      this.showOnlyVisBtnAdd();
+    });        
+  }
+  undeleteDocs(){
+    const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
+    this.clearCheckboxSelection();
+    return this.http.post('/api/auth/undeleteVatinvoiceout', body) 
+    .subscribe(
+      (data) => {   
+        let result=data as any;
+        switch(result){ //+++
+          case 1:{this.getData();this.openSnackBar(translate('menu.msg.rec_success'), translate('menu.msg.close'));break;}  //+++
+          case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+          case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+        }
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
+  }  
   deleteDocs(){
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
-          return this.http.post('/api/auth/deleteVatinvoiceout', body) 
-  .subscribe((data) => {   
-    let result=data as any;
-    switch(result.result){
-      case 0:{this.getData();this.openSnackBar("Успешно удалено", "Закрыть");break;} 
-      case 1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе удаления "+(this.checkedList.length>1?"документов":"документа")+" проиошла ошибка")}});break;}
-      case 2:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для операции удаления"}});break;}
-      case 3:{let numbers:string='';
-        for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="/ui/vatinvoiceoutdoc/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
-        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Удаление невозможно - у следующих номеров документов есть производные (связанные с ними дочерние) документы:'+numbers}});break;}
-    }
-  },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
-}
+    return this.http.post('/api/auth/deleteVatinvoiceout', body) 
+    .subscribe((data) => {    
+      let result=data as any;
+      switch(result.result){
+        case 0:{this.getData();this.openSnackBar(translate('menu.msg.del_success'), translate('menu.msg.close'));break;} 
+        case 1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+        case 2:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+        case 3:{let numbers:string='';
+          for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="/ui/vatinvoiceoutdoc/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
+          this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.no_del_childs')+numbers}});break;}
+      }
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
+  }
     
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
       duration: 3000,
     });
   }
-  getCompaniesList(){
-    this.receivedCompaniesList=null;
-    this.loadSpravService.getCompaniesList()
-            .subscribe(
-                (data) => {this.receivedCompaniesList=data as any [];
-                  this.getSetOfPermissions();
-                },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-            );
+  
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+      this.loadSpravService.getCompaniesList()
+        .subscribe(
+          (data) => {this.receivedCompaniesList=data as any [];
+            this.getSetOfPermissions();
+          },
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+      );
+    else this.getSetOfPermissions();
+  }  
+  getMyId(){ //+++
+    if(+this.myId==0)
+     this.loadSpravService.getMyId()
+        .subscribe(
+            (data) => {this.myId=data as any;
+              this.getMyCompanyId();},
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+        );
+      else this.getMyCompanyId();
   }
-  getMyId(){
-    this.loadSpravService.getMyId()
-            .subscribe(
-                (data) => {this.myId=data as any;
-                  this.getMyCompanyId();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-            );
-  }
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
       (data) => {
         this.myCompanyId=data as number;
         this.setDefaultCompany();
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
-  }
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
+    else this.setDefaultCompany();
+  } 
 
   setDefaultCompany(){
     if(Cookie.get('vatinvoiceout_companyId')=='0'){
@@ -428,10 +476,10 @@ export class VatinvoiceoutComponent implements OnInit {
     }
   }
   onClickCreateBtn(){
-    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'"Счёт-фактура выданный" можно создать только из следующих документов: "Приходный ордер", "Входящий платёж", "Отгрузка"'}})
+    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.vii_can_creat')}})
   }
-      //*************************************************************   НАСТРОЙКИ   ************************************************************/    
-    // открывает диалог настроек
+  //*************************************************************   НАСТРОЙКИ   ************************************************************/    
+  // открывает диалог настроек
     openDialogSettings() { 
       const dialogSettings = this.settingsVatinvoiceoutDialogComponent.open(SettingsVatinvoiceoutDialogComponent, {
         maxWidth: '95vw',
@@ -459,46 +507,23 @@ export class VatinvoiceoutComponent implements OnInit {
         }
       });
     }
+
     // Сохраняет настройки
     saveSettingsVatinvoiceout(){
       return this.http.post('/api/auth/saveSettingsVatinvoiceout', this.settingsForm.value)
-              .subscribe(
-                  (data) => {   
-                            this.openSnackBar("Настройки успешно сохранены", "Закрыть");
-                            
-                          },
-                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-              );
+      .subscribe(
+        (data) => {   
+          this.openSnackBar(translate('menu.msg.settngs_saved'), translate('menu.msg.close')); //+++
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+      );
+    }
+
+    getBaseData(data) {    //+++ emit data to parent component
+      this.baseData.emit(data);
     }
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
-  clickBtnRestore(): void {
-    const dialogRef = this.confirmDialog.open(ConfirmDialog, {
-      width: '400px',
-      data:
-      { 
-        head: 'Восстановление',
-        query: 'Восстановить выбранные счета покупателям из удалённых?',
-        warning: '',
-      },
-    });
-    dialogRef.afterClosed().subscribe(result => {
-      if(result==1){this.undeleteDocs();}
-      this.clearCheckboxSelection();
-      this.showOnlyVisBtnAdd();
-    });        
-  }
-  undeleteDocs(){
-    const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
-    this.clearCheckboxSelection();
-      return this.http.post('/api/auth/undeleteVatinvoiceout', body) 
-    .subscribe(
-        (data) => {   
-                    this.getData();
-                    this.openSnackBar("Успешно восстановлено", "Закрыть");
-                  },
-        error => console.log(error),
-    );
-  }  
+  
   resetOptions(){
     this.displayingDeletedDocs=false;
     this.fillOptionsList();//перезаполняем список опций
@@ -506,7 +531,7 @@ export class VatinvoiceoutComponent implements OnInit {
     this.sendingQueryForm.filterOptionsIds = [];
   }
   fillOptionsList(){
-    this.optionsIds=[{id:1, name:"Показать только удалённые"},];
+    this.optionsIds=[{id:1, name: 'menu.top.only_del'},]; //+++
   }
   clickApplyFilters(){
     let showOnlyDeletedCheckboxIsOn:boolean = false; //присутствует ли включенный чекбокс "Показывать только удалённые"

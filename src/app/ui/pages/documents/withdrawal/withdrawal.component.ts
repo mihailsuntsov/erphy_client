@@ -1,18 +1,16 @@
-import { Component, OnInit} from '@angular/core';
+import { Component, EventEmitter, OnInit, Output} from '@angular/core';
 import { QueryForm } from './query-form';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { HttpClient } from '@angular/common/http';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { Validators } from '@angular/forms';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { QueryFormService } from './get-withdrawal-table.service';
-import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
-import { FormGroup, FormControl } from '@angular/forms';
+import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
+import { translate, TranslocoService } from '@ngneat/transloco'; //+++
 
 export interface CheckBox {
   id: number;
@@ -34,7 +32,7 @@ export interface NumRow {//интерфейс для списка количес
   selector: 'app-withdrawal',
   templateUrl: './withdrawal.component.html',
   styleUrls: ['./withdrawal.component.css'],
-  providers: [QueryFormService,LoadSpravService,Cookie]
+  providers: [QueryFormService,LoadSpravService,Cookie,CommonUtilitesService] //+++
 })
 export class WithdrawalComponent implements OnInit {
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
@@ -86,6 +84,8 @@ export class WithdrawalComponent implements OnInit {
   displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
   //***********************************************************************************************************************/
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
+
   constructor(private queryFormService:   QueryFormService,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
@@ -95,7 +95,9 @@ export class WithdrawalComponent implements OnInit {
     private http: HttpClient,
     private settingsWithdrawalDialogComponent: MatDialog,
     public deleteDialog: MatDialog,
-    public dialogRef1: MatDialogRef<WithdrawalComponent>,) { }
+    public dialogRef1: MatDialogRef<WithdrawalComponent>,
+    public cu: CommonUtilitesService, //+++
+    private service: TranslocoService,) { }
 
     ngOnInit() {
       this.sendingQueryForm.companyId='0';
@@ -119,33 +121,29 @@ export class WithdrawalComponent implements OnInit {
         Cookie.set('withdrawal_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('withdrawal_offset');
       if(Cookie.get('withdrawal_result')=='undefined' || Cookie.get('withdrawal_result')==null)        
         Cookie.set('withdrawal_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('withdrawal_result');
-      
+    
+      //+++ getting base data from parent component
+      this.getBaseData('myId');    
+      this.getBaseData('myCompanyId');  
+      this.getBaseData('companiesList');      
+      this.getBaseData('myDepartmentsList');
+    
       this.fillOptionsList();//заполняем список опций фильтра
      
-      this.getCompaniesList();// 
-      // -> getSetOfPermissions() 
-      // -> getMyId()
-      // -> getMyCompanyId() 
-      // -> setDefaultCompany() 
-      // -> getDepartmentsList()
-      // -> getMyDepartmentsList()
-      // -> setDefaultDepartment()
-      // -> getCRUD_rights() 
-      // -> getData() 
-      //API: getCompaniesList         giveMeMyPermissions      getMyCompanyId
+      this.getCompaniesList();
     }
 
     // -------------------------------------- *** ПРАВА *** ------------------------------------
    getSetOfPermissions(){
     return this.http.get('/api/auth/getMyPermissions?id=45')
-            .subscribe(
-                (data) => {   
-                            this.permissionsSet=data as any [];
-                            this.getMyId();
-                        },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-            );
-  }
+    .subscribe(
+        (data) => {   
+                    this.permissionsSet=data as any [];
+                    this.getMyId();
+                },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+      );
+    }
 
   getCRUD_rights(permissionsSet:any[]){
     this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==568)});
@@ -178,7 +176,7 @@ export class WithdrawalComponent implements OnInit {
       this.getTableHeaderTitles();
       this.getPagesList();
       this.getTable();
-    } else {this.gettingTableData=false;;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
+    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})} //+++
   }
 
   getTableHeaderTitles(){
@@ -198,14 +196,14 @@ export class WithdrawalComponent implements OnInit {
   getPagesList(){
     // this.receivedPagesList=null;
     this.queryFormService.getPagesList(this.sendingQueryForm)
-            .subscribe(
-                data => {this.receivedPagesList=data as string [];
-                this.size=this.receivedPagesList[0];
-                this.pagenum=this.receivedPagesList[1];
-                this.listsize=this.receivedPagesList[2];
-                this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-            ); 
+      .subscribe(
+          data => {this.receivedPagesList=data as string [];
+          this.size=this.receivedPagesList[0];
+          this.pagenum=this.receivedPagesList[1];
+          this.listsize=this.receivedPagesList[2];
+          this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
+          error =>  {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+      ); 
   }
 
   getTable(){
@@ -217,8 +215,8 @@ export class WithdrawalComponent implements OnInit {
                   if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
                   this.gettingTableData=false;
                 },
-                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
-            );
+        error =>  {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+    );
   }
 
   // isAllSelected() {//все выбраны
@@ -334,31 +332,46 @@ export class WithdrawalComponent implements OnInit {
       duration: 3000,
     });
   }
-  getCompaniesList(){
-    this.receivedCompaniesList=null;
-    this.loadSpravService.getCompaniesList()
-            .subscribe(
+  
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+      this.loadSpravService.getCompaniesList()
+              .subscribe(
                 (data) => {this.receivedCompaniesList=data as any [];
                   this.getSetOfPermissions();
                 },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
             );
-  }
-  getMyId(){
-    this.receivedMyDepartmentsList=null;
-    this.loadSpravService.getMyId()
+    else this.getSetOfPermissions();
+  }  
+  getMyId(){ //+++
+    if(+this.myId==0)
+     this.loadSpravService.getMyId()
             .subscribe(
                 (data) => {this.myId=data as any;
                   this.getMyCompanyId();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
             );
+      else this.getMyCompanyId();
   }
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
       (data) => {
         this.myCompanyId=data as number;
         this.setDefaultCompany();
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
+    else this.setDefaultCompany();
+  } 
+  getMyDepartmentsList(){ //+++
+    if(this.receivedMyDepartmentsList.length==0)
+      this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
+      .subscribe(
+          (data) => {this.receivedMyDepartmentsList=data as any [];
+            this.setDefaultDepartment();},
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+      );
+      else this.setDefaultDepartment();
   }
 
   setDefaultCompany(){
@@ -379,21 +392,9 @@ export class WithdrawalComponent implements OnInit {
             );
   }
 
-  getMyDepartmentsList(){
-    this.receivedMyDepartmentsList=null;
-    this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
-            .subscribe(
-                (data) => {this.receivedMyDepartmentsList=data as any [];
-                  this.setDefaultDepartment();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-            );
-  }
-
   setDefaultDepartment(){
     if(this.receivedDepartmentsList.length==1)
     {
-      console.log('установка отделения по умолчанию - '+this.receivedDepartmentsList[0].id);
-
       this.sendingQueryForm.departmentId=+this.receivedDepartmentsList[0].id;
       Cookie.set('withdrawal_departmentId',this.sendingQueryForm.departmentId);
     }
@@ -433,6 +434,9 @@ export class WithdrawalComponent implements OnInit {
       this.receivedDepartmentsList=this.receivedMyDepartmentsList;}
   }
     
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
+  }
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
 
   resetOptions(){
@@ -442,18 +446,18 @@ export class WithdrawalComponent implements OnInit {
     this.sendingQueryForm.filterOptionsIds = [];
   }
   fillOptionsList(){
-    this.optionsIds=[{id:1, name:"Показать только удалённые"},];
+    // this.optionsIds=[{id:1, name: 'menu.top.only_del'},]; //+++
   }
-  clickApplyFilters(){
-    let showOnlyDeletedCheckboxIsOn:boolean = false; //присутствует ли включенный чекбокс "Показывать только удалённые"
-    this.selectionFilterOptions.selected.forEach(z=>{
-      if(z.id==1){showOnlyDeletedCheckboxIsOn=true;}
-    })
-    this.displayingDeletedDocs=showOnlyDeletedCheckboxIsOn;
-    // this.clearCheckboxSelection();
-    this.sendingQueryForm.offset=0;//сброс пагинации
-    this.getData();
-  }
+  // clickApplyFilters(){
+  //   let showOnlyDeletedCheckboxIsOn:boolean = false; //присутствует ли включенный чекбокс "Показывать только удалённые"
+  //   this.selectionFilterOptions.selected.forEach(z=>{
+  //     if(z.id==1){showOnlyDeletedCheckboxIsOn=true;}
+  //   })
+  //   this.displayingDeletedDocs=showOnlyDeletedCheckboxIsOn;
+  //   // this.clearCheckboxSelection();
+  //   this.sendingQueryForm.offset=0;//сброс пагинации
+  //   this.getData();
+  // }
   // updateSortOptions(){//после определения прав пересматриваем опции на случай, если права не разрешают действия с определенными опциями, и исключаем эти опции
   //   let i=0; 
   //   this.optionsIds.forEach(z=>{
@@ -462,14 +466,14 @@ export class WithdrawalComponent implements OnInit {
   //   });
   //   if (this.optionsIds.length>0) this.displaySelectOptions=true; else this.displaySelectOptions=false;//если опций нет - не показываем меню опций
   // }
-  clickFilterOptionsCheckbox(row){
-    this.selectionFilterOptions.toggle(row); 
-    this.createFilterOptionsCheckedList();
-  } 
-  createFilterOptionsCheckedList(){//this.sendingQueryForm.filterOptionsIds - массив c id выбранных чекбоксов вида "7,5,1,3,6,2,4", который заполняется при нажатии на чекбокс
-    this.sendingQueryForm.filterOptionsIds = [];//                                                     
-    this.selectionFilterOptions.selected.forEach(z=>{
-      this.sendingQueryForm.filterOptionsIds.push(+z.id);
-    });
-  }
+  // clickFilterOptionsCheckbox(row){
+  //   this.selectionFilterOptions.toggle(row); 
+  //   this.createFilterOptionsCheckedList();
+  // } 
+  // createFilterOptionsCheckedList(){//this.sendingQueryForm.filterOptionsIds - массив c id выбранных чекбоксов вида "7,5,1,3,6,2,4", который заполняется при нажатии на чекбокс
+  //   this.sendingQueryForm.filterOptionsIds = [];//                                                     
+  //   this.selectionFilterOptions.selected.forEach(z=>{
+  //     this.sendingQueryForm.filterOptionsIds.push(+z.id);
+  //   });
+  // }
 }

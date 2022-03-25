@@ -8,16 +8,21 @@ import { SettingsInvoiceoutDialogModule } from '../../../../modules/settings/set
 
 import { FormsModule } from '@angular/forms';
 import { MaterialModule } from '../../../../modules/material.module';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [InvoiceoutComponent],
+  providers: [
+    { provide: TRANSLOCO_SCOPE, useValue: 'menu' }
+  ],
   imports: [
     CommonModule,
     InvoiceoutRoutingModule,
     SettingsInvoiceoutDialogModule,
     
     FormsModule,
-    MaterialModule
+    MaterialModule,
+    TranslocoModule
   ]
 })
 export class InvoiceoutModule { }

@@ -4,9 +4,9 @@ class="spinner"
 [diameter]="50"
 *ngIf="gettingTableData"
 ></mat-spinner>
-<mat-card class="card">
-    <mat-card-title class="flex" style="height: 30px;">
-        <div *ngIf="!displayingDeletedDocs" class="emptyspace">Кассовые смены</div>
+<mat-card class="card" *transloco="let t">
+    <mat-card-title class="flex" style="height: 30px;"> <!--+++-->
+        <div *ngIf="!displayingDeletedDocs" class="emptyspace">{{cu.cap(t('menu.docs.shifts'))}}</div>
         <!-- <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> кассовые смены</div> -->
         <!-- <button 
             mat-raised-button 
@@ -23,12 +23,12 @@ class="spinner"
                 <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> Создать</button>
             </a>   
         </div> -->
-        <div [style.display]="(!displayingDeletedDocs&&visBtnDelete)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
+        <!-- <div [style.display]="(!displayingDeletedDocs&&visBtnDelete)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
             <button mat-raised-button (click)="clickBtnDelete()" color="warn"><i class="material-icons">delete_forever</i> Удалить</button>
         </div>
         <div *ngIf="displayingDeletedDocs && visBtnDelete" class="col-sm-auto justify-content-center" style="margin:0px 10px 10px 0px">
             <button mat-raised-button (click)="clickBtnRestore()" color="accent"><i class="material-icons">restore_from_trash</i> Восстановить</button>
-        </div>
+        </div> -->
     </mat-card-title>
     <mat-card-content>
         <div class="card  w-100">
@@ -52,7 +52,7 @@ class="spinner"
                     </div>
                     <div class="flex">
                         <mat-form-field style="width:50px;" class="num-of-rows">
-                            <mat-label>Строк</mat-label>
+                            <mat-label>{{t('menu.top.rows')}}</mat-label>
                             <mat-select [(value)]="sendingQueryForm.result" (selectionChange)="setNumOfPages()" class="form-control" id="selectRowsPerPage" name="result">                           
                                 <mat-option  *ngFor="let num of numRows" [value]="num.value">
                                         {{num.viewValue}}
@@ -60,7 +60,7 @@ class="spinner"
                             </mat-select>
                         </mat-form-field>
                         <mat-form-field  class="company-select" style="margin-left: 10px; max-width: 200px;">
-                            <mat-label>Предприятие</mat-label>
+                            <mat-label>{{t('menu.top.company')}}</mat-label>
                             <mat-select  [(value)]="sendingQueryForm.companyId" 
                             (selectionChange)="onCompanySelection()">                          
                                 <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
@@ -69,27 +69,27 @@ class="spinner"
                             </mat-select>
                         </mat-form-field>
                         <mat-form-field  class="company-select" style="margin-left: 10px; max-width: 200px;">
-                            <mat-label>Отделение</mat-label>
+                            <mat-label>{{t('menu.top.department')}}</mat-label>
                             <mat-select  [(value)]="sendingQueryForm.departmentId" (selectionChange)="onDepartmentSelection();">                          
-                                <mat-option value="0" selected>Все доступные отделения</mat-option>
+                                <mat-option value="0" selected>{{t('menu.top.all_acc_depar')}}</mat-option>
                                 <mat-option  *ngFor="let rdl of receivedDepartmentsList" [value]="rdl.id">
                                         {{rdl.name}}
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
                         <mat-form-field  class="company-select" style="margin-left: 10px; max-width: 200px;">
-                            <mat-label>Касса</mat-label>
+                            <mat-label>{{t('menu.top.sales_regstr')}}</mat-label>
                             <mat-select  [(value)]="sendingQueryForm.kassaId" (selectionChange)="onKassaSelection();">                          
-                                <mat-option value="0" selected>Все доступные кассы</mat-option>
+                                <mat-option value="0" selected>{{t('menu.top.all_av_c_regs')}}</mat-option>
                                 <mat-option  *ngFor="let rdl of shiftsKassaList" [value]="rdl.id">
                                         {{rdl.name}}
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
                         <mat-form-field  class="company-select" style="margin-left: 10px; max-width: 200px;">
-                            <mat-label>Кассир</mat-label>
+                            <mat-label>{{t('menu.top.cashier')}}</mat-label>
                             <mat-select  [(value)]="sendingQueryForm.cashierId" (selectionChange)="onCashierSelection();">                          
-                                <mat-option value="0" selected>Все доступные кассиры</mat-option>
+                                <mat-option value="0" selected>{{t('menu.top.all_av_cashrs')}}</mat-option>
                                 <mat-option  *ngFor="let rdl of shiftsCashiersList" [value]="rdl.id">
                                         {{rdl.name}}
                                 </mat-option>
@@ -101,11 +101,11 @@ class="spinner"
                             class="options-button"
                             [matMenuTriggerFor]="oper"
                             type="button"
-                            matTooltip='Выбрать опции для фильтра'
+                            matTooltip="{{t('menu.tip.select_opt')}}"
                             matSuffix mat-icon-button>
                             <mat-icon>list_alt</mat-icon>
                         </button> -->
-                        <mat-menu #oper="matMenu" xPosition="before">
+                        <!-- <mat-menu #oper="matMenu" xPosition="before">
                             <div style="width: 300px;">
                                 <ul>
                                     <li *ngFor="let row of optionsIds">
@@ -119,7 +119,7 @@ class="spinner"
                             </div>
                             <div class="div-100"> 
                                 <div style="width:100%; height: 38px; padding-bottom: 15px;">
-                                    <button matTooltip="Применить фильтры" 
+                                    <button matTooltip="{{t('menu.tip.apply_filters')}}" 
                                             mat-mini-fab 
                                             color="primary" 
                                             (click)="clickApplyFilters()">
@@ -127,12 +127,12 @@ class="spinner"
                                     </button>
                                 </div>
                             </div> 
-                        </mat-menu>
+                        </mat-menu> -->
                         <span  class="emptyspace" style="display: none"></span>
                         <div class="flex">     
-                            <mat-form-field class="emptyspace">
+                            <mat-form-field class="emptyspace"> <!--+++-->
                                     <input matInput 
-                                    placeholder="Поиск..." 
+                                    placeholder="{{t('menu.top.search')}}" 
                                     [(ngModel)]="sendingQueryForm.searchString" 
                                     type="text"  
                                     id="search_input" 
@@ -179,7 +179,7 @@ class="spinner"
 
                         <ng-container matColumnDef="company">
                             <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('company')" class="sortheader"> Предприятие 
+                            <span (click)="setSort('company')" class="sortheader"> {{t('menu.table.company')}} 
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='company'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='company'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
@@ -187,7 +187,7 @@ class="spinner"
                         </ng-container>
                         <ng-container matColumnDef="department">
                             <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('department')" class="sortheader"> Отделение 
+                            <span (click)="setSort('department')" class="sortheader"> {{t('menu.table.department')}} 
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='department'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='department'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
@@ -195,7 +195,7 @@ class="spinner"
                         </ng-container>
                         <ng-container matColumnDef="kassa">
                             <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('kassa')" class="sortheader"> Касса 
+                            <span (click)="setSort('kassa')" class="sortheader"> {{t('menu.table.cash_regstr')}} 
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='kassa'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='kassa'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
@@ -203,7 +203,7 @@ class="spinner"
                         </ng-container>
                         <ng-container matColumnDef="creator">
                             <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('creator')" class="sortheader"> Открыл 
+                            <span (click)="setSort('creator')" class="sortheader"> {{t('menu.table.opened_by')}} 
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='creator'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='creator'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
@@ -211,7 +211,7 @@ class="spinner"
                         </ng-container>
                         <ng-container matColumnDef="closer">
                             <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('closer')" class="sortheader"> Закрыл 
+                            <span (click)="setSort('closer')" class="sortheader"> {{t('menu.table.closed_by')}} 
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='closer'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='closer'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
@@ -219,7 +219,7 @@ class="spinner"
                         </ng-container>
                         <ng-container matColumnDef="date_time_created">
                             <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('date_time_created_sort')" class="sortheader"> Дата открытия 
+                            <span (click)="setSort('date_time_created_sort')" class="sortheader"> {{t('menu.table.date_open')}} 
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='date_time_created_sort'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='date_time_created_sort'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
@@ -227,17 +227,17 @@ class="spinner"
                         </ng-container>
                         <ng-container matColumnDef="num_receipts">
                             <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('num_receipts')" class="sortheader"> Кол-во чеков 
+                            <span (click)="setSort('num_receipts')" class="sortheader"> {{t('menu.table.cnt_recepts')}} 
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='num_receipts'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='num_receipts'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
                             <td mat-cell *matCellDef="let row"> 
-                                <span matTooltip='Показать чеки за данную смену' class="hand" (click)="openReceiptsWindow(row.company_id, row.id)" style="cursor:pointer">{{row.num_receipts}}</span>
+                                <span matTooltip="{{t('menu.tip.show_receipts')}}" class="hand" (click)="openReceiptsWindow(row.company_id, row.id)" style="cursor:pointer">{{row.num_receipts}}</span>
                             </td>
                         </ng-container>
                         <ng-container matColumnDef="date_time_closed">
                             <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('date_time_closed_sort')" class="sortheader"> Дата закрытия 
+                            <span (click)="setSort('date_time_closed_sort')" class="sortheader"> {{t('menu.table.date_close')}}
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='date_time_closed_sort'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='date_time_closed_sort'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
@@ -245,7 +245,7 @@ class="spinner"
                         </ng-container>
                         <ng-container matColumnDef="shift_number">
                             <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('shift_number')" class="sortheader"> Номер
+                            <span (click)="setSort('shift_number')" class="sortheader"> {{t('menu.table.number')}}
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='shift_number'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='shift_number'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
@@ -253,7 +253,7 @@ class="spinner"
                         </ng-container>
                         <ng-container matColumnDef="acquiring_bank">
                             <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('acquiring_bank')" class="sortheader"> Банк-эквайер 
+                            <span (click)="setSort('acquiring_bank')" class="sortheader"> {{t('menu.table.aq_bank')}} 
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='acquiring_bank'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='acquiring_bank'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
@@ -261,16 +261,16 @@ class="spinner"
                         </ng-container>
                         <ng-container matColumnDef="revenue_all">
                             <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('revenue_all')" class="sortheader"> Выручка
+                            <span (click)="setSort('revenue_all')" class="sortheader"> {{t('menu.table.revenue')}}
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='revenue_all'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='revenue_all'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
                             <td mat-cell *matCellDef="let row" 
-                            matTooltip="Наличными: {{row.revenue_cash}}  Безналичными: {{row.revenue_electronically}}"> {{row.revenue_all}} </td>
+                            matTooltip="{{t('menu.table.cash')}}: {{row.revenue_cash}}  {{t('menu.table.non_cash')}}: {{row.revenue_electronically}}"> {{row.revenue_all}} </td>
                         </ng-container>
                         <ng-container matColumnDef="shift_status_id">
                             <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('shift_status_id')" class="sortheader"> Статус
+                            <span (click)="setSort('shift_status_id')" class="sortheader"> {{t('menu.table.status')}}
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='shift_status_id'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='shift_status_id'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
@@ -278,26 +278,25 @@ class="spinner"
                                 <mat-chip-list>
                                     <mat-chip 
                                     *ngIf="row.shift_status_id=='opened'" 
-                                    matTooltip="Смена открыта"
-                                    style="color:orange">
-                                        Открыта
+                                    matTooltip="{{t('menu.tip.shift_opened')}}"
+                                    style="color:darkorange">
+                                        {{t('menu.table.opened')}}
                                     </mat-chip>
                                     <mat-chip 
                                     *ngIf="row.shift_status_id=='closed'"
-                                    matTooltip="Смена закрыта"
-                                    style="color:green"
-                                    >
-                                        Закрыта
+                                    matTooltip="{{t('menu.tip.shift_closed')}}"
+                                    style="color:green">
+                                        {{t('menu.table.closed')}}                                        
                                     </mat-chip>
                                 </mat-chip-list>
                             </td>
                         </ng-container>
                         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                         <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-                        <!-- Блок "Данные не найдены" -->
+                        <!-- Part "Data not founded" --> <!--+++-->
                         <ng-container matColumnDef="data_not_found">
                             <td mat-footer-cell *matFooterCellDef colspan="13" class="text-center">
-                            Данные не найдены
+                                {{t('menu.msg.dt_not_fnd')}}
                             </td>
                         </ng-container>
                         <ng-container matColumnDef="nocolumn">
@@ -306,12 +305,12 @@ class="spinner"
                         <tr mat-footer-row 
                         *matFooterRowDef="[dataSource.data.length==0?'data_not_found':'nocolumn']" 
                         [ngStyle]="(dataSource.data.length==0 && !gettingTableData)?{}:{'display': 'none'}"></tr>
-                        <!-- Конец блока "Данные не найдены" -->        
-                    </table>
-              
-                    <div class="flex">
-                        <div class="col-sm">
-                            <p> Найдено: {{size}}, страница {{pagenum}} из {{listsize}}</p>
+                        <!-- End of Part "Data not founded" -->
+                </table>
+      
+            <div class="flex">
+                <div class="col-sm">
+                    <p> {{t('menu.bottom.founded')}}: {{size}}, {{t('menu.bottom.page')}} {{pagenum}}  {{t('menu.bottom.of')}} {{listsize}}</p> <!--+++-->
                         </div>
                         <span  class="emptyspace"></span><!-- разделитель -->
                         <div class="col-sm-auto justify-content-end">

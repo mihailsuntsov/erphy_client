@@ -8,9 +8,13 @@ import { SettingsRsDialogModule } from '../../../../modules/settings/settings-re
 
 import { FormsModule } from '@angular/forms';
 import { MaterialModule } from '../../../../modules/material.module';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [RetailsalesComponent],
+  providers: [
+    { provide: TRANSLOCO_SCOPE, useValue: 'menu' }
+  ],
   imports: [
     CommonModule,
     RetailsalesRoutingModule,
@@ -18,6 +22,7 @@ import { MaterialModule } from '../../../../modules/material.module';
 
     MaterialModule,
     FormsModule,
+    TranslocoModule
   ]
 })
 export class RetailsalesModule { } 

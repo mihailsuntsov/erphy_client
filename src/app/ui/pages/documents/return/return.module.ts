@@ -6,16 +6,21 @@ import { SettingsReturnDialogModule } from '../../../../modules/settings/setting
 
 import { FormsModule } from '@angular/forms';
 import { MaterialModule } from '../../../../modules/material.module';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [ReturnComponent],
+  providers: [
+    { provide: TRANSLOCO_SCOPE, useValue: 'menu' }
+  ],
   imports: [
     CommonModule,
     ReturnRoutingModule,
     SettingsReturnDialogModule,
 
     MaterialModule,
-    FormsModule
+    FormsModule,
+    TranslocoModule
   ]
 })
 export class ReturnModule { }

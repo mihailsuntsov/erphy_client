@@ -1,4 +1,4 @@
-import { Component, OnInit} from '@angular/core';
+import { Component, EventEmitter, OnInit, Output} from '@angular/core';
 import { QueryForm } from './query-form';
 import { SelectionModel } from '@angular/cdk/collections';
 import { ActivatedRoute} from '@angular/router'; //!!!
@@ -15,6 +15,8 @@ import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { FormGroup, FormControl } from '@angular/forms';
 import { SettingsInvoiceoutDialogComponent } from 'src/app/modules/settings/settings-invoiceout-dialog/settings-invoiceout-dialog.component';
+import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
+import { translate, TranslocoService } from '@ngneat/transloco'; //+++
 
 export interface CheckBox {
   id: number;
@@ -36,7 +38,7 @@ export interface NumRow {//интерфейс для списка количес
   selector: 'app-invoiceout',
   templateUrl: './invoiceout.component.html',
   styleUrls: ['./invoiceout.component.css'],
-  providers: [QueryFormService,LoadSpravService,Cookie]
+  providers: [QueryFormService,LoadSpravService,Cookie,CommonUtilitesService] //+++
 })
 export class InvoiceoutComponent implements OnInit {
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
@@ -104,6 +106,8 @@ export class InvoiceoutComponent implements OnInit {
   option:number = 0; // опция для фильтра при переходе в данный модуль по роутеру // !!!
   company:number = 0; // опция для фильтра при переходе в данный модуль по роутеру // !!!
   //***********************************************************************************************************************/
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
+
   constructor(private queryFormService:   QueryFormService,
     private activateRoute: ActivatedRoute,// !!!
     private loadSpravService:   LoadSpravService,
@@ -114,7 +118,9 @@ export class InvoiceoutComponent implements OnInit {
     private http: HttpClient,
     private settingsInvoiceoutDialogComponent: MatDialog,
     public deleteDialog: MatDialog,
-    public dialogRef1: MatDialogRef<InvoiceoutComponent>,) {
+    public dialogRef1: MatDialogRef<InvoiceoutComponent>,
+    public cu: CommonUtilitesService, //+++
+    private service: TranslocoService,) {
       // !!!
       if(activateRoute.snapshot.params['option']){
         this.option = +activateRoute.snapshot.params['option'];
@@ -148,8 +154,14 @@ export class InvoiceoutComponent implements OnInit {
         Cookie.set('invoiceout_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('invoiceout_offset');
       if(Cookie.get('invoiceout_result')=='undefined' || Cookie.get('invoiceout_result')==null)        
         Cookie.set('invoiceout_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('invoiceout_result');
-      
-      this.fillOptionsList();//заполняем список опций фильтра
+    
+      //+++ getting base data from parent component
+      this.getBaseData('myId');    
+      this.getBaseData('myCompanyId');  
+      this.getBaseData('companiesList');      
+      this.getBaseData('myDepartmentsList');
+    
+    this.fillOptionsList();//заполняем список опций фильтра
       // Форма настроек
     this.settingsForm = new FormGroup({
       // id отделения
@@ -211,10 +223,10 @@ export class InvoiceoutComponent implements OnInit {
                 (data) => {   
                             this.permissionsSet=data as any [];
                             this.getMyId();
-                        },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-            );
-  }
+      },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+      );
+    }
 
 
   getCRUD_rights(permissionsSet:any[]){
@@ -264,7 +276,7 @@ export class InvoiceoutComponent implements OnInit {
       this.getTableHeaderTitles();
       this.getPagesList();
       this.getTable();
-    } else {this.gettingTableData=false;;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
+    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})} //+++
   }
 
   getTableHeaderTitles(){
@@ -287,27 +299,27 @@ export class InvoiceoutComponent implements OnInit {
   getPagesList(){
     // this.receivedPagesList=null;
     this.queryFormService.getPagesList(this.sendingQueryForm)
-            .subscribe(
-                data => {this.receivedPagesList=data as string [];
-                this.size=this.receivedPagesList[0];
-                this.pagenum=this.receivedPagesList[1];
-                this.listsize=this.receivedPagesList[2];
-                this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-            ); 
+    .subscribe(
+        data => {this.receivedPagesList=data as string [];
+        this.size=this.receivedPagesList[0];
+        this.pagenum=this.receivedPagesList[1];
+        this.listsize=this.receivedPagesList[2];
+        this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
+        error =>  {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+    ); 
   }
 
   getTable(){
     this.gettingTableData=true;
     this.queryFormService.getTable(this.sendingQueryForm)
-            .subscribe(
-                (data) => {
-                  this.dataSource.data = data as any []; 
-                  if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
-                  this.gettingTableData=false;
-                },
-                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
-            );
+    .subscribe(
+        (data) => {
+          this.dataSource.data = data as any []; 
+          if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
+          this.gettingTableData=false;
+        },
+        error =>  {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+    );
   }
 
   isAllSelected() {//все выбраны
@@ -435,55 +447,100 @@ export class InvoiceoutComponent implements OnInit {
       this.showOnlyVisBtnAdd();
     });        
   }
-
+  clickBtnRestore(): void {
+    const dialogRef = this.confirmDialog.open(ConfirmDialog, {
+      width: '400px',
+      data:
+      { 
+        head: translate('menu.dialogs.restore'), //+++
+        query: translate('menu.dialogs.q_restore'),
+        warning: '',
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){this.undeleteDocs();}
+      this.clearCheckboxSelection();
+      this.showOnlyVisBtnAdd();
+    });        
+  }
+  undeleteDocs(){
+    const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
+    this.clearCheckboxSelection();
+    return this.http.post('/api/auth/undeleteInvoiceout', body) 
+    .subscribe(
+    (data) => {   
+      let result=data as any;
+      switch(result){ //+++
+        case 1:{this.getData();this.openSnackBar(translate('menu.msg.rec_success'), translate('menu.msg.close'));break;}  //+++
+        case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+        case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+      }
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
+  }  
   deleteDocs(){
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
-          return this.http.post('/api/auth/deleteInvoiceout', body) 
-  .subscribe((data) => {   
-    let result=data as any;
-    switch(result.result){
-      case 0:{this.getData();this.openSnackBar("Успешно удалено", "Закрыть");break;} 
-      case 1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе удаления "+(this.checkedList.length>1?"документов":"документа")+" проиошла ошибка")}});break;}
-      case 2:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для операции удаления"}});break;}
-      case 3:{let numbers:string='';
-        for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="/ui/invoiceoutdoc/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
-        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Удаление невозможно - у следующих номеров документов есть производные (связанные с ними дочерние) документы:'+numbers}});break;}
-    }
-  },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
-}
+    return this.http.post('/api/auth/deleteInvoiceout', body) 
+    .subscribe((data) => {  
+      let result=data as any;
+      switch(result.result){
+        case 0:{this.getData();this.openSnackBar(translate('menu.msg.del_success'), translate('menu.msg.close'));break;} 
+        case 1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+        case 2:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+        case 3:{let numbers:string='';
+          for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="/ui/invoiceoutdoc/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
+          this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.no_del_childs')+numbers}});break;}
+      }
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
+  }
     
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
       duration: 3000,
     });
   }
-  getCompaniesList(){
-    this.receivedCompaniesList=null;
-    this.loadSpravService.getCompaniesList()
-            .subscribe(
+  
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+      this.loadSpravService.getCompaniesList()
+              .subscribe(
                 (data) => {this.receivedCompaniesList=data as any [];
                   this.getSetOfPermissions();
                 },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
             );
-  }
-  getMyId(){
-    this.receivedMyDepartmentsList=null;
-    this.loadSpravService.getMyId()
+    else this.getSetOfPermissions();
+  }  
+  getMyId(){ //+++
+    if(+this.myId==0)
+     this.loadSpravService.getMyId()
             .subscribe(
                 (data) => {this.myId=data as any;
                   this.getMyCompanyId();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
             );
+      else this.getMyCompanyId();
   }
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
       (data) => {
         this.myCompanyId=data as number;
         this.setDefaultCompany();
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
+    else this.setDefaultCompany();
+  } 
+  getMyDepartmentsList(){ //+++
+    if(this.receivedMyDepartmentsList.length==0)
+      this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
+      .subscribe(
+          (data) => {this.receivedMyDepartmentsList=data as any [];
+            this.setDefaultDepartment();},
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+      );
+      else this.setDefaultDepartment();
   }
+
 
   setDefaultCompany(){
     if(Cookie.get('invoiceout_companyId')=='0'){
@@ -503,21 +560,9 @@ export class InvoiceoutComponent implements OnInit {
             );
   }
 
-  getMyDepartmentsList(){
-    this.receivedMyDepartmentsList=null;
-    this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
-            .subscribe(
-                (data) => {this.receivedMyDepartmentsList=data as any [];
-                  this.setDefaultDepartment();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-            );
-  }
-
   setDefaultDepartment(){
     if(this.receivedDepartmentsList.length==1)
     {
-      console.log('установка отделения по умолчанию - '+this.receivedDepartmentsList[0].id);
-
       this.sendingQueryForm.departmentId=+this.receivedDepartmentsList[0].id;
       Cookie.set('invoiceout_departmentId',this.sendingQueryForm.departmentId);
     }
@@ -597,46 +642,22 @@ export class InvoiceoutComponent implements OnInit {
         }
       });
     }
-    // Сохраняет настройки
-    saveSettingsInvoiceout(){
-      return this.http.post('/api/auth/saveSettingsInvoiceout', this.settingsForm.value)
-              .subscribe(
-                  (data) => {   
-                            this.openSnackBar("Настройки успешно сохранены", "Закрыть");
-                            
-                          },
-                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-              );
-    }
-  //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
-  clickBtnRestore(): void {
-    const dialogRef = this.confirmDialog.open(ConfirmDialog, {
-      width: '400px',
-      data:
-      { 
-        head: 'Восстановление',
-        query: 'Восстановить выбранные счета покупателям из удалённых?',
-        warning: '',
-      },
-    });
-    dialogRef.afterClosed().subscribe(result => {
-      if(result==1){this.undeleteDocs();}
-      this.clearCheckboxSelection();
-      this.showOnlyVisBtnAdd();
-    });        
-  }
-  undeleteDocs(){
-    const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
-    this.clearCheckboxSelection();
-      return this.http.post('/api/auth/undeleteInvoiceout', body) 
-    .subscribe(
-        (data) => {   
-                    this.getData();
-                    this.openSnackBar("Успешно восстановлено", "Закрыть");
-                  },
-        error => console.log(error),
+  // Сохраняет настройки
+  saveSettingsInvoiceout(){
+    return this.http.post('/api/auth/saveSettingsInvoiceout', this.settingsForm.value)
+            .subscribe(
+                (data) => {   
+                  this.openSnackBar(translate('menu.msg.settngs_saved'), translate('menu.msg.close')); //+++
+                        
+                },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
     );
-  }  
+  }
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
+  }
+  //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
+  
   resetOptions(){
     this.displayingDeletedDocs=false;
     this.fillOptionsList();//перезаполняем список опций
@@ -646,8 +667,8 @@ export class InvoiceoutComponent implements OnInit {
   // !!!
   fillOptionsList(){
     this.optionsIds=[
-      {id:1, name:"Показать только удалённые"},
-      {id:2, name:"Только просроченные счета"}];
+      {id:1, name: 'menu.top.only_del'},
+      {id:2, name: 'menu.top.only_overdue'}];
   }
   // !!!
   clickApplyFilters(){

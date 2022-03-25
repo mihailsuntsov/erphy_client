@@ -6,15 +6,20 @@ import { DepositingComponent } from './depositing.component';
 
 import { FormsModule } from '@angular/forms';
 import { MaterialModule } from '../../../../modules/material.module';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [DepositingComponent],
+  providers: [
+    { provide: TRANSLOCO_SCOPE, useValue: 'menu' }
+  ],
   imports: [
     CommonModule,
     DepositingRoutingModule,
     
     FormsModule,
-    MaterialModule
+    MaterialModule,
+    TranslocoModule
   ]
 })
 export class DepositingModule { }

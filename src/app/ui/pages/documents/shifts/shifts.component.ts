@@ -1,20 +1,17 @@
-import { Component, OnInit} from '@angular/core';
+import { Component, EventEmitter, OnInit, Output} from '@angular/core';
 import { QueryForm } from './query-form';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { HttpClient } from '@angular/common/http';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-// import { Validators } from '@angular/forms';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { QueryFormService } from './get-shifts-table.service';
-import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
 import { ReceiptsComponent } from 'src/app/ui/pages/documents/receipts/receipts.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
-// import { FormGroup, FormControl } from '@angular/forms';
-// import { SettingsShiftsDialogComponent } from 'src/app/modules/settings/settings-shifts-dialog/settings-shifts-dialog.component';
+import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
+import { translate, TranslocoService } from '@ngneat/transloco'; //+++
 
 export interface CheckBox {
   id: number;
@@ -36,7 +33,7 @@ export interface NumRow {//интерфейс для списка количес
   selector: 'app-shifts',
   templateUrl: './shifts.component.html',
   styleUrls: ['./shifts.component.css'],
-  providers: [QueryFormService,LoadSpravService,Cookie]
+  providers: [QueryFormService,LoadSpravService,Cookie,CommonUtilitesService] //+++
 })
 export class ShiftsComponent implements OnInit {
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
@@ -104,6 +101,8 @@ export class ShiftsComponent implements OnInit {
   displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
   //***********************************************************************************************************************/
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
+  
   constructor(private queryFormService:   QueryFormService,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
@@ -114,7 +113,9 @@ export class ShiftsComponent implements OnInit {
     private http: HttpClient,
     private settingsShiftsDialogComponent: MatDialog,
     public deleteDialog: MatDialog,
-    public dialogRef1: MatDialogRef<ShiftsComponent>,) { }
+    public dialogRef1: MatDialogRef<ShiftsComponent>,
+    public cu: CommonUtilitesService, //+++
+    private service: TranslocoService,) { }
 
     ngOnInit() {
       this.sendingQueryForm.companyId='0';
@@ -144,8 +145,15 @@ export class ShiftsComponent implements OnInit {
         Cookie.set('shifts_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('shifts_offset');
       if(Cookie.get('shifts_result')=='undefined' || Cookie.get('shifts_result')==null)        
         Cookie.set('shifts_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('shifts_result');
+  
+      //+++ getting base data from parent component
+      this.getBaseData('myId');    
+      this.getBaseData('myCompanyId');  
+      this.getBaseData('companiesList');      
+      this.getBaseData('myDepartmentsList');
+  
       
-      this.fillOptionsList();//заполняем список опций фильтра
+      // this.fillOptionsList();//заполняем список опций фильтра
       // Форма настроек
     /*this.settingsForm = new FormGroup({
       // id отделения
@@ -169,30 +177,19 @@ export class ShiftsComponent implements OnInit {
     });*/
 
       this.getCompaniesList();// 
-      // -> getSetOfPermissions() 
-      // -> getMyId()
-      // -> getMyCompanyId() 
-      // -> setDefaultCompany() 
-      // -> getDepartmentsList()
-      // -> getMyDepartmentsList()
-      // -> setDefaultDepartment()
-      // -> getCRUD_rights() 
-      // -> getData() 
-      //API: getCompaniesList         giveMeMyPermissions      getMyCompanyId
-    }
-
-    // -------------------------------------- *** ПРАВА *** ------------------------------------
-   getSetOfPermissions(){
-    return this.http.get('/api/auth/getMyPermissions?id=43')
-            .subscribe(
-                (data) => {   
-                            this.permissionsSet=data as any [];
-                            this.getMyId();
-                        },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-            );
   }
 
+    // -------------------------------------- *** ПРАВА *** ------------------------------------
+  getSetOfPermissions(){
+    return this.http.get('/api/auth/getMyPermissions?id=43')
+    .subscribe(
+        (data) => {   
+      this.permissionsSet=data as any [];
+      this.getMyId();
+    },
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+    );
+  }
 
   getCRUD_rights(permissionsSet:any[]){
     // this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==425)});
@@ -242,7 +239,7 @@ export class ShiftsComponent implements OnInit {
       this.getTableAndPagesList();
       this.getShiftsKassa();
       this.getShiftsCashiers();
-    } else {this.gettingTableData=false;;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
+    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})} //+++
   }
 
   getTableAndPagesList(){
@@ -272,27 +269,27 @@ export class ShiftsComponent implements OnInit {
   getPagesList(){
     // this.receivedPagesList=null;
     this.queryFormService.getPagesList(this.sendingQueryForm)
-            .subscribe(
-                data => {this.receivedPagesList=data as string [];
-                this.size=this.receivedPagesList[0];
-                this.pagenum=this.receivedPagesList[1];
-                this.listsize=this.receivedPagesList[2];
-                this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-            ); 
+    .subscribe(
+      data => {this.receivedPagesList=data as string [];
+      this.size=this.receivedPagesList[0];
+      this.pagenum=this.receivedPagesList[1];
+      this.listsize=this.receivedPagesList[2];
+      this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
+      error =>  {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+    ); 
   }
 
   getTable(){
     this.gettingTableData=true;
     this.queryFormService.getTable(this.sendingQueryForm)
-            .subscribe(
-                (data) => {
-                  this.dataSource.data = data as any []; 
-                  if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
-                  this.gettingTableData=false;
-                },
-                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
-            );
+    .subscribe(
+        (data) => {
+          this.dataSource.data = data as any []; 
+          if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
+          this.gettingTableData=false;
+        },
+        error =>  {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+    );
   }
   getShiftsKassa(){
     this.http.get('/api/auth/getShiftsKassa?company_id='+this.sendingQueryForm.companyId+"&department_id="+(+this.sendingQueryForm.departmentId)+"&docName='shifts'")
@@ -300,10 +297,10 @@ export class ShiftsComponent implements OnInit {
           data => { 
             this.shiftsKassaList=data as any[];
             if(this.shiftsKassaList==null){
-              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка загрузки списка касс (ККМ)"}});
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.reg_load_err')}}); //+++
             } 
         },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})} //+++
     );
   }
   getShiftsCashiers(){
@@ -312,20 +309,20 @@ export class ShiftsComponent implements OnInit {
           data => { 
             this.shiftsCashiersList=data as any[];
             if(this.shiftsCashiersList==null){
-              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка загрузки списка кассиров"}});
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.cas_load_err')}}); //+++
             } 
         },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})} //+++
     );
   }
   onKassaSelection(){
     Cookie.set('shifts_kassaId',this.sendingQueryForm.kassaId);
-    this.resetOptions();
+    // this.resetOptions();
     this.getTableAndPagesList();
   }
   onCashierSelection(){
     Cookie.set('shifts_cashierId',this.sendingQueryForm.cashierId);
-    this.resetOptions();
+    // this.resetOptions();
     this.getTableAndPagesList();
 
   }
@@ -366,18 +363,19 @@ export class ShiftsComponent implements OnInit {
 
   createCheckedList(){
     this.checkedList = [];
-    console.log("1");
+    // console.log("1");
     for (var i = 0; i < this.dataSource.data.length; i++) {
-      console.log("2");
+      // console.log("2");
       if(this.selection.isSelected(this.dataSource.data[i]))
       this.checkedList.push(this.dataSource.data[i].id);
     }
     if(this.checkedList.length>0){
-      console.log("3");
+      // console.log("3");
         this.hideAllBtns();
         if(this.allowToDelete) this.visBtnDelete = true;
         if(this.checkedList.length==1){this.visBtnCopy = true}
-    }else{console.log("4");this.showOnlyVisBtnAdd()}
+    // }else{console.log("4");
+    this.showOnlyVisBtnAdd()}
     console.log("checkedList - "+this.checkedList);
   }
 
@@ -453,7 +451,7 @@ export class ShiftsComponent implements OnInit {
     this.sendingQueryForm.departmentId="0"; 
     this.sendingQueryForm.kassaId="0"; 
     this.sendingQueryForm.cashierId="0"; 
-    this.resetOptions();
+    // this.resetOptions();
     this.getDepartmentsList();
     this.getShiftsKassa();
     this.getShiftsCashiers();
@@ -467,67 +465,82 @@ export class ShiftsComponent implements OnInit {
     // console.log('shifts_departmentId - '+Cookie.get('shifts_departmentId'));
     this.sendingQueryForm.kassaId="0"; 
     this.sendingQueryForm.cashierId="0"; 
-    this.resetOptions();
+    // this.resetOptions();
     this.getData();
   }
-  clickBtnDelete(): void {
-    const dialogRef = this.deleteDialog.open(DeleteDialog, {
-      width: '300px',
-    });
-    dialogRef.afterClosed().subscribe(result => {
-      if(result==1){this.deleteDocs();}
-      this.clearCheckboxSelection();
-      this.showOnlyVisBtnAdd();
-    });        
-  }
 
-  deleteDocs(){
-    const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
-    this.clearCheckboxSelection();
-          return this.http.post('/api/auth/deleteShifts', body) 
-  .subscribe((data) => {   
-    let result=data as any;
-    switch(result.result){
-      case 0:{this.getData();this.openSnackBar("Успешно удалено", "Закрыть");break;} 
-      case 1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе удаления "+(this.checkedList.length>1?"документов":"документа")+" проиошла ошибка")}});break;}
-      case 2:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для операции удаления"}});break;}
-      case 3:{let numbers:string='';
-        for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="/ui/shiftsdoc/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
-        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Удаление невозможно - у следующих номеров документов есть производные (связанные с ними дочерние) документы:'+numbers}});break;}
-    }
-  },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
-}
+  // clickBtnDelete(): void {
+  //   const dialogRef = this.deleteDialog.open(DeleteDialog, {
+  //     width: '300px',
+  //   });
+  //   dialogRef.afterClosed().subscribe(result => {
+  //     if(result==1){this.deleteDocs();}
+  //     this.clearCheckboxSelection();
+  //     this.showOnlyVisBtnAdd();
+  //   });        
+  // }
+
+//   deleteDocs(){
+//     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
+//     this.clearCheckboxSelection();
+//     return this.http.post('/api/auth/deleteShifts', body) 
+//     .subscribe((data) => {   
+//     let result=data as any;
+//     switch(result.result){
+//       case 0:{this.getData();this.openSnackBar("Успешно удалено", "Закрыть");break;} 
+//       case 1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе удаления "+(this.checkedList.length>1?"документов":"документа")+" проиошла ошибка")}});break;}
+//       case 2:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для операции удаления"}});break;}
+//       case 3:{let numbers:string='';
+//         for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="/ui/shiftsdoc/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
+//         this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Удаление невозможно - у следующих номеров документов есть производные (связанные с ними дочерние) документы:'+numbers}});break;}
+//     }
+//   },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+// }
     
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
       duration: 3000,
     });
   }
-  getCompaniesList(){
-    this.receivedCompaniesList=null;
-    this.loadSpravService.getCompaniesList()
-            .subscribe(
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+      this.loadSpravService.getCompaniesList()
+              .subscribe(
                 (data) => {this.receivedCompaniesList=data as any [];
                   this.getSetOfPermissions();
                 },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
             );
-  }
-  getMyId(){
-    this.receivedMyDepartmentsList=null;
-    this.loadSpravService.getMyId()
+    else this.getSetOfPermissions();
+  }  
+  getMyId(){ //+++
+    if(+this.myId==0)
+     this.loadSpravService.getMyId()
             .subscribe(
                 (data) => {this.myId=data as any;
                   this.getMyCompanyId();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
             );
+      else this.getMyCompanyId();
   }
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
       (data) => {
         this.myCompanyId=data as number;
         this.setDefaultCompany();
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
+    else this.setDefaultCompany();
+  } 
+  getMyDepartmentsList(){ //+++
+    if(this.receivedMyDepartmentsList.length==0)
+      this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
+      .subscribe(
+          (data) => {this.receivedMyDepartmentsList=data as any [];
+            this.setDefaultDepartment();},
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+      );
+      else this.setDefaultDepartment();
   }
 
   setDefaultCompany(){
@@ -544,25 +557,13 @@ export class ShiftsComponent implements OnInit {
             .subscribe(
                 (data) => {this.receivedDepartmentsList=data as any [];
                             this.getMyDepartmentsList();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-            );
-  }
-
-  getMyDepartmentsList(){
-    this.receivedMyDepartmentsList=null;
-    this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
-            .subscribe(
-                (data) => {this.receivedMyDepartmentsList=data as any [];
-                  this.setDefaultDepartment();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})} //+++
             );
   }
 
   setDefaultDepartment(){
     if(this.receivedDepartmentsList.length==1)
     {
-      console.log('установка отделения по умолчанию - '+this.receivedDepartmentsList[0].id);
-
       this.sendingQueryForm.departmentId=+this.receivedDepartmentsList[0].id;
       Cookie.set('shifts_departmentId',this.sendingQueryForm.departmentId);
     }
@@ -601,8 +602,11 @@ export class ShiftsComponent implements OnInit {
         (!this.allowToViewAllCompanies && !this.allowToViewMyCompany && !this.allowToViewMyDepartments && this.allowToViewMyDocs)){
       this.receivedDepartmentsList=this.receivedMyDepartmentsList;}
   }
-      //*************************************************************   НАСТРОЙКИ   ************************************************************/    
-    // открывает диалог настроек
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
+  }
+  //*************************************************************   НАСТРОЙКИ   ************************************************************/    
+  // открывает диалог настроек
    /* openDialogSettings() { 
       const dialogSettings = this.settingsShiftsDialogComponent.open(SettingsShiftsDialogComponent, {
         maxWidth: '95vw',
@@ -645,17 +649,17 @@ export class ShiftsComponent implements OnInit {
                             this.openSnackBar("Настройки успешно сохранены", "Закрыть");
                             
                           },
-                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})} //+++
               );
     }*/
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
-  clickBtnRestore(): void {
+ /* clickBtnRestore(): void {
     const dialogRef = this.confirmDialog.open(ConfirmDialog, {
       width: '400px',
       data:
       { 
         head: 'Восстановление',
-        query: 'Восстановить выбранные счета покупателям из удалённых?',
+        query: 'Восстановить выбранные из удалённых?',
         warning: '',
       },
     });
@@ -668,7 +672,7 @@ export class ShiftsComponent implements OnInit {
   undeleteDocs(){
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
-      return this.http.post('/api/auth/undeleteShifts', body) 
+    return this.http.post('/api/auth/undeleteShifts', body) 
     .subscribe(
         (data) => {   
                     this.getData();
@@ -714,5 +718,5 @@ export class ShiftsComponent implements OnInit {
     this.selectionFilterOptions.selected.forEach(z=>{
       this.sendingQueryForm.filterOptionsIds.push(+z.id);
     });
-  }
+  }*/
 }

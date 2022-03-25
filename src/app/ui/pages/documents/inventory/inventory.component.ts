@@ -15,7 +15,6 @@ import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
 import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
 import { translate, TranslocoService } from '@ngneat/transloco'; //+++
-// import { YAxisComponent } from '@swimlane/ngx-charts';
 
 export interface CheckBox {
   id: number;
@@ -38,7 +37,6 @@ interface idNameDescription{
   description: string;
 }
 
-
 @Component({
   selector: 'app-inventory',
   templateUrl: './inventory.component.html',
@@ -50,7 +48,6 @@ export class InventoryComponent implements OnInit {
   constructor(private queryFormService:   QueryFormService,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
-    // public universalCategoriesDialog: MatDialog,
     public confirmDialog: MatDialog,
     private http: HttpClient,
     public deleteDialog: MatDialog,
@@ -58,7 +55,6 @@ export class InventoryComponent implements OnInit {
     public SettingsInventoryDialogComponent: MatDialog,
     public cu: CommonUtilitesService, //+++
     private service: TranslocoService,
-    // public dialogRef1: MatDialogRef<InventoryComponent>,
     ) { }
 
     
@@ -150,11 +146,11 @@ export class InventoryComponent implements OnInit {
     if(Cookie.get('inventory_result')=='undefined' || Cookie.get('inventory_result')==null)        
       Cookie.set('inventory_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('inventory_result');
     
-        //+++ getting base data from parent component
-        this.getBaseData('myId');    
-        this.getBaseData('myCompanyId');  
-        this.getBaseData('companiesList');      
-        this.getBaseData('myDepartmentsList');
+    //+++ getting base data from parent component
+    this.getBaseData('myId');    
+    this.getBaseData('myCompanyId');  
+    this.getBaseData('companiesList');      
+    this.getBaseData('myDepartmentsList');
 
     this.fillOptionsList();//заполняем список опций фильтра
 
@@ -188,30 +184,19 @@ export class InventoryComponent implements OnInit {
       autoAdd: new FormControl                  (false,[]),        
     });
       this.getCompaniesList();// 
-      // -> getSetOfPermissions() 
-      // -> getMyId()
-      // -> getMyCompanyId() 
-      // -> setDefaultCompany() 
-      // -> getDepartmentsList()
-      // -> getMyDepartmentsList()
-      // -> setDefaultDepartment()
-      // -> getCRUD_rights() 
-      // -> getData() 
-      //API: getCompaniesList         giveMeMyPermissions      getMyCompanyId
     }
 
     // -------------------------------------- *** ПРАВА *** ------------------------------------
-   getSetOfPermissions(){
+    getSetOfPermissions(){
     return this.http.get('/api/auth/getMyPermissions?id=27')
     .subscribe(
         (data) => {   
                     this.permissionsSet=data as any [];
                     this.getMyId();
-                },
-    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
-    );
-  }
-
+                  },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+      );
+    }
 
   getCRUD_rights(permissionsSet:any[]){
     this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==329)});
@@ -238,8 +223,7 @@ export class InventoryComponent implements OnInit {
     this.allowToCreate=(this.allowToCreateAllCompanies||this.allowToCreateMyCompany||this.allowToCreateMyDepartments)?true:false;
     this.allowToDelete=(this.allowToDeleteAllCompanies || this.allowToDeleteMyCompany || this.allowToDeleteMyDepartments || this.allowToDeleteMyDocs)?true:false;
     this.showOpenDocIcon=(this.allowToUpdate||this.allowToView);
-    this.visBtnAdd = (this.allowToCreate)?true:false;
-    
+    this.visBtnAdd = (this.allowToCreate)?true:false;    
     // console.log("allowToView - "+this.allowToView);
     // console.log("allowToUpdate - "+this.allowToUpdate);
     // console.log("allowToCreate - "+this.allowToCreate);
@@ -248,9 +232,6 @@ export class InventoryComponent implements OnInit {
     return true;
   }
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
-
-
-
   getData(){
     if(this.refreshPermissions() && this.allowToView)
     {
@@ -468,7 +449,7 @@ export class InventoryComponent implements OnInit {
         case 1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
         case 2:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
         case 3:{let numbers:string='';
-          for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="/ui/paymentindoc/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
+          for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="/ui/inventorydoc/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
           this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.no_del_childs')+numbers}});break;}
       }
     },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
@@ -618,10 +599,10 @@ export class InventoryComponent implements OnInit {
     return this.http.post('/api/auth/saveSettingsInventory', this.settingsForm.value)
             .subscribe(
                 (data) => {   
-                          this.openSnackBar("Настройки успешно сохранены", "Закрыть");
+                          this.openSnackBar(translate('menu.msg.settngs_saved'), translate('menu.msg.close')); //+++
                           
                         },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
             );
   }
 
@@ -630,7 +611,7 @@ export class InventoryComponent implements OnInit {
     this.loadSpravService.getPriceTypesList(+this.sendingQueryForm.companyId)
     .subscribe(
       (data) => {this.receivedPriceTypesList=data as any [];},
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
     );
   }
   getBaseData(data) {    //+++ emit data to parent component
