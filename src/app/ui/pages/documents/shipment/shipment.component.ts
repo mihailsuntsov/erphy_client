@@ -1,4 +1,4 @@
-import { Component, OnInit} from '@angular/core';
+import { Component, EventEmitter, OnInit, Output} from '@angular/core';
 import { QueryForm } from './query-form';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource } from '@angular/material/table';
@@ -14,6 +14,8 @@ import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { FormGroup, FormControl } from '@angular/forms';
 import { SettingsShipmentDialogComponent } from 'src/app/modules/settings/settings-shipment-dialog/settings-shipment-dialog.component';
+import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
+import { translate, TranslocoService } from '@ngneat/transloco'; //+++
 
 export interface CheckBox {
   id: number;
@@ -35,7 +37,7 @@ export interface NumRow {//интерфейс для списка количес
   selector: 'app-shipment',
   templateUrl: './shipment.component.html',
   styleUrls: ['./shipment.component.css'],
-  providers: [QueryFormService,LoadSpravService,Cookie]
+  providers: [QueryFormService,LoadSpravService,Cookie,CommonUtilitesService] //+++
 })
 export class ShipmentComponent implements OnInit {
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
@@ -101,6 +103,8 @@ export class ShipmentComponent implements OnInit {
   displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
   //***********************************************************************************************************************/
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
+
   constructor(private queryFormService:   QueryFormService,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
@@ -110,7 +114,9 @@ export class ShipmentComponent implements OnInit {
     private http: HttpClient,
     private settingsShipmentDialogComponent: MatDialog,
     public deleteDialog: MatDialog,
-    public dialogRef1: MatDialogRef<ShipmentComponent>,) { }
+    public dialogRef1: MatDialogRef<ShipmentComponent>,
+    public cu: CommonUtilitesService, //+++
+    private service: TranslocoService,) { }
 
     ngOnInit() {
       this.sendingQueryForm.companyId='0';
@@ -134,7 +140,13 @@ export class ShipmentComponent implements OnInit {
         Cookie.set('shipment_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('shipment_offset');
       if(Cookie.get('shipment_result')=='undefined' || Cookie.get('shipment_result')==null)        
         Cookie.set('shipment_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('shipment_result');
-      
+  
+      //+++ getting base data from parent component
+      this.getBaseData('myId');    
+      this.getBaseData('myCompanyId');  
+      this.getBaseData('companiesList');      
+      this.getBaseData('myDepartmentsList');  
+    
       this.fillOptionsList();//заполняем список опций фильтра
       // Форма настроек
     this.settingsForm = new FormGroup({
@@ -182,30 +194,19 @@ export class ShipmentComponent implements OnInit {
     });
 
       this.getCompaniesList();// 
-      // -> getSetOfPermissions() 
-      // -> getMyId()
-      // -> getMyCompanyId() 
-      // -> setDefaultCompany() 
-      // -> getDepartmentsList()
-      // -> getMyDepartmentsList()
-      // -> setDefaultDepartment()
-      // -> getCRUD_rights() 
-      // -> getData() 
-      //API: getCompaniesList         giveMeMyPermissions      getMyCompanyId
     }
 
     // -------------------------------------- *** ПРАВА *** ------------------------------------
-   getSetOfPermissions(){
+  getSetOfPermissions(){
     return this.http.get('/api/auth/getMyPermissions?id=21')
-            .subscribe(
-                (data) => {   
-                            this.permissionsSet=data as any [];
-                            this.getMyId();
-                        },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-            );
+    .subscribe(
+      (data) => {   
+          this.permissionsSet=data as any [];
+          this.getMyId();
+      },
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+    );
   }
-
 
   getCRUD_rights(permissionsSet:any[]){
     this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==253)});
@@ -234,12 +235,11 @@ export class ShipmentComponent implements OnInit {
     this.allowToDelete=(this.allowToDeleteAllCompanies || this.allowToDeleteMyCompany || this.allowToDeleteMyDepartments || this.allowToDeleteMyDocs)?true:false;
     this.showOpenDocIcon=(this.allowToUpdate||this.allowToView);
     this.visBtnAdd = (this.allowToCreate)?true:false;
-    
-    console.log("allowToView - "+this.allowToView);
-    console.log("allowToUpdate - "+this.allowToUpdate);
-    console.log("allowToCreate - "+this.allowToCreate);
-    console.log("allowToDelete - "+this.allowToDelete);
-    console.log("allowToDeleteAllCompanies - "+this.allowToDeleteAllCompanies);
+    // console.log("allowToView - "+this.allowToView);
+    // console.log("allowToUpdate - "+this.allowToUpdate);
+    // console.log("allowToCreate - "+this.allowToCreate);
+    // console.log("allowToDelete - "+this.allowToDelete);
+    // console.log("allowToDeleteAllCompanies - "+this.allowToDeleteAllCompanies);
     return true;
   }
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
@@ -256,7 +256,7 @@ export class ShipmentComponent implements OnInit {
       this.getTableHeaderTitles();
       this.getPagesList();
       this.getTable();
-    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
+    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})} //+++
   }
 
   getTableHeaderTitles(){
@@ -286,21 +286,21 @@ export class ShipmentComponent implements OnInit {
                 this.pagenum=this.receivedPagesList[1];
                 this.listsize=this.receivedPagesList[2];
                 this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-            ); 
+        error =>  {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+    ); 
   }
 
   getTable(){
     this.gettingTableData=true;
     this.queryFormService.getTable(this.sendingQueryForm)
-            .subscribe(
-                (data) => {
-                  this.dataSource.data = data as any []; 
-                  if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
-                  this.gettingTableData=false;
-                },
-                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
-            );
+    .subscribe(
+        (data) => {
+          this.dataSource.data = data as any []; 
+          if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
+          this.gettingTableData=false;
+        },
+        error =>  {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+    );
   }
 
   isAllSelected() {//все выбраны
@@ -428,54 +428,98 @@ export class ShipmentComponent implements OnInit {
       this.showOnlyVisBtnAdd();
     });        
   }
-
+  clickBtnRestore(): void {
+    const dialogRef = this.confirmDialog.open(ConfirmDialog, {
+      width: '400px',
+      data:
+      { 
+        head: translate('menu.dialogs.restore'), //+++
+        query: translate('menu.dialogs.q_restore'),
+        warning: '',
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){this.undeleteDocs();}
+      this.clearCheckboxSelection();
+      this.showOnlyVisBtnAdd();
+    });        
+  }
+  undeleteDocs(){
+    const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
+    this.clearCheckboxSelection();
+    return this.http.post('/api/auth/undeleteShipment', body) 
+    .subscribe(
+    (data) => {
+      let result=data as any;
+      switch(result){ //+++
+        case 1:{this.getData();this.openSnackBar(translate('menu.msg.rec_success'), translate('menu.msg.close'));break;}  //+++
+        case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+        case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+      }
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
+  }  
   deleteDocs(){
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
-          return this.http.post('/api/auth/deleteShipment', body) 
-  .subscribe((data) => {   
-    let result=data as any;
-    switch(result.result){
-      case 0:{this.getData();this.openSnackBar("Успешно удалено", "Закрыть");break;} 
-      case 1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе удаления "+(this.checkedList.length>1?"документов":"документа")+" проиошла ошибка")}});break;}
-      case 2:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для операции удаления"}});break;}
-      case 3:{let numbers:string='';
-        for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="/ui/shipmentdoc/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
-        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Удаление невозможно - у следующих номеров документов есть производные (связанные с ними дочерние) документы:'+numbers}});break;}
-    }
-  },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
-}
+    return this.http.post('/api/auth/deleteShipment', body) 
+    .subscribe((data) => {
+      let result=data as any;
+      switch(result.result){
+        case 0:{this.getData();this.openSnackBar(translate('menu.msg.del_success'), translate('menu.msg.close'));break;} 
+        case 1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+        case 2:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+        case 3:{let numbers:string='';
+          for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="/ui/shipmentdoc/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
+          this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.no_del_childs')+numbers}});break;}
+      }
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
+  }
     
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
       duration: 3000,
     });
   }
-  getCompaniesList(){
-    this.receivedCompaniesList=null;
-    this.loadSpravService.getCompaniesList()
-            .subscribe(
+  
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+      this.loadSpravService.getCompaniesList()
+              .subscribe(
                 (data) => {this.receivedCompaniesList=data as any [];
                   this.getSetOfPermissions();
                 },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
             );
-  }
-  getMyId(){
-    this.receivedMyDepartmentsList=null;
-    this.loadSpravService.getMyId()
+    else this.getSetOfPermissions();
+  }  
+  getMyId(){ //+++
+    if(+this.myId==0)
+     this.loadSpravService.getMyId()
             .subscribe(
                 (data) => {this.myId=data as any;
                   this.getMyCompanyId();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
             );
+      else this.getMyCompanyId();
   }
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
       (data) => {
         this.myCompanyId=data as number;
         this.setDefaultCompany();
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
+    else this.setDefaultCompany();
+  } 
+  getMyDepartmentsList(){ //+++
+    if(this.receivedMyDepartmentsList.length==0)
+      this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
+      .subscribe(
+          (data) => {this.receivedMyDepartmentsList=data as any [];
+            this.setDefaultDepartment();},
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+      );
+      else this.setDefaultDepartment();
   }
 
   setDefaultCompany(){
@@ -489,32 +533,20 @@ export class ShipmentComponent implements OnInit {
   getDepartmentsList(){
     this.receivedDepartmentsList=null;
     this.loadSpravService.getDepartmentsListByCompanyId(+this.sendingQueryForm.companyId,false)
-            .subscribe(
-                (data) => {this.receivedDepartmentsList=data as any [];
-                            this.getMyDepartmentsList();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-            );
-  }
-
-  getMyDepartmentsList(){
-    this.receivedMyDepartmentsList=null;
-    this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
-            .subscribe(
-                (data) => {this.receivedMyDepartmentsList=data as any [];
-                  this.setDefaultDepartment();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-            );
+    .subscribe(
+        (data) => {this.receivedDepartmentsList=data as any [];
+                    this.getMyDepartmentsList();},
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}, //+++
+    );
   }
 
   setDefaultDepartment(){
     if(this.receivedDepartmentsList.length==1)
     {
-      console.log('установка отделения по умолчанию - '+this.receivedDepartmentsList[0].id);
-
       this.sendingQueryForm.departmentId=+this.receivedDepartmentsList[0].id;
       Cookie.set('shipment_departmentId',this.sendingQueryForm.departmentId);
     }
-  this.getCRUD_rights(this.permissionsSet);
+    this.getCRUD_rights(this.permissionsSet);
   }
 
   inMyDepthsId(id:number):boolean{//проверяет, состоит ли присланный id в группе id отделений пользователя
@@ -550,88 +582,61 @@ export class ShipmentComponent implements OnInit {
       this.receivedDepartmentsList=this.receivedMyDepartmentsList;}
   }
       //*************************************************************   НАСТРОЙКИ   ************************************************************/    
-    // открывает диалог настроек
-    openDialogSettings() { 
-      const dialogSettings = this.settingsShipmentDialogComponent.open(SettingsShipmentDialogComponent, {
-        maxWidth: '95vw',
-        maxHeight: '95vh',
-        // height: '680px',
-        width: '400px', 
-        minHeight: '650px',
-        data:
-        { //отправляем в диалог:
-          receivedCompaniesList: this.receivedCompaniesList, //список предприятий
-          receivedDepartmentsList: this.receivedDepartmentsList,//список отделений
-          company_id: +this.sendingQueryForm.companyId, //предприятие (нужно для поиска покупателя)
-          department_type_price_id: null,
-          cagent_type_price_id: null,
-          default_type_price_id: null,
-          id: 0, //чтобы понять, новый док или уже созданный
-        },
-      });
-      dialogSettings.afterClosed().subscribe(result => {
-        if(result){
-          //если нажата кнопка Сохранить настройки - вставляем настройки в форму настроек и сохраняем
-        if(result.get('companyId')) this.settingsForm.get('companyId').setValue(result.get('companyId').value);
-        if(result.get('departmentId')) this.settingsForm.get('departmentId').setValue(result.get('departmentId').value);
-        if(result.get('customerId')) this.settingsForm.get('customerId').setValue(result.get('customerId').value);
-        if(result.get('customer')) this.settingsForm.get('customer').setValue(result.get('customer').value);
-        if(result.get('pricingType')) this.settingsForm.get('pricingType').setValue(result.get('pricingType').value);
-        if(result.get('plusMinus')) this.settingsForm.get('plusMinus').setValue(result.get('plusMinus').value);
-        if(result.get('changePrice')) this.settingsForm.get('changePrice').setValue(result.get('changePrice').value);
-        if(result.get('changePriceType')) this.settingsForm.get('changePriceType').setValue(result.get('changePriceType').value);
-        // if(result.get('name')) this.settingsForm.get('name').setValue(result.get('name').value);
-        if(result.get('priorityTypePriceSide')) this.settingsForm.get('priorityTypePriceSide').setValue(result.get('priorityTypePriceSide').value);
-        this.settingsForm.get('hideTenths').setValue(result.get('hideTenths').value);
-        this.settingsForm.get('saveSettings').setValue(result.get('saveSettings').value);
-        this.settingsForm.get('autocreate').setValue(result.get('autocreate').value);
-        this.settingsForm.get('statusIdOnComplete').setValue(result.get('statusIdOnComplete').value);
-        this.settingsForm.get('showKkm').setValue(result.get('showKkm').value);
-        this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
-          this.saveSettingsShipment();
-        }
-      });
-    }
-    // Сохраняет настройки
-    saveSettingsShipment(){
-      return this.http.post('/api/auth/saveSettingsShipment', this.settingsForm.value)
-              .subscribe(
-                  (data) => {   
-                            this.openSnackBar("Настройки успешно сохранены", "Закрыть");
-                            
-                          },
-                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-              );
-    }
-  //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
-  clickBtnRestore(): void {
-    const dialogRef = this.confirmDialog.open(ConfirmDialog, {
-      width: '400px',
+  // открывает диалог настроек
+  openDialogSettings() { 
+    const dialogSettings = this.settingsShipmentDialogComponent.open(SettingsShipmentDialogComponent, {
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      // height: '680px',
+      width: '400px', 
+      minHeight: '650px',
       data:
-      { 
-        head: 'Восстановление',
-        query: 'Восстановить выбранные отгрузки из удалённых?',
-        warning: '',
+      { //отправляем в диалог:
+        receivedCompaniesList: this.receivedCompaniesList, //список предприятий
+        receivedDepartmentsList: this.receivedDepartmentsList,//список отделений
+        company_id: +this.sendingQueryForm.companyId, //предприятие (нужно для поиска покупателя)
+        department_type_price_id: null,
+        cagent_type_price_id: null,
+        default_type_price_id: null,
+        id: 0, //чтобы понять, новый док или уже созданный
       },
     });
-    dialogRef.afterClosed().subscribe(result => {
-      if(result==1){this.undeleteDocs();}
-      this.clearCheckboxSelection();
-      this.showOnlyVisBtnAdd();
-    });        
+    dialogSettings.afterClosed().subscribe(result => {
+      if(result){
+        //если нажата кнопка Сохранить настройки - вставляем настройки в форму настроек и сохраняем
+      if(result.get('companyId')) this.settingsForm.get('companyId').setValue(result.get('companyId').value);
+      if(result.get('departmentId')) this.settingsForm.get('departmentId').setValue(result.get('departmentId').value);
+      if(result.get('customerId')) this.settingsForm.get('customerId').setValue(result.get('customerId').value);
+      if(result.get('customer')) this.settingsForm.get('customer').setValue(result.get('customer').value);
+      if(result.get('pricingType')) this.settingsForm.get('pricingType').setValue(result.get('pricingType').value);
+      if(result.get('plusMinus')) this.settingsForm.get('plusMinus').setValue(result.get('plusMinus').value);
+      if(result.get('changePrice')) this.settingsForm.get('changePrice').setValue(result.get('changePrice').value);
+      if(result.get('changePriceType')) this.settingsForm.get('changePriceType').setValue(result.get('changePriceType').value);
+      // if(result.get('name')) this.settingsForm.get('name').setValue(result.get('name').value);
+      if(result.get('priorityTypePriceSide')) this.settingsForm.get('priorityTypePriceSide').setValue(result.get('priorityTypePriceSide').value);
+      this.settingsForm.get('hideTenths').setValue(result.get('hideTenths').value);
+      this.settingsForm.get('saveSettings').setValue(result.get('saveSettings').value);
+      this.settingsForm.get('autocreate').setValue(result.get('autocreate').value);
+      this.settingsForm.get('statusIdOnComplete').setValue(result.get('statusIdOnComplete').value);
+      this.settingsForm.get('showKkm').setValue(result.get('showKkm').value);
+      this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
+        this.saveSettingsShipment();
+      }
+    });
   }
-  undeleteDocs(){
-    const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
-    this.clearCheckboxSelection();
-      return this.http.post('/api/auth/undeleteShipment', body) 
-    .subscribe(
-        (data) => {   
-                    this.getData();
-                    this.openSnackBar("Успешно восстановлено", "Закрыть");
-                  },
-        error => console.log(error),
+  // Сохраняет настройки
+  saveSettingsShipment(){
+    return this.http.post('/api/auth/saveSettingsShipment', this.settingsForm.value)
+    .subscribe((data) => {   
+      this.openSnackBar(translate('menu.msg.settngs_saved'), translate('menu.msg.close')); //+++
+    },
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
     );
-  }  
+  }
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
+  }
+  //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
   resetOptions(){
     this.displayingDeletedDocs=false;
     this.fillOptionsList();//перезаполняем список опций
@@ -639,7 +644,7 @@ export class ShipmentComponent implements OnInit {
     this.sendingQueryForm.filterOptionsIds = [];
   }
   fillOptionsList(){
-    this.optionsIds=[{id:1, name:"Показать только удалённые"},];
+    this.optionsIds=[{id:1, name: 'menu.top.only_del'},]; //+++
   }
   clickApplyFilters(){
     let showOnlyDeletedCheckboxIsOn:boolean = false; //присутствует ли включенный чекбокс "Показывать только удалённые"

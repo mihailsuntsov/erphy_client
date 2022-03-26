@@ -12,6 +12,8 @@
         "only_debtors": "Show only debtors",
         "only_u_owe":   "Show only to whom you owe",
         "only_overdue": "Only overdue invoices",
+        "only_exprd_or":"Only expired orders",
+        "only_new_ordr":"Only new orders",
         "btn_new_corr": "Create new correction",
         "date_from":    "From",
         "date_to":      "To",
@@ -178,7 +180,11 @@
         "mixed":        "Mixed",    
         "opened":       "Opened",
         "closed":       "Closed",
-        "due_date":     "Due date"
+        "due_date":     "Due date",
+        "ship_date":    "ESD",  "Estimated shipping date":"",
+        "est_rec_date": "ERD", "Estimated receive date":"",
+        "acc_date":     "Acceptance date",
+        "supplier":     "Supplier"
     },
     "bottom":{
         "founded":      "Founded",

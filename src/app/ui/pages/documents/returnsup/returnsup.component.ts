@@ -1,4 +1,4 @@
-import { Component, OnInit} from '@angular/core';
+import { Component, EventEmitter, OnInit, Output} from '@angular/core';
 import { QueryForm } from './query-form';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource } from '@angular/material/table';
@@ -14,6 +14,8 @@ import { SettingsReturnsupDialogComponent } from 'src/app/modules/settings/setti
 import { MatDialog } from '@angular/material/dialog';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
+import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
+import { translate, TranslocoService } from '@ngneat/transloco'; //+++
 
 export interface CheckBox {
   id: number;
@@ -40,7 +42,7 @@ interface idNameDescription{
   selector: 'app-returnsup',
   templateUrl: './returnsup.component.html',
   styleUrls: ['./returnsup.component.css'],
-  providers: [QueryFormService,LoadSpravService,Cookie]
+  providers: [QueryFormService,LoadSpravService,Cookie,CommonUtilitesService] //+++
 })
 export class ReturnsupComponent implements OnInit {
 
@@ -53,6 +55,8 @@ export class ReturnsupComponent implements OnInit {
     private deleteDialog: MatDialog,
     private MessageDialog: MatDialog,
     private SettingsReturnsupDialogComponent: MatDialog,
+    public cu: CommonUtilitesService, //+++
+    private service: TranslocoService,
     ) { }
 
     sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
@@ -119,7 +123,7 @@ export class ReturnsupComponent implements OnInit {
     displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
     displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
     //***********************************************************************************************************************/
-  
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)  
   
     ngOnInit() {
       this.sendingQueryForm.companyId='0';
@@ -143,7 +147,13 @@ export class ReturnsupComponent implements OnInit {
         Cookie.set('returnsup_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('returnsup_offset');
       if(Cookie.get('returnsup_result')=='undefined' || Cookie.get('returnsup_result')==null)        
         Cookie.set('returnsup_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('returnsup_result');
-      
+    
+      //+++ getting base data from parent component
+      this.getBaseData('myId');    
+      this.getBaseData('myCompanyId');  
+      this.getBaseData('companiesList');      
+      this.getBaseData('myDepartmentsList');
+     
       this.fillOptionsList();//заполняем список опций фильтра
   
       // Форма настроек
@@ -184,400 +194,239 @@ export class ReturnsupComponent implements OnInit {
       }
   
       // -------------------------------------- *** ПРАВА *** ------------------------------------
-    getSetOfPermissions(){
-          return this.http.get('/api/auth/getMyPermissions?id=29')
-            .subscribe(
-                (data) => {   
-                            this.permissionsSet=data as any [];
-                            this.getMyId();
-                        },
-                error => console.log(error),
-            );
-    }
-  
-    getCRUD_rights(permissionsSet:any[]){
-      this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==361)});
-      this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==362)});
-      this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==363)});
-      this.allowToDeleteAllCompanies = permissionsSet.some(         function(e){return(e==364)});
-      this.allowToDeleteMyCompany = permissionsSet.some(            function(e){return(e==365)});
-      this.allowToDeleteMyDepartments = permissionsSet.some(        function(e){return(e==366)});
-      this.allowToDeleteMyDocs = permissionsSet.some(               function(e){return(e==367)});
-      this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==368)});
-      this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==369)});
-      this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==370)});
-      this.allowToViewMyDocs = permissionsSet.some(                 function(e){return(e==371)});
-      this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==372)});
-      this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==373)});
-      this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==374)});
-      this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==375)});
-      this.getData();
-    }
-  
-    refreshPermissions():boolean{
-      this.allowToView=(this.allowToViewAllCompanies||this.allowToViewMyCompany||this.allowToViewMyDepartments||this.allowToViewMyDocs)?true:false;
-      this.allowToUpdate=(this.allowToUpdateAllCompanies||this.allowToUpdateMyCompany||this.allowToUpdateMyDepartments||this.allowToUpdateMyDocs)?true:false;
-      this.allowToCreate=(this.allowToCreateAllCompanies||this.allowToCreateMyCompany||this.allowToCreateMyDepartments)?true:false;
-      this.allowToDelete=(this.allowToDeleteAllCompanies || this.allowToDeleteMyCompany || this.allowToDeleteMyDepartments || this.allowToDeleteMyDocs)?true:false;
-      this.showOpenDocIcon=(this.allowToUpdate||this.allowToView);
-      this.visBtnAdd = (this.allowToCreate)?true:false;
-      
-      // console.log("allowToView - "+this.allowToView);
-      // console.log("allowToUpdate - "+this.allowToUpdate);
-      // console.log("allowToCreate - "+this.allowToCreate);
-      // console.log("allowToDelete - "+this.allowToDelete);
-      // console.log("allowToDeleteAllCompanies - "+this.allowToDeleteAllCompanies);
-      return true;
-    }
-  // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
-  
-  
-  
-    getData(){
-      if(this.refreshPermissions() && this.allowToView)
-      {
-        this.doFilterCompaniesList(); //если нет просмотра по всем предприятиям - фильтруем список предприятий до своего предприятия
-        this.doFilterDepartmentsList();//если нет просмотра по свому предприятию - фильтруем список отделений предприятия до своих отделений
-        this.getTableHeaderTitles();
-        this.getPagesList();
-        this.getTable();
-      } else {this.gettingTableData=false;;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
-    }
-  
-    getTableHeaderTitles(){
-      this.displayedColumns=[];
-      if(this.allowToDelete) this.displayedColumns.push('select');
-      if(this.showOpenDocIcon) this.displayedColumns.push('opendoc');
-      this.displayedColumns.push('doc_number');
-      this.displayedColumns.push('cagent');
-      this.displayedColumns.push('status');
-      this.displayedColumns.push('product_count');
-      this.displayedColumns.push('is_completed');
-      this.displayedColumns.push('company');
-      this.displayedColumns.push('department');
-      this.displayedColumns.push('creator');
-      this.displayedColumns.push('date_time_created');
-    }
-  
-    getPagesList(){
-      this.queryFormService.getPagesList(this.sendingQueryForm)
-              .subscribe(
-                  data => {this.receivedPagesList=data as string [];
-                  this.size=this.receivedPagesList[0];
-                  this.pagenum=this.receivedPagesList[1];
-                  this.listsize=this.receivedPagesList[2];
-                  this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
-                  error => console.log(error)
-              ); 
-    }
-  
-    getTable(){
-    this.gettingTableData=true;
-      this.queryFormService.getTable(this.sendingQueryForm)
-              .subscribe(
-                  (data) => {
-                    this.gettingTableData=false;
-                    this.dataSource.data = data as any []; 
-                    if(this.dataSource.data && this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0); //!!!
-                  },
-                  error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
-              );
-    }
-  
-   
-  
-    /**                               ЧЕКБОКСЫ                                  */
-    masterToggle() {
-      this.isThereSelected() ?
-      this.resetSelecion() :
-          this.dataSource.data.forEach(row => {
-            if(this.showCheckbox(row)){this.selection.select(row);}//если чекбокс отображаем, значит можно удалять этот документ
-          });
-          this.createCheckedList();
-      this.isAllSelected();
-      this.isThereSelected();
-    }
-    resetSelecion(){
-      this.selection.clear(); 
-    }
-    clickTableCheckbox(row){
-      this.selection.toggle(row); 
-      this.createCheckedList();
-      this.isAllSelected();
-      this.isThereSelected();
-    }
-    createCheckedList(){
-      if(this.dataSource.data){//!!!
-        this.checkedList = [];
-        for (var i = 0; i < this.dataSource.data.length; i++) {
-          if(this.selection.isSelected(this.dataSource.data[i]))
-            this.checkedList.push(this.dataSource.data[i].id);
-        }
-        if(this.checkedList.length>0){
-            this.hideAllBtns();
-            if(this.allowToDelete) this.visBtnDelete = true;
-            if(this.checkedList.length==1){this.visBtnCopy = true}
-        }else{console.log("");this.showOnlyVisBtnAdd()}
-      }
-    }
-    isAllSelected() {//все выбраны
-      const numSelected = this.selection.selected.length;
-      const numRows = this.dataSource.data.length;
-      return numSelected === numRows;//true если все строки выбраны
-    }  
-    isThereSelected() {//есть выбранные
-      return this.selection.selected.length>0;
-    } 
-    showCheckbox(row:CheckBox):boolean{
-      if(!row.is_completed && (
-        (this.allowToDeleteAllCompanies)||
-        (this.allowToDeleteMyCompany && row.company_id==this.myCompanyId)||
-        (this.allowToDeleteMyDepartments && row.company_id==this.myCompanyId && this.inMyDepthsId(row.department_id))||
-        (this.allowToDeleteMyDocs && row.company_id==this.myCompanyId && this.inMyDepthsId(row.department_id) && row.creator_id==this.myId))
-        )return true; else return false;
-    }
-    /**                              КОНЕЦ ЧЕКБОКСОВ                                  */
-  
-    hideAllBtns(){
-      this.visBtnAdd = false;
-      this.visBtnDelete = false;
-    }
-  
-    showOnlyVisBtnAdd(){
-      if(this.allowToCreate) this.visBtnAdd = true;
-      this.visBtnDelete = false;
-    }
-  
-    setNumOfPages(){
-      this.clearCheckboxSelection();
-      this.createCheckedList();
-      this.sendingQueryForm.offset=0;
-      Cookie.set('returnsup_result',this.sendingQueryForm.result);
-      this.getData();
-    }
-  
-    setPage(value:any) // set pagination
-    {
-      this.clearCheckboxSelection();
-      this.sendingQueryForm.offset=value;
-      Cookie.set('returnsup_offset',value);
-      this.getData();
-    }
-  
-    clearCheckboxSelection(){
-      this.selection.clear(); 
-      if(this.dataSource.data) //!!!
-        this.dataSource.data.forEach(row => this.selection.deselect(row));
-    }
-  
-    setSort(valueSortColumn:any) // set sorting column
-    {
-        this.clearCheckboxSelection();
-        if(valueSortColumn==this.sendingQueryForm.sortColumn){// если колонка, на которую ткнули, та же, по которой уже сейчас идет сортировка
-            if(this.sendingQueryForm.sortAsc=="asc"){
-                this.sendingQueryForm.sortAsc="desc"
-            } else {  
-                this.sendingQueryForm.sortAsc="asc"
-            }
-        Cookie.set('returnsup_sortAsc',this.sendingQueryForm.sortAsc);
-        } else {
-            this.sendingQueryForm.sortColumn=valueSortColumn;
-            this.sendingQueryForm.sortAsc="asc";
-            Cookie.set('returnsup_sortAsc',"asc");
-            Cookie.set('returnsup_sortColumn',valueSortColumn);
-        }
-        this.getData();
-    }
-    onCompanySelection(){
-      Cookie.set('returnsup_companyId',this.sendingQueryForm.companyId);
-      Cookie.set('returnsup_departmentId','0');
-      this.sendingQueryForm.departmentId="0"; 
-      this.resetOptions();
-      this.getDepartmentsList();
-    }
-    onDepartmentSelection(){
-      Cookie.set('returnsup_departmentId',this.sendingQueryForm.departmentId);
-      this.resetOptions();
-      this.getData();
-    }
-    clickBtnDelete(): void {
-      const dialogRef = this.deleteDialog.open(DeleteDialog, {
-        width: '300px',
-      });
-      dialogRef.afterClosed().subscribe(result => {
-        if(result==1){this.deleteDocs();}
-        this.clearCheckboxSelection();
-        this.showOnlyVisBtnAdd();
-      });        
-    }
-    deleteDocs(){
-      const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
-      this.clearCheckboxSelection();
-            return this.http.post('/api/auth/deleteReturnsup', body) 
-                  .subscribe(
-                    (data) => {   
-                      let result=data as boolean;
-                      if(result){
-                        this.openSnackBar("Успешно удалено", "Закрыть");
-                        this.getData();
-                      }else
-                        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав для удаления'}});
-                    },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-      );
-    }
-    openSnackBar(message: string, action: string) {
-      this._snackBar.open(message, action, {
-        duration: 3000,
-      });
-    }
-    getCompaniesList(){
-      this.receivedCompaniesList=null;
-      this.loadSpravService.getCompaniesList()
-              .subscribe(
-                  (data) => {this.receivedCompaniesList=data as any [];
-                    this.getSetOfPermissions();
-                  },
-                  error => console.log(error)
-              );
-    }
-    getMyId(){
-      this.receivedMyDepartmentsList=null;
-      this.loadSpravService.getMyId()
-              .subscribe(
-                  (data) => {this.myId=data as any;
-                    this.getMyCompanyId();},
-                  error => console.log(error)
-              );
-    }
-    getMyCompanyId(){
-      this.loadSpravService.getMyCompanyId().subscribe(
-        (data) => {
-          this.myCompanyId=data as number;
-          this.setDefaultCompany();
-        }, error => console.log(error));
-    }
-  
-    setDefaultCompany(){
-      if(Cookie.get('returnsup_companyId')=='0'){
-        this.sendingQueryForm.companyId=this.myCompanyId;
-        Cookie.set('returnsup_companyId',this.sendingQueryForm.companyId);
-      }
-        this.getDepartmentsList();
-    }
-  
-    getDepartmentsList(){
-      this.receivedDepartmentsList=null;
-      this.loadSpravService.getDepartmentsListByCompanyId(+this.sendingQueryForm.companyId,false)
-              .subscribe(
-                  (data) => {this.receivedDepartmentsList=data as any [];
-                              this.getMyDepartmentsList();},
-                  error => console.log(error)
-              );
-    }
-  
-    getMyDepartmentsList(){
-      this.receivedMyDepartmentsList=null;
-      this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
-              .subscribe(
-                  (data) => {this.receivedMyDepartmentsList=data as any [];
-                    this.setDefaultDepartment();},
-                  error => console.log(error)
-              );
-    }
-  
-    setDefaultDepartment(){
-      if(this.receivedDepartmentsList.length==1)
-      {
-        this.sendingQueryForm.departmentId=+this.receivedDepartmentsList[0].id;
-        Cookie.set('returnsup_departmentId',this.sendingQueryForm.departmentId);
-      }
-    this.getCRUD_rights(this.permissionsSet);
-    }
-  
-    inMyDepthsId(id:number):boolean{//проверяет, состоит ли присланный id в группе id отделений пользователя
-      let inMyDepthsId:boolean = false;
-      if(this.receivedMyDepartmentsList){//проверяем, т.к. может быть ".forEach of null", если выбираем не свое предприятие
-        this.receivedMyDepartmentsList.forEach(myDepth =>{
-          myDepth.id==id?inMyDepthsId=true:null;
-        });
-      }
-    return inMyDepthsId;
-    }
-  
-    doFilterCompaniesList(){
-      let myCompany:idAndName;
-      if(!this.allowToViewAllCompanies){
-        this.receivedCompaniesList.forEach(company=>{
-        if(this.myCompanyId==company.id) myCompany={id:company.id, name:company.name}});
-        this.receivedCompaniesList=[];
-        this.receivedCompaniesList.push(myCompany);
-      }
-    }
-  
-    doFilterDepartmentsList(){
-      if( (!this.allowToViewAllCompanies && !this.allowToViewMyCompany && this.allowToViewMyDepartments)||
-          (!this.allowToViewAllCompanies && !this.allowToViewMyCompany && !this.allowToViewMyDepartments && this.allowToViewMyDocs)){
-        this.receivedDepartmentsList=this.receivedMyDepartmentsList;}
-    }
+  getSetOfPermissions(){
+    return this.http.get('/api/auth/getMyPermissions?id=29')
+    .subscribe(
+        (data) => {   
+        this.permissionsSet=data as any [];
+        this.getMyId();
+    },
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+    );
+  }
 
-    //*************************************************************   НАСТРОЙКИ   ************************************************************/    
-    // открывает диалог настроек
-    openDialogSettings() { 
-      const dialogSettings = this.SettingsReturnsupDialogComponent.open(SettingsReturnsupDialogComponent, {
-        maxWidth: '95vw',
-        maxHeight: '95vh',
-        // height: '680px',
-        width: '400px', 
-        minHeight: '650px',
-        data:
-        { //отправляем в диалог:
-          receivedCompaniesList: this.receivedCompaniesList, //список предприятий
-          receivedDepartmentsList: this.receivedDepartmentsList,//список отделений
-          company_id: +this.sendingQueryForm.companyId, //предприятие (нужно для поиска покупателя)
-          department_type_price_id: null,
-          cagent_type_price_id: null,
-          default_type_price_id: null,
-          id: 0, //чтобы понять, новый док или уже созданный
+  getCRUD_rights(permissionsSet:any[]){
+    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==361)});
+    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==362)});
+    this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==363)});
+    this.allowToDeleteAllCompanies = permissionsSet.some(         function(e){return(e==364)});
+    this.allowToDeleteMyCompany = permissionsSet.some(            function(e){return(e==365)});
+    this.allowToDeleteMyDepartments = permissionsSet.some(        function(e){return(e==366)});
+    this.allowToDeleteMyDocs = permissionsSet.some(               function(e){return(e==367)});
+    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==368)});
+    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==369)});
+    this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==370)});
+    this.allowToViewMyDocs = permissionsSet.some(                 function(e){return(e==371)});
+    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==372)});
+    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==373)});
+    this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==374)});
+    this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==375)});
+    this.getData();
+  }
+
+  refreshPermissions():boolean{
+    this.allowToView=(this.allowToViewAllCompanies||this.allowToViewMyCompany||this.allowToViewMyDepartments||this.allowToViewMyDocs)?true:false;
+    this.allowToUpdate=(this.allowToUpdateAllCompanies||this.allowToUpdateMyCompany||this.allowToUpdateMyDepartments||this.allowToUpdateMyDocs)?true:false;
+    this.allowToCreate=(this.allowToCreateAllCompanies||this.allowToCreateMyCompany||this.allowToCreateMyDepartments)?true:false;
+    this.allowToDelete=(this.allowToDeleteAllCompanies || this.allowToDeleteMyCompany || this.allowToDeleteMyDepartments || this.allowToDeleteMyDocs)?true:false;
+    this.showOpenDocIcon=(this.allowToUpdate||this.allowToView);
+    this.visBtnAdd = (this.allowToCreate)?true:false;
+    
+    // console.log("allowToView - "+this.allowToView);
+    // console.log("allowToUpdate - "+this.allowToUpdate);
+    // console.log("allowToCreate - "+this.allowToCreate);
+    // console.log("allowToDelete - "+this.allowToDelete);
+    // console.log("allowToDeleteAllCompanies - "+this.allowToDeleteAllCompanies);
+    return true;
+  }
+// -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
+
+
+
+  getData(){
+    if(this.refreshPermissions() && this.allowToView)
+    {
+      this.doFilterCompaniesList(); //если нет просмотра по всем предприятиям - фильтруем список предприятий до своего предприятия
+      this.doFilterDepartmentsList();//если нет просмотра по свому предприятию - фильтруем список отделений предприятия до своих отделений
+      this.getTableHeaderTitles();
+      this.getPagesList();
+      this.getTable();
+    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})} //+++
+  }
+
+  getTableHeaderTitles(){
+    this.displayedColumns=[];
+    if(this.allowToDelete) this.displayedColumns.push('select');
+    if(this.showOpenDocIcon) this.displayedColumns.push('opendoc');
+    this.displayedColumns.push('doc_number');
+    this.displayedColumns.push('cagent');
+    this.displayedColumns.push('status');
+    this.displayedColumns.push('product_count');
+    this.displayedColumns.push('is_completed');
+    this.displayedColumns.push('company');
+    this.displayedColumns.push('department');
+    this.displayedColumns.push('creator');
+    this.displayedColumns.push('date_time_created');
+  }
+
+  getPagesList(){
+    this.queryFormService.getPagesList(this.sendingQueryForm)
+        .subscribe(
+                data => {this.receivedPagesList=data as string [];
+                this.size=this.receivedPagesList[0];
+                this.pagenum=this.receivedPagesList[1];
+                this.listsize=this.receivedPagesList[2];
+                this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
+        error =>  {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+    ); 
+  }
+
+  getTable(){
+  this.gettingTableData=true;
+    this.queryFormService.getTable(this.sendingQueryForm)
+    .subscribe(
+        (data) => {
+          this.gettingTableData=false;
+          this.dataSource.data = data as any []; 
+          if(this.dataSource.data && this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0); //!!!
         },
-      });
-      dialogSettings.afterClosed().subscribe(result => {
-        if(result){
-          //если нажата кнопка Сохранить настройки - вставляем настройки в форму настроек и сохраняем
-          if(result.get('companyId')) this.settingsForm.get('companyId').setValue(result.get('companyId').value);
-          if(result.get('departmentId')) this.settingsForm.get('departmentId').setValue(result.get('departmentId').value);
-          if(result.get('pricingType')) this.settingsForm.get('pricingType').setValue(result.get('pricingType').value);
-          if(result.get('priceTypeId')) this.settingsForm.get('priceTypeId').setValue(result.get('priceTypeId').value);
-          if(result.get('plusMinus')) this.settingsForm.get('plusMinus').setValue(result.get('plusMinus').value);
-          if(result.get('changePrice')) this.settingsForm.get('changePrice').setValue(result.get('changePrice').value);
-          if(result.get('changePriceType')) this.settingsForm.get('changePriceType').setValue(result.get('changePriceType').value);
-          this.settingsForm.get('hideTenths').setValue(result.get('hideTenths').value);
-          this.settingsForm.get('statusOnFinishId').setValue(result.get('statusOnFinishId').value);
-          this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
-          this.saveSettingsReturnsup();
-        }
-      });
+        error =>  {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+    );
+  }  
+
+  /**                               ЧЕКБОКСЫ                                  */
+  masterToggle() {
+    this.isThereSelected() ?
+    this.resetSelecion() :
+        this.dataSource.data.forEach(row => {
+          if(this.showCheckbox(row)){this.selection.select(row);}//если чекбокс отображаем, значит можно удалять этот документ
+        });
+        this.createCheckedList();
+    this.isAllSelected();
+    this.isThereSelected();
+  }
+  resetSelecion(){
+    this.selection.clear(); 
+  }
+  clickTableCheckbox(row){
+    this.selection.toggle(row); 
+    this.createCheckedList();
+    this.isAllSelected();
+    this.isThereSelected();
+  }
+  createCheckedList(){
+    if(this.dataSource.data){//!!!
+      this.checkedList = [];
+      for (var i = 0; i < this.dataSource.data.length; i++) {
+        if(this.selection.isSelected(this.dataSource.data[i]))
+          this.checkedList.push(this.dataSource.data[i].id);
+      }
+      if(this.checkedList.length>0){
+          this.hideAllBtns();
+          if(this.allowToDelete) this.visBtnDelete = true;
+          if(this.checkedList.length==1){this.visBtnCopy = true}
+      }else{console.log("");this.showOnlyVisBtnAdd()}
     }
-    // Сохраняет настройки
-    saveSettingsReturnsup(){
-      return this.http.post('/api/auth/saveSettingsReturnsup', this.settingsForm.value)
-              .subscribe(
-                  (data) => {   
-                            this.openSnackBar("Настройки успешно сохранены", "Закрыть");
-                            
-                          },
-                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-              );
-    }
-  
-  //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
+  }
+  isAllSelected() {//все выбраны
+    const numSelected = this.selection.selected.length;
+    const numRows = this.dataSource.data.length;
+    return numSelected === numRows;//true если все строки выбраны
+  }  
+  isThereSelected() {//есть выбранные
+    return this.selection.selected.length>0;
+  } 
+  showCheckbox(row:CheckBox):boolean{
+    if(!row.is_completed && (
+      (this.allowToDeleteAllCompanies)||
+      (this.allowToDeleteMyCompany && row.company_id==this.myCompanyId)||
+      (this.allowToDeleteMyDepartments && row.company_id==this.myCompanyId && this.inMyDepthsId(row.department_id))||
+      (this.allowToDeleteMyDocs && row.company_id==this.myCompanyId && this.inMyDepthsId(row.department_id) && row.creator_id==this.myId))
+      )return true; else return false;
+  }
+  /**                              КОНЕЦ ЧЕКБОКСОВ                                  */
+
+  hideAllBtns(){
+    this.visBtnAdd = false;
+    this.visBtnDelete = false;
+  }
+
+  showOnlyVisBtnAdd(){
+    if(this.allowToCreate) this.visBtnAdd = true;
+    this.visBtnDelete = false;
+  }
+
+  setNumOfPages(){
+    this.clearCheckboxSelection();
+    this.createCheckedList();
+    this.sendingQueryForm.offset=0;
+    Cookie.set('returnsup_result',this.sendingQueryForm.result);
+    this.getData();
+  }
+
+  setPage(value:any) // set pagination
+  {
+    this.clearCheckboxSelection();
+    this.sendingQueryForm.offset=value;
+    Cookie.set('returnsup_offset',value);
+    this.getData();
+  }
+
+  clearCheckboxSelection(){
+    this.selection.clear(); 
+    if(this.dataSource.data) //!!!
+      this.dataSource.data.forEach(row => this.selection.deselect(row));
+  }
+
+  setSort(valueSortColumn:any) // set sorting column
+  {
+      this.clearCheckboxSelection();
+      if(valueSortColumn==this.sendingQueryForm.sortColumn){// если колонка, на которую ткнули, та же, по которой уже сейчас идет сортировка
+          if(this.sendingQueryForm.sortAsc=="asc"){
+              this.sendingQueryForm.sortAsc="desc"
+          } else {  
+              this.sendingQueryForm.sortAsc="asc"
+          }
+      Cookie.set('returnsup_sortAsc',this.sendingQueryForm.sortAsc);
+      } else {
+          this.sendingQueryForm.sortColumn=valueSortColumn;
+          this.sendingQueryForm.sortAsc="asc";
+          Cookie.set('returnsup_sortAsc',"asc");
+          Cookie.set('returnsup_sortColumn',valueSortColumn);
+      }
+      this.getData();
+  }
+  onCompanySelection(){
+    Cookie.set('returnsup_companyId',this.sendingQueryForm.companyId);
+    Cookie.set('returnsup_departmentId','0');
+    this.sendingQueryForm.departmentId="0"; 
+    this.resetOptions();
+    this.getDepartmentsList();
+  }
+  onDepartmentSelection(){
+    Cookie.set('returnsup_departmentId',this.sendingQueryForm.departmentId);
+    this.resetOptions();
+    this.getData();
+  }
+
+  clickBtnDelete(): void {
+    const dialogRef = this.deleteDialog.open(DeleteDialog, {
+      width: '300px',
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){this.deleteDocs();}
+      this.clearCheckboxSelection();
+      this.showOnlyVisBtnAdd();
+    });        
+  }
+
   clickBtnRestore(): void {
     const dialogRef = this.confirmDialog.open(ConfirmDialog, {
       width: '400px',
       data:
       { 
-        head: 'Восстановление',
-        query: 'Восстановить выбранные инвентаризации из удалённых?',
+        head: translate('menu.dialogs.restore'), //+++
+        query: translate('menu.dialogs.q_restore'),
         warning: '',
       },
     });
@@ -587,18 +436,192 @@ export class ReturnsupComponent implements OnInit {
       this.showOnlyVisBtnAdd();
     });        
   }
+
   undeleteDocs(){
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
-      return this.http.post('/api/auth/undeleteReturnsup', body) 
+    return this.http.post('/api/auth/undeleteReturnsup', body) 
     .subscribe(
-        (data) => {   
-                    this.getData();
-                    this.openSnackBar("Успешно восстановлено", "Закрыть");
-                  },
-        error => console.log(error),
-    );
+    (data) => {   
+      let result=data as any;
+      switch(result){ //+++
+        case 1:{this.getData();this.openSnackBar(translate('menu.msg.rec_success'), translate('menu.msg.close'));break;}  //+++
+        case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+        case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+      }
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
   }  
+
+  deleteDocs(){
+    const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
+    this.clearCheckboxSelection();
+    return this.http.post('/api/auth/deleteReturnsup', body) 
+    .subscribe(
+      (data) => {   
+        let result=data as any;
+        switch(result.result){
+          case 0:{this.getData();this.openSnackBar(translate('menu.msg.del_success'), translate('menu.msg.close'));break;} 
+          case 1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+          case 2:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+          case 3:{let numbers:string='';
+            for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="/ui/returnsupdoc/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
+            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.no_del_childs')+numbers}});break;}
+      }
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
+  }
+
+  openSnackBar(message: string, action: string) {
+    this._snackBar.open(message, action, {
+      duration: 3000,
+    });
+  }
+  
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+      this.loadSpravService.getCompaniesList()
+              .subscribe(
+                (data) => {this.receivedCompaniesList=data as any [];
+                  this.getSetOfPermissions();
+                },
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+            );
+    else this.getSetOfPermissions();
+  }  
+  getMyId(){ //+++
+    if(+this.myId==0)
+     this.loadSpravService.getMyId()
+            .subscribe(
+                (data) => {this.myId=data as any;
+                  this.getMyCompanyId();},
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+            );
+      else this.getMyCompanyId();
+  }
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
+      (data) => {
+        this.myCompanyId=data as number;
+        this.setDefaultCompany();
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
+    else this.setDefaultCompany();
+  } 
+  getMyDepartmentsList(){ //+++
+    if(this.receivedMyDepartmentsList.length==0)
+      this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
+      .subscribe(
+          (data) => {this.receivedMyDepartmentsList=data as any [];
+            this.setDefaultDepartment();},
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+      );
+      else this.setDefaultDepartment();
+  }
+
+  setDefaultCompany(){
+    if(Cookie.get('returnsup_companyId')=='0'){
+      this.sendingQueryForm.companyId=this.myCompanyId;
+      Cookie.set('returnsup_companyId',this.sendingQueryForm.companyId);
+    }
+      this.getDepartmentsList();
+  }
+
+  getDepartmentsList(){
+    this.receivedDepartmentsList=null;
+    this.loadSpravService.getDepartmentsListByCompanyId(+this.sendingQueryForm.companyId,false)
+            .subscribe(
+                (data) => {this.receivedDepartmentsList=data as any [];
+                            this.getMyDepartmentsList();},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}, //+++
+            );
+  }
+
+  setDefaultDepartment(){
+    if(this.receivedDepartmentsList.length==1)
+    {
+      this.sendingQueryForm.departmentId=+this.receivedDepartmentsList[0].id;
+      Cookie.set('returnsup_departmentId',this.sendingQueryForm.departmentId);
+    }
+  this.getCRUD_rights(this.permissionsSet);
+  }
+
+  inMyDepthsId(id:number):boolean{//проверяет, состоит ли присланный id в группе id отделений пользователя
+    let inMyDepthsId:boolean = false;
+    if(this.receivedMyDepartmentsList){//проверяем, т.к. может быть ".forEach of null", если выбираем не свое предприятие
+      this.receivedMyDepartmentsList.forEach(myDepth =>{
+        myDepth.id==id?inMyDepthsId=true:null;
+      });
+    }
+  return inMyDepthsId;
+  }
+
+  doFilterCompaniesList(){
+    let myCompany:idAndName;
+    if(!this.allowToViewAllCompanies){
+      this.receivedCompaniesList.forEach(company=>{
+      if(this.myCompanyId==company.id) myCompany={id:company.id, name:company.name}});
+      this.receivedCompaniesList=[];
+      this.receivedCompaniesList.push(myCompany);
+    }
+  }
+
+  doFilterDepartmentsList(){
+    if( (!this.allowToViewAllCompanies && !this.allowToViewMyCompany && this.allowToViewMyDepartments)||
+        (!this.allowToViewAllCompanies && !this.allowToViewMyCompany && !this.allowToViewMyDepartments && this.allowToViewMyDocs)){
+      this.receivedDepartmentsList=this.receivedMyDepartmentsList;}
+  }
+
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
+  }
+  //*************************************************************   НАСТРОЙКИ   ************************************************************/    
+  // открывает диалог настроек
+  openDialogSettings() { 
+    const dialogSettings = this.SettingsReturnsupDialogComponent.open(SettingsReturnsupDialogComponent, {
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      // height: '680px',
+      width: '400px', 
+      minHeight: '650px',
+      data:
+      { //отправляем в диалог:
+        receivedCompaniesList: this.receivedCompaniesList, //список предприятий
+        receivedDepartmentsList: this.receivedDepartmentsList,//список отделений
+        company_id: +this.sendingQueryForm.companyId, //предприятие (нужно для поиска покупателя)
+        department_type_price_id: null,
+        cagent_type_price_id: null,
+        default_type_price_id: null,
+        id: 0, //чтобы понять, новый док или уже созданный
+      },
+    });
+    dialogSettings.afterClosed().subscribe(result => {
+      if(result){
+        //если нажата кнопка Сохранить настройки - вставляем настройки в форму настроек и сохраняем
+        if(result.get('companyId')) this.settingsForm.get('companyId').setValue(result.get('companyId').value);
+        if(result.get('departmentId')) this.settingsForm.get('departmentId').setValue(result.get('departmentId').value);
+        if(result.get('pricingType')) this.settingsForm.get('pricingType').setValue(result.get('pricingType').value);
+        if(result.get('priceTypeId')) this.settingsForm.get('priceTypeId').setValue(result.get('priceTypeId').value);
+        if(result.get('plusMinus')) this.settingsForm.get('plusMinus').setValue(result.get('plusMinus').value);
+        if(result.get('changePrice')) this.settingsForm.get('changePrice').setValue(result.get('changePrice').value);
+        if(result.get('changePriceType')) this.settingsForm.get('changePriceType').setValue(result.get('changePriceType').value);
+        this.settingsForm.get('hideTenths').setValue(result.get('hideTenths').value);
+        this.settingsForm.get('statusOnFinishId').setValue(result.get('statusOnFinishId').value);
+        this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
+        this.saveSettingsReturnsup();
+      }
+    });
+  }
+  // Сохраняет настройки
+  saveSettingsReturnsup(){
+    return this.http.post('/api/auth/saveSettingsReturnsup', this.settingsForm.value)
+            .subscribe(
+                (data) => {   
+                  this.openSnackBar(translate('menu.msg.settngs_saved'), translate('menu.msg.close')); //+++
+                },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+    );
+  }
+
+  //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
     resetOptions(){
       this.displayingDeletedDocs=false;
       this.fillOptionsList();//перезаполняем список опций
@@ -606,7 +629,7 @@ export class ReturnsupComponent implements OnInit {
       this.sendingQueryForm.filterOptionsIds = [];
     }
     fillOptionsList(){
-      this.optionsIds=[{id:1, name:"Показать только удалённые"},];
+      this.optionsIds=[{id:1, name: 'menu.top.only_del'},]; //+++
     }
     clickApplyFilters(){
       let showOnlyDeletedCheckboxIsOn:boolean = false; //присутствует ли включенный чекбокс "Показывать только удалённые"

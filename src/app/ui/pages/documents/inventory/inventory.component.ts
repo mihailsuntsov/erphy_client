@@ -186,17 +186,17 @@ export class InventoryComponent implements OnInit {
       this.getCompaniesList();// 
     }
 
-    // -------------------------------------- *** ПРАВА *** ------------------------------------
-    getSetOfPermissions(){
-    return this.http.get('/api/auth/getMyPermissions?id=27')
-    .subscribe(
-        (data) => {   
-                    this.permissionsSet=data as any [];
-                    this.getMyId();
-                  },
-      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
-      );
-    }
+  // -------------------------------------- *** ПРАВА *** ------------------------------------
+  getSetOfPermissions(){
+  return this.http.get('/api/auth/getMyPermissions?id=27')
+  .subscribe(
+      (data) => {   
+                  this.permissionsSet=data as any [];
+                  this.getMyId();
+                },
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}, //+++
+    );
+  }
 
   getCRUD_rights(permissionsSet:any[]){
     this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==329)});
@@ -514,17 +514,15 @@ export class InventoryComponent implements OnInit {
     this.receivedDepartmentsList=null;
     this.loadSpravService.getDepartmentsListByCompanyId(+this.sendingQueryForm.companyId,false)
     .subscribe(
-        (data) => {this.receivedDepartmentsList=data as any [];
-                    this.getMyDepartmentsList();},
-                    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+    (data) => {this.receivedDepartmentsList=data as any [];
+      this.getMyDepartmentsList();},
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}, //+++
     );
   }
 
   setDefaultDepartment(){
     if(this.receivedDepartmentsList.length==1)
     {
-      // console.log('установка отделения по умолчанию - '+this.receivedDepartmentsList[0].id);
-
       this.sendingQueryForm.departmentId=+this.receivedDepartmentsList[0].id;
       Cookie.set('inventory_departmentId',this.sendingQueryForm.departmentId);
     }
@@ -597,13 +595,12 @@ export class InventoryComponent implements OnInit {
   }
   saveSettingsInventory(){
     return this.http.post('/api/auth/saveSettingsInventory', this.settingsForm.value)
-            .subscribe(
-                (data) => {   
-                          this.openSnackBar(translate('menu.msg.settngs_saved'), translate('menu.msg.close')); //+++
-                          
-                        },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
-            );
+    .subscribe(
+        (data) => {   
+                  this.openSnackBar(translate('menu.msg.settngs_saved'), translate('menu.msg.close')); //+++
+                },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+    );
   }
 
   getPriceTypesList(){
@@ -640,7 +637,7 @@ export class InventoryComponent implements OnInit {
   updateSortOptions(){//после определения прав пересматриваем опции на случай, если права не разрешают действия с определенными опциями, и исключаем эти опции
     let i=0; 
     this.optionsIds.forEach(z=>{
-      console.log("allowToDelete - "+this.allowToDelete);
+      // console.log("allowToDelete - "+this.allowToDelete);
       if(z.id==1 && !this.allowToDelete){this.optionsIds.splice(i,1)}//исключение опции Показывать удаленные, если нет прав на удаление
       i++;
     });

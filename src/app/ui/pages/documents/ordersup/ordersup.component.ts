@@ -1,4 +1,4 @@
-import { Component, OnInit} from '@angular/core';
+import { Component, EventEmitter, OnInit, Output} from '@angular/core';
 import { QueryForm } from './query-form';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource } from '@angular/material/table';
@@ -14,6 +14,8 @@ import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { FormGroup, FormControl } from '@angular/forms';
 import { SettingsOrdersupDialogComponent } from 'src/app/modules/settings/settings-ordersup-dialog/settings-ordersup-dialog.component';
+import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
+import { translate, TranslocoService } from '@ngneat/transloco'; //+++
 
 export interface CheckBox {
   id: number;
@@ -35,7 +37,7 @@ export interface NumRow {//интерфейс для списка количес
   selector: 'app-ordersup',
   templateUrl: './ordersup.component.html',
   styleUrls: ['./ordersup.component.css'],
-  providers: [QueryFormService,LoadSpravService,Cookie]
+  providers: [QueryFormService,LoadSpravService,Cookie,CommonUtilitesService] //+++
 })
 export class OrdersupComponent implements OnInit {
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
@@ -101,6 +103,8 @@ export class OrdersupComponent implements OnInit {
   displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
   //***********************************************************************************************************************/
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
+
   constructor(private queryFormService:   QueryFormService,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
@@ -110,7 +114,9 @@ export class OrdersupComponent implements OnInit {
     private http: HttpClient,
     private settingsOrdersupDialogComponent: MatDialog,
     public deleteDialog: MatDialog,
-    public dialogRef1: MatDialogRef<OrdersupComponent>,) { }
+    public dialogRef1: MatDialogRef<OrdersupComponent>,
+    public cu: CommonUtilitesService, //+++
+    private service: TranslocoService,) { }
 
     ngOnInit() {
       this.sendingQueryForm.companyId='0';
@@ -134,6 +140,12 @@ export class OrdersupComponent implements OnInit {
         Cookie.set('ordersup_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('ordersup_offset');
       if(Cookie.get('ordersup_result')=='undefined' || Cookie.get('ordersup_result')==null)        
         Cookie.set('ordersup_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('ordersup_result');
+    
+      //+++ getting base data from parent component
+      this.getBaseData('myId');    
+      this.getBaseData('myCompanyId');  
+      this.getBaseData('companiesList');      
+      this.getBaseData('myDepartmentsList');
       
       this.fillOptionsList();//заполняем список опций фильтра
       // Форма настроек
@@ -172,15 +184,15 @@ export class OrdersupComponent implements OnInit {
     }
 
     // -------------------------------------- *** ПРАВА *** ------------------------------------
-   getSetOfPermissions(){
+  getSetOfPermissions(){
     return this.http.get('/api/auth/getMyPermissions?id=39')
             .subscribe(
-                (data) => {   
-                            this.permissionsSet=data as any [];
-                            this.getMyId();
-                        },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-            );
+      (data) => {   
+            this.permissionsSet=data as any [];
+            this.getMyId();
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}, //+++
+    );
   }
 
 
@@ -231,7 +243,7 @@ export class OrdersupComponent implements OnInit {
       this.getTableHeaderTitles();
       this.getPagesList();
       this.getTable();
-    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
+    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})} //+++
   }
 
   getTableHeaderTitles(){
@@ -254,27 +266,27 @@ export class OrdersupComponent implements OnInit {
   getPagesList(){
     // this.receivedPagesList=null;
     this.queryFormService.getPagesList(this.sendingQueryForm)
-            .subscribe(
-                data => {this.receivedPagesList=data as string [];
-                this.size=this.receivedPagesList[0];
-                this.pagenum=this.receivedPagesList[1];
-                this.listsize=this.receivedPagesList[2];
-                this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-            ); 
+    .subscribe(
+        data => {this.receivedPagesList=data as string [];
+        this.size=this.receivedPagesList[0];
+        this.pagenum=this.receivedPagesList[1];
+        this.listsize=this.receivedPagesList[2];
+        this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
+    error =>  {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+    ); 
   }
 
   getTable(){
     this.gettingTableData=true;
     this.queryFormService.getTable(this.sendingQueryForm)
-            .subscribe(
-                (data) => {
-                  this.dataSource.data = data as any []; 
-                  if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
-                  this.gettingTableData=false;
-                },
-                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
-            );
+    .subscribe(
+        (data) => {
+          this.dataSource.data = data as any []; 
+          if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
+          this.gettingTableData=false;
+        },
+        error =>  {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+    );
   }
 
   isAllSelected() {//все выбраны
@@ -402,54 +414,97 @@ export class OrdersupComponent implements OnInit {
       this.showOnlyVisBtnAdd();
     });        
   }
-
+  clickBtnRestore(): void {
+    const dialogRef = this.confirmDialog.open(ConfirmDialog, {
+      width: '400px',
+      data:
+      { 
+        head: translate('menu.dialogs.restore'), //+++
+        query: translate('menu.dialogs.q_restore'),
+        warning: '',
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){this.undeleteDocs();}
+      this.clearCheckboxSelection();
+      this.showOnlyVisBtnAdd();
+    });        
+  }
+  undeleteDocs(){
+    const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
+    this.clearCheckboxSelection();
+    return this.http.post('/api/auth/undeleteOrdersup', body) 
+    .subscribe(
+    (data) => {   
+      let result=data as any;
+      switch(result){ //+++
+        case 1:{this.getData();this.openSnackBar(translate('menu.msg.rec_success'), translate('menu.msg.close'));break;}  //+++
+        case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+        case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+      }
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
+  }  
   deleteDocs(){
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
-          return this.http.post('/api/auth/deleteOrdersup', body) 
-  .subscribe((data) => {   
-    let result=data as any;
-    switch(result.result){
-      case 0:{this.getData();this.openSnackBar("Успешно удалено", "Закрыть");break;} 
-      case 1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе удаления "+(this.checkedList.length>1?"документов":"документа")+" проиошла ошибка")}});break;}
-      case 2:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для операции удаления"}});break;}
-      case 3:{let numbers:string='';
-        for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="/ui/ordersupdoc/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
-        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Удаление невозможно - у следующих номеров документов есть производные (связанные с ними дочерние) документы:'+numbers}});break;}
-    }
-  },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
-}
+    return this.http.post('/api/auth/deleteOrdersup', body) 
+    .subscribe((data) => {   
+      let result=data as any;
+      switch(result.result){
+        case 0:{this.getData();this.openSnackBar(translate('menu.msg.del_success'), translate('menu.msg.close'));break;} 
+        case 1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+        case 2:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+        case 3:{let numbers:string='';
+          for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="/ui/ordersupdoc/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
+          this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.no_del_childs')+numbers}});break;}
+      }
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
+  }
     
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
       duration: 3000,
     });
   }
-  getCompaniesList(){
-    this.receivedCompaniesList=null;
-    this.loadSpravService.getCompaniesList()
-            .subscribe(
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+      this.loadSpravService.getCompaniesList()
+              .subscribe(
                 (data) => {this.receivedCompaniesList=data as any [];
                   this.getSetOfPermissions();
                 },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
             );
-  }
-  getMyId(){
-    this.receivedMyDepartmentsList=null;
-    this.loadSpravService.getMyId()
+    else this.getSetOfPermissions();
+  }  
+  getMyId(){ //+++
+    if(+this.myId==0)
+     this.loadSpravService.getMyId()
             .subscribe(
                 (data) => {this.myId=data as any;
                   this.getMyCompanyId();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
             );
+      else this.getMyCompanyId();
   }
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
       (data) => {
         this.myCompanyId=data as number;
         this.setDefaultCompany();
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
+    else this.setDefaultCompany();
+  } 
+  getMyDepartmentsList(){ //+++
+    if(this.receivedMyDepartmentsList.length==0)
+      this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
+      .subscribe(
+          (data) => {this.receivedMyDepartmentsList=data as any [];
+            this.setDefaultDepartment();},
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+      );
+      else this.setDefaultDepartment();
   }
 
   setDefaultCompany(){
@@ -463,28 +518,16 @@ export class OrdersupComponent implements OnInit {
   getDepartmentsList(){
     this.receivedDepartmentsList=null;
     this.loadSpravService.getDepartmentsListByCompanyId(+this.sendingQueryForm.companyId,false)
-            .subscribe(
-                (data) => {this.receivedDepartmentsList=data as any [];
-                            this.getMyDepartmentsList();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-            );
-  }
-
-  getMyDepartmentsList(){
-    this.receivedMyDepartmentsList=null;
-    this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
-            .subscribe(
-                (data) => {this.receivedMyDepartmentsList=data as any [];
-                  this.setDefaultDepartment();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-            );
+    .subscribe(
+        (data) => {this.receivedDepartmentsList=data as any [];
+                    this.getMyDepartmentsList();},
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}, //+++
+    );
   }
 
   setDefaultDepartment(){
     if(this.receivedDepartmentsList.length==1)
     {
-      console.log('установка отделения по умолчанию - '+this.receivedDepartmentsList[0].id);
-
       this.sendingQueryForm.departmentId=+this.receivedDepartmentsList[0].id;
       Cookie.set('ordersup_departmentId',this.sendingQueryForm.departmentId);
     }
@@ -523,82 +566,56 @@ export class OrdersupComponent implements OnInit {
         (!this.allowToViewAllCompanies && !this.allowToViewMyCompany && !this.allowToViewMyDepartments && this.allowToViewMyDocs)){
       this.receivedDepartmentsList=this.receivedMyDepartmentsList;}
   }
-      //*************************************************************   НАСТРОЙКИ   ************************************************************/    
-    // открывает диалог настроек
-    openDialogSettings() { 
-      const dialogSettings = this.settingsOrdersupDialogComponent.open(SettingsOrdersupDialogComponent, {
-        maxWidth: '95vw',
-        maxHeight: '95vh',
-        // height: '680px',
-        width: '400px', 
-        minHeight: '650px',
-        data:
-        { //отправляем в диалог:
-          receivedCompaniesList: this.receivedCompaniesList, //список предприятий
-          receivedDepartmentsList: this.receivedDepartmentsList,//список отделений
-          company_id: +this.sendingQueryForm.companyId, //предприятие (нужно для поиска покупателя)
-          department_type_price_id: null,
-          cagent_type_price_id: null,
-          default_type_price_id: null,
-          id: 0, //чтобы понять, новый док или уже созданный
-        },
-      });
-      dialogSettings.afterClosed().subscribe(result => {
-        if(result){
-          //если нажата кнопка Сохранить настройки - вставляем настройки в форму настроек и сохраняем
-          if(result.get('companyId')) this.settingsForm.get('companyId').setValue(result.get('companyId').value);
-          if(result.get('departmentId')) this.settingsForm.get('departmentId').setValue(result.get('departmentId').value);
-          if(result.get('cagentId')) this.settingsForm.get('cagentId').setValue(result.get('cagentId').value);
-          if(result.get('cagent')) this.settingsForm.get('cagent').setValue(result.get('cagent').value);
-          this.settingsForm.get('autocreate').setValue(result.get('autocreate').value);
-          this.settingsForm.get('name').setValue(result.get('name').value);
-          this.settingsForm.get('statusIdOnComplete').setValue(result.get('statusIdOnComplete').value);
-          this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
-          this.settingsForm.get('autoPrice').setValue(result.get('autoPrice').value);
-          this.saveSettingsOrdersup();
-        }
-      });
-    }
-    // Сохраняет настройки
-    saveSettingsOrdersup(){
-      return this.http.post('/api/auth/saveSettingsOrdersup', this.settingsForm.value)
-              .subscribe(
-                  (data) => {   
-                            this.openSnackBar("Настройки успешно сохранены", "Закрыть");
-                            
-                          },
-                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-              );
-    }
-  //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
-  clickBtnRestore(): void {
-    const dialogRef = this.confirmDialog.open(ConfirmDialog, {
-      width: '400px',
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
+  }
+  //*************************************************************   НАСТРОЙКИ   ************************************************************/    
+  // открывает диалог настроек
+  openDialogSettings() { 
+    const dialogSettings = this.settingsOrdersupDialogComponent.open(SettingsOrdersupDialogComponent, {
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      // height: '680px',
+      width: '400px', 
+      minHeight: '650px',
       data:
-      { 
-        head: 'Восстановление',
-        query: 'Восстановить выбранные счета покупателям из удалённых?',
-        warning: '',
+      { //отправляем в диалог:
+        receivedCompaniesList: this.receivedCompaniesList, //список предприятий
+        receivedDepartmentsList: this.receivedDepartmentsList,//список отделений
+        company_id: +this.sendingQueryForm.companyId, //предприятие (нужно для поиска покупателя)
+        department_type_price_id: null,
+        cagent_type_price_id: null,
+        default_type_price_id: null,
+        id: 0, //чтобы понять, новый док или уже созданный
       },
     });
-    dialogRef.afterClosed().subscribe(result => {
-      if(result==1){this.undeleteDocs();}
-      this.clearCheckboxSelection();
-      this.showOnlyVisBtnAdd();
-    });        
+    dialogSettings.afterClosed().subscribe(result => {
+      if(result){
+        //если нажата кнопка Сохранить настройки - вставляем настройки в форму настроек и сохраняем
+        if(result.get('companyId')) this.settingsForm.get('companyId').setValue(result.get('companyId').value);
+        if(result.get('departmentId')) this.settingsForm.get('departmentId').setValue(result.get('departmentId').value);
+        if(result.get('cagentId')) this.settingsForm.get('cagentId').setValue(result.get('cagentId').value);
+        if(result.get('cagent')) this.settingsForm.get('cagent').setValue(result.get('cagent').value);
+        this.settingsForm.get('autocreate').setValue(result.get('autocreate').value);
+        this.settingsForm.get('name').setValue(result.get('name').value);
+        this.settingsForm.get('statusIdOnComplete').setValue(result.get('statusIdOnComplete').value);
+        this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
+        this.settingsForm.get('autoPrice').setValue(result.get('autoPrice').value);
+        this.saveSettingsOrdersup();
+      }
+    });
   }
-  undeleteDocs(){
-    const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
-    this.clearCheckboxSelection();
-      return this.http.post('/api/auth/undeleteOrdersup', body) 
-    .subscribe(
-        (data) => {   
-                    this.getData();
-                    this.openSnackBar("Успешно восстановлено", "Закрыть");
-                  },
-        error => console.log(error),
+  // Сохраняет настройки
+  saveSettingsOrdersup(){
+    return this.http.post('/api/auth/saveSettingsOrdersup', this.settingsForm.value)
+      .subscribe(
+          (data) => {   
+            this.openSnackBar(translate('menu.msg.settngs_saved'), translate('menu.msg.close')); //+++
+          },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
     );
-  }  
+  }
+  //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
   resetOptions(){
     this.displayingDeletedDocs=false;
     this.fillOptionsList();//перезаполняем список опций
@@ -606,7 +623,7 @@ export class OrdersupComponent implements OnInit {
     this.sendingQueryForm.filterOptionsIds = [];
   }
   fillOptionsList(){
-    this.optionsIds=[{id:1, name:"Показать только удалённые"},];
+    this.optionsIds=[{id:1, name: 'menu.top.only_del'},]; //+++
   }
   clickApplyFilters(){
     let showOnlyDeletedCheckboxIsOn:boolean = false; //присутствует ли включенный чекбокс "Показывать только удалённые"

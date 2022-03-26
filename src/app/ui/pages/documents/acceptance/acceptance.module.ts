@@ -12,7 +12,7 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 @NgModule({
   declarations: [AcceptanceComponent],
   providers: [
-    { provide: TRANSLOCO_SCOPE, useValue: 'acceptance'}
+    { provide: TRANSLOCO_SCOPE, useValue: 'menu'}
   ],
   imports: [
     CommonModule,

@@ -13,7 +13,8 @@ import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
 import { FormGroup, FormControl } from '@angular/forms';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { SettingsAcceptanceDialogComponent } from 'src/app/modules/settings/settings-acceptance-dialog/settings-acceptance-dialog.component';
-import { TranslocoService } from '@ngneat/transloco';
+import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
+import { translate, TranslocoService } from '@ngneat/transloco'; //+++
 
 export interface CheckBox {
   id: number;
@@ -38,9 +39,24 @@ export interface idAndName {
   selector: 'app-acceptance',
   templateUrl: './acceptance.component.html',
   styleUrls: ['./acceptance.component.css'],
-  providers: [QueryFormService,LoadSpravService,Cookie]
+  providers: [QueryFormService,LoadSpravService,Cookie,CommonUtilitesService] //+++
 })
 export class AcceptanceComponent implements OnInit {
+
+  constructor(private queryFormService:   QueryFormService,
+    private loadSpravService:   LoadSpravService,
+    private _snackBar: MatSnackBar,
+    public universalCategoriesDialog: MatDialog,
+    public confirmDialog: MatDialog,
+    private http: HttpClient,
+    private settingsAcceptanceDialogComponent: MatDialog,
+    private MessageDialog: MatDialog,
+    public deleteDialog: MatDialog,
+    public dialogRef1: MatDialogRef<AcceptanceComponent>,
+    public cu: CommonUtilitesService, //+++
+    private service: TranslocoService,) { } 
+
+
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
   receivedPagesList: string [] ;//массив для получения данных пагинации
   dataSource = new MatTableDataSource<CheckBox>(); //массив данных для таблицы и чекбоксов (чекбоксы берут из него id, таблица -всё)
@@ -103,21 +119,8 @@ export class AcceptanceComponent implements OnInit {
   displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
   //***********************************************************************************************************************/
-
   @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
   
-  constructor(private queryFormService:   QueryFormService,
-    private loadSpravService:   LoadSpravService,
-    private _snackBar: MatSnackBar,
-    public universalCategoriesDialog: MatDialog,
-    public confirmDialog: MatDialog,
-    private http: HttpClient,
-    private settingsAcceptanceDialogComponent: MatDialog,
-    private MessageDialog: MatDialog,
-    public deleteDialog: MatDialog,
-    public dialogRef1: MatDialogRef<AcceptanceComponent>,
-    private service: TranslocoService,) { }
-
     ngOnInit() {
       this.sendingQueryForm.companyId='0';
       this.sendingQueryForm.departmentId='0';
@@ -178,15 +181,15 @@ export class AcceptanceComponent implements OnInit {
       
   
 // -------------------------------------- *** ПРАВА *** ------------------------------------
-   getSetOfPermissions(){
+  getSetOfPermissions(){
     return this.http.get('/api/auth/getMyPermissions?id=15')
-            .subscribe(
-                (data) => {   
-                            this.permissionsSet=data as any [];
-                            this.getMyId();
-                        },
-                error => console.log(error),
-            );
+    .subscribe(
+        (data) => {   
+        this.permissionsSet=data as any [];
+        this.getMyId();
+    },
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}, //+++
+    );
   }
 
   getCRUD_rights(permissionsSet:any[]){
@@ -216,7 +219,6 @@ export class AcceptanceComponent implements OnInit {
     this.allowToDelete=(this.allowToDeleteAllCompanies || this.allowToDeleteMyCompany || this.allowToDeleteMyDepartments || this.allowToDeleteMyDocs)?true:false;
     this.showOpenDocIcon=(this.allowToUpdate||this.allowToView);
     this.visBtnAdd = (this.allowToCreate)?true:false;
-    
     // console.log("allowToView - "+this.allowToView);
     // console.log("allowToUpdate - "+this.allowToUpdate);
     // console.log("allowToCreate - "+this.allowToCreate);
@@ -237,7 +239,7 @@ export class AcceptanceComponent implements OnInit {
       this.getTableHeaderTitles();
       this.getPagesList();
       this.getTable();
-    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
+    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})} //+++
   }
 
   getTableHeaderTitles(){
@@ -266,21 +268,21 @@ export class AcceptanceComponent implements OnInit {
                 this.pagenum=this.receivedPagesList[1];
                 this.listsize=this.receivedPagesList[2];
                 this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
-                error => console.log(error)
-            ); 
+        error =>  {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+    ); 
   }
 
   getTable(){
     this.gettingTableData=true;
     this.queryFormService.getTable(this.sendingQueryForm)
-            .subscribe(
-                (data) => {
-                  this.dataSource.data = data as any []; 
-                  if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
-                  this.gettingTableData=false;
-                },
-                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
-            );
+      .subscribe(
+        (data) => {
+          this.dataSource.data = data as any []; 
+          if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
+          this.gettingTableData=false;
+        },
+        error =>  {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+    );
   }
 
   isAllSelected() {//все выбраны
@@ -405,18 +407,53 @@ export class AcceptanceComponent implements OnInit {
       this.showOnlyVisBtnAdd();
     });        
   }
-
+  clickBtnRestore(): void {
+    const dialogRef = this.confirmDialog.open(ConfirmDialog, {
+      width: '400px',
+      data:
+      { 
+        head: translate('menu.dialogs.restore'), //+++
+        query: translate('menu.dialogs.q_restore'),
+        warning: '',
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){this.undeleteDocs();}
+      this.clearCheckboxSelection();
+      this.showOnlyVisBtnAdd();
+    });        
+  }
+  undeleteDocs(){
+    const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
+    this.clearCheckboxSelection();
+    return this.http.post('/api/auth/undeleteAcceptance', body) 
+    .subscribe(
+    (data) => {   
+      let result=data as any;
+      switch(result){ //+++
+        case 1:{this.getData();this.openSnackBar(translate('menu.msg.rec_success'), translate('menu.msg.close'));break;}  //+++
+        case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+        case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+      }
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
+  }  
   deleteDocs(){
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
-        return this.http.post('/api/auth/deleteAcceptance', body) 
-            .subscribe(
-                (data) => {   
-                            this.getData();
-                          },
-                error => console.log(error),
-            );
-    }
+    return this.http.post('/api/auth/deleteAcceptance', body) 
+    .subscribe(
+    (data) => {   
+      let result=data as any;
+      switch(result.result){
+        case 0:{this.getData();this.openSnackBar(translate('menu.msg.del_success'), translate('menu.msg.close'));break;} 
+        case 1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+        case 2:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+        case 3:{let numbers:string='';
+          for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="/ui/acceptancedoc/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
+          this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.no_del_childs')+numbers}});break;}
+      }
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
+  }
     
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
@@ -425,22 +462,22 @@ export class AcceptanceComponent implements OnInit {
   }
   getCompaniesList(){ //+++
     if(this.receivedCompaniesList.length==0)
-    this.loadSpravService.getCompaniesList()
-            .subscribe(
+      this.loadSpravService.getCompaniesList()
+              .subscribe(
                 (data) => {this.receivedCompaniesList=data as any [];
                   this.getSetOfPermissions();
                 },
-                error => console.log(error)
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
             );
     else this.getSetOfPermissions();
-  }
+  }  
   getMyId(){ //+++
     if(+this.myId==0)
      this.loadSpravService.getMyId()
             .subscribe(
                 (data) => {this.myId=data as any;
                   this.getMyCompanyId();},
-                error => console.log(error)
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
             );
       else this.getMyCompanyId();
   }
@@ -450,50 +487,40 @@ export class AcceptanceComponent implements OnInit {
       (data) => {
         this.myCompanyId=data as number;
         this.setDefaultCompany();
-      }, error => console.log(error));
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
     else this.setDefaultCompany();
   } 
+  getMyDepartmentsList(){ //+++
+    if(this.receivedMyDepartmentsList.length==0)
+      this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
+      .subscribe(
+          (data) => {this.receivedMyDepartmentsList=data as any [];
+            this.setDefaultDepartment();},
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+      );
+      else this.setDefaultDepartment();
+  }
 
   setDefaultCompany(){
-    // try
-    // {//если ранее предприятие выбиралось
-    //   this.sendingQueryForm.companyId=Cookie.get('acceptance_companyId')!='0'?+Cookie.get('acceptance_companyId'):'0';
-    // } 
-    // catch(e)//если нет - ставим совоё
-    // {this.sendingQueryForm.companyId=this.myCompanyId;
-    //   Cookie.set('acceptance_companyId',this.sendingQueryForm.companyId);
-    // }
     if(Cookie.get('acceptance_companyId')=='0'){
       this.sendingQueryForm.companyId=this.myCompanyId;
       Cookie.set('acceptance_companyId',this.sendingQueryForm.companyId);
     }
       this.getDepartmentsList();
-    }
+  }
 
   getDepartmentsList(){
     this.loadSpravService.getDepartmentsListByCompanyId(+this.sendingQueryForm.companyId,false)
       .subscribe(
           (data) => {this.receivedDepartmentsList=data as any [];
                       this.getMyDepartmentsList();},
-          error => console.log(error)
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
       );
   }
 
-  getMyDepartmentsList(){ //+++
-    if(this.receivedMyDepartmentsList.length==0)
-    this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
-      .subscribe(
-          (data) => {this.receivedMyDepartmentsList=data as any [];
-            this.setDefaultDepartment();},
-          error => console.log(error)
-      );
-    else this.setDefaultDepartment();
-}
   setDefaultDepartment(){
     if(this.receivedDepartmentsList.length==1)
     {
-      console.log('установка отделения по умолчанию - '+this.receivedDepartmentsList[0].id);
-
       this.sendingQueryForm.departmentId=+this.receivedDepartmentsList[0].id;
       Cookie.set('acceptance_departmentId',this.sendingQueryForm.departmentId);
     }
@@ -567,42 +594,14 @@ export class AcceptanceComponent implements OnInit {
   // Сохраняет настройки
   saveSettingsAcceptance(){
     return this.http.post('/api/auth/saveSettingsAcceptance', this.settingsForm.value)
-            .subscribe(
-                (data) => {   
-                          this.openSnackBar("Настройки успешно сохранены", "Закрыть");
-                        },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-            );
+    .subscribe(
+      (data) => {   
+        this.openSnackBar(translate('menu.msg.settngs_saved'), translate('menu.msg.close')); //+++
+      },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+    );
   }
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
-  clickBtnRestore(): void {
-    const dialogRef = this.confirmDialog.open(ConfirmDialog, {
-      width: '400px',
-      data:
-      { 
-        head: 'Восстановление',
-        query: 'Восстановить выбранные приёмки из удалённых?',
-        warning: '',
-      },
-    });
-    dialogRef.afterClosed().subscribe(result => {
-      if(result==1){this.undeleteDocs();}
-      this.clearCheckboxSelection();
-      this.showOnlyVisBtnAdd();
-    });        
-  }
-  undeleteDocs(){
-    const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
-    this.clearCheckboxSelection();
-      return this.http.post('/api/auth/undeleteAcceptance', body) 
-    .subscribe(
-        (data) => {   
-                    this.getData();
-                    this.openSnackBar("Успешно восстановлено", "Закрыть");
-                  },
-        error => console.log(error),
-    );
-  }  
   resetOptions(){
     this.displayingDeletedDocs=false;
     this.fillOptionsList();//перезаполняем список опций
@@ -610,7 +609,7 @@ export class AcceptanceComponent implements OnInit {
     this.sendingQueryForm.filterOptionsIds = [];
   }
   fillOptionsList(){
-    this.optionsIds=[{id:1, name:"Показать только удалённые"},];
+    this.optionsIds=[{id:1, name: 'menu.top.only_del'},]; //+++
   }
   clickApplyFilters(){
     let showOnlyDeletedCheckboxIsOn:boolean = false; //присутствует ли включенный чекбокс "Показывать только удалённые"
