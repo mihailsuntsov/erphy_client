@@ -8,9 +8,13 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SettingsAcceptanceDialogModule } from '../../../../modules/settings/settings-acceptance-dialog/settings-acceptance-dialog.module';
 import { AcceptanceProductsTableModule } from 'src/app/modules/trade-modules/acceptance-products-table/acceptance-products-table.module';
 import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.module';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [AcceptanceDocComponent],
+  providers: [
+    { provide: TRANSLOCO_SCOPE, useValue: ['docs','menu']}
+  ],
   imports: [
     CommonModule,
     TemplatesDialogModule,
@@ -21,7 +25,8 @@ import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balanc
 
     MaterialModule,
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    TranslocoModule
   ]
 })
 export class AcceptanceDocModule { }

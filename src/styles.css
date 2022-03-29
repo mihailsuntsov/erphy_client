@@ -159,3 +159,9 @@ body {
 .completed{
   background-color: seagreen !important;
 }
+
+.mat-card-title {
+  display: block;
+  background-color: white;
+  margin-bottom: 28px !important;
+}

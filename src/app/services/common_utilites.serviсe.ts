@@ -67,22 +67,22 @@ export class CommonUtilitesService{
   getDocNameByDocAlias(alias: string): string{
     alias=alias.toLowerCase();
     switch(alias){
-      case 'return':        {return 'Возврат покупателя';}
-      case 'returnsup':     {return 'Возврат поставщику';}
-      case 'retailsales':   {return 'Розничная продажа';}
-      case 'posting':       {return 'Оприходование';}
-      case 'shipment':      {return 'Отгрузка';}
-      case 'acceptance':    {return 'Приёмка';}
-      case 'ordersup':      {return 'Заказ поставщику';}
-      case 'invoiceout':    {return 'Счёт покупателю';}
-      case 'invoicein':     {return 'Счёт поставщика';}
-      case 'paymentin':     {return 'Входящий платёж';}
-      case 'paymentout':    {return 'Исходящий платёж';}
-      case 'orderin':       {return 'Приходный ордер';}
-      case 'orderout':      {return 'Расходный ордер';}
-      case 'vatinvoiceout': {return 'Счёт-фактура выданный';}
-      case 'vatinvoicein':  {return 'Счет-фактура полученный';}
-      default:               return ('документ');
+      case 'return':        {return 'return';}
+      case 'returnsup':     {return 'returnsup';}
+      case 'retailsales':   {return 'retailsale';}
+      case 'posting':       {return 'posting';}
+      case 'shipment':      {return 'shipment';}
+      case 'acceptance':    {return 'acceptance';}
+      case 'ordersup':      {return 'ordersup';}
+      case 'invoiceout':    {return 'invoiceout';}
+      case 'invoicein':     {return 'invoicein';}
+      case 'paymentin':     {return 'paymentin';}
+      case 'paymentout':    {return 'paymentout';}
+      case 'orderin':       {return 'orderin';}
+      case 'orderout':      {return 'orderout';}
+      case 'vatinvoiceout': {return 'v_invoiceout';}
+      case 'vatinvoicein':  {return 'v_invoicein';}
+      default:               return ('');
     }
   }
 

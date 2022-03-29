@@ -1,0 +1,180 @@
+{
+    "top":{    
+        "number":       "#"    
+    },
+    "tab":{
+        "info":         "Information",
+        "linked":       "Related",
+        "files":        "Files",
+        "about":        "About"
+    },
+    "card":{
+        "base_info":    "Main information",
+        "linked":       "Related documents",
+        "files":        "Files"
+    },
+    "field":{ 
+        "-- COMMON":"--",
+
+        "company":      "Company",
+        "department":   "Department",
+        "supplier":     "Supplier",
+        "description":  "Description",
+        "additional":   "Additional",
+        "tax":          "Tax",
+        "tax_included": "Tax included",
+        "expenses":     "Expenses",
+        "not_distr_cst":"Do not distribute at cost price",
+        "distr_cst":    "Distribute at cost price",
+        "cost_distrbtn":"Distribution of expenses",
+        "creator":      "Creator",
+        "created":      "Created",
+        "changed":      "Changed",
+        "changer":      "Changer",
+
+        "-- RETURNS TO SUPPLIERS":"--",
+
+        "return_date":  "Return date",
+
+        "-- ORDERS TO SUPPLIERS":"--",
+
+        "-- ACCEPTANCES":"--",
+
+        "acc_date":     "Acceptance date",
+
+        "-- SUPPLIERS' INVOICES":"--",
+
+        "-- RECEIVED VAT INVOICES":"--"
+               
+    },
+    "error":{ 
+        "-- COMMON":"--",
+
+        "field_miss":   "Required field is missing",
+        "date_format":  "Incorrect format of date",
+        "num_only":     "Digits only!",
+        "status_not_se":"Document status not selected",
+        "depart_not_se":"Department not selected",
+        "suppl_not_sel":"The supplier is not selected. Enter part of the name of the supplier, and select it from the list",
+        "price_format": "Incorrect format. Up to {{int}} digits in the integer and up to {{fract}} digits in the fractional part are allowed",
+
+        "-- RETURNS TO SUPPLIERS":"--",
+
+        "-- ORDERS TO SUPPLIERS":"--",
+
+        "-- ACCEPTANCES":"--",
+
+        "-- SUPPLIERS' INVOICES":"--",
+
+        "-- RECEIVED VAT INVOICES":"--"
+               
+    },
+    "tip":{
+        "user_settings":"User settings",
+        "print":        "Printing of documents",
+        "create":       "Create a document",
+        "save":         "Save the document",
+        "complete":     "Complete the document",
+        "cncl_complete":"Cancel complete of the document",
+        "exit":         "Exit to menu",
+        "close":        "Close this window",
+        "cancel":       "Cancel the creation of the document",
+        "set_prnt_menu":"Configure printing menu",
+        "tip_prnt_menu":"Configure the menu that is called when the \"Print\" button is pressed",
+        "create_docs":  "Create documents",
+        "completed":    "The document is completed",
+        "tax":          "Enable it if you work with taxes, for example with VAT",
+        "tax_included": "Enable if the price already contains tax. Otherwise, the tax will be added to the price",
+        "no_links":     "This document has no links with other documents",
+        "del_file":     "Delete file",
+        "open_file":    "Open file card",
+        "add_file":     "Add files"
+    },
+    "msg":{
+        "error":        "Error!",
+        "error_msg":    "An error occurred during the operation",
+        "attention":    "Attention!",
+        "ne_perm":      "Insufficient permissions for this operation",
+        "crte_doc_err": "Document \"{{name}}\" creation error",
+        "doc_num_head": "Editing the document number",
+        "doc_num_query":"Open the \"Document number\" field for editing?",
+        "doc_num_warn": "The document number is assigned by the system automatically. If you want to edit it and at the same time allow the system to generate code in the following documents, please do not use more than 9 digits in the number",
+        "num_not_unic": "The entered document number is not unique",
+        "doc_crtd_succ":"Document \"{{name}}\" successfully created",
+        "complet_head": "Complete",
+        "complet_warn": "Do you want to complete this document?",
+        "complet_query":"After the completeon, the document will become unavailable for editing",
+        "cnc_com_head": "Cancel of completeon",
+        "cnc_com_warn": "Do you want to uncomplete this document?",
+        "cnc_com_error":"Error canceling document completion",
+        "alr_cnc_com":  "The completion of this document is already cancelled",
+        "cnc_com_err1": "As a result of the recalculation of the cost of one of the acceptance goods, a negative quantity of this product was obtained at one of the stages of its movement",
+        "cnc_com_err2": "As a result of the operation, a negative quantity was received in the warehouse of one of the goods of the document",
+        "cnc_com_succs":"The document \"{{name}}\" has been successfully removed from the completion",
+        "error_of":     "Error of",
+        "ne_perm_oper": "Not enough permissions for",
+        "_of_comp":     " completion",
+        "_of_save":     " saving",
+        "_of_doc":      " of document \"{{name}}\"",
+        "already_cmplt":"This document is already completed",
+        "doc_name":     "Document \"{{name}}\"",
+        "saved":        " is successfully saved",
+        "completed":    " is successfully completed",
+        "close":        "Close",
+        "settngs_saved":"Settings saved successfully",
+        "files_added":  "Files successfully added",
+        "file_del_head":"File deleting",
+        "file_del_qury":"Doyou want to delete this file?",
+        "file_del_warn":"The file will not be permanently deleted, it will remain in the library \"{{name}}\"",
+        "ne_perm_creat":"Not enough permissions for create document \"{{name}}\"",
+        "cnt_crt_items":"Unable to create a document \"{{name}}\", because there is no product items",
+        "err_load_lnkd":"Error loading related documents",        
+        "no_perm":      "Not enough permissions"
+    },
+    "menu":{
+    },
+    "docs":{            
+        "role":         "Role",
+        "user":         "User",
+        "department":   "Department",
+        "company":      "Company",
+        "file":         "File",
+        "productgroup": "Product group",
+        "unit":         "Unit",       
+        "boxoffice":    "Cash room",
+        "cparty":       "Counterparty",
+        "tax":          "Tax",
+        "status":       "Document status",
+        "expenditure":  "Expenditure",
+        "pricetype":    "Price type",
+        "paymentin":    "Payment in",
+        "paymentout":   "Payment out",
+        "orderin":      "Order in",
+        "orderout":     "Order out",
+        "correction":   "Correction",
+        "profitloss":   "P&L report",
+        "mut_payments": "Mutual payments",
+        "moneyflow":    "Moneyflow",
+        "inventory":    "Inventory",
+        "writeoff":     "Writeoff",
+        "posting":      "Posting",
+        "moving":       "Moving",
+        "retailsale":   "Retail sale",
+        "shift":        "Cashier's shift",
+        "receipt":      "Cashier's check",
+        "kassa":        "Sales register",
+        "withdrawal":   "Withdrawal",
+        "depositing":   "Depositing",
+        "tr":           "Trade result",
+        "return":       "Buyers' return",
+        "c_order":      "Customer's order",
+        "shipment":     "Shipment",
+        "invoiceout":   "Invoice to customer",
+        "v_invoiceout": "Issued VAT invoice",  
+        "returnsup":    "Return to supplier",
+        "ordersup":     "Order to supplier",
+        "acceptance":   "Acceptance",
+        "invoicein":    "Suppliers' invoice",
+        "v_invoicein":  "Received VAT invoice"
+    }
+}
