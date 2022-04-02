@@ -106,7 +106,7 @@ getSetOfPermissions(){
                           console.log("permissions:"+this.permissionsSet);
                           this.getCRUD_rights(this.permissionsSet);
                       },
-              error => console.log(error),
+              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
           );
 }
 getCRUD_rights(permissionsSet:any[]){
@@ -331,7 +331,7 @@ getTableHeaderTitles(){
                         this.dataSource.data = this.receivedMatTable;
                         this.getData();
                     },
-            error => console.log(error),
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
         );
   }
 

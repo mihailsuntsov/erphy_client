@@ -8,6 +8,7 @@ import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SettingsMovingDialogModule } from '../../../../modules/settings/settings-moving-dialog/settings-moving-dialog.module';
 import { MovingProductsTableModule } from 'src/app/modules/trade-modules/moving-products-table/moving-products-table.module';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [MovingDocComponent],
@@ -19,7 +20,9 @@ import { MovingProductsTableModule } from 'src/app/modules/trade-modules/moving-
 
     MaterialModule,
     FormsModule,
-    ReactiveFormsModule
-  ]
+    ReactiveFormsModule,
+    TranslocoModule
+  ],
+  providers:[{ provide: TRANSLOCO_SCOPE, useValue: ['docs','menu','modules']},]
 })
 export class MovingDocModule { }

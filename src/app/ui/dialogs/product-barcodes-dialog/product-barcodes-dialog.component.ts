@@ -6,6 +6,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 // import { ValidationService } from '../../../services/validation.service';
 import { MatDialog } from '@angular/material/dialog';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
+import { translate } from '@ngneat/transloco'; //+++
 
 @Component({
   selector: 'app-product-barcodes-dialog',
@@ -81,7 +82,7 @@ export class ProductBarcodesDialogComponent implements OnInit {
                           this.openSnackBar("Штрих-код создан", "Закрыть");
                           this.dialogAddBarcodes.close('Ok');
                         },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
             );
   }
 
@@ -95,7 +96,7 @@ export class ProductBarcodesDialogComponent implements OnInit {
                           this.openSnackBar("Штрих-код сохранён", "Закрыть");
                           this.dialogEditBarcodeProperties.close('Ok');
                         },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
             );
   }
 
@@ -204,7 +205,7 @@ console.log("2 formBaseInformation.get('barcode_id').value - "+this.formBaseInfo
       console.log("value1:"+this.formBaseInformation.get('value').value);
       this.checkSuitableBarcode();
     }
-      else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Создание штрих-кода EAN-13 невозможно, т.к. поле "Код" в карточке товара не заполнено.',}});
+      else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:'Создание штрих-кода EAN-13 невозможно, т.к. поле "Код" в карточке товара не заполнено.',}});
   }
     generateEAN8barcode(){
     if(+this.data.product_code_free>0)
@@ -215,7 +216,7 @@ console.log("2 formBaseInformation.get('barcode_id').value - "+this.formBaseInfo
       console.log("value1:"+this.formBaseInformation.get('value').value);
       this.checkSuitableBarcode();
     }
-      else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Создание штрих-кода EAN-8 невозможно, т.к. поле "Код" в карточке товара не заполнено.',}});
+      else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:'Создание штрих-кода EAN-8 невозможно, т.к. поле "Код" в карточке товара не заполнено.',}});
   }
   ean8_LastNum(c) {
     let chet = Number(c.charAt(1))+Number(c.charAt(3))+Number(c.charAt(5));

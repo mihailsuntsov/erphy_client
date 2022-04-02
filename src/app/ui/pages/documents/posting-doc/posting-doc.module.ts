@@ -8,6 +8,7 @@ import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SettingsPostingDialogModule } from '../../../../modules/settings/settings-posting-dialog/settings-posting-dialog.module';
 import { PostingProductsTableModule } from 'src/app/modules/trade-modules/posting-products-table/posting-products-table.module';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [PostingDocComponent],
@@ -19,7 +20,9 @@ import { PostingProductsTableModule } from 'src/app/modules/trade-modules/postin
 
     MaterialModule,
     FormsModule,
-    ReactiveFormsModule
-  ]
+    ReactiveFormsModule,
+    TranslocoModule
+  ],
+  providers:[{ provide: TRANSLOCO_SCOPE, useValue: ['docs','menu','modules']},]
 })
 export class PostingDocModule { }

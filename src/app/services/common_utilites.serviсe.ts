@@ -82,6 +82,7 @@ export class CommonUtilitesService{
       case 'orderout':      {return 'orderout';}
       case 'vatinvoiceout': {return 'v_invoiceout';}
       case 'vatinvoicein':  {return 'v_invoicein';}
+      case 'writeoff':      {return 'writeoff';}
       default:               return ('');
     }
   }

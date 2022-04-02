@@ -7,6 +7,7 @@ import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SettingsInventoryDialogModule } from '../../../../modules/settings/settings-inventory-dialog/settings-inventory-dialog.module';
 import { InventoryProductsTableModule } from 'src/app/modules/trade-modules/inventory-products-table/inventory-products-table.module';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 
 @NgModule({
@@ -16,12 +17,11 @@ import { InventoryProductsTableModule } from 'src/app/modules/trade-modules/inve
     InventoryDocRoutingModule,
     SettingsInventoryDialogModule,
     InventoryProductsTableModule,
-
-    
     MaterialModule,
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    TranslocoModule
   ],
-  providers: [ValidationService],
+  providers: [{ provide: TRANSLOCO_SCOPE, useValue: ['docs','menu','modules']},ValidationService],
 })
 export class InventoryDocModule { }

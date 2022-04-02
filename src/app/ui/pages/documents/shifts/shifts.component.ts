@@ -487,14 +487,14 @@ export class ShiftsComponent implements OnInit {
 //     .subscribe((data) => {   
 //     let result=data as any;
 //     switch(result.result){
-//       case 0:{this.getData();this.openSnackBar("Успешно удалено", "Закрыть");break;} 
-//       case 1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе удаления "+(this.checkedList.length>1?"документов":"документа")+" проиошла ошибка")}});break;}
-//       case 2:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для операции удаления"}});break;}
+//       case 0:{this.getData();this.openSnackBar(translate('docs.msg.deletet_succs'), translate('docs.msg.close'));break;} 
+//       case 1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:("В ходе удаления "+(this.checkedList.length>1?"документов":"документа")+" проиошла ошибка")}});break;}
+//       case 2:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:"Недостаточно прав для операции удаления"}});break;}
 //       case 3:{let numbers:string='';
 //         for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="/ui/shiftsdoc/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
-//         this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Удаление невозможно - у следующих номеров документов есть производные (связанные с ними дочерние) документы:'+numbers}});break;}
+//         this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:'Удаление невозможно - у следующих номеров документов есть производные (связанные с ними дочерние) документы:'+numbers}});break;}
 //     }
-//   },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+//   },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},);
 // }
     
   openSnackBar(message: string, action: string) {
@@ -646,7 +646,7 @@ export class ShiftsComponent implements OnInit {
       return this.http.post('/api/auth/saveSettingsShifts', this.settingsForm.value)
               .subscribe(
                   (data) => {   
-                            this.openSnackBar("Настройки успешно сохранены", "Закрыть");
+                            this.openSnackBar(translate('docs.msg.settngs_saved'), translate('docs.msg.close'));
                             
                           },
                   error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})} //+++
@@ -678,7 +678,7 @@ export class ShiftsComponent implements OnInit {
                     this.getData();
                     this.openSnackBar("Успешно восстановлено", "Закрыть");
                   },
-        error => console.log(error),
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
     );
   }  
   resetOptions(){

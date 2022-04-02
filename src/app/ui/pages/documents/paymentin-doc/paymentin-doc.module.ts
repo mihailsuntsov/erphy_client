@@ -9,6 +9,7 @@ import { SettingsPaymentinDialogModule } from '../../../../modules/settings/sett
 import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.module';
 import { BalanceBoxofficeModule } from 'src/app/modules/info-modules/balance/balance-boxoffice/balance-boxoffice.module';
 import { BalanceAccountModule } from 'src/app/modules/info-modules/balance/balance-account/balance-account.module';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [PaymentinDocComponent, /*ControlMessagesComponent*/],
@@ -19,11 +20,11 @@ import { BalanceAccountModule } from 'src/app/modules/info-modules/balance/balan
     BalanceCagentModule,
     BalanceAccountModule,
     BalanceBoxofficeModule,
-    
     MaterialModule,
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    TranslocoModule
   ],
-  providers: [ValidationService],
+  providers: [{ provide: TRANSLOCO_SCOPE, useValue: ['docs','menu','modules']},ValidationService],
 })
 export class PaymentinDocModule { }

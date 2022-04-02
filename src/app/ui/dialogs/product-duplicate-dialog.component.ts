@@ -3,6 +3,9 @@ import { Component , OnInit, Inject} from '@angular/core';
 import { HttpClient} from '@angular/common/http';
 import { MatSnackBar} from '@angular/material/snack-bar';
 import { Validators, FormGroup, FormControl} from '@angular/forms';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
+import { MatDialog } from '@angular/material/dialog';
+import { translate } from '@ngneat/transloco'; //+++
 
 @Component({
     selector: 'deletedialog',
@@ -113,6 +116,7 @@ formBaseInformation:any;//форма для основной информаци�
     constructor(
         private _snackBar: MatSnackBar,
         private http:HttpClient, 
+        public MessageDialog: MatDialog,
         public dialogRef: MatDialogRef<ProductDuplicateDialog>,
         @Inject(MAT_DIALOG_DATA) public data: any
     ) {}
@@ -151,7 +155,7 @@ formBaseInformation:any;//форма для основной информаци�
                               this.dialogRef.close(1);
 
                             },
-                    error => console.log(error),
+                    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
                 );
       }
     

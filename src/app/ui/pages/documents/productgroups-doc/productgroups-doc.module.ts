@@ -6,6 +6,7 @@ import { ProductgroupsDocComponent } from './productgroups-doc.component';
 import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DragDropModule } from '@angular/cdk/drag-drop';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [ProductgroupsDocComponent],
@@ -16,7 +17,9 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
     MaterialModule,
     FormsModule,
     ReactiveFormsModule,
-    DragDropModule
-  ]
+    DragDropModule,
+    TranslocoModule
+  ],
+  providers:[{ provide: TRANSLOCO_SCOPE, useValue: ['docs','menu','modules']},]
 })
 export class ProductgroupsDocModule { }

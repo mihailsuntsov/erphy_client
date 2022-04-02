@@ -11,7 +11,7 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 @NgModule({
   declarations: [DepartmentsDocComponent],
   providers: [
-    { provide: TRANSLOCO_SCOPE, useValue: 'menu' }
+    { provide: TRANSLOCO_SCOPE, useValue: ['docs','menu','modules']},
   ],
   imports: [
     CommonModule,

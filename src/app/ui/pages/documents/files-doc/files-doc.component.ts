@@ -1,4 +1,4 @@
-import { Component, OnInit , Inject, Optional} from '@angular/core';
+import { Component, OnInit , Inject, Optional, Output, EventEmitter} from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from './loadsprav';
 import { Validators, FormGroup, FormControl, FormBuilder} from '@angular/forms';
@@ -10,6 +10,7 @@ import { FlatTreeControl } from '@angular/cdk/tree';
 import { HttpClient} from '@angular/common/http';
 import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component';
 import { Observable } from 'rxjs';
+import { translate } from '@ngneat/transloco'; //+++
 
 interface docResponse {//интерфейс для получения ответа в запросе значений полей документа
   id: number;
@@ -122,7 +123,7 @@ currentFileUpload: File;
 progress: { percentage: number } = { percentage: 0 };
 mainImageAddress: string; // имя или адрес главной картинки
 
-
+@Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
 
 constructor(private activateRoute: ActivatedRoute,
   private http: HttpClient,
@@ -173,6 +174,10 @@ constructor(private activateRoute: ActivatedRoute,
     });
     this.checkedList = [];
     this.getSetOfPermissions();
+    //+++ getting base data from parent component
+    this.getBaseData('myId');    
+    this.getBaseData('myCompanyId');  
+    this.getBaseData('companiesList');   
     
     if(this.data)//если документ вызывается в окне из другого документа
     {
@@ -182,47 +187,78 @@ constructor(private activateRoute: ActivatedRoute,
 
   }
 
-//---------------------------------------------------------------------------------------------------------------------------------------                            
-// ----------------------------------------------------- *** ПРАВА *** ------------------------------------------------------------------
-//---------------------------------------------------------------------------------------------------------------------------------------
-getSetOfPermissions(){
-  return this.http.get('/api/auth/getMyPermissions?id=13')
-  .subscribe(
-      (data) => {   
-                  this.permissionsSet=data as any [];
-                  this.getMyId();
-              },
-      error => console.log(error),
-  );
-}
+  //---------------------------------------------------------------------------------------------------------------------------------------                            
+  // ----------------------------------------------------- *** ПРАВА *** ------------------------------------------------------------------
+  //---------------------------------------------------------------------------------------------------------------------------------------
+  getSetOfPermissions(){
+    return this.http.get('/api/auth/getMyPermissions?id=13')
+    .subscribe(
+        (data) => {   
+                    this.permissionsSet=data as any [];
+                    this.getMyId();
+                },
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
+                );
+  }
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+      this.loadSpravService.getCompaniesList()
+        .subscribe(
+            (data) => 
+            {
+              this.receivedCompaniesList=data as any [];
+              this.setDefaultCompany();
+            },                      
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+        );
+    else this.setDefaultCompany();
+  }
+  getMyId(){ //+++
+    if(+this.myId==0)
+      this.loadSpravService.getMyId()
+            .subscribe(
+                (data) => {this.myId=data as any;
+                  this.getMyCompanyId();},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+            );
+    else this.getMyCompanyId();
+  }
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
+        (data) => {
+          this.myCompanyId=data as number;
+          this.getCRUD_rights();
+        }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
+    else this.getCRUD_rights();
+  }
+  getCRUD_rights(){
+    this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==146)});
+    this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==147)});
+    this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==150)});
+    this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==151)});
+    this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==152)});
+    this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==153)});
+    this.getData();
+  }
 
-getCRUD_rights(){
-  this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==146)});
-  this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==147)});
-  this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==150)});
-  this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==151)});
-  this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==152)});
-  this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==153)});
-  this.getData();
-}
+  refreshPermissions():boolean{
+    let documentOfMyCompany:boolean = (this.formBaseInformation.get('company_id').value==this.myCompanyId);
+    this.allowToView=((documentOfMyCompany && (this.allowToViewAllCompanies || this.allowToViewMyCompany))||(documentOfMyCompany==false && this.allowToViewAllCompanies))?true:false;
+    this.allowToUpdate=((documentOfMyCompany && (this.allowToUpdateAllCompanies || this.allowToUpdateMyCompany))||(documentOfMyCompany==false && this.allowToUpdateAllCompanies))?true:false;
+    this.allowToCreate=((documentOfMyCompany && (this.allowToCreateAllCompanies || this.allowToCreateMyCompany))||(documentOfMyCompany==false && this.allowToCreateAllCompanies))?true:false;
 
-refreshPermissions():boolean{
-  let documentOfMyCompany:boolean = (this.formBaseInformation.get('company_id').value==this.myCompanyId);
-  this.allowToView=((documentOfMyCompany && (this.allowToViewAllCompanies || this.allowToViewMyCompany))||(documentOfMyCompany==false && this.allowToViewAllCompanies))?true:false;
-  this.allowToUpdate=((documentOfMyCompany && (this.allowToUpdateAllCompanies || this.allowToUpdateMyCompany))||(documentOfMyCompany==false && this.allowToUpdateAllCompanies))?true:false;
-  this.allowToCreate=((documentOfMyCompany && (this.allowToCreateAllCompanies || this.allowToCreateMyCompany))||(documentOfMyCompany==false && this.allowToCreateAllCompanies))?true:false;
-
-  this.loadTrees();
-  // console.log("formBaseInformation.get('company_id').value - "+this.formBaseInformation.get('company_id').value);
-  // console.log("myCompanyId - "+this.myCompanyId);
-  // console.log("documentOfMyCompany - "+documentOfMyCompany);
-  // console.log(" - ");
-  // console.log("allowToView - "+this.allowToView);
-  // console.log("allowToUpdate - "+this.allowToUpdate);
-  // console.log("allowToCreate - "+this.allowToCreate);
-  this.rightsDefined=true;//!!!
-  return true;
-}
+    this.loadTrees();
+    // console.log("formBaseInformation.get('company_id').value - "+this.formBaseInformation.get('company_id').value);
+    // console.log("myCompanyId - "+this.myCompanyId);
+    // console.log("documentOfMyCompany - "+documentOfMyCompany);
+    // console.log(" - ");
+    // console.log("allowToView - "+this.allowToView);
+    // console.log("allowToUpdate - "+this.allowToUpdate);
+    // console.log("allowToCreate - "+this.allowToCreate);
+    this.rightsDefined=true;//!!!
+    return true;
+  }
 
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
 
@@ -234,34 +270,6 @@ refreshPermissions():boolean{
     }
   }
 
-  getCompaniesList(){
-    this.receivedCompaniesList=null;
-    this.loadSpravService.getCompaniesList()
-            .subscribe(
-                (data) => 
-                {
-                  this.receivedCompaniesList=data as any [];
-                  this.setDefaultCompany();
-                },                      
-                error => console.log(error)
-            );
-  }
-
-  getMyId(){
-    this.loadSpravService.getMyId()
-            .subscribe(
-                (data) => {this.myId=data as any;
-                  this.getMyCompanyId();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-            );
-  }
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
-      (data) => {
-        this.myCompanyId=data as number;
-        this.getCRUD_rights();
-      }, error => console.log(error));
-  }
 
   setDefaultCompany(){
     this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
@@ -294,13 +302,13 @@ refreshPermissions():boolean{
           this.formBaseInformation.get('mime_type').setValue(documentValues.mime_type);
           this.checkedList=documentValues.file_categories_id;
           this.loadFileImage();
-          //!!!
-        } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
+          
+        } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
         this.refreshPermissions();
-      },
-      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
-    );
-  }
+    },
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
+);
+}
 
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
@@ -318,11 +326,11 @@ refreshPermissions():boolean{
     .subscribe((data) => {   
       let result=data as any;
       switch(result){
-        case 1:{this.getData();this.openSnackBar("Успешно сохранено", "Закрыть");break;} 
-        case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе операции проиошла ошибка")}});break;}
-        case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+        case 1:{this.getData(); this.openSnackBar(translate('docs.msg.doc_sved_suc'),translate('docs.msg.close'));break;} 
+        case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_msg')}});break;}
+        case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});break;}
       }
-    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},);
   }
 
   aboutSharedFiles(){
@@ -330,8 +338,8 @@ refreshPermissions():boolean{
       width: '400px',
       data:
       { 
-        head: 'Файл для общего доступа',
-        message: 'Если файл открыт для общего доступа, на него не распространяются права категорий, к которым он относится, и его можно скачать по внешней ссылке. Данная опция нужна для для картинок сайта, фото товаров интернет-магазина и др.'
+        head: translate('docs.msg.shared_file'),
+        message: translate('docs.msg.shared_file_')
       },
     });
     dialogRef.afterClosed().subscribe(result => {});  
@@ -342,6 +350,9 @@ refreshPermissions():boolean{
   copyFileAddress(){
     // let domain=this.getDomain();
     navigator.clipboard.writeText(this.getDomain()+'/api/public/getFile/'+this.formBaseInformation.get('name').value);
+  }
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
   }
 //*****************************************************************************************************************************************/
 //*********************************************           T R E E           ***************************************************************/

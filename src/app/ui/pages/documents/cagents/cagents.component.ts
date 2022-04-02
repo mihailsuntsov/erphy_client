@@ -598,7 +598,7 @@ export class CagentsComponent implements OnInit {
                       if (parentId>0) {this.loadTreesAndOpenNode(parentId)} else {this.loadTrees()};
                       this.resetSelectedCategory();
                   },
-          error => console.log(error),
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
       );  
     }
 

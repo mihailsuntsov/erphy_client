@@ -556,7 +556,7 @@ export class InvoiceoutComponent implements OnInit {
             .subscribe(
                 (data) => {this.receivedDepartmentsList=data as any [];
                             this.getMyDepartmentsList();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
   }
 

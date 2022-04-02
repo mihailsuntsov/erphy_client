@@ -143,7 +143,7 @@ getSetOfPermissions(){
                           this.permissionsSet=data as any [];
                           this.getMyId();
                       },
-              error => console.log(error),
+              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
           );
 }
 getCRUD_rights(permissionsSet:any[]){

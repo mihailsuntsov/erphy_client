@@ -9,6 +9,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SettingsInvoiceinDialogModule } from '../../../../modules/settings/settings-invoicein-dialog/settings-invoicein-dialog.module';
 import { InvoiceinProductsTableModule } from 'src/app/modules/trade-modules/invoicein-products-table/invoicein-products-table.module';
 import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.module';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [InvoiceinDocComponent, /*ControlMessagesComponent*/],
@@ -22,8 +23,9 @@ import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balanc
 
     MaterialModule,
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    TranslocoModule
   ],
-  providers: [ValidationService],
+  providers: [{ provide: TRANSLOCO_SCOPE, useValue: ['docs','menu','modules']},ValidationService],
 })
 export class InvoiceinDocModule { }

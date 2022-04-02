@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { FormGroup, Validators, FormControl } from '@angular/forms';
@@ -9,6 +9,7 @@ import { Router } from '@angular/router';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { MatDialog } from '@angular/material/dialog';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+import { translate } from '@ngneat/transloco'; //+++
 
 interface docResponse {//интерфейс для получения ответа в методе getStatusDocsTableById
   id: number;
@@ -83,6 +84,8 @@ export class TaxesDocComponent implements OnInit {
   statusColor: string;
   taxesList : TaxesList [] = []; //массив для получения всех налогов текущего документа
 
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
+  
   constructor(
     private activateRoute: ActivatedRoute,
     private http: HttpClient,
@@ -121,17 +124,11 @@ export class TaxesDocComponent implements OnInit {
       date_time_changed: new FormControl      ('',[]),
     });
 
-    this.getSetOfPermissions();//
-    // ->getMyId()
-    // ->getMyCompanyId()
-    // ->getCRUD_rights()
-    // ->getDocumentsList()
-    // ->getData()------>(если созданный док)---> this.getDocumentValuesById(); --> refreshPermissions()     
-    // ->(если новый док):
-    // ->getCompaniesList() 
-    // ->setDefaultCompany()
-    // ->setDefaultDocument()
-    // ->refreshPermissions() 
+    this.getSetOfPermissions();
+    //+++ getting base data from parent component
+    this.getBaseData('myId');    
+    this.getBaseData('myCompanyId');  
+    this.getBaseData('companiesList');    
   }
 //---------------------------------------------------------------------------------------------------------------------------------------                            
 // ----------------------------------------------------- *** ПРАВА *** ------------------------------------------------------------------
@@ -143,18 +140,18 @@ getSetOfPermissions(){
         (data) => {   
                     this.permissionsSet=data as any [];
                     this.getMyId();
-                },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});},
-    );
-}
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
+        );
+  }
 
-  getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==636)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==637)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==640)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==641)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==642)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==643)});
+  getCRUD_rights(){
+    this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==636)});
+    this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==637)});
+    this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==640)});
+    this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==641)});
+    this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==642)});
+    this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==643)});
     this.getData();
   }
 
@@ -188,35 +185,39 @@ getSetOfPermissions(){
     }
   }
 
-  getMyId(){
-    this.loadSpravService.getMyId()
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+      this.loadSpravService.getCompaniesList()
+        .subscribe(
+            (data) => 
+            {
+              this.receivedCompaniesList=data as any [];
+              this.doFilterCompaniesList();
+            },                      
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+        );
+    else this.doFilterCompaniesList();
+  }
+  getMyId(){ //+++
+    if(+this.myId==0)
+      this.loadSpravService.getMyId()
             .subscribe(
                 (data) => {this.myId=data as any;
                   this.getMyCompanyId();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
+    else this.getMyCompanyId();
   }
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
-      (data) => {
-        this.myCompanyId=data as number;
-        this.getCRUD_rights(this.permissionsSet);},
-       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});},);
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
+        (data) => {
+          this.myCompanyId=data as number;
+          this.getCRUD_rights();
+        }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
+    else this.getCRUD_rights();
   }
 
-  getCompaniesList(){
-    this.receivedCompaniesList=null;
-    this.loadSpravService.getCompaniesList()
-            .subscribe(
-                (data) => 
-                {
-                  this.receivedCompaniesList=data as any [];
-                  this.doFilterCompaniesList();
-                  this.setDefaultCompany();
-                },                      
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});},
-            );
-  }
   setDefaultCompany(){
     this.formBaseInformation.get('company_id').setValue(Cookie.get('satusdoc_companyId')=="0"?this.myCompanyId:+Cookie.get('satusdoc_companyId'));
     this.refreshPermissions();
@@ -230,6 +231,7 @@ getSetOfPermissions(){
       this.receivedCompaniesList=[];
       this.receivedCompaniesList.push(myCompany);
     }
+    this.setDefaultCompany();
   }
 
   getDocumentValuesById(){
@@ -250,7 +252,6 @@ getSetOfPermissions(){
                   this.formBaseInformation.get('is_active').setValue(documentValues.is_active);
                   this.formBaseInformation.get('is_deleted').setValue(documentValues.is_deleted);
                   this.formBaseInformation.get('name_api_atol').setValue(documentValues.name_api_atol);
-
                   this.formAboutDocument.get('master').setValue(documentValues.master);
                   this.formAboutDocument.get('creator').setValue(documentValues.creator);
                   this.formAboutDocument.get('changer').setValue(documentValues.changer);
@@ -258,12 +259,11 @@ getSetOfPermissions(){
                   this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
                   this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
                   this.getTaxesList();
-                  //!!!
-                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
-                this.refreshPermissions();                  
-
+                  
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
+                this.refreshPermissions();
             },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});},
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
         );
   }
 
@@ -276,9 +276,9 @@ getSetOfPermissions(){
                                 this.id=+this.createdDocId[0];
                                 this.formBaseInformation.get('id').setValue(this.id);
                                 this.afterCreateDoc();
-                                this.openSnackBar("Статус документа успешно создан", "Закрыть");
+                                this.openSnackBar(translate('docs.msg.doc_crtd_suc'),translate('docs.msg.close'));
                             },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
             );
   }
 
@@ -300,9 +300,9 @@ getSetOfPermissions(){
             (data) => 
             {   
               this.getData();
-                this.openSnackBar("Статус документа сохранён", "Закрыть");
+              this.openSnackBar(translate('docs.msg.doc_sved_suc'),translate('docs.msg.close'));
             },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});},
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
         );
   } 
 
@@ -319,7 +319,7 @@ getSetOfPermissions(){
               this.taxesList = data as TaxesList [];
               this.refreshPermissions(); 
             },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});}, 
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});}, 
         );
   }
 
@@ -368,12 +368,13 @@ getSetOfPermissions(){
       this.formBaseInformation.get('value').value/100
     )
     );
-
-
   }
 
   numberOnly(event): boolean {
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
     if (charCode > 31 && (charCode < 48 || charCode > 57)) { return false; } return true;}
 
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
+  }
 }

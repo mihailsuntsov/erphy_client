@@ -3,6 +3,9 @@ import {MatDialogRef, MAT_DIALOG_DATA} from '@angular/material/dialog';
 import { Validators, FormGroup, FormControl} from '@angular/forms';
 import { HttpClient} from '@angular/common/http';
 import { MatSnackBar} from '@angular/material/snack-bar';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
+import { MatDialog } from '@angular/material/dialog';
+import { translate } from '@ngneat/transloco'; //+++
 
 @Component({
   selector: 'app-product-cagents-dialog',
@@ -17,6 +20,7 @@ export class ProductCagentsDialogComponent implements OnInit {
   constructor(public dialogRef: MatDialogRef<ProductCagentsDialogComponent>,
     private _snackBar: MatSnackBar,
     private http: HttpClient,
+    public MessageDialog: MatDialog,
     @Inject(MAT_DIALOG_DATA) public data: any) {}
   onNoClick(): void {
     this.dialogRef.close();}
@@ -45,7 +49,7 @@ export class ProductCagentsDialogComponent implements OnInit {
                           this.openSnackBar("Поставщик сохранён", "Закрыть");
                           this.dialogRef.close();
                         },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
             );
   }
 

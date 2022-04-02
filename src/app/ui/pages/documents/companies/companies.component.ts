@@ -171,7 +171,7 @@ export class CompaniesComponent {
                             console.log("permissions:"+this.permissionsSet);
                             this.getCRUD_rights();
                         },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
             );
   }
 

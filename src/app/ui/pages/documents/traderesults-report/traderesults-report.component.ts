@@ -5,6 +5,9 @@ import { HttpClient } from '@angular/common/http';
 import { LoadSpravService } from './loadsprav';
 import { QueryFormService } from './get-traderesults-table.service';
 import { QuerySumService } from './get-sum-by-period.service';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
+import { MatDialog } from '@angular/material/dialog';
+import { translate } from '@ngneat/transloco'; //+++
 
 import { MomentDateAdapter} from '@angular/material-moment-adapter';
 import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from '@angular/material/core';
@@ -63,6 +66,7 @@ export class TraderesultsReportComponent implements OnInit {
     private queryFormService:   QueryFormService,
     private querySumService:   QuerySumService,
     private httpService:   LoadSpravService,
+    public MessageDialog: MatDialog,
     private http: HttpClient) { }
 
   ngOnInit() {
@@ -87,7 +91,7 @@ export class TraderesultsReportComponent implements OnInit {
                           console.log("permissions:"+this.permissionsSet);
                           this.getCRUD_rights(this.permissionsSet);
                       },
-              error => console.log(error),
+              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
           );
   }
   getCRUD_rights(permissionsSet:any[]){

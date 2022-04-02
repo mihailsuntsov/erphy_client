@@ -4,9 +4,11 @@ import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource } from '@angular/material/table';
 import { HttpClient } from '@angular/common/http';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
-import { MatDialog } from '@angular/material/dialog';
 import { LoadSpravService } from './loadsprav';
 import { QueryFormService } from './get-traderesults-table.service';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
+import { MatDialog } from '@angular/material/dialog';
+import { translate } from '@ngneat/transloco'; //+++
 
 export interface DocTable {
   id: number;
@@ -71,6 +73,7 @@ export class TraderesultsComponent implements OnInit {
   constructor(private queryFormService:   QueryFormService,
     private httpService:   LoadSpravService,
     private http: HttpClient,
+    public MessageDialog: MatDialog,
     public deleteDialog: MatDialog) { }
       
     ngOnInit() {
@@ -96,7 +99,7 @@ getSetOfPermissions(){
                           console.log("permissions:"+this.permissionsSet);
                           this.getCRUD_rights(this.permissionsSet);
                       },
-              error => console.log(error),
+              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
           );
 }
 getCRUD_rights(permissionsSet:any[]){
@@ -270,7 +273,7 @@ getTableHeaderTitles(){
                               this.dataSource.data = this.receivedMatTable;
                               this.getData();
                           },
-                  error => console.log(error),
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
               );
       }
 

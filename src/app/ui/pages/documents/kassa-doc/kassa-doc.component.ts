@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { Router } from '@angular/router';
@@ -12,6 +12,7 @@ import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text
 import { FilesComponent } from '../files/files.component';
 import { FilesDocComponent } from '../files-doc/files-doc.component';
 import { KkmAtolService } from '../../../../services/kkm_atol';
+import { translate } from '@ngneat/transloco'; //+++
 
 interface docResponse {//интерфейс для получения ответа в методе getKassaValuesById
   id: number;
@@ -141,6 +142,7 @@ export class KassaDocComponent implements OnInit {
   ffdVersion:string='';
   fnFfdVersion:string='';
 
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
 
   constructor(
     private activateRoute: ActivatedRoute,
@@ -194,17 +196,11 @@ export class KassaDocComponent implements OnInit {
     this.onServiceSearchValueChanges();//отслеживание изменений поля Услуга эквайринга
     this.getSpravSysTaxationTypes();
     this.getSetOfPermissions();//
-    // ->getMyId()
-    // ->getMyCompanyId()
-    // ->getMyDepartmentsList()
-    // ->getCRUD_rights()
-    // ->getData()------>(если созданный док)---> this.getDocumentValuesById(); --> refreshPermissions()     
-    // ->(если новый док):
-    // ->getCompaniesList() 
-    // ->setDefaultCompany()
-    // ->getDepartmentsList()
-    // ->setDefaultDepartment()
-    // ->refreshPermissions() 
+    //+++ getting base data from parent component
+    this.getBaseData('myId');    
+    this.getBaseData('myCompanyId');  
+    this.getBaseData('companiesList');  
+    this.getBaseData('myDepartmentsList'); 
 
   }
 //---------------------------------------------------------------------------------------------------------------------------------------                            
@@ -215,23 +211,23 @@ export class KassaDocComponent implements OnInit {
     return this.http.get('/api/auth/getMyPermissions?id=24')
       .subscribe(
           (data) => {   
-                      this.permissionsSet=data as any [];
-                      this.getMyId();
-                  },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-      );
+            this.permissionsSet=data as any [];
+            this.getMyId();
+          },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
+    );
   }
 
-  getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==296)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==297)});
-    this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==298)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==302)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==303)});
-    this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==304)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==305)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==306)});
-    this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==307)});
+  getCRUD_rights(){
+    this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==296)});
+    this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==297)});
+    this.allowToCreateMyDepartments = this.permissionsSet.some(        function(e){return(e==298)});
+    this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==302)});
+    this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==303)});
+    this.allowToViewMyDepartments = this.permissionsSet.some(          function(e){return(e==304)});
+    this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==305)});
+    this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==306)});
+    this.allowToUpdateMyDepartments = this.permissionsSet.some(        function(e){return(e==307)});
 
     this.getData();
   }
@@ -332,44 +328,48 @@ onServiceSearchValueChanges(){
       this.getCompaniesList();
     }
   }
-  getMyId(){
-    this.receivedMyDepartmentsList=null;
-    this.loadSpravService.getMyId()
+  
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+      this.loadSpravService.getCompaniesList()
+        .subscribe(
+            (data) => 
+            {
+              this.receivedCompaniesList=data as any [];
+              this.doFilterCompaniesList();
+            },                      
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+        );
+    else this.doFilterCompaniesList();
+  }
+  getMyId(){ //+++
+    if(+this.myId==0)
+      this.loadSpravService.getMyId()
             .subscribe(
                 (data) => {this.myId=data as any;
                   this.getMyCompanyId();},
-                error => console.log(error)
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
+    else this.getMyCompanyId();
   }
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
-      (data) => {
-        this.myCompanyId=data as number;
-        this.getMyDepartmentsList();
-      }, error => console.log(error));
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
+        (data) => {
+          this.myCompanyId=data as number;
+          this.getMyDepartmentsList();
+        }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
+    else this.getMyDepartmentsList();
   }
-  getMyDepartmentsList(){
-    this.receivedMyDepartmentsList=null;
+  getMyDepartmentsList(){ //+++
+    if(this.receivedMyDepartmentsList.length==0)
     this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
             .subscribe(
                 (data) => {this.receivedMyDepartmentsList=data as any [];
-                  this.getCRUD_rights(this.permissionsSet);;},
-                error => console.log(error)
+                  this.getCRUD_rights();},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
-  }
-  getCompaniesList(){
-    console.log("getCompaniesList");
-    this.receivedCompaniesList=null;
-    this.loadSpravService.getCompaniesList()
-            .subscribe(
-                (data) => 
-                {
-                  this.receivedCompaniesList=data as any [];
-                  this.doFilterCompaniesList();
-                  this.setDefaultCompany();
-                },                      
-                error => console.log(error)
-            );
+    else this.getCRUD_rights();
   }
   setDefaultCompany(){
       this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
@@ -400,7 +400,7 @@ onServiceSearchValueChanges(){
         (data) => { 
           this.expenditureItems=data as any [];
         },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
 
@@ -409,7 +409,7 @@ onServiceSearchValueChanges(){
         (data) => { 
           this.paymentAccounts=data as any [];
         },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
 
@@ -432,6 +432,7 @@ onServiceSearchValueChanges(){
       this.receivedCompaniesList=[];
       this.receivedCompaniesList.push(myCompany);
     }
+    this.setDefaultCompany();
   }
   doFilterDepartmentsList(){
     console.log('doFilterDepartmentsList');
@@ -495,10 +496,10 @@ onServiceSearchValueChanges(){
                   this.getExpenditureItemsList();
                   this.getCompaniesPaymentAccounts();
                   //!!!
-                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
-                this.refreshPermissions();                  
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
+                this.refreshPermissions();
             },
-            error => console.log(error)
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
         );
   }
 
@@ -520,14 +521,12 @@ onServiceSearchValueChanges(){
                                   this.formBaseInformation.get('id').setValue(this.id);
                                   this.rightsDefined=false; //!!!
                                   this.getData();
-                                  this.openSnackBar("Документ \"Касса\" успешно создан", "Закрыть");
+                                  this.openSnackBar(translate('docs.msg.doc_crtd_succ',{name:translate('docs.docs.kassa')}), translate('docs.msg.close'));
                                 }else{
-                                  this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Касса с данным заводским номером (ЗН) уже есть в базе данных предприятия. ЗН должен быть уникальным. Если в списке касс \"Кассы онлайн\" нет кассы с таким ЗН, проверьте список удалённых касс, и, если необходимо, восстановите удалённую кассу'}})
-                                  this.openSnackBar("Ошибка создания документа \"Касса\"", "Закрыть");
-                                }
-                                
+                                  this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.there_cashbox')}})
+                                }                                
                             },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
             );
   }
 
@@ -539,18 +538,16 @@ onServiceSearchValueChanges(){
               let result=data as number;
               if(+result==1){
                 this.getData();
-                this.openSnackBar("Документ \"Касса\" сохранён", "Закрыть");
+                this.openSnackBar(translate('docs.msg.doc_name',{name:translate('docs.docs.kassa')})+translate('docs.msg.saved'), translate('docs.msg.close'));
               }else if(+result==0){
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Касса с данным заводским номером (ЗН) уже есть в базе данных предприятия. ЗН должен быть уникальным. Если в списке касс \"Кассы онлайн\" нет кассы с таким ЗН, проверьте список удалённых касс, и, если необходимо, восстановите удалённую кассу'}})
-                this.openSnackBar("Ошибка сохранения документа \"Касса\"", "Закрыть");
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.there_cashbox')}})
               }else if(+result==null){
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Ошибка сохранения документа'}})
-                this.openSnackBar("Ошибка сохранения документа \"Касса\"", "Закрыть");
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.save_error')}})
               }else if(+result==-1){
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав для данной операции'}})
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})
               }
             },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
         );
   } 
 
@@ -576,42 +573,42 @@ onServiceSearchValueChanges(){
           this.requestToServer=false;
           //если при выполнении данной строки происходит ошибка, значит загрузился JSON не по статусу 200, а сервер сгенерировал ошибку и статус 401, 403 или 404.
           //тогда в catch запрашиваем уточненный статус http запроса (4ХХ) и расшифровываем ошибку
-          this.test_status='Соединение установлено!';
+          this.test_status=translate('docs.msg.c_cnnctd');
           this.modelName=       response.deviceInfo.modelName;
           this.firmwareVersion= response.deviceInfo.firmwareVersion;
           this.zn_kkt=          response.deviceInfo.serial;
           this.ffdVersion=      response.deviceInfo.ffdVersion;
           this.fnFfdVersion=    response.deviceInfo.fnFfdVersion;
           if(+this.id>0 && this.formBaseInformation.get('zn_kkt').value!=this.zn_kkt)//если мы на этапе редактирования, и заводские номера в карточке кассы и в запросе к кассе не совпедают, то эта карточка не от подключенной кассы
-            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Тест соединения пройден, но данная карточка кассы не соответствует подключенной ККМ по заводскому номеру. Для подключенной ККМ необходимо завести новую карточку'}})
+            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:'Тест соединения пройден, но данная карточка кассы не соответствует подключенной ККМ по заводскому номеру. Для подключенной ККМ необходимо завести новую карточку'}})
           if(+this.id==0)//если на этапе создания - вписываем заводской номер в карточку кассы
             this.formBaseInformation.get('zn_kkt').setValue(this.zn_kkt);
           console.log(this.test_status);
         } catch (e) {
-          this.test_status="Ошибка связи с кассой. Запрос кода ошибки..."
+          this.test_status=translate('docs.msg.c_conn_err');
           this.requestToServer=true;
           let errorMessage:string=response.error.description;//ошибки тоже возворащают объект, в котором может содержаться детальное описание ошибки
-          if(errorMessage=='Порт недоступен'||errorMessage=='Нет связи') errorMessage=errorMessage+'. Проверьте, включена ли касса и подключена ли она к компьютеру.'
+          if(errorMessage==translate('docs.msg.c_no_port')||errorMessage==translate('docs.msg.c_no_connct')) errorMessage=errorMessage+'.'+ translate('docs.msg.c_check_plug');
           //запрашиваем код ошибки
           this.kkmAtolService.queryShiftStatus(address,'errorCode',this.formBaseInformation.get('device_server_uid').value).subscribe((data) => {
             this.requestToServer=false;
             let response=data as any;
             switch(response){
-              case 401:{this.test_status="Ошибка: Авторизация не пройдена";break;};
-              case 403:{this.test_status="Ошибка: ККТ не активирована";break;};
-              case 404:{this.test_status="ККТ по заданному идентификатору не найдена или ККТ по умолчанию не выбрана";break;};
-              case 408:{this.test_status="За 30 секунд не удалось захватить управление драйвером (занят фоновыми непрерываемыми задачами). Повторите запрос позже";break;};
-              default :{this.test_status="Ошибка при выполнении запроса";};//420
+              case 401:{this.test_status=translate('docs.msg.c_auth_error');break;};
+              case 403:{this.test_status=translate('docs.msg.c_err_not_act');break;};
+              case 404:{this.test_status=translate('docs.msg.c_id_not_fnd');break;};
+              case 408:{this.test_status=translate('docs.msg.c_cnt_get_drvr');break;};
+              default :{this.test_status=translate('docs.msg.c_err_exe_qury');};//420
             }
             this.test_status=this.test_status+'. '+errorMessage;
             console.log(this.test_status);
-          }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+          }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
         }
-      }, error => {console.log(error);this.requestToServer=false;this.test_status= 'Нет связи с сервером';});
+      }, error => {console.log(error);this.requestToServer=false;this.test_status= translate('docs.msg.c_no_srvr_cnct');});
   } 
   
   showZnMessage(){
-    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Данное поле заполняется только при создании карточки кассы. Это происходит автоматически при тестировании соединения (кнопка \"Тест соединения\")'}})
+    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.c_fill_only_crt')}})
   }
   //*****************************************************************************************************************************************/
   //***************************************************    добавление файлов          *******************************************************/
@@ -652,10 +649,10 @@ onServiceSearchValueChanges(){
             return this.http.post('/api/auth/addFilesToKassa', body) 
               .subscribe(
                   (data) => {  
-                    this.openSnackBar("Файлы добавлены", "Закрыть");
+                    this.openSnackBar(translate('docs.msg.files_added'), translate('docs.msg.close'));
                     this.loadFilesInfo();
                             },
-                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
               );
   }
   loadFilesInfo(){//                                     загружает информацию по прикрепленным файлам
@@ -664,7 +661,7 @@ onServiceSearchValueChanges(){
           (data) => {  
                       this.filesInfo = data as any; 
                     },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
       );
   }
   clickBtnDeleteFile(id: number): void {
@@ -672,9 +669,9 @@ onServiceSearchValueChanges(){
       width: '400px',
       data:
       { 
-        head: 'Удаление файла',
-        query: 'Удалить файл из данного документа?',
-        warning: 'Файл не будет удалён безвозвратно, он останется в библиотеке "Файлы".',
+        head: translate('docs.msg.file_del_head'),
+        query: translate('docs.msg.file_del_qury'),
+        warning: translate('docs.msg.file_del_warn'),
       },
     });
     dialogRef.afterClosed().subscribe(result => {
@@ -686,10 +683,10 @@ onServiceSearchValueChanges(){
   return this.http.delete('/api/auth/deleteKassaFile?kassa_id='+this.id+'&file_id='+id)
     .subscribe(
         (data) => {   
-                    this.openSnackBar("Успешно удалено", "Закрыть");
+                    this.openSnackBar(translate('docs.msg.deletet_succs'), translate('docs.msg.close'));
                     this.loadFilesInfo();
                 },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
     );  
   }
   checkPrecent(){
@@ -699,4 +696,7 @@ onServiceSearchValueChanges(){
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
     if (charCode > 31 && ((charCode < 48 || charCode > 57) && charCode!=44 && charCode!=46)) { return false; } return true;}
   
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
+  }
 }

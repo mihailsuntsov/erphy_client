@@ -370,10 +370,10 @@ export class ProductgroupsComponent implements OnInit {
           let result=data as any;
           switch(result){
             case 1:{this.getData();this.openSnackBar("Успешно восстановлено", "Закрыть");break;} 
-            case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе операции проиошла ошибка")}});break;}
-            case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+            case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_msg')}});break;}
+            case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});break;}
           }
-        },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+        },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},);
   }  
 
   openSnackBar(message: string, action: string) {
@@ -470,10 +470,10 @@ export class ProductgroupsComponent implements OnInit {
     //   return this.http.post('/api/auth/saveSettingsProductGroups', this.settingsForm.value)
     //           .subscribe(
     //               (data) => {   
-    //                         this.openSnackBar("Настройки успешно сохранены", "Закрыть");
+    //                         this.openSnackBar(translate('docs.msg.settngs_saved'), translate('docs.msg.close'));
                             
     //                       },
-    //               error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+    //               error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
     //           );
     // }
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/

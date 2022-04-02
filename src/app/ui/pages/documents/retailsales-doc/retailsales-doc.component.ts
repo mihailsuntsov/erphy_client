@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, OnInit, Output, ViewChild} from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { KkmAtolService } from '../../../../services/kkm_atol';
@@ -20,6 +20,8 @@ import { MatTabChangeEvent } from '@angular/material/tabs';
 import { graphviz }  from 'd3-graphviz';
 import { Router } from '@angular/router';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
+import { CommonUtilitesService } from 'src/app/services/common_utilites.serviсe';
+import { translate } from '@ngneat/transloco'; //+++
 
 interface RetailSalesProductTable { //интерфейс для формы, массив из которых будет содержать форма retailSalesProductTable, входящая в formBaseInformation
   id: number;
@@ -143,7 +145,7 @@ interface LinkedDocs {//интерфейс для загрузки связан�
   selector: 'app-retailsales-doc',
   templateUrl: './retailsales-doc.component.html',
   styleUrls: ['./retailsales-doc.component.css'],
-  providers: [LoadSpravService,KkmAtolService,KkmAtolChequesService,Cookie,ProductSearchAndTableComponent,BalanceCagentComponent,KkmComponent]
+  providers: [LoadSpravService,KkmAtolService,KkmAtolChequesService,Cookie,ProductSearchAndTableComponent,BalanceCagentComponent,KkmComponent,CommonUtilitesService]
 })
 export class RetailsalesDocComponent implements OnInit {
 
@@ -249,6 +251,7 @@ export class RetailsalesDocComponent implements OnInit {
   @ViewChild(ProductSearchAndTableComponent, {static: false}) public productSearchAndTableComponent:ProductSearchAndTableComponent;
   @ViewChild(KkmComponent, {static: false}) public kkmComponent:KkmComponent;
   @ViewChild(BalanceCagentComponent, {static: false}) public balanceCagentComponent:BalanceCagentComponent;
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
   
 
   isDocNumberUnicalChecking = false;//идёт ли проверка на уникальность номера
@@ -271,6 +274,7 @@ export class RetailsalesDocComponent implements OnInit {
     public dialogAddFiles: MatDialog,
     public SettingsRetailsalesDialogComponent: MatDialog,
     public dialogCreateProduct: MatDialog,
+    private commonUtilites: CommonUtilitesService,
     public MessageDialog: MatDialog,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
@@ -383,42 +387,14 @@ export class RetailsalesDocComponent implements OnInit {
       // автодобавление товара из формы поиска в таблицу
       autoAdd: new FormControl                  (false,[]),            
     });
-
-    //     getSetOfPermissions
-    //     |
-    //     getMyId
-    //     |
-    //     getMyCompanyId
-    //     |
-    //     getMyDepartmentsList
-    //     |
-    //     getCRUD_rights
-    //     |
-    //     getData(------>(если созданный док)--> [getDocumentValuesById] --> refreshPermissions 
-    //     |
-    //     (если новый док):
-    //     [getCompaniesList, getSpravTaxes* ]
-    //     |
-    //     [getSettings, doFilterCompaniesList]
-    //     |
-    //     setDefaultInfoOnStart
-    //     |
-    //     setDefaultCompany 
-    //     |
-    //     [getDepartmentsList, getPriceTypesList*] 
-    //     |
-    //     [setDefaultDepartment, getSetOfTypePrices, doFilterDepartmentsList]
-    //     | (если идет стартовая загрузка):
-    //     getStatusesList, getSpravSysEdizm
-    //     |
-    //     setDefaultStatus
-    //     |
-    //     setStatusColor
-    //     |
-    //     refreshPermissions*
     
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Покупатель"
     this.getSetOfPermissions();//
+    //+++ getting base data from parent component
+    this.getBaseData('myId');    
+    this.getBaseData('myCompanyId');  
+    this.getBaseData('companiesList');  
+    this.getBaseData('myDepartmentsList');    
   }
   //чтобы не было ExpressionChangedAfterItHasBeenCheckedError
   ngAfterContentChecked() {
@@ -441,9 +417,9 @@ export class RetailsalesDocComponent implements OnInit {
           (data) => {   
                       this.permissionsSet=data as any [];
                       this.getMyId();
-                  },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-      );
+    },
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
+    );
   }
 
   refreshPermissions(){
@@ -500,44 +476,62 @@ export class RetailsalesDocComponent implements OnInit {
     }
   }
 
-  getMyId(){
-    this.receivedMyDepartmentsList=null;
-    this.loadSpravService.getMyId()
+
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+      this.loadSpravService.getCompaniesList()
+        .subscribe(
+            (data) => 
+            {
+              this.receivedCompaniesList=data as any [];
+              this.doFilterCompaniesList();
+            },                      
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+        );
+    else this.doFilterCompaniesList();
+  }
+  getMyId(){ //+++
+    if(+this.myId==0)
+      this.loadSpravService.getMyId()
             .subscribe(
                 (data) => {this.myId=data as any;
                   this.getMyCompanyId();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
+    else this.getMyCompanyId();
   }
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
-      (data) => {
-        this.myCompanyId=data as number;
-        this.getMyDepartmentsList();
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
+        (data) => {
+          this.myCompanyId=data as number;
+          this.getMyDepartmentsList();
+        }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
+    else this.getMyDepartmentsList();
   }
-  getMyDepartmentsList(){
-    this.receivedMyDepartmentsList=null;
+  getMyDepartmentsList(){ //+++
+    if(this.receivedMyDepartmentsList.length==0)
     this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
             .subscribe(
                 (data) => {this.receivedMyDepartmentsList=data as any [];
-                  this.getCRUD_rights(this.permissionsSet);},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                  this.getCRUD_rights();},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
+    else this.getCRUD_rights();
   }
 
-  getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==309)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==310)});
-    this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==311)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==316)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==317)});
-    this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==318)});
-    this.allowToViewMyDocs = permissionsSet.some(                 function(e){return(e==319)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==320)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==321)});
-    this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==322)});
-    this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==323)});
+  getCRUD_rights(){
+    this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==309)});
+    this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==310)});
+    this.allowToCreateMyDepartments = this.permissionsSet.some(        function(e){return(e==311)});
+    this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==316)});
+    this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==317)});
+    this.allowToViewMyDepartments = this.permissionsSet.some(          function(e){return(e==318)});
+    this.allowToViewMyDocs = this.permissionsSet.some(                 function(e){return(e==319)});
+    this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==320)});
+    this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==321)});
+    this.allowToUpdateMyDepartments = this.permissionsSet.some(        function(e){return(e==322)});
+    this.allowToUpdateMyDocs = this.permissionsSet.some(               function(e){return(e==323)});
    
     if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;this.allowToCreateMyDepartments=true}
     if(this.allowToCreateMyCompany)this.allowToCreateMyDepartments=true;
@@ -559,19 +553,6 @@ export class RetailsalesDocComponent implements OnInit {
     }else {
       this.getCompaniesList(); 
     }
-  }
-
-  getCompaniesList(){
-    this.receivedCompaniesList=null;
-    this.loadSpravService.getCompaniesList()
-      .subscribe(
-          (data) => 
-          {
-            this.receivedCompaniesList=data as any [];
-            this.doFilterCompaniesList();
-          },                      
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-      );
   }
 
   onCompanyChange(){
@@ -606,7 +587,7 @@ export class RetailsalesDocComponent implements OnInit {
             this.doFilterDepartmentsList();
             if(+this.id==0) this.setDefaultDepartment();
           },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
   }
   setDefaultDepartment(){
@@ -651,7 +632,7 @@ export class RetailsalesDocComponent implements OnInit {
             .subscribe(
                 (data) => {this.receivedStatusesList=data as StatusInterface[];
                   if(+this.id==0){this.setDefaultStatus();}},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
   }
 
@@ -673,7 +654,7 @@ export class RetailsalesDocComponent implements OnInit {
     this.http.post('/api/auth/getSpravSysEdizm', {id1: companyId, string1:"(1,2,3,4,5)"})  // все типы ед. измерения
     .subscribe((data) => {this.spravSysEdizmOfProductAll = data as any[];
             },
-    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
   }
 
   doFilterCompaniesList(){
@@ -783,7 +764,7 @@ export class RetailsalesDocComponent implements OnInit {
             this.setDefaultInfoOnStart();
             this.setDefaultCompany();
           },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
   }
 
@@ -862,10 +843,9 @@ export class RetailsalesDocComponent implements OnInit {
     } catch (e) {return [];}
   }
   getDocumentValuesById(){
-    this.http.get('/api/auth/getRetailSalesValuesById?id='+ this.id)
+    this.http.get('/api/auth/getRetailSalesValuesById?id='+ this.id)
         .subscribe(
-            data => { 
-              
+            data => {               
                 let documentValues: DocResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
                 //!!!
                 if(data!=null&&documentValues.company_id!=null){
@@ -912,10 +892,10 @@ export class RetailsalesDocComponent implements OnInit {
                   this.hideOrShowNdsColumn();//расчет прятать или показывать колонку НДС
                   this.cheque_nds=documentValues.nds;//нужно ли передавать в кассу (в чек) данные об НДС
                   //!!!
-                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();
             },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
         );
   }
 
@@ -1012,9 +992,9 @@ export class RetailsalesDocComponent implements OnInit {
         width: '400px',
         data:
         { 
-          head: 'Редактирование номера документа',
-          warning: 'Открыть поле "Номера документа" на редактирование?',
-          query: 'Номер документа присваивается системой автоматически. Если Вы хотите его редактировать, и вместе с тем оставить возможность системе генерировать код в следующих документах, пожалуйста, не исползуйте более 9 цифр в номере.',
+          head: translate('docs.msg.doc_num_head'),
+          query: translate('docs.msg.doc_num_query'),
+          warning: translate('docs.msg.doc_num_warn')
         },
       });
       dialogRef.afterClosed().subscribe(result => {
@@ -1025,32 +1005,30 @@ export class RetailsalesDocComponent implements OnInit {
     } 
   }
 
-// !!!
-checkDocNumberUnical(tableName:string) {
-  let docNumTmp=this.formBaseInformation.get('doc_number').value;
-  setTimeout(() => {
-    if(!this.formBaseInformation.get('doc_number').errors && this.lastCheckedDocNumber!=docNumTmp && docNumTmp!='' && docNumTmp==this.formBaseInformation.get('doc_number').value)
-      {
-        let Unic: boolean;
-        this.isDocNumberUnicalChecking=true;
-        this.lastCheckedDocNumber=docNumTmp;
-        return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table='+tableName)
-        .subscribe(
-            (data) => {   
-                        Unic = data as boolean;
-                        if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Введённый номер документа не является уникальным.',}});
-                        this.isDocNumberUnicalChecking=false;
-                    },
-            error => {console.log(error);this.isDocNumberUnicalChecking=false;}
-        );
-      }
-   }, 1000);
-}
+  checkDocNumberUnical(tableName:string) { //+++
+    let docNumTmp=this.formBaseInformation.get('doc_number').value;
+    setTimeout(() => {
+      if(!this.formBaseInformation.get('doc_number').errors && this.lastCheckedDocNumber!=docNumTmp && docNumTmp!='' && docNumTmp==this.formBaseInformation.get('doc_number').value)
+        {
+          let Unic: boolean;
+          this.isDocNumberUnicalChecking=true;
+          this.lastCheckedDocNumber=docNumTmp;
+          return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table='+tableName)
+          .subscribe(
+              (data) => {   
+                          Unic = data as boolean;
+                          if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head: translate('docs.msg.attention'),message: translate('docs.msg.num_not_unic'),}});
+                          this.isDocNumberUnicalChecking=false;
+                      },
+              error => {console.log(error);this.isDocNumberUnicalChecking=false;}
+          );
+        }
+    }, 1000);
+  }
 
   //создание нового документа Розничная продажа
   createNewDocument(withReceipt:boolean){// с true запрос придет при нажатии на кнопку Отбить чек
     if(this.productSearchAndTableComponent && this.productSearchAndTableComponent.getProductTable().length>0){
-      console.log('Создание нового документа Розничная продажа');
       this.createdDocId=null;
       //если отправляем нового контрагента, в cagent_id отправляем null, и backend понимает что нужно создать нового контрагента:
       this.formBaseInformation.get('cagent_id').setValue(this.is_addingNewCagent?null:this.formBaseInformation.get('cagent_id').value);
@@ -1058,7 +1036,6 @@ checkDocNumberUnical(tableName:string) {
       //если в настройках есть статус, присваеваемый документу при создании, выставляем его
       if(this.settingsForm.get('statusIdOnAutocreateOnCheque').value)
         this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnAutocreateOnCheque').value);
-
       if(this.formBaseInformation.get('uid').value=='')//uid может быть присвоен при создании Розничной продажи из другого документа, так что тут присваеваем, если uid еще нет
         this.formBaseInformation.get('uid').setValue(uuidv4());
       this.http.post('/api/auth/insertRetailSales', this.formBaseInformation.value)
@@ -1067,25 +1044,23 @@ checkDocNumberUnical(tableName:string) {
                     this.actionsBeforeGetChilds=0;
                     this.createdDocId=data as number;
                     if (this.createdDocId==0){// 0 возвращает если не удалось сохранить изза превышения количества покупаемого товара над доступным количеством
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Невозможно создать документ. У одной или нескольких позиций количество товара к продаже превышает доступное количество товара"}})
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.cant_crte_mor')}});
                       this.kkmComponent.kkmIsFree=true; //освобождаем ККМ для приема заданий на следующие чеки
                     } else {// Розничная продажа успешно создалась в БД 
-                      this.openSnackBar("Документ \"Розничная продажа\" успешно создан", "Закрыть");
-                      console.log('Розничная продажа успешно создана');
+                      this.openSnackBar(translate('docs.msg.doc_crtd_succ',{name:translate('docs.docs.retailsale')}), translate('docs.msg.close'));
                       //действия после создания нового документа Розничные продажи (это самый последний этап)
                       this.afterCreateRetailSales(withReceipt);
                       //если нужна печать чека - печатаем чек, по успешному завершению печати создастся событие, 
                       //обработчик которого выплнит действия, идущие после успешной печати чека (например создание новой Розничной продажи)
                       if (withReceipt){
-                        console.log('Запрос на печать чека из новой Розничной продажи');
+                        console.log('Printing cheque query');
                         this.kkmComponent.printReceipt(25, this.createdDocId);//25 - Розничная продажа);
-                      //если печать чека не нужна - переходим сразу к этим действиям (afterCreateRetailSales)
                       } 
                     }
                   },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});this.kkmComponent.kkmIsFree=true;},
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});this.kkmComponent.kkmIsFree=true;},
         );
-    } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Невозможно создать продажу без товарных позиций. Сначала необходимо выбрать товар для продажи.'}});}
+    } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.no_pos')}});}
   }
 
   // действия после создания нового документа Розничные продажи (это самый последний этап)
@@ -1120,15 +1095,15 @@ checkDocNumberUnical(tableName:string) {
       .subscribe(
           (data) => 
           {   
-            let response=data as any;
+            // let response=data as any;
             // if(onChequePrinting) 
             this.getData();
-            this.openSnackBar("Документ \"Розничная продажа\" сохранён", "Закрыть");
-            if(response.fail_to_reserve>0){//если у 1 или нескольких позиций резервы при сохранении были отменены
-              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:
-              'У некоторых позиций не был сохранён резерв, т.к. он превышал заказываемое либо доступное количество товара'
-              }});
-            }
+            this.openSnackBar(translate('docs.msg.doc_sved_suc'),translate('docs.msg.close'));
+            // if(response.fail_to_reserve>0){//если у 1 или нескольких позиций резервы при сохранении были отменены
+            //   this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:
+            //   'У некоторых позиций не был сохранён резерв, т.к. он превышал заказываемое либо доступное количество товара'
+            //   }});
+            // }
           },
           error => {
             this.showQueryErrorMessage(error);
@@ -1155,7 +1130,7 @@ checkDocNumberUnical(tableName:string) {
       {
         width:'400px',
         data:{
-          head:'Ошибка!',
+          head:translate('docs.msg.error'),
           message:errMsg}
       })
   }
@@ -1225,10 +1200,10 @@ checkDocNumberUnical(tableName:string) {
     return this.http.post('/api/auth/saveSettingsRetailSales', this.settingsForm.value)
             .subscribe(
                 (data) => {   
-                          this.openSnackBar("Настройки успешно сохранены", "Закрыть");
+                          this.openSnackBar(translate('docs.msg.settngs_saved'), translate('docs.msg.close'));
                           
                         },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
             );
   }
   getPriceTypesList(){
@@ -1239,7 +1214,7 @@ checkDocNumberUnical(tableName:string) {
         this.receivedPriceTypesList=data as any [];
         this.necessaryActionsBeforeGetChilds();
       },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
   getSpravTaxes(){
@@ -1248,7 +1223,7 @@ checkDocNumberUnical(tableName:string) {
           this.spravTaxesSet=data as any[];
           this.necessaryActionsBeforeGetChilds();
         },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
   }
 
 //устанавливает цвет статуса (используется для цветовой индикации статусов)
@@ -1314,7 +1289,7 @@ checkDocNumberUnical(tableName:string) {
   }
   
   decompleteDocument(){
-    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Документ "Розничная продажа" не подлежит снятию с проведения'}});
+    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:'Документ "Розничная продажа" не подлежит снятию с проведения'}});
   }
 //**********************************************************************************************************************************************/  
 //*************************************************          СВЯЗАННЫЕ ДОКУМЕНТЫ          ******************************************************/
@@ -1330,7 +1305,7 @@ checkDocNumberUnical(tableName:string) {
       this.formReturn.get('nds').setValue(this.formBaseInformation.get('nds').value);
       this.formReturn.get('company_id').setValue(this.formBaseInformation.get('company_id').value);
       this.formReturn.get('department_id').setValue(this.formBaseInformation.get('department_id').value);
-      this.formReturn.get('description').setValue('Создано из Розничной продажи №'+ this.formBaseInformation.get('doc_number').value);
+      this.formReturn.get('description').setValue(translate('docs.msg.created_from')+translate('docs.docs.retailsale')+' '+translate('docs.top.number')+this.formBaseInformation.get('doc_number').value);
       this.formReturn.get('linked_doc_id').setValue(this.id);//id связанного документа (того, из которого инициируется создание данного документа)
       this.formReturn.get('parent_uid').setValue(this.formBaseInformation.get('uid').value);// uid исходящего (родительского) документа
       this.formReturn.get('child_uid').setValue(uid);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
@@ -1344,22 +1319,22 @@ checkDocNumberUnical(tableName:string) {
                 
                   switch(createdDocId){
                     case null:{// null возвращает если не удалось создать документ из-за ошибки
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа "+(docname=="Return"?"Возврат покупателя":"")}});
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.crte_doc_err',{name:translate('docs.docs.'+this.commonUtilites.getDocNameByDocAlias(docname))})}});
                       break;
                     }
-                    case 0:{//недостаточно прав
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа "+(docname=="Return"?"Возврат покупателя":"")}});
+                    case -1:{//недостаточно прав
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm_creat',{name:translate('docs.docs.'+this.commonUtilites.getDocNameByDocAlias(docname))})}});
                       break;
                     }
                     default:{// Документ успешно создался в БД 
-                      this.openSnackBar("Документ "+(docname=='Return'?'Возврат покупателя':'')+" успешно создан", "Закрыть");
+                      this.openSnackBar(translate('docs.msg.doc_crtd_succ',{name:translate('docs.docs.'+this.commonUtilites.getDocNameByDocAlias(docname))}), translate('docs.msg.close'));
                       this.getLinkedDocsScheme(true);//обновляем схему этого документа
                     }
                   }
                 },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});},
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
       );
-    } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:canCreateLinkedDoc.reason}});
+    } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:canCreateLinkedDoc.reason}});
   }
 
   
@@ -1385,7 +1360,7 @@ checkDocNumberUnical(tableName:string) {
   // можно ли создать связанный документ (да - если есть товары, подходящие для этого, и нет уже завершённого документа)
   canCreateLinkedDoc(docname:string):CanCreateLinkedDoc{
     if(!(this.productSearchAndTableComponent && this.productSearchAndTableComponent.getProductTable().length>0)){
-        return {can:false, reason:'Невозможно создать '+docname+', так как нет товарных позиций'};
+      return {can:false, reason:translate('docs.msg.cnt_crt_items',{name:translate('docs.docs.'+this.commonUtilites.getDocNameByDocAlias(docname))})};
     }else
       return {can:true, reason:''};
   }
@@ -1425,7 +1400,7 @@ getLinkedDocsScheme(draw?:boolean){
           
           if(result==null){
             this.loadingDocsScheme=false;
-            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка загрузки связанных документов"}});
+            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.err_load_lnkd')}});
           } else if(result.errorCode==0){//нет результата
             this.linkedDocsSchemeDisplayed = true;
             this.loadingDocsScheme=false;
@@ -1438,7 +1413,7 @@ getLinkedDocsScheme(draw?:boolean){
               this.loadingDocsScheme=false;
           } 
       },
-      error => {this.loadingDocsScheme=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+      error => {this.loadingDocsScheme=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
   );
 }
 
@@ -1471,8 +1446,8 @@ drawLinkedDocsScheme(){
   }  
   //обработчик события успешной печати чека - в Заказе покупателя это выставление статуса документа, сохранение и создание нового.  
   onSuccesfulChequePrintingHandler(){
-    console.log("Чек был успешно напечатан");
-    this.openSnackBar("Чек был успешно напечатан", "Закрыть");
+    // console.log("Чек был успешно напечатан");
+    this.openSnackBar(translate('docs.msg.ch_prnted_scc'), translate('docs.msg.close'));
     //если стоит чекбокс Автосоздание нового после создания Розничной продажи:
     if(this.settingsForm.get('autocreateOnCheque').value){
       this.goToNewDocument();
@@ -1482,26 +1457,26 @@ drawLinkedDocsScheme(){
   onClickChequePrintingHandler(){
     if (+this.id>0){//если Розничная продажа уже была создана ранее, и нажали Отбить чек
       //нужно сделать запрос, создавался ли из этой Розничной продажи чек такого типа ранее
-      console.log('Розничная продажа производит запрос, создавался ли из этой Розничной продажи чек такого типа (sell) ранее');
+      // console.log('Розничная продажа производит запрос, создавался ли из этой Розничной продажи чек такого типа (sell) ранее');
       this.http.get('/api/auth/isReceiptPrinted?company_id='+this.formBaseInformation.get('company_id').value+
       '&document_id=25'+'&id='+(this.id)+'&operation_id='+(this.kkmComponent?this.kkmComponent.operationId:'sell'))// за id операции выбираем тот, что сейчас выбран в модуле ККМ
       .subscribe(
           (data) => {   
                       const result=data as boolean;
                       if (result){
-                        console.log('Чек sell ранее печатался.')
-                        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Чек такого типа уже отбивался из данной розничной продажи'}});
+                        // console.log('Чек sell ранее печатался.')
+                        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:'Чек такого типа уже отбивался из данной розничной продажи'}});
                         this.kkmComponent.kkmIsFree=true;
                       }
                       else {
-                        console.log('Чек sell ранее не печатался. Обращаемся к кассовому модулю с заданием напечатать чек (printReceipt)')
+                        // console.log('Чек sell ранее не печатался. Обращаемся к кассовому модулю с заданием напечатать чек (printReceipt)')
                         this.kkmComponent.printReceipt(25, this.id);//25 - Розничная продажа
                       }
           },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});this.kkmComponent.kkmIsFree=true;},
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});this.kkmComponent.kkmIsFree=true;},
       )
     } else { //если розн. продажа еще не создана:
-      console.log('Розничная продажа еще не создана');
+      // console.log('Розничная продажа еще не создана');
       this.createNewDocument(true) //отправляем запрос на создание розн. продажи с параметром withReceipt=true (с печатью чека)
     }
   }
@@ -1538,16 +1513,19 @@ drawLinkedDocsScheme(){
                         this.productSearchAndTableComponent.department_type_price_id=setOfTypePrices.department_type_price_id;
                         this.productSearchAndTableComponent.cagent_type_price_id=setOfTypePrices.cagent_type_price_id;
                         this.productSearchAndTableComponent.default_type_price_id=setOfTypePrices.default_type_price_id;
-                        console.log("parent department_type_price_id - "+this.department_type_price_id);
+                        // console.log("parent department_type_price_id - "+this.department_type_price_id);
                         this.productSearchAndTableComponent.setCurrentTypePrice();//если сменили отделение - нужно проверить, есть ли у него тип цены. И если нет - в вызываемом методе выведется предупреждение для пользователя
                       } 
                         
                       if(this.startProcess) 
                         this.checkAnyCases();
                   },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
       );
   }
 
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
+  }
 }
 

@@ -4,6 +4,9 @@ import { LoadSpravService } from './loadsprav';
 import { Validators, FormGroup, FormControl} from '@angular/forms';
 import {HttpClient} from '@angular/common/http';
 import {MatSnackBar} from '@angular/material/snack-bar';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
+import { MatDialog } from '@angular/material/dialog';
+import { translate } from '@ngneat/transloco'; //+++
 
 import { MomentDateAdapter} from '@angular/material-moment-adapter';
 import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from '@angular/material/core';
@@ -101,6 +104,7 @@ export class TraderesultsDocComponent implements OnInit {
   constructor( private activateRoute: ActivatedRoute,
     private http: HttpClient,
     private loadSpravService:   LoadSpravService,
+    public MessageDialog: MatDialog,
     private _snackBar: MatSnackBar) 
     {
       console.log(this.activateRoute);
@@ -151,7 +155,7 @@ export class TraderesultsDocComponent implements OnInit {
                             if(+this.id>0) this.IsItMy_DocCheckings(+this.id); else this.getCRUD_rights(this.permissionsSet);
                             //this.getCRUD_rights(this.permissionsSet);
                         },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
             );
   }
   IsItMy_DocCheckings(id:number){// проверки на документ (документ моего предприятия?/документ моих отделений?/документ мой?/)
@@ -164,7 +168,7 @@ export class TraderesultsDocComponent implements OnInit {
                   this.itIsMyDocument = isItMy_Doc.itIsMyDocument;
                             this.getCRUD_rights(this.permissionsSet);
                         },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
             );
   }
   getCRUD_rights(permissionsSet:any[]){
@@ -332,7 +336,7 @@ export class TraderesultsDocComponent implements OnInit {
                                 this.getData();
                                 this.openSnackBar("Документ \"Итоги смены\" успешно создан", "Закрыть");
                             },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
             );
   }
 
@@ -353,7 +357,7 @@ export class TraderesultsDocComponent implements OnInit {
                             this.getData();
                             this.openSnackBar("Документ \"Итоги смены\" сохранён", "Закрыть");
                         },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
             );
   }
 

@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { CommonUtilitesService } from 'src/app/services/common_utilites.serviсe';
+import { translate } from '@ngneat/transloco'; //+++
 
 @Component({
   selector: 'app-balance-kassa',
@@ -47,10 +48,10 @@ export class BalanceKassaComponent implements OnInit, OnChanges {
               this.balance=parseFloat(data.toString()); 
               // this.refresh();
             } else {
-              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Ошибка запроса баланса'}})
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.blnc_quer_err')}})
             }
           },
-          error => {this.balanceLoading=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+          error => {this.balanceLoading=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
       );
     } else this.balance=null;
   }

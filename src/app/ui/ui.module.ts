@@ -4,7 +4,7 @@ import { MaterialModule } from '../modules/material.module';
 import { UiRoutingModule } from './ui-routing.module';
 import { UiComponent } from './ui.component';
 import { AppComponent } from "../app.component";
-import { TranslocoModule } from "@ngneat/transloco";
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 import { UserSettingsDialogModule } from "src/app/modules/settings/user-settings-dialog/user-settings-dialog.module";
 
 @NgModule({
@@ -14,8 +14,10 @@ import { UserSettingsDialogModule } from "src/app/modules/settings/user-settings
     UiRoutingModule,
     MaterialModule,
     TranslocoModule,
-    UserSettingsDialogModule
+    UserSettingsDialogModule,
+    TranslocoModule
   ],
+  providers:[{ provide: TRANSLOCO_SCOPE, useValue: ['docs','menu','modules']},],
   bootstrap: [AppComponent]
 })
 export class UiModule { }

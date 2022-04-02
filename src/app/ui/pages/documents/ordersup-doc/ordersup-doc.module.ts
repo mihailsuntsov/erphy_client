@@ -9,9 +9,13 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SettingsOrdersupDialogModule } from '../../../../modules/settings/settings-ordersup-dialog/settings-ordersup-dialog.module';
 import { OrdersupProductsTableModule } from 'src/app/modules/trade-modules/ordersup-products-table/ordersup-products-table.module';
 import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.module';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [OrdersupDocComponent, /*ControlMessagesComponent*/],
+  providers: [ValidationService,
+    { provide: TRANSLOCO_SCOPE, useValue: ['docs','menu','modules']}
+  ],
   imports: [
     CommonModule,
     OrdersupDocRoutingModule,
@@ -22,8 +26,8 @@ import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balanc
 
     MaterialModule,
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    TranslocoModule
   ],
-  providers: [ValidationService],
 })
 export class OrdersupDocModule { }

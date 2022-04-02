@@ -6,6 +6,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MaterialModule } from '../../../../modules/material.module';
 import { SharedModule } from '../../../../modules/shared.module';
 import { DragDropModule } from '@angular/cdk/drag-drop';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [CompaniesDocComponent],
@@ -17,6 +18,8 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
     ReactiveFormsModule,
     SharedModule,
     DragDropModule,
-  ]
+    TranslocoModule
+  ],
+  providers:[{ provide: TRANSLOCO_SCOPE, useValue: ['docs','menu','modules']},]
 })
 export class CompaniesDocModule { }

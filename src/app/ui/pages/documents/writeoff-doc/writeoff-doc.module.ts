@@ -8,6 +8,7 @@ import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SettingsWriteoffDialogModule } from '../../../../modules/settings/settings-writeoff-dialog/settings-writeoff-dialog.module';
 import { WriteoffProductsTableModule } from 'src/app/modules/trade-modules/writeoff-products-table/writeoff-products-table.module';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [WriteoffDocComponent],
@@ -16,10 +17,11 @@ import { WriteoffProductsTableModule } from 'src/app/modules/trade-modules/write
     WriteoffDocRoutingModule,
     SettingsWriteoffDialogModule,
     WriteoffProductsTableModule,
-
     MaterialModule,
     FormsModule,
-    ReactiveFormsModule
-  ]
+    ReactiveFormsModule,
+    TranslocoModule
+  ],
+  providers:[{ provide: TRANSLOCO_SCOPE, useValue: ['docs','menu','modules']},]
 })
 export class WriteoffDocModule { }

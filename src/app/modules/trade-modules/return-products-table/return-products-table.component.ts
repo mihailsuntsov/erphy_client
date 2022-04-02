@@ -13,6 +13,7 @@ import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component'
 import { ViewChild } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
+import { translate } from '@ngneat/transloco'; //+++
 
 interface ReturnProductTable { //интерфейс для товаров, (т.е. для формы, массив из которых будет содержать форма returnProductTable, входящая в formBaseInformation)
   id: number;                     // id строки с товаром товара в таблице return_product
@@ -198,7 +199,7 @@ export class ReturnProductsTableComponent implements OnInit {
   }
   clearTable(): void {
     const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
-      width: '400px',data:{head: 'Очистка списка товаров',warning: 'Вы хотите удалить все товары из списка?',query: ''},});
+      width: '400px',data:{head: translate('docs.msg.prod_list_cln'),warning: translate('docs.msg.prod_list_qry'),query: ''},});
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
         this.getControlTablefield().clear();
@@ -339,9 +340,9 @@ export class ReturnProductsTableComponent implements OnInit {
     return this.http.post('/api/auth/saveSettingsReturn', this.settingsForm.value)
             .subscribe(
                 (data) => {   
-                          this.openSnackBar("Настройки успешно сохранены", "Закрыть");
+                          this.openSnackBar(translate('docs.msg.settngs_saved'), translate('docs.msg.close'));
                         },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
             );
   }
 
@@ -410,7 +411,7 @@ export class ReturnProductsTableComponent implements OnInit {
                   this.changeProductsTableLength.emit();//событие изменения кол-ва товаров в таблице
                 }
             },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
         );
   }
 
@@ -443,7 +444,7 @@ export class ReturnProductsTableComponent implements OnInit {
     {// список товаров не должен содержать одинаковые товары из одного и того же склада. Тут проверяем на это
       if(+i['product_id']==this.formSearch.get('product_id').value)
       {//такой товар с таким складом уже занесён в таблицу товаров ранее, и надо смёрджить их, т.е. слить в один, просуммировав их фактические остатки.
-        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Данный товар уже выбран'}});
+        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:'Данный товар уже выбран'}});
         thereProductInTableWithSameId=true; 
       }
     });
@@ -481,8 +482,8 @@ export class ReturnProductsTableComponent implements OnInit {
       width: '400px',
       data:
       { 
-        head: 'Удаление товарной позиции',
-        warning: 'Удалить товар '+row.name+' ?',
+        head: translate('docs.msg.del_prod_item'),
+        warning: translate('docs.msg.del_prod_quer',{name:row.name})+'?',
       },
     });
     dialogRef.afterClosed().subscribe(result => {
@@ -699,7 +700,7 @@ export class ReturnProductsTableComponent implements OnInit {
         if(filteredProducts.length>0)//несмотря на то, что сами id, по ним может ничего не вернуться, т.к. товары по запрошенным id могут быть не материальны (услуги), либо категории пустые/с нематериальными товарами
           this.addProductsListByIds(filteredProducts)
       },
-    error => console.log(error),
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
     );
   }
 

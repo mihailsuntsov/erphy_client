@@ -2,6 +2,7 @@ import { Component, OnInit , Inject, ViewChild} from '@angular/core';
 import {MatDialogRef, MAT_DIALOG_DATA} from '@angular/material/dialog';
 import { HttpClient} from '@angular/common/http';
 import { MatTableDataSource } from '@angular/material/table';
+import { translate } from '@ngneat/transloco'; //+++
 
 @Component({
   selector: 'app-product-reserves-dialog',
@@ -28,7 +29,7 @@ export class ProductReservesDialogComponent implements OnInit {
 
   getReservesTable(){
     this.gettingTableData=true;
-    this.http.get('/api/auth/getReservesTable?department_id='+this.data.departmentId+'&product_id='+this.data.productId+'&company_id='+this.data.companyId+'&document_id='+this.data.documentId)
+    this.http.get('/api/auth/getReservesTable?department_id='+this.data.departmentId+'&product_id='+this.data.productId+'&company_id='+this.data.companyId+'&document_id='+this.data.documentId)
      .subscribe(
          data => { 
            this.dataSource.data = data as any [];

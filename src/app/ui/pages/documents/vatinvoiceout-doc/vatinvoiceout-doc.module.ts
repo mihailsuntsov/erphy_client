@@ -8,6 +8,7 @@ import { TemplatesDialogModule } from '../../../../modules/settings/templates-di
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SettingsVatinvoiceoutDialogModule } from '../../../../modules/settings/settings-vatinvoiceout-dialog/settings-vatinvoiceout-dialog.module';
 import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.module';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [VatinvoiceoutDocComponent,],
@@ -20,8 +21,9 @@ import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balanc
 
     MaterialModule,
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    TranslocoModule
   ],
-  providers: [ValidationService],
+  providers: [{ provide: TRANSLOCO_SCOPE, useValue: ['docs','menu','modules']},ValidationService],
 })
 export class VatinvoiceoutDocModule { }

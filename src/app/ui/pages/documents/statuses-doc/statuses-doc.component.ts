@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { FormGroup, Validators, FormControl } from '@angular/forms';
@@ -9,6 +9,7 @@ import { Router } from '@angular/router';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { MatDialog } from '@angular/material/dialog';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+import { translate } from '@ngneat/transloco'; //+++
 
 interface docResponse {//интерфейс для получения ответа в методе getStatusDocsTableById
   id: number;
@@ -86,6 +87,8 @@ export class StatusesDocComponent implements OnInit {
   statusColor: string;
   statusesList : statusesList [] = []; //массив для получения всех статусов текущего документа
 
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
+  
   constructor(
     private activateRoute: ActivatedRoute,
     private http: HttpClient,
@@ -119,40 +122,34 @@ export class StatusesDocComponent implements OnInit {
       date_time_changed: new FormControl      ('',[]),
     });
 
-    this.getSetOfPermissions();//
-    // ->getMyId()
-    // ->getMyCompanyId()
-    // ->getCRUD_rights()
-    // ->getDocumentsList()
-    // ->getData()------>(если созданный док)---> this.getDocumentValuesById(); --> refreshPermissions()     
-    // ->(если новый док):
-    // ->getCompaniesList() 
-    // ->setDefaultCompany()
-    // ->setDefaultDocument()
-    // ->refreshPermissions() 
+    this.getSetOfPermissions();
+    //+++ getting base data from parent component
+    this.getBaseData('myId');    
+    this.getBaseData('myCompanyId');  
+    this.getBaseData('companiesList');  
   }
 //---------------------------------------------------------------------------------------------------------------------------------------                            
 // ----------------------------------------------------- *** ПРАВА *** ------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------------------------------------------
 
-getSetOfPermissions(){
-  return this.http.get('/api/auth/getMyPermissions?id=22')
-    .subscribe(
-        (data) => {   
-                    this.permissionsSet=data as any [];
-                    this.getMyId();
-                },
-        error => console.log(error),
-    );
-}
+  getSetOfPermissions(){
+    return this.http.get('/api/auth/getMyPermissions?id=22')
+      .subscribe(
+          (data) => {   
+                      this.permissionsSet=data as any [];
+                      this.getMyId();
+                  },
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
+                  );
+  }
 
-  getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==271)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==272)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==275)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==276)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==277)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==278)});
+  getCRUD_rights(){
+    this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==271)});
+    this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==272)});
+    this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==275)});
+    this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==276)});
+    this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==277)});
+    this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==278)});
     this.getDocumentsList();
   }
 
@@ -194,37 +191,39 @@ getSetOfPermissions(){
       this.visBeforeCreatingBlocks = true;
     }
   }
-
-  getMyId(){
-    this.loadSpravService.getMyId()
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+      this.loadSpravService.getCompaniesList()
+        .subscribe(
+            (data) => 
+            {
+              this.receivedCompaniesList=data as any [];
+              this.doFilterCompaniesList();
+            },                      
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+        );
+    else this.doFilterCompaniesList();
+  }
+  getMyId(){ //+++
+    if(+this.myId==0)
+      this.loadSpravService.getMyId()
             .subscribe(
                 (data) => {this.myId=data as any;
                   this.getMyCompanyId();},
-                error => console.log(error)
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
+    else this.getMyCompanyId();
   }
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
-      (data) => {
-        this.myCompanyId=data as number;
-        this.getCRUD_rights(this.permissionsSet);},
-       error => console.log(error));
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
+        (data) => {
+          this.myCompanyId=data as number;
+          this.getCRUD_rights();
+        }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
+    else this.getCRUD_rights();
   }
 
-  getCompaniesList(){
-    console.log("getCompaniesList");
-    this.receivedCompaniesList=null;
-    this.loadSpravService.getCompaniesList()
-            .subscribe(
-                (data) => 
-                {
-                  this.receivedCompaniesList=data as any [];
-                  this.doFilterCompaniesList();
-                  this.setDefaultCompany();
-                },                      
-                error => console.log(error)
-            );
-  }
   setDefaultCompany(){
     if(this.receivedDocumentsList.length>1)
     {
@@ -260,11 +259,12 @@ getSetOfPermissions(){
       this.receivedCompaniesList=[];
       this.receivedCompaniesList.push(myCompany);
     }
+    this.setDefaultCompany();
   }
 
   getDocumentValuesById(){
     const docId = {"id": this.id};
-          this.http.post('/api/auth/getSpravStatusDocsValuesById', docId)
+    this.http.post('/api/auth/getSpravStatusDocsValuesById', docId)
         .subscribe(
             data => { 
               
@@ -287,12 +287,11 @@ getSetOfPermissions(){
                   this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
                   this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
                   this.getStatusesList();
-                  //!!!
-                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
-                this.refreshPermissions();         
-
+                  
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
+                this.refreshPermissions();
             },
-            error => console.log(error)
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
         );
   }
 
@@ -301,16 +300,16 @@ getSetOfPermissions(){
     .subscribe((data) => {   
       let result=data as any;
       switch(result){
-        case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе операции проиошла ошибка")}});break;}
-        case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+        case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_msg')}});break;}
+        case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}});break;}
         default:{
           this.id=result;
           this.afterCreateDoc();
-          this.openSnackBar("Статус документа успешно создан", "Закрыть");
+          this.openSnackBar(translate('docs.msg.doc_crtd_suc'),translate('docs.msg.close'));
           break;
         } 
       }
-    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},);
   }
 
   updateDocument(){ 
@@ -329,11 +328,11 @@ getSetOfPermissions(){
     .subscribe((data) => {   
       let result=data as any;
       switch(result){
-        case 1:{this.getData();this.openSnackBar("Успешно сохранено", "Закрыть");break;} 
-        case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе операции проиошла ошибка")}});break;}
-        case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+        case 1:{this.getData(); this.openSnackBar(translate('docs.msg.doc_sved_suc'),translate('docs.msg.close'));break;} 
+        case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_msg')}});break;}
+        case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});break;}
       }
-    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},);
   }
 
   openSnackBar(message: string, action: string) {
@@ -351,7 +350,7 @@ getSetOfPermissions(){
       filterOptionsIds:[],
       companyId: this.formBaseInformation.get('company_id').value,
       documentId: this.formBaseInformation.get('doc_id').value};
-      return this.http.post('/api/auth/getStatusDocsTable', body)
+      return this.http.post('/api/auth/getStatusDocsTable', body)
             .subscribe(
                 (data) => {
                   this.statusesList = data as any [];
@@ -393,7 +392,10 @@ getSetOfPermissions(){
     this.formBaseInformation.get('status_type').setValue(1);
     this.statusesList=[];
     this.getData();
-}
+  }
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
+  }
 
 
 }

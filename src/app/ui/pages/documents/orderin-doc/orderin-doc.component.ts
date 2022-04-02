@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Inject, OnInit, Optional, ViewChild} from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Inject, OnInit, Optional, Output, ViewChild} from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl } from '@angular/forms';
@@ -19,22 +19,13 @@ import { MatTabChangeEvent } from '@angular/material/tabs';
 import { graphviz }  from 'd3-graphviz';
 import { FilesComponent } from '../files/files.component';
 import { FilesDocComponent } from '../files-doc/files-doc.component';
-import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from '@angular/material/core';
-import { MomentDateAdapter} from '@angular/material-moment-adapter';
-import * as _moment from 'moment';
-import {default as _rollupMoment} from 'moment';
-const moment = _rollupMoment || _moment;
-moment.defaultFormat = "DD.MM.YYYY";
-moment.fn.toJSON = function() { return this.format('DD.MM.YYYY'); }
-export const MY_FORMATS = {
-  parse: {dateInput: 'DD.MM.YYYY',},
-  display: {
-    dateInput: 'DD.MM.YYYY',
-    monthYearLabel: 'MMM YYYY',
-    dateA11yLabel: 'DD.MM.YYYY',
-    monthYearA11yLabel: 'MMMM YYYY',
-  },
-};
+import { translate } from '@ngneat/transloco'; //+++
+
+import { MomentDefault } from 'src/app/services/moment-default';
+import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
+import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+const MY_FORMATS = MomentDefault.getMomentFormat();
+const moment = MomentDefault.getMomentDefault();
 
 interface DocResponse {//интерфейс для получения ответа в методе getOrderinValuesById
   id: number;
@@ -124,9 +115,9 @@ interface CanCreateLinkedDoc{//интерфейс ответа на запрос
   templateUrl: './orderin-doc.component.html',
   styleUrls: ['./orderin-doc.component.css'],
   providers: [LoadSpravService, CommonUtilitesService,BalanceCagentComponent,BalanceKassaComponent,BalanceBoxofficeComponent,
-    {provide: MAT_DATE_LOCALE, useValue: 'ru'},
-    {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
-    {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},]
+    { provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]}, //+++
+    {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
+  ]
 })
 export class OrderinDocComponent implements OnInit {
 
@@ -209,6 +200,7 @@ export class OrderinDocComponent implements OnInit {
   @ViewChild(BalanceCagentComponent, {static: false}) public balanceCagentComponent:BalanceCagentComponent;
   @ViewChild(BalanceKassaComponent, {static: false}) public balanceKassaComponent:BalanceKassaComponent;
   @ViewChild(BalanceBoxofficeComponent, {static: false}) public balanceBoxofficeComponent:BalanceBoxofficeComponent;
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
 
   constructor(private activateRoute: ActivatedRoute,
     private cdRef:ChangeDetectorRef,
@@ -222,7 +214,8 @@ export class OrderinDocComponent implements OnInit {
     public MessageDialog: MatDialog,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
-    private _router:Router) 
+    private _router:Router,
+    private _adapter: DateAdapter<any>) 
     { 
       if(activateRoute.snapshot.params['id'])
         this.id = +activateRoute.snapshot.params['id'];
@@ -304,36 +297,12 @@ export class OrderinDocComponent implements OnInit {
       this.mode=this.data.mode;
       if(this.mode=='window'){this.id=this.data.id; this.formBaseInformation.get('id').setValue(this.id);}
     } 
-   
-    //     getSetOfPermissions
-    //     |
-    //     getMyId
-    //     |
-    //     getMyCompanyId
-    //     |
-    //     getCRUD_rights
-    //     |
-    //     getData(------>(если созданный док)--> [getDocumentValuesById] --> refreshPermissions 
-    //     |
-    //     (если новый док):
-    //     getCompaniesList
-    //     |
-    //     doFilterCompaniesList
-    //     |
-    //     getSettings
-    //     |
-    //     [setDefaultCompany, setDefaultInfoOnStart]
-    //         |
-    //         | (если идет стартовая загрузка):
-    //     getStatusesList, refreshPermissions
-    //     |        		          
-    //     setDefaultStatus         
-    //     |
-    //     setStatusColor, getSpravSysEdizm
-    // *необходимое действие для загрузки дочерних компонентов 
-
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Поставщик"
     this.getSetOfPermissions();
+    //+++ getting base data from parent component
+    this.getBaseData('myId');    
+    this.getBaseData('myCompanyId');  
+    this.getBaseData('companiesList');    
   }
   //чтобы не было ExpressionChangedAfterItHasBeenCheckedError
   ngAfterContentChecked() {
@@ -359,8 +328,8 @@ export class OrderinDocComponent implements OnInit {
                       this.permissionsSet=data as any [];
                       this.getMyId();
                   },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-      );
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
+                  );
   }
 
   refreshPermissions(){
@@ -434,33 +403,50 @@ export class OrderinDocComponent implements OnInit {
       this.startProcess=false;// все стартовые запросы прошли
     }
   }
-  
-  getMyId(){
-    this.loadSpravService.getMyId()
+    
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+      this.loadSpravService.getCompaniesList()
+        .subscribe(
+            (data) => 
+            {
+              this.formAboutDocument.get('company').setValue(this.getCompanyNameById(this.formBaseInformation.get('company_id').value));
+              this.receivedCompaniesList=data as any [];
+              this.doFilterCompaniesList();
+            },                      
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+        );
+    else this.doFilterCompaniesList();
+  }  
+  getMyId(){ //+++
+    if(+this.myId==0)
+      this.loadSpravService.getMyId()
             .subscribe(
                 (data) => {this.myId=data as any;
                   this.getMyCompanyId();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
+    else this.getMyCompanyId();
+  }
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
+        (data) => {
+          this.myCompanyId=data as number;
+          this.getCRUD_rights();
+        }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
+    else this.getCRUD_rights();
   }
 
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
-      (data) => {
-        this.myCompanyId=data as number;
-        this.getCRUD_rights(this.permissionsSet);
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
-  }
-
-  getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==476)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==477)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==480)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==481)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==482)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==483)});
-    this.allowToCompleteAllCompanies = permissionsSet.some(       function(e){return(e==484)});
-    this.allowToCompleteMyCompany = permissionsSet.some(          function(e){return(e==485)});
+  getCRUD_rights(){
+    this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==476)});
+    this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==477)});
+    this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==480)});
+    this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==481)});
+    this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==482)});
+    this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==483)});
+    this.allowToCompleteAllCompanies = this.permissionsSet.some(       function(e){return(e==484)});
+    this.allowToCompleteMyCompany = this.permissionsSet.some(          function(e){return(e==485)});
    
     if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;}
     if(this.allowToViewAllCompanies){this.allowToViewMyCompany=true;}
@@ -476,21 +462,6 @@ export class OrderinDocComponent implements OnInit {
       this.getCompaniesList(); 
     }
   }
-
-  getCompaniesList(){
-    this.receivedCompaniesList=null;
-    this.loadSpravService.getCompaniesList()
-      .subscribe(
-          (data) => 
-          {
-            this.receivedCompaniesList=data as any [];
-            this.formAboutDocument.get('company').setValue(this.getCompanyNameById(this.formBaseInformation.get('company_id').value));
-            this.doFilterCompaniesList();
-          },                      
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-      );
-  }
-
 
   onCompanyChange(){
     this.formBaseInformation.get('status_id').setValue(null);
@@ -513,7 +484,7 @@ export class OrderinDocComponent implements OnInit {
             .subscribe(
                 (data) => {this.receivedStatusesList=data as StatusInterface[];
                   if(+this.id==0){this.setDefaultStatus();}},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
   }
 
@@ -566,7 +537,7 @@ export class OrderinDocComponent implements OnInit {
               this.setDefaultCompany();
             }
           },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
   }
   setDefaultCompany(){
@@ -605,7 +576,7 @@ export class OrderinDocComponent implements OnInit {
   }
 
   getDocumentValuesById(){
-    this.http.get('/api/auth/getOrderinValuesById?id='+ this.id)
+    this.http.get('/api/auth/getOrderinValuesById?id='+ this.id)
         .subscribe(
             data => { 
                 let documentValues: DocResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
@@ -658,17 +629,16 @@ export class OrderinDocComponent implements OnInit {
                   this.getBoxofficesList();   // кассы предприятия
                   this.getCompaniesPaymentAccounts(); //расч счета
                   this.getKassaListByBoxofficeId();   // все кассы KKM отеделений, привязанных к кассе препдриятия boxoffice_id
-
                   this.getWithdrawalListByKassaId(); // загрузка выемок
                   this.getOrderoutListByBoxofficeId(); // загрузка списка расходных ордеров
                   this.getPaymentoutListByAccountId(); // загрузка списка исходящих платежей
-
                   this.getStatusesList();//статусы документа Приходный ордер
                   this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
-              } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})} //!!!
-              this.refreshPermissions();
+              
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
+                this.refreshPermissions();
             },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
         );
   }
 
@@ -678,9 +648,9 @@ export class OrderinDocComponent implements OnInit {
         width: '400px',
         data:
         { 
-          head: 'Редактирование номера документа',
-          warning: 'Открыть поле "Номера документа" на редактирование?',
-          query: 'Номер документа присваивается системой автоматически. Если Вы хотите его редактировать, и вместе с тем оставить возможность системе генерировать код в следующих документах, пожалуйста, не исползуйте более 9 цифр в номере.',
+          head: translate('docs.msg.doc_num_head'),
+          query: translate('docs.msg.doc_num_query'),
+          warning: translate('docs.msg.doc_num_warn')
         },
       });
       dialogRef.afterClosed().subscribe(result => {
@@ -691,7 +661,7 @@ export class OrderinDocComponent implements OnInit {
     } 
   }
 
-  checkDocNumberUnical(tableName:string) {
+  checkDocNumberUnical(tableName:string) { //+++
     let docNumTmp=this.formBaseInformation.get('doc_number').value;
     setTimeout(() => {
       if(!this.formBaseInformation.get('doc_number').errors && this.lastCheckedDocNumber!=docNumTmp && docNumTmp!='' && docNumTmp==this.formBaseInformation.get('doc_number').value)
@@ -703,13 +673,13 @@ export class OrderinDocComponent implements OnInit {
           .subscribe(
               (data) => {   
                           Unic = data as boolean;
-                          if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Введённый номер документа не является уникальным.',}});
+                          if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head: translate('docs.msg.attention'),message: translate('docs.msg.num_not_unic'),}});
                           this.isDocNumberUnicalChecking=false;
                       },
               error => {console.log(error);this.isDocNumberUnicalChecking=false;}
           );
         }
-     }, 1000);
+    }, 1000);
   }
 
   //создание нового документа Приходный ордер
@@ -723,20 +693,20 @@ export class OrderinDocComponent implements OnInit {
                   this.createdDocId=data as number;
                   switch(this.createdDocId){
                     case null:{// null возвращает если не удалось создать документ из-за ошибки
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа Приходный ордер"}});
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.crte_doc_err',{name:translate('docs.docs.orderin')})}});
                       break;
                     }
-                    case -1:{//недостаточно прав
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа Приходный ордер"}});
+                    case 0:{//недостаточно прав
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm_creat',{name:translate('docs.docs.orderin')})}});
                       break;
                     }
-                    default:{// Приходный ордер успешно создалась в БД 
-                      this.openSnackBar("Документ \"Приходный ордер\" успешно создан", "Закрыть");
+                    default:{// Списание успешно создалась в БД 
+                      this.openSnackBar(translate('docs.msg.doc_crtd_suc'),translate('docs.msg.close'));
                       this.afterCreateOrderin();
                     }
                   }
                 },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});},
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
       );
   }
 
@@ -748,13 +718,13 @@ export class OrderinDocComponent implements OnInit {
       this.getData();
   }
 
-  completeDocument(notShowDialog?:boolean){
-    if(!notShowDialog){//notShowDialog=false - показывать диалог
+  completeDocument(notShowDialog?:boolean){ //+++
+    if(!notShowDialog){
       const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
         width: '400px',data:{
-          head: 'Проведение приходного ордера',
-          warning: 'Вы хотите провести данный приходный ордер?',
-          query: 'После проведения документ станет недоступным для редактирования.'},});
+          head:    translate('docs.msg.complet_head'),
+          warning: translate('docs.msg.complet_warn'),
+          query:   translate('docs.msg.complet_query')},});
       dialogRef.afterClosed().subscribe(result => {
         if(result==1){
           this.updateDocument(true);
@@ -763,14 +733,14 @@ export class OrderinDocComponent implements OnInit {
     } else this.updateDocument(true);
   }
 
-  decompleteDocument(notShowDialog?:boolean){
+  decompleteDocument(notShowDialog?:boolean){ //+++
     if(this.allowToComplete){
-      if(!notShowDialog){//notShowDialog=false - показывать диалог
+      if(!notShowDialog){
         const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
           width: '400px',data:{
-            head: 'Отмена проведения приходного ордера',
-            warning: 'Вы хотите отменить проведение данного приходного ордера?',
-            query: ''},});
+          head:    translate('docs.msg.cnc_com_head'),
+          warning: translate('docs.msg.cnc_com_warn'),
+          query: ''},});
         dialogRef.afterClosed().subscribe(result => {
           if(result==1){
             this.setDocumentAsDecompleted();
@@ -779,6 +749,7 @@ export class OrderinDocComponent implements OnInit {
       } else this.setDocumentAsDecompleted();
     }
   }
+
   setDocumentAsDecompleted(){
     this.http.post('/api/auth/setOrderinAsDecompleted',  this.formBaseInformation.value)
       .subscribe(
@@ -787,23 +758,23 @@ export class OrderinDocComponent implements OnInit {
             let result:number=data as number;
             switch(result){
               case null:{// null возвращает если не удалось завершить операцию из-за ошибки
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка снятия с проведения документа \"Приходный ордер\""}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.cnc_com_error')}});
                 break;
               }
               case -1:{//недостаточно прав
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для данной операции"}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}});
                 break;
               }
               case -30:{//недостаточно средств
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно средств для проведения операции"}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_money_op')}});
                 break;
               }
               case -60:{//Документ уже снят с проведения
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Данный документ уже снят с проведения"}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.alr_cnc_com')}});
                 break;
               }
               case 1:{// Успешно
-                this.openSnackBar("Документ \"Приходный ордер\" снят с проведения", "Закрыть");
+                this.openSnackBar(translate('docs.msg.cnc_com_succs',{name:translate('docs.docs.orderin')}), translate('docs.msg.close'));
                 this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                 this.formBaseInformation.get('is_completed').setValue(false);
                 this.balanceBoxofficeComponent.getBalance();//пересчитаем баланс кассы
@@ -838,31 +809,31 @@ export class OrderinDocComponent implements OnInit {
             let result:number=data as number;
             switch(result){
               case null:{// null возвращает если не удалось создать документ из-за ошибки
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка "+ (complete?"проведения":"сохренения") + " документа \"Приходный ордер\""}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_of') + (complete?translate('docs.msg._of_comp'):translate('docs.msg._of_save')) + translate('docs.msg._of_doc',{name:translate('docs.docs.orderin')})}});
                 break;
               }
               case -1:{//недостаточно прав
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа \"Приходный ордер\""}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});
                 break;
               }
               case -30:{//недостаточно средств 
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно средств для проведения операции"}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_money_op')}});
                 break;
               }
               case -31:{//Документ-отправитель внутреннего платежа не проведён (например, проводим приходный ордер, но незадолго до этого у исходящего платежа сняли проведение)
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Документ-отправитель данного внутреннего платежа не проведён"}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.sender_n_comp')}});
                 break;
               }
-              case -40:{//дублирование исходящего платежа 
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Входящий платеж с данным "+(this.formBaseInformation.get('moving_type').value=='account'?"исходящим платежом":(this.formBaseInformation.get('moving_type').value=='boxoffice'?"расходным ордером":"документом Выемка"))+" уже проведён"}});
+              case -40:{//дублирование исходящего платежа   
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.pi_w')+(this.formBaseInformation.get('moving_type').value=='account'?translate('docs.msg._po'):(this.formBaseInformation.get('moving_type').value=='boxoffice'?translate('docs.msg._oo'):translate('docs.msg._wd')))+translate('docs.msg._already_comp')}});
                 break;
               }
               case -50:{//Документ уже проведён
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Данный документ уже проведён"}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.already_cmplt')}});
                 break;
               }
               default:{// Успешно
-                this.openSnackBar("Документ \"Приходный ордер\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
+                this.openSnackBar(translate('docs.msg.doc_name',{name:translate('docs.docs.orderin')}) + (complete?translate('docs.msg.completed'):translate('docs.msg.saved')), translate('docs.msg.close'));
                 this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                 if(complete) {
                   this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведённости = true
@@ -889,7 +860,7 @@ export class OrderinDocComponent implements OnInit {
       {
         width:'400px',
         data:{
-          head:'Ошибка!',
+          head:translate('docs.msg.error'),
           message:errMsg}
       })
   }
@@ -940,10 +911,10 @@ export class OrderinDocComponent implements OnInit {
     return this.http.post('/api/auth/saveSettingsOrderin', this.settingsForm.value)
             .subscribe(
                 (data) => {   
-                          this.openSnackBar("Настройки успешно сохранены", "Закрыть");
+                          this.openSnackBar(translate('docs.msg.settngs_saved'), translate('docs.msg.close'));
                           
                         },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
             );
   }
 
@@ -1018,7 +989,7 @@ export class OrderinDocComponent implements OnInit {
           this.boxoffices=data as any [];
           this.setDefaultBoxoffice();
         },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
 
@@ -1038,7 +1009,7 @@ export class OrderinDocComponent implements OnInit {
     }
   }  
   getMovingTypeNameById(id:string):string{
-    let name:string = 'Не установлен';
+    let name:string = translate('docs.msg.not_set');
     if(this.movingTypes){
       this.movingTypes.forEach(a=>{
         if(a.id==id) name=a.name_from;
@@ -1095,7 +1066,7 @@ export class OrderinDocComponent implements OnInit {
           this.paymentAccounts=data as any [];
           // this.setDefaultPaymentFromAccount();
         },
-        error => {this.fieldDataLoading=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+        error => {this.fieldDataLoading=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
 
@@ -1120,7 +1091,7 @@ export class OrderinDocComponent implements OnInit {
         this.kassaList=data as any [];
         // this.setDefaultPaymentFromAccount();
       },
-      error => {this.fieldDataLoading=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+      error => {this.fieldDataLoading=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
 
@@ -1140,7 +1111,7 @@ export class OrderinDocComponent implements OnInit {
           this.withdrawalList=data as any [];
           this.setDefaultWithdrawal();
         },
-        error => {this.withdrawalListLoading=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+        error => {this.withdrawalListLoading=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
     }
   }
@@ -1177,7 +1148,7 @@ export class OrderinDocComponent implements OnInit {
           this.paymentoutList=data as any [];
           this.setDefaultPaymentout();
         },
-        error => {this.paymentoutListLoading=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+        error => {this.paymentoutListLoading=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
     }
   }
@@ -1200,7 +1171,7 @@ export class OrderinDocComponent implements OnInit {
           this.orderoutList=data as any [];
           this.setDefaultOrderout();
         },
-        error => {this.orderoutListLoading=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+        error => {this.orderoutListLoading=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
     }
   }
@@ -1252,7 +1223,7 @@ loadFilesInfo(){//                                     загружает инф
               (data) => {  
                           this.filesInfo = data as any[]; 
                         },
-              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
           );
 }
 addFilesToOrderin(filesIds: number[]){
@@ -1261,9 +1232,9 @@ addFilesToOrderin(filesIds: number[]){
             .subscribe(
                 (data) => {  
                   this.loadFilesInfo();
-                  this.openSnackBar("Файлы добавлены", "Закрыть");
+                  this.openSnackBar(translate('docs.msg.files_added'), translate('docs.msg.close'));
                           },
-                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
             );
 }
 
@@ -1272,9 +1243,9 @@ clickBtnDeleteFile(id: number): void {
     width: '400px',
     data:
     { 
-      head: 'Удаление файла',
-      query: 'Удалить файл из данного документа?',
-      warning: 'Файл не будет удалён безвозвратно, он останется в библиотеке "Файлы".',
+      head: translate('docs.msg.file_del_head'),
+      query: translate('docs.msg.file_del_qury'),
+      warning: translate('docs.msg.file_del_warn'),
     },
   });
   dialogRef.afterClosed().subscribe(result => {
@@ -1288,9 +1259,9 @@ deleteFile(id:number){
   .subscribe(
       (data) => {   
                   this.loadFilesInfo();
-                  this.openSnackBar("Успешно удалено", "Закрыть");
+                  this.openSnackBar(translate('docs.msg.deletet_succs'), translate('docs.msg.close'));
               },
-      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
   );  
 }
 //**********************************************************************************************************************************************/  
@@ -1307,7 +1278,7 @@ deleteFile(id:number){
       this.formLinkedDocs.get('cagent_id').setValue(this.formBaseInformation.get('cagent_id').value);
       this.formLinkedDocs.get('nds').setValue(this.formBaseInformation.get('nds').value);
       // this.formLinkedDocs.get('summ').setValue(this.formBaseInformation.get('summ').value);
-      this.formLinkedDocs.get('description').setValue('Создано из Приходного ордера №'+ this.formBaseInformation.get('doc_number').value);
+      this.formLinkedDocs.get('description').setValue(translate('docs.msg.created_from')+translate('docs.docs.orderin')+' '+translate('docs.top.number')+this.formBaseInformation.get('doc_number').value);
       this.formLinkedDocs.get('is_completed').setValue(false);
       this.formLinkedDocs.get('uid').setValue(uid);
       
@@ -1332,22 +1303,22 @@ deleteFile(id:number){
                   let createdDocId=data as number;
                   switch(createdDocId){
                     case null:{// null возвращает если не удалось создать документ из-за ошибки
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа "+(this.commonUtilites.getDocNameByDocAlias(docname))}});
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.crte_doc_err',{name:translate('docs.docs.'+this.commonUtilites.getDocNameByDocAlias(docname))})}});
                       break;
                     }
                     case -1:{//недостаточно прав
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа "+(this.commonUtilites.getDocNameByDocAlias(docname))}});
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm_creat',{name:translate('docs.docs.'+this.commonUtilites.getDocNameByDocAlias(docname))})}});
                       break;
                     }
                     default:{// Документ успешно создался в БД 
-                      this.openSnackBar("Документ "+this.commonUtilites.getDocNameByDocAlias(docname)+" успешно создан", "Закрыть");
+                      this.openSnackBar(translate('docs.msg.doc_crtd_succ',{name:translate('docs.docs.'+this.commonUtilites.getDocNameByDocAlias(docname))}), translate('docs.msg.close'));
                       this.getLinkedDocsScheme(true);//обновляем схему этого документа
                     }
                   }
                 },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});},
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
       );
-    } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:canCreateLinkedDoc.reason}});
+    } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:canCreateLinkedDoc.reason}});
   }
 
   // можно ли создать связанный документ 
@@ -1357,7 +1328,7 @@ deleteFile(id:number){
 
   OnClickVatInvoiceOut(){
     if(+this.formBaseInformation.get('cagent_id').value==0)
-      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Невозможно создать данный документ, так как контрагент не выбран',}});
+      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.cnt_crte_cntpt'),}});
     else
       this.createLinkedDoc('Vatinvoiceout');
   }
@@ -1366,17 +1337,17 @@ deleteFile(id:number){
     this.formBaseInformation.get(fieldName).setValue(this.formBaseInformation.get(fieldName).value.replace(",", "."));
   }
   myTabFocusChange(changeEvent: MatTabChangeEvent) {
-    console.log('Tab position: ' + changeEvent.tab.position);
+    // console.log('Tab position: ' + changeEvent.tab.position);
   }  
   myTabSelectedIndexChange(index: number) {
-    console.log('Selected index: ' + index);
+    // console.log('Selected index: ' + index);
     this.tabIndex=index;
   }
   myTabSelectedTabChange(changeEvent: MatTabChangeEvent) {
-    console.log('Index: ' + changeEvent.index);
+    // console.log('Index: ' + changeEvent.index);
   }  
   myTabAnimationDone() {
-    console.log('Animation is done.');
+    // console.log('Animation is done.');
     if(this.tabIndex==1)  {
       if(!this.linkedDocsSchemeDisplayed) {
         this.loadingDocsScheme=true;
@@ -1399,7 +1370,7 @@ deleteFile(id:number){
             
             if(result==null){
               this.loadingDocsScheme=false;
-              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка загрузки связанных документов"}});
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.err_load_lnkd')}});
             } else if(result.errorCode==0){//нет результата
               this.linkedDocsSchemeDisplayed = true;
               this.loadingDocsScheme=false;
@@ -1412,7 +1383,7 @@ deleteFile(id:number){
                 this.loadingDocsScheme=false;
             } 
         },
-        error => {this.loadingDocsScheme=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+        error => {this.loadingDocsScheme=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
 
@@ -1469,5 +1440,9 @@ deleteFile(id:number){
       if(+i['product_id']==productId){retIndex=formIndex}
       formIndex++;
     });return retIndex;}
+    
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
+  }
 }
 

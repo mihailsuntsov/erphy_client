@@ -1,4 +1,4 @@
-import { Component, OnInit , Inject, Optional } from '@angular/core';
+import { Component, OnInit , Inject, Optional, Output, EventEmitter } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { Validators, FormGroup, FormArray, FormControl, FormBuilder } from '@angular/forms';
@@ -13,25 +13,14 @@ import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FilesComponent } from '../files/files.component';
 import { FilesDocComponent } from '../files-doc/files-doc.component';
-import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE}  from '@angular/material/core';
-import { MomentDateAdapter} from '@angular/material-moment-adapter';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
-import * as _moment from 'moment';
-import { default as _rollupMoment} from 'moment';
-const moment = _rollupMoment || _moment;
-moment.defaultFormat = "DD.MM.YYYY";
-moment.fn.toJSON = function() { return this.format('DD.MM.YYYY'); }
-export const MY_FORMATS = {
-  parse: {
-    dateInput: 'DD.MM.YYYY',
-  },
-  display: {
-    dateInput: 'DD.MM.YYYY',
-    monthYearLabel: 'MMM YYYY',
-    dateA11yLabel: 'DD.MM.YYYY',
-    monthYearA11yLabel: 'MMMM YYYY',
-  },
-};
+import { translate } from '@ngneat/transloco'; //+++
+
+import { MomentDefault } from 'src/app/services/moment-default';
+import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
+import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+const MY_FORMATS = MomentDefault.getMomentFormat();
+const moment = MomentDefault.getMomentDefault();
 
 interface docResponse {//интерфейс для получения ответа в запросе значений полей документа
   id: number;
@@ -162,15 +151,15 @@ interface idNameDescription{ //универсалный интерфейс дл�
   templateUrl: './companies-doc.component.html',
   styleUrls: ['./companies-doc.component.css'],
   providers: [LoadSpravService,
-    {provide: MAT_DATE_LOCALE, useValue: 'ru'},
-    {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
-    {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},]
+    { provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]}, //+++
+    {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
+  ]
 })
 
 export class CompaniesDocComponent implements OnInit {
   id: number=0;// id документа
   createdDocId: string[];//массив для получение id созданного документа
-  receivedCompaniesList: any [];//массив для получения списка предприятий
+  receivedd: any [];//массив для получения списка предприятий
   myCompanyId:number=0;
   receivedSpravSysOPF: any [];//массив для получения данных справочника форм предприятий
   receivedCurrencyList: any [];// список валют
@@ -236,6 +225,8 @@ export class CompaniesDocComponent implements OnInit {
   editability:boolean = false; // возможность редактирования полей.
   rightsDefined:boolean; // определены ли права !!!
 
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
+  
 constructor(private activateRoute: ActivatedRoute,
   private http: HttpClient,
   public dialogAddFiles: MatDialog,
@@ -245,7 +236,8 @@ constructor(private activateRoute: ActivatedRoute,
   private _snackBar: MatSnackBar,
   private _fb: FormBuilder, //чтобы билдить группу форм myForm: FormBuilder, //для билдинга групп форм по контактным лицам и банковским реквизитам
   @Optional() @Inject(MAT_DIALOG_DATA) public data: any,
-  public ConfirmDialog: MatDialog) { 
+  public ConfirmDialog: MatDialog,
+  private _adapter: DateAdapter<any>) { 
     if(activateRoute.snapshot.params['id'])
       this.id = +activateRoute.snapshot.params['id'];// +null returns 0
   }
@@ -332,14 +324,9 @@ constructor(private activateRoute: ActivatedRoute,
     this.getCurrencyList();
     this.getSpravSysCountries();
     this.getSetOfPermissions();
-    //->getMyCompanyId()
-    //->getCRUD_rights()
-    //->getData()  (док существует):-> getDocumentValuesById()->getStatusesList()->refreshPermissions()
-    // (новый док):
-    //->getStatusesList()
-    //->setDefaultStatus()
-    //->refreshPermissions()
-
+    //+++ getting base data from parent component
+    // this.getBaseData('myId');    
+    this.getBaseData('myCompanyId');  
 
     if(this.data)//если документ вызывается в окне из другого документа
     {
@@ -365,8 +352,8 @@ constructor(private activateRoute: ActivatedRoute,
                     this.permissionsSet=data as any [];
                     this.getMyCompanyId();
                 },
-        error => console.log(error),
-    );
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
+                );
   }
 
   getCRUD_rights(){
@@ -408,12 +395,12 @@ constructor(private activateRoute: ActivatedRoute,
       }
   }
   getCurrencyList(){
-    console.log("getCurrencyList");
+    // console.log("getCurrencyList");
     this.receivedCurrencyList=null;
-            this.http.get('/api/auth/getSpravSysCurrency')
+    this.http.get('/api/auth/getSpravSysCurrency')
             .subscribe(
                 (data) => {this.receivedCurrencyList=data as any [];
-                  console.log("receivedCurrencyList-"+this.receivedCurrencyList);
+                  // console.log("receivedCurrencyList-"+this.receivedCurrencyList);
                   this.setDefaultCurrency()},
                 error => console.log(error)
             );
@@ -425,12 +412,14 @@ constructor(private activateRoute: ActivatedRoute,
     }
   }
 
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
-      (data) => {
-        this.myCompanyId=data as number;
-        this.getCRUD_rights();
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
+        (data) => {
+          this.myCompanyId=data as number;
+          this.getCRUD_rights();
+        }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
+    else this.getCRUD_rights();
   }
 
   getSpravSysOPF(){
@@ -444,7 +433,7 @@ constructor(private activateRoute: ActivatedRoute,
 
   getDocumentValuesById(){
     const docId = {"id": this.id};
-          this.http.post('/api/auth/getCompanyValues', docId)
+    this.http.post('/api/auth/getCompanyValues', docId)
         .subscribe(
             data => { 
                 let documentValues: docResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
@@ -524,13 +513,13 @@ constructor(private activateRoute: ActivatedRoute,
                   this.getCompaniesPaymentAccounts();
                   this.setJurElementsVisible();
                   this.loadFilesInfo();
-                  //!!!
-                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
+                  
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();
-              },
-              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
-          );
-    }
+            },
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
+        );
+  }
 
   clickBtnCreateNewDocument(){// Нажатие кнопки Записать
     this.createNewDocument();
@@ -547,9 +536,9 @@ constructor(private activateRoute: ActivatedRoute,
         this.formBaseInformation.get('id').setValue(this.id);
         this.rightsDefined=false; //!!!
         this.getData();
-        this.openSnackBar("Документ успешно создан", "Закрыть");
+        this.openSnackBar(translate('docs.msg.doc_crtd_suc'),translate('docs.msg.close'));
     },
-    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
   
@@ -569,9 +558,9 @@ constructor(private activateRoute: ActivatedRoute,
           (data) => 
           {   
                   this.getData();
-                  this.openSnackBar("Документ \"Предприятие\" сохранён", "Закрыть");
+                  this.openSnackBar(translate('docs.msg.doc_sved_suc'),translate('docs.msg.close'));
           },
-          error => console.log(error),
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
       );
   }
   getPriceTypesList(){
@@ -678,8 +667,8 @@ constructor(private activateRoute: ActivatedRoute,
       width: '400px',
       data:
       { 
-        head: 'Копирование адреса',
-        query: 'Скопировать адресные данные из юридического адреса (вкладка "Юридические данные")?',
+        head: translate('docs.msg.addr_copy'),
+        query: translate('docs.msg.addr_copy_qj'),
         warning: '',
       },
     });
@@ -703,8 +692,8 @@ constructor(private activateRoute: ActivatedRoute,
       width: '400px',
       data:
       { 
-        head: 'Копирование адреса',
-        query: 'Скопировать адресные данные из адреса (вкладка "Информация")?',
+        head: translate('docs.msg.addr_copy'),
+        query: translate('docs.msg.addr_copy_q'),
         warning: '',
       },
     });
@@ -955,7 +944,7 @@ constructor(private activateRoute: ActivatedRoute,
         (data) => { resultContainer=data as any [];
                     this.fillPaymentAccountsArray(resultContainer);
                 },
-        error => console.log(error),
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
     );
   }
   fillPaymentAccountsArray(arr: any[]){
@@ -990,8 +979,8 @@ constructor(private activateRoute: ActivatedRoute,
       width: '400px',
       data:
       { 
-        head: 'Удаление банковских реквизитов',
-        query: 'Удалить карточку банковских реквизитов?',
+        head: translate('docs.msg.del_acc'),
+        query: translate('docs.msg.del_acc_q'),
         warning: '',
       },
     });
@@ -1032,6 +1021,9 @@ constructor(private activateRoute: ActivatedRoute,
       m.get('output_order').setValue(i);
       i++;
     });
+  }
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
   }
 
 //*****************************************************************************************************************************************/
@@ -1087,19 +1079,19 @@ constructor(private activateRoute: ActivatedRoute,
         switch(option) {
           case 'director':
             this.formBaseInformation.get('director_signature_id').setValue(result[0]);
-            this.formBaseInformation.get('director_signature_filename').setValue("Файл выбран!");
+            this.formBaseInformation.get('director_signature_filename').setValue(translate('docs.msg.file_slctd'));
             break;
           case 'glavbuh':
             this.formBaseInformation.get('glavbuh_signature_id').setValue(result[0]);
-            this.formBaseInformation.get('glavbuh_signature_filename').setValue("Файл выбран!");
+            this.formBaseInformation.get('glavbuh_signature_filename').setValue(translate('docs.msg.file_slctd'));
             break;
           case 'stamp':
             this.formBaseInformation.get('stamp_id').setValue(result[0]);
-            this.formBaseInformation.get('stamp_filename').setValue("Файл выбран!");
+            this.formBaseInformation.get('stamp_filename').setValue(translate('docs.msg.file_slctd'));
             break;
           case 'card_template':
             this.formBaseInformation.get('card_template_id').setValue(result[0]);
-            this.formBaseInformation.get('card_template_original_filename').setValue("Файл выбран!");
+            this.formBaseInformation.get('card_template_original_filename').setValue(translate('docs.msg.file_slctd'));
         }
       };
     });
@@ -1109,9 +1101,9 @@ constructor(private activateRoute: ActivatedRoute,
       width: '400px',
       data:
       { 
-        head: 'Удаление файла',
-        query: 'Вы подтверждаете удаление файла?',
-        warning: 'Файл не будет удалён безвозвратно, он останется в библиотеке "Файлы".',
+        head: translate('docs.msg.file_del_head'),
+      query: translate('docs.msg.file_del_qury'),
+      warning: translate('docs.msg.file_del_warn'),
       },
     });
     dialogRef.afterClosed().subscribe(result => {
@@ -1119,20 +1111,20 @@ constructor(private activateRoute: ActivatedRoute,
         switch(option) {
           case 'director':
             this.formBaseInformation.get('director_signature_id').setValue();
-            this.formBaseInformation.get('director_signature_filename').setValue("Файл не добавлен");
+            this.formBaseInformation.get('director_signature_filename').setValue(translate('docs.msg.file_slctd_no'));
             break;
           case 'glavbuh':
             this.formBaseInformation.get('glavbuh_signature_id').setValue();
-            this.formBaseInformation.get('glavbuh_signature_filename').setValue("Файл не добавлен");
+            this.formBaseInformation.get('glavbuh_signature_filename').setValue(translate('docs.msg.file_slctd_no'));
             break;
           case 'stamp':
             this.formBaseInformation.get('stamp_id').setValue();
-            this.formBaseInformation.get('stamp_filename').setValue("Файл не добавлен");
+            this.formBaseInformation.get('stamp_filename').setValue(translate('docs.msg.file_slctd_no'));
             break;
           case 'card_template':
             this.formBaseInformation.get('card_template_id').setValue();
             this.formBaseInformation.get('card_template_filename').setValue("");
-            this.formBaseInformation.get('card_template_original_filename').setValue("Файл не добавлен");
+            this.formBaseInformation.get('card_template_original_filename').setValue(translate('docs.msg.file_slctd_no'));
         }
       }
     });
@@ -1142,10 +1134,10 @@ constructor(private activateRoute: ActivatedRoute,
             return this.http.post('/api/auth/addFilesToCompany', body) 
               .subscribe(
                   (data) => {  
-                    this.openSnackBar("Файлы добавлены", "Закрыть");
+                    this.openSnackBar(translate('docs.msg.files_added'), translate('docs.msg.close'));
                     this.loadFilesInfo();
                             },
-                  error => console.log(error),
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
               );
   }
   loadFilesInfo(){// загружает информацию по прикрепленным файлам
@@ -1155,7 +1147,7 @@ constructor(private activateRoute: ActivatedRoute,
                 (data) => {  
                             this.filesInfo = data as any[]; 
                           },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
             );
   }
   clickBtnDeleteFile(id: number): void {
@@ -1163,9 +1155,9 @@ constructor(private activateRoute: ActivatedRoute,
       width: '400px',
       data:
       { 
-        head: 'Удаление файла',
-        query: 'Удалить файл?',
-        warning: 'Файл не будет удалён безвозвратно, он останется в библиотеке "Файлы".',
+        head: translate('docs.msg.file_del_head'),
+      query: translate('docs.msg.file_del_qury'),
+      warning: translate('docs.msg.file_del_warn'),
       },
     });
     dialogRef.afterClosed().subscribe(result => {
@@ -1178,10 +1170,10 @@ constructor(private activateRoute: ActivatedRoute,
     return this.http.post('/api/auth/deleteCompanyFile',body)
     .subscribe(
         (data) => {   
-                    this.openSnackBar("Успешно удалено", "Закрыть");
+                    this.openSnackBar(translate('docs.msg.deletet_succs'), translate('docs.msg.close'));
                     this.loadFilesInfo();
                 },
-        error => console.log(error),
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
     );  
   }
 
@@ -1197,11 +1189,11 @@ constructor(private activateRoute: ActivatedRoute,
           let downloadLink = document.createElement('a');
           downloadLink.href = window.URL.createObjectURL(new Blob(binaryData, {type: dataType}));
           if (filename)
-              downloadLink.setAttribute('download', 'Карточка предприятия.docx');
+              downloadLink.setAttribute('download', translate('docs.msg.comp_card')+'.docx');
           document.body.appendChild(downloadLink);
           downloadLink.click();
       },
-      error => console.log(error),
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
     );  
   }
   changeNetcostPolicyAttention(){
@@ -1210,9 +1202,9 @@ constructor(private activateRoute: ActivatedRoute,
         width: '400px',
         data:
         { 
-          head: 'Внимание!',
-          query: 'В результате выбора данной политики расчёта, средняя себестоимость товаров со временем станет разной во всех отделениях.',/* Последующий возврат данной политики обратно на "По всему предприятию" не повлечёт за собой уравнивания средней себестоимости. */
-          warning: 'Изменить политику расчёта?',
+          head:translate('docs.msg.attention'),
+          query: translate('docs.msg.pol_change'),/* Последующий возврат данной политики обратно на "По всему предприятию" не повлечёт за собой уравнивания средней себестоимости. */
+          warning: translate('docs.msg.pol_change_'),
         },
       });
       dialogRef.afterClosed().subscribe(result => {

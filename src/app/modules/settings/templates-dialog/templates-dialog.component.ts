@@ -11,6 +11,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+import { translate } from '@ngneat/transloco'; //+++
 
 interface TemplateTypesList{
   id:number;                      // id из таблицы template_types
@@ -100,7 +101,7 @@ export class TemplatesDialogComponent implements OnInit {
         this.gettingData=false;
         this.templateTypesList=data as TemplateTypesList[];
       },
-      error => {console.log(error);this.gettingData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+      error => {console.log(error);this.gettingData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
     );
   }
   //загрузка списка шаблонов для текущего document_id
@@ -115,7 +116,7 @@ export class TemplatesDialogComponent implements OnInit {
         this.fillTemplatesArray(result);
         this.gettingData=false;
       },
-      error => {console.log(error);this.gettingData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+      error => {console.log(error);this.gettingData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
     );
   }
 
@@ -197,8 +198,8 @@ export class TemplatesDialogComponent implements OnInit {
       width: '400px',
       data:
       { 
-        head: 'Удаление шаблона',
-        query: 'Удалить шаблон?',
+        head: translate('docs.msg.del_acc'),
+        query: translate('docs.msg.del_acc_q'),
         warning: '',
       },
     });
@@ -222,9 +223,9 @@ export class TemplatesDialogComponent implements OnInit {
     this.http.post('/api/auth/saveTemplates', this.formBaseInformation.getRawValue())
     .subscribe(
         (data) => {
-          this.openSnackBar("Настройки успешно сохранены", "Закрыть");
+          this.openSnackBar(translate('docs.msg.settngs_saved'), translate('docs.msg.close'));
         },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
     
   }
@@ -270,7 +271,7 @@ export class TemplatesDialogComponent implements OnInit {
         this.formBaseInformation.get('templatesList').controls.forEach(m =>{
           if(m.get('template_type_id').value==template_type_id){
             m.get('file_id').setValue(result[0]);
-            m.get('file_original_name').setValue("Файл выбран!");
+            m.get('file_original_name').setValue(translate('docs.msg.file_slctd'));
           }
         });
       };
@@ -281,9 +282,9 @@ export class TemplatesDialogComponent implements OnInit {
       width: '400px',
       data:
       { 
-        head: 'Удаление файла',
-        query: 'Вы подтверждаете удаление файла?',
-        warning: 'Файл не будет удалён безвозвратно, он останется в библиотеке "Файлы".',
+        head: translate('docs.msg.file_del_head'),
+        query: translate('docs.msg.file_del_qury'),
+        warning: translate('docs.msg.file_del_warn'),
       },
     });
     dialogRef.afterClosed().subscribe(result => {

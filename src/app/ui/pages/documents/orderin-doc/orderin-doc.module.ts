@@ -10,6 +10,7 @@ import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balanc
 import { BalanceKassaModule } from 'src/app/modules/info-modules/balance/balance-kassa/balance-kassa.module';
 import { BalanceBoxofficeModule } from 'src/app/modules/info-modules/balance/balance-boxoffice/balance-boxoffice.module';
 import { BalanceAccountModule } from 'src/app/modules/info-modules/balance/balance-account/balance-account.module';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [OrderinDocComponent,],
@@ -20,12 +21,12 @@ import { BalanceAccountModule } from 'src/app/modules/info-modules/balance/balan
     BalanceCagentModule,
     BalanceKassaModule,
     BalanceBoxofficeModule,
-    BalanceAccountModule,
-    
+    BalanceAccountModule,    
     MaterialModule,
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    TranslocoModule
   ],
-  providers: [ValidationService],
+  providers: [{ provide: TRANSLOCO_SCOPE, useValue: ['docs','menu','modules']},ValidationService],
 })
 export class OrderinDocModule { }

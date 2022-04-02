@@ -625,10 +625,10 @@ export class MovingComponent implements OnInit {
       return this.http.post('/api/auth/saveSettingsMoving', this.settingsForm.value)
               .subscribe(
                   (data) => {   
-                            this.openSnackBar("Настройки успешно сохранены", "Закрыть");
+                            this.openSnackBar(translate('docs.msg.settngs_saved'), translate('docs.msg.close'));
                             
                           },
-                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
               );
     }
   

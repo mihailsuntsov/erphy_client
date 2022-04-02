@@ -5,6 +5,7 @@ import { EdizmDocComponent } from './edizm-doc.component';
 
 import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [EdizmDocComponent],
@@ -14,7 +15,9 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
     MaterialModule,
     FormsModule,
-    ReactiveFormsModule
-  ]
+    ReactiveFormsModule,
+    TranslocoModule
+  ],
+  providers:[{ provide: TRANSLOCO_SCOPE, useValue: ['docs','menu','modules']},]
 })
 export class EdizmDocModule { }

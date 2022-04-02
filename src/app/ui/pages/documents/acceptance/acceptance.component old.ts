@@ -174,7 +174,7 @@ export class AcceptanceComponent implements OnInit {
                             this.permissionsSet=data as any [];
                             this.getMyId();
                         },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
             );
   }
 
@@ -226,7 +226,7 @@ export class AcceptanceComponent implements OnInit {
       this.getTableHeaderTitles();
       this.getPagesList();
       this.getTable();
-    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
+    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:"Нет прав на просмотр"}})}
   }
 
   getTableHeaderTitles(){
@@ -268,7 +268,7 @@ export class AcceptanceComponent implements OnInit {
                   if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
                   this.gettingTableData=false;
                 },
-                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
+                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} 
             );
   }
 
@@ -403,7 +403,7 @@ export class AcceptanceComponent implements OnInit {
                 (data) => {   
                             this.getData();
                           },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
             );
     }
     
@@ -554,9 +554,9 @@ export class AcceptanceComponent implements OnInit {
     return this.http.post('/api/auth/saveSettingsAcceptance', this.settingsForm.value)
             .subscribe(
                 (data) => {   
-                          this.openSnackBar("Настройки успешно сохранены", "Закрыть");
+                          this.openSnackBar(translate('docs.msg.settngs_saved'), translate('docs.msg.close'));
                         },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
             );
   }
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
@@ -585,7 +585,7 @@ export class AcceptanceComponent implements OnInit {
                     this.getData();
                     this.openSnackBar("Успешно восстановлено", "Закрыть");
                   },
-        error => console.log(error),
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
     );
   }  
   resetOptions(){

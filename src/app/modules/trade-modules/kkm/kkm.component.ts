@@ -10,6 +10,8 @@ import { KkmAtolChequesService } from 'src/app/services/kkm_atol_cheques';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LoadSpravService } from 'src/app/services/loadsprav';
 import { HttpClient } from '@angular/common/http';
+import { translate } from '@ngneat/transloco'; //+++
+
 import * as _moment from 'moment';
 import {default as _rollupMoment} from 'moment';
 const moment = _rollupMoment || _moment;
@@ -252,7 +254,7 @@ export class KkmComponent implements OnInit {
           }
           console.log(this.kassa_status);
         }
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
   }
 
   getShiftStatus(onStart?:boolean){
@@ -298,9 +300,9 @@ export class KkmComponent implements OnInit {
           }
           this.shift_status=this.shift_status+'. '+errorMessage;
           console.log(this.shift_status);
-        }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+        }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
       }
-    }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Нет связи с сервером "Атол web-сервер"'}})});
+    }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:'Нет связи с сервером "Атол web-сервер"'}})});
   }  
   openShift(){
     let response: any;
@@ -329,7 +331,7 @@ export class KkmComponent implements OnInit {
           }
           console.log(this.kassa_status);
         }
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
   }  
 
   closeShift(){
@@ -359,7 +361,7 @@ export class KkmComponent implements OnInit {
           }
           console.log(this.kassa_status);
         }
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
   } 
   testKassaConnect(){
     this.wasConnectionTest=true;
@@ -451,14 +453,14 @@ export class KkmComponent implements OnInit {
                           this.updateKkmOperation(operationId);
                         }
                       }
-                    }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Нет связи с сервером "Атол web-сервер"'}})});
+                    }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:'Нет связи с сервером "Атол web-сервер"'}})});
 
 
 
               } catch (e) {//если при выполнении данной строки происходит ошибка, значит загрузился JSON не по статусу 200, а сервер сгенерировал ошибку и статус 401, 403 или 404.
                 console.log("Ошибка связи с кассой");
               }
-            }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Нет связи с сервером "Атол web-сервер"'}})});
+            }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:'Нет связи с сервером "Атол web-сервер"'}})});
         } catch (e) {
           console.log("Ошибка связи с кассой");
         }
@@ -512,7 +514,7 @@ export class KkmComponent implements OnInit {
             }
 
           },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});this.kkmIsFree=true;}
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});this.kkmIsFree=true;}
       );
   }
 
@@ -525,7 +527,7 @@ export class KkmComponent implements OnInit {
       this.kkmIsFree = false;
       this.onClickChequePrinting.emit();
     } else 
-        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Касса занята."}})
+        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:"Касса занята."}})
     
   }
 
@@ -746,7 +748,7 @@ export class KkmComponent implements OnInit {
           console.log("Запрос кода ошибки...");
           this.getTaskErrorCode(uuid);
         }
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
     });
   }
 
@@ -767,7 +769,7 @@ export class KkmComponent implements OnInit {
         };
         console.log(this.kassa_status);
       }
-    }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+    }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
   }
 
   onSelectedPaymentType(paymentType:string){
@@ -810,7 +812,7 @@ export class KkmComponent implements OnInit {
               this.operationName='Работа с кассой невозможна.';
             }
         },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
 
@@ -835,7 +837,7 @@ export class KkmComponent implements OnInit {
                   this.formCashierLogin.resetForm();
                   this.openSnackBar("Вход выполнен", "Закрыть");
                 },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
 
           } else {
@@ -846,7 +848,7 @@ export class KkmComponent implements OnInit {
             this.onCashierTypeChange();
           }
         },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error+' Возможно, введенные логин или пароль не верны, либо пользователь не имеет статус "Активный", либо пользователь не из этого предприятия. '}})}
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error+' Возможно, введенные логин или пароль не верны, либо пользователь не имеет статус "Активный", либо пользователь не из этого предприятия. '}})}
     );
   }
 
@@ -945,7 +947,7 @@ export class KkmComponent implements OnInit {
             }
             
           },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
       );
   }
 
@@ -957,7 +959,7 @@ export class KkmComponent implements OnInit {
           {   
             let result=data as number;
           },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
   }
   //загружает список касс для кассира по id отделения
@@ -969,7 +971,7 @@ export class KkmComponent implements OnInit {
             this.kassaList=data as KassaList[];
             this.getKassaCashierSettings();
           },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
   }
 

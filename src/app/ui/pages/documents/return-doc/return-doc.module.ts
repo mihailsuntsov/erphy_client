@@ -10,6 +10,7 @@ import { SettingsReturnDialogModule } from '../../../../modules/settings/setting
 import { ReturnProductsTableModule } from 'src/app/modules/trade-modules/return-products-table/return-products-table.module';
 import { KkmModule } from 'src/app/modules/trade-modules/kkm/kkm.module';
 import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.module';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [ReturnDocComponent],
@@ -24,8 +25,9 @@ import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balanc
     
     MaterialModule,
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    TranslocoModule
   ],
-  providers: [ValidationService],
+  providers: [{ provide: TRANSLOCO_SCOPE, useValue: ['docs','menu','modules']},ValidationService],
 })
 export class ReturnDocModule { }

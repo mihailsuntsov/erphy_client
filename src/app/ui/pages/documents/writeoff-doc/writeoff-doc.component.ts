@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Inject, OnInit, Optional, ViewChild} from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Inject, OnInit, Optional, Output, ViewChild} from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl } from '@angular/forms';
@@ -15,22 +15,14 @@ import { FilesDocComponent } from '../files-doc/files-doc.component';
 import { v4 as uuidv4 } from 'uuid';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { graphviz }  from 'd3-graphviz';
-import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from '@angular/material/core';
-import { MomentDateAdapter} from '@angular/material-moment-adapter';
-import * as _moment from 'moment';
-import {default as _rollupMoment} from 'moment';
-const moment = _rollupMoment || _moment;
-moment.defaultFormat = "DD.MM.YYYY";
-moment.fn.toJSON = function() { return this.format('DD.MM.YYYY'); }
-export const MY_FORMATS = {
-  parse: {dateInput: 'DD.MM.YYYY',},
-  display: {
-    dateInput: 'DD.MM.YYYY',
-    monthYearLabel: 'MMM YYYY',
-    dateA11yLabel: 'DD.MM.YYYY',
-    monthYearA11yLabel: 'MMMM YYYY',
-  },
-};
+import { translate } from '@ngneat/transloco'; //+++
+
+import { MomentDefault } from 'src/app/services/moment-default';
+import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
+import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+const MY_FORMATS = MomentDefault.getMomentFormat();
+const moment = MomentDefault.getMomentDefault();
+
 interface WriteoffProductTable { //интерфейс для товаров, (т.е. для формы, массив из которых будет содержать форма writeoffProductTable, входящая в formBaseInformation)
   id: number;                     // id строки с товаром товара в таблице return_product
   row_id: number;                 // id строки 
@@ -117,9 +109,9 @@ interface CanCreateLinkedDoc{//интерфейс ответа на запрос
   templateUrl: './writeoff-doc.component.html',
   styleUrls: ['./writeoff-doc.component.css'],
   providers: [LoadSpravService,
-    {provide: MAT_DATE_LOCALE, useValue: 'ru'},
-    {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
-    {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},]
+    { provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]}, //+++
+    {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
+  ]
 })
 export class WriteoffDocComponent implements OnInit {
 
@@ -198,6 +190,7 @@ export class WriteoffDocComponent implements OnInit {
   @ViewChild("doc_number", {static: false}) doc_number; //для редактирования номера документа
   @ViewChild("form", {static: false}) form; // связь с формой <form #form="ngForm" ...
   @ViewChild(WriteoffProductsTableComponent, {static: false}) public writeoffProductsTableComponent:WriteoffProductsTableComponent;
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
 
   constructor(private activateRoute: ActivatedRoute,
     private cdRef:ChangeDetectorRef,
@@ -211,7 +204,8 @@ export class WriteoffDocComponent implements OnInit {
     public MessageDialog: MatDialog,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
-    private _router:Router) 
+    private _router:Router,
+    private _adapter: DateAdapter<any>) 
     { 
       if(activateRoute.snapshot.params['id'])
         this.id = +activateRoute.snapshot.params['id'];
@@ -274,39 +268,12 @@ export class WriteoffDocComponent implements OnInit {
       if(this.mode=='window'){this.id=this.data.id; this.formBaseInformation.get('id').setValue(this.id);}
     } 
    
-    //     getSetOfPermissions
-    //     |
-    //     getMyId
-    //     |
-    //     getMyCompanyId
-    //     |
-    //     getMyDepartmentsList
-    //     |
-    //     getCRUD_rights
-    //     |
-    //     getData(------>(если созданный док)--> [getDocumentValuesById] --> refreshPermissions 
-    //     |
-    //     (если новый док):
-    //     [getCompaniesList ]
-    //     |
-    //     [getSettings, doFilterCompaniesList]
-    //     |
-    //     setDefaultInfoOnStart
-    //     |
-    //     setDefaultCompany 
-    //     |
-    //     [getDepartmentsList, getPriceTypesList*] 
-    //     |
-    //     [setDefaultDepartment, doFilterDepartmentsList]
-    //     | (если идет стартовая загрузка):
-    //     getStatusesList,       checkAnyCases
-    //     |        		          |
-    //     setDefaultStatus       refreshPermissions*  
-    //     |
-    //     setStatusColor, getSpravSysEdizm
-    // *необходимое действие для загрузки дочерних компонентов 
-
     this.getSetOfPermissions();
+    //+++ getting base data from parent component
+    this.getBaseData('myId');    
+    this.getBaseData('myCompanyId');  
+    this.getBaseData('companiesList');  
+    this.getBaseData('myDepartmentsList');    
   }
   //чтобы не было ExpressionChangedAfterItHasBeenCheckedError
   ngAfterContentChecked() {
@@ -331,8 +298,8 @@ export class WriteoffDocComponent implements OnInit {
                       this.permissionsSet=data as any [];
                       this.getMyId();
                   },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-      );
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
+                  );
   }
 
   refreshPermissions(){
@@ -377,48 +344,65 @@ export class WriteoffDocComponent implements OnInit {
     }
   }
   
-  getMyId(){
-    this.receivedMyDepartmentsList=null;
-    this.loadSpravService.getMyId()
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+      this.loadSpravService.getCompaniesList()
+        .subscribe(
+            (data) => 
+            {
+              this.receivedCompaniesList=data as any [];
+              this.doFilterCompaniesList();
+            },                      
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+        );
+    else this.doFilterCompaniesList();
+  }
+  getMyId(){ //+++
+    if(+this.myId==0)
+      this.loadSpravService.getMyId()
             .subscribe(
                 (data) => {this.myId=data as any;
                   this.getMyCompanyId();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
+    else this.getMyCompanyId();
   }
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
-      (data) => {
-        this.myCompanyId=data as number;
-        this.getMyDepartmentsList();
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
+        (data) => {
+          this.myCompanyId=data as number;
+          this.getMyDepartmentsList();
+        }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
+    else this.getMyDepartmentsList();
   }
-  getMyDepartmentsList(){
-    this.receivedMyDepartmentsList=null;
+  getMyDepartmentsList(){ //+++
+    if(this.receivedMyDepartmentsList.length==0)
     this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
             .subscribe(
                 (data) => {this.receivedMyDepartmentsList=data as any [];
-                  this.getCRUD_rights(this.permissionsSet);},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                  this.getCRUD_rights();},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
+    else this.getCRUD_rights();
   }
 
-  getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==216)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==217)});
-    this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==218)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==223)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==224)});
-    this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==225)});
-    this.allowToViewMyDocs = permissionsSet.some(                 function(e){return(e==226)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==227)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==228)});
-    this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==229)});
-    this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==230)});
-    this.allowToCompleteAllCompanies = permissionsSet.some(       function(e){return(e==623)});
-    this.allowToCompleteMyCompany = permissionsSet.some(          function(e){return(e==624)});
-    this.allowToCompleteMyDepartments = permissionsSet.some(      function(e){return(e==625)});
-    this.allowToCompleteMyDocs = permissionsSet.some(             function(e){return(e==626)});
+  getCRUD_rights(){
+    this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==216)});
+    this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==217)});
+    this.allowToCreateMyDepartments = this.permissionsSet.some(        function(e){return(e==218)});
+    this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==223)});
+    this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==224)});
+    this.allowToViewMyDepartments = this.permissionsSet.some(          function(e){return(e==225)});
+    this.allowToViewMyDocs = this.permissionsSet.some(                 function(e){return(e==226)});
+    this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==227)});
+    this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==228)});
+    this.allowToUpdateMyDepartments = this.permissionsSet.some(        function(e){return(e==229)});
+    this.allowToUpdateMyDocs = this.permissionsSet.some(               function(e){return(e==230)});
+    this.allowToCompleteAllCompanies = this.permissionsSet.some(       function(e){return(e==623)});
+    this.allowToCompleteMyCompany = this.permissionsSet.some(          function(e){return(e==624)});
+    this.allowToCompleteMyDepartments = this.permissionsSet.some(      function(e){return(e==625)});
+    this.allowToCompleteMyDocs = this.permissionsSet.some(             function(e){return(e==626)});
    
     if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;this.allowToCreateMyDepartments=true}
     if(this.allowToCreateMyCompany)this.allowToCreateMyDepartments=true;
@@ -443,19 +427,6 @@ export class WriteoffDocComponent implements OnInit {
     }
   }
 
-  getCompaniesList(){
-    this.receivedCompaniesList=null;
-    this.loadSpravService.getCompaniesList()
-      .subscribe(
-          (data) => 
-          {
-            this.receivedCompaniesList=data as any [];
-            this.doFilterCompaniesList();
-          },                      
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-      );
-  }
-
   onCompanyChange(){
     this.formBaseInformation.get('department_id').setValue(null);
     this.formBaseInformation.get('status_id').setValue(null);
@@ -476,7 +447,7 @@ export class WriteoffDocComponent implements OnInit {
             this.doFilterDepartmentsList();
             if(+this.id==0) this.setDefaultDepartment();
           },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
   }
   setDefaultDepartment(){
@@ -519,7 +490,7 @@ export class WriteoffDocComponent implements OnInit {
             .subscribe(
                 (data) => {this.receivedStatusesList=data as StatusInterface[];
                   if(+this.id==0){this.setDefaultStatus();}},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
   }
 
@@ -541,7 +512,7 @@ export class WriteoffDocComponent implements OnInit {
     this.http.post('/api/auth/getSpravSysEdizm', {id1: companyId, string1:"(1,2,3,4,5)"})  // все типы ед. измерения
     .subscribe((data) => {this.spravSysEdizmOfProductAll = data as any[];
             },
-    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
   }
 
   doFilterCompaniesList(){
@@ -606,7 +577,7 @@ export class WriteoffDocComponent implements OnInit {
             this.setDefaultInfoOnStart();
             this.setDefaultCompany();
           },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
   }
 
@@ -634,7 +605,7 @@ export class WriteoffDocComponent implements OnInit {
   }
 
   getDocumentValuesById(){
-    this.http.get('/api/auth/getWriteoffValuesById?id='+ this.id)
+    this.http.get('/api/auth/getWriteoffValuesById?id='+ this.id)
         .subscribe(
             data => { 
                 let documentValues: DocResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
@@ -667,16 +638,14 @@ export class WriteoffDocComponent implements OnInit {
                   this.getStatusesList();//статусы документа Списание
                   this.getLinkedDocsScheme(true); //загрузка связанных документов
                 
-                  //!!!
-                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();
-
                 if(this.writeoffProductsTableComponent) this.writeoffProductsTableComponent.showColumns(); //чтобы спрятать столбцы после проведения 
             },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
         );
   }
-
+               
   formingProductRowFromApiResponse(row: WriteoffProductTable) {
     return this._fb.group({
       id: new FormControl (row.id,[]),
@@ -696,9 +665,9 @@ export class WriteoffDocComponent implements OnInit {
         width: '400px',
         data:
         { 
-          head: 'Редактирование номера документа',
-          warning: 'Открыть поле "Номера документа" на редактирование?',
-          query: 'Номер документа присваивается системой автоматически. Если Вы хотите его редактировать, и вместе с тем оставить возможность системе генерировать код в следующих документах, пожалуйста, не исползуйте более 9 цифр в номере.',
+          head: translate('docs.msg.doc_num_head'),
+          query: translate('docs.msg.doc_num_query'),
+          warning: translate('docs.msg.doc_num_warn')
         },
       });
       dialogRef.afterClosed().subscribe(result => {
@@ -709,32 +678,30 @@ export class WriteoffDocComponent implements OnInit {
     } 
   }
 
-// !!!
-checkDocNumberUnical(tableName:string) {
-  let docNumTmp=this.formBaseInformation.get('doc_number').value;
-  setTimeout(() => {
-    if(!this.formBaseInformation.get('doc_number').errors && this.lastCheckedDocNumber!=docNumTmp && docNumTmp!='' && docNumTmp==this.formBaseInformation.get('doc_number').value)
-      {
-        let Unic: boolean;
-        this.isDocNumberUnicalChecking=true;
-        this.lastCheckedDocNumber=docNumTmp;
-        return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table='+tableName)
-        .subscribe(
-            (data) => {   
-                        Unic = data as boolean;
-                        if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Введённый номер документа не является уникальным.',}});
-                        this.isDocNumberUnicalChecking=false;
-                    },
-            error => {console.log(error);this.isDocNumberUnicalChecking=false;}
-        );
-      }
-   }, 1000);
-}
+  checkDocNumberUnical(tableName:string) { //+++
+    let docNumTmp=this.formBaseInformation.get('doc_number').value;
+    setTimeout(() => {
+      if(!this.formBaseInformation.get('doc_number').errors && this.lastCheckedDocNumber!=docNumTmp && docNumTmp!='' && docNumTmp==this.formBaseInformation.get('doc_number').value)
+        {
+          let Unic: boolean;
+          this.isDocNumberUnicalChecking=true;
+          this.lastCheckedDocNumber=docNumTmp;
+          return this.http.get('/api/auth/isDocumentNumberUnical?company_id='+this.formBaseInformation.get('company_id').value+'&doc_number='+this.formBaseInformation.get('doc_number').value+'&doc_id='+this.id+'&table='+tableName)
+          .subscribe(
+              (data) => {   
+                          Unic = data as boolean;
+                          if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head: translate('docs.msg.attention'),message: translate('docs.msg.num_not_unic'),}});
+                          this.isDocNumberUnicalChecking=false;
+                      },
+              error => {console.log(error);this.isDocNumberUnicalChecking=false;}
+          );
+        }
+    }, 1000);
+  }
 
 
   //создание нового документа Списание
   createNewDocument(){
-    console.log('Создание нового документа Списание');
     this.createdDocId=null;
     this.getProductsTable();
     this.formBaseInformation.get('uid').setValue(uuidv4());
@@ -744,20 +711,20 @@ checkDocNumberUnical(tableName:string) {
                   this.createdDocId=data as number;
                   switch(this.createdDocId){
                     case null:{// null возвращает если не удалось создать документ из-за ошибки
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа Списание"}});
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.crte_doc_err',{name:translate('docs.docs.writeoff')})}});
                       break;
                     }
                     case 0:{//недостаточно прав
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа Списание"}});
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm_creat',{name:translate('docs.docs.writeoff')})}});
                       break;
                     }
                     default:{// Списание успешно создалась в БД 
-                      this.openSnackBar("Документ \"Списание\" успешно создан", "Закрыть");
+                      this.openSnackBar(translate('docs.msg.doc_crtd_suc'),translate('docs.msg.close'));
                       this.afterCreateWriteoff();
                     }
                   }
                 },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});},
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
       );
   }
 
@@ -771,13 +738,13 @@ checkDocNumberUnical(tableName:string) {
       this.getData();
   }
 
-  completeDocument(notShowDialog?:boolean){
-    if(!notShowDialog){//notShowDialog=false - показывать диалог
+  completeDocument(notShowDialog?:boolean){ //+++
+    if(!notShowDialog){
       const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
         width: '400px',data:{
-          head: 'Проведение списание',
-          warning: 'Вы хотите провести данное списание?',
-          query: 'После проведения документ станет недоступным для редактирования.'},});
+          head:    translate('docs.msg.complet_head'),
+          warning: translate('docs.msg.complet_warn'),
+          query:   translate('docs.msg.complet_query')},});
       dialogRef.afterClosed().subscribe(result => {
         if(result==1){
           this.updateDocument(true);
@@ -786,14 +753,14 @@ checkDocNumberUnical(tableName:string) {
     } else this.updateDocument(true);
   }
 
-  decompleteDocument(notShowDialog?:boolean){
+  decompleteDocument(notShowDialog?:boolean){ //+++
     if(this.allowToComplete){
-      if(!notShowDialog){//notShowDialog=false - показывать диалог
+      if(!notShowDialog){
         const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
           width: '400px',data:{
-            head: 'Отмена проведения',
-            warning: 'Вы хотите отменить проведение данного документа?',
-            query: ''},});
+          head:    translate('docs.msg.cnc_com_head'),
+          warning: translate('docs.msg.cnc_com_warn'),
+          query: ''},});
         dialogRef.afterClosed().subscribe(result => {
           if(result==1){
             this.setDocumentAsDecompleted();
@@ -802,6 +769,7 @@ checkDocNumberUnical(tableName:string) {
       } else this.setDocumentAsDecompleted();
     }
   }
+
   setDocumentAsDecompleted(){
     this.getProductsTable();    
     this.http.post('/api/auth/setWriteoffAsDecompleted',  this.formBaseInformation.value)
@@ -811,27 +779,27 @@ checkDocNumberUnical(tableName:string) {
             let result:number=data as number;
             switch(result){
               case null:{// null возвращает если не удалось завершить операцию из-за ошибки
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка снятия с проведения документа \"Списание\""}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.cnc_com_error')}});
                 break;
               }
               case -1:{//недостаточно прав
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для данной операции"}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}});
                 break;
               }
               case -70:{//Отрицательное кол-во товара в истории движения товара
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"В результате пересчёта себестоимости одного из товаров данного возврата, на одном из этапов его движения получено отрицательное количество данного товара"}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.cnc_com_err1')}});
                 break;
               }
               case -60:{//Документ уже снят с проведения
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Данный документ уже снят с проведения"}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.alr_cnc_com')}});
                 break;
               }
               case -80:{//Отрицательное кол-во товара на складе
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"В результате проводимой операции получено отрицательное количество на скаде одного из товаров документа"}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.cnc_com_err2')}});
                 break;
               }
               case 1:{// Успешно
-                this.openSnackBar("Документ \"Списание\" снят с проведения", "Закрыть");
+                this.openSnackBar(translate('docs.msg.cnc_com_succs',{name:translate('docs.docs.writeoff')}), translate('docs.msg.close'));
                 this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                 this.formBaseInformation.get('is_completed').setValue(false);
                 // this.balanceCagentComponent.getBalance();//пересчитаем баланс поставщика, ведь мы приняли ему товар, и теперь он должен больше 
@@ -867,31 +835,31 @@ checkDocNumberUnical(tableName:string) {
             let result:number=data as number;
             switch(result){
               case null:{// null возвращает если не удалось создать документ из-за ошибки
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка "+ (complete?"проведения":"сохренения") + " документа \"Списание\""}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_of') + (complete?translate('docs.msg._of_comp'):translate('docs.msg._of_save')) + translate('docs.msg._of_doc',{name:translate('docs.docs.writeoff')})}});
                 break;
               }
               case 0:{//недостаточно товара на складе
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Количество тоара на складе у одной или нескольких позиций несдостаточно для списания"}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_con_goods')}});
                 break;
               }
               case -1:{//недостаточно прав
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа \"Списание\""}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}});
                 break;
               }
               case -70:{//Отрицательное кол-во товара в истории движения товара
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"В результате пересчёта себестоимости одного из товаров данного возврата, на одном из этапов его движения получено отрицательное количество данного товара"}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.cnc_com_err1')}});
                 break;
               }
               case -50:{//документ уже проведён
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Данный документ уже проведён"}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.already_cmplt')}});
                 break;
               }
               case -80:{//Отрицательное кол-во товара на складе
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"В результате проводимой операции получено отрицательное количество на скаде одного из товаров документа"}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.cnc_com_err2')}});
                 break;
               }
               case 1:{// Успешно
-                this.openSnackBar("Документ \"Списание\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
+                this.openSnackBar(translate('docs.msg.doc_name',{name:translate('docs.docs.writeoff')}) + (complete?translate('docs.msg.completed'):translate('docs.msg.saved')), translate('docs.msg.close'));
                 this.getLinkedDocsScheme(true);//обновим схему связанных документов )чтобы Проведено сменилось с Нет на Да или обновился статус
                 if(complete) {
                   this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведённости = true
@@ -932,7 +900,7 @@ checkDocNumberUnical(tableName:string) {
       {
         width:'400px',
         data:{
-          head:'Ошибка!',
+          head:translate('docs.msg.error'),
           message:errMsg}
       })
   }
@@ -995,10 +963,10 @@ checkDocNumberUnical(tableName:string) {
     return this.http.post('/api/auth/saveSettingsWriteoff', this.settingsForm.value)
             .subscribe(
                 (data) => {   
-                          this.openSnackBar("Настройки успешно сохранены", "Закрыть");
+                          this.openSnackBar(translate('docs.msg.settngs_saved'), translate('docs.msg.close'));
                           
                         },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
             );
   }
 
@@ -1010,7 +978,7 @@ checkDocNumberUnical(tableName:string) {
         this.receivedPriceTypesList=data as any [];
         this.necessaryActionsBeforeGetChilds();
       },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
 
@@ -1129,7 +1097,7 @@ loadFilesInfo(){//                                     загружает инф
               (data) => {  
                           this.filesInfo = data as any[]; 
                         },
-              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
           );
 }
 addFilesToWriteoff(filesIds: number[]){
@@ -1138,9 +1106,9 @@ addFilesToWriteoff(filesIds: number[]){
             .subscribe(
                 (data) => {  
                   this.loadFilesInfo();
-                  this.openSnackBar("Файлы добавлены", "Закрыть");
+                  this.openSnackBar(translate('docs.msg.files_added'), translate('docs.msg.close'));
                           },
-                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
             );
 }
 
@@ -1149,9 +1117,9 @@ clickBtnDeleteFile(id: number): void {
     width: '400px',
     data:
     { 
-      head: 'Удаление файла',
-      query: 'Удалить файл из данного документа?',
-      warning: 'Файл не будет удалён безвозвратно, он останется в библиотеке "Файлы".',
+      head: translate('docs.msg.file_del_head'),
+      query: translate('docs.msg.file_del_qury'),
+      warning: translate('docs.msg.file_del_warn'),
     },
   });
   dialogRef.afterClosed().subscribe(result => {
@@ -1165,9 +1133,9 @@ deleteFile(id:number){
   .subscribe(
       (data) => {   
                   this.loadFilesInfo();
-                  this.openSnackBar("Успешно удалено", "Закрыть");
+                  this.openSnackBar(translate('docs.msg.deletet_succs'), translate('docs.msg.close'));
               },
-      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
   );  
 }
 //**********************************************************************************************************************************************/  
@@ -1183,7 +1151,7 @@ deleteFile(id:number){
 //       this.formReturnsup.get('nds').setValue(this.formBaseInformation.get('nds').value);
 //       this.formReturnsup.get('company_id').setValue(this.formBaseInformation.get('company_id').value);
 //       this.formReturnsup.get('department_id').setValue(this.formBaseInformation.get('department_id').value);
-//       this.formReturnsup.get('description').setValue('Создано из списания №'+ this.formBaseInformation.get('doc_number').value);
+//       this.formReturnsup.get('description').setValue(translate('docs.msg.created_from')+translate('docs.docs.writeoff')+' '+translate('docs.top.number')+this.formBaseInformation.get('doc_number').value);
 //       this.getProductsTableLinkedDoc(docname);//формируем таблицу товаров для создаваемого документа
 //       this.http.post('/api/auth/insert'+docname, this.formReturnsup.value)
 //       .subscribe(
@@ -1191,23 +1159,23 @@ deleteFile(id:number){
 //                   let createdDocId=data as number;
                 
 //                   switch(createdDocId){
-//                     case null:{// null возвращает если не удалось создать документ из-за ошибки
-//                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа "+(docname=="Returnsup"?"Списание":"")}});
-//                       break;
-//                     }
-//                     case 0:{//недостаточно прав
-//                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа "+(docname=="Returnsup"?"Списание":"")}});
-//                       break;
-//                     }
-//                     default:{// Документ успешно создался в БД 
-//                       this.openSnackBar("Документ "+(docname=='Returnsup'?'Списание':'')+" успешно создан", "Закрыть");
-//                       this.getLinkedDocsList(docname.toLowerCase());//обновляем список этого документа
-//                     }
+                      // case null:{// null возвращает если не удалось создать документ из-за ошибки
+                      //   this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.crte_doc_err',{name:translate('docs.docs.'+this.cu.getDocNameByDocAlias(docname))})}});
+                      //   break;
+                      // }
+                      // case -1:{//недостаточно прав
+                      //   this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm_creat',{name:translate('docs.docs.'+this.cu.getDocNameByDocAlias(docname))})}});
+                      //   break;
+                      // }
+                      // default:{// Документ успешно создался в БД 
+                      //   this.openSnackBar(translate('docs.msg.doc_crtd_succ',{name:translate('docs.docs.'+this.cu.getDocNameByDocAlias(docname))}), translate('docs.msg.close'));
+                      //   this.getLinkedDocsScheme(true);//обновляем схему этого документа
+                      // }
 //                   }
 //                 },
-//         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});},
+//         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
 //       );
-//     } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:canCreateLinkedDoc.reason}});
+//     } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:canCreateLinkedDoc.reason}});
 //   }
   
 // // забирает таблицу товаров из дочернего компонента и помещает ее в форму, предназначенную для создания Списания
@@ -1232,7 +1200,7 @@ deleteFile(id:number){
 //   // можно ли создать связанный документ (да - если есть товары, подходящие для этого, и нет уже проведённого документа)
 //   canCreateLinkedDoc(docname:string):CanCreateLinkedDoc{
 //     if(!(this.writeoffProductsTableComponent && this.writeoffProductsTableComponent.getProductTable().length>0)){
-//         return {can:false, reason:'Невозможно создать '+(docname=='Returnsup'?'Списание':'')+', так как нет товарных позиций'};
+//                 return {can:false, reason:translate('docs.msg.cnt_crt_items',{name:translate('docs.docs.'+this.commonUtilites.getDocNameByDocAlias(docname))})};
 //     }else
 //       return {can:true, reason:''};
 //   }
@@ -1245,7 +1213,7 @@ deleteFile(id:number){
 //         (data) => {   
 //                       this.linkedDocsReturn=data as LinkedDocs [];
 //                   },
-//         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+//         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
 //     );
 //   }
 //   clickButtonDeleteLinkedDoc(docName:string,id:number): void {
@@ -1286,12 +1254,12 @@ deleteFile(id:number){
 //             (data) => {   
 //                         let result=data as boolean;
 //                         if(result){
-//                           this.openSnackBar("Успешно удалено", "Закрыть");
+//                           this.openSnackBar(translate('docs.msg.deletet_succs'), translate('docs.msg.close'));
 //                           this.getLinkedDocsList(docName.toLowerCase());//загрузка связанных возвратов
 //                         }else
-//                           this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав для удаления'}});
+//                           this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:'Недостаточно прав для удаления'}});
 //                       },
-//             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+//             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
 //         );
 //   }
 //*****************************************************************************************************************************************/
@@ -1330,7 +1298,7 @@ deleteFile(id:number){
             
             if(result==null){
               this.loadingDocsScheme=false;
-              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка загрузки связанных документов"}});
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.err_load_lnkd')}});
             } else if(result.errorCode==0){//нет результата
               this.linkedDocsSchemeDisplayed = true;
               this.loadingDocsScheme=false;
@@ -1343,7 +1311,7 @@ deleteFile(id:number){
                 this.loadingDocsScheme=false;
             } 
         },
-        error => {this.loadingDocsScheme=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+        error => {this.loadingDocsScheme=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
 
@@ -1407,5 +1375,9 @@ deleteFile(id:number){
       if(+i['product_id']==productId){retIndex=formIndex}
       formIndex++;
     });return retIndex;}
+    
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
+  }
 }
 

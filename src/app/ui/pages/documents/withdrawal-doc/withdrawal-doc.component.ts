@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Inject, OnInit, Optional, ViewChild} from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Inject, OnInit, Optional, Output, ViewChild} from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl } from '@angular/forms';
@@ -7,6 +7,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ValidationService } from './validation.service';
+import { CommonUtilitesService } from 'src/app/services/common_utilites.serviсe';
 import { ProductSearchAndTableComponent } from 'src/app/modules/trade-modules/product-search-and-table/product-search-and-table.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { BalanceKassaComponent } from 'src/app/modules/info-modules/balance/balance-kassa/balance-kassa.component';
@@ -15,6 +16,7 @@ import { MatTabChangeEvent } from '@angular/material/tabs';
 import { graphviz }  from 'd3-graphviz';
 import { Router } from '@angular/router';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
+import { translate } from '@ngneat/transloco'; //+++
 
 interface DocResponse {//интерфейс для получения ответа в методе getWithdrawalValuesById
   id: number;
@@ -75,7 +77,7 @@ interface LinkedDocs {//интерфейс для загрузки связан�
   selector: 'app-withdrawal-doc',
   templateUrl: './withdrawal-doc.component.html',
   styleUrls: ['./withdrawal-doc.component.css'],
-  providers: [LoadSpravService,Cookie,ProductSearchAndTableComponent,BalanceKassaComponent,]
+  providers: [LoadSpravService,Cookie,ProductSearchAndTableComponent, CommonUtilitesService,BalanceKassaComponent,]
 })
 export class WithdrawalDocComponent implements OnInit {
 
@@ -131,6 +133,7 @@ export class WithdrawalDocComponent implements OnInit {
   @ViewChild("doc_number", {static: false}) doc_number; //для редактирования номера документа
   @ViewChild(BalanceKassaComponent, {static: false}) public balanceKassaComponent:BalanceKassaComponent;  
   @ViewChild("form") private form; // связь с формой <form #form="ngForm" ...
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
 
   isDocNumberUnicalChecking = false;//идёт ли проверка на уникальность номера
   doc_number_isReadOnly=true;
@@ -143,6 +146,7 @@ export class WithdrawalDocComponent implements OnInit {
     private http: HttpClient,
     public ConfirmDialog: MatDialog,
     public MessageDialog: MatDialog,
+    private cu: CommonUtilitesService,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
     @Optional() @Inject(MAT_DIALOG_DATA) public data: any,
@@ -254,6 +258,11 @@ export class WithdrawalDocComponent implements OnInit {
     //     refreshPermissions*
     
     this.getSetOfPermissions();//
+    //+++ getting base data from parent component
+    this.getBaseData('myId');    
+    this.getBaseData('myCompanyId');  
+    this.getBaseData('companiesList');  
+    this.getBaseData('myDepartmentsList');    
   }
   //чтобы не было ExpressionChangedAfterItHasBeenCheckedError
   ngAfterContentChecked() {
@@ -267,11 +276,11 @@ export class WithdrawalDocComponent implements OnInit {
     return this.http.get('/api/auth/getMyPermissions?id=45')
       .subscribe(
           (data) => {   
-                      this.permissionsSet=data as any [];
-                      this.getMyId();
-                  },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-      );
+            this.permissionsSet=data as any [];
+            this.getMyId();
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
+    );
   }
 
   refreshPermissions(){
@@ -303,40 +312,57 @@ export class WithdrawalDocComponent implements OnInit {
     }
   }
 
-  getMyId(){
-    this.receivedMyDepartmentsList=null;
-    this.loadSpravService.getMyId()
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+      this.loadSpravService.getCompaniesList()
+        .subscribe(
+            (data) => 
+            {
+              this.receivedCompaniesList=data as any [];
+              this.doFilterCompaniesList();
+            },                      
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+        );
+    else this.doFilterCompaniesList();
+  }
+  getMyId(){ //+++
+    if(+this.myId==0)
+      this.loadSpravService.getMyId()
             .subscribe(
                 (data) => {this.myId=data as any;
                   this.getMyCompanyId();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
+    else this.getMyCompanyId();
   }
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
-      (data) => {
-        this.myCompanyId=data as number;
-        this.getMyDepartmentsList();
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
+        (data) => {
+          this.myCompanyId=data as number;
+          this.getMyDepartmentsList();
+        }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
+    else this.getMyDepartmentsList();
   }
-  getMyDepartmentsList(){
-    this.receivedMyDepartmentsList=null;
+  getMyDepartmentsList(){ //+++
+    if(this.receivedMyDepartmentsList.length==0)
     this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
             .subscribe(
                 (data) => {this.receivedMyDepartmentsList=data as any [];
-                  this.getCRUD_rights(this.permissionsSet);},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                  this.getCRUD_rights();},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
+    else this.getCRUD_rights();
   }
 
-  getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==568)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==569)});
-    this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==570)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==571)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==572)});
-    this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==573)});
-    this.allowToViewMyDocs = permissionsSet.some(                 function(e){return(e==574)});
+  getCRUD_rights(){
+    this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==568)});
+    this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==569)});
+    this.allowToCreateMyDepartments = this.permissionsSet.some(        function(e){return(e==570)});
+    this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==571)});
+    this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==572)});
+    this.allowToViewMyDepartments = this.permissionsSet.some(          function(e){return(e==573)});
+    this.allowToViewMyDocs = this.permissionsSet.some(                 function(e){return(e==574)});
    
     if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;this.allowToCreateMyDepartments=true}
     if(this.allowToCreateMyCompany)this.allowToCreateMyDepartments=true;
@@ -352,19 +378,6 @@ export class WithdrawalDocComponent implements OnInit {
     }else {
       this.getCompaniesList(); 
     }
-  }
-
-  getCompaniesList(){
-    this.receivedCompaniesList=null;
-    this.loadSpravService.getCompaniesList()
-      .subscribe(
-          (data) => 
-          {
-            this.receivedCompaniesList=data as any [];
-            this.doFilterCompaniesList();
-          },                      
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-      );
   }
 
   onCompanyChange(){
@@ -391,7 +404,7 @@ export class WithdrawalDocComponent implements OnInit {
           this.boxoffices=data as any [];
           this.setDefaultBoxoffice();
         },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
   setDefaultBoxoffice(){
@@ -399,7 +412,7 @@ export class WithdrawalDocComponent implements OnInit {
       this.formBaseInformation.get('boxoffice_id').setValue(this.boxoffices[0].id);
   }  
   getBoxofficeNameById(id:any):string{
-    let name:string = 'Не установлен';
+    let name:string = translate('docs.msg.not_set');
     if(this.boxoffices){
       this.boxoffices.forEach(a=>{
         if(a.id==id) name=a.name;
@@ -419,7 +432,7 @@ export class WithdrawalDocComponent implements OnInit {
             if(+this.formBaseInformation.get('department_id').value>0)
               this.getKassaListByDepartmentId();
           },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
   }
   setDefaultDepartment(){
@@ -439,7 +452,7 @@ export class WithdrawalDocComponent implements OnInit {
         this.kassaList=data as any [];
         this.setDefaultKassa();
       },
-      error => {this.fieldDataLoading=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+      error => {this.fieldDataLoading=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
   setDefaultKassa(){
@@ -543,7 +556,7 @@ export class WithdrawalDocComponent implements OnInit {
   }
 
   getDocumentValuesById(){
-    this.http.get('/api/auth/getWithdrawalValuesById?id='+ this.id)
+    this.http.get('/api/auth/getWithdrawalValuesById?id='+ this.id)
         .subscribe(
             data => { 
               
@@ -577,11 +590,10 @@ export class WithdrawalDocComponent implements OnInit {
                   this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                   this.refreshPermissions();//пересчитаем права
                   this.getBoxofficesList(); // список касс предприятия
-                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})} //!!!
-                this.refreshPermissions();//!!!
-              
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
+                this.refreshPermissions();
             },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
         );
   }
 
@@ -592,9 +604,9 @@ export class WithdrawalDocComponent implements OnInit {
         width: '400px',
         data:
         { 
-          head: 'Редактирование номера документа',
-          warning: 'Открыть поле "Номера документа" на редактирование?',
-          query: 'Номер документа присваивается системой автоматически. Если Вы хотите его редактировать, и вместе с тем оставить возможность системе генерировать код в следующих документах, пожалуйста, не исползуйте более 9 цифр в номере.',
+          head: translate('docs.msg.doc_num_head'),
+          query: translate('docs.msg.doc_num_query'),
+          warning: translate('docs.msg.doc_num_warn')
         },
       });
       dialogRef.afterClosed().subscribe(result => {
@@ -605,7 +617,7 @@ export class WithdrawalDocComponent implements OnInit {
     } 
   }
 
-  checkDocNumberUnical(tableName:string) {
+  checkDocNumberUnical(tableName:string) { //+++
     let docNumTmp=this.formBaseInformation.get('doc_number').value;
     setTimeout(() => {
       if(!this.formBaseInformation.get('doc_number').errors && this.lastCheckedDocNumber!=docNumTmp && docNumTmp!='' && docNumTmp==this.formBaseInformation.get('doc_number').value)
@@ -617,13 +629,13 @@ export class WithdrawalDocComponent implements OnInit {
           .subscribe(
               (data) => {   
                           Unic = data as boolean;
-                          if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Введённый номер документа не является уникальным.',}});
+                          if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head: translate('docs.msg.attention'),message: translate('docs.msg.num_not_unic'),}});
                           this.isDocNumberUnicalChecking=false;
                       },
               error => {console.log(error);this.isDocNumberUnicalChecking=false;}
           );
         }
-     }, 1000);
+    }, 1000);
   }
 
   //создание нового документа Выемка
@@ -635,26 +647,26 @@ export class WithdrawalDocComponent implements OnInit {
     (data) => {
                 this.actionsBeforeGetChilds=0;
                 this.createdDocId=data as number;
-                switch(this.createdDocId){
-                  case null:{// null возвращает если не удалось создать документ из-за ошибки
-                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа Выемка"}});
+                switch(this.createdDocId){ 
+                  case null:{// null возвращает если не удалось создать документ из-за ошибки 
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.crte_doc_err',{name:translate('docs.docs.withdrawal')})}}); 
                     break;
                   }
-                  case -1:{//недостаточно прав
-                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа Выемка"}});
+                  case 0:{//недостаточно прав
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}});
                     break;
                   }
                   case -30:{//недостаточно средств в кассе
-                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно средств в кассе ККМ для создания документа Выемка"}});
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_money',{name:translate('docs.docs.withdrawal')})}});
                     break;
-                  }
-                  default:{// Выемка успешно создалась в БД 
-                    this.openSnackBar("Документ \"Выемка\" успешно создан", "Закрыть");
+                  }                  
+                  default:{//успешно создалась в БД 
+                    this.openSnackBar(translate('docs.msg.doc_crtd_succ',{name:translate('docs.docs.withdrawal')}), translate('docs.msg.close'));
                     this.afterCreateWithdrawal();
                   }
                 }
               },
-      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});},
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
     );
   }
 
@@ -689,7 +701,7 @@ export class WithdrawalDocComponent implements OnInit {
       {
         width:'400px',
         data:{
-          head:'Ошибка!',
+          head:translate('docs.msg.error'),
           message:errMsg}
       })
   }
@@ -742,7 +754,7 @@ export class WithdrawalDocComponent implements OnInit {
      
       this.formLinkedDocs.get('company_id').setValue(this.formBaseInformation.get('company_id').value);
       this.formLinkedDocs.get('summ').setValue(this.formBaseInformation.get('summ').value);
-      this.formLinkedDocs.get('description').setValue('Создано из Выемки №'+ this.formBaseInformation.get('doc_number').value);
+      this.formLinkedDocs.get('description').setValue(translate('docs.msg.created_from')+translate('docs.docs.withdrawal')+' '+translate('docs.top.number')+this.formBaseInformation.get('doc_number').value);
       this.formLinkedDocs.get('is_completed').setValue(false);
       this.formLinkedDocs.get('uid').setValue(uid);
       this.formLinkedDocs.get('linked_doc_id').setValue(this.id);//id связанного документа (того, из которого инициируется создание данного документа)
@@ -765,22 +777,22 @@ export class WithdrawalDocComponent implements OnInit {
                 
                   switch(createdDocId){
                     case null:{// null возвращает если не удалось создать документ из-за ошибки
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа "+(docname=="Orderin"?"Приходный ордер":"")}});
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.crte_doc_err',{name:translate('docs.docs.'+this.cu.getDocNameByDocAlias(docname))})}});
                       break;
                     }
-                    case 0:{//недостаточно прав
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа "+(docname=="Orderin"?"Приходный ордер":"")}});
+                    case -1:{//недостаточно прав
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm_creat',{name:translate('docs.docs.'+this.cu.getDocNameByDocAlias(docname))})}});
                       break;
                     }
                     default:{// Документ успешно создался в БД 
-                      this.openSnackBar("Документ "+(docname=='Orderin'?'Приходный ордер':'')+" успешно создан", "Закрыть");
+                      this.openSnackBar(translate('docs.msg.doc_crtd_succ',{name:translate('docs.docs.'+this.cu.getDocNameByDocAlias(docname))}), translate('docs.msg.close'));
                       this.getLinkedDocsScheme(true);//обновляем схему этого документа
                     }
                   }
                 },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});},
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
       );
-    } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:canCreateLinkedDoc.reason}});
+    } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:canCreateLinkedDoc.reason}});
   }
 
   // можно ли создать связанный документ (да - если есть товары, подходящие для этого, и нет уже завершённого документа)
@@ -823,7 +835,7 @@ export class WithdrawalDocComponent implements OnInit {
             
             if(result==null){
               this.loadingDocsScheme=false;
-              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка загрузки связанных документов"}});
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.err_load_lnkd')}});
             } else if(result.errorCode==0){//нет результата
               this.linkedDocsSchemeDisplayed = true;
               this.loadingDocsScheme=false;
@@ -836,7 +848,7 @@ export class WithdrawalDocComponent implements OnInit {
                 this.loadingDocsScheme=false;
             } 
         },
-        error => {this.loadingDocsScheme=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+        error => {this.loadingDocsScheme=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
 
@@ -887,7 +899,7 @@ export class WithdrawalDocComponent implements OnInit {
     if(isNaN(this.formBaseInformation.get('summ').value)) this.formBaseInformation.get('summ').setValue(0);
   }
   decompleteDocument(){
-    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Документ "Выемка" не подлежит снятию с проведения. Для возврата денег в кассу ККМ воспользуйтесь документами "Расходный ордер" и "Внесение"'}});
+    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.cant_decmp_wd')}});
   }
   //------------------------------------------ COMMON UTILITIE   -----------------------------------------
   commaToDot(fieldName:string){
@@ -915,6 +927,9 @@ export class WithdrawalDocComponent implements OnInit {
     //если не целое число
     const b = charsAfterDot - (a.length - dot) + 1;
     return b > 0 ? (a + "0".repeat(b)) : a;
+  }
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
   }
 }
 

@@ -19,7 +19,7 @@ import { MatTabChangeEvent } from '@angular/material/tabs';
 import { graphviz }  from 'd3-graphviz';
 import { FilesComponent } from '../files/files.component';
 import { FilesDocComponent } from '../files-doc/files-doc.component';
-import { translate, TranslocoService } from '@ngneat/transloco'; //+++
+import { translate } from '@ngneat/transloco'; //+++
 
 import { MomentDefault } from 'src/app/services/moment-default';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
@@ -140,7 +140,7 @@ interface TemplatesList{
   templateUrl: './acceptance-doc.component.html',
   styleUrls: ['./acceptance-doc.component.css'],
   providers: [LoadSpravService, CommonUtilitesService,BalanceCagentComponent,
-    { provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]},
+    { provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]}, //+++
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
   ]
 })
@@ -233,7 +233,6 @@ export class AcceptanceDocComponent implements OnInit {
   @ViewChild("form", {static: false}) form; // связь с формой <form #form="ngForm" ...
   @ViewChild(AcceptanceProductsTableComponent, {static: false}) public acceptanceProductsTableComponent:AcceptanceProductsTableComponent;
   @ViewChild(BalanceCagentComponent, {static: false}) public balanceCagentComponent:BalanceCagentComponent;
-  // @Input() locale:string;
   @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
   
   constructor(private activateRoute: ActivatedRoute,
@@ -251,8 +250,7 @@ export class AcceptanceDocComponent implements OnInit {
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
     private _router:Router,
-    private _adapter: DateAdapter<any>, //+++
-    private service: TranslocoService) //+++
+    private _adapter: DateAdapter<any>) //+++
     { 
       if(activateRoute.snapshot.params['id'])
         this.id = +activateRoute.snapshot.params['id'];
@@ -330,7 +328,7 @@ export class AcceptanceDocComponent implements OnInit {
 
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Поставщик"
     this.getSetOfPermissions();
-    //+++ getting base data from parent component
+    //+++ getting base data from parent component 
     this.getBaseData('myId');    
     this.getBaseData('myCompanyId');  
     this.getBaseData('companiesList');  
@@ -383,8 +381,8 @@ export class AcceptanceDocComponent implements OnInit {
                       this.permissionsSet=data as any [];
                       this.getMyId();
                   },
-    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
-    );
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
+                  );
   }
 
   refreshPermissions(){
@@ -782,12 +780,12 @@ export class AcceptanceDocComponent implements OnInit {
   }
   
   EditDocNumber(): void {
-    if(this.allowToUpdate && +this.id==0){
+    if(+this.id==0){ //+++
       const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
         width: '400px',
         data:
         { 
-          head: translate('docs.msg.doc_num_head'), //+++
+          head: translate('docs.msg.doc_num_head'),
           query: translate('docs.msg.doc_num_query'),
           warning: translate('docs.msg.doc_num_warn')
         },
@@ -832,14 +830,14 @@ export class AcceptanceDocComponent implements OnInit {
                   this.createdDocId=data as number;
                   switch(this.createdDocId){   
                     case null:{// null возвращает если не удалось создать документ из-за ошибки 
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.crte_doc_err',{name:translate('docs.docs.acceptance')})}}); 
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.crte_doc_err',{name:translate('docs.docs.acceptance')})}}); 
                       break;
                     }
                     case 0:{//недостаточно прав
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}});
                       break;
                     }
-                    default:{// Приёмка успешно создалась в БД 
+                    default:{//успешно создалась в БД 
                       this.openSnackBar(translate('docs.msg.doc_crtd_succ',{name:translate('docs.docs.acceptance')}), translate('docs.msg.close'));
                       this.afterCreateAcceptance();
                     }
@@ -853,7 +851,7 @@ export class AcceptanceDocComponent implements OnInit {
       this.id=+this.createdDocId;
       this._router.navigate(['/ui/acceptancedoc', this.id]);
       this.formBaseInformation.get('id').setValue(this.id);
-      this.rightsDefined=false; //!!!
+      this.rightsDefined=false; 
       this.getData();
   }
 
@@ -888,6 +886,7 @@ export class AcceptanceDocComponent implements OnInit {
       } else this.setDocumentAsDecompleted();
     }
   }
+  
   setDocumentAsDecompleted(){ //+++
     this.getProductsTable();    
     this.http.post('/api/auth/setAcceptanceAsDecompleted',  this.formBaseInformation.value)
@@ -920,7 +919,6 @@ export class AcceptanceDocComponent implements OnInit {
                 this.openSnackBar(translate('docs.msg.cnc_com_succs',{name:translate('docs.docs.acceptance')}), translate('docs.msg.close'));
                 this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                 this.formBaseInformation.get('is_completed').setValue(false);
-                // this.balanceCagentComponent.getBalance();//пересчитаем баланс поставщика, ведь мы приняли ему товар, и теперь он должен больше 
                 this.balanceCagentComponent.getBalance();//пересчитаем баланс поставщика
                 if(this.acceptanceProductsTableComponent){
                   this.acceptanceProductsTableComponent.showColumns(); //чтобы показать столбцы после отмены проведения 
@@ -934,7 +932,7 @@ export class AcceptanceDocComponent implements OnInit {
           },
       );
   }
-  updateDocument(complete?:boolean){ 
+  updateDocument(complete?:boolean){ //+++
     this.getProductsTable();    
     let currentStatus:number=this.formBaseInformation.get('status_id').value;
     if(complete){
@@ -999,14 +997,14 @@ export class AcceptanceDocComponent implements OnInit {
       control.push(this.formingProductRowFromApiResponse(row));
     });
   }
-  showQueryErrorMessage(error:any){
-    console.log(error);
+  showQueryErrorMessage(error:any){ //+++
+    // console.log(error);
       let errMsg = (error.message) ? error.message : error.status ? `${error.status} - ${error.statusText}` : 'Server error';
       this.MessageDialog.open(MessageDialog,
       {
         width:'400px',
         data:{
-          head:translate('docs.msg.attention'),
+          head:translate('docs.msg.error'),
           message:errMsg}
       })
   }
@@ -1063,7 +1061,7 @@ export class AcceptanceDocComponent implements OnInit {
     setTimeout(() => {this.acceptanceProductsTableComponent.showColumns();}, 1);
   }
 
-  saveSettingsAcceptance(){
+  saveSettingsAcceptance(){ //+++
     return this.http.post('/api/auth/saveSettingsAcceptance', this.settingsForm.value)
             .subscribe(
                 (data) => {   
@@ -1073,7 +1071,7 @@ export class AcceptanceDocComponent implements OnInit {
             );
   }
 
-  getPriceTypesList(){
+  getPriceTypesList(){ //+++
     this.receivedPriceTypesList=null;
     this.loadSpravService.getPriceTypesList(this.formBaseInformation.get('company_id').value)
     .subscribe(
@@ -1151,7 +1149,7 @@ export class AcceptanceDocComponent implements OnInit {
     this.formBaseInformation.get('acceptance_date').setValue('');
     this.formBaseInformation.get('description').setValue('');
     this.searchCagentCtrl.reset();
-
+    this.linkedDocsCount=0;
     setTimeout(() => { this.acceptanceProductsTableComponent.showColumns();}, 1000);
     
     this.resetStatus();
@@ -1206,7 +1204,7 @@ openFileCard(docId:number) {
     },
   });
 }
-loadFilesInfo(){//                                     загружает информацию по прикрепленным файлам
+loadFilesInfo(){ //+++                                     загружает информацию по прикрепленным файлам
   const body = {"id":this.id};
     return this.http.post('/api/auth/getListOfAcceptanceFiles', body) 
           .subscribe(
@@ -1216,7 +1214,7 @@ loadFilesInfo(){//                                     загружает инф
               error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
           );
 }
-addFilesToAcceptance(filesIds: number[]){
+addFilesToAcceptance(filesIds: number[]){ //+++
   const body = {"id1":this.id, "setOfLongs1":filesIds};// передаем id товара и id файлов 
     return this.http.post('/api/auth/addFilesToAcceptance', body) 
             .subscribe(
@@ -1228,7 +1226,7 @@ addFilesToAcceptance(filesIds: number[]){
             );
 }
 
-clickBtnDeleteFile(id: number): void {
+clickBtnDeleteFile(id: number): void { //+++
   const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
     width: '400px',
     data:
@@ -1243,13 +1241,13 @@ clickBtnDeleteFile(id: number): void {
   });        
 }
 
-deleteFile(id:number){
+deleteFile(id:number){ //+++
   const body = {id: id, any_id:this.id}; 
   return this.http.post('/api/auth/deleteAcceptanceFile',body)
   .subscribe(
       (data) => {   
                   this.loadFilesInfo();
-                  this.openSnackBar("Успешно удалено", translate('docs.msg.close'));
+                  this.openSnackBar(translate('docs.msg.deletet_succs'), translate('docs.msg.close'));
               },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
   );  
@@ -1269,7 +1267,7 @@ deleteFile(id:number){
       this.formLinkedDocs.get('cagent_id').setValue(this.formBaseInformation.get('cagent_id').value);
       this.formLinkedDocs.get('nds').setValue(this.formBaseInformation.get('nds').value);
       this.formLinkedDocs.get('nds_included').setValue(this.formBaseInformation.get('nds_included').value);
-      this.formLinkedDocs.get('description').setValue('Создано из Приёмки №'+ this.formBaseInformation.get('doc_number').value);
+      this.formLinkedDocs.get('description').setValue(translate('docs.msg.created_from')+translate('docs.docs.acceptance')+' '+translate('docs.top.number')+this.formBaseInformation.get('doc_number').value);
       this.formLinkedDocs.get('is_completed').setValue(false);
       this.formLinkedDocs.get('linked_doc_id').setValue(this.id);//id связанного документа (того, из которого инициируется создание данного документа)
       this.formLinkedDocs.get('parent_uid').setValue(this.formBaseInformation.get('uid').value);// uid исходящего (родительского) документа
@@ -1292,7 +1290,7 @@ deleteFile(id:number){
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.crte_doc_err',{name:translate('docs.docs.'+this.commonUtilites.getDocNameByDocAlias(docname))})}});
                       break;
                     }
-                    case 0:{//недостаточно прав
+                    case -1:{//недостаточно прав
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm_creat',{name:translate('docs.docs.'+this.commonUtilites.getDocNameByDocAlias(docname))})}});
                       break;
                     }
@@ -1344,7 +1342,7 @@ deleteFile(id:number){
     });
   }
   // можно ли создать связанный документ (да - если есть товары, подходящие для этого)
-  canCreateLinkedDoc(docname:string):CanCreateLinkedDoc{
+  canCreateLinkedDoc(docname:string):CanCreateLinkedDoc{ //+++
     if(!(this.acceptanceProductsTableComponent && this.acceptanceProductsTableComponent.getProductTable().length>0)){
         return {can:false, reason:translate('docs.msg.cnt_crt_items',{name:translate('docs.docs.'+this.commonUtilites.getDocNameByDocAlias(docname))})};
     }else
@@ -1386,7 +1384,7 @@ getLinkedDocsScheme(draw?:boolean){
           
           if(result==null){
             this.loadingDocsScheme=false;
-            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.err_load_lnkd')}});
+            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.err_load_lnkd')}}); //+++
           } else if(result.errorCode==0){//нет результата
             this.linkedDocsSchemeDisplayed = true;
             this.loadingDocsScheme=false;
@@ -1399,7 +1397,7 @@ getLinkedDocsScheme(draw?:boolean){
               this.loadingDocsScheme=false;
           } 
       },
-      error => {this.loadingDocsScheme=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+      error => {this.loadingDocsScheme=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
   );
 }
 
@@ -1451,7 +1449,7 @@ drawLinkedDocsScheme(){
     (data =>{ 
         this.gettingTemplatesData=false;
         this.templatesList=data as TemplatesList[];
-      },error => {console.log(error);this.gettingTemplatesData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},);
+      },error => {console.log(error);this.gettingTemplatesData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},); //+++
   }
   clickOnTemplate(template:TemplatesList){
     const baseUrl = '/api/auth/acceptancePrint/';
@@ -1470,7 +1468,7 @@ drawLinkedDocsScheme(){
           document.body.appendChild(downloadLink);
           downloadLink.click();
       }, 
-      error => console.log(error),
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
     );  
   }
 

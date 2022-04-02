@@ -139,7 +139,7 @@ export class UsersComponent implements OnInit {
                             this.permissionsSet=data as any [];
                             this.getMyId();
                         },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
             );
   }
 
@@ -181,7 +181,7 @@ export class UsersComponent implements OnInit {
       this.getPagesList();
       this.getTable();
       //!!!
-    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
+    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:"Нет прав на просмотр"}})}
   }
 
   getTableHeaderTitles(){
@@ -204,7 +204,7 @@ export class UsersComponent implements OnInit {
                 this.pagenum=this.receivedPagesList[1];
                 this.listsize=this.receivedPagesList[2];
                 this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
-                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
+                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} 
             ); 
   }
 
@@ -217,7 +217,7 @@ export class UsersComponent implements OnInit {
                   if(this.dataSource.data.length==0 && +this.sendingQueryForm.offset>0) this.setPage(0);
                   this.gettingTableData=false;
                 },
-                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
+                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} 
             );
   }
 

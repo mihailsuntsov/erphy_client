@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 // Для получения параметров маршрута необходим специальный сервис ActivatedRoute. 
 // Он содержит информацию о маршруте, в частности, параметры маршрута, 
 // параметры строки запроса и прочее. Он внедряется в приложение через механизм dependency injection, 
@@ -11,6 +11,7 @@ import {HttpClient} from '@angular/common/http';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
+import { translate } from '@ngneat/transloco'; //+++
 
 interface docResponse {//интерфейс для получения ответа в методе getDepartmentValuesById
     id: number;
@@ -86,6 +87,8 @@ export class DepartmentsDocComponent implements OnInit {
   allowToView:boolean = false;
   rightsDefined:boolean = false;
 
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
+  
   constructor(
     private activateRoute: ActivatedRoute,
     private http: HttpClient,
@@ -121,6 +124,10 @@ export class DepartmentsDocComponent implements OnInit {
       date_time_changed: new FormControl        ('',[]),
     });
     this.getSetOfPermissions();
+    //+++ getting base data from parent component
+    this.getBaseData('myId');    
+    this.getBaseData('myCompanyId');  
+    this.getBaseData('companiesList'); 
   }
 
   getSetOfPermissions(){
@@ -129,26 +136,42 @@ export class DepartmentsDocComponent implements OnInit {
           (data) => {   
                       this.permissionsSet=data as any [];
                       this.getMyId();
-                  },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+      },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
       );
   }
-
-  getMyId(){
-    this.loadSpravService.getMyId()
+  
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+      this.loadSpravService.getCompaniesList()
+        .subscribe(
+            (data) => 
+            {
+              this.receivedCompaniesList=data as any [];
+              this.doFilterCompaniesList();
+            },                      
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+        );
+    else this.doFilterCompaniesList();
+  }
+  getMyId(){ //+++
+    if(+this.myId==0)
+      this.loadSpravService.getMyId()
             .subscribe(
                 (data) => {this.myId=data as any;
                   this.getMyCompanyId();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
+    else this.getMyCompanyId();
   }
-
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
-      (data) => {
-        this.myCompanyId=data as number;
-        this.getCRUD_rights();
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
+        (data) => {
+          this.myCompanyId=data as number;
+          this.getCRUD_rights();
+        }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
+    else this.getCRUD_rights();
   }
   
   getCRUD_rights(){
@@ -209,8 +232,8 @@ export class DepartmentsDocComponent implements OnInit {
         (data) => {   
                     this.updateDocumentResponse=data as string;
                     this.getData();
-                    this.openSnackBar("Успешно сохранено", "Закрыть");
-                  }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+                    this.openSnackBar(translate('docs.msg.doc_sved_suc'),translate('docs.msg.close'));
+                  }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
     }
 
   openSnackBar(message: string, action: string) {
@@ -246,11 +269,11 @@ export class DepartmentsDocComponent implements OnInit {
                   // this.getDepartmentsList();  // если отделения и типы цен грузить не здесь, а в месте где вызывалась getDocumentValuesById,
                   this.getPriceTypesList();   // то из-за асинхронной передачи данных company_id будет еще null, 
                                               // и запрашиваемые списки не загрузятся
-                  //!!!
-                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
+                  
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();
             },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
         );
   }
 
@@ -260,32 +283,20 @@ export class DepartmentsDocComponent implements OnInit {
           (data) =>   {
             let result=data as any;
             switch(result){
-              case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе операции проиошла ошибка")}});break;}
-              case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+              case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_msg')}});break;}
+              case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});break;}
               default:{  
                           this.id=result;
                           this._router.navigate(['/ui/departmentsdoc', this.id]);
                           this.formBaseInformation.get('id').setValue(this.id);
                           this.rightsDefined=false; //!!!
                           this.getData();
-                          this.openSnackBar("Отделение создано", "Закрыть");
+                          this.openSnackBar(translate('docs.msg.doc_crtd_suc'),translate('docs.msg.close'));
               }
             }
           },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
-  }
-
-  getCompaniesList(){
-    this.receivedCompaniesList=null;
-    this.loadSpravService.getCompaniesList()
-            .subscribe(
-                (data) => 
-                {
-                  this.receivedCompaniesList=data as any [];
-                  this.doFilterCompaniesList();
-                  this.setDefaultCompany();
-                }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
   }
 
   doFilterCompaniesList(){
@@ -296,6 +307,7 @@ export class DepartmentsDocComponent implements OnInit {
       this.receivedCompaniesList=[];
       this.receivedCompaniesList.push(myCompany);
     }
+    this.setDefaultCompany();
   }
 
   setDefaultCompany(){
@@ -312,7 +324,7 @@ export class DepartmentsDocComponent implements OnInit {
           this.paymentAccounts=data as any [];
           // this.setDefaultPaymentAccount();
         },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
 
@@ -321,12 +333,12 @@ export class DepartmentsDocComponent implements OnInit {
         (data) => { 
           this.boxoffices=data as any [];
         },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
 
   getBoxofficeNameById(id:string):string{
-    let name:string = 'Не установлен';
+    let name:string = translate('docs.msg.not_set');
     if(this.boxoffices){
       this.boxoffices.forEach(a=>{
         if(a.id==id) name=a.name;
@@ -335,7 +347,7 @@ export class DepartmentsDocComponent implements OnInit {
   }
 
   getPaymentAccountNameById(id:string):string{
-    let name:string = 'Не установлен';
+    let name:string = translate('docs.msg.not_set');
     if(this.paymentAccounts){
       this.paymentAccounts.forEach(a=>{
         if(a.id==id) name=a.payment_account||' ('||a.name||')';
@@ -371,6 +383,9 @@ export class DepartmentsDocComponent implements OnInit {
       this.formBaseInformation.get('priceTypeId').setValue(+this.receivedPriceTypesList[0].id);
       // Cookie.set('prices_priceTypeId',this.sendingQueryForm.priceTypeId);
     }
+  }
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
   }
 
 }

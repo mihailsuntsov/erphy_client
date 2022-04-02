@@ -6,6 +6,7 @@ import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { UploadFileService } from './upload-file.service';
 import { HttpClient, HttpResponse, HttpEventType } from '@angular/common/http';
+import { translate } from '@ngneat/transloco'; //+++
 
 @Component({
   selector: 'app-files-upload-dialog',

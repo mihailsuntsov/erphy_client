@@ -5,10 +5,12 @@ import { QueryForm } from './query-form';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpClient } from '@angular/common/http';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { LoadSpravService } from './loadsprav';
 import { QueryFormService } from './get-products-table.service';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { translate } from '@ngneat/transloco'; //+++
 
 interface FoodNode {
   id: string;
@@ -91,6 +93,7 @@ export class ProductCategoriesSelectComponent implements OnInit {
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
     public productCategoriesDialog: MatDialog,
+    public MessageDialog: MatDialog,
     public ConfirmDialog: MatDialog,
     public ProductDuplicateDialog: MatDialog,
     private http: HttpClient,
@@ -128,7 +131,7 @@ export class ProductCategoriesSelectComponent implements OnInit {
                             this.permissionsSet=data as any [];
                             this.getMyCompanyId();
                         },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
             );
   }
 

@@ -3,6 +3,9 @@ import {MatDialogRef, MAT_DIALOG_DATA} from '@angular/material/dialog';
 import { Validators, FormGroup, FormControl} from '@angular/forms';
 import { HttpClient} from '@angular/common/http';
 import { MatSnackBar} from '@angular/material/snack-bar';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
+import { MatDialog } from '@angular/material/dialog';
+import { translate } from '@ngneat/transloco'; //+++
 
 @Component({
   selector: 'app-product-group-fields-dialog',
@@ -19,6 +22,7 @@ export class ProductGroupFieldsDialogComponent implements OnInit {
   constructor(
     public dialogRef: MatDialogRef<ProductGroupFieldsDialogComponent>,
     private _snackBar: MatSnackBar,
+    public MessageDialog: MatDialog,
     private http: HttpClient,
     @Inject(MAT_DIALOG_DATA) public data: any) {}
   onNoClick(): void {
@@ -60,7 +64,7 @@ export class ProductGroupFieldsDialogComponent implements OnInit {
                           }else this.openSnackBar("Группа полей сохранена", "Закрыть");
                           this.dialogRef.close();
                         },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
             );
             
   }
@@ -72,7 +76,7 @@ export class ProductGroupFieldsDialogComponent implements OnInit {
                   }else this.openSnackBar("Группа полей создана", "Закрыть");
                   this.dialogRef.close();
                 },
-        error => console.log(error),
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
     );
   }
 

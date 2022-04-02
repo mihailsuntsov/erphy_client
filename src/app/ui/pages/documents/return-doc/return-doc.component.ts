@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Inject, OnInit, Optional, ViewChild} from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Inject, OnInit, Optional, Output, ViewChild} from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl } from '@angular/forms';
@@ -20,25 +20,16 @@ import { KkmComponent } from 'src/app/modules/trade-modules/kkm/kkm.component';
 import { KkmAtolService } from '../../../../services/kkm_atol';
 import { KkmAtolChequesService } from '../../../../services/kkm_atol_cheques';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
-import { WriteoffDocComponent } from '../writeoff-doc/writeoff-doc.component';
 import { FilesComponent } from '../files/files.component';
 import { FilesDocComponent } from '../files-doc/files-doc.component';
-import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from '@angular/material/core';
-import { MomentDateAdapter} from '@angular/material-moment-adapter';
-import * as _moment from 'moment';
-import {default as _rollupMoment} from 'moment';
-const moment = _rollupMoment || _moment;
-moment.defaultFormat = "DD.MM.YYYY";
-moment.fn.toJSON = function() { return this.format('DD.MM.YYYY'); }
-export const MY_FORMATS = {
-  parse: {dateInput: 'DD.MM.YYYY',},
-  display: {
-    dateInput: 'DD.MM.YYYY',
-    monthYearLabel: 'MMM YYYY',
-    dateA11yLabel: 'DD.MM.YYYY',
-    monthYearA11yLabel: 'MMMM YYYY',
-  },
-};
+import { translate } from '@ngneat/transloco'; //+++
+import { CommonUtilitesService } from 'src/app/services/common_utilites.serviсe';
+
+import { MomentDefault } from 'src/app/services/moment-default';
+import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
+import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+const MY_FORMATS = MomentDefault.getMomentFormat();
+const moment = MomentDefault.getMomentDefault();
 
 interface ReturnProductTable { //интерфейс для товаров, (т.е. для формы, массив из которых будет содержать форма returnProductTable, входящая в formBaseInformation)
   id: number;                     // id строки с товаром товара в таблице return_product
@@ -148,10 +139,10 @@ interface SpravTaxesSet{
   selector: 'app-return-doc',
   templateUrl: './return-doc.component.html',
   styleUrls: ['./return-doc.component.css'],
-  providers: [LoadSpravService, Cookie, KkmComponent, KkmAtolService, KkmAtolChequesService, BalanceCagentComponent,
-    {provide: MAT_DATE_LOCALE, useValue: 'ru'},
-    {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
-    {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},]
+  providers: [LoadSpravService, Cookie, KkmComponent, KkmAtolService, KkmAtolChequesService, BalanceCagentComponent,CommonUtilitesService,
+    { provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]}, //+++
+    {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
+  ]
 })
 export class ReturnDocComponent implements OnInit {
 
@@ -243,6 +234,7 @@ export class ReturnDocComponent implements OnInit {
   @ViewChild(ReturnProductsTableComponent, {static: false}) public returnProductsTableComponent:ReturnProductsTableComponent;
   @ViewChild(KkmComponent, {static: false}) public kkmComponent:KkmComponent;
   @ViewChild(BalanceCagentComponent, {static: false}) public balanceCagentComponent:BalanceCagentComponent;
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
 
   constructor(private activateRoute: ActivatedRoute,
     private cdRef:ChangeDetectorRef,
@@ -252,12 +244,14 @@ export class ReturnDocComponent implements OnInit {
     public dialogAddFiles: MatDialog,
     public SettingsReturnDialogComponent: MatDialog,
     private templatesDialogComponent: MatDialog,
+    private cu: CommonUtilitesService,
     public dialogCreateProduct: MatDialog,
     @Optional() @Inject(MAT_DIALOG_DATA) public data: any,
     public MessageDialog: MatDialog,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
-    private _router:Router) 
+    private _router:Router,
+    private _adapter: DateAdapter<any>) 
     { 
       if(activateRoute.snapshot.params['id'])
         this.id = +activateRoute.snapshot.params['id'];
@@ -324,41 +318,15 @@ export class ReturnDocComponent implements OnInit {
       this.mode=this.data.mode;
       if(this.mode=='window'){this.id=this.data.id; this.formBaseInformation.get('id').setValue(this.id);}
     } 
-   
-    //     getSetOfPermissions
-    //     |
-    //     getMyId
-    //     |
-    //     getMyCompanyId
-    //     |
-    //     getMyDepartmentsList
-    //     |
-    //     getCRUD_rights
-    //     |
-    //     getData(------>(если созданный док)--> [getDocumentValuesById] --> refreshPermissions 
-    //     |
-    //     (если новый док):
-    //     [getCompaniesList ]
-    //     |
-    //     [getSettings, doFilterCompaniesList]
-    //     |
-    //     setDefaultInfoOnStart
-    //     |
-    //     setDefaultCompany 
-    //     |
-    //     [getDepartmentsList, getPriceTypesList*] 
-    //     |
-    //     [setDefaultDepartment, doFilterDepartmentsList]
-    //     | (если идет стартовая загрузка):
-    //     getStatusesList,       checkAnyCases
-    //     |        		          |
-    //     setDefaultStatus       refreshPermissions*  
-    //     |
-    //     setStatusColor, getSpravSysEdizm
-    // *необходимое действие для загрузки дочерних компонентов 
+    
 
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Покупатель"
     this.getSetOfPermissions();
+    //+++ getting base data from parent component
+    this.getBaseData('myId');    
+    this.getBaseData('myCompanyId');  
+    this.getBaseData('companiesList');  
+    this.getBaseData('myDepartmentsList');    
   }
   //чтобы не было ExpressionChangedAfterItHasBeenCheckedError
   ngAfterContentChecked() {
@@ -386,9 +354,9 @@ export class ReturnDocComponent implements OnInit {
           (data) => {   
                       this.permissionsSet=data as any [];
                       this.getMyId();
-                  },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-      );
+    },
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
+    );
   }
 
   refreshPermissions(){
@@ -466,51 +434,70 @@ export class ReturnDocComponent implements OnInit {
     }
   }
   
-  getMyId(){
-    this.receivedMyDepartmentsList=null;
-    this.loadSpravService.getMyId()
+  
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+      this.loadSpravService.getCompaniesList()
+        .subscribe(
+            (data) => 
+            {
+              this.receivedCompaniesList=data as any [];
+              this.doFilterCompaniesList();
+            },                      
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+        );
+    else this.doFilterCompaniesList();
+  }
+  getMyId(){ //+++
+    if(+this.myId==0)
+      this.loadSpravService.getMyId()
             .subscribe(
                 (data) => {this.myId=data as any;
                   this.getMyCompanyId();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
+    else this.getMyCompanyId();
   }
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
-      (data) => {
-        this.myCompanyId=data as number;
-        this.getMyDepartmentsList();
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
+        (data) => {
+          this.myCompanyId=data as number;
+          this.getMyDepartmentsList();
+        }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
+    else this.getMyDepartmentsList();
   }
-  getMyDepartmentsList(){
-    this.receivedMyDepartmentsList=null;
+  getMyDepartmentsList(){ //+++
+    if(this.receivedMyDepartmentsList.length==0)
     this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
             .subscribe(
                 (data) => {this.receivedMyDepartmentsList=data as any [];
-                  this.getCRUD_rights(this.permissionsSet);},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                  this.getCRUD_rights();},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
+    else this.getCRUD_rights();
   }
   getSpravTaxes(companyId:number){
       this.loadSpravService.getSpravTaxes(companyId)
         .subscribe((data) => {this.spravTaxesSet=data as any[];},
         error => console.log(error));}
-  getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==345)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==346)});
-    this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==347)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==352)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==353)});
-    this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==354)});
-    this.allowToViewMyDocs = permissionsSet.some(                 function(e){return(e==355)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==356)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==357)});
-    this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==358)});
-    this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==359)});
-    this.allowToCompleteAllCompanies = permissionsSet.some(       function(e){return(e==619)});
-    this.allowToCompleteMyCompany = permissionsSet.some(          function(e){return(e==620)});
-    this.allowToCompleteMyDepartments = permissionsSet.some(      function(e){return(e==621)});
-    this.allowToCompleteMyDocs = permissionsSet.some(             function(e){return(e==622)});
+
+  getCRUD_rights(){
+    this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==345)});
+    this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==346)});
+    this.allowToCreateMyDepartments = this.permissionsSet.some(        function(e){return(e==347)});
+    this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==352)});
+    this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==353)});
+    this.allowToViewMyDepartments = this.permissionsSet.some(          function(e){return(e==354)});
+    this.allowToViewMyDocs = this.permissionsSet.some(                 function(e){return(e==355)});
+    this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==356)});
+    this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==357)});
+    this.allowToUpdateMyDepartments = this.permissionsSet.some(        function(e){return(e==358)});
+    this.allowToUpdateMyDocs = this.permissionsSet.some(               function(e){return(e==359)});
+    this.allowToCompleteAllCompanies = this.permissionsSet.some(       function(e){return(e==619)});
+    this.allowToCompleteMyCompany = this.permissionsSet.some(          function(e){return(e==620)});
+    this.allowToCompleteMyDepartments = this.permissionsSet.some(      function(e){return(e==621)});
+    this.allowToCompleteMyDocs = this.permissionsSet.some(             function(e){return(e==622)});
    
     if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;this.allowToCreateMyDepartments=true}
     if(this.allowToCreateMyCompany)this.allowToCreateMyDepartments=true;
@@ -538,19 +525,6 @@ export class ReturnDocComponent implements OnInit {
     }
   }
 
-  getCompaniesList(){
-    this.receivedCompaniesList=null;
-    this.loadSpravService.getCompaniesList()
-      .subscribe(
-          (data) => 
-          {
-            this.receivedCompaniesList=data as any [];
-            this.doFilterCompaniesList();
-          },                      
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-      );
-  }
-
   onCompanyChange(){
     this.formBaseInformation.get('department_id').setValue(null);
     this.formBaseInformation.get('status_id').setValue(null);
@@ -572,7 +546,7 @@ export class ReturnDocComponent implements OnInit {
             this.doFilterDepartmentsList();
             if(+this.id==0) this.setDefaultDepartment();
           },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
   }
   setDefaultDepartment(){
@@ -616,7 +590,7 @@ export class ReturnDocComponent implements OnInit {
             .subscribe(
                 (data) => {this.receivedStatusesList=data as StatusInterface[];
                   if(+this.id==0){this.setDefaultStatus();}},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
   }
 
@@ -638,7 +612,7 @@ export class ReturnDocComponent implements OnInit {
     this.http.post('/api/auth/getSpravSysEdizm', {id1: companyId, string1:"(1,2,3,4,5)"})  // все типы ед. измерения
     .subscribe((data) => {this.spravSysEdizmOfProductAll = data as any[];
             },
-    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
   }
 
   doFilterCompaniesList(){
@@ -699,7 +673,7 @@ export class ReturnDocComponent implements OnInit {
             this.setDefaultInfoOnStart();
             this.setDefaultCompany();
           },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
   }
 
@@ -729,7 +703,7 @@ export class ReturnDocComponent implements OnInit {
 
 
   getDocumentValuesById(){
-    this.http.get('/api/auth/getReturnValuesById?id='+ this.id)
+    this.http.get('/api/auth/getReturnValuesById?id='+ this.id)
         .subscribe(
             data => { 
                 let documentValues: DocResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
@@ -768,10 +742,10 @@ export class ReturnDocComponent implements OnInit {
                   this.getLinkedDocsScheme(true); //загрузка связанных документов
                   this.getSettings();
                   //!!!
-                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
-                this.refreshPermissions();//пересчитаем права
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
+                this.refreshPermissions();
             },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
         );
   }
 
@@ -796,9 +770,9 @@ export class ReturnDocComponent implements OnInit {
         width: '400px',
         data:
         { 
-          head: 'Редактирование номера документа',
-          warning: 'Открыть поле "Номера документа" на редактирование?',
-          query: 'Номер документа присваивается системой автоматически. Если Вы хотите его редактировать, и вместе с тем оставить возможность системе генерировать код в следующих документах, пожалуйста, не исползуйте более 9 цифр в номере.',
+          head: translate('docs.msg.doc_num_head'),
+          query: translate('docs.msg.doc_num_query'),
+          warning: translate('docs.msg.doc_num_warn')
         },
       });
       dialogRef.afterClosed().subscribe(result => {
@@ -810,7 +784,7 @@ export class ReturnDocComponent implements OnInit {
   }
 
   // !!!
-  checkDocNumberUnical(tableName:string) {
+  checkDocNumberUnical(tableName:string) { //+++
     let docNumTmp=this.formBaseInformation.get('doc_number').value;
     setTimeout(() => {
       if(!this.formBaseInformation.get('doc_number').errors && this.lastCheckedDocNumber!=docNumTmp && docNumTmp!='' && docNumTmp==this.formBaseInformation.get('doc_number').value)
@@ -822,7 +796,7 @@ export class ReturnDocComponent implements OnInit {
           .subscribe(
               (data) => {   
                           Unic = data as boolean;
-                          if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Введённый номер документа не является уникальным.',}});
+                          if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head: translate('docs.msg.attention'),message: translate('docs.msg.num_not_unic'),}});
                           this.isDocNumberUnicalChecking=false;
                       },
               error => {console.log(error);this.isDocNumberUnicalChecking=false;}
@@ -833,32 +807,32 @@ export class ReturnDocComponent implements OnInit {
 
   //создание нового документа Возврат покупателя
   createNewDocument(){
-    console.log('Создание нового документа Возврат покупателя');
+    // console.log('Создание нового документа Возврат покупателя');
     this.createdDocId=null;
     this.getProductsTable();
     this.formBaseInformation.get('uid').setValue(uuidv4());
     this.http.post('/api/auth/insertReturn', this.formBaseInformation.value)
       .subscribe(
       (data) => {
-                  this.actionsBeforeGetChilds=0;
-                  this.createdDocId=data as number;
-                  switch(this.createdDocId){
-                    case null:{// null возвращает если не удалось создать документ из-за ошибки
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа Возврат покупателя"}});
-                      break;
-                    }
-                    case -1:{//недостаточно прав
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа Возврат покупателя"}});
-                      break;
-                    }
-                    default:{// Возврат покупателя успешно создалась в БД 
-                      this.openSnackBar("Документ \"Возврат покупателя\" успешно создан", "Закрыть");
-                      this.afterCreateReturn();
-                    }
-                  }
-                },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});},
-      );
+        this.actionsBeforeGetChilds=0;
+        this.createdDocId=data as number;
+        switch(this.createdDocId){   
+          case null:{// null возвращает если не удалось создать документ из-за ошибки 
+            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.crte_doc_err',{name:translate('docs.docs.return')})}}); 
+            break;
+          }
+          case 0:{//недостаточно прав
+            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}});
+            break;
+          }
+          default:{//успешно создалась в БД 
+            this.openSnackBar(translate('docs.msg.doc_crtd_succ',{name:translate('docs.docs.return')}), translate('docs.msg.close'));
+            this.afterCreateReturn();
+          }
+        }
+      },
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
+    );
   }
 
   //действия после создания нового документа Инвентаризиция
@@ -870,13 +844,13 @@ export class ReturnDocComponent implements OnInit {
       this.getData();
   }
 
-  completeDocument(notShowDialog?:boolean){
-    if(!notShowDialog){//notShowDialog=false - показывать диалог
+  completeDocument(notShowDialog?:boolean){ //+++
+    if(!notShowDialog){
       const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
         width: '400px',data:{
-          head: 'Проведение возврата покупателя',
-          warning: 'Вы хотите провести данный возврат покупателя?',
-          query: 'После проведения документ станет недоступным для редактирования.'},});
+          head:    translate('docs.msg.complet_head'),
+          warning: translate('docs.msg.complet_warn'),
+          query:   translate('docs.msg.complet_query')},});
       dialogRef.afterClosed().subscribe(result => {
         if(result==1){
           this.updateDocument(true);
@@ -884,15 +858,15 @@ export class ReturnDocComponent implements OnInit {
       });
     } else this.updateDocument(true);
   }
- 
-  decompleteDocument(notShowDialog?:boolean){
+
+  decompleteDocument(notShowDialog?:boolean){ //+++
     if(this.allowToComplete){
-      if(!notShowDialog){//notShowDialog=false - показывать диалог
+      if(!notShowDialog){
         const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
           width: '400px',data:{
-            head: 'Отмена проведения',
-            warning: 'Вы хотите отменить проведение данного документа?',
-            query: ''},});
+          head:    translate('docs.msg.cnc_com_head'),
+          warning: translate('docs.msg.cnc_com_warn'),
+          query: ''},});
         dialogRef.afterClosed().subscribe(result => {
           if(result==1){
             this.setDocumentAsDecompleted();
@@ -901,6 +875,7 @@ export class ReturnDocComponent implements OnInit {
       } else this.setDocumentAsDecompleted();
     }
   }
+
   setDocumentAsDecompleted(){
     this.getProductsTable();    
     this.http.post('/api/auth/setReturnAsDecompleted',  this.formBaseInformation.value)
@@ -910,27 +885,27 @@ export class ReturnDocComponent implements OnInit {
             let result:number=data as number;
             switch(result){
               case null:{// null возвращает если не удалось завершить операцию из-за ошибки
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка снятия с проведения документа \"Приёмка\""}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.cnc_com_error')}});
                 break;
               }
               case -1:{//недостаточно прав
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для данной операции"}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}});
                 break;
               }
               case -60:{//Документ уже снят с проведения
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Данный документ уже снят с проведения"}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.alr_cnc_com')}});
                 break;
               }
               case -70:{//Отрицательное кол-во товара в истории движения товара
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"В результате пересчёта себестоимости одного из товаров приёмки, на одном из этапов его движения получено отрицательное количество данного товара"}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.cnc_com_err1')}});
                 break;
               }
               case -80:{//Отрицательное кол-во товара на складе
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"В результате проводимой операции получено отрицательное количество на скаде одного из товаров документа"}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.cnc_com_err2')}});
                 break;
               }
               case 1:{// Успешно
-                this.openSnackBar("Документ \"Приёмка\" снят с проведения", "Закрыть");
+                this.openSnackBar(translate('docs.msg.cnc_com_succs',{name:translate('docs.docs.return')}), translate('docs.msg.close'));
                 this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                 this.formBaseInformation.get('is_completed').setValue(false);
                 // this.balanceCagentComponent.getBalance();//пересчитаем баланс поставщика, ведь мы приняли ему товар, и теперь он должен больше 
@@ -966,15 +941,15 @@ export class ReturnDocComponent implements OnInit {
             let result:number=data as number;
             switch(result){
               case null:{// null возвращает если не удалось создать документ из-за ошибки
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка "+ (complete?"проведения":"сохренения") + " документа \"Возврат покупателя\""}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_of') + (complete?translate('docs.msg._of_comp'):translate('docs.msg._of_save')) + translate('docs.msg._of_doc',{name:translate('docs.docs.return')})}});
                 break;
               }
               case -1:{//недостаточно прав
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для "+ (complete?"проведения":"сохренения") + " документа \"Возврат покупателя\""}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm_oper') + (complete?translate('docs.msg._of_comp'):translate('docs.msg._of_save')) + translate('docs.msg._of_doc',{name:translate('docs.docs.return')})}});
                 break;
               }
               default:{// Успешно
-                this.openSnackBar("Документ \"Возврат покупателя\" "+ (complete?"проведён.":"сохренён."), "Закрыть");
+                this.openSnackBar(translate('docs.msg.doc_name',{name:translate('docs.docs.return')}) + (complete?translate('docs.msg.completed'):translate('docs.msg.saved')), translate('docs.msg.close'));
                 this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                 if(complete) {
                   this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведенности = true
@@ -1014,7 +989,7 @@ export class ReturnDocComponent implements OnInit {
       {
         width:'400px',
         data:{
-          head:'Ошибка!',
+          head:translate('docs.msg.error'),
           message:errMsg}
       })
   }
@@ -1075,10 +1050,10 @@ export class ReturnDocComponent implements OnInit {
     return this.http.post('/api/auth/saveSettingsReturn', this.settingsForm.value)
             .subscribe(
                 (data) => {   
-                          this.openSnackBar("Настройки успешно сохранены", "Закрыть");
+                          this.openSnackBar(translate('docs.msg.settngs_saved'), translate('docs.msg.close'));
                           
                         },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
             );
   }
 
@@ -1090,7 +1065,7 @@ export class ReturnDocComponent implements OnInit {
         this.receivedPriceTypesList=data as any [];
         this.necessaryActionsBeforeGetChilds();
       },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
 
@@ -1147,7 +1122,7 @@ export class ReturnDocComponent implements OnInit {
       this.formWP.get('return_id').setValue(this.id);
       this.formWP.get('company_id').setValue(this.formBaseInformation.get('company_id').value);
       this.formWP.get('department_id').setValue(this.formBaseInformation.get('department_id').value);
-      this.formWP.get('description').setValue('Создано из Возврата покупателя №'+ this.formBaseInformation.get('doc_number').value);
+      this.formWP.get('description').setValue(translate('docs.msg.created_from')+translate('docs.docs.return')+' '+translate('docs.top.number')+this.formBaseInformation.get('doc_number').value);
       this.formWP.get('linked_doc_id').setValue(this.id);//id связанного документа (того, из которого инициируется создание данного документа)
       this.formWP.get('parent_uid').setValue(this.formBaseInformation.get('uid').value);// uid исходящего (родительского) документа
       this.formWP.get('child_uid').setValue(uid);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Возврат покупателя будет дочерней для него.
@@ -1161,22 +1136,22 @@ export class ReturnDocComponent implements OnInit {
                 
                   switch(createdDocId){
                     case null:{// null возвращает если не удалось создать документ из-за ошибки
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка создания документа "+(docname=="Writeoff"?"Списание":"")}});
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.crte_doc_err',{name:translate('docs.docs.'+this.cu.getDocNameByDocAlias(docname))})}});
                       break;
                     }
-                    case 0:{//недостаточно прав
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Недостаточно прав для создания документа "+(docname=="Writeoff"?"Списание":"")}});
+                    case -1:{//недостаточно прав
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm_creat',{name:translate('docs.docs.'+this.cu.getDocNameByDocAlias(docname))})}});
                       break;
                     }
                     default:{// Документ успешно создался в БД 
-                      this.openSnackBar("Документ "+(docname=='Writeoff'?'Списание':'')+" успешно создан", "Закрыть");
+                      this.openSnackBar(translate('docs.msg.doc_crtd_succ',{name:translate('docs.docs.'+this.cu.getDocNameByDocAlias(docname))}), translate('docs.msg.close'));
                       this.getLinkedDocsScheme(true);//обновляем схему этого документа
                     }
                   }
                 },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});},
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
       );
-    } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:canCreateLinkedDoc.reason}});
+    } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:canCreateLinkedDoc.reason}});
   }
   
 // забирает таблицу товаров из дочернего компонента и помещает ее в форму, предназначенную для создания Списания
@@ -1196,11 +1171,10 @@ export class ReturnDocComponent implements OnInit {
     let noProductsToCreateLinkedDoc:boolean = this.getProductsCountToLinkedDoc()==0;
     if(isThereCompletedLinkedDocs || noProductsToCreateLinkedDoc){
       if(isThereCompletedLinkedDocs)
-        return {can:false, reason:'Невозможно создать '+(docname=='Writeoff'?'Списание':'')+', так как уже есть проведённый документ '+(docname=='Writeoff'?'Списание':'')};
+        return {can:false, reason:translate('docs.msg.cnt_crt_')+translate('docs.docs.'+this.cu.getDocNameByDocAlias(docname))+translate('docs.msg._cause_comp_d')+translate('docs.docs.'+this.cu.getDocNameByDocAlias(docname))+'"'};
       else
-        return {can:false, reason:'Невозможно создать '+(docname=='Writeoff'?'Списание':'')+', так как нет позиций с количеством более 0'};
-    }else
-      return {can:true, reason:''};
+        return {can:false, reason:translate('docs.msg.cnt_crt_')+translate('docs.docs.'+this.cu.getDocNameByDocAlias(docname))+translate('docs.msg._cause_no_pos')+translate('docs.msg._mor_than_one')};
+    }else return {can:true, reason:''};
   }
 
   //есть ли уже проведённый связанный документ (для возможности создания их при их отсутствии) Например, не получится создать Списание, если уже есть проведённые Списания
@@ -1266,7 +1240,7 @@ export class ReturnDocComponent implements OnInit {
             result=data as any;            
             if(result==null){
               this.loadingDocsScheme=false;
-              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Ошибка загрузки связанных документов"}});
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.err_load_lnkd')}});
             } else if(result.errorCode==0){//нет результата
               this.linkedDocsSchemeDisplayed = true;
               this.loadingDocsScheme=false;
@@ -1279,7 +1253,7 @@ export class ReturnDocComponent implements OnInit {
                 this.loadingDocsScheme=false;
             } 
         },
-        error => {this.loadingDocsScheme=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+        error => {this.loadingDocsScheme=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
   drawLinkedDocsScheme(){
@@ -1324,8 +1298,8 @@ export class ReturnDocComponent implements OnInit {
   }  
   //обработчик события успешной печати чека - в Заказе покупателя это выставление статуса документа, сохранение и создание нового.  
   onSuccesfulChequePrintingHandler(){
-    console.log("Чек был успешно напечатан");
-    this.openSnackBar("Чек был успешно напечатан", "Закрыть");
+    // console.log("Чек был успешно напечатан");
+    this.openSnackBar(translate('docs.msg.ch_prnted_scc'), translate('docs.msg.close'));
   }
   //обработка события нажатия на кнопку "Отбить чек", испущенного в компоненте кассовых операций
   onClickChequePrintingHandler(){
@@ -1339,7 +1313,7 @@ export class ReturnDocComponent implements OnInit {
     //                   const result=data as boolean;
     //                   if (result){
     //                     console.log('Чек sell ранее печатался.')
-    //                     this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Чек такого типа уже отбивался из данной розничной продажи'}});
+    //                     this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:'Чек такого типа уже отбивался из данной розничной продажи'}});
     //                     this.kkmComponent.kkmIsFree=true;
     //                   }
     //                   else {
@@ -1347,7 +1321,7 @@ export class ReturnDocComponent implements OnInit {
                         this.kkmComponent.printReceipt(28, this.id);//28 - Возврат покупателя
                       // }
       //     },
-      //     error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}});this.kkmComponent.kkmIsFree=true;},
+      //     error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});this.kkmComponent.kkmIsFree=true;},
       // )
     // } else { //если розн. продажа еще не создана:
     //   console.log('Розничная продажа еще не создана');
@@ -1430,7 +1404,7 @@ export class ReturnDocComponent implements OnInit {
                 (data) => {  
                             this.filesInfo = data as any[]; 
                           },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
             );
   }
   addFilesToReturn(filesIds: number[]){
@@ -1439,9 +1413,9 @@ export class ReturnDocComponent implements OnInit {
               .subscribe(
                   (data) => {  
                     this.loadFilesInfo();
-                    this.openSnackBar("Файлы добавлены", "Закрыть");
+                    this.openSnackBar(translate('docs.msg.files_added'), translate('docs.msg.close'));
                             },
-                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
               );
   }
 
@@ -1450,9 +1424,9 @@ export class ReturnDocComponent implements OnInit {
       width: '400px',
       data:
       { 
-        head: 'Удаление файла',
-        query: 'Удалить файл из данного документа?',
-        warning: 'Файл не будет удалён безвозвратно, он останется в библиотеке "Файлы".',
+        head: translate('docs.msg.file_del_head'),
+        query: translate('docs.msg.file_del_qury'),
+        warning: translate('docs.msg.file_del_warn'),
       },
     });
     dialogRef.afterClosed().subscribe(result => {
@@ -1466,9 +1440,9 @@ export class ReturnDocComponent implements OnInit {
     .subscribe(
         (data) => {   
                     this.loadFilesInfo();
-                    this.openSnackBar("Успешно удалено", "Закрыть");
+                    this.openSnackBar(translate('docs.msg.deletet_succs'), translate('docs.msg.close'));
                 },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
     );  
   } 
 
@@ -1500,7 +1474,7 @@ export class ReturnDocComponent implements OnInit {
     (data =>{ 
         this.gettingTemplatesData=false;
         this.templatesList=data as TemplatesList[];
-      },error => {console.log(error);this.gettingTemplatesData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},);
+      },error => {console.log(error);this.gettingTemplatesData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},);
   }
   clickOnTemplate(template:TemplatesList){
     const baseUrl = '/api/auth/returnPrint/';
@@ -1519,7 +1493,7 @@ export class ReturnDocComponent implements OnInit {
           document.body.appendChild(downloadLink);
           downloadLink.click();
       }, 
-      error => console.log(error),
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
     );  
   }
   //------------------------------------------ COMMON UTILITES -----------------------------------------
@@ -1563,5 +1537,8 @@ export class ReturnDocComponent implements OnInit {
       if(+i['product_id']==productId){retIndex=formIndex}
       formIndex++;
   });return retIndex;}
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
+  }
 }
 

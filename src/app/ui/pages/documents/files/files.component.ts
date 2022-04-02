@@ -248,7 +248,7 @@ viewMode:string = "grid"; // способ отображения файлов - 
                           this.permissionsSet=data as any [];
                           this.getMyId();
                       },
-              error => console.log(error),
+              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
           );
   }
   getCRUD_rights(){
@@ -528,7 +528,7 @@ viewMode:string = "grid"; // способ отображения файлов - 
                       if (parentId>0) {this.loadTreesAndOpenNode(parentId)} else {this.loadTrees()};
                       this.resetSelectedCategory();
                   },
-          error => console.log(error),
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
       );  
     }
     clickBtnDelete(): void {
@@ -943,10 +943,10 @@ clickBtnFileUplioad(){
   //   return this.http.post('/api/auth/deleteProductImage',body)
   //   .subscribe(
   //       (data) => {   
-  //                   this.openSnackBar("Успешно удалено", "Закрыть");
+  //                   this.openSnackBar(translate('docs.msg.deletet_succs'), translate('docs.msg.close'));
   //                   //this.refreshImages();
   //               },
-  //       error => console.log(error),
+  //       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
   //   );  
   // }
 

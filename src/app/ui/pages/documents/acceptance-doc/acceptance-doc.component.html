@@ -47,9 +47,6 @@
                                         </div>
                             </mat-option>
                         </mat-select>
-                        <mat-hint  align="start" *ngIf="formBaseInformation.get('status_id').touched && formBaseInformation.get('status_id').invalid">
-                            <i class="form-invalid">{{t('docs.error.status_not_se')}}</i>
-                        </mat-hint>
                     </mat-form-field>
                 </div>
                 <div class="separator"></div><!-- !!! -->
@@ -303,7 +300,6 @@
                                                                     </mat-hint>
                                                                 </mat-form-field>
                                                                 <mat-progress-bar *ngIf="isCagentListLoading" mode="indeterminate"></mat-progress-bar>
-                                                                <!-- <button mat-stroked-button (click)="balanceCagentComponent.refresh()">111</button> -->
                                                             </div>
                                                         </div>
                                                     </div>
@@ -472,10 +468,7 @@
                         <p>
                             <span [matBadge]="filesInfo.length" matBadgeOverlap="false">{{t('docs.tab.files')}}</span>
                         </p>
-
-                      
                     </ng-template>
-
                     <div class="col-xl-5 col-lg-5 col-md-8 col-sm-12">
                         <div class="container-fluid">
                             <div class="row">
@@ -530,38 +523,37 @@
                     <div class="col-xl-5 col-lg-5 col-md-8 col-sm-12">
                         <div class="container-fluid">
                             <div class="row">
-                                   
-                                        <mat-card style="margin:10px 0 10px;width:100%;">
-                                            <form [formGroup]="formAboutDocument">
-                                                <mat-card-content class="input-form">
-                                                        <mat-form-field [ngClass]="{invisible: +id==0}">
-                                                            <input  matInput
-                                                                    placeholder="{{t('docs.field.company')}}"
-                                                                    formControlName="company" [readonly]=true/>
-                                                        </mat-form-field>
-                                                        <mat-form-field [ngClass]="{invisible:  +id==0}">
-                                                            <input  matInput
-                                                                    placeholder="{{t('docs.field.creator')}}"
-                                                                    formControlName="creator" [readonly]=true/>
-                                                        </mat-form-field>
-                                                        <mat-form-field [ngClass]="{invisible:  +id==0}">
-                                                            <input  matInput
-                                                                    placeholder="{{t('docs.field.created')}}"
-                                                                    formControlName="date_time_created" [readonly]=true/>
-                                                        </mat-form-field>
-                                                        <mat-form-field [ngClass]="{invisible:  +id==0}">
-                                                            <input  matInput
-                                                                    placeholder="{{t('docs.field.changer')}}"
-                                                                    formControlName="changer" [readonly]=true/>
-                                                        </mat-form-field>
-                                                        <mat-form-field [ngClass]="{invisible:  +id==0}">
-                                                            <input  matInput
-                                                                    placeholder="{{t('docs.field.changed')}}"
-                                                                    formControlName="date_time_changed" [readonly]=true/>
-                                                        </mat-form-field>
-                                                </mat-card-content>
-                                            </form>
-                                        </mat-card>  
+                                <mat-card style="margin:10px 0 10px;width:100%;">
+                                    <form [formGroup]="formAboutDocument">
+                                        <mat-card-content class="input-form">
+                                                <mat-form-field [ngClass]="{invisible: +id==0}">
+                                                    <input  matInput
+                                                            placeholder="{{t('docs.field.company')}}"
+                                                            formControlName="company" [readonly]=true/>
+                                                </mat-form-field>
+                                                <mat-form-field [ngClass]="{invisible:  +id==0}">
+                                                    <input  matInput
+                                                            placeholder="{{t('docs.field.creator')}}"
+                                                            formControlName="creator" [readonly]=true/>
+                                                </mat-form-field>
+                                                <mat-form-field [ngClass]="{invisible:  +id==0}">
+                                                    <input  matInput
+                                                            placeholder="{{t('docs.field.created')}}"
+                                                            formControlName="date_time_created" [readonly]=true/>
+                                                </mat-form-field>
+                                                <mat-form-field [ngClass]="{invisible:  +id==0}">
+                                                    <input  matInput
+                                                            placeholder="{{t('docs.field.changer')}}"
+                                                            formControlName="changer" [readonly]=true/>
+                                                </mat-form-field>
+                                                <mat-form-field [ngClass]="{invisible:  +id==0}">
+                                                    <input  matInput
+                                                            placeholder="{{t('docs.field.changed')}}"
+                                                            formControlName="date_time_changed" [readonly]=true/>
+                                                </mat-form-field>
+                                        </mat-card-content>
+                                    </form>
+                                </mat-card>  
                             </div>
                         </div>
                     </div>

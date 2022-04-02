@@ -7,6 +7,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { LoadSpravService } from './loadsprav';
 import { QueryFormService } from './get-remains-table.service';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
+import { translate } from '@ngneat/transloco'; //+++
 
 export interface DocTable {
   id: number;

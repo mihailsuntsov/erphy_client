@@ -11,6 +11,7 @@ import { TranslocoService } from '@ngneat/transloco';
 import { UserSettingsDialogComponent } from 'src/app/modules/settings/user-settings-dialog/user-settings-dialog.component';
 import { FormControl, FormGroup } from '@angular/forms';
 import { filter } from 'rxjs/operators';
+import { translate } from '@ngneat/transloco'; //+++
 
 /** @title Fixed sidenav */
 @Component({
@@ -174,7 +175,7 @@ export class UiComponent implements OnInit {
                     {
                       width:'400px',
                       data:{
-                        head:'Ошибка!',
+                        head:translate('docs.msg.error'),
                         message:'<p><b>Статус ошибки:</b> '+errStatus+'</p><p><b>Tекст ошибки:</b> '+errMsg+'</p>'
                       }
                     }).afterClosed().subscribe(
@@ -239,7 +240,7 @@ export class UiComponent implements OnInit {
             this.setLocale  (this.locale); // setting locale in moment.js
             this.isSettingsLoaded = true;
           },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
   }
 
@@ -275,29 +276,29 @@ export class UiComponent implements OnInit {
             .subscribe(
                 (data) => {   
                           this.getSettings();
-                          this.openSnackBar("Настройки успешно сохранены", "Закрыть");
+                          this.openSnackBar(translate('docs.msg.settngs_saved'), translate('docs.msg.close'));
                         },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
             );
   }
   getMyId(){
     this.loadSpravService.getMyId()
-    .subscribe((data) => {this.myId=data as number;/*this.setMyId();*/},error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+    .subscribe((data) => {this.myId=data as number;/*this.setMyId();*/},error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
   }
   getMyCompanyId(){
     this.loadSpravService.getMyCompanyId().subscribe(
     (data) => {this.myCompanyId=data as number;
       /*this.setMyCompanyId();*/
       this.getMyDepartmentsList()
-    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
   }
   getCompaniesList(){
     this.loadSpravService.getCompaniesList()
-      .subscribe((data) => {this.companiesList=data as any [];},error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+      .subscribe((data) => {this.companiesList=data as any [];},error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
   }
   getMyDepartmentsList(){
     this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
-      .subscribe((data) => {this.myDepartmentsList=data as any [];},error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+      .subscribe((data) => {this.myDepartmentsList=data as any [];},error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
   }
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {

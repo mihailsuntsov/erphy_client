@@ -7,6 +7,7 @@ import { ProductsDocComponent } from './products-doc.component';
 import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, ReactiveFormsModule/*, FormArray, FormControl, FormGroup, FormBuilder */} from '@angular/forms';
 import { DragDropModule } from '@angular/cdk/drag-drop';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [ProductsDocComponent],
@@ -17,8 +18,10 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
     MaterialModule,
     FormsModule,
     ReactiveFormsModule,
-    DragDropModule, 
+    DragDropModule,
+    TranslocoModule
     // FormArray, FormControl, FormGroup, FormBuilder 
-  ]
+  ],
+  providers:[{ provide: TRANSLOCO_SCOPE, useValue: ['docs','menu','modules']},]
 })
 export class ProductsDocModule { }

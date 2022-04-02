@@ -150,7 +150,7 @@ export class BoxofficeComponent implements OnInit {
                             this.permissionsSet=data as any [];
                             this.getMyId();
                         },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
             );
   }
 
@@ -345,7 +345,7 @@ export class BoxofficeComponent implements OnInit {
   }
   
   getBoxofficeNameById(id:string):string{
-    let name:string = 'Не установлен';
+    let name:string = translate('docs.msg.not_set');
     if(this.receivedBoxofficeList){
       this.receivedBoxofficeList.forEach(a=>{
         if(a.id==id) name=a.name;

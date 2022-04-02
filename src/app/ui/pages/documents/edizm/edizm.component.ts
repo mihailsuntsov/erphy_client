@@ -151,7 +151,7 @@ export class EdizmComponent implements OnInit {
                             this.permissionsSet=data as any [];
                             this.getMyId();
                         },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
             );
   }
 
@@ -455,10 +455,10 @@ export class EdizmComponent implements OnInit {
     //   return this.http.post('/api/auth/saveSettingsEdizm', this.settingsForm.value)
     //           .subscribe(
     //               (data) => {   
-    //                         this.openSnackBar("Настройки успешно сохранены", "Закрыть");
+    //                         this.openSnackBar(translate('docs.msg.settngs_saved'), translate('docs.msg.close'));
                             
     //                       },
-    //               error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+    //               error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
     //           );
     // }
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/

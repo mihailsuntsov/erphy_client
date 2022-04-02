@@ -11,6 +11,7 @@ import { HttpClient } from '@angular/common/http';
 import { FormGroup, FormControl } from '@angular/forms';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { LoadSpravService } from 'src/app/services/loadsprav';
+import { translate } from '@ngneat/transloco'; //+++
 
 
 
@@ -108,7 +109,7 @@ export class DashboardComponent implements OnInit {
       (data) => {
         this.myCompanyId=data as number;
         this.getSettings();
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
   }
 
   //загрузка настроек
@@ -123,7 +124,7 @@ export class DashboardComponent implements OnInit {
             //Устанавливаем значения из настроек
             this.setSettingsValues();
           },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
   }
 
@@ -147,7 +148,7 @@ export class DashboardComponent implements OnInit {
                       this.getMyDepartmentsList();
                     
                   },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
       );
   }
 
@@ -192,7 +193,7 @@ export class DashboardComponent implements OnInit {
                   this.receivedMyDepartmentsList=[];//для того, чтобы виджеты "заметили" изменение по этому массиву, и получили его (они реагируют только на изменение длины массива, но не на его содержание)
                   this.receivedMyDepartmentsList=data as IdAndName [];
                   this.getDepartmentsList();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
   }
 
@@ -211,7 +212,7 @@ export class DashboardComponent implements OnInit {
                   }
                   this.necessaryActionsBeforeGetChilds();
                 },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
   }
 
@@ -255,12 +256,12 @@ export class DashboardComponent implements OnInit {
     return this.http.post('/api/auth/saveSettingsDashboard', this.settingsForm.value)
     .subscribe(
       (data) => {   
-                this.openSnackBar("Настройки успешно сохранены", "Закрыть");
+                this.openSnackBar(translate('docs.msg.settngs_saved'), translate('docs.msg.close'));
                 //после сохранения  - устанавливаем новые настройки (применяем)
                 this.onSaveSettings = true; //настройки были подвержены изменениям. Значит, в конце всей заново запущенной setSettingsValues цепочки методов выполнится перезапуск всех виджетов (метод vidgetsReload())
                 this.setSettingsValues();
               },
-      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
     );
   }
 

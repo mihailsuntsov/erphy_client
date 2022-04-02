@@ -1,4 +1,4 @@
-import { Component, OnInit , Inject, Optional } from '@angular/core';
+import { Component, OnInit , Inject, Optional, Output, EventEmitter } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { Validators, FormGroup, FormArray, FormControl, FormBuilder } from '@angular/forms';
@@ -13,25 +13,14 @@ import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
-import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE}  from '@angular/material/core';
-import { MomentDateAdapter} from '@angular/material-moment-adapter';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
-import * as _moment from 'moment';
-import {default as _rollupMoment} from 'moment';
-const moment = _rollupMoment || _moment;
-moment.defaultFormat = "DD.MM.YYYY";
-moment.fn.toJSON = function() { return this.format('DD.MM.YYYY'); }
-export const MY_FORMATS = {
-  parse: {
-    dateInput: 'DD.MM.YYYY',
-  },
-  display: {
-    dateInput: 'DD.MM.YYYY',
-    monthYearLabel: 'MMM YYYY',
-    dateA11yLabel: 'DD.MM.YYYY',
-    monthYearA11yLabel: 'MMMM YYYY',
-  },
-};
+import { translate } from '@ngneat/transloco'; //+++
+
+import { MomentDefault } from 'src/app/services/moment-default';
+import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
+import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+const MY_FORMATS = MomentDefault.getMomentFormat();
+const moment = MomentDefault.getMomentDefault();
 
 interface docResponse {//интерфейс для получения ответа в запросе значений полей документа
   id: number;
@@ -175,9 +164,9 @@ interface PaymentAccountsForm { //интерфейс для формы paymentAc
   templateUrl: './cagents-doc.component.html',
   styleUrls: ['./cagents-doc.component.css'],
   providers: [LoadSpravService,
-    {provide: MAT_DATE_LOCALE, useValue: 'ru'},
-    {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
-    {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},]
+    { provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]}, //+++
+    {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
+  ]
 })
 
 export class CagentsDocComponent implements OnInit {
@@ -267,6 +256,8 @@ export class CagentsDocComponent implements OnInit {
   numChildsOfSelectedCategory: number=0;
   categoriesExpanded=false;//открыты или закрыты категории
 
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
+  
 constructor(private activateRoute: ActivatedRoute,
   private http: HttpClient,
   public MessageDialog: MatDialog,
@@ -275,7 +266,8 @@ constructor(private activateRoute: ActivatedRoute,
   private _snackBar: MatSnackBar,
   private _fb: FormBuilder, //чтобы билдить группу форм myForm: FormBuilder, //для билдинга групп форм по контактным лицам и банковским реквизитам
   @Optional() @Inject(MAT_DIALOG_DATA) public data: any,
-  public ConfirmDialog: MatDialog) { 
+  public ConfirmDialog: MatDialog,
+  private _adapter: DateAdapter<any>) { 
     // console.log(this.activateRoute);
     if(activateRoute.snapshot.params['id'])
       this.id = +activateRoute.snapshot.params['id'];// +null returns 0
@@ -350,17 +342,10 @@ constructor(private activateRoute: ActivatedRoute,
     this.checkedList = [];
     this.getSpravSysOPF();
     this.getSetOfPermissions();
-    //->getMyCompanyId()
-    //->getCRUD_rights()
-    //->getData()  (док существует):-> getDocumentValuesById()->refreshPermissions()->loadTrees()
-    // (новый док):
-    //->getCompaniesList()
-    //->setDefaultCompany()
-    //->getStatusesList()
-    //->setDefaultStatus()
-    //->getPriceTypesList()
-    //->refreshPermissions()
-    //->loadTrees() (новый док)
+    //+++ getting base data from parent component
+    // this.getBaseData('myId');    
+    this.getBaseData('myCompanyId');  
+    this.getBaseData('companiesList');  
 
     if(this.data)//если документ вызывается в окне из другого документа
     {
@@ -385,8 +370,8 @@ constructor(private activateRoute: ActivatedRoute,
         (data) => {   
                     this.permissionsSet=data as any [];
                     this.getMyCompanyId();
-                },
-        error => console.log(error),
+        },
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
     );
   }
 
@@ -440,18 +425,6 @@ constructor(private activateRoute: ActivatedRoute,
       }
   }
 
-  getCompaniesList(){
-    this.receivedCompaniesList=null;
-    this.loadSpravService.getCompaniesList()
-            .subscribe(
-                (data) => 
-                {
-                  this.receivedCompaniesList=data as any [];
-                  this.doFilterCompaniesList();
-                },                      
-                error => console.log(error)
-            );
-  }
   doFilterCompaniesList(){
     let myCompany:any;
     if(!this.allowToCreateAllCompanies){
@@ -463,12 +436,29 @@ constructor(private activateRoute: ActivatedRoute,
     if(+this.id==0)//!!!!! отсюда загружаем настройки только если документ новый. Если уже создан - настройки грузятся из get<Document>ValuesById
       this.setDefaultCompany();
   }
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
-      (data) => {
-        this.myCompanyId=data as number;
-        this.getCRUD_rights();
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+
+  
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+      this.loadSpravService.getCompaniesList()
+        .subscribe(
+            (data) => 
+            {
+              this.receivedCompaniesList=data as any [];
+              this.doFilterCompaniesList();
+            },                      
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+        );
+    else this.doFilterCompaniesList();
+  }
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
+        (data) => {
+          this.myCompanyId=data as number;
+          this.getCRUD_rights();
+        }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
+    else this.getCRUD_rights();
   }
 
   setDefaultCompany(){
@@ -487,7 +477,7 @@ constructor(private activateRoute: ActivatedRoute,
 
   getDocumentValuesById(){
     const docId = {"id": this.id};
-          this.http.post('/api/auth/getCagentValues', docId)
+    this.http.post('/api/auth/getCagentValues', docId)
         .subscribe(
               data => 
               { 
@@ -542,9 +532,7 @@ constructor(private activateRoute: ActivatedRoute,
                   this.formBaseInformation.get('jr_ip_ogrnip').setValue(documentValues.jr_ip_ogrnip);
                   this.formBaseInformation.get('jr_ip_svid_num').setValue(documentValues.jr_ip_svid_num);
                   this.formBaseInformation.get('jr_ip_reg_date').setValue(documentValues.jr_ip_reg_date?moment(documentValues.jr_ip_reg_date,'DD.MM.YYYY'):"");
-                  
                   this.checkedList=documentValues.cagent_categories_id;
-
                   this.searchRegionCtrl.setValue(documentValues.region);
                   this.searchJrRegionCtrl.setValue(documentValues.jr_region);
                   this.area=documentValues.area;
@@ -558,13 +546,13 @@ constructor(private activateRoute: ActivatedRoute,
                   this.setJurElementsVisible();
                   this.getCagentsContacts();
                   this.getCagentsPaymentAccounts();
-                  //!!!
-                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
+                  
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();
-              },
-              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
-          );
-    }
+            },
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
+        );
+  }
 
   clickBtnCreateNewDocument(){// Нажатие кнопки Записать
     this.createNewDocument();
@@ -582,9 +570,9 @@ constructor(private activateRoute: ActivatedRoute,
                     this.formBaseInformation.get('id').setValue(this.id);
                     this.rightsDefined=false; //!!!
                     this.getData();
-                    this.openSnackBar("Документ успешно создан", "Закрыть");
+                    this.openSnackBar(translate('docs.msg.doc_crtd_suc'),translate('docs.msg.close'));
     },
-    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error}})}
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
   
@@ -605,9 +593,9 @@ constructor(private activateRoute: ActivatedRoute,
           (data) => 
           {   
                   this.getData();
-                  this.openSnackBar("Документ \"Контрагенты\" сохранён", "Закрыть");
-          },
-          error => console.log(error),
+                  this.openSnackBar(translate('docs.msg.doc_sved_suc'),translate('docs.msg.close'));
+                },
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
       );
   }
   getPriceTypesList(){
@@ -840,8 +828,8 @@ constructor(private activateRoute: ActivatedRoute,
       width: '400px',
       data:
       { 
-        head: 'Копирование адреса',
-        query: 'Скопировать адресные данные из юридического адреса (вкладка "Юридические данные")?',
+        head: translate('docs.msg.addr_copy'),
+        query: translate('docs.msg.addr_copy_qj'),
         warning: '',
       },
     });
@@ -865,8 +853,8 @@ constructor(private activateRoute: ActivatedRoute,
       width: '400px',
       data:
       { 
-        head: 'Копирование адреса',
-        query: 'Скопировать адресные данные из адреса (вкладка "Информация")?',
+        head: translate('docs.msg.addr_copy'),
+        query: translate('docs.msg.addr_copy_q'),
         warning: '',
       },
     });
@@ -1120,7 +1108,7 @@ constructor(private activateRoute: ActivatedRoute,
         (data) => { resultContainer=data as any [];
                     this.fillContactsArray(resultContainer);
                 },
-        error => console.log(error),
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
     );
   }
   fillContactsArray(arr: any[]){
@@ -1155,8 +1143,8 @@ constructor(private activateRoute: ActivatedRoute,
       width: '400px',
       data:
       { 
-        head: 'Удаление Контактного лица',
-        query: 'Удалить карточку контактного лица?',
+        head: translate('docs.msg.del_cntct'),
+        query: translate('docs.msg.del_cntct_q'),
         warning: '',
       },
     });
@@ -1207,7 +1195,7 @@ constructor(private activateRoute: ActivatedRoute,
         (data) => { resultContainer=data as any [];
                     this.fillPaymentAccountsArray(resultContainer);
                 },
-        error => console.log(error),
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
     );
   }
   fillPaymentAccountsArray(arr: any[]){
@@ -1242,8 +1230,8 @@ constructor(private activateRoute: ActivatedRoute,
       width: '400px',
       data:
       { 
-        head: 'Удаление банковских реквизитов',
-        query: 'Удалить карточку банковских реквизитов?',
+        head: translate('docs.msg.del_acc'),
+        query: translate('docs.msg.del_acc_q'),
         warning: '',
       },
     });
@@ -1286,7 +1274,9 @@ constructor(private activateRoute: ActivatedRoute,
     });
   }
 
-
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
+  }
 
 
 }

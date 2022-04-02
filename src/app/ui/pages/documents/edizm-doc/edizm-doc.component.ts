@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { Validators, FormGroup, FormControl} from '@angular/forms';
@@ -7,6 +7,7 @@ import { Router } from '@angular/router';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatDialog } from '@angular/material/dialog';
+import { translate } from '@ngneat/transloco'; //+++
 
 interface docResponse {//интерфейс для получения ответа в запросе значений полей документа
   id: number;
@@ -75,6 +76,8 @@ export class EdizmDocComponent implements OnInit {
   rightsDefined:boolean = false;
 
   type_short_name:string = '';
+  
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
 
   constructor(private activateRoute: ActivatedRoute,
     private http: HttpClient,
@@ -111,6 +114,10 @@ export class EdizmDocComponent implements OnInit {
    // this.checkedList = [];
    
     this.getSetOfPermissions();
+    //+++ getting base data from parent component
+    this.getBaseData('myId');    
+    this.getBaseData('myCompanyId');  
+    this.getBaseData('companiesList');     
     
   }
 // -------------------------------------- *** ПРАВА *** ------------------------------------
@@ -120,27 +127,51 @@ export class EdizmDocComponent implements OnInit {
           (data) => {   
                       this.permissionsSet=data as any [];
                       this.getMyId();
-                  },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+      },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
       );
   }
-  
-  getMyId(){
-    this.loadSpravService.getMyId()
+
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+      this.loadSpravService.getCompaniesList()
+        .subscribe(
+            (data) => 
+            {
+              this.receivedCompaniesList=data as any [];
+              this.setDefaultCompany();
+            },                      
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+        );
+    else this.setDefaultCompany();
+  }
+  getMyId(){ //+++
+    if(+this.myId==0)
+      this.loadSpravService.getMyId()
             .subscribe(
                 (data) => {this.myId=data as any;
                   this.getMyCompanyId();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
+    else this.getMyCompanyId();
+  }
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
+        (data) => {
+          this.myCompanyId=data as number;
+          this.getCRUD_rights();
+        }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
+    else this.getCRUD_rights();
   }
 
-  getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==120)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==120)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==122)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==123)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==124)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==125)});
+  getCRUD_rights(){
+    this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==120)});
+    this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==120)});
+    this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==122)});
+    this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==123)});
+    this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==124)});
+    this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==125)});
    
     if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;}
     if(this.allowToViewAllCompanies){this.allowToViewMyCompany=true;}
@@ -169,13 +200,7 @@ export class EdizmDocComponent implements OnInit {
     this.rightsDefined=true;//!!!
   }
 
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
-      (data) => {
-        this.myCompanyId=data as number;
-        this.getCRUD_rights(this.permissionsSet);
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
-  }
+  
   // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
 
   getData(){
@@ -185,17 +210,6 @@ export class EdizmDocComponent implements OnInit {
       this.getCompaniesList(); 
     }
   }
-
-  getCompaniesList(){
-    this.receivedCompaniesList=null;
-    this.loadSpravService.getCompaniesList()
-            .subscribe(
-                (data) => 
-                {
-                  this.receivedCompaniesList=data as any [];
-                  this.setDefaultCompany();
-                }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
-    }
 
   setDefaultCompany(){
     this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
@@ -223,15 +237,14 @@ export class EdizmDocComponent implements OnInit {
                   this.formBaseInformation.get('short_name').setValue(documentResponse.short_name);
                   this.formBaseInformation.get('type_id').setValue(+documentResponse.type_id);
                   this.formBaseInformation.get('equals_si').setValue(documentResponse.equals_si);
-
-                  this.changeTypeId();
-                  //!!!
-                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
+                  this.changeTypeId();                  
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();
             },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
         );
   }
+
   clickBtnCreateNewDocument(){// Нажатие кнопки Записать
     this.createNewDocument();
   }
@@ -246,9 +259,9 @@ export class EdizmDocComponent implements OnInit {
                                 this._router.navigate(['/ui/taxesdoc', this.id]);
                                 this.formBaseInformation.get('id').setValue(this.id);
                                 this.getData();
-                                this.openSnackBar("Документ \"Типы цен\" успешно создан", "Закрыть");
+                                this.openSnackBar(translate('docs.msg.doc_crtd_suc'),translate('docs.msg.close'));
                             },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
             );
   }
   
@@ -267,9 +280,9 @@ export class EdizmDocComponent implements OnInit {
                 (data) => {   
                             this.updateDocumentResponse=data as string;
                             this.getData();
-                            this.openSnackBar("Документ \"Типы цен\" сохранён", "Закрыть");
-                        },
-                error => console.log(error),
+                            this.openSnackBar(translate('docs.msg.doc_sved_suc'),translate('docs.msg.close'));
+                          },
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
             );
   }
 
@@ -277,16 +290,16 @@ export class EdizmDocComponent implements OnInit {
   changeTypeId(){    
     switch (+this.formBaseInformation.get('type_id').value) {
       case 2:
-        this.type_short_name='1 килограмму';
+        this.type_short_name=translate('docs.msg.one_kg');
         break;
       case 3:
-        this.type_short_name='1 метру';
+        this.type_short_name=translate('docs.msg.one_meter');
         break;
       case 4:
-        this.type_short_name='1 кв. метру';
+        this.type_short_name=translate('docs.msg.one_sqmeter');
         break;
       case 5:
-        this.type_short_name='1 куб. метру';
+        this.type_short_name=translate('docs.msg.one_qmeter');
         break;
       default:
         {this.type_short_name='';
@@ -300,11 +313,14 @@ export class EdizmDocComponent implements OnInit {
       width: '400px',
       data:
       { 
-        head: 'Множитель для приведения к единице СИ',
-        message: 'Множитель сообщает системе, во сколько раз ваша единица больше общепринятых международных единиц. Например, для массы международной единицей является килограмм. Тогда для тонны множитель: 1000, для килограмма: 1, для грамма: 0.001'
+        head: translate('docs.msg.multplr'),
+        message: translate('docs.msg.abt_multplr')
       },
     });
     dialogRef.afterClosed().subscribe(result => {});  
   }
 
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
+  }
 }

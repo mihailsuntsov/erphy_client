@@ -4,6 +4,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { translate } from '@ngneat/transloco'; //+++
 interface IdAndName {
   id: number;
   name:string;
@@ -86,7 +87,7 @@ export class IndicatorsLeftComponent implements OnInit {
         (data) => {
           this.multi=data as any []; 
         },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
 

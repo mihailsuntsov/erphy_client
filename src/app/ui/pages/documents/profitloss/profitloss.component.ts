@@ -197,7 +197,7 @@ export class ProfitlossComponent implements OnInit {
                     this.operational=documentValues.operational;                // список операционных расходов типа Имя - Значение
                     this.dataSource.data = documentValues.operational;
                 },
-                error => {this.gettingTableData=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error}})}
+                error => {this.gettingTableData=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}
             );
       }
     

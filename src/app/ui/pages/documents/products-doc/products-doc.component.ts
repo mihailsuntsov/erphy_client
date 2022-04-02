@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, Inject, Optional } from '@angular/core';
+import { Component, OnInit, ViewChild, Inject, Optional, Output, EventEmitter } from '@angular/core';
 import { ProductHistoryQuery } from './product-history-form';
 import { ProductHistoryService } from './get-producthistory-table.service';
 import { MatTableDataSource } from '@angular/material/table';
@@ -25,25 +25,13 @@ import { ProductBarcodesDialogComponent } from 'src/app/ui/dialogs/product-barco
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
+import { translate } from '@ngneat/transloco'; //+++
 
-import { MomentDateAdapter } from '@angular/material-moment-adapter';
+import { MomentDefault } from 'src/app/services/moment-default';
+import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
-import * as _moment from 'moment';
-import { default as _rollupMoment } from 'moment';
-const moment = _rollupMoment || _moment;
-moment.defaultFormat = "DD.MM.YYYY";
-moment.fn.toJSON = function() { return this.format('DD.MM.YYYY'); }
-export const MY_FORMATS = {
-  parse: {
-    dateInput: 'DD.MM.YYYY',
-  },
-  display: {
-    dateInput: 'DD.MM.YYYY',
-    monthYearLabel: 'MMM YYYY',
-    dateA11yLabel: 'DD.MM.YYYY',
-    monthYearA11yLabel: 'MMMM YYYY',
-  },
-};
+const MY_FORMATS = MomentDefault.getMomentFormat();
+const moment = MomentDefault.getMomentDefault();
 
 interface docResponse {//интерфейс для получения ответа в запросе значений полей документа
   id: number;
@@ -159,9 +147,9 @@ interface docResponse {//интерфейс для получения ответ
   templateUrl: './products-doc.component.html',
   styleUrls: ['./products-doc.component.css'],
   providers: [LoadSpravService,UploadFileService,ProductHistoryService,
-    {provide: MAT_DATE_LOCALE, useValue: 'ru'},
-    {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
-    {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},]
+    { provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]}, //+++
+    {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
+  ]
 })
 
 export class ProductsDocComponent implements OnInit {
@@ -258,6 +246,7 @@ mode: string = 'standart';  // режим работы документа:
 // createForAcceptance - оконный режим создания товара для приёмки, 
 // viewInWindow - открытие на просмотр в окне в другом документе
 @ViewChild("codeFreeValue", {static: false}) codeFreeValue;
+@Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
 // *****  переменные tree  ***** 
 private _transformer = (node: ProductCategoriesTreeNode, level: number) => {
   return {
@@ -309,6 +298,7 @@ constructor(private activateRoute: ActivatedRoute,
   public ProductCagentsDialogComponent: MatDialog,
   public ProductBarcodesDialogComponent: MatDialog,
   public dialogRefProduct: MatDialogRef<ProductsDocComponent>,
+  private _adapter: DateAdapter<any>,
   @Optional() @Inject(MAT_DIALOG_DATA) public data: any) { 
      this.id = +activateRoute.snapshot.params['id'];// +null returns 0
   }
@@ -373,9 +363,11 @@ constructor(private activateRoute: ActivatedRoute,
     });
     this.checkedList = [];
     this.documentsIds.forEach(z=>{this.selection.select(z);this.checkedChangesList.push(+z.id);});
-    this.getSetOfPermissions();//->getMyCompanyId()->getCRUD_rights()->getData()->__getCompaniesList()->setDefaultCompany()->(если новый док) refreshPermissions() 
-    // //                                                                      |                                          |__(док существует)->getDepartmentsList()->getMyDepartmentsList()->setDefaultDepartment()            
-    //                                                                         |__(док существует)->getDocumentValuesById()->refreshPermissions() 
+    this.getSetOfPermissions();
+    //+++ getting base data from parent component
+    this.getBaseData('myCompanyId');  
+    this.getBaseData('companiesList');  
+    this.getBaseData('myDepartmentsList');    
 
 
     this.onProductGroupValueChanges();//отслеживание изменений поля "Группа товаров"
@@ -413,18 +405,18 @@ getSetOfPermissions(){
         (data) => {   
                     this.permissionsSet=data as any [];
                     this.getMyCompanyId();
-                },
-        error => console.log(error),
-    );
-}
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
+        );
+  }
 
-getCRUD_rights(permissionsSet:any[]){
-  this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==163)});
-  this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==164)});
-  this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==167)});
-  this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==168)});
-  this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==169)});
-  this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==170)});
+getCRUD_rights(){
+  this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==163)});
+  this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==164)});
+  this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==167)});
+  this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==168)});
+  this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==169)});
+  this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==170)});
   this.getData();
 }
 
@@ -459,31 +451,40 @@ refreshPermissions():boolean{
       this.loadBarcodesInfo();
     }
   }
-
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
-      (data) => {
-        this.myCompanyId=data as number;
-        this.getCRUD_rights(this.permissionsSet);
-      }, error => console.log(error));
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+      this.loadSpravService.getCompaniesList()
+        .subscribe(
+            (data) => 
+            {
+              this.receivedCompaniesList=data as any [];
+              this.receivedCompaniesListForHistoryReport=data as any [];
+              this.doFilterCompaniesList();
+            },                      
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+        );
+    else this.doFilterCompaniesList();
   }
-
-  getCompaniesList(){
-    console.log("getCompaniesList");
-    this.receivedCompaniesList=null;
-    this.receivedCompaniesListForHistoryReport=null;
-    this.loadSpravService.getCompaniesList()
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
+        (data) => {
+          this.myCompanyId=data as number;
+          this.getCRUD_rights();
+        }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
+    else this.getCRUD_rights();
+  }
+  getMyDepartmentsList(){ //+++
+    if(this.receivedMyDepartmentsList.length==0)
+    this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
             .subscribe(
-                (data) => 
-                {
-                  this.receivedCompaniesList=data as any [];
-                  this.receivedCompaniesListForHistoryReport=data as any [];
-                  this.doFilterCompaniesList()
-                  this.setDefaultCompany();
-                },                      
-                error => console.log(error)
+                (data) => {this.receivedMyDepartmentsList=data as any [];
+                  this.setDefaultDepartment();},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
+    else this.setDefaultDepartment();
   }
+
   setDefaultCompany(){
     console.log("setDefaultCompany");
     //если документ создан - устанавливаем дефолтное предприятие для отчёта
@@ -506,15 +507,7 @@ refreshPermissions():boolean{
                 error => console.log(error)
             );
   }
-  getMyDepartmentsList(){
-    this.receivedMyDepartmentsList=null;
-    this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
-            .subscribe(
-                (data) => {this.receivedMyDepartmentsList=data as any [];
-                  this.setDefaultDepartment();},
-                error => console.log(error)
-            );
-  }
+
   setDefaultDepartment(){
     if(this.receivedMyDepartmentsList.length==1)
     {
@@ -526,7 +519,7 @@ refreshPermissions():boolean{
   }
   getDocumentValuesById(){
     const docId = {"id": this.id};
-          this.http.post('/api/auth/getProductValues', docId)
+    this.http.post('/api/auth/getProductValues', docId)
         .subscribe(
             data => { 
               
@@ -562,8 +555,6 @@ refreshPermissions():boolean{
                   this.formBaseInformation.get('not_buy').setValue(documentValues.not_buy);
                   this.formBaseInformation.get('not_sell').setValue(documentValues.not_sell);
                   this.formBaseInformation.get('indivisible').setValue(documentValues.indivisible);
-                  
-
                   this.searchProductGroupsCtrl.setValue(documentValues.productgroup);
                   this.checkedList=documentValues.product_categories_id;
                   
@@ -573,11 +564,10 @@ refreshPermissions():boolean{
                   this.getProductPrices(); // загрузка типов цен
                   this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
                   //!!!
-                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();
-
             },
-            error => console.log(error)
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
         );
   }
   //фильтрация при каждом изменении в поле маркированных товаров, создание нового массива и его возврат
@@ -593,7 +583,7 @@ refreshPermissions():boolean{
   //Загрузка групп (сетов) полей
   getSets(){
     const docId = {"field_type":"1","documentId":this.id};
-            this.http.post('/api/auth/getProductGroupFieldsListWithValues', docId)
+    this.http.post('/api/auth/getProductGroupFieldsListWithValues', docId)
             .subscribe(
                 (data) => {
                   this.receivedSetsOfFields=data as any []; 
@@ -725,22 +715,22 @@ refreshPermissions():boolean{
   clickBtnCreateNewDocument(){// Нажатие кнопки Записать
     this.product_code_free_isReadOnly=true;
     this.createNewDocument();
-  }
+  } 
   createNewDocument(){
     this.createdDocId=null;
     this.formBaseInformation.get('selectedProductCategories').setValue(this.checkedList);
     this.http.post('/api/auth/insertProduct', this.formBaseInformation.value)
-            .subscribe(
-                (data) =>   {
-                                this.createdDocId=data as string [];
-                                this.id=+this.createdDocId[0];
-                                this.formBaseInformation.get('id').setValue(this.id);
-                                this.rightsDefined=false; //!!!
-                                this.getData();
-                                this.openSnackBar("Документ \"Товары и услуги\" успешно создан", "Закрыть");
-                            },
-                error => console.log(error),
-            );
+    .subscribe(
+      (data) =>   {
+                      this.createdDocId=data as string [];
+                      this.id=+this.createdDocId[0];
+                      this.formBaseInformation.get('id').setValue(this.id);
+                      this.rightsDefined=false; //!!!
+                      this.getData();
+                      this.openSnackBar(translate('docs.msg.doc_crtd_succ',{name:translate('docs.docs.products')}), translate('docs.msg.close'));
+                  },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
+    );
   }
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
@@ -756,21 +746,21 @@ refreshPermissions():boolean{
     this.formBaseInformation.get('imagesIdsInOrderOfList').setValue(this.getImagesIdsInOrderOfList());
     this.formBaseInformation.get('cagentsIdsInOrderOfList').setValue(this.getCagentsIdsInOrderOfList());
     return this.http.post('/api/auth/updateProducts', this.formBaseInformation.value)
-      .subscribe(
-          (data) => 
-          {   
-            return this.http.post('/api/auth/updateProductCustomFields', this.fieldsForm.get('fields').value)
-            .subscribe(
-                (data2) => 
-                {
-                  this.getData();
-                  this.openSnackBar("Документ \"Товары и услуги\" сохранён", "Закрыть");
-                },
-                error => console.log(error),
-            );
-          },
-          error => console.log(error),
-      );
+    .subscribe(
+      (data) => 
+      {   
+        return this.http.post('/api/auth/updateProductCustomFields', this.fieldsForm.get('fields').value)
+        .subscribe(
+            (data2) => 
+            {
+              this.getData();
+              this.openSnackBar(translate('docs.msg.doc_sved_succ',{name:translate('docs.docs.products')}), translate('docs.msg.close'));
+            },
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
+        );
+      },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
+    );
   }
 
   getSpravSysPPR(){
@@ -988,10 +978,10 @@ refreshPermissions():boolean{
             return this.http.post('/api/auth/addImagesToProduct', body) 
               .subscribe(
                   (data) => {  
-                    this.openSnackBar("Изображения добавлены", "Закрыть");
+                    this.openSnackBar(translate('docs.msg.imgs_added'), translate('docs.msg.close'));
                     this.loadImagesInfo();
                             },
-                  error => console.log(error),
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
               );
   }
   getImagesIdsInOrderOfList(): number[] {
@@ -1014,7 +1004,7 @@ refreshPermissions():boolean{
                               }
                               this.loadMainImage();
                             },
-                  error => console.log(error),
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
               );
   }
   getImage(imageUrl: string): Observable<Blob> {
@@ -1059,9 +1049,9 @@ refreshPermissions():boolean{
       width: '400px',
       data:
       { 
-        head: 'Удаление изображения',
-        query: 'Удалить изображение из карточки товара?',
-        warning: 'Изображение не будет удалено безвозвратно, оно останется в Медиа-библиотеке.',
+        head:   translate('docs.msg.del_img'),
+        query:  translate('docs.msg.del_img_f_crd'),
+        warning:translate('docs.msg.img_will_stay'),
       },
     });
     dialogRef.afterClosed().subscribe(result => {
@@ -1073,10 +1063,10 @@ refreshPermissions():boolean{
     return this.http.post('/api/auth/deleteProductImage',body)
     .subscribe(
         (data) => {   
-                    this.openSnackBar("Успешно удалено", "Закрыть");
+                    this.openSnackBar(translate('docs.msg.deletet_succs'), translate('docs.msg.close'));
                     this.loadImagesInfo();
                 },
-        error => console.log(error),
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
     );  
   }
   openFileCard(docId:number) {
@@ -1114,25 +1104,25 @@ refreshPermissions():boolean{
   addCagentsToProduct(cagentsIds: number[]){
     console.log("cagentsIds:"+cagentsIds);
     const body = {"id1":this.id, "setOfLongs1":cagentsIds};// передаем id товара и id поставщиков 
-            return this.http.post('/api/auth/addCagentsToProduct', body) 
+    return this.http.post('/api/auth/addCagentsToProduct', body) 
               .subscribe(
                   (data) => {  
-                    this.openSnackBar("Поставщики добавлены", "Закрыть");
+                    this.openSnackBar(translate('docs.msg.splrs_added'), translate('docs.msg.close'));
                     this.loadCagentsInfo();
                             },
-                  error => console.log(error),
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
               );
   }
 
   loadCagentsInfo(){//загружает информацию по поставщикам товара
       const body = {"id":this.id};
-            return this.http.post('/api/auth/getListOfProductCagents', body) 
+      return this.http.post('/api/auth/getListOfProductCagents', body) 
               .subscribe(
                   (data) => {  
                               this.cagentsInfo = data as any[]; 
-                              console.log("cagentsInfo:"+this.cagentsInfo);
+                              // console.log("cagentsInfo:"+this.cagentsInfo);
                             },
-                  error => console.log(error),
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
               );
   }
   dropCagent(event: CdkDragDrop<string[]>) {
@@ -1143,8 +1133,8 @@ refreshPermissions():boolean{
       width: '400px',
       data:
       { 
-        head: 'Удаление поставщика',
-        query: 'Удалить поставщика из карточки товара?',
+        head:   translate('docs.msg.del_spl'),
+        query:  translate('docs.msg.del_spl_f_crd'),
         warning: '',
       },
     });
@@ -1158,17 +1148,17 @@ refreshPermissions():boolean{
     return this.http.post('/api/auth/deleteProductCagent',body)
     .subscribe(
         (data) => {   
-                    this.openSnackBar("Успешно удалено", "Закрыть");
+                    this.openSnackBar(translate('docs.msg.deletet_succs'), translate('docs.msg.close'));
                     this.loadCagentsInfo();
                 },
-        error => console.log(error),
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
     );  
   }
 
   clickBtnEditCagentProperties(cagentId: number, cagentArticle: string, additional: string): void {
-    console.log("--cagentId:"+cagentId);
-    console.log("--cagentArticle:"+cagentArticle);
-    console.log("--cagentAdditional:"+additional);
+    // console.log("--cagentId:"+cagentId);
+    // console.log("--cagentArticle:"+cagentArticle);
+    // console.log("--cagentAdditional:"+additional);
     const dialogRef = this.ProductCagentsDialogComponent.open(ProductCagentsDialogComponent, {
       width: '800px', 
       data:
@@ -1177,13 +1167,13 @@ refreshPermissions():boolean{
         cagentId: +cagentId,
         cagentArticle: cagentArticle , 
         cagentAdditional: additional,
-        docName:"Свойства поставщика",
+        docName:translate('docs.msg.spl_prprties'),
       },
     });
     dialogRef.afterClosed().subscribe(result => {
       this.loadCagentsInfo();
     },
-    error => console.log(error),);        
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},);        
   }
   getCagentsIdsInOrderOfList(): number[] {
     var i: number []=[];
@@ -1217,7 +1207,7 @@ refreshPermissions():boolean{
         mode: 'create',
         companyId: this.formBaseInformation.get('company_id').value,
         productId: +this.id,
-        docName:"Добавление штрих-кода",
+        docName:translate('docs.msg.bcd_adding'),
         value: "",
         barcode_id: "",
         description: "",
@@ -1234,13 +1224,13 @@ refreshPermissions():boolean{
 
   loadBarcodesInfo(){//загружает информацию по штрих-кодам товара
       const body = {"id":this.id};
-            return this.http.post('/api/auth/getListOfProductBarcodes', body) 
+      return this.http.post('/api/auth/getListOfProductBarcodes', body) 
               .subscribe(
                   (data) => {  
                               this.barcodesInfo = data as any[]; 
                               console.log("barcodesInfo:"+this.barcodesInfo);
                             },
-                  error => console.log(error),
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
               );
   }
 
@@ -1249,8 +1239,8 @@ refreshPermissions():boolean{
       width: '400px',
       data:
       { 
-        head: 'Удаление штрих-кода',
-        query: 'Удалить штрих-код из карточки товара?',
+        head:   translate('docs.msg.del_bcd'),
+        query:  translate('docs.msg.del_bcd_f_crd'),
         warning: '',
       },
     });
@@ -1264,10 +1254,10 @@ refreshPermissions():boolean{
     return this.http.post('/api/auth/deleteProductBarcode',body)
     .subscribe(
         (data) => {   
-                    this.openSnackBar("Успешно удалено", "Закрыть");
+                    this.openSnackBar(translate('docs.msg.deletet_succs'), translate('docs.msg.close'));
                     this.loadBarcodesInfo();
                 },
-        error => console.log(error),
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
     );  
   }
   clickBtnEditBarcodeProperties(id: number, barcodeId: number, value: string, description: string, name: string): void {
@@ -1282,13 +1272,13 @@ refreshPermissions():boolean{
         description: description , 
         value: value,
         name: name,
-        docName:"Редактирование штрих-кода",
+        docName:translate('docs.msg.edit_bcd'),
       },
     });
     dialogEditBarcodeProperties.afterClosed().subscribe(result => {
       if(result) this.loadBarcodesInfo();
     },
-    error => console.log(error),);        
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},);        
   }
   generateProductWeightCode(){
     this.isWeightCodeGenerating=true;
@@ -1298,7 +1288,7 @@ refreshPermissions():boolean{
         (data) => {   
                     this.setProductWeightCode(data as any);
                     this.isWeightCodeGenerating=false;
-                    this.openSnackBar("Весовой код товара создан", "Закрыть");
+                    this.openSnackBar(translate('docs.msg.w_code_crtd'), translate('docs.msg.close'));
                 },
         error => {console.log(error),this.isWeightCodeGenerating=false;}
     );
@@ -1328,9 +1318,9 @@ refreshPermissions():boolean{
       width: '400px',
       data:
       { 
-        head: 'Редактирование кода',
-        warning: 'Открыть поле "Код" на редактирование?',
-        query: 'Код присваивается системой автоматически. Если Вы хотите редактировать поле "Код", и вместе с тем оставить возможность системе генерировать код в последующих создаваемых товарах, пожалуйста, не исползуйте более 9 цифр в коде.',
+        head:     translate('docs.msg.cde_num_head'),
+        warning:  translate('docs.msg.cde_num_query'),
+        query:    translate('docs.msg.cde_num_warn'),
       },
     });
     dialogRef.afterClosed().subscribe(result => {
@@ -1353,7 +1343,7 @@ checkProductCodeFreeUnical() {
     .subscribe(
         (data) => {   
                     Unic = data as boolean;
-                    if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Введённый код не является уникальным.',}});
+                    if(!Unic)this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:'Введённый код не является уникальным.',}});
                     this.isProductCodeFreeUnicalChecking=false;
                 },
         error => {console.log(error),this.isProductCodeFreeUnicalChecking=false;}
@@ -1383,6 +1373,7 @@ checkProductCodeFreeUnical() {
         this.receivedCompaniesListForHistoryReport=[];
         this.receivedCompaniesListForHistoryReport.push(myCompany);
       }
+    this.setDefaultCompany();
   }
 
 //************************************************************* ОТЧЕТ ПО ТОВАРАМ *************************************************************/    
@@ -1494,7 +1485,7 @@ checkProductCodeFreeUnical() {
 
 
       },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
 
@@ -1537,5 +1528,8 @@ checkProductCodeFreeUnical() {
   }
   round(n:number){
     return n.toFixed(2);
+  }
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
   }
 }

@@ -9,6 +9,7 @@ import { SettingsRsDialogModule } from '../../../../modules/settings/settings-re
 import { ProductSearchAndTableModule } from 'src/app/modules/trade-modules/product-search-and-table/product-search-and-table.module';
 import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.module';
 import { KkmModule } from 'src/app/modules/trade-modules/kkm/kkm.module';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [RetailsalesDocComponent, /*ControlMessagesComponent*/],
@@ -22,8 +23,9 @@ import { KkmModule } from 'src/app/modules/trade-modules/kkm/kkm.module';
 
     MaterialModule,
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    TranslocoModule
   ],
-  providers: [ValidationService],
+  providers: [{ provide: TRANSLOCO_SCOPE, useValue: ['docs','menu','modules']},ValidationService],
 })
 export class RetailsalesDocModule { }

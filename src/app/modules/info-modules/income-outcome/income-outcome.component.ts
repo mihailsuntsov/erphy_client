@@ -4,6 +4,8 @@ import { LoadSpravService } from 'src/app/services/loadsprav';
 import { MatDialog } from '@angular/material/dialog';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { HttpClient } from '@angular/common/http';
+import { translate } from '@ngneat/transloco'; //+++
+
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE}  from '@angular/material/core';
 import { MomentDateAdapter} from '@angular/material-moment-adapter';
 import * as _moment from 'moment';
@@ -167,7 +169,7 @@ export class IncomeOutcomeComponent implements OnInit {
           this.multi=data as any []; 
           // this.getBalancesOnDate();
         },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
   getBalancesOnDate(){
@@ -178,7 +180,7 @@ export class IncomeOutcomeComponent implements OnInit {
           beginBalance=data as number;
           this.formingBalancesCurve(beginBalance);
         },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
 

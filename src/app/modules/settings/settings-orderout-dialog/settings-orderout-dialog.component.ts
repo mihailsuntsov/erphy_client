@@ -6,6 +6,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { LoadSpravService } from '../../../services/loadsprav';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
+import { translate } from '@ngneat/transloco'; //+++
 
 interface statusInterface{
   id:number;
@@ -187,7 +188,7 @@ export class SettingsOrderoutDialogComponent implements OnInit {
             if(+this.settingsForm.get('statusIdOnComplete').value==0) this.setDefaultStatus();
             this.setStatusColor();
           },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
            
   }

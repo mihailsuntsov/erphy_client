@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 // Для получения параметров маршрута необходим специальный сервис ActivatedRoute. 
 // Он содержит информацию о маршруте, в частности, параметры маршрута, 
 // параметры строки запроса и прочее. Он внедряется в приложение через механизм dependency injection, 
@@ -13,6 +13,7 @@ import { HttpClient } from '@angular/common/http';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
+import { translate } from '@ngneat/transloco'; //+++
 
 
 interface docResponse {//интерфейс для получения ответа в методе getUserValuesById
@@ -94,6 +95,7 @@ export class UsergroupDocComponent implements OnInit {
   allowToView:boolean = false;
   rightsDefined:boolean = false;
 
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
 
   constructor(
     private activateRoute: ActivatedRoute,
@@ -127,36 +129,56 @@ export class UsergroupDocComponent implements OnInit {
     });
     this.checkedList = [];
     this.getSetOfPermissions();
+    //+++ getting base data from parent component
+    this.getBaseData('myId');    
+    this.getBaseData('myCompanyId');  
+    this.getBaseData('companiesList');  
   }
 
 // -------------------------------------- *** ПРАВА *** ------------------------------------
-getSetOfPermissions(){
-  return this.http.get('/api/auth/getMyPermissions?id=6')
-    .subscribe(
-        (data) => {   
-                    this.permissionsSet=data as any [];
-                    this.getMyId();
-                },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
-    );
-}
+  getSetOfPermissions(){
+    return this.http.get('/api/auth/getMyPermissions?id=6')
+      .subscribe(
+          (data) => {   
+                      this.permissionsSet=data as any [];
+                      this.getMyId();
+                  },
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
+                  );
+  }
 
-getMyId(){
-  this.loadSpravService.getMyId()
-          .subscribe(
-              (data) => {this.myId=data as any;
-                this.getMyCompanyId();},
-              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
-          );
-}
-
-getMyCompanyId(){
-  this.loadSpravService.getMyCompanyId().subscribe(
-    (data) => {
-      this.myCompanyId=data as number;
-      this.getCRUD_rights();
-    }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
-}
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+      this.loadSpravService.getCompaniesList()
+        .subscribe(
+            (data) => 
+            {
+              this.receivedCompaniesList=data as any [];
+              this.doFilterCompaniesList();
+            },                      
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+        );
+    else this.doFilterCompaniesList();
+  }
+  getMyId(){ //+++
+    if(+this.myId==0)
+      this.loadSpravService.getMyId()
+            .subscribe(
+                (data) => {this.myId=data as any;
+                  this.getMyCompanyId();},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+            );
+    else this.getMyCompanyId();
+  }
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
+        (data) => {
+          this.myCompanyId=data as number;
+          this.getCRUD_rights();
+        }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
+    else this.getCRUD_rights();
+  }
 
 getCRUD_rights(){
   this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==31)});
@@ -201,18 +223,6 @@ refreshPermissions(){
 
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
 
-  getCompaniesList(){
-    this.receivedCompaniesList=null;
-    this.loadSpravService.getCompaniesList()
-            .subscribe(
-                (data) => 
-                {
-                  this.receivedCompaniesList=data as any [];
-                  this.doFilterCompaniesList();
-                  this.setDefaultCompany();
-                }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
-  }
-
   doFilterCompaniesList(){
     let myCompany:any;
     if(!this.allowToCreateAllCompanies){
@@ -221,6 +231,7 @@ refreshPermissions(){
       this.receivedCompaniesList=[];
       this.receivedCompaniesList.push(myCompany);
     }
+    this.setDefaultCompany();
   }
 
   setDefaultCompany(){
@@ -249,14 +260,14 @@ refreshPermissions(){
           (data) => {   
                       this.updateDocumentResponse=data as string;
                       this.getData();
-                      this.openSnackBar("Группа пользователей сохранена", "Закрыть");
+                      this.openSnackBar(translate('docs.msg.doc_sved_suc'),translate('docs.msg.close'));
                     },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
         );
   }
   getDocumentValuesById(){
     const docId = {"id": this.id};
-        this.http.post('/api/auth/getUserGroupValuesById', docId)
+    this.http.post('/api/auth/getUserGroupValuesById', docId)
         .subscribe(
             data => {  let documentResponse: docResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
                 //Заполнение формы из интерфейса documentResponse:
@@ -272,18 +283,18 @@ refreshPermissions(){
                   this.formBaseInformation.get('company_id').setValue(+documentResponse.company_id);
                   this.formBaseInformation.get('description').setValue(documentResponse.description);
                   this.checkedList=documentResponse.userGroupPermissionsId;
-                  this.getDocumentsWithPermissionList();
-                  //!!!
-                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:'Недостаточно прав на просмотр'}})}
+                  this.getDocumentsWithPermissionList();                  
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();
             },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
         );
   }
+
   getDocumentsWithPermissionList(){
     //console.log("we re in  getDocumentsWithPermissionList()");
     const docId = {"searchString": ""};  
-        this.http.post('/api/auth/getDocumentsWithPermissionList', docId)//загружает список документов с их правами (чекбоксами). Далее 
+    this.http.post('/api/auth/getDocumentsWithPermissionList', docId)//загружает список документов с их правами (чекбоксами). Далее 
         .subscribe(                                                           //чекбоксы зажигаются из полученных в методе getDocumentValuesById данных (checkedList)
             data1stLvl => 
             {
@@ -300,11 +311,11 @@ refreshPermissions(){
                     });
                 });
             },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
         );
   }
   isSelectedPermission(){
-    console.log("checking row with id=");
+    // console.log("checking row with id=");
     //return true;
   }
   isAllSelected() {
@@ -335,19 +346,19 @@ refreshPermissions(){
       (data) =>   {
         let result=data as any;
         switch(result){
-          case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:("В ходе операции проиошла ошибка")}});break;}
-          case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Недостаточно прав для данной операции"}});break;}
+          case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_msg')}});break;}
+          case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});break;}
           default:{  
                       this.id=result;
                       this._router.navigate(['/ui/usergroupdoc', this.id]);
                       this.formBaseInformation.get('id').setValue(this.id);
                       this.rightsDefined=false; //!!!
                       this.getData();
-                      this.openSnackBar("Роль создана", "Закрыть");
+                      this.openSnackBar(translate('docs.msg.doc_sved_suc'),translate('docs.msg.close'));
           }
         }
       },
-    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
   );
 }
 
@@ -364,6 +375,10 @@ refreshPermissions(){
     }
     //this.checkedList = JSON.stringify(this.checkedList);
     console.log("checkedList - "+this.checkedList);
+  }
+  
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
   }
 
 

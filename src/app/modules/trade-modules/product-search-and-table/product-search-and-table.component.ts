@@ -15,6 +15,7 @@ import { ViewChild } from '@angular/core';
 import { PricingDialogComponent } from 'src/app/ui/dialogs/pricing-dialog/pricing-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
+import { translate } from '@ngneat/transloco'; //+++
 
 interface CustomersOrdersProductTable { //интерфейс для формы, массив из которых будет содержать форма customersOrdersProductTable, входящая в formBaseInformation, которая будет включаться в formBaseInformation
   id: number;
@@ -384,7 +385,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
                   this.finishRecount();// подсчёт итогов у таблицы
                 }
             },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
         );
   }
   formingProductRowFromApiResponse(row: CustomersOrdersProductTable) {
@@ -437,7 +438,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
     {// список товаров не должен содержать одинаковые товары из одного и того же склада. Тут проверяем на это
       if(+i['product_id']==this.formSearch.get('product_id').value && +i['department_id']==this.formSearch.get('secondaryDepartmentId').value)
       {//такой товар с таким складом уже занесён в таблицу товаров ранее, и надо поругаться.
-        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Данный товар из выбранного вами склада уже есть в списке товаров!',}});
+        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:'Данный товар из выбранного вами склада уже есть в списке товаров!',}});
         thereProductInTableWithSameId=true; 
       }
     });
@@ -576,8 +577,8 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
       width: '400px',
       data:
       { 
-        head: 'Удаление товарной позиции',
-        warning: 'Удалить товар '+row.name+' ?',
+        head: translate('docs.msg.del_prod_item'),
+        warning: translate('docs.msg.del_prod_quer',{name:row.name})+'?',
         // query: 'Данная товарная позиция удалится безвозвратно',
       },
     });
@@ -600,7 +601,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
                 // this.finishRecount(); // подсчёт тоталов в таблице
 
               // },
-              // error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+              // error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
           // );
         // }
       }
@@ -632,7 +633,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
 
   showWarningTypePriceDialog(typePrice:string, subj:string, subjname:string){
     if(subjname.length>0)// при старте Розничных продаж предприятие, отделение или покупатель могут быть не выбраны (из настроек). Следовательно, предупреждение, что у subj нет типа цены смысла не несёт
-      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:
+      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:
     'Для документа "Заказ покупателя" в качестве приоритетного установлен тип цены "'+typePrice+'", но у '+subj+' "'+subjname+'" тип цены '+(this.priorityTypePriceSide=='defprice'?'по умолчанию в справочнике "Типы цен" ':'')+'не выбран'
     }});
   }
@@ -659,7 +660,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
         if(this.filteredProducts.length==1){
           this.onAutoselectProduct();
       }}}
-      ,error => {this.isProductListLoading = false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+      ,error => {this.isProductListLoading = false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
   }
 
@@ -674,7 +675,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
     this.http.post('/api/auth/getSpravSysEdizm', {id1: companyId, string1:"(1,2,3,4,5)"})  // все типы ед. измерения
     .subscribe((data) => {this.spravSysEdizmOfProductAll = data as any[];
             },
-    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
   }
   getProductsList(){ //заполнение Autocomplete для поля Товар
     if(!this.isProductListLoading){// смысла долбить сервер, пока он формирует ответ, нет. Плюс иногда onProductSearchValueChanges отрабатывает дуплетом, что приводит к двойному добавлению товара
@@ -713,7 +714,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
     this.selected_type_price_id = +this.formSearch.get('price_type_id').value;
     if(this.priorityTypePriceId!=this.selected_type_price_id && +this.priorityTypePriceId!=0){//если тип цены, выбранный через поле "Приоритет типа цены" отличен от типа цены, выбранного через поле "Тип цены"
       //показываем предупреждение
-      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Выбранный тип цены отличается от приоритетного типа ('+this.getPriceTypesNameById(this.priorityTypePriceId)+')'}});
+      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:'Выбранный тип цены отличается от приоритетного типа ('+this.getPriceTypesNameById(this.priorityTypePriceId)+')'}});
     }
     if(+this.formSearch.get('product_id').value>0){//если товар в форме поиска выбран
       this.getProductsPriceAndRemains();
@@ -862,7 +863,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
                           this.openSnackBar("Настройки расценки успешно сохранены", "Закрыть");
                           
                         },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
             );
   }
   openSnackBar(message: string, action: string) {
@@ -910,7 +911,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
             this.setPrice(+this.shortInfoAboutProductArray[7]>0?this.shortInfoAboutProductArray[7]:0);
             this.calcSumPriceOfProduct();
           },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
   }
   getProductsPriceAndRemains(){
@@ -933,7 +934,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
               setTimeout(() => {this.addProductRow();},100);
             }
           },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
   }
   priceRecount(){
@@ -1082,7 +1083,7 @@ getProductCount(){
        this.gettingProductCount=false;
        this.gotProductCount=true;
       },
-      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
 }
@@ -1094,7 +1095,7 @@ getProductCount(){
 
   clearTable(): void {
     const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
-      width: '400px',data:{head: 'Очистка списка товаров',warning: 'Вы хотите удалить все товары из списка?',query: ''},});
+      width: '400px',data:{head: translate('docs.msg.prod_list_cln'),warning: translate('docs.msg.prod_list_qry'),query: ''},});
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
         this.getControlTablefield().clear();
@@ -1184,7 +1185,7 @@ onChangePriceTypeOfRow(row_index:number){
     this.setRowSumPrice(row_index);                         // пересчёт суммы оплаты за данный товар
     this.tableNdsRecount();                                 // пересчёт суммы оплаты за товар с учётом НДС
     this.finishRecount();                                   // подсчёт TOTALS и отправка суммы в ККМ
-  },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})})
+  },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})})
 }
 // при изменении "НДС" в родительском модуле
 onChangeNds(nds_included:boolean){

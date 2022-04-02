@@ -5,6 +5,7 @@ import { FormGroup, Validators, FormControl } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { LoadSpravService } from '../../../services/loadsprav';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
+import { translate } from '@ngneat/transloco'; //+++
 
 interface SecondaryDepartment{
   id: number;
@@ -142,7 +143,7 @@ export class SettingsReturnsupDialogComponent implements OnInit {
       (data) => {
         this.priceTypesList=data as any [];
       },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
 
@@ -180,7 +181,7 @@ export class SettingsReturnsupDialogComponent implements OnInit {
                 (data) => {this.receivedDepartmentsList=data as any [];
                   this.getMyDepartmentsList();
                 },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
   }
   getMyDepartmentsList(){
@@ -190,7 +191,7 @@ export class SettingsReturnsupDialogComponent implements OnInit {
                 (data) => {this.receivedMyDepartmentsList=data as any [];
                   this.doFilterDepartmentsList();
                   this.setDefaultDepartment();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
   }
 
@@ -224,7 +225,7 @@ export class SettingsReturnsupDialogComponent implements OnInit {
             if(+this.settingsForm.get('statusOnFinishId').value==0) this.setDefaultStatus();
             this.setStatusColor();
           },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
            
   }

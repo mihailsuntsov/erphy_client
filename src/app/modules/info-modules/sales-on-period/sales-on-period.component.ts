@@ -7,6 +7,8 @@ import { LoadSpravService } from 'src/app/services/loadsprav';
 import { MatDialog } from '@angular/material/dialog';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { HttpClient } from '@angular/common/http';
+import { translate } from '@ngneat/transloco'; //+++
+
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE}  from '@angular/material/core';
 import { MomentDateAdapter} from '@angular/material-moment-adapter';
 import * as _moment from 'moment';
@@ -236,7 +238,7 @@ export class SalesOnPeriodComponent implements OnInit {
                   this.filterEmployee();
                   
                 },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
   }
   
@@ -431,20 +433,20 @@ export class SalesOnPeriodComponent implements OnInit {
           this.multi=data as any [];
           this.calculateSum();
         },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
 
   onClickEmployee(){
     if(+this.queryForm.get('departmentId').value==0)
-      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Сначала необходимо выбрать отделение"}})
+      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:"Сначала необходимо выбрать отделение"}})
     else if(this.receivedEmployeeList.length==0)
-      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:"Нет списка сотрудников для выбранного отделения"}})
+      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:"Нет списка сотрудников для выбранного отделения"}})
   }
 
   onClickDates(){
     if(this.queryForm.get('periodType').value!=='period'){
-      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Внимание!',message:'Чтобы сменить дату, необходимо в поле "Время" выбрать "Период"'}})
+      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:'Чтобы сменить дату, необходимо в поле "Время" выбрать "Период"'}})
     }
   }
 

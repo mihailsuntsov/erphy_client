@@ -8,6 +8,8 @@ import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dial
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { FormGroup, FormControl } from '@angular/forms';
+import { translate } from '@ngneat/transloco'; //+++
+
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE}  from '@angular/material/core';
 import { MomentDateAdapter} from '@angular/material-moment-adapter';
 import * as _moment from 'moment';
@@ -137,7 +139,7 @@ export class MoneyflowDetComponent implements OnInit {
                             this.permissionsSet=data as any [];
                             this.getMyId();
                         },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
             );
   }
 
@@ -163,7 +165,7 @@ export class MoneyflowDetComponent implements OnInit {
       this.getTableHeaderTitles();
       this.getPagesList();
       this.getTable();
-    } else {this.gettingTableData=false;;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:"Нет прав на просмотр"}})}
+    } else {this.gettingTableData=false;;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:"Нет прав на просмотр"}})}
   }
 
   getTableHeaderTitles(){
@@ -189,7 +191,7 @@ export class MoneyflowDetComponent implements OnInit {
                 this.pagenum=this.receivedPagesList[1];
                 this.listsize=this.receivedPagesList[2];
                 this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             ); 
   }
 
@@ -202,7 +204,7 @@ export class MoneyflowDetComponent implements OnInit {
                   if(this.dataSource.data && this.dataSource.data.length==0 && +this.queryForm.get('offset').value>0) this.setPage(0);
                   this.gettingTableData=false;
                 },
-                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})} 
+                error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} 
             );
   }
 
@@ -254,7 +256,7 @@ export class MoneyflowDetComponent implements OnInit {
                 (data) => {this.receivedCompaniesList=data as any [];
                   this.getSetOfPermissions();
                 },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
   }
   getMyId(){
@@ -262,7 +264,7 @@ export class MoneyflowDetComponent implements OnInit {
             .subscribe(
                 (data) => {this.myId=data as any;
                   this.getMyCompanyId();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
   }
   getMyCompanyId(){
@@ -270,7 +272,7 @@ export class MoneyflowDetComponent implements OnInit {
       (data) => {
         this.myCompanyId=data as number;
         this.setDefaultCompany();
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})});
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
   }
 
   setDefaultCompany(){

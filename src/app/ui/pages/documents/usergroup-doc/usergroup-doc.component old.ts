@@ -137,7 +137,7 @@ getSetOfPermissions(){
                           if(+this.id>0) this.isItMyDocument(+this.id); else this.getCRUD_rights(this.permissionsSet);
                           //this.getCRUD_rights(this.permissionsSet);
                       },
-              error => console.log(error),
+              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
           );
 }
 isItMyDocument(id:number){// В данном случае:  моего ли предприятия эта группа пользователей
@@ -149,7 +149,7 @@ isItMyDocument(id:number){// В данном случае:  моего ли пр
                           // console.log("isItMyDoc-1:"+this.isItMyDoc);
                           this.getCRUD_rights(this.permissionsSet);
                       },
-              error => console.log(error),
+              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
           );
 }
 getCRUD_rights(permissionsSet:any[]){
@@ -225,7 +225,7 @@ isAllowToUpdateAll(e){return(e==34);}//всех предприятий
                             this.getData();
                             this.openSnackBar("Группа пользователей сохранена", "Закрыть");
                         },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
             );
   }
   getDocumentValuesById(){
@@ -309,7 +309,7 @@ isAllowToUpdateAll(e){return(e==34);}//всех предприятий
                                 this.getData();
                                 this.openSnackBar("Группа пользователей создана", "Закрыть");
                             },
-                error => console.log(error),
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
             );
   }
   createCheckedList(){//массив c id выбранных чекбоксов вида "7,5,1,3,6,2,4", который заполняется при загрузке страницы и при нажатии на чекбокс, а при 

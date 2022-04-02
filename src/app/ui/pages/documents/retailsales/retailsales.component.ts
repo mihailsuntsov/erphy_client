@@ -433,9 +433,9 @@ export class RetailsalesComponent implements OnInit {
   //           .subscribe(
   //               (data) => {   
   //                           this.getData();
-  //                           this.openSnackBar("Успешно удалено", "Закрыть");
+  //                           this.openSnackBar(translate('docs.msg.deletet_succs'), translate('docs.msg.close'));
   //                         },
-  //               error => console.log(error),
+  //               error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
   //           );
   // }
   // clickBtnRestore(): void {
@@ -463,7 +463,7 @@ export class RetailsalesComponent implements OnInit {
   //                   this.getData();
   //                   this.openSnackBar("Успешно восстановлено", "Закрыть");
   //                 },
-  //       error => console.log(error),
+  //       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
   //   );
   // }  
   openSnackBar(message: string, action: string) {
@@ -614,10 +614,10 @@ export class RetailsalesComponent implements OnInit {
     return this.http.post('/api/auth/saveSettingsRetailSales', this.settingsForm.value)
             .subscribe(
                 (data) => {   
-                          this.openSnackBar("Настройки успешно сохранены", "Закрыть");
+                          this.openSnackBar(translate('docs.msg.settngs_saved'), translate('docs.msg.close'));
                           
                         },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
             );
   }
 
@@ -629,7 +629,7 @@ export class RetailsalesComponent implements OnInit {
   //   this.loadSpravService.getPriceTypesList(+this.sendingQueryForm.companyId)
   //   .subscribe(
   //     (data) => {this.receivedPriceTypesList=data as any [];},
-  //       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Ошибка!',message:error.error}})}
+  //       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
   //   );
   // }
 //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
