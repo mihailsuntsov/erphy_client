@@ -1,4 +1,4 @@
-<mat-card class="card">
+<mat-card class="card" *transloco="let t">
     <mat-card-title class="flex">
         <div class="card-name">Расценка</div>
         <button 
@@ -81,7 +81,7 @@
                                         formControlName="prePrice"/>
                                         <mat-hint align="start">
                                             <i *ngIf="pricingForm.get('prePrice').invalid && pricingForm.get('prePrice').errors.pattern && pricingForm.get('prePrice').value>0 && pricingForm.get('prePrice').touched" class="form-invalid">Неправильный формат. Допускается до 7 цифр в целой и до 2 цифр в дробной части</i>
-                                            <i *ngIf="pricingForm.get('prePrice').value=='' && pricingForm.get('prePrice').touched" class="form-invalid">Поле не заполнено</i>
+                                            <i *ngIf="pricingForm.get('prePrice').value=='' && pricingForm.get('prePrice').touched" class="form-invalid">{{t('docs.error.field_miss')}}</i>
                                             <i *ngIf="pricingForm.get('prePrice').value==0 && pricingForm.get('prePrice').value!=''" class="form-invalid">Цена = 0</i>
                                             <i *ngIf="pricingForm.get('prePrice').value<0 && pricingForm.get('prePrice').value!=''" class="form-invalid">Отрицательная цена!</i>
                                         </mat-hint>

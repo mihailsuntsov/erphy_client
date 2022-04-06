@@ -48,7 +48,7 @@
                             </mat-select>
                         </mat-form-field>
                         <mat-form-field class="company-select" style="margin-left: 10px">
-                            <mat-label>Предприятие</mat-label>
+                            <mat-label>{{t('docs.field.company')}}</mat-label>
                             <mat-select  [(value)]="sendingQueryForm.companyId" (selectionChange)="getData()">                          
                                 <mat-option value="0" selected>Пользователи по всем доступным предприятиям</mat-option>
                                 <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">

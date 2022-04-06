@@ -1,24 +1,24 @@
-<mat-card class="card">
+<mat-card class="card for-sticky-header" *transloco="let t">
     <mat-card-title class="flex">
-        <div class="card-name">Настройки шаблонов</div>
+        <div class="card-name">{{t('docs.docs.set_templates')}}</div>
         <button 
             style="width: 129px;height: 36px;"
             (click)="applyTemplates()"
-            matTooltip="Сохранить настройки"
+            matTooltip="{{t('docs.tip.save')}}"
             mat-raised-button 
             color="primary"
             [disabled]="(!formBaseInformation.valid)"
             >
-            <i class="material-icons">done</i> Сохранить 
+            <i class="material-icons">done</i>
         </button>
         <button 
             (click)="onNoClick()"
             style="width: 129px;height: 36px;"
-            matTooltip="Закрыть окно настроек"
+            matTooltip="{{t('docs.tip.close')}}"
             mat-raised-button 
             color="accent"
             class="button">
-            <i class="material-icons">close</i> Закрыть 
+            <i class="material-icons">close</i>
         </button>
     </mat-card-title>
     <mat-card-content > 
@@ -59,7 +59,7 @@
                                 cdkDrag
                                 style="background-color: #f7f7f7; margin-top:5px">
                         <div cdkDragHandle  [style.display]="editability?'block':'none'">
-                            <mat-icon   matTooltip='Переместить'
+                            <mat-icon   matTooltip="{{t('docs.tip.move')}}"
                                         class="handler" 
                                         *ngIf="formBaseInformation.get('templatesList').controls.length>1">
                                         swap_vertical_circle
@@ -68,7 +68,7 @@
                         <div  [style.display]="editability?'block':'none'">
                             <mat-icon   (click)="deleteTemplate(i)" 
                                         class="del-icon" 
-                                        matTooltip='Удалить'>
+                                        matTooltip="{{t('docs.tip.delete')}}">
                                         cancel
                             </mat-icon>
                         </div>
@@ -169,7 +169,7 @@
                                                 <!-- <mat-icon   *ngIf="file_id.value"
                                                             class="open-file"
                                                             (click)="openFileCard(file_id.value)"
-                                                            matTooltip='Открыть карточку файла'
+                                                            matTooltip="{{t('docs.tip.open_file')}}"
                                                         >
                                                     <mat-icon>launch</mat-icon>
                                                 </mat-icon> -->
@@ -177,7 +177,7 @@
                                                         *ngIf="editability && file_id.value"
                                                         class="del-file"
                                                         (click)="deleteFileInField(file_id.value)"
-                                                        matTooltip='Удалить файл'
+                                                        matTooltip="{{t('docs.tip.del_file')}}"
                                                         >
                                                     <mat-icon>delete_forever</mat-icon>
                                                 </mat-icon>

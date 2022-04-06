@@ -1,4 +1,4 @@
-<mat-card class="card">
+<mat-card class="card" *transloco="let t">
 
     <mat-card-title class="flex">
         <div class="card-name">Выбор {{idTypes=='categories'?'категорий':'товаров'}}</div>
@@ -6,16 +6,17 @@
             mat-raised-button 
             (click)="applySelect()"
             color="primary"
+            matTooltip="{{t('docs.tip.select')}}"
             class="button">
-            <i class="material-icons">done</i> Выбрать
+            <i class="material-icons">done</i>
         </button>
         <button 
             (click)="onNoClick()"
-            matTooltip="Закрыть окно"
+            matTooltip="{{t('docs.tip.close')}}"
             mat-raised-button 
             color="accent"
             class="button">
-            <i class="material-icons">close</i> Закрыть 
+            <i class="material-icons">close</i>
         </button>
     </mat-card-title>
 

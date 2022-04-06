@@ -4,6 +4,7 @@ import { SettingsPaymentoutDialogComponent } from './settings-paymentout-dialog.
 
 import { MaterialModule } from '../../material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [SettingsPaymentoutDialogComponent],
@@ -13,9 +14,11 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
     MaterialModule,
     FormsModule,
     ReactiveFormsModule,
+    TranslocoModule
   ],
   exports: [
     SettingsPaymentoutDialogComponent,
   ],
+  providers:[{ provide: TRANSLOCO_SCOPE, useValue: ['docs','modules']},]
 })
 export class SettingsPaymentoutDialogModule { }

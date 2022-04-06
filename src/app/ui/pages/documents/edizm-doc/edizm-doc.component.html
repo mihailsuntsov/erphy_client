@@ -1,4 +1,4 @@
-<mat-card class="card">
+<mat-card class="card for-sticky-header" *transloco="let t">
   
     <mat-card-title class="top-bar container-fluid">
         <div class="row" id="topBlock">
@@ -7,7 +7,7 @@
             <button 
                 mat-raised-button 
                 *ngIf="+id>0 && allowToUpdate"
-                matTooltip='Сохранить документ'
+                matTooltip="{{t('docs.tip.save')}}"
                 (click)="updateDocument()"
                 [disabled]="!formBaseInformation.valid" 
                 color="primary"
@@ -17,7 +17,7 @@
             </button>
             <button 
                 mat-raised-button 
-                matTooltip='Создать документ'
+                matTooltip="{{t('docs.tip.create')}}"
                 (click)="clickBtnCreateNewDocument()" 
                 *ngIf="allowToCreate && +id==0 "
                 [disabled]="!formBaseInformation.valid" 
@@ -28,7 +28,7 @@
             </button>
             <a routerLink="../../edizm">
                 <button 
-                    [matTooltip]="id>0?'Выйти в меню':'Отмена создания документа'"
+                    [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
                     mat-raised-button 
                     color="accent"
                     class="button small-button">
@@ -45,7 +45,7 @@
     )"> 
         <mat-card class="internal-card">
             <mat-card-content style="font-size: 20px;font-weight: bold;color: red;text-align: center;height: 100px;padding: 38px 0;">
-                Недостаточно прав
+                {{t('docs.msg.no_perm')}}
             </mat-card-content>
         </mat-card>
     </mat-card-content>
@@ -56,7 +56,7 @@
 
                 <mat-tab-group>
 
-                        <mat-tab label="Информация">
+                        <mat-tab label="{{t('docs.tab.info')}}">
         
                             <div class="container-fluid">
                                 <div class="row" style="padding: 10px">
@@ -73,7 +73,7 @@
                                                     </mat-form-field>
 
                                                     <mat-form-field *ngIf="+id==0">
-                                                        <mat-label>Предприятие</mat-label>
+                                                        <mat-label>{{t('docs.field.company')}}</mat-label>
                                                         <mat-select  formControlName="company_id">                          
                                                             <mat-option  *ngFor="let rt of receivedCompaniesList" 
                                                             
@@ -84,7 +84,7 @@
                                                     </mat-form-field>
                                                     
                                                     <mat-form-field class="mat-form-field-100" *ngIf="+id>0">
-                                                        <mat-label>Предприятие</mat-label>
+                                                        <mat-label>{{t('docs.field.company')}}</mat-label>
                                                         <input  matInput [readonly]="true"
                                                                 [ngModel]="formAboutDocument.get('company').value" [ngModelOptions]="{standalone: true}"/>
                                                     </mat-form-field>
@@ -128,33 +128,33 @@
 
 
                         </mat-tab>
-                        <mat-tab  *ngIf="visAfterCreatingBlocks"  label="О документе">
+                        <mat-tab  *ngIf="visAfterCreatingBlocks"  label="{{t('docs.tab.about')}}">
                             <form [formGroup]="formAboutDocument">
                                 <mat-card style="margin:10px;">
                                     <mat-card-content class="input-form">
                                             <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
                                                 <input  matInput
-                                                        placeholder="Предприятие"
+                                                        placeholder="{{t('docs.field.company')}}"
                                                         formControlName="company" [readonly]=true/>
                                             </mat-form-field>
                                             <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
                                                 <input  matInput
-                                                        placeholder="Создатель"
+                                                        placeholder="{{t('docs.field.creator')}}"
                                                         formControlName="creator" [readonly]=true/>
                                             </mat-form-field>
                                             <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
                                                 <input  matInput
-                                                        placeholder="Дата создания"
+                                                        placeholder="{{t('docs.field.created')}}"
                                                         formControlName="date_time_created" [readonly]=true/>
                                             </mat-form-field>
                                             <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
                                                 <input  matInput
-                                                        placeholder="Изменение"
+                                                        placeholder="{{t('docs.field.changer')}}"
                                                         formControlName="changer" [readonly]=true/>
                                             </mat-form-field>
                                             <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
                                                 <input  matInput
-                                                        placeholder="Дата изменения"
+                                                        placeholder="{{t('docs.field.changed')}}"
                                                         formControlName="date_time_changed" [readonly]=true/>
                                             </mat-form-field>
                                     </mat-card-content>

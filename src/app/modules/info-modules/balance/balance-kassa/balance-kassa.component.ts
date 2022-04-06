@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatDialog } from '@angular/material/dialog';
@@ -20,7 +20,8 @@ export class BalanceKassaComponent implements OnInit, OnChanges {
   @Input() company_id:    number;
   @Input() kassa_id:      number;
   @Input() currency:      string;
-
+  @Output() successfullGetKassaBalance = new EventEmitter<any>(); //событие успешного получения баланса
+  
   constructor(
     private http: HttpClient,
     public MessageDialog: MatDialog,
@@ -45,7 +46,8 @@ export class BalanceKassaComponent implements OnInit, OnChanges {
           {  
             if(data!=null){
               this.balanceLoading=false;
-              this.balance=parseFloat(data.toString()); 
+              this.balance=parseFloat(data.toString());
+              this.successfullGetKassaBalance.emit();
               // this.refresh();
             } else {
               this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.blnc_quer_err')}})

@@ -1,4 +1,4 @@
-<mat-card class="card">
+<mat-card class="card" *transloco="let t">
 
 
     
@@ -16,7 +16,7 @@
             <div class="card-body">
                     <div class="flex">
                         <mat-form-field  style="margin-left: 10px">
-                            <mat-label>Предприятие</mat-label>
+                            <mat-label>{{t('docs.field.company')}}</mat-label>
                             <mat-select  [(value)]="sendingQueryForm.companyId" (selectionChange)="getData()">                          
                                 <mat-option value="0" selected>Все предприятия</mat-option>
                                 <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
@@ -25,7 +25,7 @@
                             </mat-select>
                         </mat-form-field>
                         <mat-form-field style="margin-left: 10px">
-                            <mat-label>Отделение</mat-label>
+                            <mat-label>{{t('docs.field.department')}}</mat-label>
                             <mat-select  [(value)]="sendingQueryForm.departmentId" (selectionChange)="getData()">                          
                                 <mat-option value="0" selected>Все отделения</mat-option>
                                 <mat-option  *ngFor="let rdl of receivedDepartmentsList" [value]="rdl.id">

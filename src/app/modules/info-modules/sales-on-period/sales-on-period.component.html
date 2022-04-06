@@ -1,4 +1,4 @@
-<mat-card class="card">
+<mat-card class="card" *transloco="let t">
     <div class="icon-panel">
         <mat-icon   matTooltip='Настройки отчёта'    
                     (click)="onClickMenuIcon()"
@@ -84,7 +84,7 @@
                     <div class="col-md-4 col-12">
                         
                         <mat-form-field  style="margin-top: 10px; width: 100%;"  #autocompleteDepartmentsField>
-                            <mat-label>Отделение</mat-label>
+                            <mat-label>{{t('docs.field.department')}}</mat-label>
                             <input  type="text" 
                                     matInput [formControl]="departmentControl" 
                                     [matAutocomplete]="autoDepartments"
@@ -207,7 +207,7 @@
                                     {{object.name}}
                                     <mat-icon matChipRemove *ngIf="removable">cancel</mat-icon>
                                 </mat-chip>
-                                <button matTooltip="Выбрать" mat-mini-fab color="primary" style="position: absolute; right: 0px; width: 30px; height: 30px;margin-bottom: 5px;" (click)="openDialogProductCategoriesSelect()">
+                                <button matTooltip="{{t('docs.tip.select')}}" mat-mini-fab color="primary" style="position: absolute; right: 0px; width: 30px; height: 30px;margin-bottom: 5px;" (click)="openDialogProductCategoriesSelect()">
                                     <mat-icon style="font-size: 18px; line-height: 0.5;height: 20px;width: 20px;">add</mat-icon>
                                 </button>
                             </mat-chip-list>

@@ -40,8 +40,8 @@ export interface NumRow {//интерфейс для списка количес
   value: string;
   viewValue: string;
 }
-interface idAndName{ //универсалный интерфейс для выбора из справочников
-  id: string;
+interface IdAndName{ //универсалный интерфейс для выбора из справочников
+  id: number;
   name: string;
 }
 @Component({
@@ -57,10 +57,10 @@ export class RemainsComponent implements OnInit {
   dataSource = new MatTableDataSource<DocTable>(this.receivedMatTable); //источник данных для материал таблицы
   displayedColumns: string[]=[];//массив отображаемых столбцов таблицы
   selection = new SelectionModel<DocTable>(true, []);//Class to be used to power selecting one or more options from a list.
-  selectionFilterOptions = new SelectionModel<idAndName>(true, []);//Class to be used to power selecting one or more options from a list.
+  selectionFilterOptions = new SelectionModel<IdAndName>(true, []);//Class to be used to power selecting one or more options from a list.
   receivedCompaniesList: any [];//массив для получения списка предприятий
-  receivedDepartmentsList: idAndName [] = [];//массив для получения списка отделений
-  receivedMyDepartmentsList: idAndName [] = [];//массив для получения списка СВОИХ отделений
+  receivedDepartmentsList: IdAndName [] = [];//массив для получения списка отделений
+  receivedMyDepartmentsList: IdAndName [] = [];//массив для получения списка СВОИХ отделений
   completedStartQueries:number=0;
   myCompanyId:number=0;//
   
@@ -124,12 +124,7 @@ export class RemainsComponent implements OnInit {
   canCagentAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredCagents: any;
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
-  optionsIds: idAndName [] = [{id:"3", name:translate('menu.top.hide_nonbuy')},
-                              {id:"4", name:translate('menu.top.hide_selloff')},
-                              {id:"0", name:translate('menu.top.not_available')},
-                              {id:"1", name:translate('menu.top.few')},
-                              {id:"2", name:translate('menu.top.enough')},
-                            ]//список опций для вывода во всплывающем меню опций для фильтра
+  optionsIds: IdAndName [] = [];
   checkedOptionsList:number[]=[]; //массив для накапливания id выбранных опций чекбоксов вида [2,5,27...], а так же для заполнения загруженными значениями чекбоксов
   //***********************************************************************************************************************/
   @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
@@ -191,93 +186,209 @@ export class RemainsComponent implements OnInit {
     this.getBaseData('myCompanyId');  
     this.getBaseData('companiesList');   
     this.getBaseData('myDepartmentsList');      
-      
+    this.fillOptionsList();//заполняем список опций фильтра
+
     this.optionsIds.forEach(z=>{this.selectionFilterOptions.select(z);this.checkedOptionsList.push(+z.id);});//включаем все чекбоксы в фильтре, и заполняем ими список для отправки запроса
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Поставщик"
     
       
-    this.getStartData();
-
-  }
-  getStartData(){
     this.getCompaniesList();
-    this.getMyCompanyId();// ->
-    this.getSetOfPermissions();// -> 
   }
-  //1я группа параллельных стартовых запросов
-  getData(){
-    if(this.allowToView)
-    {
-      this.getTable();
-      this.loadTrees();
-    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})} //+++
-  }
-  //2я группа параллельных стартовых запросов
-  onStartQueries(){
-    this.completedStartQueries++;
-    if(this.completedStartQueries==3 && this.allowToView){
-      // console.log("Все стартовые запросы 1 выполнены!");
-      this.completedStartQueries=0;
-      this.getTableHeaderTitles();
-      this.doFilterCompaniesList();
-      this.setDefaultCompany();
-      this.getDepartmentsList();
-      this.getMyDepartmentsList();
-    } else if(this.completedStartQueries==3 && !this.allowToView){  
-      this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})
-    }
-  }  
-  //3я группа параллельных стартовых запросов
-  onStartQueries2(){
-    this.completedStartQueries++;
-    if(this.completedStartQueries==4){
-      // console.log("Все стартовые запросы 2 выполнены!");
-      this.completedStartQueries=0;
-      this.doFilterDepartmentsList();//если нет просмотра по своему предприятию - фильтруем список отделений предприятия до своих отделений
-      this.setDefaultDepartment();
-    }
-  }
-  onStartQueries3(){
-    this.completedStartQueries++;
-    if(this.completedStartQueries==2){
-      // console.log("Все стартовые запросы 3 выполнены!");
-      this.getData();
-    }
-  }
-
+  
  // -------------------------------------- *** ПРАВА *** ------------------------------------
-  getSetOfPermissions(){
-    return this.http.get('/api/auth/getMyPermissions?id=18')
-    .subscribe(
+ getSetOfPermissions(){
+  return this.http.get('/api/auth/getMyPermissions?id=18')
+  .subscribe(
       (data) => {   
-        this.permissionsSet=data as any [];
-        this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==232)});
-        this.allowToUpdateMyCompany =this. permissionsSet.some(            function(e){return(e==233)});
-        this.allowToUpdateMyDepartments = this.permissionsSet.some(        function(e){return(e==234)});
-        this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==235)});
-        this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==236)});
-        this.allowToViewMyDepartments = this.permissionsSet.some(          function(e){return(e==237)});
-        this.showOpenDocIcon=(this.allowToUpdate||this.allowToView);
-        this.refreshPermissions();
-        this.onStartQueries();
-      },
-      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+                  this.permissionsSet=data as any [];
+                  this.getMyCompanyId();
+                },
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}, //+++
     );
   }
 
+  getCRUD_rights(){
+    this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==232)});
+    this.allowToUpdateMyCompany =this. permissionsSet.some(            function(e){return(e==233)});
+    this.allowToUpdateMyDepartments = this.permissionsSet.some(        function(e){return(e==234)});
+    this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==235)});
+    this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==236)});
+    this.allowToViewMyDepartments = this.permissionsSet.some(          function(e){return(e==237)});
+    this.getData();
+  }
+
   refreshPermissions():boolean{
-    let documentOfMyCompany:boolean = (this.sendingQueryForm.companyId==this.myCompanyId);
-    this.allowToView=((documentOfMyCompany && (this.allowToViewAllCompanies || this.allowToViewMyCompany))||(documentOfMyCompany==false && this.allowToViewAllCompanies))?true:false;
-    this.allowToUpdate=((documentOfMyCompany && (this.allowToUpdateAllCompanies || this.allowToUpdateMyCompany))||(documentOfMyCompany==false && this.allowToUpdateAllCompanies))?true:false;
+    this.allowToView=(this.allowToViewAllCompanies||this.allowToViewMyCompany||this.allowToViewMyDepartments)?true:false;
+    this.allowToUpdate=(this.allowToUpdateAllCompanies||this.allowToUpdateMyCompany||this.allowToUpdateMyDepartments)?true:false;
     this.showOpenDocIcon=(this.allowToUpdate||this.allowToView);
-    // console.log("documentOfMyCompany - "+documentOfMyCompany);
-    // console.log(" - ");
+    // this.visBtnAdd = (this.allowToCreate)?true:false;    
     // console.log("allowToView - "+this.allowToView);
     // console.log("allowToUpdate - "+this.allowToUpdate);
+    // console.log("allowToCreate - "+this.allowToCreate);
+    // console.log("allowToDelete - "+this.allowToDelete);
+    // console.log("allowToDeleteAllCompanies - "+this.allowToDeleteAllCompanies);
     return true;
   }
 
+
+  // getSetOfPermissions(){
+  //   return this.http.get('/api/auth/getMyPermissions?id=18')
+  //   .subscribe(
+  //     (data) => {   
+  //       this.permissionsSet=data as any [];
+  //       this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==232)});
+  //       this.allowToUpdateMyCompany =this. permissionsSet.some(            function(e){return(e==233)});
+  //       this.allowToUpdateMyDepartments = this.permissionsSet.some(        function(e){return(e==234)});
+  //       this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==235)});
+  //       this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==236)});
+  //       this.allowToViewMyDepartments = this.permissionsSet.some(          function(e){return(e==237)});
+  //       this.showOpenDocIcon=(this.allowToUpdate||this.allowToView);
+  //       this.refreshPermissions();
+  //     },
+  //     error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+  //   );
+  // }
+
+  // refreshPermissions():boolean{
+  //   let itIsMyCompany:boolean = (this.sendingQueryForm.companyId==this.myCompanyId);
+  //   this.allowToView=(this.allowToViewAllCompanies || (itIsMyCompany && this.allowToViewMyCompany))||(itIsMyCompany==false && this.allowToViewAllCompanies))?true:false;
+  //   this.allowToUpdate=((itIsMyCompany && (this.allowToUpdateAllCompanies || this.allowToUpdateMyCompany))||(itIsMyCompany==false && this.allowToUpdateAllCompanies))?true:false;
+  //   this.showOpenDocIcon=(this.allowToUpdate||this.allowToView);
+  //   // console.log("itIsMyCompany - "+itIsMyCompany);
+  //   console.log(" - ");
+  //   console.log("allowToView - "+this.allowToView);
+  //   console.log("allowToUpdate - "+this.allowToUpdate);
+  //   return true;
+  // }
+
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
+getData(){
+  if(this.refreshPermissions() && this.allowToView)
+  {
+    this.doFilterCompaniesList(); //если нет просмотра по всем предприятиям - фильтруем список предприятий до своего предприятия
+    this.doFilterDepartmentsList();//если нет просмотра по свому предприятию - фильтруем список отделений предприятия до своих отделений
+    this.getTableHeaderTitles();
+    this.loadTrees();
+    this.getTable();
+  } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})} //+++
+}
+getCompaniesList(){ //+++
+  if(this.receivedCompaniesList.length==0)
+    this.loadSpravService.getCompaniesList()
+            .subscribe(
+              (data) => {this.receivedCompaniesList=data as any [];
+                this.getSetOfPermissions();
+              },
+              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+          );
+  else this.getSetOfPermissions();
+}  
+// getMyId(){ //+++
+//   if(+this.myId==0)
+//    this.loadSpravService.getMyId()
+//           .subscribe(
+//               (data) => {this.myId=data as any;
+//                 this.getMyCompanyId();},
+//                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+//           );
+//     else this.getMyCompanyId();
+// }
+getMyCompanyId(){ //+++
+  if(+this.myCompanyId==0)
+    this.loadSpravService.getMyCompanyId().subscribe(
+    (data) => {
+      this.myCompanyId=data as number;
+      this.setDefaultCompany();
+    }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
+  else this.setDefaultCompany();
+} 
+
+setDefaultCompany(){
+  if(Cookie.get('remains_companyId')=='0'){
+    this.sendingQueryForm.companyId=this.myCompanyId;
+    Cookie.set('remains_companyId',this.sendingQueryForm.companyId);
+  }
+    this.getDepartmentsList();
+}
+getDepartmentsList(){
+  this.receivedDepartmentsList=null;
+  this.loadSpravService.getDepartmentsListByCompanyId(+this.sendingQueryForm.companyId,false)
+  .subscribe(
+  (data) => {this.receivedDepartmentsList=data as any [];
+    this.getMyDepartmentsList();},
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}, //+++
+  );
+}
+getMyDepartmentsList(){ //+++
+  if(this.receivedMyDepartmentsList.length==0)
+    this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
+    .subscribe(
+        (data) => {this.receivedMyDepartmentsList=data as any [];
+          this.getCRUD_rights();},
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+    );
+    else this.getCRUD_rights();
+}
+setDefaultDepartment(){
+  if(this.receivedDepartmentsList.length==1)
+    this.sendingQueryForm.departmentId=+this.receivedDepartmentsList[0].id;    
+  else this.sendingQueryForm.departmentId="0";
+  Cookie.set('remains_departmentId',this.sendingQueryForm.departmentId);
+}
+
+inMyDepthsId(id:number):boolean{//проверяет, состоит ли присланный id в группе id отделений пользователя
+  let inMyDepthsId:boolean = false;
+  if(this.receivedMyDepartmentsList){//проверяем, т.к. может быть ".forEach of null", если выбираем не свое предприятие
+    this.receivedMyDepartmentsList.forEach(myDepth =>{
+      myDepth.id==id?inMyDepthsId=true:null;
+    });
+  }
+return inMyDepthsId;
+}
+
+doFilterCompaniesList(){
+  let myCompany:IdAndName;
+  if(!this.allowToViewAllCompanies){
+    this.receivedCompaniesList.forEach(company=>{
+    if(this.myCompanyId==company.id) myCompany={id:company.id, name:company.name}});
+    this.receivedCompaniesList=[];
+    this.receivedCompaniesList.push(myCompany);
+  }
+}
+
+doFilterDepartmentsList(){
+  if(!this.allowToViewAllCompanies && !this.allowToViewMyCompany && this.allowToViewMyDepartments){
+    this.receivedDepartmentsList=this.receivedMyDepartmentsList;}
+  this.setDefaultDepartment();// 
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   
 
@@ -429,68 +540,7 @@ export class RemainsComponent implements OnInit {
     });
   }
 
-  getMyCompanyId(){ //+++
-    if(+this.myCompanyId==0)
-      this.loadSpravService.getMyCompanyId().subscribe(
-      (data) => {
-        this.myCompanyId=data as number;
-        this.onStartQueries();
-      }, error => console.log(error));
-    else this.onStartQueries();
-  } 
-  
-  getCompaniesList(){ //+++
-    if(this.receivedCompaniesList.length==0)
-    this.loadSpravService.getCompaniesList()
-            .subscribe(
-                (data) => {this.receivedCompaniesList=data as any [];
-                  this.onStartQueries();
-                },
-                error => console.log(error)
-            );
-    else this.onStartQueries();
-  }
-  setDefaultCompany(){
-    // console.log("sendingQueryForm.companyId = "+this.sendingQueryForm.companyId);
-    // console.log("Cookie.get('remains_companyId') = "+Cookie.get('remains_companyId'));
-    // console.log("Cookie.get('acceptance_companyId')=='0' - "+Cookie.get('acceptance_companyId')=='0');
-    if(this.sendingQueryForm.companyId=="0"){
-      this.sendingQueryForm.companyId=this.myCompanyId;
-      Cookie.set('remains_companyId',this.sendingQueryForm.companyId);
-    }
-    this.onStartQueries2();
-  }
-
-  getDepartmentsList(){
-    this.receivedDepartmentsList=null;
-    this.loadSpravService.getDepartmentsListByCompanyId(+this.sendingQueryForm.companyId,false)
-            .subscribe(
-                (data) => {this.receivedDepartmentsList=data as any [];
-                  this.onStartQueries2();},
-                error => console.log(error)
-            );
-  }
-  
-  getMyDepartmentsList(){ //+++
-    if(this.receivedMyDepartmentsList.length==0)
-    this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
-      .subscribe(
-          (data) => {this.receivedMyDepartmentsList=data as any [];
-            this.onStartQueries2();},
-          error => console.log(error)
-      );
-    else this.onStartQueries2();
-  }
-
-  setDefaultDepartment(){
-    console.log("this.receivedDepartmentsList.length="+this.receivedDepartmentsList.length);
-    if(this.receivedDepartmentsList.length==1)
-    {
-      this.sendingQueryForm.departmentId=+this.receivedDepartmentsList[0].id;
-      Cookie.set('remains_departmentId',this.sendingQueryForm.departmentId);
-    }
-    this.onStartQueries3();
-  }
+ 
 
   resetSelectedCategory(getTable:boolean){
     this.sendingQueryForm.selectedNodeId='';
@@ -537,22 +587,6 @@ export class RemainsComponent implements OnInit {
       } else this.loadTrees();
   }
 
-  doFilterCompaniesList(){
-    let myCompany:any;
-    if(!this.allowToViewAllCompanies){
-      this.receivedCompaniesList.forEach(company=>{
-      if(this.myCompanyId==company.id) myCompany={id:company.id, name:company.name}});
-      this.receivedCompaniesList=[];
-      this.receivedCompaniesList.push(myCompany);
-    }
-    this.onStartQueries2();
-  }
-  doFilterDepartmentsList(){ 
-    if( (!this.allowToViewAllCompanies && !this.allowToViewMyCompany && this.allowToViewMyDepartments)||
-        (!this.allowToViewAllCompanies && !this.allowToViewMyCompany && !this.allowToViewMyDepartments)){
-      this.receivedDepartmentsList=this.receivedMyDepartmentsList;}
-      this.onStartQueries3();
-  }
   clickBtnCreateMinRemains(): void {
     const dialogRef = this.remainsDialogComponent.open(RemainsDialogComponent, {
       width: '800px', 
@@ -570,9 +604,9 @@ export class RemainsComponent implements OnInit {
     });        
   }
   calcVisBtnSetRemains(){//отображать ли кнопку "Установить минимальное количество"
-    // console.log("allowToUpdateAllCompanies  - "+this.allowToUpdateAllCompanies);
-    // console.log("allowToUpdateMyCompany     - "+this.allowToUpdateMyCompany);
-    // console.log("allowToUpdateMyDepartments - "+this.allowToUpdateMyDepartments);
+    console.log("allowToUpdateAllCompanies  - "+this.allowToUpdateAllCompanies);
+    console.log("allowToUpdateMyCompany     - "+this.allowToUpdateMyCompany);
+    console.log("allowToUpdateMyDepartments - "+this.allowToUpdateMyDepartments);
     if
     (   this.allowToUpdateAllCompanies ||//если есть право на установку мин. количества у всех предприятий головной учетной записи
         (this.allowToUpdateMyCompany && this.sendingQueryForm.companyId==this.myCompanyId)||//или есть право на установку мин. количества у всех отделений своего предприятия, и выбрано своё предприятие
@@ -584,21 +618,23 @@ export class RemainsComponent implements OnInit {
   isItMyDepartments():boolean{
     // console.log("isItMyDepartments");
     let ret: boolean = true;
-    let depId: string = '';
+    let depId: number = 0;
+    alert(this.receivedDepartmentsList)
     if(this.receivedDepartmentsList.length>0){
       this.receivedDepartmentsList.forEach(m=>
       {
-          depId=m.id;
+          depId=+m.id;
           ret?(ret=this.isItMyDepartment(depId)):ret;//если хотя бы 1 из отделений в выпадающем списке не моё - false
       })
     }else ret=false;
     return ret;
   }
-  isItMyDepartment(depId:string):boolean{
-    let myDepId: string = '';
+  isItMyDepartment(depId:number):boolean{
+    let myDepId: number = 0;
     let ret: boolean = false;
     this.receivedMyDepartmentsList.forEach(m=>{
-      myDepId=m.id;
+      myDepId=+m.id;
+      console.log("depId - " + depId + ", myDepId - " +myDepId)
       ret?ret:(ret=(depId == myDepId))//если выбранное отделение из выпадающего списка является одним из моих отделений - true
     });
     return ret;
@@ -660,7 +696,6 @@ export class RemainsComponent implements OnInit {
     //console.log("loadTrees");
     this.loadSpravService.getProductCategoriesTrees(this.sendingQueryForm.companyId).subscribe(
       (data) => {
-        this.onStartQueries2();
         this.treeDataSource.data=data as any [];
         this.recountNumRootCategories();//пересчитать кол-во корневых категорий (level=0)
         if(+this.sendingQueryForm.selectedNodeId>0){
@@ -768,18 +803,51 @@ export class RemainsComponent implements OnInit {
     //console.log("this.numChildsOfSelectedCategory: "+this.numChildsOfSelectedCategory);
   }
 
+
+//***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
+  resetOptions(){
+    // this.displayingDeletedDocs=false;
+    this.fillOptionsList();//перезаполняем список опций
+    this.selectionFilterOptions.clear();
+    this.sendingQueryForm.filterOptionsIds = [];
+  }
+  fillOptionsList(){
+    this.optionsIds = [
+    {id:3, name:'menu.top.hide_nonbuy'},
+    {id:4, name:'menu.top.hide_selloff'},
+    {id:0, name:'menu.top.not_available'},
+    {id:1, name:'menu.top.few'},
+    {id:2, name:'menu.top.enough'}
+  ]//список опций для вывода во всплывающем меню опций для фильтра
+  }
+  clickApplyFilters(){
+    let showOnlyDeletedCheckboxIsOn:boolean = false; //присутствует ли включенный чекбокс "Показывать только удалённые"
+    // this.selectionFilterOptions.selected.forEach(z=>{
+    //   if(z.id==1){showOnlyDeletedCheckboxIsOn=true;}
+    // })
+    // this.displayingDeletedDocs=showOnlyDeletedCheckboxIsOn;
+    this.clearCheckboxSelection();
+    this.sendingQueryForm.offset=0;//сброс пагинации
+    this.getData();
+  }
+  // updateSortOptions(){//после определения прав пересматриваем опции на случай, если права не разрешают действия с определенными опциями, и исключаем эти опции
+  //   let i=0; 
+  //   this.optionsIds.forEach(z=>{
+  //     console.log("allowToDelete - "+this.allowToDelete);
+  //     if(z.id==1 && !this.allowToDelete){this.optionsIds.splice(i,1)}//исключение опции Показывать удаленные, если нет прав на удаление
+  //     i++;
+  //   });
+  //   if (this.optionsIds.length>0) this.displaySelectOptions=true; else this.displaySelectOptions=false;//если опций нет - не показываем меню опций
+  // }
+
   clickFilterOptionsCheckbox(row){
     this.selectionFilterOptions.toggle(row); 
     this.createFilterOptionsCheckedList();
   } 
-  createFilterOptionsCheckedList(){//checkedChangesList - массив c id выбранных чекбоксов вида "7,5,1,3,6,2,4", который заполняется при загрузке страницы и при нажатии на чекбокс, а при 
-    this.checkedOptionsList = [];//                                                       отправке данных внедряется в поле формы selectedUserGroupPermissions
-    console.log("createCheckedList!!!");
-    this.optionsIds.forEach(z=>{
-      console.log("object z - "+z+", z.id - "+z.id+", z.name - "+z.name)
-      if(this.selectionFilterOptions.isSelected(z))
-        this.checkedOptionsList.push(+z.id);
-    })
+  createFilterOptionsCheckedList(){//this.sendingQueryForm.filterOptionsIds - массив c id выбранных чекбоксов вида "7,5,1,3,6,2,4", который заполняется при нажатии на чекбокс
+    this.sendingQueryForm.filterOptionsIds = [];//                                                     
+    this.selectionFilterOptions.selected.forEach(z=>{
+      this.sendingQueryForm.filterOptionsIds.push(+z.id);
+    });
   }
-
 }

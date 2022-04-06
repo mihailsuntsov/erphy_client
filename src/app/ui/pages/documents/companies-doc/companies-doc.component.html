@@ -1,26 +1,15 @@
-<mat-card class="card">
+<mat-card class="card for-sticky-header" *transloco="let t">
     <mat-card-title class="top-bar container-fluid"> 
         <div class="row" id="topBlock">
-            <div class="card-name">Предприятие</div>
+            <div class="card-name">{{t('docs.docs.company')}}</div>
             <button 
                 mat-raised-button 
                 (click)="getCompanyCard(formBaseInformation.get('card_template_filename').value)"
                 color="primary"
-                matTooltip="Карточка предприятия"
+                matTooltip="{{t('docs.msg.comp_card')}}"
                 *ngIf="allowToView&&formBaseInformation.get('card_template_filename').value != '' && +id>0"
                 class="button small-button">
                 <i class="material-icons">cloud_download</i> 
-            </button>
-            <button 
-                mat-raised-button 
-                [style.display]="id>0?'none':'block'"
-                (click)="clickBtnCreateNewDocument()" 
-                [disabled]="!formBaseInformation.valid" 
-                matTooltip='Создать документ'
-                *ngIf="allowToCreate"
-                color="primary"
-                class="button small-button">
-                <i class="material-icons">done</i>
             </button>
             <button 
                 mat-raised-button 
@@ -29,16 +18,27 @@
                 [style.display]="id>0?'block':'none'"
                 *ngIf="allowToView"
                 [disabled]="!formBaseInformation.valid" 
-                matTooltip='Сохранить документ'
+                matTooltip="{{t('docs.tip.save')}}"
                 color="primary"
                 class="button small-button">
                 <i class="material-icons">save</i>
+            </button>
+            <button 
+                mat-raised-button 
+                [style.display]="id>0?'none':'block'"
+                (click)="clickBtnCreateNewDocument()" 
+                [disabled]="!formBaseInformation.valid" 
+                matTooltip="{{t('docs.tip.create')}}"
+                *ngIf="allowToCreate"
+                color="primary"
+                class="button small-button">
+                <i class="material-icons">done</i>
             </button>
             <a routerLink="../../companies" style="text-decoration: none;" [style.display]="(mode=='standart')?'block':'none'" >
                 <button 
                     mat-raised-button 
                     color="accent"
-                    [matTooltip]="id>0?'Выйти в меню':'Отмена создания документа'"
+                    [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
                     class="button small-button">
                     <i class="material-icons">close</i>
                 </button>
@@ -46,7 +46,7 @@
             <button [style.display]="(mode=='window')?'block':'none'"
                 mat-raised-button
                 class="button small-button"
-                matTooltip='Закрыть это окно'
+                matTooltip="{{t('docs.tip.close')}}"
                 matDialogClose 
                 color="accent">
             </button>
@@ -60,7 +60,7 @@
     )"> 
         <mat-card class="internal-card">
             <mat-card-content style="font-size: 20px;font-weight: bold;color: red;text-align: center;height: 100px;padding: 38px 0;">
-                Недостаточно прав
+                {{t('docs.msg.no_perm')}}
             </mat-card-content>
         </mat-card>
     </mat-card-content>
@@ -68,13 +68,13 @@
     <mat-card-content *ngIf="!rightsDefined || (rightsDefined && (( +id>0 && allowToView)||(+id==0 && allowToCreate)))">
         <form [formGroup]="formBaseInformation">   
             <mat-tab-group>
-                <mat-tab label="Информация">
+                <mat-tab label="{{t('docs.tab.info')}}">
                     <div class="container-fluid">
                         <div class="row" style="padding: 10px">
                             <div class="col-lg-4 col-xl-4 col-md-12">    
                                 <mat-card>
                                     <mat-card-header>
-                                        <mat-card-title class="card-title">Основная информация</mat-card-title>
+                                        <mat-card-title class="card-title">{{t('docs.card.base_info')}}</mat-card-title>
                                     </mat-card-header>
                                     <mat-card-content class="input-form">
                                         <mat-form-field style="display: none">
@@ -90,7 +90,7 @@
                                                     maxlength="500"
                                                     formControlName="name"/>
                                             <mat-hint align="start" *ngIf="formBaseInformation.get('name').touched">
-                                                <i *ngIf="formBaseInformation.get('name').value==''" class="form-invalid">Поле не заполнено</i>
+                                                <i *ngIf="formBaseInformation.get('name').value==''" class="form-invalid">{{t('docs.error.field_miss')}}</i>
                                             </mat-hint>
                                             <mat-hint align="end" *ngIf="formBaseInformation.get('name').value.length>450">{{formBaseInformation.get('name').value.length}} / 500</mat-hint>
                                         </mat-form-field>
@@ -353,7 +353,7 @@
                                 </mat-card> 
                                 <mat-card *ngIf="+id>0">
                                     <mat-card-header>
-                                        <mat-card-title class="card-title">Файлы</mat-card-title>
+                                        <mat-card-title class="card-title">{{t('docs.card.files')}}</mat-card-title>
                                     </mat-card-header>
                                     <mat-expansion-panel>
                                         <mat-expansion-panel-header>
@@ -367,7 +367,7 @@
                                                 <div class="input-form">
                                                     <mat-form-field *ngIf="id>0">
                                                         <div *ngIf="editability && !formBaseInformation.get('director_signature_id').value" class="add-file">
-                                                            <button class="hand" matTooltip="Добавить файл" mat-mini-fab color="primary" (click)="addFileInField('director')" matTooltip="Загрузить файл">
+                                                            <button class="hand" matTooltip="{{t('docs.tip.add_file')}}" mat-mini-fab color="primary" (click)="addFileInField('director')" matTooltip="Загрузить файл">
                                                                 <mat-icon>add</mat-icon>
                                                             </button>
                                                         </div>
@@ -375,7 +375,7 @@
                                                             <mat-icon   *ngIf="formBaseInformation.get('director_signature_id').value"
                                                                         class="open-file"
                                                                         (click)="openFileCard(formBaseInformation.get('director_signature_id').value)"
-                                                                        matTooltip='Открыть карточку файла'
+                                                                        matTooltip="{{t('docs.tip.open_file')}}"
                                                                     >
                                                                 <mat-icon>launch</mat-icon>
                                                             </mat-icon>
@@ -383,7 +383,7 @@
                                                                     *ngIf="editability && formBaseInformation.get('director_signature_id').value"
                                                                     class="del-file"
                                                                     (click)="deleteFileInField('director')"
-                                                                    matTooltip='Удалить файл'
+                                                                    matTooltip="{{t('docs.tip.del_file')}}"
                                                                     >
                                                                 <mat-icon>delete_forever</mat-icon>
                                                             </mat-icon>
@@ -396,7 +396,7 @@
                                                     <!-- Подпись гл. бухгалтера -->
                                                     <mat-form-field *ngIf="id>0">
                                                         <div *ngIf="editability && !formBaseInformation.get('glavbuh_signature_id').value" class="add-file">
-                                                            <button class="hand" matTooltip="Добавить файл" mat-mini-fab color="primary" (click)="addFileInField('glavbuh')" matTooltip="Загрузить файл">
+                                                            <button class="hand" matTooltip="{{t('docs.tip.add_file')}}" mat-mini-fab color="primary" (click)="addFileInField('glavbuh')" matTooltip="Загрузить файл">
                                                                 <mat-icon>add</mat-icon>
                                                             </button>
                                                         </div>
@@ -404,7 +404,7 @@
                                                             <mat-icon   *ngIf="formBaseInformation.get('glavbuh_signature_id').value"
                                                                         class="open-file"
                                                                         (click)="openFileCard(formBaseInformation.get('glavbuh_signature_id').value)"
-                                                                        matTooltip='Открыть карточку файла'
+                                                                        matTooltip="{{t('docs.tip.open_file')}}"
                                                                     >
                                                                 <mat-icon>launch</mat-icon>
                                                             </mat-icon>
@@ -412,7 +412,7 @@
                                                                     *ngIf="editability && formBaseInformation.get('glavbuh_signature_id').value"
                                                                     class="del-file"
                                                                     (click)="deleteFileInField('glavbuh')"
-                                                                    matTooltip='Удалить файл'
+                                                                    matTooltip="{{t('docs.tip.del_file')}}"
                                                                     >
                                                                 <mat-icon>delete_forever</mat-icon>
                                                             </mat-icon>
@@ -425,7 +425,7 @@
                                                     <!-- Печать предприятия -->
                                                     <mat-form-field *ngIf="id>0">
                                                         <div *ngIf="editability && !formBaseInformation.get('stamp_id').value" class="add-file">
-                                                            <button class="hand" matTooltip="Добавить файл" mat-mini-fab color="primary" (click)="addFileInField('stamp')" matTooltip="Загрузить файл">
+                                                            <button class="hand" matTooltip="{{t('docs.tip.add_file')}}" mat-mini-fab color="primary" (click)="addFileInField('stamp')" matTooltip="Загрузить файл">
                                                                 <mat-icon>add</mat-icon>
                                                             </button>
                                                         </div>
@@ -433,7 +433,7 @@
                                                             <mat-icon   *ngIf="formBaseInformation.get('stamp_id').value"
                                                                         class="open-file"
                                                                         (click)="openFileCard(formBaseInformation.get('stamp_id').value)"
-                                                                        matTooltip='Открыть карточку файла'
+                                                                        matTooltip="{{t('docs.tip.open_file')}}"
                                                                     >
                                                                 <mat-icon>launch</mat-icon>
                                                             </mat-icon>
@@ -441,7 +441,7 @@
                                                                     *ngIf="editability && formBaseInformation.get('stamp_id').value"
                                                                     class="del-file"
                                                                     (click)="deleteFileInField('stamp')"
-                                                                    matTooltip='Удалить файл'
+                                                                    matTooltip="{{t('docs.tip.del_file')}}"
                                                                     >
                                                                 <mat-icon>delete_forever</mat-icon>
                                                             </mat-icon>
@@ -454,7 +454,7 @@
                                                     <!-- Файл шаблона карточки предприятия -->
                                                     <mat-form-field *ngIf="id>0">
                                                         <div *ngIf="editability && !formBaseInformation.get('card_template_id').value" class="add-file">
-                                                            <button class="hand" matTooltip="Добавить файл" mat-mini-fab color="primary" (click)="addFileInField('card_template')" matTooltip="Загрузить файл">
+                                                            <button class="hand" matTooltip="{{t('docs.tip.add_file')}}" mat-mini-fab color="primary" (click)="addFileInField('card_template')" matTooltip="Загрузить файл">
                                                                 <mat-icon>add</mat-icon>
                                                             </button>
                                                         </div>
@@ -462,7 +462,7 @@
                                                             <mat-icon   *ngIf="formBaseInformation.get('card_template_id').value"
                                                                         class="open-file"
                                                                         (click)="openFileCard(formBaseInformation.get('card_template_id').value)"
-                                                                        matTooltip='Открыть карточку файла'
+                                                                        matTooltip="{{t('docs.tip.open_file')}}"
                                                                     >
                                                                 <mat-icon>launch</mat-icon>
                                                             </mat-icon>
@@ -470,7 +470,7 @@
                                                                     *ngIf="editability && formBaseInformation.get('card_template_id').value"
                                                                     class="del-file"
                                                                     (click)="deleteFileInField('card_template')"
-                                                                    matTooltip='Удалить файл'
+                                                                    matTooltip="{{t('docs.tip.del_file')}}"
                                                                     >
                                                                 <mat-icon>delete_forever</mat-icon>
                                                             </mat-icon>
@@ -496,7 +496,7 @@
                                                         class="min-heigth"
                                                                 type="button"
                                                                 (click)="openFileCard(i.id)"
-                                                                matTooltip='Открыть карточку файла'
+                                                                matTooltip="{{t('docs.tip.open_file')}}"
                                                                 matSuffix>
                                                             <mat-icon>launch</mat-icon>
                                                         </button>
@@ -505,7 +505,7 @@
                                                                 class="min-heigth"
                                                                 type="button"
                                                                 (click)="clickBtnDeleteFile(i.id)"
-                                                                matTooltip='Удалить файл'
+                                                                matTooltip="{{t('docs.tip.del_file')}}"
                                                                 matSuffix>
                                                             <mat-icon>delete_forever</mat-icon>
                                                         </button>
@@ -515,7 +515,7 @@
                                         </div>
                                         <div class="div-100" *ngIf="editability"> 
                                             <div class="center" style="width:100%; height: 38px;">
-                                                <button class="hand" matTooltip="Добавить файл" mat-mini-fab color="primary" (click)="openDialogAddFiles()" matTooltip="Загрузить файл">
+                                                <button class="hand" matTooltip="{{t('docs.tip.add_file')}}" mat-mini-fab color="primary" (click)="openDialogAddFiles()" matTooltip="Загрузить файл">
                                                     <mat-icon>add</mat-icon>
                                                 </button>
                                             </div>
@@ -652,7 +652,7 @@
                                                     <mat-datepicker-toggle *ngIf="editability" matSuffix [for]="dp"></mat-datepicker-toggle>
                                             <mat-datepicker #dp></mat-datepicker>
                                             <mat-hint *ngIf="formBaseInformation.get('jr_ip_reg_date').touched && formBaseInformation.get('jr_ip_reg_date').invalid" class="invalid-feedback">
-                                                <i>Формат даты не верный</i>
+                                                <i>{{t('docs.error.date_format')}}</i>
                                             </mat-hint>
                                         </mat-form-field>
                                     </mat-card-content>
@@ -813,7 +813,7 @@
                                                         cdkDrag
                                                         style="background-color: #f7f7f7">
                                                 <div cdkDragHandle class="handler"  [style.display]="editability ?'block':'none'">
-                                                    <mat-icon   matTooltip='Переместить' 
+                                                    <mat-icon   matTooltip="{{t('docs.tip.move')}}" 
                                                                 class="nav-icon"
                                                                 *ngIf="formBaseInformation.get('companiesPaymentAccountsTable').controls.length>1">
                                                                 swap_vertical_circle
@@ -821,7 +821,7 @@
                                                 </div>
                                                 <div class="del-icon"  [style.display]="editability ?'block':'none'">
                                                     <mat-icon   (click)="deletePaymentAccount(i)" 
-                                                                matTooltip='Удалить'    
+                                                                matTooltip="{{t('docs.tip.delete')}}"    
                                                                 class="nav-icon">cancel
                                                     </mat-icon>
                                                 </div>
@@ -835,7 +835,7 @@
                                                                 formControlName="name"/>
                                                         <mat-hint align="end" *ngIf="name.value.length>250">{{name.value.length}} / 300</mat-hint>
                                                         <mat-hint align="start" *ngIf="formBaseInformation.get('companiesPaymentAccountsTable').controls[i].get('name').touched && formBaseInformation.get('companiesPaymentAccountsTable').controls[i].get('name').invalid">
-                                                            <i *ngIf="formBaseInformation.get('companiesPaymentAccountsTable').controls[i].get('name').value==''" class="form-invalid">Поле не заполнено</i>
+                                                            <i *ngIf="formBaseInformation.get('companiesPaymentAccountsTable').controls[i].get('name').value==''" class="form-invalid">{{t('docs.error.field_miss')}}</i>
                                                         </mat-hint>
                                                     </mat-form-field>
                                                     <mat-form-field>
@@ -848,7 +848,7 @@
                                                                 formControlName="bik"/>
                                                         <mat-hint align="start" *ngIf="formBaseInformation.get('companiesPaymentAccountsTable').controls[i].get('bik').touched && formBaseInformation.get('companiesPaymentAccountsTable').controls[i].get('bik').invalid">
                                                             <i *ngIf="formBaseInformation.get('companiesPaymentAccountsTable').controls[i].get('bik').errors.pattern" class="form-invalid">БИК должен состоять из 9 цифр</i>
-                                                            <i *ngIf="formBaseInformation.get('companiesPaymentAccountsTable').controls[i].get('bik').value==''" class="form-invalid">Поле не заполнено</i>
+                                                            <i *ngIf="formBaseInformation.get('companiesPaymentAccountsTable').controls[i].get('bik').value==''" class="form-invalid">{{t('docs.error.field_miss')}}</i>
                                                         </mat-hint>
                                                     </mat-form-field>
                                                     <mat-form-field>
@@ -860,7 +860,7 @@
                                                                 formControlName="address"/>
                                                         <mat-hint align="end" *ngIf="address.value.length>250">{{address.value.length}} / 300</mat-hint>
                                                         <mat-hint align="start" *ngIf="formBaseInformation.get('companiesPaymentAccountsTable').controls[i].get('address').touched && formBaseInformation.get('companiesPaymentAccountsTable').controls[i].get('address').invalid">
-                                                            <i *ngIf="formBaseInformation.get('companiesPaymentAccountsTable').controls[i].get('address').value==''" class="form-invalid">Поле не заполнено</i>
+                                                            <i *ngIf="formBaseInformation.get('companiesPaymentAccountsTable').controls[i].get('address').value==''" class="form-invalid">{{t('docs.error.field_miss')}}</i>
                                                         </mat-hint>
                                                     </mat-form-field>
                                                     <mat-form-field>
@@ -873,7 +873,7 @@
                                                                 formControlName="corr_account"/>
                                                         <mat-hint align="end" *ngIf="corr_account.value.length>80">{{corr_account.value.length}} / 100</mat-hint>
                                                         <mat-hint align="start" *ngIf="formBaseInformation.get('companiesPaymentAccountsTable').controls[i].get('corr_account').touched && formBaseInformation.get('companiesPaymentAccountsTable').controls[i].get('corr_account').invalid">
-                                                            <i *ngIf="formBaseInformation.get('companiesPaymentAccountsTable').controls[i].get('corr_account').value==''" class="form-invalid">Поле не заполнено</i>
+                                                            <i *ngIf="formBaseInformation.get('companiesPaymentAccountsTable').controls[i].get('corr_account').value==''" class="form-invalid">{{t('docs.error.field_miss')}}</i>
                                                         </mat-hint>
                                                     </mat-form-field>
                                                     <mat-form-field>
@@ -886,7 +886,7 @@
                                                                 formControlName="payment_account"/>
                                                         <mat-hint align="end" *ngIf="payment_account.value.length>80">{{payment_account.value.length}} / 100</mat-hint>
                                                         <mat-hint align="start" *ngIf="formBaseInformation.get('companiesPaymentAccountsTable').controls[i].get('payment_account').touched && formBaseInformation.get('companiesPaymentAccountsTable').controls[i].get('payment_account').invalid">
-                                                            <i *ngIf="formBaseInformation.get('companiesPaymentAccountsTable').controls[i].get('payment_account').value==''" class="form-invalid">Поле не заполнено</i>
+                                                            <i *ngIf="formBaseInformation.get('companiesPaymentAccountsTable').controls[i].get('payment_account').value==''" class="form-invalid">{{t('docs.error.field_miss')}}</i>
                                                         </mat-hint>
                                                     </mat-form-field>
                                                     <mat-form-field style="display: none">
@@ -965,7 +965,7 @@
                 </mat-tab>
 
 
-                <mat-tab  *ngIf="+id>0"  label="О документе">
+                <mat-tab  *ngIf="+id>0"  label="{{t('docs.tab.about')}}">
                     <div class="container-fluid">
                         <div class="row" style="padding: 10px">
                             <div class="col-xl-5 col-lg-9 col-md-12">
@@ -975,27 +975,27 @@
                     
                                             <mat-form-field [ngClass]="{invisible: +id==0}">
                                                 <input  matInput
-                                                        placeholder="Предприятие"
+                                                        placeholder="{{t('docs.field.company')}}"
                                                         formControlName="company" [readonly]=true/>
                                             </mat-form-field>
                                             <mat-form-field [ngClass]="{invisible: +id==0}">
                                                 <input  matInput
-                                                        placeholder="Создатель"
+                                                        placeholder="{{t('docs.field.creator')}}"
                                                         formControlName="creator" [readonly]=true/>
                                             </mat-form-field>
                                             <mat-form-field [ngClass]="{invisible: +id==0}">
                                                 <input  matInput
-                                                        placeholder="Дата создания"
+                                                        placeholder="{{t('docs.field.created')}}"
                                                         formControlName="date_time_created" [readonly]=true/>
                                             </mat-form-field>
                                             <mat-form-field [ngClass]="{invisible: +id==0}">
                                                 <input  matInput
-                                                        placeholder="Изменение"
+                                                        placeholder="{{t('docs.field.changer')}}"
                                                         formControlName="changer" [readonly]=true/>
                                             </mat-form-field>
                                             <mat-form-field [ngClass]="{invisible: +id==0}">
                                                 <input  matInput
-                                                        placeholder="Дата изменения"
+                                                        placeholder="{{t('docs.field.changed')}}"
                                                         formControlName="date_time_changed" [readonly]=true/>
                                             </mat-form-field>
                                         </mat-card-content>

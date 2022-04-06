@@ -4,7 +4,7 @@ class="spinner"
 [diameter]="50"
 *ngIf="gettingTableData"
 ></mat-spinner>
-<mat-card class="card">
+<mat-card class="card" *transloco="let t">
     <mat-card-title class="flex" style="height: 30px;">
         <div *ngIf="!displayingDeletedDocs" class="emptyspace">Взаиморасчёты с {{data.cagent}}</div>
         <!-- <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> входящие платежи</div> -->
@@ -12,7 +12,7 @@ class="spinner"
             mat-raised-button 
             style="width: 36px;height: 36px;min-width: 38px;padding: 0px;"
             color="primary"
-            matTooltip='Пользовательские настройки документа'
+            matTooltip="{{t('docs.tip.user_settings')}}"
             (click)="openDialogSettings()"
             type="button"
             class="button">
@@ -82,7 +82,7 @@ class="spinner"
                             </mat-select>
                         </mat-form-field>
                         <mat-form-field class="company-select" style="margin-left: 10px; max-width: 250px;">
-                            <mat-label>Предприятие</mat-label>
+                            <mat-label>{{t('docs.field.company')}}</mat-label>
                             <mat-select formControlName="companyId"
                             (selectionChange)="onCompanySelection()">                          
                                 <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">

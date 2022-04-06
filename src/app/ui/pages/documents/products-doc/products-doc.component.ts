@@ -207,17 +207,8 @@ numRows: NumRow[] = [
   // {value: '500', viewValue: '500'},
   // {value: '1000', viewValue: '1000'}
 ];
-documentsIds: idAndName [] = 
-[
-{id:"15", name: "Приёмки"},
-{id:"21", name: "Отгрузки"},
-{id:"16", name: "Оприходования"},
-{id:"17", name: "Списания"},
-{id:"25", name: "Розичные продажи"},
-{id:"28", name: "Возвраты покупателей"},
-{id:"29", name: "Возвраты поставщикам"},
-{id:"30", name: "Перемещения"},
-]//список документов, по которым можно получить отчёт
+documentsIds: idAndName [] = [];
+
 checkedChangesList:number[]=[]; //массив для накапливания id выбранных документов чекбоксов в отчете по истории товара, вида [2,5,27...], а так же для заполнения загруженными значениями чекбоксов
 
 
@@ -362,6 +353,7 @@ constructor(private activateRoute: ActivatedRoute,
       SelectedNodeName: new FormControl      ('',[]),
     });
     this.checkedList = [];
+    this.fillDocumentsList();
     this.documentsIds.forEach(z=>{this.selection.select(z);this.checkedChangesList.push(+z.id);});
     this.getSetOfPermissions();
     //+++ getting base data from parent component
@@ -1376,6 +1368,18 @@ checkProductCodeFreeUnical() {
     this.setDefaultCompany();
   }
 
+  fillDocumentsList(){
+    this.documentsIds=[
+      {id:"15", name: "docs.docs.acceptance"},
+      {id:"21", name: "docs.docs.shipment"},
+      {id:"16", name: "docs.docs.posting"},
+      {id:"17", name: "docs.docs.writeoff"},
+      {id:"25", name: "docs.docs.retailsale"},
+      {id:"28", name: "docs.docs.return"},
+      {id:"29", name: "docs.docs.returnsup"},
+      {id:"30", name: "docs.docs.moving"},
+      ]//список документов, по которым можно получить отчёт
+  }
 //************************************************************* ОТЧЕТ ПО ТОВАРАМ *************************************************************/    
   setDefaultDates(){
     //this.formProductHistory.dateFrom=moment().startOf('month');

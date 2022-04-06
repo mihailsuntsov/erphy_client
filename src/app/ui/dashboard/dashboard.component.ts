@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { SalesOnPeriodComponent } from 'src/app/modules/info-modules/sales-on-period/sales-on-period.component';
 import { IncomeOutcomeComponent } from 'src/app/modules/info-modules/income-outcome/income-outcome.component';
 import { IndicatorsLeftComponent } from 'src/app/modules/info-modules/indicators-left/indicators-left.component';
@@ -38,6 +38,7 @@ export class DashboardComponent implements OnInit {
   @ViewChild(IndicatorsLeftComponent, {static: false}) public indicatorsLeftComponent:IndicatorsLeftComponent; // карточки - информеры вверху страницы
   @ViewChild(RemainsComponent,        {static: false}) public remainsComponent:RemainsComponent; // остатки товаров
   @ViewChild(OpexComponent,           {static: false}) public opexComponent:OpexComponent; // операционные расходы
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
 
   constructor(
     private settingsDashboardComponent: MatDialog,

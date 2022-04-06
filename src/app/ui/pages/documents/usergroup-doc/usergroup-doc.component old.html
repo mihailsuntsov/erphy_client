@@ -36,7 +36,7 @@
 
                 <mat-tab-group>
 
-                        <mat-tab label="Информация">
+                        <mat-tab label="{{t('docs.tab.info')}}">
         
                                 <mat-card slyle="margin:10px;">
 
@@ -50,7 +50,7 @@
                                                 </mat-form-field>
 
                                                 <mat-form-field>
-                                                    <mat-label>Предприятие</mat-label>
+                                                    <mat-label>{{t('docs.field.company')}}</mat-label>
                                                     <!-- formBaseInformation.get('company_id').value--{{formBaseInformation.get('company_id').value}} -->
                                                     <mat-select  formControlName="company_id" (selectionChange)="getData()" [disabled]="+formBaseInformation.get('id').value>0">                          
                                                         <mat-option value=0 selected></mat-option>
@@ -102,33 +102,33 @@
                             </mat-card>
 
                         </mat-tab>
-                        <mat-tab  *ngIf="visAfterCreatingBlocks"  label="О документе">
+                        <mat-tab  *ngIf="visAfterCreatingBlocks"  label="{{t('docs.tab.about')}}">
                             <form [formGroup]="formAboutDocument">
                                 <mat-card style="margin:10px;">
                                     <mat-card-content class="input-form">
                                             <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
                                                 <input  matInput
-                                                        placeholder="Предприятие"
+                                                        placeholder="{{t('docs.field.company')}}"
                                                         formControlName="company" [readonly]=true/>
                                             </mat-form-field>
                                             <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
                                                 <input  matInput
-                                                        placeholder="Создатель"
+                                                        placeholder="{{t('docs.field.creator')}}"
                                                         formControlName="creator" [readonly]=true/>
                                             </mat-form-field>
                                             <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
                                                 <input  matInput
-                                                        placeholder="Дата создания"
+                                                        placeholder="{{t('docs.field.created')}}"
                                                         formControlName="date_time_created" [readonly]=true/>
                                             </mat-form-field>
                                             <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
                                                 <input  matInput
-                                                        placeholder="Изменение"
+                                                        placeholder="{{t('docs.field.changer')}}"
                                                         formControlName="changer" [readonly]=true/>
                                             </mat-form-field>
                                             <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
                                                 <input  matInput
-                                                        placeholder="Дата изменения"
+                                                        placeholder="{{t('docs.field.changed')}}"
                                                         formControlName="date_time_changed" [readonly]=true/>
                                             </mat-form-field>
                                     </mat-card-content>

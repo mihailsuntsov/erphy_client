@@ -20,7 +20,7 @@
                 "invoicein":"Suppliers' invoices",
                 "vatinvoicein":"Received VAT invoices",
 
-                "return":"Buyers' returns",
+                "return":"Customers' returns",
                 "customersorders":"Customers orders",
                 "shipment":"Shipments",
                 "invoiceout":"Invoices to customers",

@@ -4,6 +4,7 @@ import { SettingsReturnsupDialogComponent } from './settings-returnsup-dialog.co
 
 import { MaterialModule } from '../../material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 
 @NgModule({
@@ -14,9 +15,11 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
     MaterialModule,
     FormsModule,
     ReactiveFormsModule,
+    TranslocoModule
   ],
   exports: [
     SettingsReturnsupDialogComponent,
   ],
+  providers:[{ provide: TRANSLOCO_SCOPE, useValue: ['docs','modules']},]
 })
 export class SettingsReturnsupDialogModule { }

@@ -1,14 +1,12 @@
-<mat-card class="card">
-  
-    <!-- !!! -->
+<mat-card class="card for-sticky-header" *transloco="let t">
     <mat-card-title class="top-bar container-fluid"> 
         <div class="row" id="topBlock">
             <div class="card-name">
-                Статус документа <span [ngClass]="{invisible: +id==0}"> "{{formBaseInformation.get('doc').value}}"</span>
+                {{t('docs.docs.status')}} <span [ngClass]="{invisible: +id==0}"> "{{formBaseInformation.get('doc').value}}"</span>
             </div>
             <button 
                 mat-raised-button 
-                matTooltip='Создать документ'
+                matTooltip="{{t('docs.tip.create')}}"
                 (click)="createNewDocument()" 
                 *ngIf="allowToCreate && +id==0"
                 [disabled]="!formBaseInformation.valid" 
@@ -21,7 +19,7 @@
                 mat-button 
                 [matMenuTriggerFor]="addDocMenu"
                 mat-raised-button 
-                matTooltip='Создать документы'
+                matTooltip="{{t('docs.tip.create_docs')}}"
                 [disabled]="!formBaseInformation.valid" 
                 *ngIf="+id>0"
                 color="primary"
@@ -32,13 +30,13 @@
             </button>
             <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
                 <button mat-menu-item (click)="goToNewDocument()">
-                    <span>Статус документа</span>
+                    <span>{{t('docs.docs.status')}}</span>
                 </button>
             </mat-menu>
             <button 
                 mat-raised-button 
                 *ngIf="+id>0 && allowToUpdate"
-                matTooltip='Сохранить документ'
+                matTooltip="{{t('docs.tip.save')}}"
                 (click)="updateDocument()"
                 [disabled]="!formBaseInformation.valid" 
                 color="primary"
@@ -50,7 +48,7 @@
                 <button 
                     mat-raised-button 
                     color="accent"
-                    [matTooltip]="id>0?'Выйти в меню':'Отмена создания документа'"
+                    [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
                     class="button small-button">
                     <i class="material-icons">close</i>
                 </button>
@@ -65,14 +63,14 @@
     )"> 
         <mat-card class="internal-card">
             <mat-card-content style="font-size: 20px;font-weight: bold;color: red;text-align: center;height: 100px;padding: 38px 0;">
-                Недостаточно прав
+                {{t('docs.msg.no_perm')}}
             </mat-card-content>
         </mat-card>
     </mat-card-content>
     <!-- !!! -->
     <mat-card-content *ngIf="!rightsDefined || (rightsDefined && (( +id>0 && allowToView)||(+id==0 && allowToCreate)))">
         <mat-tab-group>
-                <mat-tab label="Информация">
+                <mat-tab label="{{t('docs.tab.info')}}">
 
                     <div class="container-fluid">
                         <div class="row">
@@ -80,7 +78,7 @@
 
                                 <mat-card class="internal-card">
                                     <mat-card-header>
-                                        <mat-card-title class="card-title">Основная информация</mat-card-title>
+                                        <mat-card-title class="card-title">{{t('docs.card.base_info')}}</mat-card-title>
                                     </mat-card-header>
                                     <mat-card-content class="input-form">
                                         <form [formGroup]="formBaseInformation">
@@ -93,7 +91,7 @@
                                                                     formControlName="id"/>
                                                         </mat-form-field>
                                                         <mat-form-field class="mat-form-field-100" *ngIf="+id==0">
-                                                            <mat-label>Предприятие</mat-label>
+                                                            <mat-label>{{t('docs.field.company')}}</mat-label>
                                                             <mat-select  formControlName="company_id">                          
                                                                 <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
                                                                         {{rt.name}}
@@ -101,7 +99,7 @@
                                                             </mat-select>
                                                         </mat-form-field>
                                                         <mat-form-field class="mat-form-field-100" *ngIf="+id>0">
-                                                            <mat-label>Предприятие</mat-label>
+                                                            <mat-label>{{t('docs.field.company')}}</mat-label>
                                                             <input  matInput [readonly]="true"
                                                                     [ngModel]="formAboutDocument.get('company').value" [ngModelOptions]="{standalone: true}"/>
                                                         </mat-form-field>
@@ -140,7 +138,7 @@
                                                             <textarea   matInput
                                                                         maxlength="2000"
                                                                         #description
-                                                                        placeholder="Дополнительная информация"
+                                                                        placeholder="{{t('docs.field.additional')}}"
                                                                         formControlName="description">
                                                             </textarea>
                                                             <mat-hint align="end" *ngIf="description.value.length>500">{{description.value.length}} / 2000</mat-hint>
@@ -174,33 +172,33 @@
                     </div>  
                 </mat-tab>
                 
-                <mat-tab  *ngIf="+id>0"  label="О документе">
+                <mat-tab  *ngIf="+id>0"  label="{{t('docs.tab.about')}}">
                     <form [formGroup]="formAboutDocument">
                         <mat-card class="internal-card">
                             <mat-card-content class="input-form">
                                     <mat-form-field [ngClass]="{invisible: +id==0}">
                                         <input  matInput
-                                                placeholder="Предприятие"
+                                                placeholder="{{t('docs.field.company')}}"
                                                 formControlName="company" [readonly]=true/>
                                     </mat-form-field>
                                     <mat-form-field [ngClass]="{invisible: +id==0}">
                                         <input  matInput
-                                                placeholder="Создатель"
+                                                placeholder="{{t('docs.field.creator')}}"
                                                 formControlName="creator" [readonly]=true/>
                                     </mat-form-field>
                                     <mat-form-field [ngClass]="{invisible: +id==0}">
                                         <input  matInput
-                                                placeholder="Дата создания"
+                                                placeholder="{{t('docs.field.created')}}"
                                                 formControlName="date_time_created" [readonly]=true/>
                                     </mat-form-field>
                                     <mat-form-field [ngClass]="{invisible: +id==0}">
                                         <input  matInput
-                                                placeholder="Изменение"
+                                                placeholder="{{t('docs.field.changer')}}"
                                                 formControlName="changer" [readonly]=true/>
                                     </mat-form-field>
                                     <mat-form-field [ngClass]="{invisible: +id==0}">
                                         <input  matInput
-                                                placeholder="Дата изменения"
+                                                placeholder="{{t('docs.field.changed')}}"
                                                 formControlName="date_time_changed" [readonly]=true/>
                                     </mat-form-field>
                             </mat-card-content>

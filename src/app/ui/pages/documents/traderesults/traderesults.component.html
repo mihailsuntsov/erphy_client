@@ -1,4 +1,4 @@
-<mat-card class="card">
+<mat-card class="card" *transloco="let t">
   
     <mat-card-title class="flex" style="height: 30px;">
         <div class="emptyspace">Итоги смен<!--a href="/ui/companies">Предприятия</a--></div>
@@ -48,7 +48,7 @@
                             </mat-select>
                         </mat-form-field>
                         <mat-form-field class="company-select" style="margin-left: 10px">
-                            <mat-label>Предприятие</mat-label>
+                            <mat-label>{{t('docs.field.company')}}</mat-label>
                             <mat-select  [(value)]="sendingQueryForm.companyId" (selectionChange)="getData()">                          
                                 <mat-option value="0" selected>Все предприятия</mat-option>
                                 <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
@@ -57,7 +57,7 @@
                             </mat-select>
                         </mat-form-field>
                         <mat-form-field class="company-select" style="margin-left: 10px">
-                            <mat-label>Отделение</mat-label>
+                            <mat-label>{{t('docs.field.department')}}</mat-label>
                             <mat-select  [(value)]="sendingQueryForm.departmentId" (selectionChange)="getData()">                          
                                 <mat-option value="0" selected>Все отделения</mat-option>
                                 <mat-option  *ngFor="let rdl of receivedDepartmentsList" [value]="rdl.id">

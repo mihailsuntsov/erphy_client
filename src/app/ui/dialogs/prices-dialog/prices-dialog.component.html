@@ -1,4 +1,4 @@
-<mat-card class="card">
+<mat-card class="card" *transloco="let t">
     <mat-card-title class="flex">
         <div class="card-name">Цена для типа '{{data.priceTypeName}}'</div>
         <button 
@@ -27,7 +27,7 @@
                         formControlName="price"/>
                 <mat-hint align="start" *ngIf="formBaseInformation.get('price').touched">
                     <i *ngIf="formBaseInformation.get('price').invalid && formBaseInformation.get('price').errors.pattern" class="form-invalid">Неправильный формат. Допускается до 7 цифр в целой и до 2 цифр в дробной части</i>
-                    <i *ngIf="formBaseInformation.get('price').value==''" class="form-invalid">Поле не заполнено</i>
+                    <i *ngIf="formBaseInformation.get('price').value==''" class="form-invalid">{{t('docs.error.field_miss')}}</i>
                 </mat-hint>
             </mat-form-field>
             <!-- <mat-form-field  [style.display]="'block'">

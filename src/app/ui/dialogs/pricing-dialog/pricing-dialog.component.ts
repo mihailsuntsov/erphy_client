@@ -2,6 +2,8 @@ import { Component, OnInit , Inject, ViewChild} from '@angular/core';
 import {MatDialogRef, MAT_DIALOG_DATA} from '@angular/material/dialog';
 import { HttpClient} from '@angular/common/http';
 import { FormGroup, Validators, FormControl } from '@angular/forms';
+import { translate } from '@ngneat/transloco'; //+++
+
 interface idNameDescription{
   id: number;
   name: string;

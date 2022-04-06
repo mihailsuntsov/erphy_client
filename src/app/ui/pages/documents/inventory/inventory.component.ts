@@ -198,22 +198,22 @@ export class InventoryComponent implements OnInit {
     );
   }
 
-  getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==329)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==330)});
-    this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==331)});
-    this.allowToDeleteAllCompanies = permissionsSet.some(         function(e){return(e==332)});
-    this.allowToDeleteMyCompany = permissionsSet.some(            function(e){return(e==333)});
-    this.allowToDeleteMyDepartments = permissionsSet.some(        function(e){return(e==334)});
-    this.allowToDeleteMyDocs = permissionsSet.some(               function(e){return(e==335)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==336)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==337)});
-    this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==338)});
-    this.allowToViewMyDocs = permissionsSet.some(                 function(e){return(e==339)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==340)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==341)});
-    this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==342)});
-    this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==343)});
+  getCRUD_rights(){
+    this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==329)});
+    this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==330)});
+    this.allowToCreateMyDepartments = this.permissionsSet.some(        function(e){return(e==331)});
+    this.allowToDeleteAllCompanies = this.permissionsSet.some(         function(e){return(e==332)});
+    this.allowToDeleteMyCompany = this.permissionsSet.some(            function(e){return(e==333)});
+    this.allowToDeleteMyDepartments = this.permissionsSet.some(        function(e){return(e==334)});
+    this.allowToDeleteMyDocs = this.permissionsSet.some(               function(e){return(e==335)});
+    this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==336)});
+    this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==337)});
+    this.allowToViewMyDepartments = this.permissionsSet.some(          function(e){return(e==338)});
+    this.allowToViewMyDocs = this.permissionsSet.some(                 function(e){return(e==339)});
+    this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==340)});
+    this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==341)});
+    this.allowToUpdateMyDepartments = this.permissionsSet.some(        function(e){return(e==342)});
+    this.allowToUpdateMyDocs = this.permissionsSet.some(               function(e){return(e==343)});
     this.getData();
   }
 
@@ -526,7 +526,7 @@ export class InventoryComponent implements OnInit {
       this.sendingQueryForm.departmentId=+this.receivedDepartmentsList[0].id;
       Cookie.set('inventory_departmentId',this.sendingQueryForm.departmentId);
     }
-    this.getCRUD_rights(this.permissionsSet);
+    this.getCRUD_rights();
   }
 
   inMyDepthsId(id:number):boolean{//проверяет, состоит ли присланный id в группе id отделений пользователя

@@ -242,7 +242,7 @@
                                                                         </mat-option>
                                                                     </mat-select>
                                                                     <mat-hint  align="start" *ngIf="formBaseInformation.get('department_id').touched && formBaseInformation.get('department_id').invalid">
-                                                                        <i class="form-invalid">Отделение не выбрано.</i>
+                                                                        <i class="form-invalid">{{t('docs.error.depart_not_se')}}</i>
                                                                     </mat-hint>
                                                                 </mat-form-field>
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="+id>0">

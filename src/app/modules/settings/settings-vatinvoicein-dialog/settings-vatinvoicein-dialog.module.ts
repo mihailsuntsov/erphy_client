@@ -4,6 +4,7 @@ import { SettingsVatinvoiceinDialogComponent } from './settings-vatinvoicein-dia
 
 import { MaterialModule } from '../../material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [SettingsVatinvoiceinDialogComponent],
@@ -13,9 +14,11 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
     MaterialModule,
     FormsModule,
     ReactiveFormsModule,
+    TranslocoModule
   ],
   exports: [
     SettingsVatinvoiceinDialogComponent,
   ],
+  providers:[{ provide: TRANSLOCO_SCOPE, useValue: ['docs','modules']},]
 })
 export class SettingsVatinvoiceinDialogModule { }

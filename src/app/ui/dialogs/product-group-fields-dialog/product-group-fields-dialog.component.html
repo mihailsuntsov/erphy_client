@@ -1,4 +1,4 @@
-<mat-card class="card">
+<mat-card class="card" *transloco="let t">
   
     <mat-card-title class="flex">
         <div class="card-name">{{data.docName}}</div>
@@ -46,7 +46,7 @@
                                             </mat-form-field>
                                             <mat-form-field [style.display]="'none'">
                                                 <input  matInput
-                                                        placeholder="Предприятие"
+                                                        placeholder="{{t('docs.field.company')}}"
                                                         formControlName="company_id"/>
                                             </mat-form-field>
 

@@ -12,7 +12,7 @@ class="spinner"
             mat-raised-button 
             style="width: 36px;height: 36px;min-width: 38px;padding: 0px;"
             color="primary"
-            matTooltip='Пользовательские настройки документа'
+            matTooltip="{{t('docs.tip.user_settings')}}"
             (click)="openDialogSettings()"
             type="button"
             class="button">
@@ -220,7 +220,7 @@ class="spinner"
                             </span>
                             <!-- <td mat-cell *matCellDef="let row"><p style="margin: 5px">{{row.summ}}</p></td> -->                            
                             <td mat-cell *matCellDef="let row" 
-                            [matTooltip]="(!row.is_delivered)?'Приходный ордер не проведён':''"
+                            [matTooltip]="(!row.is_delivered)?t('menu.tip.oi_not_compl'):''"
                             [ngStyle]="(!row.is_delivered)?{'background-color': 'rgb(255, 228, 225)'}:{'background-color': 'white'}"
                             ><p style="margin: 5px">{{row.summ}}</p></td>
 

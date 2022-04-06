@@ -1,4 +1,4 @@
-<mat-card class="card">
+<mat-card class="card" *transloco="let t">
   
     <mat-card-title class="flex">
         <div class="card-name">Итог смены</div>
@@ -36,7 +36,7 @@
 
                 <mat-tab-group>
 
-                        <mat-tab label="Информация">
+                        <mat-tab label="{{t('docs.tab.info')}}">
         
                                 <mat-card slyle="margin:10px;">
 
@@ -49,7 +49,7 @@
                                             </mat-form-field>
 
                                             <mat-form-field [ngClass]="{invisible: visAfterCreatingBlocks}">
-                                                <mat-label>Предприятие</mat-label>
+                                                <mat-label>{{t('docs.field.company')}}</mat-label>
                                                 <mat-select  formControlName="company_id" (selectionChange)="getDepartmentsList()">                          
                                                     <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
                                                             {{rt.name}}
@@ -58,7 +58,7 @@
                                             </mat-form-field>
 
                                             <mat-form-field [ngClass]="{invisible: visAfterCreatingBlocks}">
-                                                <mat-label>Отделение</mat-label>
+                                                <mat-label>{{t('docs.field.department')}}</mat-label>
                                                 <mat-select formControlName="department_id"(selectionChange)="getUsersListByDepartmentId()">
                                                     <mat-option *ngFor="let department of receivedDepartmentsList" 
                                                                 [value]="department.id">
@@ -95,7 +95,7 @@
                                                         <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
                                                 <mat-datepicker #dp></mat-datepicker>
                                                 <mat-hint *ngIf="formBaseInformation.get('trade_date').touched && formBaseInformation.get('trade_date').invalid" class="invalid-feedback">
-                                                    <i>Формат даты не верный</i>
+                                                    <i>{{t('docs.error.date_format')}}</i>
                                                 </mat-hint>
                                             </mat-form-field>
                                             <mat-form-field>
@@ -148,7 +148,7 @@
 
                                             <mat-form-field>
                                                 <textarea   matInput
-                                                        placeholder="Дополнительная информация"
+                                                        placeholder="{{t('docs.field.additional')}}"
                                                         formControlName="additional"></textarea>
                                             </mat-form-field>
 
@@ -158,33 +158,33 @@
                                 </mat-card>
 
                         </mat-tab>
-                        <mat-tab  *ngIf="visAfterCreatingBlocks"  label="О документе">
+                        <mat-tab  *ngIf="visAfterCreatingBlocks"  label="{{t('docs.tab.about')}}">
                             <form [formGroup]="formAboutDocument">
                                 <mat-card style="margin:10px;">
                                     <mat-card-content class="input-form">
                                             <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
                                                 <input  matInput
-                                                        placeholder="Предприятие"
+                                                        placeholder="{{t('docs.field.company')}}"
                                                         formControlName="company" [readonly]=true/>
                                             </mat-form-field>
                                             <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
                                                 <input  matInput
-                                                        placeholder="Создатель"
+                                                        placeholder="{{t('docs.field.creator')}}"
                                                         formControlName="creator" [readonly]=true/>
                                             </mat-form-field>
                                             <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
                                                 <input  matInput
-                                                        placeholder="Дата создания"
+                                                        placeholder="{{t('docs.field.created')}}"
                                                         formControlName="date_time_created" [readonly]=true/>
                                             </mat-form-field>
                                             <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
                                                 <input  matInput
-                                                        placeholder="Изменение"
+                                                        placeholder="{{t('docs.field.changer')}}"
                                                         formControlName="changer" [readonly]=true/>
                                             </mat-form-field>
                                             <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
                                                 <input  matInput
-                                                        placeholder="Дата изменения"
+                                                        placeholder="{{t('docs.field.changed')}}"
                                                         formControlName="date_time_changed" [readonly]=true/>
                                             </mat-form-field>
                                     </mat-card-content>

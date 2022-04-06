@@ -136,7 +136,7 @@ class="spinner"
                                         <div class="flex" *ngIf="sendingQueryForm.selectedNodeName" style="margin-left: 10px; width: 200px;">
                                             <mat-form-field class="emptyspace">
                                                 <input matInput 
-                                                placeholder="{{t('menu.tщp.category')}}" 
+                                                placeholder="{{t('menu.top.category')}}" 
                                                 [(ngModel)]="sendingQueryForm.selectedNodeName" 
                                                 type="text" 
                                                 [readonly]=true
@@ -172,7 +172,7 @@ class="spinner"
                                                 </div>
                                                 <div class="div-100"> 
                                                     <div style="width:100%; height: 38px; padding-bottom: 15px;">
-                                                        <button matTooltip="{{t('menu.tip.apply_filters')}}" mat-mini-fab color="primary" (click)="setNumOfPages()">
+                                                        <button matTooltip="{{t('menu.tip.apply_filters')}}" mat-mini-fab color="primary" (click)="clickApplyFilters()">
                                                             <mat-icon>done</mat-icon>
                                                         </button>
                                                     </div>

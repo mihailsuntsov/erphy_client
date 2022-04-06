@@ -1,5 +1,5 @@
 <!-- <code><pre>{{settingsForm.value | json}}</pre></code> -->
-<div class="container-fluid">
+<div class="container-fluid" *transloco="let t">
     <div class="row">
         <div class="col-12">
             <form #form="ngForm" [formGroup]="formSearch">
@@ -121,7 +121,7 @@
                                                                     <mat-hint  align="start" *ngIf="formSearch.get('product_count').dirty">
                                                                         <i *ngIf="formSearch.get('product_count').invalid && formSearch.get('product_count').errors.pattern" class="form-invalid">Неправильный формат. Допускается до 6 цифр в целой и до 3 цифр в дробной части. </i>
                                                                         <i *ngIf="(+formSearch.get('product_count').value==0) && formSearch.get('product_count').value!=''" class="form-invalid">Должно быть больше 0</i>
-                                                                        <i *ngIf="formSearch.get('product_count').value=='' && +this.formSearch.get('product_id').value>0" class="form-invalid">Поле не заполнено</i>
+                                                                        <i *ngIf="formSearch.get('product_count').value=='' && +this.formSearch.get('product_id').value>0" class="form-invalid">{{t('docs.error.field_miss')}}</i>
                                                                         <i *ngIf="indivisibleErrorOfSearchForm" class="form-invalid">Должно быть целым</i>
                                                                         <i *ngIf="(+formSearch.get('product_count').value>+formSearch.get('available').value)&&!indivisibleErrorOfSearchForm" class="form-invalid">Доступно {{+formSearch.get('available').value}} {{edizmName}}</i>
                                                                     </mat-hint>
@@ -401,7 +401,7 @@
                                                                             </button>
                                                                     <mat-hint align="start">
                                                                         <i *ngIf=" formSearch.get('product_price').invalid && formSearch.get('product_price').errors.pattern && formSearch.get('product_price').value>0 && formSearch.get('product_price').touched" class="form-invalid">Неправильный формат. Допускается до 7 цифр в целой и до 2 цифр в дробной части</i>
-                                                                        <i *ngIf="formSearch.get('product_price').value=='' && +this.formSearch.get('product_id').value>0 && formSearch.get('product_price').touched" class="form-invalid">Поле не заполнено</i>
+                                                                        <i *ngIf="formSearch.get('product_price').value=='' && +this.formSearch.get('product_id').value>0 && formSearch.get('product_price').touched" class="form-invalid">{{t('docs.error.field_miss')}}</i>
                                                                         <i *ngIf="formSearch.get('product_price').value==0 && formSearch.get('product_price').value!=''" class="form-invalid">Цена = 0</i>
                                                                         <i *ngIf="formSearch.get('product_price').value<0 && formSearch.get('product_price').value!=''" class="form-invalid">Отрицательная цена!</i>
                                                                     </mat-hint>

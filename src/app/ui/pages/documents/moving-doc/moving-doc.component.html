@@ -1,10 +1,10 @@
-<mat-card class="card">
+<mat-card class="card for-sticky-header" *transloco="let t">
     <form #form="ngForm" [formGroup]="formBaseInformation">
         <!-- !!! -->
         <mat-card-title class="top-bar container-fluid"> 
             <div class="row" id="topBlock">
                 <div id="cardname">
-                    <div class="nowrap">Перемещение №
+                    <div class="nowrap">{{t('docs.docs.moving')}} {{t('docs.top.number')}}
                         <mat-form-field class="docnumber" *ngIf="doc_number_isReadOnly && +id==0 && (+formBaseInformation.get('company_id').value>0)">                                                               
                             <input  matInput
                                     (click)="EditDocNumber()"
@@ -19,7 +19,7 @@
                                     (keyup)="checkDocNumberUnical('moving')"
                                     formControlName="doc_number"/>
                             <mat-hint  align="start" style="font-size: x-small;margin-top: -1px;" *ngIf="formBaseInformation.get('doc_number').touched && formBaseInformation.get('doc_number').invalid">
-                                <i *ngIf="formBaseInformation.get('doc_number').errors.pattern" class="form-invalid">Номер должен состоять из цифр</i>
+                                <i *ngIf="formBaseInformation.get('doc_number').errors.pattern" class="form-invalid">{{t('docs.error.num_only')}}</i>
                             </mat-hint>
                             <mat-hint align="end" *ngIf="doc_number.value.length>5 && !formBaseInformation.get('is_completed').value" style="font-size: x-small;margin-top: -1px;">{{doc_number.value.length}} / 10</mat-hint>
                             <mat-progress-bar *ngIf="isDocNumberUnicalChecking" mode="indeterminate"></mat-progress-bar>
@@ -47,16 +47,14 @@
                                         </div>
                             </mat-option>
                         </mat-select>
-                        <mat-hint  align="start" *ngIf="formBaseInformation.get('status_id').touched && formBaseInformation.get('status_id').invalid">
-                            <i class="form-invalid">Статус документа не выбран.</i>
-                        </mat-hint>
+                        
                     </mat-form-field>
                 </div>
                 <div class="separator"></div><!-- !!! -->
                 <button 
                     mat-raised-button 
                     color="primary"
-                    matTooltip='Пользовательские настройки документа'
+                    matTooltip="{{t('docs.tip.user_settings')}}"
                     (click)="openDialogSettings()"
                     type="button"
                     class="button small-button">
@@ -66,7 +64,7 @@
                     mat-button 
                     [matMenuTriggerFor]="addDocMenu"
                     mat-raised-button 
-                    matTooltip='Создать документы'
+                    matTooltip="{{t('docs.tip.create_docs')}}"
                     [disabled]="!childFormValid||!formBaseInformation.valid||movingProductsTableComponent.indivisibleErrorOfProductTable" 
                     *ngIf="+id>0 && movingProductsTableComponent"
                     color="primary"
@@ -77,13 +75,13 @@
                 </button>
                 <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
                     <button mat-menu-item (click)="goToNewDocument()">
-                        <span>Перемещение</span>
+                        <span>{{t('docs.docs.moving')}}</span>
                     </button>
                 </mat-menu>
                 <button 
                     mat-raised-button 
                     *ngIf="+id>0 && allowToUpdate && canGetChilds && !formBaseInformation.get('is_completed').value && movingProductsTableComponent"
-                    matTooltip='Сохранить документ'
+                    matTooltip="{{t('docs.tip.save')}}"
                     (click)="updateDocument()"
                     [disabled]="!childFormValid||movingProductsTableComponent.indivisibleErrorOfProductTable" 
                     color="primary"
@@ -93,7 +91,7 @@
                 </button>
                 <button 
                     mat-raised-button 
-                    matTooltip='Создать документ'
+                    matTooltip="{{t('docs.tip.create')}}"
                     (click)="createNewDocument()" 
                     *ngIf="allowToCreate && +id==0  && movingProductsTableComponent"
                     [disabled]="!childFormValid||!formBaseInformation.valid||movingProductsTableComponent.indivisibleErrorOfProductTable" 
@@ -107,14 +105,14 @@
                     *ngIf=" +id>0 && allowToComplete && canGetChilds && !formBaseInformation.get('is_completed').value && movingProductsTableComponent"
                     [disabled]="!childFormValid||movingProductsTableComponent.indivisibleErrorOfProductTable" 
                     (click)="completeDocument()" 
-                    matTooltip='Провести документ'
+                    matTooltip="{{t('docs.tip.complete')}}"
                     type="button"
                     color="primary"
                     class="button small-button">
                     <i class="material-icons">playlist_add_check</i>
                 </button>
                 <button 
-                    matTooltip='Документ проведён'
+                    matTooltip="{{t('docs.tip.completed')}}"
                     mat-raised-button 
                     *ngIf=" +id>0 && canGetChilds && formBaseInformation.get('is_completed').value && movingProductsTableComponent"
                     (click)="decompleteDocument()" 
@@ -126,7 +124,7 @@
                 <a routerLink="../../moving"  [style.display]="(mode=='standart')?'block':'none'">
                     <button 
                         mat-raised-button 
-                        [matTooltip]="id>0?'Выйти в меню':'Отмена создания документа'"
+                        [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
                         color="accent"
                         class="button small-button">
                         <i class="material-icons">close</i>
@@ -138,9 +136,9 @@
                         style="margin-left:10px"
                         [mat-dialog-close]="formBaseInformation.get('is_completed').value"
                         matDialogClose 
+                        matTooltip="{{t('docs.tip.close')}}"
                         color="accent">
                         <i class="material-icons">close</i>
-                        <span> Закрыть </span>
                 </button>
             </div>
         </mat-card-title>
@@ -152,20 +150,20 @@
         )"> 
             <mat-card class="internal-card">
                 <mat-card-content style="font-size: 20px;font-weight: bold;color: red;text-align: center;height: 100px;padding: 38px 0;">
-                    Недостаточно прав
+                    {{t('docs.msg.no_perm')}}
                 </mat-card-content>
             </mat-card>
         </mat-card-content>
         <!-- !!! -->
         <mat-card-content *ngIf="!rightsDefined || (rightsDefined && (( +id>0 && allowToView)||(+id==0 && allowToCreate)))"> 
             <mat-tab-group>
-                <mat-tab label="Информация">
+                <mat-tab label="{{t('docs.tab.info')}}">
                     <div class="container-fluid">
                         <div class="row">
                             <div class="col-12">  
                                 <mat-card class="internal-card">
                                     <mat-card-header>
-                                        <mat-card-title class="card-title">Основная информация</mat-card-title>
+                                        <mat-card-title class="card-title">{{t('docs.card.base_info')}}</mat-card-title>
                                     </mat-card-header>
                                     <mat-card-content class="input-form">
                                         
@@ -182,7 +180,7 @@
                                                                             formControlName="id"/>
                                                                 </mat-form-field>
                                                                 <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: +id>0}">
-                                                                    <mat-label>Предприятие <span *ngIf="formBaseInformation.get('company_id').value==''" class="star">*</span></mat-label>
+                                                                    <mat-label>{{t('docs.field.company')}} <span *ngIf="formBaseInformation.get('company_id').value==''" class="star">*</span></mat-label>
                                                                     <mat-select formControlName="company_id" 
                                                                                 (selectionChange)="onCompanyChange()"
                                                                                 [disabled]="!canEditCompAndDepth"
@@ -193,7 +191,7 @@
                                                                     </mat-select>
                                                                 </mat-form-field>
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="+id>0">
-                                                                    <mat-label>Предприятие</mat-label>
+                                                                    <mat-label>{{t('docs.field.company')}}</mat-label>
                                                                     <input  matInput [readonly]="true"
                                                                             [ngModel]="formAboutDocument.get('company').value" [ngModelOptions]="{standalone: true}"/>
                                                                 </mat-form-field>
@@ -211,7 +209,7 @@
                                                                         </mat-option>
                                                                     </mat-select>
                                                                     <mat-hint  align="start" *ngIf="formBaseInformation.get('department_from_id').touched && formBaseInformation.get('department_from_id').invalid">
-                                                                        <i class="form-invalid">Отделение не выбрано.</i>
+                                                                        <i class="form-invalid">{{t('docs.error.depart_not_se')}}</i>
                                                                     </mat-hint>
                                                                 </mat-form-field>
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="+id>0">
@@ -232,7 +230,7 @@
                                                                         </mat-option>
                                                                     </mat-select>
                                                                     <mat-hint  align="start" *ngIf="formBaseInformation.get('department_to_id').touched && formBaseInformation.get('department_to_id').invalid">
-                                                                        <i class="form-invalid">Отделение не выбрано.</i>
+                                                                        <i class="form-invalid">{{t('docs.error.depart_not_se')}}</i>
                                                                     </mat-hint>
                                                                 </mat-form-field>
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="+id>0">
@@ -258,7 +256,7 @@
                                                                             <mat-datepicker-toggle matSuffix [for]="dp" *ngIf="!this.formBaseInformation.get('is_completed').value"></mat-datepicker-toggle>
                                                                     <mat-datepicker #dp></mat-datepicker>
                                                                     <mat-hint *ngIf="formBaseInformation.get('moving_date').touched && formBaseInformation.get('moving_date').invalid" class="invalid-feedback">
-                                                                        <i>Формат даты не верный</i>
+                                                                        <i>{{t('docs.error.date_format')}}</i>
                                                                     </mat-hint>
                                                                 </mat-form-field>
                                                             </div> -->
@@ -270,7 +268,7 @@
                                                                                 maxlength="2000"
                                                                                 [rows]="1"
                                                                                 #description
-                                                                                placeholder="Дополнительная информация"
+                                                                                placeholder="{{t('docs.field.additional')}}"
                                                                                 formControlName="description">
                                                                     </textarea>
                                                                     <mat-hint align="end" *ngIf="description.value.length>500">{{description.value.length}} / 2000</mat-hint>
@@ -292,7 +290,7 @@
                                                                             formControlName="overhead"
                                                                             (keypress)="numberOnlyPlusDotAndComma($event)"/>
                                                                     <mat-hint  align="start" *ngIf="formBaseInformation.get('overhead').touched && formBaseInformation.get('overhead').invalid">
-                                                                        <i *ngIf="formBaseInformation.get('overhead').errors.pattern" class="form-invalid">Неправильный формат. Допускается до 9 цифр в целой и до 2 цифр в дробной части</i>
+                                                                        <i *ngIf="formBaseInformation.get('overhead').errors.pattern" class="form-invalid">{{t('docs.error.price_format',{int:9,fract:2})}}</i>
                                                                     </mat-hint>
                                                                 </mat-form-field>
                                                             </div>
@@ -351,81 +349,10 @@
                         </div>
                     </div>  
                 </mat-tab>
-                <!-- <mat-tab *ngIf="+id>0">
-                    <ng-template mat-tab-label>
-                        <div>Связанные</div><div><span [matBadge]="linkedDocsReturn.length" matBadgeOverlap="false">&nbsp;</span></div>
-                    </ng-template>
-                    <div class="col-xl-5 col-lg-5 col-md-8 col-sm-12">
-                        <div class="container-fluid">
-                            <div class="row">
-                                <mat-card  style="margin:10px 0 10px;width:100%;">
-                                    <mat-card-header>
-                                        <mat-card-title class="card-title">Связанные документы</mat-card-title>
-                                    </mat-card-header>
-                                    <mat-card-content class="input-form">
-                                        
-                                        <mat-accordion>
-                                            <mat-expansion-panel 
-                                            *ngIf="linkedDocsReturn.length>0"
-                                            (opened)="panelReturnOpenState = true"
-                                            (closed)="panelReturnOpenState = false"
-                                            [expanded]="panelReturnOpenState">
-                                                <mat-expansion-panel-header>
-                                                    <mat-panel-title>
-                                                        Возвраты поставщику ({{linkedDocsReturn.length}})
-                                                    </mat-panel-title>
-                                                    <mat-panel-description *ngIf="!panelReturnOpenState">
-                                                        <div style="display: flex; flex-flow: column;">
-                                                            
-                                                        </div>
-                                                    </mat-panel-description>
-                                                </mat-expansion-panel-header>
-                                                <div class="row">
-
-                                                    <div style="width: 100%;">
-                                                        <ng-container *ngFor="let i of linkedDocsReturn">
-                                                            <div class="filename-row">
-                                                                <div class="file-wrapper" (click)="dialogOpenLinkedDoc(i.id)" matTooltip='Открыть возврат поставщику'>
-                                                                    <span style="cursor: pointer;"> Возврат №{{ i.doc_number }} от {{i.date_time_created}}</span>
-                                                                </div>
-                                                                <div style="min-width:74px;">
-                                                                    <button mat-button 
-                                                                    class="min-heigth"
-                                                                            type="button"
-                                                                            [matTooltip]="i.is_completed?'Завершён':'В работе'"
-                                                                            matSuffix>
-                                                                        <mat-icon *ngIf='i.is_completed'>lock</mat-icon>
-                                                                        <mat-icon *ngIf='!(i.is_completed)'>lock_open</mat-icon>
-                                                                    </button>
-                                                                    <button mat-button 
-                                                                            *ngIf="!i.is_completed && this.allowToUpdate"
-                                                                            class="min-heigth"
-                                                                            type="button"
-                                                                            (click)="clickButtonDeleteLinkedDoc('Returnsup',i.id)"
-                                                                            matTooltip='Удалить возврат поставщику'
-                                                                            matSuffix>
-                                                                        <mat-icon>delete_forever</mat-icon>
-                                                                    </button>
-
-                                                                </div>
-                                                            </div>
-                                                        </ng-container>
-                                                    </div>
-                                                </div>
-                                            </mat-expansion-panel>
-                                        </mat-accordion>
-
-
-                                    </mat-card-content>
-                                </mat-card> 
-                            </div>
-                        </div>
-                    </div>
-                </mat-tab> -->
                 <mat-tab *ngIf="+id>0">
                     <ng-template mat-tab-label>
                         <p>
-                            <span [matBadge]="filesInfo.length" matBadgeOverlap="false">Файлы</span>
+                            <span [matBadge]="filesInfo.length" matBadgeOverlap="false">{{t('docs.tab.files')}}</span>
                         </p>
 
                       
@@ -436,7 +363,7 @@
                             <div class="row">
                                 <mat-card  style="margin:10px 0 10px;width:100%;">
                                     <mat-card-header>
-                                        <mat-card-title class="card-title">Файлы</mat-card-title>
+                                        <mat-card-title class="card-title">{{t('docs.card.files')}}</mat-card-title>
                                     </mat-card-header>
                                     <mat-card-content class="input-form">
                                         <div class="box-list">
@@ -450,7 +377,7 @@
                                                         class="min-heigth"
                                                                 type="button"
                                                                 (click)="openFileCard(i.id)"
-                                                                matTooltip='Открыть карточку файла'
+                                                                matTooltip="{{t('docs.tip.open_file')}}"
                                                                 matSuffix>
                                                             <mat-icon>launch</mat-icon>
                                                         </button>
@@ -459,7 +386,7 @@
                                                                 class="min-heigth"
                                                                 type="button"
                                                                 (click)="clickBtnDeleteFile(i.id)"
-                                                                matTooltip='Удалить файл'
+                                                                matTooltip="{{t('docs.tip.del_file')}}"
                                                                 matSuffix>
                                                             <mat-icon>delete_forever</mat-icon>
                                                         </button>
@@ -469,7 +396,7 @@
                                         </div>
                                         <div class="div-100" [style.display]="(allowToUpdate==true) ?'block':'none'"> 
                                             <div class="center hand" style="width:100%; height: 38px;">
-                                                <button matTooltip="Добавить файл" mat-mini-fab color="primary" (click)="openDialogAddFiles()" matTooltip="Загрузить файл">
+                                                <button matTooltip="{{t('docs.tip.add_file')}}" mat-mini-fab color="primary" (click)="openDialogAddFiles()" matTooltip="Загрузить файл">
                                                     <mat-icon>add</mat-icon>
                                                 </button>
                                             </div>
@@ -481,7 +408,7 @@
                     </div>
                 </mat-tab>
                 
-                <mat-tab  *ngIf="+id>0"  label="О документе">
+                <mat-tab  *ngIf="+id>0"  label="{{t('docs.tab.about')}}">
                     <div class="col-xl-5 col-lg-5 col-md-8 col-sm-12">
                         <div class="container-fluid">
                             <div class="row">
@@ -491,27 +418,27 @@
                                                 <mat-card-content class="input-form">
                                                         <mat-form-field [ngClass]="{invisible: +id==0}">
                                                             <input  matInput
-                                                                    placeholder="Предприятие"
+                                                                    placeholder="{{t('docs.field.company')}}"
                                                                     formControlName="company" [readonly]=true/>
                                                         </mat-form-field>
                                                         <mat-form-field [ngClass]="{invisible:  +id==0}">
                                                             <input  matInput
-                                                                    placeholder="Создатель"
+                                                                    placeholder="{{t('docs.field.creator')}}"
                                                                     formControlName="creator" [readonly]=true/>
                                                         </mat-form-field>
                                                         <mat-form-field [ngClass]="{invisible:  +id==0}">
                                                             <input  matInput
-                                                                    placeholder="Дата создания"
+                                                                    placeholder="{{t('docs.field.created')}}"
                                                                     formControlName="date_time_created" [readonly]=true/>
                                                         </mat-form-field>
                                                         <mat-form-field [ngClass]="{invisible:  +id==0}">
                                                             <input  matInput
-                                                                    placeholder="Изменение"
+                                                                    placeholder="{{t('docs.field.changer')}}"
                                                                     formControlName="changer" [readonly]=true/>
                                                         </mat-form-field>
                                                         <mat-form-field [ngClass]="{invisible:  +id==0}">
                                                             <input  matInput
-                                                                    placeholder="Дата изменения"
+                                                                    placeholder="{{t('docs.field.changed')}}"
                                                                     formControlName="date_time_changed" [readonly]=true/>
                                                         </mat-form-field>
                                                 </mat-card-content>

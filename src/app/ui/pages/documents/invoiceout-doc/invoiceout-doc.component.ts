@@ -174,7 +174,7 @@ export class InvoiceoutDocComponent implements OnInit {
 
   id: number = 0;// id документа
   createdDocId: number;//получение id созданного документа
-  receivedCompaniesList: IdAndName [];//массив для получения списка предприятий
+  receivedCompaniesList: IdAndName [] = [];//массив для получения списка предприятий
   receivedDepartmentsList: SecondaryDepartment [] = [];//массив для получения списка отделений
   receivedStatusesList: StatusInterface [] = []; // массив для получения статусов
   receivedMyDepartmentsList: SecondaryDepartment [] = [];//массив для получения списка отделений

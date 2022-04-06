@@ -1,71 +1,12 @@
 export class ValidationService {
     static getValidatorErrorMessage(validatorName: string, validatorValue?: any) {
       let config = {
-        'invalidCreditCard': 'Ошибочный номер карты',
-        'invalidEmailAddress': 'Ошибочный e-mail',
-        'invalidPassword': 'Пароль должен содержать хотя бы 6 символов, включая цифры.',
-        'countMoreThanZero': 'Кол-во = 0',
-        'priceMoreThanZero': 'Цена = 0',
-        'numberNotNegative': 'Сумма < 0',
-        'minlength': `Минимальное кол-во символов - ${validatorValue.requiredLength}`
+        'numberNotNegative': 'docs.error.sum_less_zero',
       };
   
       return config[validatorName];
     }
   
-    static creditCardValidator(control) {
-      // Visa, MasterCard, American Express, Diners Club, Discover, JCB
-      if (control.value.match(/^(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|6(?:011|5[0-9][0-9])[0-9]{12}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|(?:2131|1800|35\d{3})\d{11})$/)) {
-        return null;
-      } else {
-        return { 'invalidCreditCard': true };
-      }
-    }
-  
-    static emailValidator(control) {
-      // RFC 2822 compliant regex
-      if (control.value.match(/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/)) {
-        return null;
-      } else {
-        return { 'invalidEmailAddress': true };
-      }
-    }
-  
-    static passwordValidator(control) {
-      // {6,100}           - Assert password is between 6 and 100 characters
-      // (?=.*[0-9])       - Assert a string has at least one number
-      if (control.value.match(/^(?=.*[0-9])[a-zA-Z0-9!@#$%^&*]{6,100}$/)) {
-        return null;
-      } else {
-        return { 'invalidPassword': true };
-      }
-    }
-
-    static countMoreThanZero(control) {
-        if (control.value.toString().length>0) {// если поле заполнено
-            if (control.value>0) {
-                return null;
-            }else {
-                return { 'countMoreThanZero': true };
-            }
-        }
-        else {
-            return null;
-        }
-    }
-
-    static priceMoreThanZero(control) {
-        if (control.value.toString().length>0) {// если поле заполнено
-            if (control.value>0) {
-                return null;
-            }else {
-                return { 'priceMoreThanZero': true };
-            }
-        }
-        else {
-            return null;
-        }
-    }
     static numberNotNegative(control) {
       if (control.value!=null && control.value.toString().length>0) {// если поле заполнено
           if (control.value>=0) {

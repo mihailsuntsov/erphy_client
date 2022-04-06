@@ -103,7 +103,8 @@
         "shift_opened": "The shift is opened",
         "shift_closed": "The shift is closed",
         "show_receipts":"Show receipts of this shift",
-        "open_doc_rece":"Open the document from which the receipt was created"
+        "open_doc_rece":"Open the document from which the receipt was created",
+        "oi_not_compl": "Credit slip is not completed"
     },
     "table":{
         "name":         "Name",
@@ -155,7 +156,7 @@
         "department":   "Department",
         "from_depart":  "From department",
         "to_depart":    "To department",
-        "buyer":        "Buyer",
+        "customer":     "Customer",
         "receipt":      "Receipt",
         "cashier":      "Cashier",
         "sales_regstr": "Sales register",
@@ -321,8 +322,8 @@
         "depositings":  "depositings",
         "tr":           "trade result",
         "trs":          "trade results",
-        "return":       "buyers' return",
-        "returns":      "buyers' returns",
+        "return":       "customers' return",
+        "returns":      "customers' returns",
         "c_order":      "customer's order",
         "c_orders":     "customers orders",
         "shipment":     "shipment",

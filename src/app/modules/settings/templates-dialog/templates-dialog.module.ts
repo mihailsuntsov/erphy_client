@@ -5,6 +5,7 @@ import { TemplatesDialogComponent } from './templates-dialog.component';
 import { MaterialModule } from '../../material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DragDropModule } from '@angular/cdk/drag-drop';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [TemplatesDialogComponent],
@@ -15,9 +16,11 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
     MaterialModule,
     FormsModule,
     ReactiveFormsModule,
+    TranslocoModule
   ],
   exports: [
     TemplatesDialogComponent,
   ],
+  providers: [{ provide: TRANSLOCO_SCOPE, useValue: ['docs','modules']}],
 })
 export class TemplatesDialogModule { }
