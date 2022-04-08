@@ -19,7 +19,7 @@
                                     (keyup)="checkDocNumberUnical('inventory')"
                                     formControlName="doc_number"/>
                             <mat-hint  align="start" style="font-size: x-small;margin-top: -1px;" *ngIf="formBaseInformation.get('doc_number').touched && formBaseInformation.get('doc_number').invalid">
-                                <i *ngIf="formBaseInformation.get('doc_number').errors.pattern" class="form-invalid">{{t('docs.error.num_only')}}</i>
+                                <i class="form-invalid" *ngIf="formBaseInformation.get('doc_number').errors.pattern" class="form-invalid">{{t('docs.error.num_only')}}</i>
                             </mat-hint>
                             <mat-hint align="end" *ngIf="doc_number.value.length>5 && !formBaseInformation.get('is_completed').value" style="font-size: x-small;margin-top: -1px;">{{doc_number.value.length}} / 10</mat-hint>
                             <mat-progress-bar *ngIf="isDocNumberUnicalChecking" mode="indeterminate"></mat-progress-bar>
@@ -229,7 +229,7 @@
                                                                 <mat-form-field   class="mat-form-field-100">
                                                                     <input   matInput
                                                                             [readonly]="formBaseInformation.get('is_completed').value"
-                                                                            placeholder="Наименование инвентаризации"
+                                                                            placeholder="{{t('docs.field.name')}}"
                                                                             formControlName="name"/>
                                                                 </mat-form-field>
                                                             </div>
@@ -365,7 +365,7 @@
                                         </div>
                                         <div class="div-100" [style.display]="(allowToUpdate==true && !formBaseInformation.get('is_completed').value) ?'block':'none'"> 
                                             <div class="center hand" style="width:100%; height: 38px;">
-                                                <button matTooltip="{{t('docs.tip.add_file')}}" mat-mini-fab color="primary" (click)="openDialogAddFiles()" matTooltip="Загрузить файл">
+                                                <button matTooltip="{{t('docs.tip.add_file')}}" mat-mini-fab color="primary" (click)="openDialogAddFiles()" matTooltip="{{t('docs.tip.file_upload')}}">
                                                     <mat-icon>add</mat-icon>
                                                 </button>
                                             </div>

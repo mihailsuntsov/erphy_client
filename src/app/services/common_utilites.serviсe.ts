@@ -67,6 +67,7 @@ export class CommonUtilitesService{
   getDocNameByDocAlias(alias: string): string{
     alias=alias.toLowerCase();
     switch(alias){
+      case 'depositing':    {return 'depositing';}
       case 'return':        {return 'return';}
       case 'returnsup':     {return 'returnsup';}
       case 'retailsales':   {return 'retailsale';}

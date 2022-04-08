@@ -95,7 +95,7 @@
                                                         <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
                                                 <mat-datepicker #dp></mat-datepicker>
                                                 <mat-hint *ngIf="formBaseInformation.get('trade_date').touched && formBaseInformation.get('trade_date').invalid" class="invalid-feedback">
-                                                    <i>{{t('docs.error.date_format')}}</i>
+                                                    <i class="form-invalid">{{t('docs.error.date_format')}}</i>
                                                 </mat-hint>
                                             </mat-form-field>
                                             <mat-form-field>

@@ -16,7 +16,7 @@
                             <mat-icon>visibility</mat-icon>
                         </button>
                         <button mat-icon-button (click)="collapseAllNodes(); categoriesExpanded=false;" 
-                            matTooltip="{{t('docs.tip.p_collaps_cat')}}" color="primary">
+                            matTooltip="{{t('docs.tip.collaps_cat')}}" color="primary">
                                 <mat-icon>visibility_off</mat-icon>
                         </button>
                         <button mat-icon-button 
@@ -296,7 +296,7 @@
                                                                         style="width:35%">
                                                                         <input  matInput
                                                                                 (click)="EditProductCodeFree()"
-                                                                                placeholder="{{t('docs.field.p_code')}}"
+                                                                                placeholder="{{t('docs.field.code')}}"
                                                                                 formControlName="product_code_free"
                                                                                 [readonly]=true/>
                                                                     </mat-form-field>
@@ -306,7 +306,7 @@
                                                                         <input  matInput
                                                                                 #codeFreeValue 
                                                                                 maxlength="10"
-                                                                                placeholder="{{t('docs.field.p_code')}}"
+                                                                                placeholder="{{t('docs.field.code')}}"
                                                                                 (keypress)="numberOnly($event)"
                                                                                 (change)="checkProductCodeFreeUnical()"
                                                                                 formControlName="product_code_free"/>
@@ -347,7 +347,7 @@
                                                                         *ngIf="+formBaseInformation.get('product_code').value==0"
                                                                         matSuffix 
                                                                         mat-icon-button 
-                                                                        matTooltip="{{t('docs.field.p_gen_wg_code')}}" color="primary"
+                                                                        matTooltip="{{t('docs.tip.p_gen_wg_code')}}" color="primary"
                                                                         (click)="generateProductWeightCode()">
                                                                             <mat-icon>offline_bolt</mat-icon>
                                                                             
@@ -557,7 +557,7 @@
                                                                                 <td mat-footer-cell *matFooterCellDef></td>
                                                                             </ng-container>
                                                                             <ng-container matColumnDef="price_name" [formArrayName]="'productPricesTable'">
-                                                                                <th mat-header-cell *matHeaderCellDef>{{t('docs.field.p_price_type')}}</th>
+                                                                                <th mat-header-cell *matHeaderCellDef>{{t('docs.field.price_type')}}</th>
                                                                                 <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> {{row.price_name}} </td>
                                                                                 <td mat-footer-cell *matFooterCellDef></td>
                                                                             </ng-container>

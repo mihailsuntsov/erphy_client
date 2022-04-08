@@ -90,29 +90,29 @@
                                                     </mat-form-field>
                                                     <mat-form-field>
                                                         <input   matInput
-                                                                placeholder="Наименование"
+                                                                placeholder="{{t('docs.field.name')}}"
                                                                 formControlName="name"/>
                                                     </mat-form-field>
                                                     <mat-form-field>
                                                         <input   matInput
-                                                                placeholder="Сокращение (например, Кг., м., Шт.)"
+                                                                placeholder="{{t('docs.field.shrt_unit_nme')}}"
                                                                 formControlName="short_name"/>
                                                     </mat-form-field>
                                                     <mat-form-field>
-                                                        <mat-label>Тип ед. измерения</mat-label>
+                                                        <mat-label>{{t('docs.field.unit_type')}}</mat-label>
                                                         <mat-select formControlName="type_id"
                                                                     (selectionChange)="changeTypeId()"
                                                                 >
-                                                            <mat-option [value]="1">Предмет</mat-option>
-                                                            <mat-option [value]="2">Масса</mat-option>
-                                                            <mat-option [value]="3">Длина</mat-option>
-                                                            <mat-option [value]="4">Площадь</mat-option>
-                                                            <mat-option [value]="5">Объём</mat-option>
+                                                            <mat-option [value]="1">{{t('docs.list.object')}}</mat-option>
+                                                            <mat-option [value]="2">{{t('docs.list.mass')}}</mat-option>
+                                                            <mat-option [value]="3">{{t('docs.list.length')}}</mat-option>
+                                                            <mat-option [value]="4">{{t('docs.list.area')}}</mat-option>
+                                                            <mat-option [value]="5">{{t('docs.list.volume')}}</mat-option>
                                                         </mat-select>
                                                     </mat-form-field>
                                                     <mat-form-field [ngClass]="{invisible: +formBaseInformation.get('type_id').value<2}"> 
                                                         <input   matInput
-                                                            placeholder="Множитель для приведения к {{type_short_name}}"
+                                                            placeholder="{{t('docs.field.mltplyer_to')}} {{type_short_name}}"
                                                             formControlName="equals_si"/>
                                                             <button mat-button matSuffix mat-icon-button aria-label="search" style="font-size: 150%;color: gray;" (click)="aboutMultiplify()">
                                                                 <mat-icon>contact_support</mat-icon>

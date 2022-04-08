@@ -19,7 +19,7 @@
                                     (keyup)="checkDocNumberUnical('correction')"
                                     formControlName="doc_number"/>
                             <mat-hint  align="start" style="font-size: x-small;margin-top: -1px;" *ngIf="formBaseInformation.get('doc_number').touched && formBaseInformation.get('doc_number').invalid">
-                                <i *ngIf="formBaseInformation.get('doc_number').errors.pattern" class="form-invalid">{{t('docs.error.num_only')}}</i>
+                                <i class="form-invalid" *ngIf="formBaseInformation.get('doc_number').errors.pattern" class="form-invalid">{{t('docs.error.num_only')}}</i>
                             </mat-hint>
                             <mat-hint align="end" *ngIf="doc_number.value.length>5 && !formBaseInformation.get('is_completed').value" style="font-size: x-small;margin-top: -1px;">{{doc_number.value.length}} / 10</mat-hint>
                             <mat-progress-bar *ngIf="isDocNumberUnicalChecking" mode="indeterminate"></mat-progress-bar>
@@ -204,7 +204,7 @@
                                                             </div>
                                                             <div class="col-12" *ngIf="formBaseInformation.get('type').value=='boxoffice'">    
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="!formBaseInformation.get('is_completed').value">
-                                                                    <mat-label>Касса <span *ngIf="+formBaseInformation.get('boxoffice_id').value==0" class="star">*</span></mat-label>
+                                                                    <mat-label>{{t('docs.field.boxoffice')}} <span *ngIf="+formBaseInformation.get('boxoffice_id').value==0" class="star">*</span></mat-label>
                                                                     <mat-select formControlName="boxoffice_id" 
                                                                                 >                          
                                                                         <mat-option  *ngFor="let rt of boxoffices" [value]="rt.id" (mousedown)="rt.id!=+this.formBaseInformation.get('boxoffice_id').value?getBalance('getBoxofficeBalance',rt.id):''">
@@ -218,7 +218,7 @@
                                                                     </app-balance-boxoffice>
                                                                 </mat-form-field>
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="formBaseInformation.get('is_completed').value">
-                                                                    <mat-label>Касса</mat-label>
+                                                                    <mat-label>{{t('docs.field.boxoffice')}}</mat-label>
                                                                     <input  matInput [readonly]="true"
                                                                             [ngModel]="getBoxofficeNameById(formBaseInformation.get('boxoffice_id').value)" 
                                                                             [ngModelOptions]="{standalone: true}"/>                                              
@@ -232,7 +232,7 @@
                                                            
                                                             <div class="col-12" *ngIf="formBaseInformation.get('type').value=='account'">    
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="!formBaseInformation.get('is_completed').value">
-                                                                    <mat-label>Расчётный счёт <span *ngIf="+formBaseInformation.get('payment_account_id').value==0" class="star">*</span></mat-label>
+                                                                    <mat-label>{{t('docs.field.account')}} <span *ngIf="+formBaseInformation.get('payment_account_id').value==0" class="star">*</span></mat-label>
                                                                     <mat-select formControlName="payment_account_id" 
                                                                                 >                          
                                                                         <mat-option     *ngFor="let rt of paymentAccounts" 
@@ -249,7 +249,7 @@
                                                                     </app-balance-account>
                                                                 </mat-form-field>
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="formBaseInformation.get('is_completed').value">
-                                                                    <mat-label>Расчётный счёт</mat-label>
+                                                                    <mat-label>{{t('docs.field.account')}}</mat-label>
                                                                     <input  matInput [readonly]="true" 
                                                                     matTooltip="{{formBaseInformation.get('payment_account').value}}"
                                                                             [ngModel]="formBaseInformation.get('payment_account').value" 
@@ -292,7 +292,7 @@
                                                                     </ng-container>
                                                                     </mat-autocomplete>
                                                                     <mat-hint  align="start" *ngIf="searchCagentCtrl.touched && formBaseInformation.get('cagent_id').invalid">
-                                                                        <i class="form-invalid">Контрагент не выбран</i>
+                                                                        <i class="form-invalid">{{t('docs.error.field_miss')}}</i>
                                                                     </mat-hint>
                                                                 </mat-form-field>
                                                                 <mat-progress-bar *ngIf="isCagentListLoading" mode="indeterminate"></mat-progress-bar>
@@ -309,7 +309,7 @@
                                                             </div>
                                                             <div class="col-12" *ngIf="!formBaseInformation.get('is_completed').value"> 
                                                                 <mat-form-field   class="mat-form-field-100">
-                                                                    <mat-label>Баланс до корректировки</mat-label>
+                                                                    <mat-label>{{t('docs.field.bal_bef_corrc')}}</mat-label>
                                                                     <mat-spinner 
                                                                         strokeWidth="2" 
                                                                         class="field-spinner"
@@ -324,7 +324,7 @@
                                                             </div>
                                                             <div class="col-12"> 
                                                                 <mat-form-field   class="mat-form-field-100">
-                                                                    <mat-label>Сумма корректировки <span *ngIf="formBaseInformation.get('summ').value=='' && formBaseInformation.get('summ').invalid" class="star">*</span></mat-label>
+                                                                    <mat-label>{{t('docs.field.correctn_sum')}} <span *ngIf="formBaseInformation.get('summ').value=='' && formBaseInformation.get('summ').invalid" class="star">*</span></mat-label>
                                                                     <input  matInput
                                                                             [readonly]="this.formBaseInformation.get('is_completed').value"
                                                                             maxlength="15"
@@ -339,7 +339,7 @@
                                                             </div>
                                                             <div class="col-12" *ngIf="!formBaseInformation.get('is_completed').value"> 
                                                                 <mat-form-field   class="mat-form-field-100">
-                                                                    <mat-label>Баланс после корректировки</mat-label>   
+                                                                    <mat-label>{{t('docs.field.bal_aft_corrc')}}</mat-label>   
                                                                     <input  matInput
                                                                             [readonly]="this.formBaseInformation.get('is_completed').value"
                                                                             maxlength="15"
@@ -372,7 +372,7 @@
                                                                                 [rows]="5"
                                                                                 [readonly]="this.formBaseInformation.get('is_completed').value"
                                                                                 #description
-                                                                                placeholder="Доп. информация о коррекции"
+                                                                                placeholder="{{t('docs.field.description')}}"
                                                                                 formControlName="description">
                                                                     </textarea>
                                                                     <mat-hint align="end" *ngIf="description.value.length>500 && !formBaseInformation.get('is_completed').value">{{description.value.length}} / 2000</mat-hint>
@@ -473,7 +473,7 @@
                                         </div>
                                         <div class="div-100" [style.display]="(allowToUpdate==true) ?'block':'none'"> 
                                             <div class="center hand" style="width:100%; height: 38px;">
-                                                <button matTooltip="{{t('docs.tip.add_file')}}" mat-mini-fab color="primary" (click)="openDialogAddFiles()" matTooltip="Загрузить файл">
+                                                <button matTooltip="{{t('docs.tip.add_file')}}" mat-mini-fab color="primary" (click)="openDialogAddFiles()" matTooltip="{{t('docs.tip.file_upload')}}">
                                                     <mat-icon>add</mat-icon>
                                                 </button>
                                             </div>

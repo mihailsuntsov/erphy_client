@@ -104,34 +104,34 @@
                                                                     [ngModel]="formAboutDocument.get('company').value" [ngModelOptions]="{standalone: true}"/>
                                                         </mat-form-field>
                                                         <mat-form-field  class="mat-form-field-100" *ngIf="+id==0">
-                                                            <mat-label>Документ{{formBaseInformation.get('doc_id').value==''?'*':''}}</mat-label>
+                                                            <mat-label>{{t('docs.field.doc')}} {{formBaseInformation.get('doc_id').value==''?'*':''}}</mat-label>
                                                             <mat-select formControlName="doc_id">
                                                                 <mat-option *ngFor="let rt of receivedDocumentsList" 
                                                                             [value]="rt.id">
-                                                                            {{rt.name}}
+                                                                            {{t('docs'+rt.name)}}
                                                                 </mat-option>
                                                             </mat-select>
                                                             <mat-hint  align="start" *ngIf="formBaseInformation.get('doc_id').touched && formBaseInformation.get('doc_id').invalid">
-                                                                <i class="form-invalid">Документ не выбран.</i>
+                                                                <i class="form-invalid">{{t('docs.error.field_miss')}}</i>
                                                             </mat-hint>
                                                         </mat-form-field>
                                                         <mat-form-field class="mat-form-field-100">
-                                                            <mat-label>Наименование <span *ngIf="formBaseInformation.get('name').value==''" class="star">*</span></mat-label>
+                                                            <mat-label>{{t('docs.field.name')}} <span *ngIf="formBaseInformation.get('name').value==''" class="star">*</span></mat-label>
                                                             <input  matInput
                                                                     formControlName="name"/>
                                                         </mat-form-field>
                                                         <mat-form-field class="mat-form-field-100">
-                                                            <label class="mat-form-field-label" style="display: block;top:-1.3em;font-size:11px;"><span>Цвет</span></label>
+                                                            <label class="mat-form-field-label" style="display: block;top:-1.3em;font-size:11px;"><span>{{t('docs.field.color')}}</span></label>
                                                             <input type="color" formControlName="color" name="color1">
                                                             <input matInput hidden/>
                                                         </mat-form-field>
 
                                                         <mat-form-field class="mat-form-field-100">
-                                                            <mat-label>Тип статуса</mat-label>
+                                                            <mat-label>{{t('docs.field.status_type')}}</mat-label>
                                                             <mat-select formControlName="status_type">
-                                                                <mat-option [value]="1">Обычный</mat-option>
-                                                                <mat-option [value]="2">Конечный положительный</mat-option>
-                                                                <mat-option [value]="3">Конечный отрицательный</mat-option>
+                                                                <mat-option [value]="1">{{t('docs.list.regular')}}</mat-option>
+                                                                <mat-option [value]="2">{{t('docs.list.final_positive')}}</mat-option>
+                                                                <mat-option [value]="3">{{t('docs.list.final_negative')}}</mat-option>
                                                             </mat-select>
                                                         </mat-form-field>
                                                         <mat-form-field  class="mat-form-field-100">
@@ -153,7 +153,7 @@
                             <div class="col-lg-6  col-xl-6 col-md-12" *ngIf="statusesList.length>1">  
                                 <mat-card class="internal-card" style = "padding: 16px;"> 
                                     <mat-card-header>
-                                        <mat-card-title class="card-title" style="margin-left: -16px;">Порядок вывода статусов</mat-card-title>
+                                        <mat-card-title class="card-title" style="margin-left: -16px;">{{t('docs.card.status_order')}}</mat-card-title>
                                     </mat-card-header>
                                     <div class="box-list" cdkDropList (cdkDropListDropped)="dropCagent($event)">
                                         <ng-container *ngFor="let status of statusesList">

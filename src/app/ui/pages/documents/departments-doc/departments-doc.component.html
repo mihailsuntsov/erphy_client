@@ -89,7 +89,7 @@
                                                                                                 </mat-form-field> -->
                                                                                                 <mat-form-field class="mat-form-field-100">
                                                                                                 <!-- name-{{this.formBaseInformation.get('name').value}} -->
-                                                                                                        <mat-label>Наименование <span *ngIf="formBaseInformation.get('name').value==''||formBaseInformation.get('name').value==null" class="star">*</span></mat-label>
+                                                                                                        <mat-label>{{t('docs.field.name')}} <span *ngIf="formBaseInformation.get('name').value==''||formBaseInformation.get('name').value==null" class="star">*</span></mat-label>
                                                                                                         <input  matInput
                                                                                                                 formControlName="name"
                                                                                                                 maxlength="500"
@@ -139,7 +139,7 @@
                                                                                                 </mat-form-field>
                                                                                                 
                                                                                                 <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: !allowToUpdate}">
-                                                                                                        <mat-label>Расчётный счёт</mat-label>
+                                                                                                        <mat-label>{{t('docs.field.account')}}</mat-label>
                                                                                                         <mat-select formControlName="payment_account_id" 
                                                                                                                 >                          
                                                                                                         <mat-option  *ngFor="let rt of paymentAccounts" [value]="rt.id" 
@@ -149,7 +149,7 @@
                                                                                                         </mat-select>
                                                                                                 </mat-form-field>
                                                                                                 <mat-form-field class="mat-form-field-100" *ngIf="!allowToUpdate">
-                                                                                                        <mat-label>Расчётный счёт</mat-label>
+                                                                                                        <mat-label>{{t('docs.field.account')}}</mat-label>
                                                                                                         <input  matInput [readonly]="true" 
                                                                                                                 [ngModel]="getPaymentAccountNameById(formBaseInformation.get('payment_account_id').value)" [ngModelOptions]="{standalone: true}"/>
                                                                                                 </mat-form-field>

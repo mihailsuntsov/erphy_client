@@ -6,7 +6,7 @@ import { MatSnackBar} from '@angular/material/snack-bar';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatDialog } from '@angular/material/dialog';
-import { translate } from '@ngneat/transloco'; //+++
+import { translate, TranslocoService } from '@ngneat/transloco'; //+++
 
 interface categoriesOrderResponse {//интерфейс для получения ответа в методе getFields (информации по полям)
   id: number;
@@ -30,6 +30,7 @@ export class ProductCategoriesDialogComponent implements OnInit {
     public dialogRef: MatDialogRef<ProductCategoriesDialogComponent>,
     private _snackBar: MatSnackBar,
     public MessageDialog: MatDialog,
+    public service:TranslocoService,
     private http: HttpClient,
     @Inject(MAT_DIALOG_DATA) public data: any) {}
   onNoClick(): void {

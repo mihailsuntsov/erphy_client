@@ -87,9 +87,9 @@
                                                                 [ngModel]="formAboutDocument.get('company').value" [ngModelOptions]="{standalone: true}"/>
                                                     </mat-form-field>
                                                     <mat-form-field>
-                                                        <mat-label>Наименование <span *ngIf="formBaseInformation.get('name').value==''||formBaseInformation.get('name').value==null" class="star">*</span></mat-label>
+                                                        <mat-label>{{t('docs.field.name')}} <span *ngIf="formBaseInformation.get('name').value==''||formBaseInformation.get('name').value==null" class="star">*</span></mat-label>
                                                         <input matInput
-                                                                placeholder="Наименование"
+                                                                placeholder="{{t('docs.field.name')}}"
                                                                 formControlName="name"/>
                                                             <mat-hint *ngIf="formBaseInformation.get('name').touched && formBaseInformation.get('name').invalid" class="invalid-feedback">
                                                                 <i class="form-invalid" *ngIf="formBaseInformation.get('name').errors.required">Введите наименование роли</i>
@@ -97,7 +97,7 @@
                                                     </mat-form-field>
                                                     <mat-form-field>
                                                         <textarea matInput
-                                                                placeholder="Описание"
+                                                                placeholder="{{t('docs.field.description')}}"
                                                                 formControlName="description"></textarea>
                                                     </mat-form-field>
                                                 

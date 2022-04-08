@@ -29,7 +29,7 @@
     </mat-card-title>
     <mat-card-content > 
         <form [formGroup]="formBaseInformation">   
-            <mat-form-field style="width: 100%"  *ngIf="data.actionType=='create'">
+            <mat-form-field style="width: 100%"  *ngIf="data.actionType=='create'"> 
                 <mat-label>Родительская категория</mat-label>
                 <mat-select  formControlName="parentCategoryId">        
                     <mat-option [value]="0" selected>Нет (будет создана корневая категория)</mat-option>
@@ -39,7 +39,7 @@
             </mat-form-field>
             <mat-form-field  [style.display]="'block'">
                 <input matInput
-                        placeholder="Наименование"
+                        placeholder="{{'docs.field.name' | transloco}}"
                         formControlName="name"/>
             </mat-form-field>
         </form>

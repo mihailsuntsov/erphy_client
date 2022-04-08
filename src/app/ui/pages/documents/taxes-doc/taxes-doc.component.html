@@ -106,7 +106,7 @@
                                                                     [ngModel]="formAboutDocument.get('company').value" [ngModelOptions]="{standalone: true}"/>
                                                         </mat-form-field>
                                                         <mat-form-field class="mat-form-field-100">
-                                                            <mat-label>Наименование <span *ngIf="formBaseInformation.get('name').value==''" class="star">*</span></mat-label>
+                                                            <mat-label>{{t('docs.field.name')}} <span *ngIf="formBaseInformation.get('name').value==''" class="star">*</span></mat-label>
                                                             <input  matInput                                                      
                                                                     maxlength="30"
                                                                     [readonly]="((id==0 && !allowToCreate) || (id>0 && !allowToUpdate))"
@@ -115,33 +115,33 @@
                                                                 <mat-hint align="end" *ngIf="name.value.length>20">{{name.value.length}} / 30</mat-hint>
                                                         </mat-form-field>
                                                         <mat-form-field class="mat-form-field-100">
-                                                            <mat-label>Значение, % <span *ngIf="(formBaseInformation.get('value').value).toString()==''" class="star">*</span></mat-label>
+                                                            <mat-label>{{t('docs.field.tax_value')}} <span *ngIf="(formBaseInformation.get('value').value).toString()==''" class="star">*</span></mat-label>
                                                             <input  matInput
                                                                     [readonly]="((id==0 && !allowToCreate) || (id>0 && !allowToUpdate))"
                                                                     (keypress)="numberOnly($event)"
                                                                     (keyup)="onTaxValueChange()"
-                                                                    matTooltip='Значение налога в процентах от 0 до 99. Например, для налога 20% введите 20'
+                                                                    matTooltip="{{t('docs.tip.tax_value')}}"
                                                                     maxlength="2"
                                                                     formControlName="value"/>
                                                                     <mat-hint  align="start" *ngIf="formBaseInformation.get('value').touched && formBaseInformation.get('value').invalid">
-                                                                        <i *ngIf="formBaseInformation.get('value').errors.pattern" class="form-invalid">Неправильный формат. Допускается до 2 цифр</i>
+                                                                        <i *ngIf="formBaseInformation.get('value').errors.pattern" class="form-invalid">{{t('docs.error.price_format1',{cnt:2})}}</i>
                                                                         <i *ngIf="formBaseInformation.get('value').value==''" class="form-invalid">{{t('docs.error.field_miss')}}</i>
                                                                     </mat-hint>
                                                         </mat-form-field>
-                                                        <mat-form-field class="mat-form-field-100">
-                                                            <mat-label>Мультипликатор<span *ngIf="+formBaseInformation.get('multiplier').value==0" class="star">*</span></mat-label>
+                                                        <mat-form-field class="mat-form-field-100" style="display: none">
+                                                            <mat-label>{{t('docs.field.mplicator')}}<span *ngIf="+formBaseInformation.get('multiplier').value==0" class="star">*</span></mat-label>
                                                             <input  matInput
                                                                     [readonly]="true"
                                                                     formControlName="multiplier"/>
                                                         </mat-form-field>
                                                         
                                                         <mat-form-field class="mat-form-field-100">
-                                                            <mat-slide-toggle formControlName="is_active">Активный</mat-slide-toggle>
+                                                            <mat-slide-toggle formControlName="is_active">{{t('docs.field.active_tax')}}</mat-slide-toggle>
                                                             <input matInput hidden/>
                                                         </mat-form-field>
 
                                                         <mat-form-field class="mat-form-field-100">
-                                                            <mat-label>API Атол</mat-label>
+                                                            <mat-label>{{t('docs.field.tax_api_atol')}}</mat-label>
                                                             <input  matInput
                                                                 #name_api_atol                                                                
                                                                 maxlength="10"
@@ -170,7 +170,7 @@
                             <div class="col-lg-6  col-xl-6 col-md-12" *ngIf="taxesList.length>1">  
                                 <mat-card class="internal-card" style = "padding: 16px;"> 
                                     <mat-card-header>
-                                        <mat-card-title class="card-title" style="margin-left: -16px;">Порядок вывода налогов</mat-card-title>
+                                        <mat-card-title class="card-title" style="margin-left: -16px;">{{t('docs.card.tax_order')}}</mat-card-title>
                                     </mat-card-header>
                                     <div class="box-list" cdkDropList (cdkDropListDropped)="dropCagent($event)">
                                         <ng-container *ngFor="let tax of taxesList">

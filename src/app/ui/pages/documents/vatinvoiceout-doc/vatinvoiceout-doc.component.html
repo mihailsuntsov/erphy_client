@@ -19,7 +19,7 @@
                                     (keyup)="checkDocNumberUnical('vatinvoiceout')"
                                     formControlName="doc_number"/>
                             <mat-hint  align="start" style="font-size: x-small;margin-top: -1px;" *ngIf="formBaseInformation.get('doc_number').touched && formBaseInformation.get('doc_number').invalid">
-                                <i *ngIf="formBaseInformation.get('doc_number').errors.pattern" class="form-invalid">{{t('docs.error.num_only')}}</i>
+                                <i class="form-invalid" *ngIf="formBaseInformation.get('doc_number').errors.pattern" class="form-invalid">{{t('docs.error.num_only')}}</i>
                             </mat-hint>
                             <mat-hint align="end" *ngIf="doc_number.value.length>5 && !formBaseInformation.get('is_completed').value" style="font-size: x-small;margin-top: -1px;">{{doc_number.value.length}} / 10</mat-hint>
                             <mat-progress-bar *ngIf="isDocNumberUnicalChecking" mode="indeterminate"></mat-progress-bar>
@@ -335,7 +335,7 @@
                                                                             <mat-datepicker-toggle matSuffix [for]="dp2" *ngIf="!this.formBaseInformation.get('is_completed').value"></mat-datepicker-toggle>
                                                                     <mat-datepicker #dp2></mat-datepicker>
                                                                     <mat-hint *ngIf="formBaseInformation.get('paydoc_date').touched && formBaseInformation.get('paydoc_date').invalid" class="invalid-feedback">
-                                                                        <i>{{t('docs.error.date_format')}}</i>
+                                                                        <i class="form-invalid">{{t('docs.error.date_format')}}</i>
                                                                     </mat-hint>
                                                                 </mat-form-field>
                                                             </div>
@@ -425,7 +425,7 @@
                                         </div>
                                         <div class="div-100" [style.display]="(allowToUpdate==true) ?'block':'none'"> 
                                             <div class="center hand" style="width:100%; height: 38px;">
-                                                <button matTooltip="{{t('docs.tip.add_file')}}" mat-mini-fab color="primary" (click)="openDialogAddFiles()" matTooltip="Загрузить файл">
+                                                <button matTooltip="{{t('docs.tip.add_file')}}" mat-mini-fab color="primary" (click)="openDialogAddFiles()" matTooltip="{{t('docs.tip.file_upload')}}">
                                                     <mat-icon>add</mat-icon>
                                                 </button>
                                             </div>

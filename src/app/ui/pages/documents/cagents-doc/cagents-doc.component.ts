@@ -235,7 +235,7 @@ export class CagentsDocComponent implements OnInit {
   allowToCreate:boolean = false;
   editability:boolean = false;//редактируемость. true если есть право на создание и документ содается, или есть право на редактирование и документ создан
 
-  checkedList:any[]; //массив для накапливания id выбранных чекбоксов вида [2,5,27...], а так же для заполнения загруженными значениями чекбоксов
+  checkedList:any[]=[]; //массив для накапливания id выбранных чекбоксов вида [2,5,27...], а так же для заполнения загруженными значениями чекбоксов
 
   searchCagentGroupsCtrl = new FormControl();
 
@@ -532,7 +532,9 @@ constructor(private activateRoute: ActivatedRoute,
                   this.formBaseInformation.get('jr_ip_ogrnip').setValue(documentValues.jr_ip_ogrnip);
                   this.formBaseInformation.get('jr_ip_svid_num').setValue(documentValues.jr_ip_svid_num);
                   this.formBaseInformation.get('jr_ip_reg_date').setValue(documentValues.jr_ip_reg_date?moment(documentValues.jr_ip_reg_date,'DD.MM.YYYY'):"");
-                  this.checkedList=documentValues.cagent_categories_id;
+                  // alert("1-"+this.checkedList)
+                  this.checkedList=documentValues.cagent_categories_id?documentValues.cagent_categories_id:[];
+                  // alert("2-"+this.checkedList)
                   this.searchRegionCtrl.setValue(documentValues.region);
                   this.searchJrRegionCtrl.setValue(documentValues.jr_region);
                   this.area=documentValues.area;
@@ -741,6 +743,7 @@ constructor(private activateRoute: ActivatedRoute,
 //*****************************************************************************************************************************************/
 
   isSelectedCheckbox(id: number){
+    // alert(this.checkedList)
     if(this.checkedList.includes(id))
       return true;
     else return false; 

@@ -106,11 +106,11 @@ export class LoadSpravService{
     getMovingTypeList(){
         let docList: any [] = [];
         docList = [
-            {id:'boxoffice', name_from:'Из кассы предприятия', name_to:'В кассу предприятия'},
-            {id:'account', name_from:'С расчётного счёта', name_to:'На расчётный счёт'},
-            {id:'kassa', name_from:'Из кассы ККМ', name_to:'В Кассу ККМ'},
+            {id:'boxoffice', name_from:'docs.field.from_cash_rom', name_to:'docs.field.to_cash_rom'},
+            {id:'account', name_from:'docs.field.from_bnk_acc', name_to:'docs.field.to_bnk_acc'},
+            {id:'kassa', name_from:'docs.field.from_sell_reg', name_to:'docs.field.to_sell_reg'},
         ];
-        return docList;  
+        return docList;  
     }    
     //загружается список статусов документа по его id (таблица documents) и id предприятия
     getStatusList(companyId: number, documentId:number){

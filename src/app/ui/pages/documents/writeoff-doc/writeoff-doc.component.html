@@ -19,7 +19,7 @@
                                     (keyup)="checkDocNumberUnical('writeoff')"
                                     formControlName="doc_number"/>
                             <mat-hint  align="start" style="font-size: x-small;margin-top: -1px;" *ngIf="formBaseInformation.get('doc_number').touched && formBaseInformation.get('doc_number').invalid">
-                                <i *ngIf="formBaseInformation.get('doc_number').errors.pattern" class="form-invalid">{{t('docs.error.num_only')}}</i>
+                                <i class="form-invalid" *ngIf="formBaseInformation.get('doc_number').errors.pattern" class="form-invalid">{{t('docs.error.num_only')}}</i>
                             </mat-hint>
                             <mat-hint align="end" *ngIf="doc_number.value.length>5 && !formBaseInformation.get('is_completed').value" style="font-size: x-small;margin-top: -1px;">{{doc_number.value.length}} / 10</mat-hint>
                             <mat-progress-bar *ngIf="isDocNumberUnicalChecking" mode="indeterminate"></mat-progress-bar>
@@ -64,8 +64,7 @@
                     mat-button 
                     [matMenuTriggerFor]="addDocMenu"
                     mat-raised-button 
-                    matTooltip="{{t('docs.tip.create_docs')}}"
-                    [disabled]="!childFormValid||!formBaseInformation.valid||writeoffProductsTableComponent.indivisibleErrorOfProductTable" 
+                    matTooltip="{{t('docs.tip.create_docs')}}"                     
                     *ngIf="+id>0 && writeoffProductsTableComponent"
                     color="primary"
                     (submit)="false"
@@ -81,6 +80,7 @@
                 <button 
                     mat-raised-button 
                     *ngIf="+id>0 && allowToUpdate && canGetChilds && !formBaseInformation.get('is_completed').value && writeoffProductsTableComponent"
+                    [disabled]="!childFormValid||!formBaseInformation.valid||writeoffProductsTableComponent.indivisibleErrorOfProductTable"
                     matTooltip="{{t('docs.tip.save')}}"
                     (click)="updateDocument()"
                     [disabled]="!childFormValid||writeoffProductsTableComponent.indivisibleErrorOfProductTable" 
@@ -103,7 +103,7 @@
                 <button 
                     mat-raised-button 
                     *ngIf=" +id>0 && allowToComplete && canGetChilds && !formBaseInformation.get('is_completed').value && writeoffProductsTableComponent"
-                    [disabled]="!childFormValid||writeoffProductsTableComponent.indivisibleErrorOfProductTable" 
+                    [disabled]="!childFormValid||!formBaseInformation.valid||writeoffProductsTableComponent.indivisibleErrorOfProductTable"
                     (click)="completeDocument()" 
                     type="button"
                     matTooltip="{{t('docs.tip.complete')}}"
@@ -230,7 +230,7 @@
                                                             <div class="col-lg-6  col-md-12"> 
                                                                 <mat-form-field  class="mat-form-field-100">
                                                                     <input  matInput 
-                                                                            placeholder="Дата списания"
+                                                                            placeholder="{{t('docs.field.woffed')}}"
                                                                             [readonly]="this.formBaseInformation.get('is_completed').value"
                                                                             formControlName="writeoff_date"
                                                                             [ngClass]="{'is-invalid':formBaseInformation.get('writeoff_date').touched && formBaseInformation.get('writeoff_date').invalid}"
@@ -238,7 +238,7 @@
                                                                             <mat-datepicker-toggle matSuffix [for]="dp" *ngIf="!this.formBaseInformation.get('is_completed').value"></mat-datepicker-toggle>
                                                                     <mat-datepicker #dp></mat-datepicker>
                                                                     <mat-hint *ngIf="formBaseInformation.get('writeoff_date').touched && formBaseInformation.get('writeoff_date').invalid" class="invalid-feedback">
-                                                                        <i>{{t('docs.error.date_format')}}</i>
+                                                                        <i class="form-invalid">{{t('docs.error.date_format')}}</i>
                                                                     </mat-hint>
                                                                 </mat-form-field>
                                                             </div>
@@ -362,7 +362,7 @@
                                         </div>
                                         <div class="div-100" [style.display]="(allowToUpdate==true) ?'block':'none'"> 
                                             <div class="center hand" style="width:100%; height: 38px;">
-                                                <button matTooltip="{{t('docs.tip.add_file')}}" mat-mini-fab color="primary" (click)="openDialogAddFiles()" matTooltip="Загрузить файл">
+                                                <button matTooltip="{{t('docs.tip.add_file')}}" mat-mini-fab color="primary" (click)="openDialogAddFiles()" matTooltip="{{t('docs.tip.file_upload')}}">
                                                     <mat-icon>add</mat-icon>
                                                 </button>
                                             </div>

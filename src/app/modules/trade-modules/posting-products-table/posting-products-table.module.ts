@@ -6,6 +6,7 @@ import { PostingProductsTableComponent } from './posting-products-table.componen
 import { ControlMessagesComponent } from './control-messages.component';
 import { ValidationService } from './validation.service';
 import { ProductCategoriesSelectModule } from 'src/app/modules/trade-modules/product-categories-select/product-categories-select.module';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [PostingProductsTableComponent, ControlMessagesComponent],
@@ -15,9 +16,12 @@ import { ProductCategoriesSelectModule } from 'src/app/modules/trade-modules/pro
     MaterialModule,
     FormsModule,
     ProductCategoriesSelectModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    TranslocoModule
   ],
   exports: [PostingProductsTableComponent],
-  providers: [ValidationService],
+  providers: [ValidationService,
+    { provide: TRANSLOCO_SCOPE, useValue: ['docs','modules']},
+  ],
 })
 export class PostingProductsTableModule { }

@@ -394,7 +394,7 @@
                         <div class="col-lg-6 col-md-12" *ngIf="kassaSettingsForm.get('cashier_value_id').value=='custom'">
                             <mat-form-field class="mat-form-field-100">
                                 <input matInput 
-                                placeholder="ИНН" 
+                                placeholder="{{t('docs.field.tin')}}" 
                                 (keypress)="numberOnly($event)"
                                 maxlength="12"
                                 formControlName="customCashierVatin"

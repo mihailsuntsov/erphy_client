@@ -109,7 +109,7 @@
                                                                     [ngModel]="formAboutDocument.get('company').value" [ngModelOptions]="{standalone: true}"/>
                                                         </mat-form-field>
                                                         <mat-form-field class="mat-form-field-100">
-                                                            <mat-label>Наименование <span *ngIf="formBaseInformation.get('name').value==''" class="star">*</span></mat-label>
+                                                            <mat-label>{{t('docs.field.name')}} <span *ngIf="formBaseInformation.get('name').value==''" class="star">*</span></mat-label>
                                                             <input  matInput
                                                                     [readonly]="!allowToUpdate"
                                                                     formControlName="name"/>

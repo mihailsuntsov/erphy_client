@@ -66,7 +66,7 @@
 
                                     <mat-card-content class="input-form">
                                         <mat-card-header>
-                                            <mat-card-title class="card-title">Группа</mat-card-title>
+                                            <mat-card-title class="card-title">{{t('docs.card.base_info')}}</mat-card-title>
                                         </mat-card-header>
                                         <mat-form-field style="display: none">
                                             <input  matInput
@@ -91,14 +91,14 @@
                                                     [ngModel]="formAboutDocument.get('company').value" [ngModelOptions]="{standalone: true}"/>
                                         </mat-form-field>
                                         <mat-form-field>
-                                            <mat-label>Наименование <span *ngIf="formBaseInformation.get('name').value==''" class="star">*</span></mat-label>
+                                            <mat-label>{{t('docs.field.name')}} <span *ngIf="formBaseInformation.get('name').value==''" class="star">*</span></mat-label>
                                             <input   matInput
                                                     [readonly]="!allowToUpdate"
                                                     maxlength="250"
                                                     formControlName="name"/>
                                         </mat-form-field>
                                         <mat-form-field>
-                                            <mat-label>Описание <span *ngIf="formBaseInformation.get('description').value==''" class="star">*</span></mat-label>
+                                            <mat-label>{{t('docs.field.description')}} <span *ngIf="formBaseInformation.get('description').value==''" class="star">*</span></mat-label>
                                             <input  matInput
                                                     [readonly]="!allowToUpdate"
                                                     maxlength="1000"
@@ -123,36 +123,35 @@
                                             [style.display]="(!visChangingFieldsOrder && allowToUpdate)?'block':'none'"
                                             (click)="clickBtnAddSetOfField()" 
                                             color="primary">
-                                            <i class="material-icons">create_new_folder</i> Создать группу полей
+                                            <i class="material-icons">create_new_folder</i> {{t('docs.button.crt_grp_flds')}}
                                         </button>
                                         <button 
                                         mat-stroked-button 
                                             [style.display]="(receivedSetsOfFields.length>0 && visChangingFieldsOrder==false&&allowToUpdate)?'block':'none'"
                                             (click)="clickBtnAddField()" 
                                             color="primary">
-                                            <i class="material-icons">add_circle_outline</i> Создать поле
+                                            <i class="material-icons">add_circle_outline</i> {{t('docs.button.crt_fld')}}
                                         </button>
-                                        <!--кнопка отображается, если сейчас не происходит изменение порядка полей и (макс. количество полей в любом сете >1 или кол-во сетов >1)-->
                                         <button 
                                         mat-stroked-button 
                                             [style.display]="(allowToUpdate && visChangingFieldsOrder!=true && (maxCountOfFields>1 || receivedSetsOfFields.length>1))?'block':'none'"
                                             (click)="clickBtnChangeFieldsOrder()" 
                                             color="primary">
-                                            <i class="material-icons">swap_vertical_circle</i> Изменить порядок
+                                            <i class="material-icons">swap_vertical_circle</i> {{t('docs.button.chnge_ordr')}}
                                         </button>
                                         <button 
                                         mat-stroked-button 
                                             [style.display]="visChangingFieldsOrder==false?'none':'block'"
                                             (click)="clickBtnSaveChangeFieldsOrder()" 
                                             color="primary">
-                                            <i class="material-icons">done</i> Сохранить порядок
+                                            <i class="material-icons">save</i> {{t('docs.button.save_ordr')}}
                                         </button>
                                         <button 
                                         mat-stroked-button 
                                             [style.display]="visChangingFieldsOrder==false?'none':'block'"
                                             (click)="clickBtnCancelChangeFieldsOrder()" 
                                             color="basic">
-                                            <i class="material-icons">close</i> Отмена 
+                                            <i class="material-icons">close</i> {{t('docs.button.cancel')}} 
                                         </button>
             
                                     </mat-card-title>
@@ -166,7 +165,7 @@
                                                     </mat-panel-title>
                                                     <mat-panel-description>&nbsp;
                                                             <span [style.display]="allowToUpdate?'block':'none'">
-                                                                <mat-icon (click)="clickBtnEditSet(set.id,set.name,set.description)">edit</mat-icon>&nbsp;&nbsp;<!--id поля, parent_set_id (т.к. его нет, передаем 0)-->
+                                                                <mat-icon (click)="clickBtnEditSet(set.id,set.name,set.description)">edit</mat-icon>&nbsp;&nbsp;
                                                                 <mat-icon (click)="clickBtnDeleteSet(set.id,set.name)">delete_forever</mat-icon>
                                                             </span>
                                                     </mat-panel-description>

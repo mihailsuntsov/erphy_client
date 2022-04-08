@@ -75,7 +75,7 @@
                 <mat-form-field  [style.display]="'block'">
                     <input matInput
                             #message2 maxlength="250"
-                            placeholder="Описание"
+                            placeholder="{{'docs.field.description' | transloco}}"
                             formControlName="description"/>
                     <mat-hint align="start">
                         <strong (click)="formBaseInformation.get('description').setValue('Штрих-код производителя')" class="cursor-pointer">Производителя </strong> &nbsp;

@@ -20,7 +20,7 @@
                                     (keyup)="checkDocNumberUnical('orderout')"
                                     formControlName="doc_number"/>
                             <mat-hint  align="start" style="font-size: x-small;margin-top: -1px;" *ngIf="formBaseInformation.get('doc_number').touched && formBaseInformation.get('doc_number').invalid">
-                                <i *ngIf="formBaseInformation.get('doc_number').errors.pattern" class="form-invalid">{{t('docs.error.num_only')}}</i>
+                                <i class="form-invalid" *ngIf="formBaseInformation.get('doc_number').errors.pattern" class="form-invalid">{{t('docs.error.num_only')}}</i>
                             </mat-hint>
                             <mat-hint align="end" *ngIf="doc_number.value.length>5 && !formBaseInformation.get('is_completed').value" style="font-size: x-small;margin-top: -1px;">{{doc_number.value.length}} / 10</mat-hint>
                             <mat-progress-bar *ngIf="isDocNumberUnicalChecking" mode="indeterminate"></mat-progress-bar>
@@ -250,7 +250,7 @@
                                                             </div>
                                                             <div class="col-12">    
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="!formBaseInformation.get('is_completed').value">
-                                                                    <mat-label>Из кассы <span *ngIf="+formBaseInformation.get('boxoffice_id').value==0" class="star">*</span></mat-label>
+                                                                    <mat-label>{{t('docs.field.from_cash_rom')}} <span *ngIf="+formBaseInformation.get('boxoffice_id').value==0" class="star">*</span></mat-label>
                                                                     <mat-select formControlName="boxoffice_id"
                                                                     (selectionChange)="onBoxofficeChange()">                          
                                                                         <mat-option  *ngFor="let rt of boxoffices" [value]="rt.id">
@@ -264,7 +264,7 @@
                                                                     </app-balance-boxoffice>
                                                                 </mat-form-field>
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="formBaseInformation.get('is_completed').value">
-                                                                    <mat-label>Из кассы</mat-label>
+                                                                    <mat-label>{{t('docs.field.from_cash_rom')}}</mat-label>
                                                                     <input  matInput [readonly]="true"
                                                                             [ngModel]="getBoxofficeNameById(formBaseInformation.get('boxoffice_id').value)" 
                                                                             [ngModelOptions]="{standalone: true}"/>
@@ -277,7 +277,7 @@
                                                             </div>
                                                             <div class="col-12">    
                                                                 <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: formBaseInformation.get('is_completed').value}">
-                                                                    <mat-label>Статья расходов <span *ngIf="+formBaseInformation.get('expenditure_id').value==0" class="star">*</span></mat-label>
+                                                                    <mat-label>{{t('docs.field.eq_expendtr')}} <span *ngIf="+formBaseInformation.get('expenditure_id').value==0" class="star">*</span></mat-label>
                                                                     <mat-select formControlName="expenditure_id"
                                                                     (selectionChange)="onExpenditureChange()" 
                                                                                 >                          
@@ -288,7 +288,7 @@
                                                                     </mat-select>
                                                                 </mat-form-field>
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="formBaseInformation.get('is_completed').value">
-                                                                    <mat-label>Статья расходов</mat-label>
+                                                                    <mat-label>{{t('docs.field.eq_expendtr')}}</mat-label>
                                                                     <input  matInput [readonly]="true" 
                                                                             [ngModel]="formBaseInformation.get('expenditure').value" [ngModelOptions]="{standalone: true}"/>
                                                                 </mat-form-field>
@@ -321,7 +321,7 @@
                                                                     </ng-container>
                                                                     </mat-autocomplete>
                                                                     <mat-hint  align="start" *ngIf="searchCagentCtrl.touched && formBaseInformation.get('cagent_id').invalid">
-                                                                        <i class="form-invalid">Контрагент не выбран</i>
+                                                                        <i class="form-invalid">{{t('docs.error.field_miss')}}</i>
                                                                     </mat-hint>
                                                                 </mat-form-field>
                                                                 <mat-progress-bar *ngIf="isCagentListLoading" mode="indeterminate"></mat-progress-bar>
@@ -339,19 +339,19 @@
                                                             
                                                             <div class="col-12"  *ngIf="expenditureType=='moving'">    
                                                                 <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: formBaseInformation.get('is_completed').value}">
-                                                                    <mat-label>Тип перемещения <span *ngIf="formBaseInformation.get('moving_type').value==''" class="star">*</span></mat-label>
+                                                                    <mat-label>{{t('docs.field.mov_type')}} <span *ngIf="formBaseInformation.get('moving_type').value==''" class="star">*</span></mat-label>
                                                                     <mat-select formControlName="moving_type" 
                                                                                 (selectionChange)="onMovingChange()"
                                                                                 >                          
                                                                         <mat-option  *ngFor="let rt of movingTypes" [value]="rt.id">
-                                                                                {{getMovingTypeNameById(rt.id)}}
+                                                                                {{t(getMovingTypeNameById(rt.id))}}
                                                                         </mat-option> 
                                                                     </mat-select>
                                                                 </mat-form-field>
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="formBaseInformation.get('is_completed').value">
-                                                                    <mat-label>Тип перемещения</mat-label>
+                                                                    <mat-label>{{t('docs.field.mov_type')}}</mat-label>
                                                                     <input  matInput [readonly]="true"
-                                                                            [ngModel]="getMovingTypeNameById(formBaseInformation.get('moving_type').value)" [ngModelOptions]="{standalone: true}"/>
+                                                                            [ngModel]="t(getMovingTypeNameById(formBaseInformation.get('moving_type').value))" [ngModelOptions]="{standalone: true}"/>
                                                                 </mat-form-field>
                                                             </div>
                                                             <div class="col-12"  *ngIf="expenditureType=='moving' && formBaseInformation.get('moving_type').value=='boxoffice'">    
@@ -383,7 +383,7 @@
                                                             </div>
                                                             <div class="col-12"  *ngIf="expenditureType=='moving' && formBaseInformation.get('moving_type').value=='account'">    
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="!formBaseInformation.get('is_completed').value">
-                                                                    <mat-label>На расчётный счёт <span *ngIf="+formBaseInformation.get('payment_account_to_id').value==0" class="star">*</span></mat-label>
+                                                                    <mat-label>{{t('docs.field.to_bnk_acc')}} <span *ngIf="+formBaseInformation.get('payment_account_to_id').value==0" class="star">*</span></mat-label>
                                                                     <mat-select formControlName="payment_account_to_id" 
                                                                                 >                          
                                                                                 <mat-option  *ngFor="let rt of paymentAccounts" [value]="rt.id" 
@@ -398,7 +398,7 @@
                                                                     </app-balance-account>
                                                                 </mat-form-field>
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="formBaseInformation.get('is_completed').value">
-                                                                    <mat-label>На расчётный счёт</mat-label>
+                                                                    <mat-label>{{t('docs.field.to_bnk_acc')}}</mat-label>
                                                                     <input  matInput [readonly]="true"
                                                                             [ngModel]="getPaymentAccountNameById(formBaseInformation.get('payment_account_to_id').value)" 
                                                                             [ngModelOptions]="{standalone: true}"/>
@@ -412,7 +412,7 @@
                                                             
                                                             <div class="col-12"> 
                                                                 <mat-form-field  class="mat-form-field-100" *ngIf="expenditureType=='moving' && formBaseInformation.get('moving_type').value=='kassa' && !formBaseInformation.get('is_completed').value">
-                                                                    <mat-label>Отделение с кассой ККМ<span *ngIf="formBaseInformation.get('kassa_department_id').value==null" class="star">*</span></mat-label>
+                                                                    <mat-label>{{t('docs.field.dept_wth_sreg')}} <span *ngIf="formBaseInformation.get('kassa_department_id').value==null" class="star">*</span></mat-label>
                                                                     <mat-select formControlName="kassa_department_id" 
                                                                                 (selectionChange)="onKassaDepartmentChange()"   >
                                                                         <mat-option *ngFor="let department of receivedKassaDepartmentsList" 
@@ -425,14 +425,14 @@
                                                                     </mat-hint>
                                                                 </mat-form-field>
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="expenditureType=='moving' && formBaseInformation.get('moving_type').value=='kassa' && formBaseInformation.get('is_completed').value">
-                                                                    <mat-label>Отделение с кассой ККМ </mat-label>
+                                                                    <mat-label>{{t('docs.field.dept_wth_sreg')}} </mat-label>
                                                                     <input  matInput [readonly]="true"
                                                                             [ngModel]="formBaseInformation.get('kassa_department').value" [ngModelOptions]="{standalone: true}"/>
                                                                 </mat-form-field>
                                                             </div>
                                                             <div class="col-12"  *ngIf="expenditureType=='moving' && formBaseInformation.get('moving_type').value=='kassa' && +formBaseInformation.get('kassa_department_id').value!=0">    
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="!formBaseInformation.get('is_completed').value">
-                                                                    <mat-label>В кассу ККМ <span *ngIf="+formBaseInformation.get('kassa_to_id').value==0" class="star">*</span></mat-label>
+                                                                    <mat-label>{{t('docs.field.to_sell_reg')}} <span *ngIf="+formBaseInformation.get('kassa_to_id').value==0" class="star">*</span></mat-label>
                                                                     <mat-spinner 
                                                                         strokeWidth="2" 
                                                                         class="field-spinner"
@@ -452,7 +452,7 @@
                                                                     </app-balance-kassa>
                                                                 </mat-form-field>
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="formBaseInformation.get('is_completed').value">
-                                                                    <mat-label>В кассу KKM</mat-label>
+                                                                    <mat-label>{{t('docs.field.to_sell_reg')}}</mat-label>
                                                                     <input  matInput [readonly]="true"
                                                                             [ngModel]="formBaseInformation.get('kassa_to').value" [ngModelOptions]="{standalone: true}"/>
                                                                             <app-balance-kassa
@@ -466,7 +466,7 @@
 
                                                             <div class="col-12"> 
                                                                 <mat-form-field   class="mat-form-field-100">
-                                                                    <mat-label>Сумма  <span *ngIf="formBaseInformation.get('summ').value==''&& formBaseInformation.get('summ').invalid" class="star">*</span></mat-label>
+                                                                    <mat-label>{{t('docs.field.sum')}} <span *ngIf="formBaseInformation.get('summ').value==''&& formBaseInformation.get('summ').invalid" class="star">*</span></mat-label>
                                                                     <input  matInput
                                                                             [readonly]="this.formBaseInformation.get('is_completed').value"
                                                                             maxlength="15"
@@ -480,7 +480,7 @@
                                                             </div>
                                                             <div class="col-12" *ngIf="!(expenditureType=='moving')"> 
                                                                 <mat-form-field   class="mat-form-field-100">
-                                                                    <mat-label>В том числе НДС <span *ngIf="formBaseInformation.get('nds').value==''&& formBaseInformation.get('nds').invalid" class="star">*</span></mat-label>
+                                                                    <mat-label>{{t('docs.field.including_vat')}} <span *ngIf="formBaseInformation.get('nds').value==''&& formBaseInformation.get('nds').invalid" class="star">*</span></mat-label>
                                                                     <input  matInput
                                                                             [readonly]="this.formBaseInformation.get('is_completed').value"
                                                                             maxlength="15"
@@ -505,7 +505,7 @@
                                                                                 [readonly]="this.formBaseInformation.get('is_completed').value"
                                                                                 [rows]="2"
                                                                                 #description
-                                                                                placeholder="Основание"
+                                                                                placeholder="{{t('docs.field.payment_for')}}"
                                                                                 formControlName="description">
                                                                     </textarea>
                                                                     <mat-hint align="end" *ngIf="description.value.length>500 && !formBaseInformation.get('is_completed').value">{{description.value.length}} / 2000</mat-hint>
@@ -606,7 +606,7 @@
                                         </div>
                                         <div class="div-100" [style.display]="(allowToUpdate==true) ?'block':'none'"> 
                                             <div class="center hand" style="width:100%; height: 38px;">
-                                                <button matTooltip="{{t('docs.tip.add_file')}}" mat-mini-fab color="primary" (click)="openDialogAddFiles()" matTooltip="Загрузить файл">
+                                                <button matTooltip="{{t('docs.tip.add_file')}}" mat-mini-fab color="primary" (click)="openDialogAddFiles()" matTooltip="{{t('docs.tip.file_upload')}}">
                                                     <mat-icon>add</mat-icon>
                                                 </button>
                                             </div>
