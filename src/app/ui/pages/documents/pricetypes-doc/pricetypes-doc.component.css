@@ -25,3 +25,6 @@ li {list-style: none;}
     display: flex;
     flex-direction: column;
 }
+.form-invalid{
+    color: red;
+}

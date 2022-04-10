@@ -119,6 +119,9 @@ export class UiComponent implements OnInit {
         case 'companiesList': {
           component.receivedCompaniesList=this.companiesList;
           break;}
+        case 'suffix': {
+          component._suffix=this.suffix;
+          break;}
       }
     })
     

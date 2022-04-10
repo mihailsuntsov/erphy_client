@@ -94,7 +94,7 @@ export class PricetypesDocComponent implements OnInit {
       id: new FormControl      (this.id,[]),
       company_id: new FormControl      ('',[Validators.required]),
       company: new FormControl      ('',[]),
-      pricerole_id: new FormControl      ('',[Validators.required]),
+      pricerole_id: new FormControl      ('',[]),
       pricerole: new FormControl      ('',[]),
       name: new FormControl      ('',[Validators.required]),
       description: new FormControl      ('',[]),
@@ -217,7 +217,7 @@ getSetOfPermissions(){
       this.getCompaniesList();
       // console.log("getCompaniesList");
     }
-    this.getSpravSysPriceRole();
+    // this.getSpravSysPriceRole();
   }
 
   setDefaultCompany(){

@@ -22,11 +22,11 @@
             <span style="flex-grow: 1;"></span>
                 <div>
                         <button mat-icon-button (click)="expandAllCheckedNodes(); categoriesExpanded=true;"  
-                        matTooltip="Развернуть категории, содержащие документ" color="primary">
+                            matTooltip="{{t('docs.tip.sh_cat_p')}}" color="primary">
                             <mat-icon>visibility</mat-icon>
                         </button>
                         <button mat-icon-button (click)="collapseAllNodes(); categoriesExpanded=false;" 
-                            matTooltip="Свернуть все категории" color="primary">
+                                matTooltip="{{t('docs.tip.collaps_cat')}}" color="primary">
                                 <mat-icon>visibility_off</mat-icon>
                         </button>
                 </div>
@@ -81,7 +81,7 @@
                         mat-raised-button 
                         (click)="downloadFile(formBaseInformation.get('name').value,formBaseInformation.get('original_name').value)"
                         color="primary"
-                        matTooltip='Скачать файл'
+                        matTooltip="{{t('docs.tip.download_file')}}"
                         [style.display]="(allowToView)?'block':'none'"
                         class="button small-button">
                         <i class="material-icons">cloud_download</i>
@@ -192,7 +192,10 @@
                                                                 <mat-form-field>
                                                                     <input   matInput
                                                                             placeholder="{{t('docs.field.name')}}"
-                                                                            formControlName="original_name"/>
+                                                                            formControlName="original_name"/> 
+                                                                            <mat-hint  align="start" *ngIf="formBaseInformation.get('original_name').touched && formBaseInformation.get('original_name').invalid">
+                                                                                <i class="form-invalid">{{t('docs.error.field_miss')}}</i>
+                                                                            </mat-hint>
                                                                 </mat-form-field>
                                                                 <mat-form-field>
                                                                     <input   matInput
@@ -200,12 +203,12 @@
                                                                             formControlName="description"/>
                                                                 </mat-form-field>
                                                                 <mat-form-field style="margin-top: -8px;">
-                                                                            <mat-slide-toggle formControlName="anonyme_access"> Файл для общего доступа</mat-slide-toggle>
+                                                                            <mat-slide-toggle formControlName="anonyme_access">{{t('docs.field.shared_file')}}</mat-slide-toggle>
                                                                             <button mat-button 
                                                                             matSuffix 
                                                                             *ngIf="formBaseInformation.get('anonyme_access').value"
                                                                             mat-icon-button 
-                                                                            matTooltip="Скопировать адрес файла"
+                                                                            matTooltip="{{t('docs.tip.copy_file_addr')}}"
                                                                             aria-label="search" 
                                                                             style="font-size: 150%;color: gray;" 
                                                                             (click)="copyFileAddress()">

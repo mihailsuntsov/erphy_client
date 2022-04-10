@@ -74,25 +74,25 @@
                                                 </mat-form-field>
     
                                                 <mat-form-field>
-                                                    <mat-label>Имя <span *ngIf="formBaseInformation.get('fio_name').value==''||formBaseInformation.get('fio_name').value==null" class="star">*</span></mat-label>
+                                                    <mat-label>{{t('docs.field.name')}} <span *ngIf="formBaseInformation.get('fio_name').value==''||formBaseInformation.get('fio_name').value==null" class="star">*</span></mat-label>
                                                     <input  matInput
                                                             formControlName="fio_name"
                                                             [ngClass]="{'is-invalid':formBaseInformation.get('fio_name').touched && formBaseInformation.get('fio_name').invalid}"/>
                                                     <mat-hint *ngIf="formBaseInformation.get('fio_name').touched && formBaseInformation.get('fio_name').invalid" class="invalid-feedback">
-                                                        <i class="form-invalid" *ngIf="formBaseInformation.get('fio_name').errors.required">Введите Имя</i>
+                                                        <i class="form-invalid" *ngIf="formBaseInformation.get('fio_name').errors.required">{{t('docs.error.field_miss')}}</i>
                                                     </mat-hint>
                                                 </mat-form-field>
                                                 <mat-form-field>
-                                                    <mat-label>Фамилия <span *ngIf="formBaseInformation.get('fio_family').value==''||formBaseInformation.get('fio_family').value==null" class="star">*</span></mat-label>
+                                                    <mat-label>{{t('docs.field.surname')}} <span *ngIf="formBaseInformation.get('fio_family').value==''||formBaseInformation.get('fio_family').value==null" class="star">*</span></mat-label>
                                                     <input  matInput
                                                             formControlName="fio_family"
                                                             [ngClass]="{'is-invalid':formBaseInformation.get('fio_family').touched && formBaseInformation.get('fio_family').invalid}"/>
                                                     <mat-hint *ngIf="formBaseInformation.get('fio_family').touched && formBaseInformation.get('fio_family').invalid" class="invalid-feedback">
-                                                        <i class="form-invalid" *ngIf="formBaseInformation.get('fio_family').errors.required">Введите Фамилию</i>
+                                                        <i class="form-invalid" *ngIf="formBaseInformation.get('fio_family').errors.required">{{t('docs.error.field_miss')}}</i>
                                                     </mat-hint>
                                                 </mat-form-field>                                                
                                                 <mat-form-field>
-                                                    <mat-label>Отчество </mat-label> 
+                                                    <mat-label>{{t('docs.field.middle_name')}} </mat-label> 
                                                     <input  matInput
                                                             formControlName="fio_otchestvo"
                                                             [ngClass]="{'is-invalid':formBaseInformation.get('fio_otchestvo').touched && formBaseInformation.get('fio_otchestvo').invalid}"/>
@@ -100,24 +100,24 @@
                                                     </mat-hint>
                                                 </mat-form-field>
                                                 <mat-form-field>
-                                                    <mat-label>Отображаемое имя <span *ngIf="formBaseInformation.get('name').value==''||formBaseInformation.get('name').value==null" class="star">*</span></mat-label>
+                                                    <mat-label>{{t('docs.field.show_name_as')}} <span *ngIf="formBaseInformation.get('name').value==''||formBaseInformation.get('name').value==null" class="star">*</span></mat-label>
                                                     <input  matInput
                                                             formControlName="name"
                                                             [ngClass]="{'is-invalid':formBaseInformation.get('name').touched && formBaseInformation.get('name').invalid}"/>
                                                     <mat-hint *ngIf="formBaseInformation.get('name').touched && formBaseInformation.get('name').invalid" class="invalid-feedback">
-                                                        <i class="form-invalid" *ngIf="formBaseInformation.get('name').errors.required">Введите Отображаемое имя</i>
+                                                        <i class="form-invalid" *ngIf="formBaseInformation.get('name').errors.required">{{t('docs.error.field_miss')}}</i>
                                                     </mat-hint>
                                                 </mat-form-field>
                                                 <mat-form-field>
                                                     <input  matInput 
-                                                            placeholder="Дата рождения"
+                                                            placeholder="{{t('docs.field.date_of_birth')}}"
                                                             formControlName="date_birthday"
                                                             [ngClass]="{'is-invalid':formBaseInformation.get('date_birthday').touched && formBaseInformation.get('date_birthday').invalid}"
                                                             [matDatepicker]="dp"/>
                                                             <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
                                                     <mat-datepicker #dp></mat-datepicker>
                                                     <mat-hint *ngIf="formBaseInformation.get('date_birthday').touched && formBaseInformation.get('date_birthday').invalid" class="invalid-feedback">
-                                                        <i class="form-invalid">Формат даты не верный</i>
+                                                        <i class="form-invalid">{{t('docs.error.date_format')}}</i>
                                                     </mat-hint>
                                                 </mat-form-field>
                                                 <mat-form-field>
@@ -128,16 +128,16 @@
                                                             formControlName="vatin"
                                                             [ngClass]="{'is-invalid':formBaseInformation.get('vatin').touched && formBaseInformation.get('vatin').invalid}"/>
                                                             <mat-hint  align="start" *ngIf="formBaseInformation.get('vatin').touched && formBaseInformation.get('vatin').invalid">
-                                                                <i class="form-invalid">Номер должен состоять из 12 цифр</i>
+                                                                <i class="form-invalid">{{t('docs.error.price_format1',{cnt:12})}}</i>
                                                             </mat-hint>
                                                             <mat-hint align="end">{{this.formBaseInformation.get('vatin').value.length}} / 12</mat-hint>
                                                 </mat-form-field>
                                                 <mat-form-field>
-                                                    <mat-label>Пол</mat-label>
+                                                    <mat-label>{{t('docs.field.sex')}}</mat-label>
                                                     <mat-select formControlName="sex">
                                                         <option value="" selected></option>
-                                                        <mat-option value="male">Мужской</mat-option>
-                                                        <mat-option value="female">Женский</mat-option>  
+                                                        <mat-option value="male">{{t('docs.list.man')}}</mat-option>
+                                                        <mat-option value="female">{{t('docs.list.woman')}}</mat-option>  
                                                     </mat-select>                                              
                                                 </mat-form-field>
                                                    
@@ -148,7 +148,7 @@
                                                 </mat-form-field>
     
                                                 <div *ngIf="isSignUpFailed" class="form-invalid">
-                                                    Регистрация не выполнена: {{errorMessage}}
+                                                    {{t('docs.error.reg_not_compl')}} {{errorMessage}}
                                                 </div>
 
                                             </mat-card-content>
@@ -159,12 +159,12 @@
                                         
                                         <mat-card  class="internal-card">
                                             <mat-card-header>
-                                                <mat-card-title class="card-title">Аккаунт</mat-card-title>
+                                                <mat-card-title class="card-title">{{t('docs.card.account')}}</mat-card-title>
                                             </mat-card-header>
                                             <mat-card-content class="input-form"  style="padding: 10px;" >
 
                                                 <mat-form-field  [ngClass]="{invisible: +id>0}">
-                                                    <mat-label>Логин <span *ngIf="formBaseInformation.get('username').value==''||formBaseInformation.get('username').value==null" class="star">*</span></mat-label>
+                                                    <mat-label>{{t('docs.field.login')}} <span *ngIf="formBaseInformation.get('username').value==''||formBaseInformation.get('username').value==null" class="star">*</span></mat-label>
                                                     <input matInput 
                                                     formControlName="username" 
                                                     type="text"    
@@ -172,19 +172,19 @@
                                                     [disabled]="+formBaseInformation.get('id').value>0"
                                                     />
                                                     <mat-hint *ngIf="formBaseInformation.get('username').touched && formBaseInformation.get('username').invalid">
-                                                        <i *ngIf="formBaseInformation.get('username').errors.required" class="form-invalid">Введите логин<br></i>
-                                                        <i *ngIf="formBaseInformation.get('username').errors.minlength" class="form-invalid">Логин должен быть минимум 4 символа<br></i>
-                                                        <i *ngIf="formBaseInformation.get('username').errors.maxlength" class="form-invalid">Логин должен быть максимум 20 символов<br></i>
+                                                        <i *ngIf="formBaseInformation.get('username').errors.required" class="form-invalid">{{t('docs.error.field_miss')}}<br></i>
+                                                        <i *ngIf="formBaseInformation.get('username').errors.minlength" class="form-invalid">{{t('docs.error.field_length',{num1:6,num2:4})}}<br></i>
+                                                        <i *ngIf="formBaseInformation.get('username').errors.maxlength" class="form-invalid">{{t('docs.error.field_length',{num1:6,num2:20})}}<br></i>
                                                         <i *ngIf="formBaseInformation.get('username').errors.pattern &&
-                                                                    !formBaseInformation.get('username').errors.maxlength" class="form-invalid">Логин должен состоять из латинских букв и цифр, и начинаться с букв<br></i>
+                                                                    !formBaseInformation.get('username').errors.maxlength" class="form-invalid">{{t('docs.error.lgn_must_contain')}}<br></i>
                                                     </mat-hint>
                                                     <mat-hint *ngIf="emptyusername && !formBaseInformation.get('username').touched">
-                                                        <i *ngIf="formBaseInformation.get('username').errors.required" class="form-invalid">Введите логин<br></i>
+                                                        <i *ngIf="formBaseInformation.get('username').errors.required" class="form-invalid">{{t('docs.error.field_miss')}}<br></i>
                                                     </mat-hint>
                                                 </mat-form-field>
                                                 
                                                 <mat-form-field class="mat-form-field-100" *ngIf="+id>0">
-                                                    <mat-label>Логин</mat-label>
+                                                    <mat-label>{{t('docs.field.login')}}</mat-label>
                                                     <input  matInput [readonly]="true"
                                                             [ngModel]="formBaseInformation.get('username').value" [ngModelOptions]="{standalone: true}"/>
                                                 </mat-form-field>
@@ -193,55 +193,57 @@
                                                     <mat-label>E-mail <span *ngIf="formBaseInformation.get('email').value==''||formBaseInformation.get('email').value==null" class="star">*</span></mat-label>
                                                     <input matInput 
                                                     formControlName="email" 
+                                                    autocomplete="off"
                                                     type="text"    
                                                     [ngClass]="{'is-invalid':formBaseInformation.get('email').touched && formBaseInformation.get('email').invalid}"
                                                     />
                                                     <mat-hint *ngIf="formBaseInformation.get('email').touched && formBaseInformation.get('email').invalid">
-                                                        <i *ngIf="formBaseInformation.get('email').errors.required" class="form-invalid">Введите E-mail</i>
-                                                        <i *ngIf="formBaseInformation.get('email').errors.email" class="form-invalid">Неверный формат E-mail</i>
+                                                        <i *ngIf="formBaseInformation.get('email').errors.required" class="form-invalid">{{t('docs.error.field_miss')}}</i>
+                                                        <i *ngIf="formBaseInformation.get('email').errors.email" class="form-invalid">{{t('docs.error.email')}}</i>
                                                     </mat-hint>
                                                     <mat-hint *ngIf="emptyEmail && !formBaseInformation.get('email').touched">
-                                                        <i *ngIf="formBaseInformation.get('email').errors.required" class="form-invalid">Введите E-mail</i>
+                                                        <i *ngIf="formBaseInformation.get('email').errors.required" class="form-invalid">{{t('docs.error.field_miss')}}</i>
                                                     </mat-hint>
                                                 </mat-form-field>
                                                 <mat-form-field *ngIf="+formBaseInformation.get('id').value == 0">
-                                                    <mat-label>Пароль <span *ngIf="formBaseInformation.get('password').value==''||formBaseInformation.get('password').value==null" class="star">*</span></mat-label>
-                                                    <input type="password" 
+                                                    <mat-label>{{t('docs.field.password')}} <span *ngIf="formBaseInformation.get('password').value==''||formBaseInformation.get('password').value==null" class="star">*</span></mat-label>
+                                                    <input type="text" 
+                                                    autocomplete="off"
                                                     matInput         
-                                                    placeholder="Пароль" 
+                                                    placeholder="{{t('docs.field.password')}}" 
                                                     formControlName="password"  
                                                     [ngClass]="{'is-invalid':formBaseInformation.get('password').touched && formBaseInformation.get('password').invalid}"
                                                     />
                                                     <mat-hint *ngIf="formBaseInformation.get('password').touched && formBaseInformation.get('password').invalid">
-                                                        <i *ngIf="formBaseInformation.get('password').errors.required" class="form-invalid">Введите пароль<br></i>
-                                                        <i *ngIf="formBaseInformation.get('password').errors.minlength" class="form-invalid">Пароль должен быть минимум 6 символов<br></i>
-                                                        <i *ngIf="formBaseInformation.get('password').errors.maxlength" class="form-invalid">Пароль должен быть максимум 20 символов<br></i>
+                                                        <i *ngIf="formBaseInformation.get('password').errors.required" class="form-invalid">{{t('docs.error.field_miss')}}<br></i>
+                                                        <i *ngIf="formBaseInformation.get('password').errors.minlength" class="form-invalid">{{t('docs.error.field_length',{num1:6,num2:20})}}<br></i>
+                                                        <i *ngIf="formBaseInformation.get('password').errors.maxlength" class="form-invalid">{{t('docs.error.field_length',{num1:6,num2:20})}}<br></i>
                                                         <i *ngIf="formBaseInformation.get('password').errors.pattern &&
-                                                                    !formBaseInformation.get('password').errors.maxlength" class="form-invalid">Пароль должен состоять из латинских букв и цифр, и начинаться с букв<br></i>
+                                                                    !formBaseInformation.get('password').errors.maxlength" class="form-invalid">{{t('docs.error.pwd_must_contain')}}<br></i>
                                                     </mat-hint>
                                                     <mat-hint *ngIf="emptyPassword && !formBaseInformation.get('password').touched">
-                                                        <i *ngIf="formBaseInformation.get('password').errors.required" class="form-invalid">Введите пароль<br></i>
+                                                        <i *ngIf="formBaseInformation.get('password').errors.required" class="form-invalid">{{t('docs.error.field_miss')}}<br></i>
                                                     </mat-hint>
                                                 </mat-form-field>
                                                 <mat-form-field>
-                                                    <mat-label>Статус аккаунта</mat-label>
+                                                    <mat-label>{{t('docs.field.acc_status')}}</mat-label>
                                                     <mat-select formControlName="status_account">
                                                         
-                                                        <mat-option value="1">E-mail не верифицирован</mat-option>
-                                                        <mat-option value="2">Активный</mat-option>
-                                                        <mat-option value="3">Заблокирован</mat-option>
-                                                        <mat-option value="4">Удалён в архив</mat-option>
+                                                        <mat-option value="1">{{t('docs.list.email_notver')}}</mat-option>
+                                                        <mat-option value="2">{{t('docs.list.active')}}</mat-option>
+                                                        <mat-option value="3">{{t('docs.list.blocked')}}</mat-option>
+                                                        <mat-option value="4">{{t('docs.list.deleted_arch')}}</mat-option>
                                                     </mat-select>
                                                 </mat-form-field>
                                             </mat-card-content>
                                         </mat-card>
                                         <mat-card  class="internal-card">
                                             <mat-card-header>
-                                                <mat-card-title class="card-title">Доступ и права</mat-card-title>
+                                                <mat-card-title class="card-title">{{t('docs.card.perm_n_access')}}</mat-card-title>
                                             </mat-card-header>
                                             <mat-card-content class="input-form"  style="padding: 10px;" >
                                                 <mat-form-field class="mat-form-field-100" *ngIf="+id==0">
-                                                    <mat-label>{{t('docs.field.company')}} <span *ngIf="formBaseInformation.get('company_id').value==''||formBaseInformation.get('company_id').value==null" class="star">*</span></mat-label>
+                                                    <mat-label>{{t('docs.field.user_company')}} <span *ngIf="formBaseInformation.get('company_id').value==''||formBaseInformation.get('company_id').value==null" class="star">*</span></mat-label>
                                                     <mat-select  formControlName="company_id" (selectionChange)="onCompanyChange()">                          
                                                             <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
                                                                     {{rt.name}}
@@ -249,12 +251,12 @@
                                                     </mat-select>
                                                 </mat-form-field>
                                                 <mat-form-field class="mat-form-field-100" *ngIf="+id>0">
-                                                    <mat-label>{{t('docs.field.company')}}</mat-label>
+                                                    <mat-label>{{t('docs.field.user_company')}}</mat-label>
                                                     <input  matInput [readonly]="true"
                                                             [ngModel]="formAboutDocument.get('company').value" [ngModelOptions]="{standalone: true}"/>
                                                 </mat-form-field>
                                                 <mat-form-field>
-                                                    <mat-label>Отделения сотрудника</mat-label>
+                                                    <mat-label>{{t('docs.field.user_departs')}}</mat-label>
                                                     <mat-select formControlName="selectedUserDepartments" multiple>
                                                         <mat-option *ngFor="let department of receivedDepartmentsList" 
                                                                     [value]="department.id">
@@ -263,7 +265,7 @@
                                                     </mat-select>
                                                 </mat-form-field>
                                                 <mat-form-field>
-                                                    <mat-label>Группы пользователей</mat-label>
+                                                    <mat-label>{{t('docs.field.roles')}}</mat-label>
                                                     <mat-select formControlName="userGroupList" multiple>
                                                         <mat-option *ngFor="let permissions of receivedUserGroupList" 
                                                                     [value]="permissions.id">
@@ -273,26 +275,34 @@
                                                 </mat-form-field>
                                                 <mat-form-field  style="display: none;" >
                                                     <input   matInput
-                                                            placeholder="Часовой пояс"
+                                                            placeholder="{{t('docs.field.time_zone')}}"
                                                             formControlName="time_zone_id"/>
                                                 </mat-form-field>
                                                 <mat-form-field>
-                                                    <mat-label>Часовой пояс <span *ngIf="formBaseInformation.get('time_zone_name').value==0||formBaseInformation.get('time_zone_name').value==null" class="star">*</span></mat-label>
+                                                    <mat-label>{{t('docs.field.time_zone')}} <span *ngIf="formBaseInformation.get('time_zone_name').value==0||formBaseInformation.get('time_zone_name').value==null" class="star">*</span></mat-label>
                                                     <input matInput
                                                     type="text"
                                                     formControlName="time_zone_name" 
                                                     [matAutocomplete]="auto" 
-                                                    (input)="checkEmptyTimeZoneField();"
-                                                    (change)="checkEmptyTimeZoneField();">
+                                                    (input)="checkEmptyFields('time_zone_id','time_zone_name');"
+                                                    (change)="checkEmptyFields('time_zone_id','time_zone_name');">
+                                                    <button mat-button 
+                                                        type="button"
+                                                        class="clear-button"
+                                                        (click)="clearField('time_zone_name');checkEmptyFields('time_zone_id','time_zone_name');"
+                                                        matTooltip="{{t('docs.tip.clear_field')}}"
+                                                        matSuffix mat-icon-button>
+                                                        <mat-icon>close</mat-icon>
+                                                    </button>
                                                     <mat-autocomplete #auto="matAutocomplete">
-                                                    <mat-option *ngFor="let option of filteredSpravSysTimeZones | async" [value]="option.name_rus">
+                                                    <mat-option *ngFor="let option of filteredSpravSysTimeZones | async" [value]="option.name">
                                                         <div (click)="formBaseInformation.get('time_zone_id').setValue(option.id)">
-                                                            <span style="margin:10px;">{{option.name_rus}}</span>
+                                                            <span style="margin:10px;">{{option.name}}</span>
                                                         </div>
                                                     </mat-option>
                                                     </mat-autocomplete>
                                                     <mat-hint  align="start" *ngIf="formBaseInformation.get('time_zone_name').touched && formBaseInformation.get('time_zone_id').invalid">
-                                                        <i class="form-invalid">Часовой пояс не выбран.</i>
+                                                        <i class="form-invalid">{{t('docs.error.field_miss')}}</i>
                                                     </mat-hint>
                                                 </mat-form-field>
                                             </mat-card-content>

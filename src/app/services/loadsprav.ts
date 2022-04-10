@@ -84,11 +84,11 @@ export class LoadSpravService{
     getExpenditureList(){
         let docList: idAndName [] = [];
         docList = [
-            {id:'return', name:'Возврат'},
-            {id:'purchases', name:'Закупки'},
-            {id:'taxes', name:'Налоги и сборы'},
-            {id:'moving', name:'Внутреннее пермещение'},
-            {id:'other_opex', name:'Другие операционные расходы'},
+            {id:'return', name:'docs.list.return'},
+            {id:'purchases', name:'docs.list.purchases'},
+            {id:'taxes', name:'docs.list.taxes_n_fees'},
+            {id:'moving', name:'docs.list.inter_company'},
+            {id:'other_opex', name:'docs.list.other_opex'},
         ];
         return docList; 
     }    

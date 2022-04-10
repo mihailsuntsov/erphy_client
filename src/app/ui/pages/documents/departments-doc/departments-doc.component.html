@@ -96,12 +96,12 @@
                                                                                                                 [ngClass]="{'is-invalid':formBaseInformation.get('name').touched && formBaseInformation.get('name').invalid}"/>
                                                                                                         <mat-hint *ngIf="formBaseInformation.get('name').value.length>400 && allowToView" align="end">{{formBaseInformation.get('name').value.length}} / 500</mat-hint>
                                                                                                         <mat-hint *ngIf="formBaseInformation.get('name').touched && formBaseInformation.get('name').invalid" class="invalid-feedback">
-                                                                                                                <i *ngIf="formBaseInformation.get('name').errors.required">Введите название</i>
+                                                                                                                <i *ngIf="formBaseInformation.get('name').errors.required">{{t('docs.error.field_miss')}}</i>
                                                                                                         </mat-hint>
                                                                                                 </mat-form-field>
                                                                                                 <mat-form-field class="mat-form-field-100">
                                                                                                         <input  matInput
-                                                                                                                placeholder="Адрес"
+                                                                                                                placeholder="{{t('docs.field.address')}}"
                                                                                                                 maxlength="500"
                                                                                                                 formControlName="address"/>
                                                                                                         <mat-hint *ngIf="formBaseInformation.get('address').value.length>400 && allowToView" align="end">{{formBaseInformation.get('address').value.length}} / 500</mat-hint>
@@ -115,7 +115,7 @@
                                                                                                 </mat-form-field>
                                                                                                 <mat-form-field class="mat-form-field-100 company-select"> 
                                                                                                 
-                                                                                                        <mat-label>Тип цен в отделении</mat-label>
+                                                                                                        <mat-label>{{t('docs.field.dep_price_typ')}}</mat-label>
                                                                                                         <mat-select  formControlName="price_id">                          
                                                                                                         <mat-option  *ngFor="let rt of receivedPriceTypesList" [value]="rt.id">
                                                                                                                         {{rt.name}}
@@ -124,7 +124,7 @@
                                                                                                 </mat-form-field>
                                                                                                         
                                                                                                 <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: !allowToUpdate}">
-                                                                                                        <mat-label>Касса</mat-label>
+                                                                                                        <mat-label>{{t('docs.field.boxoffice')}}</mat-label>
                                                                                                         <mat-select formControlName="boxoffice_id" 
                                                                                                                 >                          
                                                                                                         <mat-option  *ngFor="let rt of boxoffices" [value]="rt.id">
@@ -133,7 +133,7 @@
                                                                                                         </mat-select>
                                                                                                 </mat-form-field>
                                                                                                 <mat-form-field class="mat-form-field-100" *ngIf="!allowToUpdate">
-                                                                                                        <mat-label>Касса</mat-label>
+                                                                                                        <mat-label>{{t('docs.field.boxoffice')}}</mat-label>
                                                                                                         <input  matInput [readonly]="true"
                                                                                                                 [ngModel]="getBoxofficeNameById(formBaseInformation.get('boxoffice_id').value)" [ngModelOptions]="{standalone: true}"/>
                                                                                                 </mat-form-field>

@@ -567,7 +567,7 @@
                                                             (keypress)="numberOnly($event)"
                                                             formControlName="jr_inn"/>
                                                     <mat-hint  align="start" *ngIf="formBaseInformation.get('jr_inn').touched && formBaseInformation.get('jr_inn').invalid">
-                                                        <i *ngIf="formBaseInformation.get('jr_inn').errors.pattern" class="form-invalid">ИНН должен состоять из 10 или 12 цифр</i>
+                                                        <!-- <i *ngIf="formBaseInformation.get('jr_inn').errors.pattern" class="form-invalid">ИНН должен состоять из 10 или 12 цифр</i> -->
                                                     </mat-hint>
                                                 </mat-form-field>
                                                 <!-- КПП -->
@@ -579,7 +579,7 @@
                                                             (keypress)="numberOnly($event)"
                                                             formControlName="jr_jur_kpp"/>
                                                     <mat-hint  align="start" *ngIf="formBaseInformation.get('jr_jur_kpp').touched && formBaseInformation.get('jr_jur_kpp').invalid">
-                                                        <i *ngIf="formBaseInformation.get('jr_jur_kpp').errors.pattern" class="form-invalid">КПП должен состоять из 9 цифр</i>
+                                                        <!-- <i *ngIf="formBaseInformation.get('jr_jur_kpp').errors.pattern" class="form-invalid">КПП должен состоять из 9 цифр</i> -->
                                                     </mat-hint>
                                                 </mat-form-field>
                                                 <!-- ОГРН -->
@@ -591,7 +591,7 @@
                                                             (keypress)="numberOnly($event)"
                                                             formControlName="jr_jur_ogrn"/>
                                                     <mat-hint  align="start" *ngIf="formBaseInformation.get('jr_jur_ogrn').touched && formBaseInformation.get('jr_jur_ogrn').invalid">
-                                                        <i *ngIf="formBaseInformation.get('jr_jur_ogrn').errors.pattern" class="form-invalid">ОГРН должен состоять из 13 цифр</i>
+                                                        <!-- <i *ngIf="formBaseInformation.get('jr_jur_ogrn').errors.pattern" class="form-invalid">ОГРН должен состоять из 13 цифр</i> -->
                                                     </mat-hint>
                                                 </mat-form-field>
                                                 <!-- ОГРНИП -->
@@ -603,7 +603,7 @@
                                                             (keypress)="numberOnly($event)"
                                                             formControlName="jr_ip_ogrnip"/>
                                                     <mat-hint  align="start" *ngIf="formBaseInformation.get('jr_ip_ogrnip').touched && formBaseInformation.get('jr_ip_ogrnip').invalid">
-                                                        <i *ngIf="formBaseInformation.get('jr_ip_ogrnip').errors.pattern" class="form-invalid">ОГРНИП должен состоять из 15 цифр</i>
+                                                        <!-- <i *ngIf="formBaseInformation.get('jr_ip_ogrnip').errors.pattern" class="form-invalid">ОГРНИП должен состоять из 15 цифр</i> -->
                                                     </mat-hint>
                                                 </mat-form-field>
                                                 <!-- ОКПО -->
@@ -615,7 +615,7 @@
                                                             (keypress)="numberOnly($event)"
                                                             formControlName="jr_okpo"/>
                                                     <mat-hint  align="start" *ngIf="formBaseInformation.get('jr_okpo').touched && formBaseInformation.get('jr_okpo').invalid">
-                                                        <i *ngIf="formBaseInformation.get('jr_okpo').errors.pattern" class="form-invalid">ОКПО должен состоять из 8 или 10 цифр</i>
+                                                        <!-- <i *ngIf="formBaseInformation.get('jr_okpo').errors.pattern" class="form-invalid">ОКПО должен состоять из 8 или 10 цифр</i> -->
                                                     </mat-hint>
                                                 </mat-form-field>
                                                 <!-- Номер свидетельства -->

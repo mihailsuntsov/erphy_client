@@ -113,15 +113,15 @@
                                                                     formControlName="name"/>
                                                         </mat-form-field>
                                                         <mat-form-field  class="mat-form-field-100">
-                                                            <mat-label>Тип {{formBaseInformation.get('type').value==''?'*':''}}</mat-label>
+                                                            <mat-label>{{t('docs.field.exp_type')}} {{formBaseInformation.get('type').value==''?'*':''}}</mat-label>
                                                             <mat-select formControlName="type">
                                                                 <mat-option *ngFor="let rt of receivedExpenditureList" 
                                                                             [value]="rt.id">
-                                                                            {{rt.name}}
+                                                                            {{t(rt.name)}}
                                                                 </mat-option>
                                                             </mat-select>
                                                             <mat-hint  align="start" *ngIf="formBaseInformation.get('type').touched && formBaseInformation.get('type').invalid">
-                                                                <i class="form-invalid">Тип  не выбран.</i>
+                                                                <i class="form-invalid">{{t('docs.error.field_miss')}}</i>
                                                             </mat-hint>
                                                         </mat-form-field>
                                                     </div>

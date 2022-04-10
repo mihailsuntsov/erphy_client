@@ -96,7 +96,7 @@
                                         </mat-form-field>
                                         <!-- Организационно-правовая форма -->
                                         <mat-form-field>
-                                            <mat-label>Организационно-правовая форма <span *ngIf="+formBaseInformation.get('opf_id').value==0||formBaseInformation.get('opf_id').value==null" class="star">*</span></mat-label>
+                                            <mat-label>{{t('docs.field.form')}} <span *ngIf="+formBaseInformation.get('opf_id').value==0||formBaseInformation.get('opf_id').value==null" class="star">*</span></mat-label>
                                             <mat-select [disabled]=!editability
                                                         formControlName="opf_id" 
                                                         (selectionChange)="setJurElementsVisible()">                          
@@ -106,13 +106,13 @@
                                                 </mat-option> 
                                             </mat-select>
                                             <mat-hint align="start" *ngIf="formBaseInformation.get('opf_id').touched">
-                                                <i *ngIf="+formBaseInformation.get('opf_id').value==0" class="form-invalid">Форма предприятия не выбрана</i>
+                                                <i *ngIf="+formBaseInformation.get('opf_id').value==0" class="form-invalid">{{t('docs.error.field_miss')}}</i>
                                             </mat-hint>
                                         </mat-form-field>
                                         <!-- Код -->
                                         <mat-form-field>
                                             <input   matInput
-                                                    placeholder="Код"
+                                                    placeholder="{{t('docs.field.code')}}"
                                                     [readonly]=!editability
                                                     maxlength="30"
                                                     formControlName="code"/>
@@ -123,8 +123,8 @@
                                             <mat-slide-toggle 
                                             formControlName="nds_payer"
                                             [disabled]="!editability"
-                                            matTooltip='Включите, если предприятие работает с НДС.'
-                                            >Предприятие является плательщиком НДС</mat-slide-toggle>
+                                            matTooltip="{{t('docs.tip.vat_payer')}}"
+                                            >{{t('docs.field.vat_payer')}}</mat-slide-toggle>
                                             <input matInput hidden/>
                                         </mat-form-field>
                                         <!-- Статус -->
@@ -150,7 +150,7 @@
                                         <!-- ФИО управляющего -->
                                         <mat-form-field>
                                             <input   matInput
-                                                    placeholder="ФИО управляющего"
+                                                    placeholder="{{t('docs.field.gm_name')}}"
                                                     [readonly]=!editability
                                                     maxlength="120"
                                                     formControlName="fio_director"/>
@@ -159,7 +159,7 @@
                                         <!-- Должность управляющего -->
                                         <mat-form-field>
                                             <input   matInput
-                                                    placeholder="Должность управляющего"
+                                                    placeholder="{{t('docs.field.pos_gm_name')}}"
                                                     [readonly]=!editability
                                                     maxlength="120"
                                                     formControlName="director_position"/>
@@ -168,7 +168,7 @@
                                         <!-- ФИО гл. бухгалтера -->
                                         <mat-form-field>
                                             <input   matInput
-                                                    placeholder="ФИО гл. бухгалтера"
+                                                    placeholder="{{t('docs.field.ch_accntnt')}}"
                                                     [readonly]=!editability
                                                     maxlength="120"
                                                     formControlName="fio_glavbuh"/>
@@ -183,12 +183,12 @@
                                     <!-- АДРЕС -->
                                     <div class="del-icon"  [style.display]="editability?'block':'none'">
                                         <mat-icon   (click)="copyfromJurAddressToAddress()" 
-                                                    matTooltip='Скопировать из Юридического адреса'    
+                                                    matTooltip="{{t('docs.tip.addr_copy_qj')}}"  
                                                     class="nav-icon">content_copy
                                         </mat-icon>
                                     </div>
                                     <mat-card-header>
-                                        <mat-card-title class="card-title">Адрес</mat-card-title>
+                                        <mat-card-title class="card-title">{{t('docs.card.address')}}</mat-card-title>
                                     </mat-card-header>
                                     <mat-card-content class="input-form">
                                         <!-- <pre>
@@ -258,7 +258,8 @@
                                                     formControlName="city_id"/>
                                         </mat-form-field>
                                         <mat-form-field class="mat-form-field-100" > 
-                                            <mat-label>{{(+formBaseInformation.get('city_id').value==0)?'Город или населённый пункт':(area!=''?'Населённый пункт':'Город')}}</mat-label>
+                                            <!-- <mat-label>{{(+formBaseInformation.get('city_id').value==0)?'Город или населённый пункт':(area!=''?'Населённый пункт':'Город')}}</mat-label> -->
+                                            <mat-label>{{t('docs.field.city_locality')}}</mat-label>
                                             <input  matInput 
                                             [matAutocomplete]="auto6" 
                                             [formControl]="searchCityCtrl"
@@ -319,7 +320,7 @@
                             <div class="col-lg-4 col-xl-4 col-md-12"> 
                                 <mat-card>
                                     <mat-card-header>
-                                        <mat-card-title class="card-title">Контакты</mat-card-title>
+                                        <mat-card-title class="card-title">{{t('docs.card.contacts')}}</mat-card-title>
                                     </mat-card-header>
                                     <mat-card-content class="input-form">
                                         <!-- Телефон -->
@@ -358,7 +359,7 @@
                                     <mat-expansion-panel>
                                         <mat-expansion-panel-header>
                                             <mat-panel-title>
-                                                    Файлы для формирования документов
+                                                {{t('docs.field.files_doc_frm')}}
                                             </mat-panel-title>
                                         </mat-expansion-panel-header>
                                         <!-- <mat-card> -->
@@ -389,7 +390,7 @@
                                                             </mat-icon>
                                                         </div>
                                                         <input  matInput
-                                                                placeholder="Подпись руководителя"
+                                                                placeholder="{{t('docs.field.gm_sign')}}"
                                                                 [readonly]=true
                                                                 formControlName="director_signature_filename"/>
                                                     </mat-form-field>
@@ -418,7 +419,7 @@
                                                             </mat-icon>
                                                         </div>
                                                         <input  matInput
-                                                                placeholder="Подпись гл. бухгалтера"
+                                                                placeholder="{{t('docs.field.acnt_sign')}}"
                                                                 [readonly]=true
                                                                 formControlName="glavbuh_signature_filename"/>
                                                     </mat-form-field>
@@ -447,7 +448,7 @@
                                                             </mat-icon>
                                                         </div>
                                                         <input  matInput
-                                                                placeholder="Печать преприятия"
+                                                                placeholder="{{t('docs.field.comp_stamp')}}"
                                                                 [readonly]=true
                                                                 formControlName="stamp_filename"/>
                                                     </mat-form-field>
@@ -476,7 +477,7 @@
                                                             </mat-icon>
                                                         </div>
                                                         <input  matInput
-                                                                placeholder="Файл шаблона карточки предприятия"
+                                                                placeholder="{{t('docs.field.file_templ_cr')}}"
                                                                 [readonly]=true
                                                                 formControlName="card_template_original_filename"/>
                                                     </mat-form-field>
@@ -581,7 +582,7 @@
                                                     (keypress)="numberOnly($event)"
                                                     formControlName="jr_inn"/>
                                             <mat-hint  align="start" *ngIf="formBaseInformation.get('jr_inn').touched && formBaseInformation.get('jr_inn').invalid">
-                                                <i *ngIf="formBaseInformation.get('jr_inn').errors.pattern" class="form-invalid">ИНН должен состоять из 10 или 12 цифр</i>
+                                                <!-- <i *ngIf="formBaseInformation.get('jr_inn').errors.pattern" class="form-invalid">ИНН должен состоять из 10 или 12 цифр</i> -->
                                             </mat-hint>
                                         </mat-form-field>
                                         <!-- КПП -->
@@ -593,7 +594,7 @@
                                                     (keypress)="numberOnly($event)"
                                                     formControlName="jr_jur_kpp"/>
                                             <mat-hint  align="start" *ngIf="formBaseInformation.get('jr_jur_kpp').touched && formBaseInformation.get('jr_jur_kpp').invalid">
-                                                <i *ngIf="formBaseInformation.get('jr_jur_kpp').errors.pattern" class="form-invalid">КПП должен состоять из 9 цифр</i>
+                                                <!-- <i *ngIf="formBaseInformation.get('jr_jur_kpp').errors.pattern" class="form-invalid">КПП должен состоять из 9 цифр</i> -->
                                             </mat-hint>
                                         </mat-form-field>
                                         <!-- ОГРН -->
@@ -605,7 +606,7 @@
                                                     (keypress)="numberOnly($event)"
                                                     formControlName="jr_jur_ogrn"/>
                                             <mat-hint  align="start" *ngIf="formBaseInformation.get('jr_jur_ogrn').touched && formBaseInformation.get('jr_jur_ogrn').invalid">
-                                                <i *ngIf="formBaseInformation.get('jr_jur_ogrn').errors.pattern" class="form-invalid">ОГРН должен состоять из 13 цифр</i>
+                                                <!-- <i *ngIf="formBaseInformation.get('jr_jur_ogrn').errors.pattern" class="form-invalid">ОГРН должен состоять из 13 цифр</i> -->
                                             </mat-hint>
                                         </mat-form-field>
                                         <!-- ОГРНИП -->
@@ -617,7 +618,7 @@
                                                     (keypress)="numberOnly($event)"
                                                     formControlName="jr_ip_ogrnip"/>
                                             <mat-hint  align="start" *ngIf="formBaseInformation.get('jr_ip_ogrnip').touched && formBaseInformation.get('jr_ip_ogrnip').invalid">
-                                                <i *ngIf="formBaseInformation.get('jr_ip_ogrnip').errors.pattern" class="form-invalid">ОГРНИП должен состоять из 15 цифр</i>
+                                                <!-- <i *ngIf="formBaseInformation.get('jr_ip_ogrnip').errors.pattern" class="form-invalid">ОГРНИП должен состоять из 15 цифр</i> -->
                                             </mat-hint>
                                         </mat-form-field>
                                         <!-- ОКПО -->
@@ -629,7 +630,7 @@
                                                     (keypress)="numberOnly($event)"
                                                     formControlName="jr_okpo"/>
                                             <mat-hint  align="start" *ngIf="formBaseInformation.get('jr_okpo').touched && formBaseInformation.get('jr_okpo').invalid">
-                                                <i *ngIf="formBaseInformation.get('jr_okpo').errors.pattern" class="form-invalid">ОКПО должен состоять из 8 или 10 цифр</i>
+                                                <!-- <i *ngIf="formBaseInformation.get('jr_okpo').errors.pattern" class="form-invalid">ОКПО должен состоять из 8 или 10 цифр</i> -->
                                             </mat-hint>
                                         </mat-form-field>
                                         <!-- Номер свидетельства -->
@@ -662,7 +663,7 @@
                                 <mat-card>
                                     <div class="del-icon"  [style.display]="editability?'block':'none'">
                                         <mat-icon   (click)="copyfromAddressToJurAddress()" 
-                                                    matTooltip='Скопировать из адреса'    
+                                                    matTooltip="{{t('docs.tip.addr_copy_q')}}" 
                                                     class="nav-icon">content_copy
                                         </mat-icon>
                                     </div>
@@ -737,7 +738,8 @@
                                                     formControlName="jr_city_id"/>
                                         </mat-form-field>
                                         <mat-form-field class="mat-form-field-100" > 
-                                            <mat-label>{{(+formBaseInformation.get('jr_city_id').value==0)?'Город или населённый пункт':(jr_area!=''?'Населённый пункт':'Город')}}</mat-label>
+                                            <!-- <mat-label>{{(+formBaseInformation.get('jr_city_id').value==0)?'Город или населённый пункт':(jr_area!=''?'Населённый пункт':'Город')}}</mat-label> -->
+                                            <mat-label>{{t('docs.field.city_locality')}}</mat-label>
                                             <input  matInput 
                                             [matAutocomplete]="auto7" 
                                             [formControl]="searchJrCityCtrl"
@@ -916,7 +918,7 @@
                     </div>
                 </mat-tab>
                 <!-- Настройки/Settings -->
-                <mat-tab  *ngIf="+id>0"  label="Настройки">
+                <mat-tab  *ngIf="+id>0"  label="{{t('docs.tab.settings')}}">
                     <div class="container-fluid">
                         <div class="row" style="padding: 10px">
                             <div class="col-xl-5 col-lg-9 col-md-12">
@@ -925,19 +927,19 @@
                 
                                         <!-- Валюта/Currency -->
                                         <mat-form-field>
-                                            <mat-label>Валюта</mat-label>
+                                            <mat-label>{{t('docs.field.currency')}}</mat-label>
                                             <mat-select  formControlName="currency_id" [disabled]=!editability>                          
                                                 <mat-option  *ngFor="let rt of receivedCurrencyList" [value]="rt.id">
                                                         {{rt.name_okb}}
                                                 </mat-option> 
                                             </mat-select>
                                             <mat-hint align="start" *ngIf="formBaseInformation.get('currency_id').touched">
-                                                <i *ngIf="+formBaseInformation.get('currency_id').value==0" class="form-invalid">Валюта предприятия не выбрана</i>
+                                                <i *ngIf="+formBaseInformation.get('currency_id').value==0" class="form-invalid">{{t('docs.error.field_miss')}}</i>
                                             </mat-hint>
                                         </mat-form-field>
                                         <!-- Политика расчета средней себестоимости/Policy of netcost calculation -->
                                         <mat-form-field>
-                                            <mat-label>Политика расчета средней себестоимости</mat-label>
+                                            <mat-label>{{t('docs.field.cost_politic')}}</mat-label>
                                             <mat-select  
                                                 formControlName="st_netcost_policy"
                                                 [disabled]=!editability                                             
@@ -945,15 +947,15 @@
                                             >                          
                                                 <mat-option 
                                                     value="all" 
-                                                    matTooltip='Средняя себестоимость товара одинаковая для всех отделений'
+                                                    matTooltip="{{t('docs.tip.cost_all')}}"
                                                 >
-                                                        По всему предприятию
+                                                        {{t('docs.list.all_company')}}
                                                 </mat-option>                     
                                                 <mat-option 
                                                     value="each"
-                                                    matTooltip='Средняя себестоимость товара расчитывается отдельно для каждого отделения'
+                                                    matTooltip="{{t('docs.tip.cost_each')}}"
                                                 >
-                                                        По каждому отелению
+                                                        {{t('docs.list.each_deprt')}}
                                                 </mat-option>                                                 
                                             </mat-select>
                                         </mat-form-field>
