@@ -1,13 +1,13 @@
 <mat-card class="card" *transloco="let t">
     <mat-card-title class="flex">
-        <div class="card-name">Расценка</div>
+        <div class="card-name">{{t('modules.card.pricing')}}</div>
         <button 
             (click)="onNoClick()"
-            matTooltip="Закрыть диалоговое окно"
+            matTooltip="{{t('modules.tip.close_window')}}"
             mat-raised-button 
             color="accent"
-            class="button">
-            <i class="material-icons">close</i> Закрыть 
+            class="button small-button">
+            <i class="material-icons">close</i> 
         </button>
     </mat-card-title>
     <mat-card-content > 
@@ -31,22 +31,22 @@
                                 <mat-radio-button class="radio-button" value="manual">Вручную</mat-radio-button>
                             </mat-radio-group> -->
                             <mat-form-field  class="mat-form-field-100">
-                                <mat-label>Расценивать</mat-label>
-                                <mat-select formControlName="pricingType"  matTooltip="Способ расценки товара" (selectionChange)="onPriceTypeSelection()">
+                                <mat-label>{{t('modules.field.pricing')}}</mat-label>
+                                <mat-select formControlName="pricingType"  matTooltip="{{t('modules.tip.pr_prcng_meth')}}" (selectionChange)="onPriceTypeSelection()">
                                     <mat-option value="priceType">
-                                        По типу цены
+                                        {{t('modules.list.price_type')}}
                                     </mat-option>
                                     <mat-option value="avgCostPrice">
-                                        По ср. себестоимости
+                                        {{t('modules.list.av_cost')}}
                                     </mat-option>
                                     <mat-option value="lastPurchasePrice">
-                                        Последняя закупочная цена
+                                        {{t('modules.list.last_p_price')}}
                                     </mat-option>
                                     <mat-option value="avgPurchasePrice">
-                                        Средняя закупочная цена
+                                        {{t('modules.list.avg_p_price')}}
                                     </mat-option>
                                     <mat-option value="manual">
-                                        Вручную
+                                        {{t('modules.list.manual')}}
                                     </mat-option>
                                 </mat-select>
                             </mat-form-field>
@@ -55,7 +55,7 @@
                     <div class="row">
                         <div class="col-12"> 
                             <mat-form-field class="mat-form-field-100">
-                                <mat-label>Тип цены</mat-label>
+                                <mat-label>{{t('modules.field.price_type')}}</mat-label>
                                 <mat-select  
                                 formControlName="priceTypeId" 
                                 [disabled]="pricingForm.get('pricingType').value != 'priceType'"
@@ -80,10 +80,10 @@
                                         [readonly]="pricingForm.get('pricingType').value != 'manual'"
                                         formControlName="prePrice"/>
                                         <mat-hint align="start">
-                                            <i *ngIf="pricingForm.get('prePrice').invalid && pricingForm.get('prePrice').errors.pattern && pricingForm.get('prePrice').value>0 && pricingForm.get('prePrice').touched" class="form-invalid">Неправильный формат. Допускается до 7 цифр в целой и до 2 цифр в дробной части</i>
-                                            <i *ngIf="pricingForm.get('prePrice').value=='' && pricingForm.get('prePrice').touched" class="form-invalid">{{t('docs.error.field_miss')}}</i>
-                                            <i *ngIf="pricingForm.get('prePrice').value==0 && pricingForm.get('prePrice').value!=''" class="form-invalid">Цена = 0</i>
-                                            <i *ngIf="pricingForm.get('prePrice').value<0 && pricingForm.get('prePrice').value!=''" class="form-invalid">Отрицательная цена!</i>
+                                            <i *ngIf="pricingForm.get('prePrice').invalid && pricingForm.get('prePrice').errors.pattern && pricingForm.get('prePrice').value>0 && pricingForm.get('prePrice').touched" class="form-invalid">{{t('modules.error.price_format',{int:7,fract:2})}}</i>
+                                            <i *ngIf="pricingForm.get('prePrice').value=='' && pricingForm.get('prePrice').touched" class="form-invalid">{{t('modules.error.field_miss')}}</i>
+                                            <i *ngIf="pricingForm.get('prePrice').value==0 && pricingForm.get('prePrice').value!=''" class="form-invalid">{{t('modules.error.more_than',{num:0})}}</i>
+                                            <i *ngIf="pricingForm.get('prePrice').value<0 && pricingForm.get('prePrice').value!=''" class="form-invalid">{{t('modules.error.more_than',{num:0})}}</i>
                                         </mat-hint>
                             </mat-form-field>
                         </div>
@@ -121,7 +121,7 @@
                                     %
                                     </mat-option>
                                     <mat-option value="currency">
-                                    руб.
+                                    {{t('modules.list.money')}}
                                     </mat-option>
                                 </mat-select>
                                 </mat-form-field>
@@ -129,12 +129,12 @@
                     </div>
                     <div class="row">
                         <div class="col-12">
-                            <mat-checkbox formControlName="hideTenths" (change)="calcFinalPrice()">Убрать копейки</mat-checkbox>
+                            <mat-checkbox formControlName="hideTenths" matTooltip="{{t('modules.tip.no_fractals')}}" (change)="calcFinalPrice()">{{t('modules.field.no_fractals')}}</mat-checkbox>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-12">
-                            <mat-checkbox formControlName="saveSettings">Сохранить настройки</mat-checkbox>
+                            <mat-checkbox formControlName="saveSettings" matTooltip="{{t('modules.tip.save_settings')}}">{{t('modules.field.save_settings')}}</mat-checkbox>
                         </div>
                     </div>
                     <mat-divider></mat-divider>
@@ -152,7 +152,7 @@
                     <button 
                     (click)="applyPrice()"
                     class="apply-button"
-                    matTooltip="Применить итоговую цену к товару"
+                    matTooltip="{{t('modules.tip.apply_price')}}"
                     mat-raised-button 
                     color="primary"
                     [disabled]="(!pricingForm.valid) ||
@@ -160,7 +160,7 @@
                     (pricingForm.get('prePrice').value==0 && pricingForm.get('prePrice').value!='') ||
                     (pricingForm.get('prePrice').value<0 && pricingForm.get('prePrice').value!='')"
                     >
-                    <i class="material-icons">done</i> Применить цену 
+                    <i class="material-icons">done</i> {{t('modules.button.apply_price')}} 
                 </button>
                 </div>
 

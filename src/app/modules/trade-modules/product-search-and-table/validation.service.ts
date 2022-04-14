@@ -1,7 +1,7 @@
 export class ValidationService {
     static getValidatorErrorMessage(validatorName: string, validatorValue?: any) {
       let config = {
-        'required': 'Поле не заполнено',
+        'required': 'modules.error.field_miss',
         'countMoreThanZero': 'Кол-во = 0',
         'priceMoreThanZero': 'Цена = 0',
         'minlength': `Минимальное кол-во символов - ${validatorValue.requiredLength}`

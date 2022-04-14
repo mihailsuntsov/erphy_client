@@ -26,7 +26,7 @@
                         (keypress)="numberOnlyPlusDotAndComma($event)"
                         formControlName="price"/>
                 <mat-hint align="start" *ngIf="formBaseInformation.get('price').touched">
-                    <i *ngIf="formBaseInformation.get('price').invalid && formBaseInformation.get('price').errors.pattern" class="form-invalid">Неправильный формат. Допускается до 7 цифр в целой и до 2 цифр в дробной части</i>
+                    <i *ngIf="formBaseInformation.get('price').invalid && formBaseInformation.get('price').errors.pattern" class="form-invalid">{{t('docs.error.price_format',{int:7,fract:2})}}</i>
                     <i *ngIf="formBaseInformation.get('price').value==''" class="form-invalid">{{t('docs.error.field_miss')}}</i>
                 </mat-hint>
             </mat-form-field>

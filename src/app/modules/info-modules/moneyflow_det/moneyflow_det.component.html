@@ -247,24 +247,24 @@ class="spinner"
                         
                         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                         <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-                        <!-- Блок "Данные не найдены" -->
+                        <!-- Part "Data not founded" --> <!--+++-->
                         <ng-container matColumnDef="data_not_found">
                             <td mat-footer-cell *matFooterCellDef colspan="13" class="text-center">
-                            Данные не найдены
+                                {{t('modules.msg.dt_not_fnd')}}
                             </td>
                         </ng-container>
                         <ng-container matColumnDef="nocolumn">
                             <td mat-footer-cell *matFooterCellDef colspan="13" style="display: none;"></td>
                         </ng-container>
                         <tr mat-footer-row 
-                        *matFooterRowDef="[(dataSource.data && dataSource.data.length==0)?'data_not_found':'nocolumn']" 
-                        [ngStyle]="(dataSource.data && dataSource.data.length==0 && !gettingTableData)?{}:{'display': 'none'}"></tr>
-                        <!-- Конец блока "Данные не найдены" -->        
+                        *matFooterRowDef="[dataSource.data.length==0?'data_not_found':'nocolumn']" 
+                        [ngStyle]="(dataSource.data.length==0 && !gettingTableData)?{}:{'display': 'none'}"></tr>
+                        <!-- End of Part "Data not founded" -->        
                     </table>
               
                     <div class="flex">
                         <div class="col-sm">
-                            <p> Найдено: {{size}}, страница {{pagenum}} из {{listsize}}</p>
+                            <p> {{t('menu.bottom.founded')}}: {{size}}, {{t('menu.bottom.page')}} {{pagenum}}  {{t('menu.bottom.of')}} {{listsize}}</p> <!--+++-->
                         </div>
                         <span  class="emptyspace"></span><!-- разделитель -->
                         <div class="col-sm-auto justify-content-end">
@@ -304,6 +304,7 @@ class="spinner"
                             </ul>  
                         </div>
                     </div> 
+                    
                 </div> 
             </div>  
         </div>

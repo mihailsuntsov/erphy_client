@@ -12,13 +12,13 @@
                             <button 
                                 mat-raised-button 
                                 *ngIf="!readonly"
-                                matTooltip='Выбрать товары из справочника товаров'
+                                matTooltip="{{t('modules.tip.selct_prodcts')}}"
                                 (click)="openDialogProductCategoriesSelect('products')" 
                                 style="margin-bottom: 10px;"
                                 color="primary"
                                 type="button"
                                 class="button">
-                                <i class="material-icons">local_grocery_store</i> Товары
+                                <i class="material-icons">local_grocery_store</i> {{t('modules.button.prods')}}
                             </button>
                             <button  
                                 mat-raised-button 
@@ -28,8 +28,9 @@
                                 style="margin-bottom: 10px;"
                                 [disabled]="(!formSearch.valid)||indivisibleErrorOfSearchForm"
                                 color="primary"
+                                matTooltip="{{t('modules.tip.to_list')}}"
                                 class="button">
-                                <i class="material-icons">playlist_add</i> В список
+                                <i class="material-icons">playlist_add</i> {{t('modules.button.to_list')}}
                             </button>
                         </div>
                     </div>
@@ -38,7 +39,7 @@
                             <div class="row">
                                 <div class="col-lg-1  col-md-12 small-padding center-align">
                                     <div class="div-foto hand"> 
-                                        <img *ngIf="productImageName" matTooltip="Посмотреть изображение" (click)="showImage(productImageName)" [src]="imageToShow" width=100%>
+                                        <img *ngIf="productImageName" matTooltip="{{t('modules.tip.opn_image')}}" (click)="showImage(productImageName)" [src]="imageToShow" width=100%>
                                         <img *ngIf="!productImageName" src="{{thumbImageAddress}}" width=100% style="cursor:default">
                                     </div>          
                                 </div>
@@ -53,16 +54,16 @@
                                                         formControlName="product_id" [readonly]=true/>
                                                     </mat-form-field>
                                                     <mat-form-field  class="mat-form-field-100">
-                                                        <mat-label>Поиск товара</mat-label>
+                                                        <mat-label>{{t('modules.field.prod_srch')}}</mat-label>
                                                         <input  matInput 
                                                         #productSearchField
-                                                        placeholder="Введите часть наименования,артикул или штрих-код" 
+                                                        placeholder="{{t('modules.field.input_name')}}" 
                                                         [matAutocomplete]="auto3" 
                                                         [formControl]="searchProductCtrl"
                                                         [readonly]="formSearchReadOnly"
                                                         (input)="canAutocompleteQuery=true; checkEmptyProductField();"
                                                         (change)="canAutocompleteQuery=false; checkEmptyProductField();">
-                                                        <button mat-button 
+                                                        <!-- <button mat-button 
                                                         [matMenuTriggerFor]="productInfo"
                                                         type="button"
                                                         *ngIf="formSearchReadOnly" 
@@ -77,28 +78,19 @@
                                                             <button mat-menu-item (click)="setPrice(shortInfoAboutProductArray[5])">Последняя закупочная цена: {{+shortInfoAboutProductArray[5]}} руб.</button>
                                                             <button mat-menu-item (click)="setPrice(shortInfoAboutProductArray[3])">Средняя закупочная цена: {{+shortInfoAboutProductArray[3]}} руб.</button>
                                                             <button mat-menu-item (click)="setPrice(shortInfoAboutProductArray[4])">Средняя себестоимость: {{+shortInfoAboutProductArray[4]}} руб.</button>
-                                                        </mat-menu>
+                                                        </mat-menu> -->
                                                         <button mat-button 
                                                         type="button"
                                                         (click)="openProductCard(formSearch.get('product_id').value)"
                                                         *ngIf="formSearchReadOnly" 
-                                                        matTooltip='Открыть карточку товара'
+                                                        matTooltip="{{t('modules.tip.opn_prod_card')}}"
                                                         matSuffix mat-icon-button >
                                                             <mat-icon>launch</mat-icon>
                                                         </button>
-                                                        <!-- <button mat-button 
-                                                        type="button"
-                                                        *ngIf="!formSearchReadOnly" 
-                                                        matTooltip='Создать новый товар, и выбрать его для данного списания'
-                                                        matSuffix mat-icon-button 
-                                                        (click)="openDialogCreateProduct();">
-                                                            <mat-icon>add</mat-icon>
-                                                        </button> -->
-
                                                         <button mat-button 
                                                         type="button"
                                                         *ngIf="formSearchReadOnly" 
-                                                        matTooltip='Очистить форму поиска'
+                                                        matTooltip="{{t('modules.tip.clr_srch_form')}}"
                                                         matSuffix mat-icon-button 
                                                         (click)="formSearchReadOnly=false;resetFormSearch();">
                                                             <mat-icon>close</mat-icon>
@@ -114,13 +106,13 @@
                                                                     <mat-chip-list class="mat-chip-list">
                                                                         <mat-chip 
                                                                             *ngIf="value.total>0" 
-                                                                            matTooltip="Товар есть в наличии в выбранном отделении"
+                                                                            matTooltip="{{t('modules.tip.instock_th_dp')}}"
                                                                             style="margin:12px 5px;flex-grow: 0;">
                                                                             <span style="color:green; font-weight: bold">{{value.total-value.reserved}}</span>
                                                                         </mat-chip>
                                                                         <mat-chip 
                                                                             *ngIf="value.total==0" 
-                                                                            matTooltip="Товара нет в наличии в выбранном отделении"
+                                                                            matTooltip="{{t('modules.tip.nostock_th_dp')}}"
                                                                             style="background-color: #e0e0e0; margin:12px 5px;flex-grow: 0;">
                                                                             <span style="color:rgb(122, 0, 0); font-weight: bold">{{value.total-value.reserved}}</span>
                                                                         </mat-chip>
@@ -136,7 +128,7 @@
                                                         <div class="row">
                                                             <div class="col-lg-1 col-md-12" style="min-width: 100px;"> 
                                                                 <mat-form-field  class="mat-form-field-100">
-                                                                    <mat-label>Кол-во</mat-label>
+                                                                    <mat-label>{{t('modules.field.count')}}</mat-label>
                                                                     <input  matInput 
                                                                             #product_count
                                                                             [placeholder]="placeholderActualBalance"
@@ -146,34 +138,34 @@
                                                                             (keypress)="numberOnlyPlusDotAndComma($event);"
                                                                             [readonly]="+formSearch.get('product_id').value==0?true:false"/>
                                                                     <mat-hint  align="start">
-                                                                        <i *ngIf="formSearch.get('product_count').invalid && formSearch.get('product_count').errors.pattern" class="form-invalid">Неправильный формат. Допускается до 6 цифр в целой и до 3 цифр в дробной части. </i>
-                                                                        <i *ngIf="formSearch.get('product_count').value!=null && (+formSearch.get('product_count').value==0) && formSearch.get('product_count').value!=''" class="form-invalid">Значение должно быть больше 0</i>
+                                                                        <i *ngIf="formSearch.get('product_count').invalid && formSearch.get('product_count').errors.pattern" class="form-invalid">{{t('modules.error.price_format',{int:6,fract:3})}} </i>
+                                                                        <i *ngIf="formSearch.get('product_count').value!=null && (+formSearch.get('product_count').value==0) && formSearch.get('product_count').value!=''" class="form-invalid">{{t('modules.error.more_than',{num:0})}}</i>
                                                                         <i *ngIf="(formSearch.get('product_count').value==null || formSearch.get('product_count').value=='') && +this.formSearch.get('product_id').value>0" class="form-invalid">{{t('docs.error.field_miss')}}</i>
-                                                                        <i *ngIf="indivisibleErrorOfSearchForm" class="form-invalid">Должно быть целым</i>
+                                                                        <i *ngIf="indivisibleErrorOfSearchForm" class="form-invalid">{{t('modules.error.mst_be_integr')}}</i>
                                                                     </mat-hint>
                                                                 </mat-form-field>
                                                             </div>
                                                             <div class="col-lg-1 col-md-12" style="min-width: 100px;"> 
                                                                 <mat-form-field class="mat-form-field-100">
                                                                     <input  matInput 
-                                                                            placeholder="Цена{{formSearch.get('edizm').value==''?'':' за 1 '}}{{formSearch.get('edizm').value}}"
+                                                                            placeholder="{{t('modules.field.price')}}{{formSearch.get('edizm').value==''?'':' '+t('modules.field.for')+' 1'}}{{formSearch.get('edizm').value}}"
                                                                             formControlName="product_price"
                                                                             (input)="checkProductPriceInForm();calcSumPriceOfProduct()"
                                                                             (change)="checkProductPriceInForm();calcSumPriceOfProduct()"
                                                                             (keypress)="numberOnlyPlusDotAndComma($event)"
                                                                             [readonly]="+formSearch.get('product_id').value==0?true:false"/>
                                                                     <mat-hint align="start">
-                                                                        <i *ngIf=" formSearch.get('product_price').invalid && formSearch.get('product_price').errors.pattern && formSearch.get('product_price').value>0 && formSearch.get('product_price').touched" class="form-invalid">Неправильный формат. Допускается до 7 цифр в целой и до 2 цифр в дробной части</i>
+                                                                        <i *ngIf=" formSearch.get('product_price').invalid && formSearch.get('product_price').errors.pattern && formSearch.get('product_price').value>0 && formSearch.get('product_price').touched" class="form-invalid">{{t('modules.error.price_format',{int:7,fract:2})}}</i>
                                                                         <i *ngIf="(formSearch.get('product_price').value==null || formSearch.get('product_price').value=='') && formSearch.get('product_price').value!='0' && +this.formSearch.get('product_id').value>0 && formSearch.get('product_price').touched" class="form-invalid">{{t('docs.error.field_miss')}}</i>
-                                                                        <i *ngIf="formSearch.get('product_price').value=='0' && formSearch.get('product_price').touched" class="form-invalid">Цена = 0</i>
-                                                                        <i *ngIf="formSearch.get('product_price').value<0 && formSearch.get('product_price').value!=''" class="form-invalid">Отрицательная цена!</i>
+                                                                        <i *ngIf="formSearch.get('product_price').value=='0' && formSearch.get('product_price').touched" class="form-invalid">{{t('modules.error.more_than',{num:0})}}</i>
+                                                                        <i *ngIf="formSearch.get('product_price').value<0 && formSearch.get('product_price').value!=''" class="form-invalid">{{t('modules.error.more_than',{num:0})}}</i>
                                                                     </mat-hint>
                                                                 </mat-form-field>
                                                             </div>
                                                             <div class="col-lg-1  col-md-12"  style="min-width: 80px;">
                                                                 <mat-form-field class="mat-form-field-100">
                                                                     <input  matInput 
-                                                                            placeholder="Ед. изм."
+                                                                            placeholder="{{t('modules.field.unit')}}"
                                                                             [ngModel]="formSearch.get('edizm').value"
                                                                             [ngModelOptions]="{standalone: true}"
                                                                             [readonly]=true
@@ -183,7 +175,7 @@
                                                             <div class="col-lg-1  col-md-12" style="min-width: 80px;">
                                                                 <mat-form-field class="mat-form-field-100">
                                                                     <input  matInput 
-                                                                            placeholder="Остаток{{formSearch.get('edizm').value==''?'':', '}}{{formSearch.get('edizm').value}}"
+                                                                            placeholder="{{t('modules.field.remains')}}{{formSearch.get('edizm').value==''?'':', '}}{{formSearch.get('edizm').value}}"
                                                                             formControlName="total"
                                                                             [readonly]=true
                                                                             />
@@ -192,7 +184,7 @@
                                                             <div class="col-lg-1  col-md-12" style="min-width: 100px;">
                                                                 <mat-form-field class="mat-form-field-100">
                                                                     <input  matInput 
-                                                                            placeholder="Сумма, руб."
+                                                                            placeholder="{{t('modules.field.sum')}}"
                                                                             formControlName="product_sumprice"
                                                                             [readonly]=true
                                                                             />
@@ -200,7 +192,7 @@
                                                             </div>
                                                             <div class="col-xl-3 col-lg-6 col-md-12" style="min-width: 200px;">
                                                                 <mat-form-field  class="mat-form-field-100">
-                                                                    <mat-label>Причина списания</mat-label>
+                                                                    <mat-label>{{t('modules.field.reason')}}</mat-label>
                                                                     <mat-select [disabled]="+formSearch.get('product_id').value==0?true:false" 
                                                                                 formControlName="reason_id">  
                                                                         <mat-option  *ngFor="let rt of spravSysWriteoff" [value]="rt.id" matTooltip={{rt.description}}>
@@ -215,7 +207,7 @@
                                                             
                                                             <div class="col-xl-3 col-lg-6 col-md-12" style="min-width: 200px;">
                                                                 <mat-form-field  class="mat-form-field-100">
-                                                                    <mat-label>Дополнительно</mat-label>
+                                                                    <mat-label>{{t('modules.field.additional')}}</mat-label>
                                                                     <textarea   matInput
                                                                                 placeholder="{{t('docs.field.additional')}}"
                                                                                 [rows]="1"
@@ -295,24 +287,24 @@
                                         <td mat-footer-cell *matFooterCellDef> </td>
                                     </ng-container>
                                     <ng-container matColumnDef="name" [formArrayName]="'writeoffProductTable'">
-                                        <th mat-header-cell *matHeaderCellDef> Название </th>
+                                        <th mat-header-cell *matHeaderCellDef>{{t('modules.col.name')}}</th>
                                         <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> 
-                                            <span matTooltip='Открыть карточку товара' class="hand" (click)="openProductCard(row.product_id)">{{row.name}}</span>
+                                            <span matTooltip="{{t('modules.tip.opn_prod_card')}}" class="hand" (click)="openProductCard(row.product_id)">{{row.name}}</span>
                                         </td>
-                                        <td mat-footer-cell *matFooterCellDef> Итого ({{getControlTablefield().value.length}} наим.):</td>
+                                        <td mat-footer-cell *matFooterCellDef> {{t('modules.col.total')}}: {{getControlTablefield().value.length}}</td>
                                     </ng-container>
                                     <ng-container matColumnDef="product_count" [formArrayName]="'writeoffProductTable'">    
                                         <th mat-header-cell *matHeaderCellDef class="cell-padding width-80">
                                             <span 
                                                 style="cursor: default;"
-                                                matTooltip="Количество принимаемого товара">
-                                                Количество
+                                                >
+                                                {{t('modules.col.qnt')}}
                                             </span>
                                         </th>
                                         <td mat-cell *matCellDef="let row; let i = index" 
                                         class="cell-padding width-60"
                                         [formGroupName]="i"
-                                        [matTooltip]="((getControlTablefield().controls[i].get('product_count').invalid && getControlTablefield().controls[i].get('product_count').errors.pattern)) ? 'Ошибочное значение поля' : ''"
+                                        [matTooltip]="((getControlTablefield().controls[i].get('product_count').invalid && getControlTablefield().controls[i].get('product_count').errors.pattern)) ? t('modules.tip.err_value') : ''"
                                         [ngStyle]="   ((getControlTablefield().controls[i].get('product_count').invalid && getControlTablefield().controls[i].get('product_count').errors.pattern))?{'background-color': '#ffe4e1'}:{'background-color': 'white'}"
                                         [ngStyle]="   (!readonly&&(getControlTablefield().controls[i].get('product_count').value>(getControlTablefield().controls[i].get('total').value))&&!(getControlTablefield().controls[i].get('product_count').invalid && getControlTablefield().controls[i].get('product_count').errors.pattern))?{'background-color': '#ffe4e1'}:{'background-color': 'white'}"
                                         >
@@ -331,14 +323,14 @@
                                                 <i *ngIf="  getControlTablefield().controls[i].get('product_count').value !='' && 
                                                             getControlTablefield().controls[i].get('indivisible').value && 
                                                             !isInteger(parseFloat(getControlTablefield().controls[i].get('product_count').value))"  class="table-form-invalid">
-                                                            Должно быть целым
+                                                            {{t('modules.error.mst_be_integr')}}
                                                 </i>
-                                                <i *ngIf="getControlTablefield().controls[i].get('product_count').invalid && getControlTablefield().controls[i].get('product_count').errors.pattern" class="table-form-invalid">Неправильный формат. Допускается до 7 цифр в целой и до 3 цифр в дробной части</i>
+                                                <i *ngIf="getControlTablefield().controls[i].get('product_count').invalid && getControlTablefield().controls[i].get('product_count').errors.pattern" class="table-form-invalid">{{t('docs.error.price_format',{int:7,fract:3})}}</i>
                                             </mat-hint>
                                         <td mat-footer-cell *matFooterCellDef class="cell-padding width-60"></td>
                                     </ng-container>
                                     <ng-container matColumnDef="edizm" [formArrayName]="'writeoffProductTable'">
-                                        <th mat-header-cell *matHeaderCellDef class="cell-padding width-60">Ед. изм.</th>
+                                        <th mat-header-cell *matHeaderCellDef class="cell-padding width-60">{{t('modules.col.unit')}}</th>
                                         <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i" class="cell-padding width-60"> {{row.edizm}} </td>
                                         <td mat-footer-cell *matFooterCellDef class="cell-padding width-60"></td>
                                     </ng-container>
@@ -346,8 +338,8 @@
                                         <th mat-header-cell *matHeaderCellDef style="width: 80px;">
                                             <span 
                                                 style="cursor: default;"
-                                                matTooltip="Цена за единицу товара или услуги">
-                                                Цена
+                                                matTooltip="{{t('modules.tip.price')}}">
+                                                {{t('modules.col.price')}}
                                             </span>
                                         </th>
                                         <td mat-cell 
@@ -366,25 +358,25 @@
                                             />
                                             <control-messages  class="table-form-invalid" [control]="getControlTablefield().controls[i].get('product_price')"></control-messages>
                                             <mat-hint align="start" >
-                                                <i *ngIf="getControlTablefield().controls[i].get('product_price').invalid && getControlTablefield().controls[i].get('product_price').errors.pattern" class="table-form-invalid">Неправильный формат. Допускается до 7 цифр в целой и до 2 цифр в дробной части</i>
+                                                <i *ngIf="getControlTablefield().controls[i].get('product_price').invalid && getControlTablefield().controls[i].get('product_price').errors.pattern" class="table-form-invalid">{{t('docs.error.price_format',{int:7,fract:2})}}</i>
                                             </mat-hint>
                                         </td>
                                         <td mat-footer-cell *matFooterCellDef></td>
                                     </ng-container>
                                     <ng-container matColumnDef="total" [formArrayName]="'writeoffProductTable'">
-                                        <th mat-header-cell *matHeaderCellDef>Остаток</th>
+                                        <th mat-header-cell *matHeaderCellDef>{{t('modules.col.remains')}}</th>
                                         <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> {{row.total}} </td>
                                         <td mat-footer-cell *matFooterCellDef></td>
                                         <td mat-footer-cell *matFooterCellDef></td>
                                     </ng-container>
                                     <ng-container matColumnDef="product_sumprice" [formArrayName]="'writeoffProductTable'">
-                                        <th mat-header-cell *matHeaderCellDef>Сумма</th>
+                                        <th mat-header-cell *matHeaderCellDef>{{t('modules.col.sum')}}</th>
                                         <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> {{row.product_sumprice}} </td>
                                         <td mat-footer-cell *matFooterCellDef> {{totalProductSumm}}</td>
                                         <td mat-footer-cell *matFooterCellDef></td>
                                     </ng-container>
                                     <ng-container matColumnDef="reason" [formArrayName]="'writeoffProductTable'">
-                                        <th mat-header-cell *matHeaderCellDef matTooltip="Причина списания товара">Причина</th>
+                                        <th mat-header-cell *matHeaderCellDef matTooltip="{{t('modules.tip.reason')}}">{{t('modules.field.reason')}}</th>
                                         <td mat-cell  style="padding: 0px 5px 0 5px;" *matCellDef="let row; let i = index" [formGroupName]="i">
                                             <mat-select  
                                             formControlName="reason_id" 
@@ -401,9 +393,8 @@
                                     <ng-container matColumnDef="additional" [formArrayName]="'writeoffProductTable'">
                                         <th mat-header-cell *matHeaderCellDef>
                                             <span 
-                                                style="cursor: default;"
-                                                matTooltip="Дополнительная информация по списанию товарной позиции">
-                                                Дополнительно
+                                                style="cursor: default;">
+                                                {{t('modules.field.additional')}}
                                             </span>
                                         </th>
                                         <td mat-cell style="padding: 0px 5px 0 5px;"
@@ -417,14 +408,14 @@
                                                 maxlength="500"
                                                 formControlName="additional">
                                             </textarea>
-                                            <mat-hint align="end" *ngIf="!readonly && getControlTablefield().controls[i].get('additional').value.length>400">{{getControlTablefield().controls[i].get('additional').value.length}} / 500</mat-hint>
+                                            <mat-hint align="end" *ngIf="!readonly && getControlTablefield().controls[i].get('additional').value.length>450">{{getControlTablefield().controls[i].get('additional').value.length}} / 500</mat-hint>
                                         </td>
                                         <td mat-footer-cell *matFooterCellDef></td>
                                     </ng-container>
                                     <ng-container matColumnDef="delete" [formArrayName]="'writeoffProductTable'">
-                                        <th mat-header-cell *matHeaderCellDef style="width: 30px;"><mat-icon style="cursor: default" (click)="clearTable()">close</mat-icon></th>
+                                        <th mat-header-cell *matHeaderCellDef style="width: 30px;"><mat-icon style="cursor: default" (click)="clearTable()" matTooltip="{{t('modules.tip.del_frm_tabl_')}}">close</mat-icon></th>
                                         <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i">
-                                            <mat-icon matTooltip="Удалить товар из таблицы" style="cursor: default" (click)="deleteProductRow(row,i)">delete_forever</mat-icon>
+                                            <mat-icon matTooltip="{{t('modules.tip.del_frm_table')}}" style="cursor: default" (click)="deleteProductRow(row,i)">delete_forever</mat-icon>
                                         </td>
                                         <td mat-footer-cell *matFooterCellDef></td>
                                     </ng-container>

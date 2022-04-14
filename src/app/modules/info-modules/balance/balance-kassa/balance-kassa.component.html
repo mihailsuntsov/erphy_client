@@ -1,7 +1,7 @@
 <button mat-stroked-button
     [color]="balance>0?'primary':''"         
     class="balance"
-    matTooltip='Наличные в кассе ККМ'
+    matTooltip="{{'modules.tip.cash_sellreg' | transloco}}"
     *ngIf="showModule && balance!=null && +kassa_id>0"
-    >Наличные: {{balance}} {{currency}}
+    >{{'modules.field.cash_sellreg' | transloco}}{{balance}} {{currency}}
 </button>

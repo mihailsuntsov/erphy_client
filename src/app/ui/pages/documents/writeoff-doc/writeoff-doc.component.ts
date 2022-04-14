@@ -273,7 +273,7 @@ export class WriteoffDocComponent implements OnInit {
     this.getBaseData('myId');    
     this.getBaseData('myCompanyId');  
     this.getBaseData('companiesList');  
-    this.getBaseData('myDepartmentsList');    
+    this.getBaseData('myDepartmentsList'); 
   }
   //чтобы не было ExpressionChangedAfterItHasBeenCheckedError
   ngAfterContentChecked() {

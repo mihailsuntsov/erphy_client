@@ -160,7 +160,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   avgCostPrice:number = 0; // себестоимость найденного и выбранного в форме поиска товара.
   lastPurchasePrice:number = 0; // последняя закупочная цена найденного и выбранного в форме поиска товара.
   avgPurchasePrice:number = 0; // средняя закупочная цена найденного и выбранного в форме поиска товара.
-  priceUpDownFieldName:string = 'Наценка'; // Наименование поля с наценкой-скидкой
+ priceUpDownFieldName:string = translate('modules.field.markup'); // Наименование поля с наценкой-скидкой
   priceTypeId_temp:number; // id типа цены. Нужна для временного хранения типа цены на время сброса формы поиска товара
   companyId_temp:number; // id предприятия. Нужна для временного хранения предприятия на время сброса формы formBaseInformation
 
@@ -773,11 +773,11 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
     switch (plusMinus) {
       case 'plus': {
         this.formSearch.get('plusMinus').setValue('plus');
-        this.priceUpDownFieldName='Наценка';
+        this.priceUpDownFieldName=translate('modules.field.markup');
         break;}
       case 'minus': {
         this.formSearch.get('plusMinus').setValue('minus');
-        this.priceUpDownFieldName='Скидка';
+        this.priceUpDownFieldName=translate('modules.field.discount');
         break;}
     }
     this.priceRecount();

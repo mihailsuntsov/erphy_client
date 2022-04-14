@@ -158,7 +158,7 @@ class="spinner"
                         </ng-container>
                         <ng-container matColumnDef="creator">
                             <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('creator')" class="sortheader"> {{t('menu.table.creator')}}   
+                            <span (click)="setSort('creator')" class="sortheader"> {{t('menu.table.creator')}}
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='creator'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='creator'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
@@ -294,47 +294,47 @@ class="spinner"
             <div class="flex">
                 <div class="col-sm">
                     <p> {{t('menu.bottom.founded')}}: {{size}}, {{t('menu.bottom.page')}} {{pagenum}}  {{t('menu.bottom.of')}} {{listsize}}</p> <!--+++-->
-                        </div>
-                        <span  class="emptyspace"></span><!-- разделитель -->
-                        <div class="col-sm-auto justify-content-end">
-                            <ul class="pagination" style="padding-right: 0px">
-                                <ng-container *ngFor="let page of receivedPagesList; index as i">
-                                    <ng-container *ngIf="i>2 && listsize>1">
-                                        <ng-container *ngIf="i==3 && pagenum>1">
-                                                <li><a (click)="setPage(0)"><mat-icon class="pagearrow active">first_page</mat-icon></a>  </li>                               
-                                        </ng-container>
-                                        <ng-container *ngIf="i==3 && pagenum==1">
-                                                <li><mat-icon class="pagearrow inactive">first_page</mat-icon></li>                               
-                                        </ng-container>
-                                            <mat-chip-list>
-                                                <ng-container *ngIf="page==pagenum;else templateElse">
-                                                    <li><mat-chip style="margin: 8px;" selected>
-                                                        {{page}}               
-                                                    </mat-chip></li>
-                                                </ng-container>
-                                                <ng-template #templateElse >
-                                                    <li><mat-chip  style="margin: 8px;"  (click)="setPage(page-1)">
-                                                        {{page}}               
-                                                    </mat-chip></li>
-                                                </ng-template>
-                                            </mat-chip-list>
-                                        <ng-container *ngIf="pagenum < listsize && page==maxpage">
-                                            <li><a (click)="setPage(listsize-1)"><mat-icon class="pagearrow active">last_page</mat-icon></a></li>
-                                        </ng-container>
-                                        <ng-container *ngIf="pagenum == listsize && page==maxpage">
-                                            <li><mat-icon class="pagearrow inactive">last_page</mat-icon></li>
-                                        </ng-container>
-                                    <!-- pagenum - Страница, которая сейчас выбрана в пагинаторе
-                                        listsize - Последняя страница в пагинации (но не в пагинаторе. т.е. в пагинаторе может быть 1.2.3.4.5 а listsize =10)
-                                        maxpage - Последняя страница в пагинации 
-                                        page -    Страница пагинатора в текущем цикле -->
-                                    </ng-container>
+                </div>
+                <span  class="emptyspace"></span><!-- разделитель -->
+                <div class="col-sm-auto justify-content-end">
+                    <ul class="pagination" style="padding-right: 0px">
+                        <ng-container *ngFor="let page of receivedPagesList; index as i">
+                            <ng-container *ngIf="i>2 && listsize>1">
+                                <ng-container *ngIf="i==3 && pagenum>1">
+                                        <li><a (click)="setPage(0)"><mat-icon class="pagearrow active">first_page</mat-icon></a>  </li>                               
                                 </ng-container>
-                            </ul>  
-                        </div>
-                    </div> 
-                </div> 
-            </div>  
+                                <ng-container *ngIf="i==3 && pagenum==1">
+                                        <li><mat-icon class="pagearrow inactive">first_page</mat-icon></li>                               
+                                </ng-container>
+                                    <mat-chip-list>
+                                        <ng-container *ngIf="page==pagenum;else templateElse">
+                                            <li><mat-chip style="margin: 8px;" selected>
+                                                {{page}}               
+                                            </mat-chip></li>
+                                        </ng-container>
+                                        <ng-template #templateElse >
+                                            <li><mat-chip  style="margin: 8px;"  (click)="setPage(page-1)">
+                                                {{page}}               
+                                            </mat-chip></li>
+                                        </ng-template>
+                                    </mat-chip-list>
+                                <ng-container *ngIf="pagenum < listsize && page==maxpage">
+                                    <li><a (click)="setPage(listsize-1)"><mat-icon class="pagearrow active">last_page</mat-icon></a></li>
+                                </ng-container>
+                                <ng-container *ngIf="pagenum == listsize && page==maxpage">
+                                    <li><mat-icon class="pagearrow inactive">last_page</mat-icon></li>
+                                </ng-container>
+                            <!-- pagenum - Страница, которая сейчас выбрана в пагинаторе
+                                listsize - Последняя страница в пагинации (но не в пагинаторе. т.е. в пагинаторе может быть 1.2.3.4.5 а listsize =10)
+                                maxpage - Последняя страница в пагинации 
+                                page -    Страница пагинатора в текущем цикле -->
+                            </ng-container>
+                        </ng-container>
+                    </ul>  
+                </div>
+            </div>             
+        </div> 
+        </div>  
         </div>
     </mat-card-content>
 </mat-card>

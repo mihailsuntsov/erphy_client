@@ -1,13 +1,13 @@
-<mat-card class="card">
+<mat-card class="card" *transloco="let t">
     <mat-card-title class="flex">
-        <div class="card-name">Заказы покупателей с резервами</div>
+        <div class="card-name">{{t('modules.card.custord_w_res')}}</div>
         <button 
             (click)="onNoClick()"
-            matTooltip="Закрыть диалоговое окно"
+            matTooltip="{{t('modules.tip.close_window')}}"
             mat-raised-button 
             color="accent"
-            class="button">
-            <i class="material-icons">close</i> Закрыть 
+            class="button small-button">
+            <i class="material-icons">close</i> 
         </button>
     </mat-card-title>
     <mat-card-content > 
@@ -33,7 +33,7 @@
                 </ng-container>
                 <ng-container matColumnDef="creator">
                     <th mat-header-cell *matHeaderCellDef>
-                    <span class="sortheader"> Создатель 
+                    <span class="sortheader"> {{t('modules.col.creator')}} 
                         <!-- <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='creator'" class="material-icons sortarrow">arrow_upward</i> -->
                         <!-- <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='creator'" class="material-icons sortarrow">arrow_downward</i> -->
                     </span>
@@ -41,7 +41,7 @@
                 </ng-container>
                 <ng-container matColumnDef="doc_number">
                     <th mat-header-cell *matHeaderCellDef>
-                    <span class="sortheader"> № док. 
+                    <span class="sortheader"> {{t('modules.col.doc_num')}} 
                         <!-- <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='doc_number'" class="material-icons sortarrow">arrow_upward</i> -->
                         <!-- <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='doc_number'" class="material-icons sortarrow">arrow_downward</i> -->
                     </span>
@@ -49,7 +49,7 @@
                 </ng-container>
                 <ng-container matColumnDef="non_shipped">
                     <th mat-header-cell *matHeaderCellDef>
-                    <span class="sortheader"> Не отгруженные<br>резервы 
+                    <span class="sortheader"> {{t('modules.col.n_shipd_resrv')}}  
                         <!-- <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='non_shipped'" class="material-icons sortarrow">arrow_upward</i> -->
                         <!-- <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='non_shipped'" class="material-icons sortarrow">arrow_downward</i> -->
                     </span>
@@ -57,7 +57,7 @@
                 </ng-container>
                 <ng-container matColumnDef="department">
                     <th mat-header-cell *matHeaderCellDef>
-                    <span class="sortheader"> Отделение 
+                    <span class="sortheader"> {{t('modules.col.document')}}  
                         <!-- <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='department'" class="material-icons sortarrow">arrow_upward</i> -->
                         <!-- <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='department'" class="material-icons sortarrow">arrow_downward</i> -->
                     </span>
@@ -65,7 +65,7 @@
                 </ng-container>
                 <ng-container matColumnDef="description">
                     <th mat-header-cell *matHeaderCellDef>
-                    <span class="sortheader"> Доп. инфо. 
+                    <span class="sortheader"> {{t('modules.col.description')}}  
                         <!-- <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='description'" class="material-icons sortarrow">arrow_upward</i> -->
                         <!-- <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='description'" class="material-icons sortarrow">arrow_downward</i> -->
                     </span>
@@ -73,7 +73,7 @@
                 </ng-container>
                 <ng-container matColumnDef="shipment_date">
                     <th mat-header-cell *matHeaderCellDef>
-                    <span class="sortheader"> План. дата<br>отгрузки 
+                    <span class="sortheader"> {{t('modules.col.ship_date')}}   
                         <!-- <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='shipment_date_sort'" class="material-icons sortarrow">arrow_upward</i> -->
                         <!-- <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='shipment_date_sort'" class="material-icons sortarrow">arrow_downward</i> -->
                     </span>
@@ -81,7 +81,7 @@
                 </ng-container>
                 <ng-container matColumnDef="date_time_created">
                     <th mat-header-cell *matHeaderCellDef>
-                    <span class="sortheader"> Дата создания 
+                    <span class="sortheader"> {{t('modules.col.created')}}   
                         <!-- <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='date_time_created_sort'" class="material-icons sortarrow">arrow_upward</i> -->
                         <!-- <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='date_time_created_sort'" class="material-icons sortarrow">arrow_downward</i> -->
                     </span>
@@ -89,7 +89,7 @@
                 </ng-container>
                 <ng-container matColumnDef="status">
                     <th mat-header-cell *matHeaderCellDef>
-                    <span class="sortheader"> Статус 
+                    <span class="sortheader"> {{t('modules.col.status')}}   
                         <!-- <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='status_id'" class="material-icons sortarrow">arrow_upward</i> -->
                         <!-- <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='status_id'" class="material-icons sortarrow">arrow_downward</i> -->
                     </span>
@@ -103,19 +103,19 @@
                 <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                 <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
                 
-                <!-- Блок "Данные не найдены" -->
+                <!-- Part "Data not founded" --> <!--+++-->
                 <ng-container matColumnDef="data_not_found">
-                    <td mat-footer-cell *matFooterCellDef colspan="9" class="text-center">
-                      Данные не найдены
+                    <td mat-footer-cell *matFooterCellDef colspan="13" class="text-center">
+                        {{t('modules.msg.dt_not_fnd')}}
                     </td>
                 </ng-container>
                 <ng-container matColumnDef="nocolumn">
-                    <td mat-footer-cell *matFooterCellDef colspan="9" style="display: none;"></td>
+                    <td mat-footer-cell *matFooterCellDef colspan="13" style="display: none;"></td>
                 </ng-container>
                 <tr mat-footer-row 
                 *matFooterRowDef="[dataSource.data.length==0?'data_not_found':'nocolumn']" 
                 [ngStyle]="(dataSource.data.length==0 && !gettingTableData)?{}:{'display': 'none'}"></tr>
-                <!-- Конец блока "Данные не найдены" -->                
+                <!-- End of Part "Data not founded" -->                
             </table>
         </div>
     </mat-card-content> 

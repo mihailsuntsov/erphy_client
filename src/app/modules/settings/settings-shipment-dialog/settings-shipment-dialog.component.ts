@@ -39,7 +39,7 @@ export class SettingsShipmentDialogComponent implements OnInit {
   receivedDepartmentsList: SecondaryDepartment [] = [];//массив для получения списка отделений
   receivedMyDepartmentsList: SecondaryDepartment [] = [];//массив для получения списка своих отделений
   priceFieldName: string = ''; // наименование поля с предварительной ценой (ценой до наценки/скидки)
-  priceUpDownFieldName:string = 'Наценка'; // Наименование поля с наценкой-скидкой
+ priceUpDownFieldName:string = translate('modules.field.markup'); // Наименование поля с наценкой-скидкой
   //права
   allowToCreateAllCompanies:boolean;
   allowToCreateMyCompany:boolean;
@@ -215,11 +215,11 @@ export class SettingsShipmentDialogComponent implements OnInit {
     switch (plusMinus) {
       case 'plus': {
         this.settingsForm.get('plusMinus').setValue('plus');
-        this.priceUpDownFieldName='Наценка';
+        this.priceUpDownFieldName=translate('modules.field.markup');
         break;}
       case 'minus': {
         this. settingsForm.get('plusMinus').setValue('minus');
-        this.priceUpDownFieldName='Скидка';
+        this.priceUpDownFieldName=translate('modules.field.discount');
         break;}
     }
   }

@@ -59,10 +59,10 @@ export class ProductBarcodesDialogComponent implements OnInit {
     this.getSpravSysBarcodes();
   
     //console.log("ean13:"+this.ean13_LastNum('4602542000034'));
-    console.log("ean13:"+this.ean13_LastNum('460622411175'));
-    console.log("product_code_free:" + this.data.product_code_free);
-    console.log("st_prefix_barcode_pieced:" + this.data.st_prefix_barcode_pieced);
-    console.log("ean13:"+this.ean13_LastNum("2"+this.data.st_prefix_barcode_pieced+this.data.product_code_free));
+    // console.log("ean13:"+this.ean13_LastNum('460622411175'));
+    // console.log("product_code_free:" + this.data.product_code_free);
+    // console.log("st_prefix_barcode_pieced:" + this.data.st_prefix_barcode_pieced);
+    // console.log("ean13:"+this.ean13_LastNum("2"+this.data.st_prefix_barcode_pieced+this.data.product_code_free));
   }
   
 
@@ -79,7 +79,7 @@ export class ProductBarcodesDialogComponent implements OnInit {
     return this.http.post('/api/auth/insertProductBarcode', body)
             .subscribe(
                 (data) => {   
-                          this.openSnackBar("Штрих-код создан", "Закрыть");
+                          this.openSnackBar(translate('modules.msg.barcode_creat'), translate('modules.button.close'));
                           this.dialogAddBarcodes.close('Ok');
                         },
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
@@ -93,7 +93,7 @@ export class ProductBarcodesDialogComponent implements OnInit {
     return this.http.post('/api/auth/updateProductBarcode', body)
             .subscribe(
                 (data) => {   
-                          this.openSnackBar("Штрих-код сохранён", "Закрыть");
+                          this.openSnackBar(translate('modules.msg.barcode_saved'), translate('modules.button.close'));
                           this.dialogEditBarcodeProperties.close('Ok');
                         },
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
@@ -107,38 +107,36 @@ export class ProductBarcodesDialogComponent implements OnInit {
   }  
 
   getSpravSysBarcodes(){
-      const body = {};
-              this.http.post('/api/auth/getSpravSysBarcode', body)
-              .subscribe(
-                  (data) => {
-                    this.barcodesSpravList=data as any []; 
-                  },
-                  error => console.log(error) 
-              );
-    
+    this.http.get('/api/auth/getSpravSysBarcode')
+      .subscribe(
+          (data) => {
+            this.barcodesSpravList=data as any []; 
+          },
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
+      );   
   }
 
 
   checkSuitableBarcode(){
     let fieldLength: number = +this.formBaseInformation.get('value').value.length;
-console.log("2 formBaseInformation.get('barcode_id').value - "+this.formBaseInformation.get('barcode_id').value);
+// console.log("2 formBaseInformation.get('barcode_id').value - "+this.formBaseInformation.get('barcode_id').value);
     // if(+this.formBaseInformation.get('barcode_id').value==0)//если вид штрих-кода еще не выбран
     // {
-      console.log("вид штрих-кода еще не выбран");
+      // console.log("вид штрих-кода еще не выбран");
       if (fieldLength > 0)
       {
         if (fieldLength>48)
         {
-          console.log("Больше 48");
+          // console.log("Больше 48");
           this.formBaseInformation.get('barcode_id').setValue(5)            //  QR-code
         } else {
-          console.log("Меньше 48");
+          // console.log("Меньше 48");
           if((fieldLength!=8 && fieldLength!=13) || !this.isANumber(this.formBaseInformation.get('value').value))
           {
-            console.log("Не 8 и не 13 или они, но в строке есть буквы");
+            // console.log("Не 8 и не 13 или они, но в строке есть буквы");
             this.formBaseInformation.get('barcode_id').setValue(3)          //  Code128
           } else {
-            console.log("8 или 13");
+            // console.log("8 или 13");
             if(fieldLength==8){
               this.formBaseInformation.get('barcode_id').setValue(2)        //  EAN-8
             } else  this.formBaseInformation.get('barcode_id').setValue(1)  //  EAN-13
@@ -165,31 +163,31 @@ console.log("2 formBaseInformation.get('barcode_id').value - "+this.formBaseInfo
         case 1:
             if (value.match(/^[0-9]{13,13}$/)){
               group.controls['value'].setErrors(null);
-              console.log("ошибок нет!");
+              // console.log("ошибок нет!");
               break;
             } else {
               group.controls['value'].setErrors({notEquivalent: true});
-              console.log("ошибка!");
+              // console.log("ошибка!");
               break;}
           case 2:
             if (value.match(/^[0-9]{8,8}$/)){
               group.controls['value'].setErrors(null);
-              console.log("ошибок нет!");
+              // console.log("ошибок нет!");
               break;
             } else {
               group.controls['value'].setErrors({notEquivalent: true});
-              console.log("ошибка!");
+              // console.log("ошибка!");
               break;}
           case 3:
           case 4:
           case 5:
             if (value.match(/^[a-zA-Z0-9_\.\+\-\*\\\-\(\)\&\?\:\%\;\"\@\!\#\$\/\^\,\<\>\'\"\`\~\=]{1,100}$/)){
               group.controls['value'].setErrors(null);
-              console.log("ошибок нет!");
+              // console.log("ошибок нет!");
               break;
             } else {
               group.controls['value'].setErrors({notEquivalent: true});
-              console.log("ошибка!");
+              // console.log("ошибка!");
               break;}
       }
       return;
@@ -201,22 +199,22 @@ console.log("2 formBaseInformation.get('barcode_id').value - "+this.formBaseInfo
     {
       let fullBarcode:string=this.ean13_LastNum("2"+this.data.st_prefix_barcode_pieced+this.data.product_code_free);
       this.formBaseInformation.get('value').setValue(fullBarcode);
-      this.formBaseInformation.get('description').setValue('Внутренний штрих-код');
-      console.log("value1:"+this.formBaseInformation.get('value').value);
+      this.formBaseInformation.get('description').setValue(translate('modules.msg.internal_bcod'));
+      // console.log("value1:"+this.formBaseInformation.get('value').value);
       this.checkSuitableBarcode();
     }
-      else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:'Создание штрих-кода EAN-13 невозможно, т.к. поле "Код" в карточке товара не заполнено.',}});
+      else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('modules.msg.ean13_imposbl')}});
   }
     generateEAN8barcode(){
     if(+this.data.product_code_free>0)
     {
       let fullBarcode:string=this.ean13_LastNum(this.data.st_prefix_barcode_pieced+this.data.product_code_free);
       this.formBaseInformation.get('value').setValue(fullBarcode);
-      this.formBaseInformation.get('description').setValue('Внутренний штрих-код');
-      console.log("value1:"+this.formBaseInformation.get('value').value);
+      this.formBaseInformation.get('description').setValue(translate('modules.msg.internal_bcod'));
+      // console.log("value1:"+this.formBaseInformation.get('value').value);
       this.checkSuitableBarcode();
     }
-      else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:'Создание штрих-кода EAN-8 невозможно, т.к. поле "Код" в карточке товара не заполнено.',}});
+      else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('modules.msg.ean8_imposbl')}});
   }
   ean8_LastNum(c) {
     let chet = Number(c.charAt(1))+Number(c.charAt(3))+Number(c.charAt(5));
@@ -236,5 +234,8 @@ console.log("2 formBaseInformation.get('barcode_id').value - "+this.formBaseInfo
     total = 10 - total;
     total = total % 10;
     return c+total;
+   }
+   translate_(text:string){
+     return(translate(text));
    }
 }

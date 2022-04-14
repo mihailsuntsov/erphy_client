@@ -149,8 +149,9 @@ export class UiComponent implements OnInit {
 //  }
 
   setLanguage(lang: string) {
-    this.service.setActiveLang(lang);    
+    this.service.setActiveLang(lang);
   }
+
   setLocale(locale:string){
     try{ this.component._adapter.setLocale(locale);} catch (e) {console.log('There is no _adapter in this component')}
   }
@@ -238,7 +239,6 @@ export class UiComponent implements OnInit {
             this.settingsForm.get('localeId').setValue((result.locale_id&&result.locale_id>0)?result.locale_id:3);// en-us suffix
             this.locale=result.locale?result.locale:'en-us';// en-us
             this.suffix=result.suffix?result.suffix:'en';// suffix - at same time means language for Transloco
-
             this.setLanguage(this.suffix); // setting language in Transloco by suffixes like en es ru etc
             this.setLocale  (this.locale); // setting locale in moment.js
             this.isSettingsLoaded = true;

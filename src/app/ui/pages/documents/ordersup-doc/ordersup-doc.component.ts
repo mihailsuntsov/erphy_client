@@ -801,6 +801,7 @@ export class OrdersupDocComponent implements OnInit {
                   this.getDepartmentsList();//отделения
                   this.getStatusesList();//статусы документа Заказ поставщику
                   this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+                  this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
                   //!!!
                 } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();

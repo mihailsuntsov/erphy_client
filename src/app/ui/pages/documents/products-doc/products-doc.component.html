@@ -675,7 +675,7 @@
                                                                             <mat-icon matTooltip="Открыть карточку поставщика">launch</mat-icon>
                                                                         </a> -->
                                                                         <mat-icon matTooltip="{{t('docs.tip.p_opn_prod_ca')}}" class="icon" (click)="openCagentCard(cagent.cagent_id)">launch</mat-icon>
-                                                                        <mat-icon matTooltip="{{t('docs.tip.p_soppl_propr')}}" class="icon" (click)="clickBtnEditCagentProperties(cagent.cagent_id, cagent.cagent_article, cagent.additional)">assignment</mat-icon>
+                                                                        <mat-icon matTooltip="{{t('docs.tip.p_soppl_propr')}}" class="icon" (click)="clickBtnEditCagentProperties(cagent.cagent_id, cagent.cagent_article, cagent.additional)">edit</mat-icon>
                                                                         <mat-icon matTooltip="{{t('docs.tip.p_dep_supplir')}}" class="icon" (click)="clickBtnDeleteCagent(cagent.cagent_id)">delete_forever</mat-icon>
                                                                     </div>
                                                                 </div>
@@ -712,7 +712,7 @@
                                                                             barcode.barcode_id,
                                                                             barcode.value, 
                                                                             barcode.description,
-                                                                            barcode.name)">assignment</mat-icon>
+                                                                            barcode.name)">edit</mat-icon>
                                                                         <mat-icon matTooltip="{{t('docs.tip.p_del_barcode')}}" class="icon" (click)="clickBtnDeleteBarcode(barcode.id)">delete_forever</mat-icon>
                                                                     </div>
                                                                 </div>

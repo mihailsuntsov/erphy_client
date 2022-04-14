@@ -30,7 +30,7 @@ export class SettingsCorrectionDialogComponent implements OnInit {
   // priceTypesList: idNameDescription [] = [];//список типов цен
   receivedCompaniesList: any [] = [];//массив для получения списка предприятий
   priceFieldName: string = ''; // наименование поля с предварительной ценой (ценой до наценки/скидки)
-  priceUpDownFieldName:string = 'Наценка'; // Наименование поля с наценкой-скидкой
+ priceUpDownFieldName:string = translate('modules.field.markup'); // Наименование поля с наценкой-скидкой
   //права
   allowToCreateAllCompanies:boolean;
   allowToCreateMyCompany:boolean;

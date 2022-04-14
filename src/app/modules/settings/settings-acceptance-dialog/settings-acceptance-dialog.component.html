@@ -1,13 +1,13 @@
 <mat-card class="card" *transloco="let t">
     <mat-card-title class="flex">
-        <div class="card-name">Настройки</div>
+        <div class="card-name">{{t('modules.card.settings')}}</div>
         <button 
             (click)="onNoClick()"
-            matTooltip="Закрыть окно настроек"
+            matTooltip="{{t('modules.tip.cls_sttng_wnd')}}"
             mat-raised-button 
             color="accent"
-            class="button">
-            <i class="material-icons">close</i> Закрыть 
+            class="button small-button">
+            <i class="material-icons">close</i> 
         </button>
     </mat-card-title>
     <mat-card-content > 
@@ -23,8 +23,8 @@
                     <div class="row">
                         <div class="col-12"> 
                             <mat-form-field  class="mat-form-field-100">
-                                <mat-label> Предприятие  </mat-label>
-                                <mat-select formControlName="companyId"  (selectionChange)="onCompanyChange()" matTooltip="Предприятие по умолчанию">
+                                <mat-label>{{t('modules.field.company')}}  </mat-label>
+                                <mat-select formControlName="companyId"  (selectionChange)="onCompanyChange()" matTooltip="{{t('modules.tip.comp_def')}}">
                                     
                                     <mat-option *ngFor="let cmp of receivedCompaniesList" 
                                                 [value]="cmp.id">
@@ -32,7 +32,7 @@
                                     </mat-option>
                                 </mat-select>
                                 <mat-hint  align="start" *ngIf="settingsForm.get('companyId').touched && settingsForm.get('companyId').invalid">
-                                    <i class="form-invalid">Предприятие не выбрано.</i>
+                                    <i class="form-invalid">{{t('modules.error.field_miss')}}</i>
                                 </mat-hint>
                             </mat-form-field>
                         </div>
@@ -41,7 +41,7 @@
                         <div class="col-12"> 
                             <mat-form-field  class="mat-form-field-100">
                                 <mat-label>{{t('docs.field.department')}}</mat-label>
-                                <mat-select formControlName="departmentId"  matTooltip="Отделение по умолчанию">
+                                <mat-select formControlName="departmentId"  matTooltip="{{t('modules.tip.dep_def')}}">
                                     <mat-option *ngFor="let department of receivedDepartmentsList" 
                                                 [value]="department.id">
                                                 {{department.name}}
@@ -53,7 +53,7 @@
 
                     <div class="row">
                         <div class="col-6">
-                            <mat-checkbox formControlName="autoAdd"  matTooltip="Автодобавление товара из формы поиска в таблицу товаров">Автодобавление</mat-checkbox>
+                            <mat-checkbox formControlName="autoAdd"  matTooltip="{{t('modules.tip.auto_add')}}">{{t('modules.field.auto_add')}}</mat-checkbox>
                         </div>
                         <div class="col-6">
                             <mat-checkbox formControlName="autoPrice"  matTooltip="Автоматически подставлять цену из последней закупочной цены">Автоцена</mat-checkbox>
@@ -63,8 +63,8 @@
                     <div class="row" style="margin-top:10px">
                         <div class="col-12"> 
                             <div class = "circle-in-selected" [style.background-color]="status_color" *ngIf="settingsForm.get('statusOnFinishId').value!=null"></div>
-                            <mat-form-field  class="mat-form-field-100"  matTooltip="Присваеваемый статус при завершении инвентаризации">
-                                <mat-label>Статус при завершении</mat-label>
+                            <mat-form-field  class="mat-form-field-100"  matTooltip="{{t('modules.tip.compl_status')}}">
+                                <mat-label>{{t('modules.field.compl_status')}}</mat-label>
                                 <mat-select     [ngStyle]="(settingsForm.get('statusOnFinishId').value!=null)?{'padding': '5px 0 5px 25px'}:{}"
                                                 formControlName="statusOnFinishId"
                                                 (selectionChange)="setStatusColor();">
@@ -90,12 +90,12 @@
                     <button 
                     (click)="applySettings()"
                     class="apply-button"
-                    matTooltip="Сохранить настройки и закрыть"
+                    matTooltip="{{t('modules.tip.save_n_close')}}"
                     mat-raised-button 
                     color="primary"
                     [disabled]="(!settingsForm.valid)"
                     >
-                    <i class="material-icons">done</i> Сохранить 
+                    <i class="material-icons">done</i> {{t('modules.button.save_n_close')}} 
                 </button>
                 </div>
 

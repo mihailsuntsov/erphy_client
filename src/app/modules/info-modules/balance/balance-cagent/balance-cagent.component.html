@@ -1,7 +1,7 @@
 <button mat-stroked-button
     [color]="cagentBalance>0?'primary':(cagentBalance<0?'warn':'')" 
     class="balance"
-    matTooltip='Баланс с контрагентом.'
+    matTooltip="{{'modules.tip.cparty_balnce' | transloco}}"
     *ngIf="showModule && cagentBalance!=null && +cagent_id>0"
-    >{{cagentBalance>0?'Вы должны ':(cagentBalance<0?'Вам должны ':'Баланс: ')}}{{commonUtilites.getAbs(cagentBalance)}} {{currency}}
+    >{{cagentBalance>0 ? ('modules.field.your_debt'|transloco) : (cagentBalance<0 ?  ('modules.field.you_owed'|transloco) :('modules.field.cparty_balnce'|transloco))}}{{commonUtilites.getAbs(cagentBalance)}} {{currency}}
 </button>

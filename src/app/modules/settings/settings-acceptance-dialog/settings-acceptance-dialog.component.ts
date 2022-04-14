@@ -38,7 +38,7 @@ export class SettingsAcceptanceDialogComponent implements OnInit {
   receivedDepartmentsList: SecondaryDepartment [] = [];//массив для получения списка отделений
   receivedMyDepartmentsList: SecondaryDepartment [] = [];//массив для получения списка своих отделений
   priceFieldName: string = ''; // наименование поля с предварительной ценой (ценой до наценки/скидки)
-  priceUpDownFieldName:string = 'Наценка'; // Наименование поля с наценкой-скидкой
+ priceUpDownFieldName:string = translate('modules.field.markup'); // Наименование поля с наценкой-скидкой
   //права
   allowToCreateAllCompanies:boolean;
   allowToCreateMyCompany:boolean;

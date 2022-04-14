@@ -272,7 +272,7 @@ export class WriteoffProductsTableComponent implements OnInit {
   }
   //--------------------------------- **** конец поиск по подстроке для товара  ***** ---------------------
   getSpravSysWriteoff(){
-    this.http.post('/api/auth/getSpravSysWriteoff',null)  
+    this.http.get('/api/auth/getSpravSysWriteoff')  
     .subscribe((data) => {this.spravSysWriteoff = data as any[];
             },
     error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},);
@@ -769,7 +769,7 @@ openDialogCreateProduct() {
         // console.log('product_id - '+i['product_id']);
       if(+i['product_id']==row.product_id){
         //такой товар с таким складом уже занесён в таблицу товаров ранее, и надо смёрджить их, т.е. слить в один, просуммировав их фактические остатки.
-        alert('такой товар с таким складом уже занесён в таблицу товаров ранее')
+        // alert('такой товар с таким складом уже занесён в таблицу товаров ранее')
         thereProductInTableWithSameId=true; 
       }
     });

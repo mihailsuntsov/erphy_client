@@ -1,7 +1,7 @@
 <button mat-stroked-button
     [color]="balance>0?'primary':''"         
     class="balance"
-    matTooltip='Деньги на расчётном счёте'
+    matTooltip="{{'modules.tip.acc_money' | transloco}}"
     *ngIf="showModule && balance!=null && +account_id>0"
-    >Баланс: {{balance}} {{currency}}
+    >{{'modules.field.acc_money' | transloco}}{{balance}} {{currency}}
 </button>

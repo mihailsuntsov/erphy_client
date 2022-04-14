@@ -1,13 +1,13 @@
 <mat-card class="card" *transloco="let t">
     <mat-card-title class="flex">
-        <div class="card-name">Настройки</div>
+        <div class="card-name">{{t('modules.card.settings')}}</div>
         <button 
             (click)="onNoClick()"
-            matTooltip="Закрыть окно настроек"
+            matTooltip="{{t('modules.tip.cls_sttng_wnd')}}"
             mat-raised-button 
             color="accent"
-            class="button">
-            <i class="material-icons">close</i> Закрыть 
+            class="button small-button">
+            <i class="material-icons">close</i> 
         </button>
     </mat-card-title>
     <mat-card-content > 
@@ -23,8 +23,8 @@
                     <div class="row">
                         <div class="col-12"> 
                             <mat-form-field  class="mat-form-field-100">
-                                <mat-label> Предприятие  <span *ngIf="settingsForm.get('companyId').value==null" class="star">*</span> </mat-label>
-                                <mat-select formControlName="companyId"  (selectionChange)="onCompanyChange()" matTooltip="Предприятие по умолчанию">
+                                <mat-label>{{t('modules.field.company')}}  <span *ngIf="settingsForm.get('companyId').value==null" class="star">*</span> </mat-label>
+                                <mat-select formControlName="companyId"  (selectionChange)="onCompanyChange()" matTooltip="{{t('modules.tip.comp_def')}}">
                                     
                                     <mat-option *ngFor="let cmp of receivedCompaniesList" 
                                                 [value]="cmp.id">
@@ -32,7 +32,7 @@
                                     </mat-option>
                                 </mat-select>
                                 <mat-hint  align="start" *ngIf="settingsForm.get('companyId').touched && settingsForm.get('companyId').invalid">
-                                    <i class="form-invalid">Предприятие не выбрано.</i>
+                                    <i class="form-invalid">{{t('modules.error.field_miss')}}</i>
                                 </mat-hint>
                             </mat-form-field>
                         </div>
@@ -41,7 +41,7 @@
                         <div class="col-12"> 
                             <mat-form-field  class="mat-form-field-100">
                                 <mat-label>{{t('docs.field.department')}}</mat-label>
-                                <mat-select formControlName="departmentId"  matTooltip="Отделение по умолчанию">
+                                <mat-select formControlName="departmentId"  matTooltip="{{t('modules.tip.dep_def')}}">
                                     <mat-option *ngFor="let department of receivedDepartmentsList" 
                                                 [value]="department.id">
                                                 {{department.name}}
@@ -59,10 +59,10 @@
                             </mat-form-field>
                             <mat-form-field class="mat-form-field-100"> 
                                 <input  matInput 
-                                placeholder="{{settingsForm.get('customerId').value==''?'Поиск покупателя':'Покупатель'}}"
+                                placeholder="{{settingsForm.get('customerId').value==''?t('modules.field.customer_srch'):t('modules.field.customer')}}"
                                 [matAutocomplete]="auto4" 
                                 [formControl]="searchCustomerCtrl"
-                                matTooltip="Покупатель по умолчанию"
+                                matTooltip="{{t('modules.tip.def_customer')}}"
                                 (input)="canCagentAutocompleteQuery=true; checkEmptyCagentField();"
                                 (change)="canCagentAutocompleteQuery=false; checkEmptyCagentField();">
                                 <mat-autocomplete #auto4="matAutocomplete">
@@ -81,22 +81,22 @@
                     <div class="row">
                         <div class="col-12"> 
                             <mat-form-field  class="mat-form-field-100">
-                                <mat-label>Расценивать</mat-label>
-                                <mat-select formControlName="pricingType"  matTooltip="Расценка по умолчанию">
+                                <mat-label>{{t('modules.field.pricing')}}</mat-label>
+                                <mat-select formControlName="pricingType"  matTooltip="{{t('modules.tip.pricing_def')}}">
                                     <mat-option value="priceType">
-                                        По типу цены
+                                        {{t('modules.list.price_type')}}
                                     </mat-option>
                                     <mat-option value="avgCostPrice">
-                                        По ср. себестоимости
+                                        {{t('modules.list.av_cost')}}
                                     </mat-option>
                                     <mat-option value="lastPurchasePrice">
-                                        Последняя закупочная цена
+                                        {{t('modules.list.last_p_price')}}
                                     </mat-option>
                                     <mat-option value="avgPurchasePrice">
-                                        Средняя закупочная цена
+                                        {{t('modules.list.avg_p_price')}}
                                     </mat-option>
                                     <mat-option value="manual">
-                                        Вручную
+                                        {{t('modules.list.manual')}}
                                     </mat-option>
                                 </mat-select>
                             </mat-form-field>
@@ -105,21 +105,19 @@
                     <div class="row">
                         <div class="col-12"> 
                             <mat-form-field  class="mat-form-field-100">
-                                <mat-label>Приоритет цены</mat-label>
-                                <mat-select formControlName="priorityTypePriceSide" 
-                                            matTooltip="Приоритет типа цены по умолчанию" 
-                                            [disabled]="settingsForm.get('pricingType').value != 'priceType'">
+                                <mat-label>{{t('modules.field.prior_price')}}</mat-label>
+                                <mat-select formControlName="priorityTypePriceSide" matTooltip="{{t('modules.tip.prior_pr_type')}}">
                                     <mat-option value="sklad"
-                                                matTooltip='Тип цены склада. Устанавливается в документе "Отделения"'>
-                                        Склад {{getPriceTypesNameById(department_type_price_id)}}
+                                                matTooltip="{{t('modules.tip.depart_pt')}}">
+                                        {{t('modules.list.department')}} {{getPriceTypesNameById(department_type_price_id)}}
                                     </mat-option>
                                     <mat-option value="cagent"
-                                                matTooltip='Тип цены покупателя.Устанавливается в справочнике "Контрагенты"'>
-                                        Покупатель {{getPriceTypesNameById(cagent_type_price_id)}}
+                                                matTooltip="{{t('modules.tip.cagent_pt')}}">
+                                        {{t('modules.list.customer')}} {{getPriceTypesNameById(cagent_type_price_id)}}
                                     </mat-option>
                                     <mat-option value="defprice"
-                                                matTooltip='Тип цены, выбранный в качестве цены по умолчанию в справочнике "Типы цен"'>
-                                        Цена по умолчанию {{getPriceTypesNameById(default_type_price_id)}}
+                                                matTooltip="{{t('modules.tip.def_price_pt')}}">
+                                        {{t('modules.list.default_price')}} {{getPriceTypesNameById(default_type_price_id)}}
                                     </mat-option>
                                 </mat-select>
                             </mat-form-field>
@@ -155,7 +153,7 @@
                                     %
                                     </mat-option>
                                     <mat-option value="currency">
-                                    руб.
+                                    {{t('modules.list.money')}}
                                     </mat-option>
                                 </mat-select>
                             </mat-form-field>
@@ -163,10 +161,10 @@
                     </div>
                     <div class="row">
                         <div class="col-6">
-                            <mat-checkbox formControlName="hideTenths">Убирать копейки</mat-checkbox>
+                            <mat-checkbox formControlName="hideTenths" matTooltip="{{t('modules.tip.no_fractals')}}">{{t('modules.field.no_fractals')}}</mat-checkbox>
                         </div>
                         <div class="col-6">
-                            <mat-checkbox formControlName="autoAdd"  matTooltip="Автодобавление товара из формы поиска в таблицу товаров">Автодобавление</mat-checkbox>
+                            <mat-checkbox formControlName="autoAdd"  matTooltip="{{t('modules.tip.auto_add')}}">{{t('modules.field.auto_add')}}</mat-checkbox>
                         </div>
                     </div>
                     <!-- <div class="row">
@@ -177,16 +175,16 @@
                             <mat-checkbox formControlName="showKkm"  matTooltip="Показывать блок работы с онлайн-кассой">Онлайн-касса</mat-checkbox>
                         </div>
                     </div> -->
-                    <div class="row">
+                    <!-- <div class="row">
                         <div class="col-12">
                             <mat-checkbox formControlName="saveSettings">Сохранять настройки после расценки</mat-checkbox>
                         </div>
-                    </div>
+                    </div> -->
                     <div class="row" *ngIf="settingsForm.get('statusIdOnComplete').value">
                         <div class="col-12"> 
                             <div class = "circle-in-selected" [style.background-color]="status_color"></div>
-                            <mat-form-field  class="mat-form-field-100" style="margin-top: -20px;" matTooltip="Статус, который присвоится документу при успешном проведении">
-                                <mat-label>Статус при проведении</mat-label>
+                            <mat-form-field  class="mat-form-field-100"  matTooltip="{{t('modules.tip.compl_status')}}">
+                                <mat-label>{{t('modules.field.compl_status')}}</mat-label>
                                 <mat-select     style="padding: 5px 0 5px 25px;" 
                                                 formControlName="statusIdOnComplete"
                                                 (selectionChange)="setStatusColor();">
@@ -212,12 +210,12 @@
                     <button 
                     (click)="applyPrice()"
                     class="apply-button"
-                    matTooltip="Сохранить настройки и закрыть"
+                    matTooltip="{{t('modules.tip.save_n_close')}}"
                     mat-raised-button 
                     color="primary"
                     [disabled]="(!settingsForm.valid)"
                     >
-                    <i class="material-icons">done</i> Сохранить 
+                    <i class="material-icons">done</i> {{t('modules.button.save_n_close')}} 
                 </button>
                 </div>
 

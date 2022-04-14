@@ -1,7 +1,7 @@
 export class ValidationService {
     static getValidatorErrorMessage(validatorName: string, validatorValue?: any) {
       let config = {
-        'required': 'Поле не заполнено',
+        'required': 'modules.error.field_miss',
         'invalidCreditCard': 'Ошибочный номер карты',
         'invalidEmailAddress': 'Ошибочный e-mail',
         'invalidPassword': 'Пароль должен содержать хотя бы 6 символов, включая цифры.',

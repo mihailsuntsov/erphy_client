@@ -3,31 +3,33 @@
             <div class="card-name">{{data.docName}}</div>
             <button 
                 mat-raised-button 
-                matTooltip="Создать штрих-код"
-                [style.display]="data.mode=='create'?'block':'none'"
-                (click)="createProductBarcode()" 
+                matTooltip="{{'docs.tip.create' | transloco}}"
+                (click)="createProductBarcode()"
                 [disabled]="!formBaseInformation.valid" 
+                [style.display]="data.mode=='create'?'block':'none'"
                 color="primary"
-                class="button">
-                <i class="material-icons">add_circle_outline</i> Создать
+                type="button"
+                class="button small-button">
+                <i class="material-icons">done</i>
             </button>
             <button 
                 mat-raised-button 
-                matTooltip="Сохранить штрих-код"
-                [style.display]="data.mode=='update'?'block':'none'"
+                matTooltip="{{'docs.tip.save' | transloco}}"
                 (click)="updateProductBarcode()"
+                [style.display]="data.mode=='update'?'block':'none'"
                 [disabled]="!formBaseInformation.valid" 
                 color="primary"
-                class="button">
-                <i class="material-icons">done</i> Сохранить
+                type="button"
+                class="button small-button">
+                <i class="material-icons">save</i>
             </button>
             <button 
                 (click)="onNoClick()"
-                matTooltip="Закрыть диалоговое окно"
+                matTooltip="{{'modules.tip.close_window' | transloco}}"
                 mat-raised-button 
                 color="accent"
-                class="button">
-                <i class="material-icons">close</i> Отмена
+                class="button small-button">
+                <i class="material-icons">close</i> 
             </button>
         </mat-card-title>
         <mat-card-content > 
@@ -35,13 +37,13 @@
                 <div class="flex" style="margin: 15px 0 15px;">
                     <mat-form-field  [ngClass]="{invisible: data.mode=='update'}" style="width:65%; margin-right:5px;">
                         <input matInput
-                                matTooltip="Отсканируйте штрих-код производителя товара на упаковке, или генерируйте внутренний штрих-код на основе кода товара"
+                                matTooltip="{{'modules.tip.code_input' | transloco}}"
                                 #barcodeValue maxlength="100"
-                                placeholder="Штрих-код"
+                                placeholder="{{'modules.field.barcode' | transloco}}"
                                 formControlName="value"
                                 (input)="checkSuitableBarcode()"/>
                         <mat-hint align="start">
-                            <strong (click)="generateEAN13barcode()" class="cursor-pointer" matTooltip="Генерировать внутренний штрих-код формата EAN13 на основе поля «Код»">Внутренний EAN-13</strong> &nbsp;
+                            <strong (click)="generateEAN13barcode()" class="cursor-pointer" matTooltip="{{'modules.tip.gen_barcode13' | transloco}}">{{'modules.field.internl_ean13' | transloco}}</strong> &nbsp;
                             <!-- <strong (click)="generateEAN8barcode()"  class="cursor-pointer" matTooltip="Генерировать внутренний штрих-код формата EAN-8 на основе кода">Внутренний EAN-8</strong> -->
                         </mat-hint>
                         <mat-hint align="end">{{barcodeValue.value.length}} / 100</mat-hint>
@@ -49,16 +51,16 @@
                     
                     <mat-form-field [ngClass]="{invisible: data.mode=='create'}" style="width:65%; margin-right:5px;">
                         <input  matInput
-                                placeholder="Штрих-код"
+                                placeholder="{{'modules.field.barcode' | transloco}}"
                                 formControlName="value" 
                                 [readonly]=true
-                                matTooltip='Cозданный штрих-код нельзя изменить'/>
+                                matTooltip="{{'modules.tip.no_chng_code' | transloco}}"/>
                     </mat-form-field>
 
                     <mat-form-field  [ngClass]="{invisible: data.mode=='update'}" style="width:35%;">
-                        <mat-label>Вид штрих-кода</mat-label>
+                        <mat-label>{{'modules.field.barcode_type' | transloco}}</mat-label>
                         <mat-select  formControlName="barcode_id">        
-                            <mat-option  *ngFor="let rt of barcodesSpravList" [value]="rt.id" matTooltip={{rt.description}}>
+                            <mat-option  *ngFor="let rt of barcodesSpravList" [value]="rt.id" matTooltip="{{rt.description | transloco}}">
                                     {{rt.name}} 
                             </mat-option>
                         </mat-select>  
@@ -66,10 +68,10 @@
                     
                     <mat-form-field [ngClass]="{invisible: data.mode=='create'}" style="width:35%;">
                         <input  matInput
-                                placeholder="Вид штрих-кода"
+                                placeholder="{{'modules.field.barcode_type' | transloco}}"
                                 formControlName="barcodeName" 
                                 [readonly]=true
-                                matTooltip='Вид уже созданного штрих-кода нельзя изменить'/>
+                                matTooltip="{{'modules.tip.no_ch_typ_cod' | transloco}}"/>
                     </mat-form-field>
                 </div>
                 <mat-form-field  [style.display]="'block'">
@@ -78,8 +80,8 @@
                             placeholder="{{'docs.field.description' | transloco}}"
                             formControlName="description"/>
                     <mat-hint align="start">
-                        <strong (click)="formBaseInformation.get('description').setValue('Штрих-код производителя')" class="cursor-pointer">Производителя </strong> &nbsp;
-                        <strong (click)="formBaseInformation.get('description').setValue('Внутренний штрих-код')" class="cursor-pointer">Внутренний</strong>
+                        <strong (click)="formBaseInformation.get('description').setValue(translate_('modules.msg.maker_bcod'))" matTooltip="{{'modules.tip.cr_bcod_descr' | transloco}}" class="cursor-pointer">{{'modules.list.maker_bcod' | transloco}} </strong> &nbsp;
+                        <strong (click)="formBaseInformation.get('description').setValue(translate_('modules.msg.internal_bcod'))" matTooltip="{{'modules.tip.cr_bcod_descr' | transloco}}" class="cursor-pointer">{{'modules.msg.internal_bcod' | transloco}}</strong>
                     </mat-hint>
                     <mat-hint align="end">{{message2.value.length}} / 250</mat-hint>
                 </mat-form-field>

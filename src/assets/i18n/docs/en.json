@@ -178,6 +178,7 @@
         "time_zone":    "Time zone",
         "user_company": "Main company of the user",
         "dep_price_typ":"Department's price type",
+        "customer_srch":"Customer search",
         
         "-- SELL REGICTERS ":"--",
 
@@ -383,6 +384,7 @@
         "there_cashbox":"The sales register with this factory number (FN) is already in the company's database. The FN must be unique. If there is no sales registers with such a FN in the list of sales registers, check the list of deleted sales registers, and, if necessary, restore the deleted sales register",
         "save_error":   "Error saving the document",
         "ne_money":     "There are not enough cash in the sales register to create a document \"{{name}}\"",
+        "sender_n_comp":"The sender document of this internal payment has not been completed",
         "pi_w_oo_compl":"Incoming payment with this Debit slip is already completed",
         "pi_w_po_compl":"Incoming payment with this Outgoing payment is already completed",
         "pi_w":         "Incoming payment with this",
@@ -516,7 +518,12 @@
         "email_notver": "E-mail is not verified",
         "active":       "Active",
         "blocked":      "Blocked",
-        "deleted_arch": "Deleted to the archive"
+        "deleted_arch": "Deleted to the archive",
+        "price_type":   "Price type",
+        "av_cost":      "Average cost price",
+        "last_p_price": "Last purchase price",
+        "avg_p_price":  "Average purchase price",
+        "manual":       "Manual"
     },
     "docs":{            
         "role":         "Role",
