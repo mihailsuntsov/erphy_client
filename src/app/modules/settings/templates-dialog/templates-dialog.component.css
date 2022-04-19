@@ -20,6 +20,13 @@ li {list-style: none;}
     display: flex;
     flex-direction: column;
 }
+.table-form-invalid{
+    color: red;
+    font-size: 11px;
+    line-height: 0.9em;
+    display: block;
+    font-style: italic;
+}
 .field-box{
     padding: 3px;
     margin: 5px;

@@ -93,10 +93,11 @@ export class UiComponent implements OnInit {
     if(this.isSettingsLoaded){
       this.setLanguage(this.suffix); // setting language in Transloco by suffixes like en es ru etc
       this.setLocale  (this.locale); // setting locale in moment.js
+
       // this.setMyId();
       // this.setMyCompanyId();
     } else {
-      this.getSettings();
+      this.getSettings(false);
       this.getMyId();
       this.getMyCompanyId();
       this.getCompaniesList();
@@ -119,8 +120,8 @@ export class UiComponent implements OnInit {
         case 'companiesList': {
           component.receivedCompaniesList=this.companiesList;
           break;}
-        case 'suffix': {
-          component._suffix=this.suffix;
+        case 'updateDashboard': {
+          this.updateDashboard(this.locale)
           break;}
       }
     })
@@ -153,14 +154,23 @@ export class UiComponent implements OnInit {
   }
 
   setLocale(locale:string){
-    try{ this.component._adapter.setLocale(locale);} catch (e) {console.log('There is no _adapter in this component')}
+    this.updateDashboard(locale)// если дочерний компонент - Дэшборд - у него поменяется локаль в соответствии с настройками пользователя
+    //если это другой компонент и он работает с датами (т.е. у него есть _adapter) - поменяем у него локаль
+    try{ this.component._adapter.setLocale(locale)} catch (e) {console.log('There is no _adapter in this component')}
+    try{ this.component.locale=locale} catch (e) {console.log('There is no locale in this component')}
   }
-  // setMyId(){
-  //   try{ this.component._adapter.myId=this.myId;} catch (e) {console.log('Error on setting myId')}
-  // }
-  // setMyCompanyId(){
-  //   try{ this.component._adapter.myCompanyId = this.myCompanyId;} catch (e) {console.log('Error on setting myCompanyId')}
-  // }
+
+  updateDashboard(locale:string){
+    if(this.component.dashboard){// если дочерний компонент - Дэшборд (стартовая страница) -  нужно обновить _adapter у всех виджетов, использующих даты
+      this.component.locale=locale; //меняем у Дэшборда локаль
+      // alert("updateDashboard-"+this.component.locale+", "+this.component.actionsBeforeGetChilds)
+      // setTimeout(() => {this.component.locale=locale;}, 5000);
+      if(this.component.actionsBeforeGetChilds==4){ // если не во время загрузки стартовой страницы 
+        setTimeout(() => {this.component.vidgetsReload()}, 1000); // то перезагружаем виджеты (без паузы файл пакета языка не успевает примениться)
+      } else this.component.necessaryActionsBeforeGetChilds(); //если во время загрузки стартовой страницы - просто увеличиваем счетчик необходимых действий
+    }
+  }
+
   getAllMyPermissions()
   {
     // alert("getAllMyPermissions");
@@ -227,7 +237,7 @@ export class UiComponent implements OnInit {
   }
   
   // settings loading
-  getSettings(){
+  getSettings(updateDashboard:boolean){
     let result:any;
     this.http.get('/api/auth/getMySettings')
       .subscribe(
@@ -241,6 +251,7 @@ export class UiComponent implements OnInit {
             this.suffix=result.suffix?result.suffix:'en';// suffix - at same time means language for Transloco
             this.setLanguage(this.suffix); // setting language in Transloco by suffixes like en es ru etc
             this.setLocale  (this.locale); // setting locale in moment.js
+            if(updateDashboard) this.updateDashboard(this.locale);
             this.isSettingsLoaded = true;
           },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
@@ -278,7 +289,7 @@ export class UiComponent implements OnInit {
     return this.http.post('/api/auth/saveUserSettings', this.settingsForm.value)
             .subscribe(
                 (data) => {   
-                          this.getSettings();
+                          this.getSettings(true);
                           this.openSnackBar(translate('docs.msg.settngs_saved'), translate('docs.msg.close'));
                         },
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
@@ -288,9 +299,11 @@ export class UiComponent implements OnInit {
     this.loadSpravService.getMyId()
     .subscribe((data) => {this.myId=data as number;/*this.setMyId();*/},error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
   }
-  getMyCompanyId(){
+  getMyCompanyId(){ 
+    // alert("ui")
     this.loadSpravService.getMyCompanyId().subscribe(
     (data) => {this.myCompanyId=data as number;
+      if(this.component&&this.component.dashboard){this.component.myCompanyId=this.myCompanyId;}
       /*this.setMyCompanyId();*/
       this.getMyDepartmentsList()
     },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});

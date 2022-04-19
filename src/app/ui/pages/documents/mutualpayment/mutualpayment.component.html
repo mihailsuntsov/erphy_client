@@ -4,7 +4,7 @@ class="spinner"
 [diameter]="50"
 *ngIf="gettingTableData"
 ></mat-spinner>
-<mat-card class="card" *transloco="let t"> <!--+++-->
+<mat-card class="card" *transloco="let t">
     <mat-card-title class="flex" style="height: 30px;">
         <div *ngIf="!displayingDeletedDocs" class="emptyspace">{{cu.cap(t('menu.docs.mut_payments'))}}</div>
 

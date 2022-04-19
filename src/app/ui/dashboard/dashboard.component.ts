@@ -13,8 +13,6 @@ import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { LoadSpravService } from 'src/app/services/loadsprav';
 import { translate } from '@ngneat/transloco'; //+++
 
-
-
 // import { Cookie } from 'ng2-cookies/ng2-cookies';
 
 
@@ -29,7 +27,7 @@ export interface IdAndName {
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css'],
-  providers: [SalesOnPeriodComponent,LoadSpravService,]
+  providers: [SalesOnPeriodComponent,LoadSpravService]
 })
 export class DashboardComponent implements OnInit {
 
@@ -45,9 +43,12 @@ export class DashboardComponent implements OnInit {
     private _snackBar: MatSnackBar,
     private http: HttpClient,
     private MessageDialog: MatDialog,
-    private loadSpravService:   LoadSpravService,
+    private loadSpravService:   LoadSpravService
   ) { }
 
+  dashboard=true;
+  locale:string='en-us';// locale (for dates, calendar etc.)
+  component:any; // дочерние модули-виджеты
   settingsForm: any; // форма с настройками
   receivedCompaniesList: IdAndName [] = [];//массив для получения списка предприятий
   myCompanyId:number; // id предприятия пользователя
@@ -74,6 +75,9 @@ export class DashboardComponent implements OnInit {
       //предприятие, для которого создаются настройки
       companyId: new FormControl                (null,[]),
     });
+    this.getBaseData('myCompanyId');
+    this.getBaseData('updateDashboard');
+        
 
     this.getMyCompanyId();
     //  |
@@ -92,6 +96,7 @@ export class DashboardComponent implements OnInit {
     // +  this.vidgetsReload (если не на старте, а на сохранении настроек)
 
   }
+
 //нужно загруить всю необходимую информацию, прежде чем вызывать детей (Поиск и добавление товара, Кассовый модуль), иначе их ngOnInit выполнится быстрее, чем загрузится вся информация в родителе
   //вызовы из:
   //getCRUD_rights() (загрузятся myCompanyId и настройки с companyId, права)
@@ -99,20 +104,27 @@ export class DashboardComponent implements OnInit {
   necessaryActionsBeforeGetChilds(){
     this.actionsBeforeGetChilds++;
     //Если набрано необходимое кол-во действий для отображения модуля Формы поиска и добавления товара
-    if(this.actionsBeforeGetChilds==2){
+    if(this.actionsBeforeGetChilds==4){
       // this.canGetChilds=true;
       this.vidgetsReload();
     }
   }
 
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
-      (data) => {
-        this.myCompanyId=data as number;
-        this.getSettings();
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
   }
 
+  getMyCompanyId(){ //+++  
+    // alert("dashboard")
+    //если в ui.components myCompanyId уже подгрузилась - берем ее и повторно уже не запрашиваем
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
+        (data) => {
+          this.myCompanyId=data as number;
+          this.getSettings();
+      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
+    else this.getSettings();
+  }
   //загрузка настроек
   getSettings(){
     let result:any;
@@ -187,7 +199,8 @@ export class DashboardComponent implements OnInit {
   }
 
   getMyDepartmentsList(){
-    this.receivedMyDepartmentsList=null;
+    this.getBaseData('myDepartmentsList');//если в ui.components myDepartmentsList уже подгрузились - берем их и повторно уже не запрашиваем
+    if(this.receivedMyDepartmentsList.length==0)    
     this.loadSpravService.getMyDepartmentsListByCompanyId(this.companyId,false)
             .subscribe(
                 (data) => {
@@ -196,6 +209,7 @@ export class DashboardComponent implements OnInit {
                   this.getDepartmentsList();},
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
+    else this.getDepartmentsList();
   }
 
   getDepartmentsList(){
@@ -220,11 +234,25 @@ export class DashboardComponent implements OnInit {
   //перезапуск виджетов Стартовой страницы
   vidgetsReload(){    
     setTimeout(() => { // без этого @Input's у детей не успевают прогружаться, в частности, receivedDepartmentsList
-      if(this.salesOnPeriodComponent) this.salesOnPeriodComponent.onStart();
-      if(this.incomeOutcomeComponent) this.incomeOutcomeComponent.onStart();
-      if(this.indicatorsLeftComponent) this.indicatorsLeftComponent.onStart();
-      if(this.remainsComponent) this.remainsComponent.onStart();
-      if(this.opexComponent) this.opexComponent.onStart();
+      if(this.salesOnPeriodComponent){
+        this.salesOnPeriodComponent._adapter.setLocale(this.locale);
+        this.salesOnPeriodComponent.onStart();
+      } 
+      if(this.incomeOutcomeComponent){
+        this.incomeOutcomeComponent._adapter.setLocale(this.locale);
+        this.incomeOutcomeComponent.onStart();
+      } 
+      if(this.indicatorsLeftComponent){
+        this.indicatorsLeftComponent.onStart();
+      } 
+      if(this.remainsComponent){
+        this.remainsComponent.onStart();
+      }
+      if(this.opexComponent){
+        this.opexComponent._adapter.setLocale(this.locale);
+        this.opexComponent.onStart();
+      }
+      
     }, 1);
     
   }

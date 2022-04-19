@@ -1,12 +1,12 @@
 <mat-card class="card" *transloco="let t">
     <div class="icon-panel">
-        <mat-icon   matTooltip='Настройки отчёта'    
+        <mat-icon   matTooltip="{{'modules.kpi.reprt_settggs' | transloco}}"    
                     (click)="onClickMenuIcon()"
                     class="nav-icon">menu
         </mat-icon>
     </div>
         <mat-card-title class="flex" style="height: 30px;">
-                <div class="emptyspace">Товарные остатки</div>
+                <div class="emptyspace">{{'modules.kpi.prod_remains' | transloco}}</div>
                 
             </mat-card-title>
             <mat-card-content>
@@ -39,7 +39,7 @@
                                 <div class="row">
                                     <div class="col-lg-1 col-12">
                                         <mat-form-field style="width:50px;" class="num-of-rows">
-                                            <mat-label>Строк</mat-label>
+                                            <mat-label>{{t('menu.top.rows')}}</mat-label>
                                             <mat-select [(value)]="sendingQueryForm.result" (selectionChange)="setNumOfPages()" class="form-control" id="selectRowsPerPage" name="result">                           
                                                 <mat-option  *ngFor="let num of numRows" [value]="num.value">
                                                         {{num.viewValue}}
@@ -49,9 +49,9 @@
                                     </div>
                                     <div class="col-lg-6 col-12">    
                                         <mat-form-field  style="margin-left: 10px; width: 100%">
-                                            <mat-label>{{t('docs.field.department')}}</mat-label>
+                                            <mat-label>{{t('menu.top.department')}}</mat-label>
                                             <mat-select  [(value)]="sendingQueryForm.departmentId" (selectionChange)="onDepartmentSelection()">
-                                                <mat-option *ngIf="departmentsList && departmentsList.length>1" value="0" selected>Все доступные отделения</mat-option>                          
+                                                <mat-option *ngIf="departmentsList && departmentsList.length>1" value="0" selected>{{t('menu.top.all_acc_depar')}}</mat-option>                          
                                                 <mat-option  *ngFor="let rdl of departmentsList" [value]="rdl.id">
                                                         {{rdl.name}}
                                                 </mat-option>
@@ -64,7 +64,7 @@
                                         style="margin-left: 10px" 
                                         [matMenuTriggerFor]="oper"
                                         type="button"
-                                        matTooltip='Выбрать опции для фильтра'
+                                        matTooltip="{{t('menu.tip.select_opt')}}"
                                         matSuffix mat-icon-button>
                                         <mat-icon>list_alt</mat-icon>
                                         </button>
@@ -76,13 +76,13 @@
                                                             (click)="$event.stopPropagation()"
                                                             (change)="$event ? clickFilterOptionsCheckbox(row) : null"
                                                             [checked]="selectionFilterOptions.isSelected(row)"
-                                                            >{{row.name}}</mat-checkbox>
+                                                            >{{t(row.name)}}</mat-checkbox>
                                                     </li>
                                                 </ul>
                                             </div>
                                             <div class="div-100"> 
                                                 <div style="width:100%; height: 38px; padding-bottom: 15px;">
-                                                    <button matTooltip="Применить фильтры" mat-mini-fab color="primary" (click)="setNumOfPages()">
+                                                    <button matTooltip="{{t('menu.tip.apply_filters')}}" mat-mini-fab color="primary" (click)="setNumOfPages()">
                                                         <mat-icon>done</mat-icon>
                                                     </button>
                                                 </div>
@@ -94,7 +94,7 @@
                                         <mat-form-field class="emptyspace"
                                         style="width:100%"  >
                                                 <input matInput 
-                                                placeholder="Поиск..." 
+                                                placeholder="{{t('menu.top.search')}}" 
                                                 [(ngModel)]="sendingQueryForm.searchString" 
                                                 type="text"  
                                                 id="search_input" 
@@ -121,7 +121,7 @@
                                         </ng-container>
                                         <ng-container matColumnDef="name">
                                             <th mat-header-cell *matHeaderCellDef>
-                                            <span (click)="setSort('p.name')" class="sortheader"> Наименование 
+                                            <span (click)="setSort('p.name')" class="sortheader"> {{t('menu.table.name')}}  
                                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='p.name'" class="material-icons sortarrow">arrow_upward</i>
                                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='p.name'" class="material-icons sortarrow">arrow_downward</i>
                                             </span>
@@ -133,63 +133,15 @@
                                         </ng-container>
                                         <ng-container matColumnDef="article">
                                             <th mat-header-cell *matHeaderCellDef>
-                                            <span (click)="setSort('p.article')" class="sortheader"> Артикул 
+                                            <span (click)="setSort('p.article')" class="sortheader"> {{t('menu.table.sku')}}  
                                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='p.article'" class="material-icons sortarrow">arrow_upward</i>
                                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='p.article'" class="material-icons sortarrow">arrow_downward</i>
                                             </span>
                                             <td mat-cell *matCellDef="let row"> {{row.article}} </td>
                                         </ng-container>
-                                        <ng-container matColumnDef="not_buy">
-                                            <th mat-header-cell *matHeaderCellDef>
-                                            <span (click)="setSort('not_buy')" class="sortheader"> Закуп 
-                                                <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='not_buy'" class="material-icons sortarrow">arrow_upward</i>
-                                                <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='not_buy'" class="material-icons sortarrow">arrow_downward</i>
-                                            </span>
-                                            <td mat-cell *matCellDef="let row"> 
-                                                <mat-chip-list>
-                                                    <mat-chip 
-                                                    *ngIf="row.not_buy==false" 
-                                                    matTooltip="Товар закупается"
-                                                    style="color:green">
-                                                        Да
-                                                    </mat-chip>
-                                                    <mat-chip 
-                                                    *ngIf="row.not_buy==true"
-                                                    matTooltip="Товар не закупается"
-                                                    style="color:red"
-                                                    >
-                                                        Нет
-                                                    </mat-chip>
-                                                </mat-chip-list>
-                                            </td>
-                                        </ng-container>
-                                        <ng-container matColumnDef="not_sell">
-                                            <th mat-header-cell *matHeaderCellDef>
-                                            <span (click)="setSort('not_sell')" class="sortheader"> В продаже 
-                                                <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='not_sell'" class="material-icons sortarrow">arrow_upward</i>
-                                                <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='not_sell'" class="material-icons sortarrow">arrow_downward</i>
-                                            </span>
-                                            <td mat-cell *matCellDef="let row"> 
-                                                <mat-chip-list>
-                                                    <mat-chip 
-                                                    *ngIf="row.not_sell==false" 
-                                                    matTooltip="Товар в продаже"
-                                                    style="color:green">
-                                                        Да
-                                                    </mat-chip>
-                                                    <mat-chip 
-                                                    *ngIf="row.not_sell==true"
-                                                    matTooltip="Товар снят с продажи"
-                                                    style="color:red"
-                                                    >
-                                                        Нет
-                                                    </mat-chip>
-                                                </mat-chip-list>
-                                            </td>
-                                        </ng-container>
                                         <ng-container matColumnDef="quantity">
                                             <th mat-header-cell *matHeaderCellDef>
-                                            <span (click)="setSort('quantity')" class="sortheader"> Кол-во
+                                            <span (click)="setSort('quantity')" class="sortheader"> {{t('menu.table.quantity')}}
                                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='quantity'" class="material-icons sortarrow">arrow_upward</i>
                                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='quantity'" class="material-icons sortarrow">arrow_downward</i>
                                             </span>
@@ -197,7 +149,7 @@
                                         </ng-container>
                                         <ng-container matColumnDef="min_quantity">
                                             <th mat-header-cell *matHeaderCellDef>
-                                            <span (click)="setSort('min_quantity')" class="sortheader"> Мин.<br>остаток 
+                                            <span (click)="setSort('min_quantity')" class="sortheader"> {{t('menu.table.min_remains')}} 
                                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='min_quantity'" class="material-icons sortarrow">arrow_upward</i>
                                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='min_quantity'" class="material-icons sortarrow">arrow_downward</i>
                                             </span>
@@ -205,18 +157,18 @@
                                                 <mat-chip-list>
                                                     <mat-chip 
                                                     *ngIf="row.min_quantity==-1" 
-                                                    matTooltip="Минимальный остаток разный в зависимости от отдления">
-                                                        Разный
+                                                    matTooltip="{{t('menu.tip.m_rem_d_depar')}}">
+                                                        {{t('menu.top.rem_various')}}
                                                     </mat-chip>
                                                     <mat-chip 
                                                     *ngIf="+row.min_quantity==0"
-                                                    matTooltip="Минимальный остаток не задан {{sendingQueryForm.departmentId=='0'?'ни для одного из отделений':'для данного отделения'}}"
+                                                    matTooltip="{{t('menu.tip.m_rem_not_set')}} {{sendingQueryForm.departmentId=='0'?t('menu.tip._for_no_depth'):t('menu.tip._for_th_depth')}}"
                                                     >
-                                                        Не задан
+                                                        {{t('menu.top.rem_not_set')}}
                                                     </mat-chip>
                                                     <mat-chip 
                                                     *ngIf="+row.min_quantity>0"
-                                                    matTooltip="{{sendingQueryForm.departmentId=='0'?'Минимальный остаток одинаковый для всех отделений':'Минимальный остаток в выбранном отделении'}}" 
+                                                    matTooltip="{{sendingQueryForm.departmentId=='0'?t('menu.tip.m_rem_for_all'):t('menu.tip.m_rem_in_dep')}}" 
                                                     >
                                                         {{row.min_quantity}}
                                                     </mat-chip>
@@ -225,7 +177,7 @@
                                         </ng-container>
                                         <ng-container matColumnDef="estimate_quantity">
                                             <th mat-header-cell *matHeaderCellDef>
-                                            <span (click)="setSort('estimate_quantity')" class="sortheader"> Оценка<br>остатков 
+                                            <span (click)="setSort('estimate_quantity')" class="sortheader"> {{t('menu.table.eval')}} 
                                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='estimate_quantity'" class="material-icons sortarrow">arrow_upward</i>
                                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='estimate_quantity'" class="material-icons sortarrow">arrow_downward</i>
                                             </span>
@@ -233,88 +185,69 @@
                                                 <mat-chip-list>
                                                     <mat-chip 
                                                     *ngIf="row.estimate_quantity==2" 
-                                                    matTooltip="Количество товара {{sendingQueryForm.departmentId=='0'?'во всех доступных вам отделениях ':'в выбранном отделении'}} больше минимального остатка">
-                                                        Достаточно
+                                                    matTooltip="{{t('menu.tip.prod_quantity')}} {{sendingQueryForm.departmentId=='0'?t('menu.tip._in_all_depth'):t('menu.tip._in_this_dept')}} {{t('menu.tip.m_th_min_rem')}}">
+                                                        {{t('menu.top.enough')}}
                                                     </mat-chip>
                                                     <mat-chip 
                                                     *ngIf="row.estimate_quantity==1"
-                                                    matTooltip="Количество товара {{sendingQueryForm.departmentId=='0'?'в одном из доступных вам отделений ':'в выбранном отделении'}} меньше либо равно минимальному остатку"
+                                                    matTooltip="{{t('menu.tip.prod_quantity')}} {{sendingQueryForm.departmentId=='0'?t('menu.tip._in_all_depth'):t('menu.tip._in_this_dept')}} {{t('menu.tip.lol_min_rem')}}"
                                                     color="accent" 
                                                     selected>
-                                                        Мало
+                                                        {{t('menu.top.few')}}
                                                     </mat-chip>
                                                     <mat-chip 
                                                     *ngIf="row.estimate_quantity==0"
-                                                    matTooltip="{{sendingQueryForm.departmentId=='0'?'В одном или нескольких доступных вам отделениях ':'В выбранном отделении'}} товар отсутствует" 
+                                                    matTooltip="{{sendingQueryForm.departmentId=='0'?cu.cap(t('menu.tip.in_some_depth')):cu.cap(t('menu.tip._in_this_dept'))}} {{t('menu.tip.no_goods')}}" 
                                                     color="warn" 
                                                     selected>
-                                                        Отсутствует
+                                                        {{t('menu.top.not_available')}}
                                                     </mat-chip>
                                                 </mat-chip-list>
 
                                             </td>
                                         </ng-container>
-                                        <ng-container matColumnDef="creator">
-                                            <th mat-header-cell *matHeaderCellDef>
-                                            <span (click)="setSort('creator')" class="sortheader"> Создатель 
-                                                <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='creator'" class="material-icons sortarrow">arrow_upward</i>
-                                                <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='creator'" class="material-icons sortarrow">arrow_downward</i>
-                                            </span>
-                                            <td mat-cell *matCellDef="let row"> {{row.creator}} </td>
-                                        </ng-container>
-        
-                                        <ng-container matColumnDef="date_time_created">
-                                            <th mat-header-cell *matHeaderCellDef>
-                                            <span (click)="setSort('date_time_created_sort')" class="sortheader"> Дата создания 
-                                                <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='date_time_created_sort'" class="material-icons sortarrow">arrow_upward</i>
-                                                <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='date_time_created_sort'" class="material-icons sortarrow">arrow_downward</i>
-                                            </span>
-                                            <td mat-cell *matCellDef="let row"> {{row.date_time_created}} </td>
-                                        </ng-container>
-                                
                                         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                                         <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
                                 </table>
                             <div class="flex">
                                 <div class="col-sm">
-                                    <p> Найдено: {{size}}, страница {{pagenum}} из {{listsize}}</p>
-                                </div>
-                                <span  class="emptyspace"></span><!-- разделитель -->
-                                <div class="col-sm-auto justify-content-end">
-                                    <ul class="pagination" style="padding-right: 0px">
-                                        <ng-container *ngFor="let page of receivedPagesList; index as i">
-                                            <ng-container *ngIf="i>2 && listsize>1">
-                                                <ng-container *ngIf="i==3 && pagenum>1">
-                                                        <li><a (click)="setPage(0)"><mat-icon class="pagearrow active">first_page</mat-icon></a>  </li>                               
-                                                </ng-container>
-                                                <ng-container *ngIf="i==3 && pagenum==1">
-                                                        <li><mat-icon class="pagearrow inactive">first_page</mat-icon></li>                               
-                                                </ng-container>
-                                                
-                                                    <mat-chip-list>
-                                                        <ng-container *ngIf="page==pagenum;else templateElse">
-                                                            <li><mat-chip style="margin: 8px;" selected>
-                                                                {{page}}               
-                                                            </mat-chip></li>
-                                                        </ng-container>
-                                                        <ng-template #templateElse >
-                                                            <li><mat-chip  style="margin: 8px;"  (click)="setPage(page-1)">
-                                                                {{page}}               
-                                                            </mat-chip></li>
-                                                        </ng-template>
-                                                    </mat-chip-list>
-                                                <ng-container *ngIf="pagenum < listsize && page==maxpage">
-                                                    <li><a (click)="setPage(listsize-1)"><mat-icon class="pagearrow active">last_page</mat-icon></a></li>
-                                                </ng-container>
-                                                <ng-container *ngIf="pagenum == listsize && page==maxpage">
-                                                    <li><mat-icon class="pagearrow inactive">last_page</mat-icon></li>
+                                    <p> {{t('menu.bottom.founded')}}: {{size}}, {{t('menu.bottom.page')}} {{pagenum}}  {{t('menu.bottom.of')}} {{listsize}}</p> <!--+++-->                                </div>
+                                    <span  class="emptyspace"></span><!-- разделитель -->
+                                    <div class="col-sm-auto justify-content-end">
+                                        <ul class="pagination" style="padding-right: 0px">
+                                            <ng-container *ngFor="let page of receivedPagesList; index as i">
+                                                <ng-container *ngIf="i>2 && listsize>1">
+                                                    <ng-container *ngIf="i==3 && pagenum>1">
+                                                            <li><a (click)="setPage(0)"><mat-icon class="pagearrow active">first_page</mat-icon></a>  </li>                               
+                                                    </ng-container>
+                                                    <ng-container *ngIf="i==3 && pagenum==1">
+                                                            <li><mat-icon class="pagearrow inactive">first_page</mat-icon></li>                               
+                                                    </ng-container>
+                                                    
+                                                        <mat-chip-list>
+                                                            <ng-container *ngIf="page==pagenum;else templateElse">
+                                                                <li><mat-chip style="margin: 8px;" selected>
+                                                                    {{page}}               
+                                                                </mat-chip></li>
+                                                            </ng-container>
+                                                            <ng-template #templateElse >
+                                                                <li><mat-chip  style="margin: 8px;"  (click)="setPage(page-1)">
+                                                                    {{page}}               
+                                                                </mat-chip></li>
+                                                            </ng-template>
+                                                        </mat-chip-list>
+                                                    <ng-container *ngIf="pagenum < listsize && page==maxpage">
+                                                        <li><a (click)="setPage(listsize-1)"><mat-icon class="pagearrow active">last_page</mat-icon></a></li>
+                                                    </ng-container>
+                                                    <ng-container *ngIf="pagenum == listsize && page==maxpage">
+                                                        <li><mat-icon class="pagearrow inactive">last_page</mat-icon></li>
+                                                    </ng-container>
                                                 </ng-container>
                                             </ng-container>
-                                        </ng-container>
-                                    </ul>  
-                                </div>
+                                        </ul>  
+                                    </div>
+                                </div> 
                             </div> 
-                        </div> 
                     </div>  
                 </div>
             </mat-card-content>

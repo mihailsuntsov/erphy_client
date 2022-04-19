@@ -18,8 +18,7 @@ import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/mat
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 const MY_FORMATS = MomentDefault.getMomentFormat();
 const moment = MomentDefault.getMomentDefault();
-
-
+import { LOCALE_ID, Inject } from '@angular/core';
 
 export interface CheckBox {
   id: number;
@@ -88,20 +87,19 @@ export class MutualpaymentComponent implements OnInit {
   @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
   
   constructor(
-    /*private queryFormService:   QueryFormService,*/
     private loadSpravService:   LoadSpravService,
-    private activateRoute: ActivatedRoute,// !!!
+    private activateRoute: ActivatedRoute,
     private _snackBar: MatSnackBar,
     public universalCategoriesDialog: MatDialog,
     private MessageDialog: MatDialog,
     public mutualpaymentDetDialog: MatDialog,
     public confirmDialog: MatDialog,
     private http: HttpClient,
-    // private settingsMutualpaymentDialogComponent: MatDialog,
     public deleteDialog: MatDialog,
     public dialogRef1: MatDialogRef<MutualpaymentComponent>,
-    public cu: CommonUtilitesService, //+++
+    public cu: CommonUtilitesService,
     private service: TranslocoService,
+    @Inject(LOCALE_ID) public locale: string,
     private _adapter: DateAdapter<any>) {
       if(activateRoute.snapshot.params['option']){
         this.option = +activateRoute.snapshot.params['option'];
@@ -109,7 +107,7 @@ export class MutualpaymentComponent implements OnInit {
       }
     }
 
-    ngOnInit() {
+    ngOnInit() {        
         this.queryForm = new FormGroup({ //форма для отправки запроса 
         companyId: new FormControl(this.company,[]), // предприятие, по которому идет запрос данных
         dateFrom: new FormControl(moment().startOf('year'),[]),   // дата С
@@ -340,6 +338,7 @@ export class MutualpaymentComponent implements OnInit {
         dateFrom:this.queryForm.get('dateFrom').value,
         dateTo:this.queryForm.get('dateTo').value,
         cagent:cagent,
+        locale:this.locale,
       },
     });
   } 

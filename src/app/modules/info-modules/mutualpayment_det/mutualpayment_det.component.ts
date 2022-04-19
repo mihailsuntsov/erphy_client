@@ -10,24 +10,12 @@ import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { FormGroup, FormControl } from '@angular/forms';
 import { translate } from '@ngneat/transloco'; //+++
 
-import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE}  from '@angular/material/core';
-import { MomentDateAdapter} from '@angular/material-moment-adapter';
-import * as _moment from 'moment';
-import { default as _rollupMoment} from 'moment';
-const moment = _rollupMoment || _moment;
-moment.defaultFormat = "DD.MM.YYYY";
-moment.fn.toJSON = function() { return this.format('DD.MM.YYYY'); }
-export const MY_FORMATS = {
-  parse: {
-    dateInput: 'DD.MM.YYYY',
-  },
-  display: {
-    dateInput: 'DD.MM.YYYY',
-    monthYearLabel: 'MMM YYYY',
-    dateA11yLabel: 'DD.MM.YYYY',
-    monthYearA11yLabel: 'MMMM YYYY',
-  },
-};
+import { MomentDefault } from 'src/app/services/moment-default';
+import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
+import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+const MY_FORMATS = MomentDefault.getMomentFormat();
+const moment = MomentDefault.getMomentDefault();
+
 export interface CheckBox {
   id: number;
   is_completed:boolean;
@@ -49,10 +37,9 @@ export interface NumRow {//интерфейс для списка количес
   templateUrl: './mutualpayment_det.component.html',
   styleUrls: ['./mutualpayment_det.component.css'],
   providers: [
-    {provide: MAT_DATE_LOCALE, useValue: 'ru'},
-    {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
+    {provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]}, //+++
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
-    /*QueryFormService,*/LoadSpravService,Cookie]
+    LoadSpravService,Cookie]
 })
 export class MutualpaymentDetComponent implements OnInit {
   queryForm:any;//форма для отправки запроса 
@@ -97,10 +84,10 @@ export class MutualpaymentDetComponent implements OnInit {
     private http: HttpClient,
     public deleteDialog: MatDialog,
     public mutualpaymentDetDialog: MatDialogRef<MutualpaymentDetComponent>,
-    @Optional() @Inject(MAT_DIALOG_DATA) public data: any,) { }
+    @Optional() @Inject(MAT_DIALOG_DATA) public data: any,
+    public _adapter: DateAdapter<any>) {_adapter.setLocale(this.data.locale) }
 
     ngOnInit() {
-
       this.queryForm = new FormGroup({ //форма для отправки запроса 
         companyId: new FormControl(this.data.companyId,[]), // предприятие, по которому идет запрос данных (передаётся из вызывающего окна)
         cagentId: new FormControl(this.data.cagentId,[]), // контрагент, по которому идет запрос данных (передаётся из вызывающего окна)
@@ -151,7 +138,7 @@ export class MutualpaymentDetComponent implements OnInit {
 
   refreshPermissions():boolean{
     this.allowToView=(this.allowToViewAllCompanies||this.allowToViewMyCompany)?true:false;
-    console.log("allowToView - "+this.allowToView);
+    // console.log("allowToView - "+this.allowToView);
     return true;
   }
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------

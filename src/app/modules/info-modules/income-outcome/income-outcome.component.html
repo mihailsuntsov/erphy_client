@@ -1,12 +1,12 @@
 <mat-card class="card">
     <div class="icon-panel">
-        <mat-icon   matTooltip='Настройки отчёта'    
+        <mat-icon   matTooltip="{{'modules.kpi.reprt_settggs' | transloco}}"    
                     (click)="onClickMenuIcon()"
                     class="nav-icon">menu
         </mat-icon>
     </div>
     <mat-card-title class="flex">
-        <div class="card-name">Приход и расход</div>
+        <div class="card-name">{{'modules.card.income_outcom' | transloco}}</div>
 
     </mat-card-title>
     
@@ -21,7 +21,7 @@
                                     <mat-form-field style="margin-top: 10px; width: 100%;">
                                         <input  matInput 
                                                 formControlName="dateFrom"
-                                                placeholder="С даты"
+                                                placeholder="{{'modules.kpi.from_date' | transloco}}"
                                                 [matDatepicker]="dpFrom"
                                                 [readonly]="queryForm.get('periodType').value!='period'"
                                                 (dateChange)="onDateChange('dateFrom', $event);getVolumesReportData()"
@@ -34,7 +34,7 @@
                                     <mat-form-field style="margin-top: 10px; width: 100%;">
                                         <input  matInput 
                                                 formControlName="dateTo"
-                                                placeholder="По дату"
+                                                placeholder="{{'modules.kpi.to_date' | transloco}}"
                                                 [matDatepicker]="dpTo"
                                                 [readonly]="queryForm.get('periodType').value!='period'"
                                                 (dateChange)="onDateChange('dateTo', $event);getVolumesReportData()"

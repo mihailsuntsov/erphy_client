@@ -1,12 +1,12 @@
 <mat-card class="card" *transloco="let t">
     <div class="icon-panel">
-        <mat-icon   matTooltip='Настройки отчёта'    
+        <mat-icon   matTooltip="{{'modules.kpi.reprt_settggs' | transloco}}"    
                     (click)="onClickMenuIcon()"
                     class="nav-icon">menu
         </mat-icon>
     </div>
     <mat-card-title class="flex">
-        <div class="card-name">{{reportTypeName}}: {{moneyFormat(calculatedSum)}} руб.</div>
+        <div class="card-name">{{reportTypeName}}: {{moneyFormat(calculatedSum)}}</div>
 
     </mat-card-title>
     
@@ -15,16 +15,16 @@
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-xl-7 col-lg-7 col-md-12">
-                        <section style="margin-top:15px"  matTooltip='Временной отрезок, за который необходимо посмотреть данные'>
-                            <span class="field-name">Время</span>
+                        <section style="margin-top:15px"  matTooltip="{{'modules.kpi.time_line' | transloco}}">
+                            <span class="field-name">{{'modules.kpi.time' | transloco}}</span>
                             <mat-button-toggle-group 
                             formControlName="periodType"
                             (change)="onPeriodChange();getVolumesReportData()">
-                            <mat-button-toggle value="day">День</mat-button-toggle>
-                            <mat-button-toggle value="week">Неделя</mat-button-toggle>
-                            <mat-button-toggle value="month">Месяц</mat-button-toggle>
-                            <mat-button-toggle value="year">Год</mat-button-toggle>
-                            <mat-button-toggle value="period">Период</mat-button-toggle>
+                            <mat-button-toggle value="day">{{'modules.kpi.day' | transloco}}</mat-button-toggle>
+                            <mat-button-toggle value="week">{{'modules.kpi.week' | transloco}}</mat-button-toggle>
+                            <mat-button-toggle value="month">{{'modules.kpi.month' | transloco}}</mat-button-toggle>
+                            <mat-button-toggle value="year">{{'modules.kpi.year' | transloco}}</mat-button-toggle>
+                            <mat-button-toggle value="period">{{'modules.kpi.period' | transloco}}</mat-button-toggle>
                             </mat-button-toggle-group>
                         </section>
 
@@ -33,8 +33,8 @@
                     </div>
                     <div class="col-xl-5 col-lg-5 col-md-12">
                         <!-- <p>Выбран период - {{periodType.value}}</p> -->
-                        <section style="margin-top:15px" *ngIf="units.length>1" matTooltip='Временной отрезок, за который отвечает один столбец графика'>
-                            <span class="field-name">Интервал</span>
+                        <section style="margin-top:15px" *ngIf="units.length>1" matTooltip="{{'modules.kpi.bar_interval' | transloco}}">
+                            <span class="field-name">{{'modules.kpi.interval' | transloco}}</span>
                             <mat-button-toggle-group formControlName="unit" >
                             <mat-button-toggle *ngFor="let un of units" [value]="un.id" (change)="setXAxisName();getVolumesReportData();">{{un.name}}</mat-button-toggle>
                             </mat-button-toggle-group>
@@ -52,7 +52,7 @@
                                     <mat-form-field style="margin-top: 10px; width: 100%;">
                                         <input  matInput 
                                                 formControlName="dateFrom"
-                                                placeholder="С даты"
+                                                placeholder="{{'modules.kpi.from_date' | transloco}}"
                                                 [matDatepicker]="dpFrom"
                                                 (click)="onClickDates()"
                                                 [readonly]="queryForm.get('periodType').value!='period'"
@@ -66,7 +66,7 @@
                                     <mat-form-field style="margin-top: 10px; width: 100%;">
                                         <input  matInput 
                                                 formControlName="dateTo"
-                                                placeholder="По дату"
+                                                placeholder="{{'modules.kpi.to_date' | transloco}}"
                                                 [matDatepicker]="dpTo"
                                                 (click)="onClickDates()"
                                                 [readonly]="queryForm.get('periodType').value!='period'"
@@ -94,7 +94,7 @@
                             <button mat-button 
                                     type="button"
                                     *ngIf="+queryForm.get('departmentId').value>0" 
-                                    matTooltip='Очистить форму поиска отделения'
+                                    matTooltip="{{'modules.kpi.clr_dep_form' | transloco}}"
                                     matSuffix mat-icon-button 
                                     (click)="resetDepartmentFormSearch(); removeFocus(autocompleteDepartmentsField, elementDepartmentsInput);getVolumesReportData()">
                                 <mat-icon>close</mat-icon>
@@ -110,7 +110,7 @@
                     <div class="col-md-4 col-12">
                         
                         <mat-form-field  style="margin-top: 10px; width: 100%;"  #autocompleteEmployeeField>
-                            <mat-label>Сотрудник</mat-label>
+                            <mat-label>{{'modules.kpi.employee' | transloco}}</mat-label>
                             <input  type="text" 
                                     matInput [formControl]="employeeControl" 
                                     [matAutocomplete]="autoEmployee"
@@ -120,7 +120,7 @@
                             <button mat-button 
                                     type="button"
                                     *ngIf="+queryForm.get('employeeId').value>0" 
-                                    matTooltip='Очистить форму поиска сотрудника'
+                                    matTooltip="{{'modules.kpi.clr_emp_form' | transloco}}"
                                     matSuffix mat-icon-button 
                                     (click)="resetEmployeeFormSearch(); removeFocus(autocompleteEmployeeField, elementEmployeeInput);getVolumesReportData()">
                                 <mat-icon>close</mat-icon>
@@ -135,24 +135,14 @@
                     </div>
                 </div>
 
-                
-
-
-
-                
-
-
-
-
-
                 <div class="row" >
                     <div class="col-4">
                         <mat-form-field style="width: 100%;">
-                            <mat-label>Тип отчёта</mat-label>
+                            <mat-label>{{'modules.kpi.rep_type' | transloco}}</mat-label>
                             <mat-select formControlName="type"
                                         (selectionChange)="setReportName();"
                                        >
-                                <mat-option value="sell">Объемы продаж</mat-option>
+                                <mat-option value="sell">{{'modules.kpi.vol_sells' | transloco}}</mat-option>
                                 <!-- <mat-option value="buy">Объемы закупок</mat-option> -->
                                 
                             </mat-select>
@@ -160,19 +150,19 @@
                     </div>
                     <div class="col-4">
                         <mat-form-field style="width: 100%;">
-                            <mat-label>Отчёт по</mat-label>
+                            <mat-label>{{'modules.kpi.report_on' | transloco}}</mat-label>
                             <mat-select formControlName="reportOn"
                                         (selectionChange)="reportOnChange();getVolumesReportData()"
                                        >
-                                <mat-option value="categories">Категориям</mat-option>
-                                <mat-option value="products">Товарам и услугам</mat-option>
+                                <mat-option value="categories">{{'modules.kpi.categories_' | transloco}}</mat-option>
+                                <mat-option value="products">{{'modules.kpi.prod_srvcs_' | transloco}}</mat-option>
                                 
                             </mat-select>
                         </mat-form-field>
                     </div>
                     <div class="col-4">
                         <mat-form-field class="slideWidth100">
-                            <mat-slide-toggle (change)="onSwitchAllSlideToggle();" formControlName="all">Все {{(queryForm.get('reportOn').value=='categories')?'категории':'товары и услуги'}}</mat-slide-toggle>
+                            <mat-slide-toggle (change)="onSwitchAllSlideToggle();" formControlName="all">{{'modules.kpi.all' | transloco}} {{(queryForm.get('reportOn').value=='categories')?('modules.kpi.categories_' | transloco).toLowerCase():('modules.kpi.prod_srvcs_' | transloco).toLowerCase()}}</mat-slide-toggle>
                             <input matInput hidden/>
                         </mat-form-field>
                     </div>
@@ -180,14 +170,14 @@
 
                 <div class="row" *ngIf="!queryForm.get('all').value">
                     <div class="col-4">
-                        <mat-form-field class="slideWidth100" [matTooltip]="'Разбивать значения графика по выбранным '+(queryForm.get('reportOn').value=='categories'?'категориям':'товарам и услугам')+'. На каждый временной отрезок будет представлено несколько значений выбранных категорий по отдельности (иначе эти значения суммируются)'">
-                            <mat-slide-toggle [disabled]="this.selectedObjects.length<2" (change)="onSwitchWithSeparationSlideToggle()" formControlName="withSeparation">С разбивкой</mat-slide-toggle>
+                        <mat-form-field class="slideWidth100" [matTooltip]="('modules.kpi.dvde_on_' | transloco) +(queryForm.get('reportOn').value=='categories'?('modules.kpi.categories_' | transloco).toLowerCase():('modules.kpi.prod_srvcs_' | transloco).toLowerCase())+('modules.kpi.on_every_time' | transloco)">
+                            <mat-slide-toggle [disabled]="this.selectedObjects.length<2" (change)="onSwitchWithSeparationSlideToggle()" formControlName="withSeparation">{{'modules.kpi.with_divid' | transloco}}</mat-slide-toggle>
                             <input matInput hidden/>
                         </mat-form-field>
                     </div>
                     <div class="col-4" *ngIf="queryForm.get('reportOn').value=='categories'">
-                        <mat-form-field class="slideWidth100" matTooltip="Включить в отчёт дочерние подкатегории у выбранных категорий.">
-                            <mat-slide-toggle [disabled]="this.selectedObjects.length==0" (change)="onSwitchWithSeparationSlideToggle()" formControlName="includeChilds">С подкатегориями</mat-slide-toggle>
+                        <mat-form-field class="slideWidth100" matTooltip="{{'modules.kpi.incl_chld_cat' | transloco}}">
+                            <mat-slide-toggle [disabled]="this.selectedObjects.length==0" (change)="onSwitchWithSeparationSlideToggle()" formControlName="includeChilds">{{'modules.kpi.wth_chld_cat' | transloco}}</mat-slide-toggle>
                             <input matInput hidden/>
                         </mat-form-field>
                     </div>
@@ -197,7 +187,7 @@
                 <div class="row" *ngIf="!queryForm.get('all').value">
                     <div class="col-12">
                         <mat-form-field class="chip-list" appearance="fill">
-                            <mat-label>Выбранные {{queryForm.get('reportOn').value=='categories'?'категории':'товары и услуги'}}</mat-label>
+                            <mat-label>{{'modules.kpi.selected' | transloco}} {{queryForm.get('reportOn').value=='categories'?('modules.kpi.categories' | transloco).toLowerCase():('modules.kpi.prod_srvcs' | transloco).toLowerCase()}}</mat-label>
                             <mat-chip-list #chipList aria-label="Selected objects">
                                 <mat-chip
                                     *ngFor="let object of selectedObjects"
@@ -229,8 +219,8 @@
                         [showXAxisLabel]="showXAxisLabel"
                         [showYAxisLabel]="showYAxisLabel"
                         [xAxisLabel]="xAxisLabel"
-                        [yAxisLabel]="yAxisLabel"
-                        [legendTitle]="legendTitle"
+                        [yAxisLabel]="(yAxisLabel | transloco)"
+                        [legendTitle]="(legendTitle | transloco)"
                         [barPadding]=3
                         [groupPadding]=3
                         (select)="onSelect($event)"

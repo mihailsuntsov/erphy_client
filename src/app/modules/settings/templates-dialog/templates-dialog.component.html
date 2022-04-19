@@ -2,22 +2,21 @@
     <mat-card-title class="flex">
         <div class="card-name">{{t('docs.docs.set_templates')}}</div>
         <button 
-            style="width: 129px;height: 36px;"
             (click)="applyTemplates()"
             matTooltip="{{t('docs.tip.save')}}"
             mat-raised-button 
             color="primary"
+            class="button small-button"
             [disabled]="(!formBaseInformation.valid)"
             >
-            <i class="material-icons">done</i>
+            <i class="material-icons">save</i>
         </button>
         <button 
             (click)="onNoClick()"
-            style="width: 129px;height: 36px;"
             matTooltip="{{t('docs.tip.close')}}"
             mat-raised-button 
             color="accent"
-            class="button">
+            class="button small-button">
             <i class="material-icons">close</i>
         </button>
     </mat-card-title>
@@ -30,29 +29,6 @@
             *ngIf="gettingData"
             ></mat-spinner>
             <form [formGroup]="formBaseInformation">
-                <div class="container-fluid">
-                    <!-- <div class="row">
-                        <div class="col-12"> 
-                            <mat-form-field  class="mat-form-field-100">
-                                <mat-label>{{t('modules.field.company')}}  </mat-label>
-                                <mat-select formControlName="companyId"  (selectionChange)="onCompanyChange()" matTooltip="{{t('modules.tip.comp_def')}}">
-                                    
-                                    <mat-option *ngFor="let cmp of receivedCompaniesList" 
-                                                [value]="cmp.id">
-                                                {{cmp.name}}
-                                    </mat-option>
-                                </mat-select>
-                                <mat-hint  align="start" *ngIf="formBaseInformation.get('companyId').touched && formBaseInformation.get('companyId').invalid">
-                                    <i class="form-invalid">{{t('modules.error.field_miss')}}</i>
-                                </mat-hint>
-                            </mat-form-field>
-                        </div>
-                    </div> -->
-                    
-                </div>
-                
-                <!-- <mat-divider></mat-divider> -->
-                
                 <div cdkDropList (cdkDropListDropped)="dropTemplate($event)" style="margin-top:40px">
                     <mat-card   *ngFor="let template of formBaseInformation.get('templatesList').controls;let i = index" 
                                 [formGroup]="template"
@@ -79,7 +55,7 @@
                                     <div class="col-12 col-sm-1"> 
                                         <mat-form-field [style.display]="'none'">
                                             <input  matInput
-                                                placeholder="Файл шаблона на диске"
+                                                placeholder="Template file on the disk"
                                                 [readonly]=true
                                                 formControlName="file_name"/>
                                         </mat-form-field>                                        
@@ -90,20 +66,13 @@
                                                     #file_id
                                                     formControlName="file_id"/>
                                         </mat-form-field>
-                                        <mat-form-field [style.display]="'none'">
+                                        <!-- <mat-form-field [style.display]="'none'">
                                             <input   matInput
-                                                    placeholder="template_type_id"
+                                                    placeholder="name"
                                                     [readonly]=true
-                                                    #template_type_id
-                                                    formControlName="template_type_id"/>
-                                        </mat-form-field>
-                                        <mat-form-field [style.display]="'none'">
-                                            <input   matInput
-                                                    placeholder="template_type"
-                                                    [readonly]=true
-                                                    #template_type
-                                                    formControlName="template_type"/>
-                                        </mat-form-field>
+                                                    #name
+                                                    formControlName="name"/>
+                                        </mat-form-field> -->
                                         <mat-form-field [style.display]="'none'">
                                             <input   matInput
                                                     placeholder="company_id"
@@ -134,45 +103,35 @@
                                             style="margin-top:-9px">
                                             <mat-slide-toggle 
                                                 formControlName="is_show"
-                                                matTooltip='Включите, если шаблон необходимо отображать в списке'>
+                                                matTooltip="{{t('modules.tip.show_prnt_tmp')}}">
                                             </mat-slide-toggle>
                                             <input matInput hidden/>
                                         </mat-form-field>
                                     </div>
                                     <div class="col-12 col-sm-6"> 
                                         <mat-form-field class="mat-form-field-100">
-                                            <mat-label> Тип шаблона </mat-label>
-                                            <mat-select #tti formControlName="template_type_id"  matTooltip="Тип шаблона, которому соответствует файл шаблона">
-                                                
-                                                <mat-option *ngFor="let cmp of templateTypesList"
-                                                            (click)="onTemplateTypeChange(cmp)" 
-                                                            [value]="cmp.id">
-                                                            {{cmp.template_type_name}}
-                                                </mat-option>
-                                            </mat-select>
-                                            <!-- <mat-hint  align="start" *ngIf="formBaseInformation.get('companyId').touched && formBaseInformation.get('companyId').invalid">
-                                                <i class="form-invalid">{{t('modules.error.field_miss')}}</i>
-                                            </mat-hint> -->
+                                            <mat-label>{{t('modules.field.templ_name')}} <span *ngIf="getControlTablefield().controls[i].get('name').value==''" class="star">*</span></mat-label>
+                                            <input  matInput
+                                                    formControlName="name"
+                                                    [ngClass]="{'is-invalid':getControlTablefield().controls[i].get('name').invalid && getControlTablefield().controls[i].get('name').touched}"
+                                                    maxlength="200"/>
+                                            <mat-hint align="start" >
+                                                <i *ngIf="getControlTablefield().controls[i].get('name').invalid && getControlTablefield().controls[i].get('name').touched" class="table-form-invalid">{{t('docs.error.field_miss')}}</i>
+                                            </mat-hint>
                                         </mat-form-field>
                                     </div>
                                     <div class="col-12 col-sm-5"> 
                                         <mat-form-field class="mat-form-field-100">
+                                            <mat-label>{{t('modules.field.templ_file')}} <span *ngIf="getControlTablefield().controls[i].get('file_original_name').value==''" class="star">*</span></mat-label>
                                             <div *ngIf="editability && +file_id.value==0" class="add-file">
                                                 <mat-icon   
-                                                    matTooltip="Выбрать файл"
+                                                    matTooltip="{{t('modules.tip.select_file')}}"
                                                     class="add_circle"
-                                                    (click)="addFileInField(tti.value)">
+                                                    (click)="addFileInField(getControlTablefield().controls[i].get('id').value)">
                                                     add_circle
                                                 </mat-icon>
                                             </div>
                                             <div style="min-width:70px;">
-                                                <!-- <mat-icon   *ngIf="file_id.value"
-                                                            class="open-file"
-                                                            (click)="openFileCard(file_id.value)"
-                                                            matTooltip="{{t('docs.tip.open_file')}}"
-                                                        >
-                                                    <mat-icon>launch</mat-icon>
-                                                </mat-icon> -->
                                                 <mat-icon 
                                                         *ngIf="editability && file_id.value"
                                                         class="del-file"
@@ -183,12 +142,14 @@
                                                 </mat-icon>
                                             </div>
                                             <input  matInput
-                                                    placeholder="Файл шаблона"
+                                                    [ngClass]="{'is-invalid':getControlTablefield().controls[i].get('file_original_name').invalid && getControlTablefield().controls[i].get('file_original_name').touched}"
                                                     style="cursor: pointer;"
                                                     [readonly]=true
                                                     (click)="openFileCard(file_id.value)"
                                                     formControlName="file_original_name"/>
-                                            
+                                                <mat-hint align="start" >
+                                                    <i *ngIf="getControlTablefield().controls[i].get('file_original_name').invalid && getControlTablefield().controls[i].get('file_original_name').touched" class="table-form-invalid">{{t('docs.error.field_miss')}}</i>
+                                                </mat-hint>
                                         </mat-form-field>
                                         <p *cdkDragPreview></p>
                                     </div>
@@ -199,7 +160,10 @@
                 </div>
                 <div class="div-100" [style.display]="editability"> 
                     <div class="center hand" style="width:100%; height: 38px;text-align: center; padding: 7px;">
-                        <button matTooltip="Добавить шаблон" mat-mini-fab color="primary" (click)="addNewTemplate()">
+                        <button matTooltip="{{t('modules.tip.add_template')}}" 
+                                mat-mini-fab color="primary" 
+                                [disabled]="(!formBaseInformation.valid)" 
+                                (click)="addNewTemplate()">
                             <mat-icon>add</mat-icon>
                         </button>
                     </div>

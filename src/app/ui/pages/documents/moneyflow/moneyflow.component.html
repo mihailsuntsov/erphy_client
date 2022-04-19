@@ -4,7 +4,7 @@ class="spinner"
 [diameter]="50"
 *ngIf="gettingTableData"
 ></mat-spinner>
-<mat-card class="card" *transloco="let t"> <!--+++-->
+<mat-card class="card" *transloco="let t">
     <mat-card-title class="flex" style="height: 30px;">
         <div *ngIf="!displayingDeletedDocs" class="emptyspace">{{cu.cap(t('menu.docs.moneyflow'))}}</div>
     </mat-card-title>
@@ -112,7 +112,7 @@ class="spinner"
                             </div>
                             <div class="div-100"> 
                                 <div style="width:100%; height: 38px; padding-bottom: 15px;">
-                                    <button matTooltip="Применить фильтры" 
+                                    <button matTooltip="{{t('menu.tip.apply_filters')}}" 
                                             mat-mini-fab 
                                             color="primary" 
                                             (click)="clickApplyFilters()">

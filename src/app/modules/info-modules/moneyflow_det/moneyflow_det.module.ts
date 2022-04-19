@@ -6,6 +6,7 @@ import { MoneyflowDetComponent } from './moneyflow_det.component';
 
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MaterialModule } from '../../material.module';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [MoneyflowDetComponent],
@@ -15,7 +16,9 @@ import { MaterialModule } from '../../material.module';
     ReactiveFormsModule,
     
     FormsModule,
-    MaterialModule
-  ]
+    MaterialModule,
+    TranslocoModule
+  ],
+  providers:[{ provide: TRANSLOCO_SCOPE, useValue: ['docs','menu']},]
 })
 export class MoneyflowDetModule { }

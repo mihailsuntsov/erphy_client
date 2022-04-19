@@ -9,24 +9,11 @@ import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { HttpClient } from '@angular/common/http';
 import { translate } from '@ngneat/transloco'; //+++
 
-import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE}  from '@angular/material/core';
-import { MomentDateAdapter} from '@angular/material-moment-adapter';
-import * as _moment from 'moment';
-import { default as _rollupMoment} from 'moment';
-const moment = _rollupMoment || _moment;
-moment.defaultFormat = "DD.MM.YYYY";
-moment.fn.toJSON = function() { return this.format('DD.MM.YYYY'); }
-export const MY_FORMATS = {
-  parse: {
-    dateInput: 'DD.MM.YYYY',
-  },
-  display: {
-    dateInput: 'DD.MM.YYYY',
-    monthYearLabel: 'MMM YYYY',
-    dateA11yLabel: 'DD.MM.YYYY',
-    monthYearA11yLabel: 'MMMM YYYY',
-  },
-};
+import { MomentDefault } from 'src/app/services/moment-default';
+import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
+import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+const MY_FORMATS = MomentDefault.getMomentFormat();
+const moment = MomentDefault.getMomentDefault();
 
 interface IdAndName {
   id: number;
@@ -43,8 +30,7 @@ interface UnitsSet{
   templateUrl: './sales-on-period.component.html',
   styleUrls: ['./sales-on-period.component.css'],
   providers: [
-    {provide: MAT_DATE_LOCALE, useValue: 'ru'},
-    {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
+    {provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]}, //+++
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
     ProductCategoriesSelectComponent, LoadSpravService,
   ]
@@ -52,7 +38,7 @@ interface UnitsSet{
 export class SalesOnPeriodComponent implements OnInit {
 
   queryForm:any;//форма для отправки запроса 
-  units:UnitsSet[] = [{id:'hour', name:'Чac'}, {id:'day', name:'День'}, {id:'week', name:'Неделя'}, {id:'month', name:'Месяц'}, {id:'year', name:'Год'}];
+  units:UnitsSet[] = [{id:'hour', name:'modules.kpi.hour'}, {id:'day', name:'modules.kpi.day'}, {id:'week', name:'modules.kpi.week'}, {id:'month', name:'modules.kpi.month'}, {id:'year', name:'modules.kpi.year'}];
   reportTypeName: string = '';
   departmentControl = new FormControl(); //поле для поиска и отображения наименования выбранного отделения
   employeeControl = new FormControl(); //поле для поиска и отображения выбранного сотрудника
@@ -74,10 +60,10 @@ export class SalesOnPeriodComponent implements OnInit {
   gradient: boolean = true;
   showLegend: boolean = true;
   showXAxisLabel: boolean = true;
-  xAxisLabel: string = 'Месяцы';
+  xAxisLabel: string = 'modules.kpi.month';
   showYAxisLabel: boolean = true;
-  yAxisLabel: string = 'Продажи, руб';
-  legendTitle: string = 'Категории';
+  yAxisLabel: string = 'modules.kpi.sales';
+  legendTitle: string = 'modules.kpi.categories';
   calculatedSum : number = 0; // суммированный объем по всем барам
   colorScheme = {domain: ['#5AA454', '#C7B42C', '#AAAAAA']};
 
@@ -99,7 +85,8 @@ export class SalesOnPeriodComponent implements OnInit {
     private loadSpravService:   LoadSpravService,
     private productCategoriesSelectComponent: MatDialog,
     private http: HttpClient,
-    private MessageDialog: MatDialog,) {}
+    private MessageDialog: MatDialog,
+    public _adapter: DateAdapter<any>) {}
 
   ngOnInit(): void {
 
@@ -307,22 +294,22 @@ export class SalesOnPeriodComponent implements OnInit {
   calcUnitsSet(){
     switch(this.queryForm.get('periodType').value){
       case "day":{
-        this.units = [{id:'hour',name:'Чac'}];
+        this.units = [{id:'hour',name:translate('modules.kpi.hour')}];
         this.queryForm.get('unit').setValue('hour');
         break;
       }
       case "week":{
-        this.units = [{id:'day',name:'День'}];
+        this.units = [{id:'day',name:translate('modules.kpi.day')}];
         this.queryForm.get('unit').setValue('day');
         break;
       }
       case "month":{
-        this.units = [{id:'day',name:'День'}];
+        this.units = [{id:'day',name:translate('modules.kpi.day')}];
         this.queryForm.get('unit').setValue('day');
         break;
       }
       case "year":{
-        this.units = [{id:'month',name:'Месяц'}];
+        this.units = [{id:'month',name:translate('modules.kpi.month')}];
         this.queryForm.get('unit').setValue('month');
         break;
       }
@@ -339,23 +326,23 @@ export class SalesOnPeriodComponent implements OnInit {
     
     var days:number = this.getDuration();
     if(days==0){ //если 1 день -  оставляем только часы
-      this.units = [{id:'hour',name:'Чac'}];
+      this.units = [{id:'hour',name:translate('modules.kpi.hour')}];
       this.queryForm.get('unit').setValue('hour');
     }
     if(days>0 && days<27){ //если меньше 4 недель - смысла показывать недели нет, оставляем только дни
-      this.units = [{id:'day',name:'День'}];
+      this.units = [{id:'day',name:translate('modules.kpi.day')}];
       this.queryForm.get('unit').setValue('day');
     }
     if(days>=27 && days<89){ //если меньше 3 месяцев - показываем дни. Отсюда и далее - без часов
-      this.units = [{id:'day',name:'День'}];
+      this.units = [{id:'day',name:translate('modules.kpi.day')}];
       this.queryForm.get('unit').setValue('day');
     }
     if(days>=89 && days<729){ //если меньше 2 лет - показываем месяцы и годы
-      this.units = [{id:'month',name:'Месяц'},{id:'year',name:'Год'}];
+      this.units = [{id:'month',name:translate('modules.kpi.month')},{id:'year',name:translate('modules.kpi.year')}];
       this.queryForm.get('unit').setValue('month');
     }
     // if(days>=729){ //если 2 года и более - показываеи месяцы и годы
-    //   this.units = [{id:'month',name:'Месяц'},{id:'year',name:'Год'}];
+    //   this.units = [{id:'month',name:translate('modules.kpi.month'},{id:'year',name:translate('modules.kpi.year')}];
     //   this.queryForm.get('unit').setValue('year');
     // }
     this.setXAxisName();
@@ -372,11 +359,11 @@ export class SalesOnPeriodComponent implements OnInit {
   setReportName(){
     switch(this.queryForm.get('type').value){
       case "sell":{
-        this.reportTypeName="Объёмы продаж"
+        this.reportTypeName=translate('modules.kpi.vol_sells')
         break;
       }
       case "buy":{
-        this.reportTypeName="Объёмы закупок"
+        this.reportTypeName=translate('modules.kpi.vol_buys')
         break;
       }
     }
@@ -439,14 +426,14 @@ export class SalesOnPeriodComponent implements OnInit {
 
   onClickEmployee(){
     if(+this.queryForm.get('departmentId').value==0)
-      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:"Сначала необходимо выбрать отделение"}})
+      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('modules.kpi.feval_depart')}})
     else if(this.receivedEmployeeList.length==0)
-      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:"Нет списка сотрудников для выбранного отделения"}})
+      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('modules.kpi.no_empl_list')}})
   }
 
   onClickDates(){
     if(this.queryForm.get('periodType').value!=='period'){
-      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:'Чтобы сменить дату, необходимо в поле "Время" выбрать "Период"'}})
+      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('modules.kpi.for_date_chng')}})
     }
   }
 
@@ -470,9 +457,9 @@ export class SalesOnPeriodComponent implements OnInit {
     this.selectedObjects=[];
     switch (this.queryForm.get('reportOn').value){
       case 'categories':
-        {this.legendTitle = 'Категории'; break;}
+        {this.legendTitle = translate('modules.kpi.categories'); break;}
       case 'products':
-        {this.legendTitle = 'Товары/услуги'; break;}
+        {this.legendTitle = translate('modules.kpi.prod_srvcs'); break;}
     }
   }
 
@@ -510,15 +497,15 @@ export class SalesOnPeriodComponent implements OnInit {
   }
 
   onSelect(data): void {
-    console.log('Item clicked', JSON.parse(JSON.stringify(data)));
+    // console.log('Item clicked', JSON.parse(JSON.stringify(data)));
   }
 
   onActivate(data): void {
-    console.log('Activate', JSON.parse(JSON.stringify(data)));
+    // console.log('Activate', JSON.parse(JSON.stringify(data)));
   }
 
   onDeactivate(data): void {
-    console.log('Deactivate', JSON.parse(JSON.stringify(data)));
+    // console.log('Deactivate', JSON.parse(JSON.stringify(data)));
   }
 
 

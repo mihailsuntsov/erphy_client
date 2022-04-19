@@ -6,24 +6,12 @@ import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { HttpClient } from '@angular/common/http';
 import { translate } from '@ngneat/transloco'; //+++
 
-import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE}  from '@angular/material/core';
-import { MomentDateAdapter} from '@angular/material-moment-adapter';
-import * as _moment from 'moment';
-import { default as _rollupMoment} from 'moment';
-const moment = _rollupMoment || _moment;
-moment.defaultFormat = "DD.MM.YYYY";
-moment.fn.toJSON = function() { return this.format('DD.MM.YYYY'); }
-export const MY_FORMATS = {
-  parse: {
-    dateInput: 'DD.MM.YYYY',
-  },
-  display: {
-    dateInput: 'DD.MM.YYYY',
-    monthYearLabel: 'MMM YYYY',
-    dateA11yLabel: 'DD.MM.YYYY',
-    monthYearA11yLabel: 'MMMM YYYY',
-  },
-};
+import { MomentDefault } from 'src/app/services/moment-default';
+import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
+import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+const MY_FORMATS = MomentDefault.getMomentFormat();
+const moment = MomentDefault.getMomentDefault();
+
 interface IdAndName {
   id: number;
   name:string;
@@ -47,8 +35,7 @@ interface VolumesReportJSON {
   templateUrl: './opex.component.html',
   styleUrls: ['./opex.component.css'],
   providers: [
-    {provide: MAT_DATE_LOCALE, useValue: 'ru'},
-    {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
+    {provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]}, //+++
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS}, LoadSpravService,
   ]
 })
@@ -62,18 +49,19 @@ export class OpexComponent implements OnInit {
   volumesCurve:VolumesReportJSON = {name: '', series: []};// объект, в котором будут содержаться данные для построения кривой баланса
   multi2: VolumesReportJSON[]=[];// массив объектов (в котором будет только 1 элемент volumesCurve), для "скармливания" модулю графика
   view: any[] = [700, 400]; // размеры области графика
-  showXAxis: boolean = true;
-  showYAxis: boolean = true;
+  // showXAxis: boolean = true;
+  // showYAxis: boolean = true;
   gradient: boolean = true;
-  showLegend: boolean = true;
-  showXAxisLabel: boolean = true;
-  xAxisLabel: string = 'Месяцы';
-  showYAxisLabel: boolean = true;
-  showRightYAxisLabel: boolean = true;  
-  yAxisLabelRight: string = 'Остаток';
-  yAxisLabel: string = '';
-  legendTitle: string = 'Категории';
-  calculatedSum : number = 0; // суммированный объем по всем барам
+  label='modules.kpi.total';
+  // showLegend: boolean = true;
+  // showXAxisLabel: boolean = true;
+  // xAxisLabel: string = 'Месяцы';
+  // showYAxisLabel: boolean = true;
+  // showRightYAxisLabel: boolean = true;  
+  // yAxisLabelRight: string = 'Остаток';
+  // yAxisLabel: string = '';
+  // legendTitle: string = 'Категории';
+  // calculatedSum : number = 0; // суммированный объем по всем барам
   colorScheme = {domain: ['#5AA454', '#C7B42C', '#AAAAAA']};
   lineChartScheme = {
     name: 'coolthree',
@@ -81,7 +69,7 @@ export class OpexComponent implements OnInit {
     group: 'Ordinal',
     domain: ['#01579b', '#7aa3e5', '#a8385d', '#00bfa5']
   };
-  legendPosition = 'right';
+  // legendPosition = 'right';
   
   // lineChartSeries: any[] = lineChartSeries;
   // barChart: any[] = barChart;
@@ -99,7 +87,8 @@ export class OpexComponent implements OnInit {
   constructor(
     private loadSpravService:   LoadSpravService,
     private http: HttpClient,
-    private MessageDialog: MatDialog,) {}
+    private MessageDialog: MatDialog,
+    public _adapter: DateAdapter<any>) {}
 
   ngOnInit(): void {
 

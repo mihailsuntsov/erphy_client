@@ -6,24 +6,12 @@ import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { HttpClient } from '@angular/common/http';
 import { translate } from '@ngneat/transloco'; //+++
 
-import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE}  from '@angular/material/core';
-import { MomentDateAdapter} from '@angular/material-moment-adapter';
-import * as _moment from 'moment';
-import { default as _rollupMoment} from 'moment';
-const moment = _rollupMoment || _moment;
-moment.defaultFormat = "DD.MM.YYYY";
-moment.fn.toJSON = function() { return this.format('DD.MM.YYYY'); }
-export const MY_FORMATS = {
-  parse: {
-    dateInput: 'DD.MM.YYYY',
-  },
-  display: {
-    dateInput: 'DD.MM.YYYY',
-    monthYearLabel: 'MMM YYYY',
-    dateA11yLabel: 'DD.MM.YYYY',
-    monthYearA11yLabel: 'MMMM YYYY',
-  },
-};
+import { MomentDefault } from 'src/app/services/moment-default';
+import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
+import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+const MY_FORMATS = MomentDefault.getMomentFormat();
+const moment = MomentDefault.getMomentDefault();
+
 interface IdAndName {
   id: number;
   name:string;
@@ -47,28 +35,27 @@ interface VolumesReportJSON {
   templateUrl: './income-outcome.component.html',
   styleUrls: ['./income-outcome.component.css'],
   providers: [
-    {provide: MAT_DATE_LOCALE, useValue: 'ru'},
-    {provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
-    {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS}, LoadSpravService,
+    {provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]}, //+++
+    {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
   ]
 })
 export class IncomeOutcomeComponent implements OnInit {
 
   queryForm:any;//форма для отправки запроса 
-  units:UnitsSet[] = [{id:'hour', name:'Чac'}, {id:'day', name:'День'}, {id:'week', name:'Неделя'}, {id:'month', name:'Месяц'}, {id:'year', name:'Год'}];
+  units:UnitsSet[] = [{id:'hour', name:'modules.kpi.hour'}, {id:'day', name:'modules.kpi.day'}, {id:'week', name:'modules.kpi.week'}, {id:'month', name:'modules.kpi.month'}, {id:'year', name:'modules.kpi.year'}];
   showSettingsForm = false;
   
   //переменные для построения графиков
   multi: any[]=[];// для приёма данных для построения графиков прихода и расхода
   volumesCurve:VolumesReportJSON = {name: '', series: []};// объект, в котором будут содержаться данные для построения кривой баланса
-  multi2: VolumesReportJSON[]=[];// массив объектов (в котором будет только 1 элемент volumesCurve), для "скармливания" модулю графика
+  // multi2: VolumesReportJSON[]=[];// массив объектов (в котором будет только 1 элемент volumesCurve), для "скармливания" модулю графика
   view: any[] = [700, 400]; // размеры области графика
   showXAxis: boolean = true;
   showYAxis: boolean = true;
   gradient: boolean = true;
   showLegend: boolean = true;
   showXAxisLabel: boolean = true;
-  xAxisLabel: string = 'Месяцы';
+  xAxisLabel: string = 'modules.kpi.month';
   showYAxisLabel: boolean = true;
   showRightYAxisLabel: boolean = true;  
   yAxisLabelRight: string = 'Остаток';
@@ -101,7 +88,8 @@ export class IncomeOutcomeComponent implements OnInit {
   constructor(
     private loadSpravService:   LoadSpravService,
     private http: HttpClient,
-    private MessageDialog: MatDialog,) {}
+    private MessageDialog: MatDialog,
+    public _adapter: DateAdapter<any>) {}
 
   ngOnInit(): void {
 
@@ -113,9 +101,18 @@ export class IncomeOutcomeComponent implements OnInit {
       dateTo: new FormControl(moment().endOf('year')),     // дата По
     });
   }
-
+  setXAxisName(){
+    this.units.map(i=>{
+      // console.log("i.id - "+i.id);
+      if(this.queryForm.get('unit').value==i.id){
+        // console.log(i.name);
+        // console.log(translate(i.name));
+        this.xAxisLabel=translate(i.name);
+      }
+    })
+  }
   onStart(){
-    this.units.push();
+    this.setXAxisName();
     this.getCRUD_rights(this.permissionsSet);
     this.getVolumesReportData();
   }
@@ -155,77 +152,61 @@ export class IncomeOutcomeComponent implements OnInit {
   // Зачем это надо? Не все единицы временных интервалов могут быть актуальны при разных временных периодах. Например, если длина периода будет 3 дня, 
   // смысла в отрезках "Неделя" и длиннее нет, также как и смыслав в часовых отрезках при периодах отчета более месяца
   calcUnitsSetForCustomPeriod(){
-      this.units = [{id:'month',name:'Месяц'},{id:'year',name:'Год'}];
+      this.units = [{id:'month',name:'modules.kpi.month'},{id:'year',name:'modules.kpi.year'}];
       this.queryForm.get('unit').setValue('month');
   }
 
   getVolumesReportData(){
     this.multi=[];
-    this.multi2=[];
+    // this.multi2=[];
     this.beforeRequestReportData();
     this.http.post('/api/auth/getIncomeOutcomeReportData', this.queryForm.getRawValue())
     .subscribe(
         (data) => {
-          this.multi=data as any []; 
+          this.multi=data as any [];
           // this.getBalancesOnDate();
         },
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
-  getBalancesOnDate(){
-    let beginBalance:number=0;
-    this.http.post('/api/auth/getBalancesOnDate', this.queryForm.getRawValue())
-    .subscribe(
-        (data) => {
-          beginBalance=data as number;
-          this.formingBalancesCurve(beginBalance);
-        },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
-    );
-  }
+  // getBalancesOnDate(){
+  //   let beginBalance:number=0;
+  //   this.http.post('/api/auth/getBalancesOnDate', this.queryForm.getRawValue())
+  //   .subscribe(
+  //       (data) => {
+  //         beginBalance=data as number;
+  //         this.formingBalancesCurve(beginBalance);
+  //       },
+  //       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+  //   );
+  // }
 
   // сборка объекта для построения графика кривой остатка
-  formingBalancesCurve(currentBalance:number){
-    // let volumesCurve:VolumesReportJSON = {name: '', series: []};
-    let count:number=0;
-    this.volumesCurve.name='Остаток'
-    let sery:Series = {name: '', value: 0};
-    this.multi.map(i => {
-      // в каждом объекте в multi есть series, состоящая из [{name: "Приход", value: 11111},{name: "Расход", value: 22222}]
-      // нужно по ним пробежаться, и к текущему значению остатка currentBalance прибавить Приход и вычесть Расход
-      // и этот остаток записать в массив series вида [{"name": "01.2022","value": 5032},...] находящийся в volumesCurve
+  // formingBalancesCurve(currentBalance:number){
+  //   // let volumesCurve:VolumesReportJSON = {name: '', series: []};
+  //   let count:number=0;
+  //   this.volumesCurve.name='Остаток'
+  //   let sery:Series = {name: '', value: 0};
+  //   this.multi.map(i => {
+  //     // в каждом объекте в multi есть series, состоящая из [{name: "Приход", value: 11111},{name: "Расход", value: 22222}]
+  //     // нужно по ним пробежаться, и к текущему значению остатка currentBalance прибавить Приход и вычесть Расход
+  //     // и этот остаток записать в массив series вида [{"name": "01.2022","value": 5032},...] находящийся в volumesCurve
       
-      // задаём дату
-      sery.name=i.name;
-      // если это первый объект multi - задаём начальное значение (то которое было на начало периода)
-      if(count==0) sery.value = currentBalance;
+  //     // задаём дату
+  //     sery.name=i.name;
+  //     // если это первый объект multi - задаём начальное значение (то которое было на начало периода)
+  //     if(count==0) sery.value = currentBalance;
 
-      i.series.map(s =>{
-        sery.value=(s.name=='Приход'?(sery.value+s.value):(sery.value-s.value));
-      })
-      this.volumesCurve.series.push(sery);
+  //     i.series.map(s =>{
+  //       sery.value=(s.name=='Приход'?(sery.value+s.value):(sery.value-s.value));
+  //     })
+  //     this.volumesCurve.series.push(sery);
 
-      count++;
-    });
-    // alert(this.volumesCurve.series.length);
-     this.multi2.push(this.volumesCurve);
-
-[
-  {
-    "name": "Остаток",
-    "series": [
-      {
-        "name": "12.2021",
-        "value": 58823
-      },
-      {
-        "name": "12.2021",
-        "value": 58823
-      }
-    ]
-  }
-]
-  }
+  //     count++;
+  //   });
+  //   // alert(this.volumesCurve.series.length);
+  //    this.multi2.push(this.volumesCurve);
+  // }
   //подготовка к запросу данных отчёта
   beforeRequestReportData(){
     this.queryForm.get('companyId').setValue(this.companyId);//в том случае, если в головном модуле изменяем предприятие для всех виджетов - нужно его изменить и в форме для отправки запроса
@@ -235,13 +216,6 @@ export class IncomeOutcomeComponent implements OnInit {
     if(newCompanyId!=this.companyId){
       this.companyId=newCompanyId;
     }
-  }
-
-  setXAxisName(){
-    this.units.map(i=>{
-      if(this.queryForm.get('unit').value==i.id)
-        this.xAxisLabel=i.name;
-    })
   }
 
   // calculateSum(){

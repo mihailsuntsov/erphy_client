@@ -5,6 +5,7 @@ import { MaterialModule } from 'src/app/modules/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { ComboChartComponent, ComboSeriesVerticalComponent } from './combo-chart';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [IncomeOutcomeComponent,
@@ -16,7 +17,10 @@ import { ComboChartComponent, ComboSeriesVerticalComponent } from './combo-chart
     FormsModule,
     ReactiveFormsModule,
     NgxChartsModule,
+    TranslocoModule
   ],
   exports: [IncomeOutcomeComponent],
+  providers: [{ provide: TRANSLOCO_SCOPE, useValue: ['modules']},
+  ],
 })
 export class IncomeOutcomeModule { }

@@ -6,7 +6,7 @@ class="spinner"
 ></mat-spinner>
 <mat-card class="card" *transloco="let t">
     <mat-card-title class="flex" style="height: 30px;">
-        <div *ngIf="!displayingDeletedDocs" class="emptyspace">Взаиморасчёты с {{data.cagent}}</div>
+        <div *ngIf="!displayingDeletedDocs" class="emptyspace">{{t('menu.docs.counterpays')}} {{data.cagent}}</div>
         <!-- <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> входящие платежи</div> -->
         <!-- <button 
             mat-raised-button 
@@ -32,12 +32,12 @@ class="spinner"
         
         <button 
             (click)="onNoClick()"
-            matTooltip="Закрыть диалоговое окно"
+            matTooltip="{{t('menu.dialogs.close_window')}}"
             mat-raised-button 
             color="accent"
             style="height: 36px;"
-            class="button">
-            <i class="material-icons">close</i> Закрыть 
+            class="button small-button">
+            <i class="material-icons">close</i>
         </button>
     </mat-card-title>
     <mat-card-content>
@@ -74,7 +74,7 @@ class="spinner"
                     </div>
                     <div class="flex">
                         <mat-form-field style="width:50px;" class="num-of-rows">
-                            <mat-label>Строк</mat-label>
+                            <mat-label>{{t('menu.top.rows')}}</mat-label>
                             <mat-select formControlName="result" (selectionChange)="setNumOfPages()" class="form-control" id="selectRowsPerPage">                           
                                 <mat-option  *ngFor="let num of numRows" [value]="num.value">
                                         {{num.viewValue}}
@@ -102,7 +102,7 @@ class="spinner"
                                 <mat-form-field style="width: 100px; margin: 0 10px;">
                                     <input  matInput 
                                             formControlName="dateFrom"
-                                            placeholder="С даты"
+                                            placeholder="{{t('menu.top.date_from')}}"
                                             [matDatepicker]="dpFrom"
                                             (dateChange)="getData()"
                                             />
@@ -112,7 +112,7 @@ class="spinner"
                                 <mat-form-field style="width: 100px; margin: 0 10px;">
                                     <input  matInput 
                                             formControlName="dateTo"
-                                            placeholder="По дату"
+                                            placeholder="{{t('menu.top.date_to')}}"
                                             [matDatepicker]="dpTo"
                                             (dateChange)="getData()"
                                             />
@@ -153,7 +153,7 @@ class="spinner"
                             </div>
                             <div class="div-100"> 
                                 <div style="width:100%; height: 38px; padding-bottom: 15px;">
-                                    <button matTooltip="Применить фильтры" 
+                                    <button matTooltip="{{t('menu.tip.apply_filters')}}" 
                                             mat-mini-fab 
                                             color="primary" 
                                             (click)="clickApplyFilters()">
@@ -166,7 +166,7 @@ class="spinner"
                         <div class="flex">     
                             <mat-form-field class="emptyspace">
                                     <input matInput 
-                                    placeholder="Поиск..." 
+                                    placeholder="{{t('menu.top.search')}}" 
                                     formControlName="searchString"
                                     type="text"  
                                     id="search_input" 
@@ -191,7 +191,7 @@ class="spinner"
                         </ng-container>
                         <ng-container matColumnDef="doc_name" >
                             <th mat-header-cell *matHeaderCellDef style="width:15%">
-                            <span (click)="setSort('doc_name')" class="sortheader"> Документ 
+                            <span (click)="setSort('doc_name')" class="sortheader"> {{t('menu.table.doc')}} 
                                 <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='doc_name'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='doc_name'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
@@ -199,7 +199,7 @@ class="spinner"
                         </ng-container>
                         <ng-container matColumnDef="doc_number" >
                             <th mat-header-cell *matHeaderCellDef style="width:15%">
-                            <span (click)="setSort('doc_number')" class="sortheader"> Номер 
+                            <span (click)="setSort('doc_number')" class="sortheader"> {{t('menu.table.number')}} 
                                 <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='doc_number'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='doc_number'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
@@ -207,7 +207,7 @@ class="spinner"
                         </ng-container>
                         <ng-container matColumnDef="date_time_created">
                             <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('date_time_created_sort')" class="sortheader"> Дата проведения 
+                            <span (click)="setSort('date_time_created_sort')" class="sortheader"> {{t('menu.table.date_complete')}} 
                                 <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='date_time_created_sort'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='date_time_created_sort'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
@@ -215,7 +215,7 @@ class="spinner"
                         </ng-container>
                         <ng-container matColumnDef="summ_in">
                             <th mat-header-cell *matHeaderCellDef style="width:15%">
-                            <span (click)="setSort('summ_in')" class="sortheader"> Приход 
+                            <span (click)="setSort('summ_in')" class="sortheader"> {{t('menu.table.income')}}  
                                 <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='summ_in'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='summ_in'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
@@ -223,7 +223,7 @@ class="spinner"
                         </ng-container>
                         <ng-container matColumnDef="summ_out">
                             <th mat-header-cell *matHeaderCellDef style="width:15%">
-                            <span (click)="setSort('summ_out')" class="sortheader"> Расход 
+                            <span (click)="setSort('summ_out')" class="sortheader"> {{t('menu.table.expendtr')}} 
                                 <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='summ_out'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='summ_out'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
@@ -231,7 +231,7 @@ class="spinner"
                         </ng-container>
                         <ng-container matColumnDef="status">
                             <th mat-header-cell *matHeaderCellDef style="width:15%">
-                            <span (click)="setSort('status')" class="sortheader"> Статус  
+                            <span (click)="setSort('status')" class="sortheader"> {{t('menu.table.status')}}   
                                 <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='status'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='status'" class="material-icons sortarrow">arrow_downward</i>
                             </span>

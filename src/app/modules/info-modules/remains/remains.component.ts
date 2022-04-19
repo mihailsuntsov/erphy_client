@@ -4,10 +4,11 @@ import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
+import { CommonUtilitesService } from '../../../services/common_utilites.serviсe'; //+++
 import { LoadSpravService } from './loadsprav';
 import { QueryFormService } from './get-remains-table.service';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
-import { translate } from '@ngneat/transloco'; //+++
+// import { translate } from '@ngneat/transloco'; //+++
 
 export interface DocTable {
   id: number;
@@ -29,7 +30,7 @@ interface idAndName{ //универсалный интерфейс для выб
   selector: 'app-remains-vidget',
   templateUrl: './remains.component.html',
   styleUrls: ['./remains.component.css'],
-  providers: [QueryFormService,LoadSpravService,Cookie]
+  providers: [QueryFormService,LoadSpravService,Cookie,CommonUtilitesService]
 })
 export class RemainsComponent implements OnInit {
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
@@ -66,11 +67,12 @@ export class RemainsComponent implements OnInit {
   listsize: any; // - Последняя страница в пагинации (но не в пагинаторе. т.е. в пагинаторе может быть [12345] а listsize =10)
 
   // опции для фильтра
-  optionsIds: idAndName [] = [{id:3, name:"Скрывать не закупаемые товары"},
-                              {id:4, name:"Скрывать снятые с продажи товары"},
-                              {id:0, name:"Отсутствует"},
-                              {id:1, name:"Мало"},
-                              {id:2, name:"Достаточно"},
+  optionsIds: idAndName [] = [
+                              {id:3, name:'menu.top.hide_nonbuy'},
+                              {id:4, name:'menu.top.hide_selloff'},
+                              {id:0, name:'menu.top.not_available'},
+                              {id:1, name:'menu.top.few'},
+                              {id:2, name:'menu.top.enough'}                             
                             ]//список опций для вывода во всплывающем меню опций для фильтра
   checkedOptionsList:number[]=[]; //массив для накапливания id выбранных опций чекбоксов вида [2,5,27...], а так же для заполнения загруженными значениями чекбоксов
   
@@ -84,6 +86,7 @@ export class RemainsComponent implements OnInit {
     private _snackBar: MatSnackBar,
     public productCategoriesDialog: MatDialog,
     public remainsDialogComponent: MatDialog,
+    public cu: CommonUtilitesService, //+++
     public ConfirmDialog: MatDialog,
     public ProductDuplicateDialog: MatDialog,
     public deleteDialog: MatDialog) { 
@@ -93,7 +96,7 @@ export class RemainsComponent implements OnInit {
     this.sendingQueryForm.sortAsc="desc";
     this.sendingQueryForm.sortColumn="p.name";
     this.sendingQueryForm.offset=0;
-    this.sendingQueryForm.result="10";
+    this.sendingQueryForm.result="5";
     this.sendingQueryForm.companyId="0";
     this.sendingQueryForm.departmentId="0";
     this.sendingQueryForm.cagentId="0";
@@ -125,7 +128,7 @@ export class RemainsComponent implements OnInit {
   onStartQueries(){
     this.completedStartQueries++;
     if(this.allowToView){
-      console.log("Все стартовые запросы 1 выполнены!");
+      // console.log("Все стартовые запросы 1 выполнены!");
       this.completedStartQueries=0;
       this.getTableHeaderTitles();
       

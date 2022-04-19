@@ -327,13 +327,13 @@ export class AcceptanceDocComponent implements OnInit {
     
 
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Поставщик"
-    this.getSetOfPermissions();
+    
     //+++ getting base data from parent component 
     this.getBaseData('myId');    
     this.getBaseData('myCompanyId');  
     this.getBaseData('companiesList');  
     this.getBaseData('myDepartmentsList');    
-
+    this.getSetOfPermissions();
       // moment.locale('en');
     // console.log(moment(1316116057189).fromNow()); // an hour ago
     // moment.locale('ru');

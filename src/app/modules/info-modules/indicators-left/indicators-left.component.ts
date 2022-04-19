@@ -21,30 +21,28 @@ export class IndicatorsLeftComponent implements OnInit {
   //переменные для построения графиков
   multi: any[]=[];// для приёма данных для построения графиков прихода и расхода
   view: any[] = [700, 140]; // размеры области графика
-  showXAxis: boolean = true; 
-  showYAxis: boolean = true;
-  gradient: boolean = true;
-  showLegend: boolean = true;
-  showXAxisLabel: boolean = true;
-  xAxisLabel: string = 'Месяцы';
-  showYAxisLabel: boolean = true;
-  showRightYAxisLabel: boolean = true;  
-  yAxisLabelRight: string = 'Остаток';
-  yAxisLabel: string = '';
-  legendTitle: string = 'Категории';
-  calculatedSum : number = 0; // суммированный объем по всем барам
-  colorScheme = {
-    domain: ['#5AA454', '#E44D25', '#CFC0BB', '#7aa3e5', '#a8385d', '#aae3f5']
-  };
+  // showXAxis: boolean = true; 
+  // showYAxis: boolean = true;
+  // gradient: boolean = true;
+  // showLegend: boolean = true;
+  // showXAxisLabel: boolean = true;
+  // xAxisLabel: string = 'Месяцы';
+  // showYAxisLabel: boolean = true;
+  // showRightYAxisLabel: boolean = true;  
+  // yAxisLabelRight: string = 'Остаток';
+  // yAxisLabel: string = '';
+  // legendTitle: string = 'Категории';
+  // calculatedSum : number = 0; // суммированный объем по всем барам
+  colorScheme = {domain: ['#5AA454', '#E44D25', '#CFC0BB', '#7aa3e5', '#a8385d', '#aae3f5']};
   cardColor: string = '#232837';
-  lineChartScheme = {
-    name: 'coolthree',
-    selectable: true,
-    group: 'Ordinal',
-    domain: ['#01579b', '#7aa3e5', '#a8385d', '#00bfa5']
-  };
-  legendPosition = 'right';
-  single: any[];  
+  // lineChartScheme = {
+  //   name: 'coolthree',
+  //   selectable: true,
+  //   group: 'Ordinal',
+  //   domain: ['#01579b', '#7aa3e5', '#a8385d', '#00bfa5']
+  // };
+  // legendPosition = 'right';
+  // single: any[];  
 
   //переменные прав
   allowToViewAllCompanies:boolean = false;  //Возможность построения отчётов по объёмам продаж, закупок и др. по всем предприятиям
@@ -96,25 +94,24 @@ export class IndicatorsLeftComponent implements OnInit {
   }   
 
   onSelect(data): void {
-    console.log('Item clicked', JSON.parse(JSON.stringify(data)));
-
-    switch (data.name) {
-      case 'Просроченные счета': {
+    // console.log('Item clicked', JSON.parse(JSON.stringify(data)));
+    switch (data.extra.code) {
+      case 'overdue_invcs': {
         this._router.navigate(['ui/invoiceout',{company: this.companyId, option: 2}]);
         break;}
-      case 'Просроченные заказы': {
+      case 'overdue_ordrs': {
         this._router.navigate(['ui/customersorders',{company: this.companyId, option: 2}]);
         break;}
-      case 'Новые заказы': {
+      case 'new_orders': {
         this._router.navigate(['ui/customersorders',{company: this.companyId, option: 3}]);
         break;}
-      case 'Деньги': {
+      case 'money': {
         this._router.navigate(['ui/moneyflow',{company: this.companyId}]);
         break;}
-      case 'Мы должны': {
+      case 'your_debt': {
         this._router.navigate(['ui/mutualpayment',{company: this.companyId, option: 1}]);
         break;}
-      case 'Нам должны': {
+      case 'you_owed': {
         this._router.navigate(['ui/mutualpayment',{company: this.companyId, option: 2}]);
         break;}
   }
@@ -125,11 +122,11 @@ export class IndicatorsLeftComponent implements OnInit {
   }
 
   onActivate(data): void {
-    console.log('Activate', JSON.parse(JSON.stringify(data)));
+    // console.log('Activate', JSON.parse(JSON.stringify(data)));
   }
 
   onDeactivate(data): void {
-    console.log('Deactivate', JSON.parse(JSON.stringify(data)));
+    // console.log('Deactivate', JSON.parse(JSON.stringify(data)));
   }
 
 

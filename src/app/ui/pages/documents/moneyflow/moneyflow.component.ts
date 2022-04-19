@@ -18,8 +18,7 @@ import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/mat
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 const MY_FORMATS = MomentDefault.getMomentFormat();
 const moment = MomentDefault.getMomentDefault();
-
-
+import { LOCALE_ID, Inject } from '@angular/core';
 
 interface DocResponse {
   summ_before_pa: number;
@@ -126,6 +125,7 @@ export class MoneyflowComponent implements OnInit {
     public dialogRef1: MatDialogRef<MoneyflowComponent>,
     public cu: CommonUtilitesService, //+++
     private service: TranslocoService,
+    @Inject(LOCALE_ID) public locale: string,
     private _adapter: DateAdapter<any>) {
       if(activateRoute.snapshot.params['company'])
         this.company = +activateRoute.snapshot.params['company']; }
@@ -383,6 +383,7 @@ export class MoneyflowComponent implements OnInit {
         mode: 'viewInWindow',
         date: date,
         companyId: this.queryForm.get('companyId').value,
+        locale:this.locale,
         // dateFrom:this.queryForm.get('dateFrom').value,
         // dateTo:this.queryForm.get('dateTo').value,
         // cagent:cagent,

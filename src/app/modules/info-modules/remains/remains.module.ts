@@ -5,6 +5,7 @@ import { RemainsComponent } from './remains.component';
 
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MaterialModule } from '../../material.module';
+import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
 @NgModule({
   declarations: [RemainsComponent],
@@ -14,8 +15,10 @@ import { MaterialModule } from '../../material.module';
     
     MaterialModule,
     FormsModule, 
+    TranslocoModule,
     ReactiveFormsModule
   ],
   exports: [RemainsComponent],
+  providers: [{ provide: TRANSLOCO_SCOPE, useValue: ['modules','menu']}]
 })
 export class RemainsModule { }
