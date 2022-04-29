@@ -74,7 +74,7 @@
                                                 </mat-form-field>
     
                                                 <mat-form-field>
-                                                    <mat-label>{{t('docs.field.name')}} <span *ngIf="formBaseInformation.get('fio_name').value==''||formBaseInformation.get('fio_name').value==null" class="star">*</span></mat-label>
+                                                    <mat-label>{{t('docs.field.name_')}} <span *ngIf="formBaseInformation.get('fio_name').value==''||formBaseInformation.get('fio_name').value==null" class="star">*</span></mat-label>
                                                     <input  matInput
                                                             formControlName="fio_name"
                                                             [ngClass]="{'is-invalid':formBaseInformation.get('fio_name').touched && formBaseInformation.get('fio_name').invalid}"/>
@@ -273,35 +273,107 @@
                                                         </mat-option>
                                                     </mat-select>
                                                 </mat-form-field>
+                                                
+                                            </mat-card-content>
+                                        </mat-card>
+                                    </div>
+
+                                    <div class="col-lg-4 col-xl-4 col-md-6 col-12" [ngClass]="{invisible: +id>0}">
+                                        
+                                        <mat-card  class="internal-card">
+                                            <mat-card-header>
+                                                <mat-card-title class="card-title">{{t('docs.card.lang_n_stand')}}</mat-card-title>
+                                            </mat-card-header>
+                                            <mat-card-content class="input-form"  style="padding: 10px;" >
                                                 <mat-form-field  style="display: none;" >
                                                     <input   matInput
                                                             placeholder="{{t('docs.field.time_zone')}}"
-                                                            formControlName="time_zone_id"/>
+                                                            formControlName="timeZoneId"/>
                                                 </mat-form-field>
-                                                <mat-form-field>
-                                                    <mat-label>{{t('docs.field.time_zone')}} <span *ngIf="formBaseInformation.get('time_zone_name').value==0||formBaseInformation.get('time_zone_name').value==null" class="star">*</span></mat-label>
+                                                <mat-form-field class="mat-form-field-100">
+                                                    <mat-label>Язык <span *ngIf="formBaseInformation.get('languageName').value==0||formBaseInformation.get('languageName').value==null" class="star">*</span></mat-label>
                                                     <input matInput
-                                                    type="text"
-                                                    formControlName="time_zone_name" 
-                                                    [matAutocomplete]="auto" 
-                                                    (input)="checkEmptyFields('time_zone_id','time_zone_name');"
-                                                    (change)="checkEmptyFields('time_zone_id','time_zone_name');">
+                                                        type="text"
+                                                        formControlName="languageName" 
+                                                        [matAutocomplete]="lg" 
+                                                        (input)="checkEmptyFields('languageId','languageName');"
+                                                        (change)="checkEmptyFields('languageId','languageName');">
                                                     <button mat-button 
                                                         type="button"
                                                         class="clear-button"
-                                                        (click)="clearField('time_zone_name');checkEmptyFields('time_zone_id','time_zone_name');"
+                                                        (click)="clearField('languageName');checkEmptyFields('languageId','languageName');"
+                                                        matTooltip='Очистить поле поиска, и выбрать другой язык'
+                                                        matSuffix mat-icon-button>
+                                                        <mat-icon>close</mat-icon>
+                                                    </button>
+                                                    <mat-autocomplete #lg="matAutocomplete">
+                                                    <mat-option *ngFor="let option of filteredSpravSysLanguages | async" [value]="option.name">
+                                                        <div (click)="formBaseInformation.get('languageId').setValue(option.id)">
+                                                            <span style="margin:10px;">{{option.name}}</span>
+                                                        </div>
+                                                    </mat-option>
+                                                    </mat-autocomplete>
+                                                    <mat-hint  align="start" *ngIf="formBaseInformation.get('languageName').touched && formBaseInformation.get('languageId').invalid">
+                                                        <i class="form-invalid">Язык не выбран.</i>
+                                                    </mat-hint>
+                                                </mat-form-field>
+                    
+                                                <mat-form-field style="display: none;" >
+                                                    <input   matInput
+                                                            placeholder="locale"
+                                                            formControlName="localeId"/>
+                                                </mat-form-field>
+                                                <mat-form-field class="mat-form-field-100">
+                                                    <mat-label>Локаль <span *ngIf="formBaseInformation.get('localeName').value==0||formBaseInformation.get('localeName').value==null" class="star">*</span></mat-label>
+                                                    <input matInput
+                                                        type="text"
+                                                        formControlName="localeName" 
+                                                        [matAutocomplete]="lc" 
+                                                        (input)="checkEmptyFields('localeId','localeName');"
+                                                        (change)="checkEmptyFields('localeId','localeName');">
+                                                    <button mat-button 
+                                                        type="button"
+                                                        class="clear-button"
+                                                        (click)="clearField('localeName');checkEmptyFields('localeId','localeName');"
+                                                        matTooltip='Очистить поле поиска, и выбрать другую локаль'
+                                                        matSuffix mat-icon-button>
+                                                        <mat-icon>close</mat-icon>
+                                                    </button>
+                                                    <mat-autocomplete #lc="matAutocomplete">
+                                                    <mat-option *ngFor="let option of filteredSpravSysLocales | async" [value]="option.name">
+                                                        <div (click)="formBaseInformation.get('localeId').setValue(option.id)">
+                                                            <span style="margin:10px;">{{option.name}}</span>
+                                                        </div>
+                                                    </mat-option>
+                                                    </mat-autocomplete>
+                                                    <mat-hint  align="start" *ngIf="formBaseInformation.get('localeName').touched && formBaseInformation.get('localeId').invalid">
+                                                        <i class="form-invalid">Локаль не выбрана.</i>
+                                                    </mat-hint>
+                                                </mat-form-field>
+                                                <mat-form-field>
+                                                    <mat-label>{{t('docs.field.time_zone')}} <span *ngIf="formBaseInformation.get('timeZoneName').value==0||formBaseInformation.get('timeZoneName').value==null" class="star">*</span></mat-label>
+                                                    <input matInput
+                                                    type="text"
+                                                    formControlName="timeZoneName" 
+                                                    [matAutocomplete]="auto" 
+                                                    (input)="checkEmptyFields('timeZoneId','timeZoneName');"
+                                                    (change)="checkEmptyFields('timeZoneId','timeZoneName');">
+                                                    <button mat-button 
+                                                        type="button"
+                                                        class="clear-button"
+                                                        (click)="clearField('timeZoneName');checkEmptyFields('timeZoneId','timeZoneName');"
                                                         matTooltip="{{t('docs.tip.clear_field')}}"
                                                         matSuffix mat-icon-button>
                                                         <mat-icon>close</mat-icon>
                                                     </button>
                                                     <mat-autocomplete #auto="matAutocomplete">
                                                     <mat-option *ngFor="let option of filteredSpravSysTimeZones | async" [value]="option.name">
-                                                        <div (click)="formBaseInformation.get('time_zone_id').setValue(option.id)">
+                                                        <div (click)="formBaseInformation.get('timeZoneId').setValue(option.id)">
                                                             <span style="margin:10px;">{{option.name}}</span>
                                                         </div>
                                                     </mat-option>
                                                     </mat-autocomplete>
-                                                    <mat-hint  align="start" *ngIf="formBaseInformation.get('time_zone_name').touched && formBaseInformation.get('time_zone_id').invalid">
+                                                    <mat-hint  align="start" *ngIf="formBaseInformation.get('timeZoneName').touched && formBaseInformation.get('timeZoneId').invalid">
                                                         <i class="form-invalid">{{t('docs.error.field_miss')}}</i>
                                                     </mat-hint>
                                                 </mat-form-field>

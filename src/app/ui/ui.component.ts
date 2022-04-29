@@ -12,13 +12,14 @@ import { UserSettingsDialogComponent } from 'src/app/modules/settings/user-setti
 import { FormControl, FormGroup } from '@angular/forms';
 import { filter } from 'rxjs/operators';
 import { translate } from '@ngneat/transloco'; //+++
+import { DelCookiesService } from '../services/del-cookies.service';
 
 /** @title Fixed sidenav */
 @Component({
   selector: 'app-ui',
   templateUrl: './ui.component.html',
   styleUrls: ['./ui.component.css'],
-  providers: [LoadSpravService]
+  providers: [DelCookiesService,LoadSpravService]
 })
 export class UiComponent implements OnInit {
 
@@ -44,6 +45,7 @@ export class UiComponent implements OnInit {
     public MessageDialog: MatDialog,
     public UserSettingsDialogComponent: MatDialog,
     private _router:Router,
+    private delCookiesService: DelCookiesService,
     private _snackBar: MatSnackBar,
     private http: HttpClient,
     private service: TranslocoService) {
@@ -123,6 +125,18 @@ export class UiComponent implements OnInit {
         case 'updateDashboard': {
           this.updateDashboard(this.locale)
           break;}
+        case 'suffix': {
+          component.suffix=this.suffix;
+          break;}
+        case 'timeZoneId':{
+          component.setBaseDataParameter('timeZoneId',this.settingsForm.get('timeZoneId').value);
+          break;}
+        case 'languageId':{
+          component.setBaseDataParameter('languageId',this.settingsForm.get('languageId').value);
+          break;}
+        case 'localeId':{
+          component.setBaseDataParameter('localeId',this.settingsForm.get('localeId').value);
+          break;}
       }
     })
     
@@ -158,6 +172,7 @@ export class UiComponent implements OnInit {
     //если это другой компонент и он работает с датами (т.е. у него есть _adapter) - поменяем у него локаль
     try{ this.component._adapter.setLocale(locale)} catch (e) {console.log('There is no _adapter in this component')}
     try{ this.component.locale=locale} catch (e) {console.log('There is no locale in this component')}
+    // try{ this.component.suffix=this.suffix} catch (e) {console.log('There is no suffix in this component')}
   }
 
   updateDashboard(locale:string){
@@ -216,7 +231,9 @@ export class UiComponent implements OnInit {
   }
   logout() 
   {
-    this.token.signOut();
+    // Cookie.deleteAll();
+    this.delCookiesService.delCookiesOnLogin();
+    this.token.signOut();    
     window.location.reload();
   }
 

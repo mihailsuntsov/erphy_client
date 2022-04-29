@@ -1,13 +1,23 @@
 
 <div *ngIf="isLoggedIn; else loggedOut">
-    Logged in as {{roles}}.
-  </div>
+    Logged in. Please wait...
+</div>  
   
-  
-  <mat-card *ngIf="!isLoggedIn;" class="login-mat-card">
-    
+<mat-card *ngIf="!isLoggedIn;" class="login-mat-card">
+                <div class="lang-select"
+                    [matMenuTriggerFor]="addDocMenu">
+                    <span>{{language}}</span><div class="arrow-wrap"><i class="material-icons" style="font-size: 18px;">arrow_drop_down</i></div>
+                </div>
+                <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
+                    <button mat-menu-item (click)="setLanguage('en')">
+                        <span>English</span>
+                    </button>
+                    <button mat-menu-item (click)="setLanguage('ru')">
+                        <span>Русский</span>
+                    </button>
+                </mat-menu>
     <mat-card-title class="text-center">
-      Авторизация
+      {{'user.card.authorization' | transloco}}
     </mat-card-title>
     <mat-card-content>
   
@@ -15,54 +25,46 @@
   
               <mat-form-field>
                   <input matInput 
-                  placeholder="Логин" 
+                  placeholder="{{'user.field.login' | transloco}}" 
                   formControlName="username" 
                   type="text"    
                   [ngClass]="{'is-invalid':loginform.get('username').touched && loginform.get('username').invalid}"
                   />
                   <mat-hint *ngIf="loginform.get('username').touched && loginform.get('username').invalid">
-                      <i *ngIf="loginform.get('username').errors.required" class="form-invalid">Введите логин</i>
-                      <i *ngIf="loginform.get('username').errors.minlength" class="form-invalid">Логин должно содержать хотя бы 6 символов</i>
+                      <i *ngIf="loginform.get('username').errors.required" class="form-invalid">{{'user.error.enter_login' | transloco}}</i>
+                      <i *ngIf="loginform.get('username').errors.minlength" class="form-invalid">{{'user.error.login_mst_cnt' | transloco}}</i>
                   </mat-hint>
                   <mat-hint *ngIf="emptyLogin && !loginform.get('username').touched">
-                      <i *ngIf="loginform.get('username').errors.required" class="form-invalid">Введите логин</i>
+                      <i *ngIf="loginform.get('username').errors.required" class="form-invalid">{{'user.error.enter_login' | transloco}}</i>
                   </mat-hint>
               </mat-form-field>
               
               <mat-form-field>
                   <input matInput 
-                  placeholder="Пароль" 
+                  placeholder="{{'user.field.password' | transloco}}" 
                   formControlName="password"
                   [type]="'password'"   
                   [ngClass]="{'is-invalid':loginform.get('password').touched && loginform.get('password').invalid}" 
                   />
                   <mat-hint *ngIf="loginform.get('password').touched && loginform.get('password').invalid ">
-                      <i *ngIf="loginform.get('password').errors.required" class="form-invalid">Введите пароль</i>
+                      <i *ngIf="loginform.get('password').errors.required" class="form-invalid">{{'user.error.enter_pwd' | transloco}}</i>
                   </mat-hint>
                   <mat-hint *ngIf="emptyPassword && !loginform.get('password').touched">
-                      <i *ngIf="loginform.get('password').errors.required" class="form-invalid">Введите пароль</i>
+                      <i *ngIf="loginform.get('password').errors.required" class="form-invalid">{{'user.error.enter_pwd' | transloco}}</i>
                   </mat-hint>
-              </mat-form-field>
+              </mat-form-field>  
   
-  
-  
-  
-  
-  
-  
-              <button mat-button mat-raised-button color="primary" style="margin-top: 20px;" (click)="onSubmit()">Войти</button>
+              <button mat-button mat-raised-button color="primary" style="margin-top: 20px;" (click)="onSubmit()">{{'user.btn.enter' | transloco}}</button>
               <div *ngIf="isLoginFailed" class="form-invalid">
-                  Вход не выполнен: {{errorMessage?errorMessage:"Нет связи с сервером базы данных. Пожалуйста, обратитесь в поддержку."}}
+                  {{'user.error.not_logged' | transloco}}: {{errorMessage?errorMessage:('user.error.no_bd_srvr_cn' | transloco)}}
               </div>
             </form>
         
-            <!-- <hr />
-            <div class="text-center">
-            <p>Ещё нет аккаунта?</p>
-            <button mat-button mat-raised-button color="accent">
-              <a routerLink="../../signup">Регистрация</a>
-            </button>
-            </div> -->
+            <hr />
+            <div   style="width:100%;">
+              <div style="display: inline-block; text-align: left;width:50%;"><a routerLink="../../signup">{{'user.btn.registration' | transloco}}</a></div>
+              <div style="display: inline-block; text-align: right;width:50%;"><a routerLink="../../restore">{{'user.btn.forgot_pass' | transloco}}</a></div>
+            </div>
   
   
     </mat-card-content>

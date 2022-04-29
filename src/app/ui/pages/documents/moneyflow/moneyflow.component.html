@@ -43,7 +43,7 @@ class="spinner"
                     <div class="flex">
                         <mat-form-field style="width:50px;" class="num-of-rows"> <!--+++-->
                             <mat-label>{{t('menu.top.rows')}}</mat-label>
-                            <mat-select [(value)]="queryForm.result" (selectionChange)="setNumOfPages()" class="form-control" id="selectRowsPerPage" name="result">                           
+                            <mat-select [(value)]="queryForm.get('result').value" (selectionChange)="setNumOfPages()" class="form-control" id="selectRowsPerPage" name="result">                           
                                 <mat-option  *ngFor="let num of numRows" [value]="num.value">
                                         {{num.viewValue}}
                                 </mat-option>
@@ -51,7 +51,7 @@ class="spinner"
                         </mat-form-field>
                         <mat-form-field class="company-select" style="margin-left: 10px; max-width: 250px;"><!--+++-->
                             <mat-label>{{t('menu.top.company')}}</mat-label>
-                            <mat-select  [(value)]="queryForm.companyId" 
+                            <mat-select  [(value)]="queryForm.get('companyId').value" 
                             (selectionChange)="onCompanySelection()">                          
                                 <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
                                         {{rt.name}}

@@ -5,34 +5,37 @@
                 mat-raised-button 
                 [style.display]="data.actionType=='create'?'block':'none'"
                 (click)="clickBtnCreateCategory()" 
+                matTooltip="{{'docs.tip.create' | transloco}}"
                 [disabled]="!formBaseInformation.valid" 
                 color="primary"
-                class="button">
-                <i class="material-icons">add_circle_outline</i> Создать
+                class="button small-button">
+                <i class="material-icons">done</i>
             </button>
             <button 
                 mat-raised-button 
                 [style.display]="data.actionType=='update'?'block':'none'"
                 (click)="updateCategory()"
+                matTooltip="{{'docs.tip.save' | transloco}}"
                 [disabled]="!formBaseInformation.valid" 
                 color="primary"
-                class="button">
-                <i class="material-icons">done</i> Сохранить
+                class="button small-button">
+                <i class="material-icons">save</i>
             </button>
             <button 
                 (click)="onNoClick()"
                 mat-raised-button 
+                matTooltip="{{'modules.tip.close_window' | transloco}}"
                 color="accent"
-                class="button">
-                <i class="material-icons">close</i> Отмена
+                class="button small-button">
+                <i class="material-icons">close</i>
             </button>
         </mat-card-title>
         <mat-card-content > 
             <form [formGroup]="formBaseInformation">   
                 <mat-form-field style="width: 100%"  *ngIf="data.actionType=='create'">
-                    <mat-label>Родительская категория</mat-label>
+                    <mat-label>{{'modules.field.parent_catgr' | transloco}}</mat-label>
                     <mat-select  formControlName="parentCategoryId">        
-                        <mat-option [value]="0" selected>Нет (будет создана корневая категория)</mat-option>
+                        <mat-option [value]="0" selected>{{'modules.list.will_root_crt' | transloco}}</mat-option>
                         <mat-option [value]="data.parentCategoryId" *ngIf="+data.parentCategoryId>0">{{data.parentCategoryName}}</mat-option>
                         <!-- <mat-option [value]="rt.id">{{rt.name}}</mat-option> -->
                     </mat-select>  
@@ -40,7 +43,9 @@
                 <mat-form-field  [style.display]="'block'">
                     <input matInput
                             placeholder="{{'docs.field.name' | transloco}}"
+                            maxlength="50"
                             formControlName="name"/>
+                    
                 </mat-form-field>
             </form>
         </mat-card-content> 
@@ -53,15 +58,17 @@
                 mat-raised-button 
                 (click)="saveChangeCategoriesOrder()"
                 color="primary"
-                class="button">
-                <i class="material-icons">done</i> Сохранить
+                matTooltip="{{'docs.tip.save' | transloco}}"
+                class="button small-button">
+                <i class="material-icons">save</i>
             </button>
             <button 
                 (click)="onNoClick()"
                 mat-raised-button 
                 color="accent"
-                class="button">
-                <i class="material-icons">close</i> Отмена
+                matTooltip="{{'modules.tip.close_window' | transloco}}"
+                class="button small-button">
+                <i class="material-icons">close</i>
             </button>
         </mat-card-title>
         <mat-card-content > 

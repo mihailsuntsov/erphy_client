@@ -1,4 +1,67 @@
 {
+    "user":{
+        "card":{
+            "authorization":"Sign in",
+            "registration": "Registration",
+            "pwd_recovery": "Password recovery",
+            "new_pwd":      "New password",
+            "hurray":       "Congratulations!",
+            "activation":   "Activation"
+        },
+        "msg":{
+            "error":        "Error!",
+            "attention":    "Attention!",
+            "usr_no_fnd_by":"No user found with this e-mail",
+            "chk_email_pwd":"Check your email and follow the link sent in the email to create a new password",
+            "pwd_rep_succs":"Password recovery completed successfully! Please sign in",
+            "reg_completd1":"Your registration has been completed successfully!",
+            "reg_completd2":"Please check your email and follow the link to verify your email.",
+            "act_success": "User activation completed successfully!",
+            "please_login": "Please sign in"
+        },
+        "field":{
+            "login":        "Login",
+            "password":     "Password",
+            "password_rpt": "Repeat password",
+            "ur_name":      "Your name",
+            "ur_email":     "Your e-mail" 
+        },
+        "error":{
+            "enter_login":  "Enter login",
+            "enter_email":  "Enter email",
+            "enter_ur_name":"Enter your name",
+            "enter_pwd":    "Enter password",
+            "login_mst_cnt":"Login must contain at least 4 characters",
+            "login_max_lng":"Login must be 20 characters maximum",
+            "lgn_mst_cnt1": "Login must contain latin letters and numbers",
+            "pwd_mst_cnt1": "Password must contain latin letters and numbers",
+            "pwd_mst_cnt2": "Password must be at least 6 characters",
+            "pwd_mst_cnt3": "Password must contain a maximum of 20 characters",
+            "name_mst_cnt": "Name must contain at least 2 characters",
+            "wrong_email":  "Wrong email format",
+            "not_logged":   "Not logged in",
+            "unauthorized": "Incorrect username or password",
+            "unactivated":  "Account is not activated. Please check your e-mail and follow the account activation link",
+            "no_pwd_id":    "No password recovery id",
+            "pwd_not_same": "Passwords do not match",
+            "no_bd_srvr_cn":"No connection to database server",
+            "pwd_rep_error":"Password recovery error",
+            "pwd_new_error":"New password creation error",
+            "uuid_no_valid":"The password reset link sent by e-mail is no longer valid",
+            "reg_not_compl":"Registration failed",
+            "no_activ_uuid": "No account activation ID",
+            "activ_error": "Error activating user account",
+            "act_code_nova": "Activation code is invalid"
+        },
+        "btn":{
+            "enter":        "Sign in",
+            "registration": "Registration",
+            "forgot_pass":  "Forgot your password?",
+            "pwd_recovery": "Recover password",
+            "pwd_create":   "Create a new password",
+            "go_to_auth":   "Go to Sign in page"
+        }
+    },
     "sidebar":{
         "title": "DOKIO",
         "menu":{
@@ -17,10 +80,10 @@
                 "returnsup":"Returns to suppliers",
                 "ordersup":"Orders to suppliers",
                 "acceptance":"Acceptances",
-                "invoicein":"Suppliers' invoices",
+                "invoicein":"Suppliers invoices",
                 "vatinvoicein":"Received VAT invoices",
 
-                "return":"Customers' returns",
+                "return":"Customers returns",
                 "customersorders":"Customers orders",
                 "shipment":"Shipments",
                 "invoiceout":"Invoices to customers",
@@ -29,7 +92,7 @@
                 "retailsales":"Retail sales",
                 "shifts":"Cashier's shifts",
                 "receipts":"Сashier's checks",
-                "kassa":"Sales registers",
+                "kassa":"Sale registers",
                 "withdrawal":"Withdrawals",
                 "depositing":"Depositings",
 
@@ -50,7 +113,7 @@
                 "mutualpayment":"Mutual payments",
                 "moneyflow":"Money flows",
 
-                "productgroups":"Products groups",
+                "productgroups":"Product groups",
                 "edizm":"Units of measure",
                 "boxoffice":"Сash rooms",
                 "cagents":"Counterparties",
@@ -58,6 +121,7 @@
                 "statuses":"Document statuses",
                 "expenditure":"Expenditures",
                 "pricetypes":"Price types",
+                "currencies":"Currencies",
 
                 "files":"Files",
 

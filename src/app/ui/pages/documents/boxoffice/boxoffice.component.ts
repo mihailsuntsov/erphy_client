@@ -154,15 +154,15 @@ export class BoxofficeComponent implements OnInit {
             );
   }
 
-  getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==551)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==552)});
-    this.allowToDeleteAllCompanies = permissionsSet.some(         function(e){return(e==553)});
-    this.allowToDeleteMyCompany = permissionsSet.some(            function(e){return(e==554)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==555)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==556)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==557)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==558)});`~`
+  getCRUD_rights(){
+    this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==551)});
+    this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==552)});
+    this.allowToDeleteAllCompanies = this.permissionsSet.some(         function(e){return(e==553)});
+    this.allowToDeleteMyCompany = this.permissionsSet.some(            function(e){return(e==554)});
+    this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==555)});
+    this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==556)});
+    this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==557)});
+    this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==558)});`~`
     this.getData();
   }
 
@@ -331,6 +331,7 @@ export class BoxofficeComponent implements OnInit {
   onCompanySelection(){
     Cookie.set('boxoffice_companyId',this.sendingQueryForm.companyId);
     this.resetOptions();
+    this.getCRUD_rights();
   }
 
   clickBtnDelete(): void {
@@ -442,7 +443,7 @@ export class BoxofficeComponent implements OnInit {
       this.sendingQueryForm.companyId=this.myCompanyId;
       Cookie.set('boxoffice_companyId',this.sendingQueryForm.companyId);
     }
-    this.getCRUD_rights(this.permissionsSet);
+    this.getCRUD_rights();
   }
 
   showCheckbox(row:CheckBox):boolean{

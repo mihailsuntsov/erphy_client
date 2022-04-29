@@ -154,15 +154,15 @@ export class ExpenditureComponent implements OnInit {
             );
   }
 
-  getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==498)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==499)});
-    this.allowToDeleteAllCompanies = permissionsSet.some(         function(e){return(e==500)});
-    this.allowToDeleteMyCompany = permissionsSet.some(            function(e){return(e==501)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==502)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==503)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==504)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==505)});
+  getCRUD_rights(){
+    this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==498)});
+    this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==499)});
+    this.allowToDeleteAllCompanies = this.permissionsSet.some(         function(e){return(e==500)});
+    this.allowToDeleteMyCompany = this.permissionsSet.some(            function(e){return(e==501)});
+    this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==502)});
+    this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==503)});
+    this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==504)});
+    this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==505)});
     this.getData();
   }
 
@@ -451,7 +451,7 @@ export class ExpenditureComponent implements OnInit {
 
   getExpenditureList(){
     this.receivedExpenditureList=this.loadSpravService.getExpenditureList();
-    this.getCRUD_rights(this.permissionsSet);
+    this.getCRUD_rights();
   }
 
   showCheckbox(row:CheckBox):boolean{

@@ -13,7 +13,6 @@ import { UserSettingsDialogModule } from "src/app/modules/settings/user-settings
     CommonModule,
     UiRoutingModule,
     MaterialModule,
-    TranslocoModule,
     UserSettingsDialogModule,
     TranslocoModule
   ],

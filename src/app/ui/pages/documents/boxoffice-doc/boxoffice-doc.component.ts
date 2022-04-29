@@ -126,11 +126,11 @@ export class BoxofficeDocComponent implements OnInit {
             (data) => 
             {
               this.receivedCompaniesList=data as any [];
-              this.setDefaultCompany();
+              this.doFilterCompaniesList();
             },                      
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
         );
-    else this.setDefaultCompany();
+    else this.doFilterCompaniesList();
   }
   getMyId(){ //+++
     if(+this.myId==0)

@@ -1,0 +1,69 @@
+ 
+  <mat-card *ngIf="isPasswordChanged" class="reg-mat-card text-center">
+    <mat-card-title>
+      {{'user.card.new_pwd' | transloco}}
+    </mat-card-title>
+    <mat-card-content class="text-center">
+      {{'user.msg.pwd_rep_succs' | transloco}}<br>
+      <a routerLink="../auth/login" style="color:white"><button mat-button mat-raised-button color="primary" style="margin-top: 20px;">{{'user.btn.go_to_auth' | transloco}}</button></a>
+    </mat-card-content>
+  </mat-card>
+  
+  
+  <mat-card class="login-mat-card" *ngIf="!isPasswordChanged">
+    <div class="lang-select"
+        [matMenuTriggerFor]="addDocMenu">
+        <span>{{language}}</span><div class="arrow-wrap"><i class="material-icons" style="font-size: 18px;">arrow_drop_down</i></div>
+    </div>
+    <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
+        <button mat-menu-item (click)="setLanguage('en')">
+            <span>English</span>
+        </button>
+        <button mat-menu-item (click)="setLanguage('ru')">
+            <span>Русский</span>
+        </button>
+    </mat-menu>
+    
+    <mat-card-title class="text-center">
+      {{'user.card.new_pwd' | transloco}} 
+      <!-- uuid - {{uuid}} -->
+    </mat-card-title>
+    <mat-card-content>
+  
+            <form [formGroup]="newpassform" class="login-form" *ngIf = "!emptyUUID">
+  
+              <mat-form-field>
+                <input matInput 
+                placeholder="{{'user.field.password' | transloco}}" 
+                formControlName="password"
+                [type]="showPwd ? 'text' : 'password'"  
+                [ngClass]="{'is-invalid':newpassform.get('password').touched && newpassform.get('password').invalid}" 
+                />
+                <button mat-button 
+                    type="button"
+                    class="clear-button"
+                    (click)="password()"
+                    matSuffix mat-icon-button>
+                    <mat-icon style="height: 2.2em;">visibility</mat-icon>
+                </button>
+                <mat-hint *ngIf="newpassform.get('password').touched && newpassform.get('password').invalid ">
+                    <i *ngIf="newpassform.get('password').errors.required" class="form-invalid">{{'user.error.enter_pwd' | transloco}}</i>
+                </mat-hint>
+                <mat-hint *ngIf="emptyPassword && !newpassform.get('password').touched">
+                    <i *ngIf="newpassform.get('password').errors.required" class="form-invalid">{{'user.error.enter_pwd' | transloco}}</i>
+                </mat-hint>
+              </mat-form-field>
+
+              <button mat-button mat-raised-button color="primary" style="margin-top: 20px;" (click)="onSubmit()">{{'user.btn.pwd_create' | transloco}}</button>
+              
+            </form>
+            <div *ngIf="emptyUUID" class="form-invalid">
+              {{'user.msg.error' | transloco}} {{errorMessage | transloco}}
+            </div>
+            <div class="text-center" style="margin-top: 20px;">
+              <a routerLink="../login">{{'user.btn.enter' | transloco}}</a>
+            </div>
+  
+  
+    </mat-card-content>
+  </mat-card>

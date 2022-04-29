@@ -252,8 +252,8 @@ export class DepartmentsDocComponent implements OnInit {
                   this.formBaseInformation.get('company_id').setValue(documentResponse.company_id);
                   this.formBaseInformation.get('parent_id').setValue(documentResponse.parent_id);
                   this.formBaseInformation.get('price_id').setValue(documentResponse.price_id);
-                  this.formBaseInformation.get('address').setValue(documentResponse.address);
-                  this.formBaseInformation.get('additional').setValue(documentResponse.additional);
+                  this.formBaseInformation.get('address').setValue(documentResponse.address?documentResponse.address:'');
+                  this.formBaseInformation.get('additional').setValue(documentResponse.additional?documentResponse.additional:'');
                   this.formBaseInformation.get('boxoffice_id').setValue(documentResponse.boxoffice_id);
                   this.formBaseInformation.get('payment_account_id').setValue(documentResponse.payment_account_id);
                   this.formAboutDocument.get('id').setValue(+documentResponse.id);

@@ -139,11 +139,22 @@ export class EdizmDocComponent implements OnInit {
             (data) => 
             {
               this.receivedCompaniesList=data as any [];
-              this.setDefaultCompany();
+              this.doFilterCompaniesList();
             },                      
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
         );
-    else this.setDefaultCompany();
+    else this.doFilterCompaniesList();
+  }
+  doFilterCompaniesList(){
+    let myCompany:any;
+    if(!this.allowToCreateAllCompanies){
+      this.receivedCompaniesList.forEach(company=>{
+      if(this.myCompanyId==company.id) myCompany={id:company.id, name:company.name}});
+      this.receivedCompaniesList=[];
+      this.receivedCompaniesList.push(myCompany);
+    }
+    if(+this.id==0)
+      this.setDefaultCompany();
   }
   getMyId(){ //+++
     if(+this.myId==0)

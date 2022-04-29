@@ -115,7 +115,7 @@ export class MutualpaymentComponent implements OnInit {
         sortColumn: new FormControl(+this.option>0?'summ_on_end':'cagent',[]), //
         sortAsc: new FormControl(+this.option==2?'asc':'desc',[]), //
         offset: new FormControl(0,[]), //
-        result: new FormControl(10,[]), //
+        result: new FormControl('10',[]), //
         searchString: new FormControl('',[]), //
         filterOptionsIds: new FormControl([this.option],[]),
       });
@@ -255,7 +255,7 @@ export class MutualpaymentComponent implements OnInit {
           } else {  
               this.queryForm.get('sortAsc').setValue("asc")
           }
-      Cookie.set('mutualpayment_sortAsc',this.queryForm.sortAsc);
+      Cookie.set('mutualpayment_sortAsc',this.queryForm.get('sortAsc').value);
       } else {
           this.queryForm.get('sortColumn').setValue(valueSortColumn);
           this.queryForm.get('sortAsc').setValue("asc");
@@ -308,7 +308,7 @@ export class MutualpaymentComponent implements OnInit {
   } 
 
   setDefaultCompany(){
-    if(Cookie.get('mutualpayment_companyId')=='0'){
+    if(Cookie.get('mutualpayment_companyId')=='0'||!this.companyIdInList(Cookie.get('mutualpayment_companyId'))){
       this.queryForm.get('companyId').setValue(this.myCompanyId);
       Cookie.set('mutualpayment_companyId',this.queryForm.get('companyId').value);
     }
@@ -390,4 +390,7 @@ export class MutualpaymentComponent implements OnInit {
       // this.queryForm.filterOptionsIds.push(+z.id);
     });
   } 
+  // sometimes in cookie "..._companyId" there value that not exists in list of companies. If it happens, company will be not selected and data not loaded until user select company manually
+  companyIdInList(id:any):boolean{this.receivedCompaniesList.forEach(c=>{if(+id==c.id) return true;});return false;}
+
 }

@@ -153,15 +153,15 @@ export class TaxesComponent implements OnInit {
             );
   }
 
-  getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==636)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==637)});
-    this.allowToDeleteAllCompanies = permissionsSet.some(         function(e){return(e==638)});
-    this.allowToDeleteMyCompany = permissionsSet.some(            function(e){return(e==639)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==640)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==641)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==642)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==643)});
+  getCRUD_rights(){
+    this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==636)});
+    this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==637)});
+    this.allowToDeleteAllCompanies = this.permissionsSet.some(         function(e){return(e==638)});
+    this.allowToDeleteMyCompany = this.permissionsSet.some(            function(e){return(e==639)});
+    this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==640)});
+    this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==641)});
+    this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==642)});
+    this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==643)});
     this.getData();
   }
 
@@ -330,7 +330,7 @@ export class TaxesComponent implements OnInit {
   onCompanySelection(){
     Cookie.set('satusdoc_companyId',this.sendingQueryForm.companyId);
     this.resetOptions();
-    this.getCRUD_rights(this.permissionsSet);
+    this.getCRUD_rights();
   }
 
   clickBtnDelete(): void {
@@ -433,7 +433,7 @@ export class TaxesComponent implements OnInit {
       this.sendingQueryForm.companyId=this.myCompanyId;
       Cookie.set('satusdoc_companyId',this.sendingQueryForm.companyId);
     }
-    this.getCRUD_rights(this.permissionsSet);
+    this.getCRUD_rights();
   }
 
   showCheckbox(row:CheckBox):boolean{

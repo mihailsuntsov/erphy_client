@@ -91,6 +91,8 @@ const routes: Routes = [
       { path: 'profitloss', loadChildren: () => import('./pages/documents/profitloss/profitloss.module').then(m => m.ProfitlossModule) },
       { path: 'taxes', loadChildren: () => import('./pages/documents/taxes/taxes.module').then(m => m.TaxesModule) },
       { path: 'taxesdoc', loadChildren: () => import('./pages/documents/taxes-doc/taxes-doc.module').then(m => m.TaxesDocModule) },
+      { path: 'currencies', loadChildren: () => import('./pages/documents/currencies/currencies.module').then(m => m.CurrenciesModule) },
+      { path: 'currenciesdoc', loadChildren: () => import('./pages/documents/currencies-doc/currencies-doc.module').then(m => m.CurrenciesDocModule) },
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
       { path: '**', redirectTo: 'dashboard',pathMatch: 'full' },
     ]  

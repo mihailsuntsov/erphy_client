@@ -1,0 +1,51 @@
+
+  <mat-card class="login-mat-card">
+    <div class="lang-select"
+        [matMenuTriggerFor]="addDocMenu">
+        <span>{{language}}</span><div class="arrow-wrap"><i class="material-icons" style="font-size: 18px;">arrow_drop_down</i></div>
+    </div>
+    <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
+        <button mat-menu-item (click)="setLanguage('en')">
+            <span>English</span>
+        </button>
+        <button mat-menu-item (click)="setLanguage('ru')">
+            <span>Русский</span>
+        </button>
+    </mat-menu>
+    
+    <mat-card-title class="text-center">
+      {{'user.card.pwd_recovery' | transloco}} 
+    </mat-card-title>
+    <mat-card-content>
+  
+            <form [formGroup]="restoreform" class="login-form">
+  
+              <mat-form-field>
+                <input matInput 
+                placeholder="{{'user.field.ur_email' | transloco}}" 
+                formControlName="email" 
+                type="text"    
+                [ngClass]="{'is-invalid':restoreform.get('email').touched && restoreform.get('email').invalid}"
+                />
+                <mat-hint *ngIf="restoreform.get('email').touched && restoreform.get('email').invalid">
+                    <i *ngIf="restoreform.get('email').errors.required" class="form-invalid">{{'user.error.enter_email' | transloco}}</i>
+                    <i *ngIf="restoreform.get('email').errors.email" class="form-invalid">{{'user.error.wrong_email' | transloco}}</i>
+                </mat-hint>
+                <!-- <mat-hint *ngIf="emptyEmail && !restoreform.get('email').touched">
+                    <i *ngIf="restoreform.get('email').errors.required" class="form-invalid">Введите email</i>
+                </mat-hint> -->
+              </mat-form-field>
+    
+              <button mat-button mat-raised-button color="primary" style="margin-top: 20px;" (click)="onReset()">{{'user.btn.pwd_recovery' | transloco}}</button>
+
+            </form>
+        
+            <!-- <hr /> -->
+            <div class="text-center" style="margin-top: 20px;">
+              <a routerLink="../login">{{'user.btn.enter' | transloco}}</a>
+            </div>
+  
+  
+    </mat-card-content>
+  </mat-card>
+  

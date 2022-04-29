@@ -5,7 +5,10 @@ import { Cookie } from 'ng2-cookies/ng2-cookies';
 
 @Injectable()
 export class DelCookiesService{
-        constructor(private http: HttpClient){ }
+    
+  temp_language:string;
+
+    constructor(private http: HttpClient){ }
 
     delCookiesOnLogin(){
         Cookie.set('anotherCashierFio','undefined', -1, '/');
@@ -14,8 +17,11 @@ export class DelCookiesService{
 
         Cookie.delete('anotherCashierFio');
         Cookie.delete('anotherCashierVatin');
-        // Cookie.delete('dokio_token');
-        // alert(Cookie.get('dokio_token'));
+
+        this.temp_language=Cookie.get('language');
+        Cookie.deleteAll();
+        Cookie.set('language', this.temp_language);
+
     }
 
 

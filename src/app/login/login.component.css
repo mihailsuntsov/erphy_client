@@ -22,3 +22,17 @@
     color: red;
 }
 
+.lang-select{
+    position: absolute;
+    right: 32px;
+    top: 9px;
+    font-size: small;
+    cursor: pointer;
+}
+.arrow-wrap{
+    position: absolute;
+    top: -1px;
+    right: -5px;
+    width: 5px;
+    height: 5px;
+}

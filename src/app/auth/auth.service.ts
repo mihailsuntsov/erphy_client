@@ -33,4 +33,17 @@ export class AuthService {
   signUp(info: SignUpInfo): Observable<string> {
     return this.http.post<string>(this.signupUrl, info, httpOptions);
   }
-}3
+
+  forgotPass(email: string): Observable<any> {
+    return this.http.get("/api/public/forgotPass?mail="+email);
+  }
+
+  setNewPass(uuid: string, pwd: string): Observable<any> {
+    return this.http.get("/api/public/setNewPass?uuid="+uuid+"&pwd="+pwd);
+  }
+
+  activate(uuid: string): Observable<any> {
+    return this.http.get("/api/public/activate/"+uuid);
+  }
+  
+}

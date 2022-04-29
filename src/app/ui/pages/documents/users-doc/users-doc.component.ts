@@ -53,8 +53,10 @@ status_account_name: string;
 status_employee: string;
 status_employee_name: string;
 additional: string;
+languageId: number;
+localeId: number;
 }
-interface idAndName{ //универсалный интерфейс для выбора из справочников
+interface IdAndName{ //универсалный интерфейс для выбора из справочников
   id: string;
   name: string;
 }
@@ -75,6 +77,8 @@ export class UsersDocComponent implements OnInit {
   receivedCompaniesList: any [];//массив для получения списка предприятий
   receivedDepartmentsList: any [];//массив для получения списка отеделний
   receivedUserGroupList: any [];//для групп пользователей
+  spravSysLanguages: IdAndName[] = [];                // here will be loaded all languages
+  spravSysLocales  : IdAndName[] = [];                // here will be loaded all locales
 
   visBtnUpdate = false;
 
@@ -113,9 +117,13 @@ export class UsersDocComponent implements OnInit {
   emptyPassword=false;
   emptyusername=false;
   
-  spravSysTimeZones: idAndName[] = [];// массив, куда будут грузиться все зоны
-  filteredSpravSysTimeZones: Observable<idAndName[]>; //массив для отфильтрованных зон
-  _suffix:string = "en"; // суффикс для запроса к БД 
+  spravSysTimeZones: IdAndName[] = [];// массив, куда будут грузиться все зоны
+  filteredSpravSysTimeZones: Observable<IdAndName[]>; // here will be filtered time zones for showing in select list
+  filteredSpravSysLanguages: Observable<IdAndName[]>; // here will be filtered languages for showing in select list
+  filteredSpravSysLocales:   Observable<IdAndName[]>; // here will be filtered locales for showing in select list
+  
+  suffix:string = "en"; // суффикс 
+  locale:string = "en-uk"; // локаль 
 
   @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
   
@@ -152,35 +160,103 @@ export class UsersDocComponent implements OnInit {
       date_birthday: new FormControl      ('',[]),
       status_account: new FormControl      ('2',[]),
       status_employee: new FormControl      ('',[]),
-      time_zone_name: new FormControl      ('',[]),
-      time_zone_id: new FormControl      (24,[Validators.required]),
+      timeZoneName: new FormControl      ('',[]),
       vatin: new FormControl      ('',[Validators.maxLength(12), Validators.minLength(12),Validators.pattern('^[0-9]{12}$')]),
       selectedUserDepartments: new FormControl([],[]),
-      userGroupList: new FormControl      ([],[]),
+      userGroupList: new FormControl      ([],[]),      
+      timeZoneId: new FormControl  (24,[]),
+      localeId: new FormControl      (4,[]),
+      languageId: new FormControl    (1,[]),
+      localeName: new FormControl      ('',[]),
+      languageName: new FormControl    ('',[]),
     });
     this.formAboutDocument = new FormGroup({
-      id: new FormControl      ('',[]),
-      master: new FormControl      ('',[]),
+      id: new FormControl           ('',[]),
+      master: new FormControl       ('',[]),
       creator: new FormControl      ('',[]),
       changer: new FormControl      ('',[]),
       company: new FormControl      ('',[]),
       date_time_created: new FormControl      ('',[]),
       date_time_changed: new FormControl      ('',[]),
     });
-      //слушалка наизменение поля Часовой пояс
-    this.filteredSpravSysTimeZones = this.formBaseInformation.get('time_zone_name').valueChanges
-    .pipe(
-      startWith(''),
-      map((value:string) => this._filter(value,this.spravSysTimeZones))
-    );
+
     //+++ getting base data from parent component
     this.getBaseData('myId');    
     this.getBaseData('myCompanyId');  
     this.getBaseData('companiesList'); 
     this.getBaseData('suffix'); 
-    
+    this.getBaseData('timeZoneId'); 
+    this.getBaseData('languageId'); 
+    this.getBaseData('localeId'); 
+    // listener of time zones field change
+    this.filteredSpravSysTimeZones = this.formBaseInformation.get('timeZoneName').valueChanges
+    .pipe(
+      startWith(''),
+      map((value:string) => this._filter(value,this.spravSysTimeZones))
+    );
+
+    // listener of language field change
+    this.filteredSpravSysLanguages = this.formBaseInformation.get('languageName').valueChanges
+    .pipe(
+      startWith(''),
+      map((value:string) => this._filter(value,this.spravSysLanguages))
+    );
+
+    // listener of locale field change
+    this.filteredSpravSysLocales = this.formBaseInformation.get('localeName').valueChanges
+    .pipe(
+      startWith(''),
+      map((value:string) => this._filter(value, this.spravSysLocales))
+    );
     this.getSpravSysTimeZones();
+    this.getSpravSysLanguages();
+    this.getSpravSysLocales();
     this.getSetOfPermissions();
+  }
+
+  setBaseDataParameter(parameterName:string,parameterValue:any){
+    if(parameterValue)
+      this.formBaseInformation.get(parameterName).setValue(parameterValue);
+  }
+
+  getSpravSysLanguages():void {    
+    this.http.get('/api/auth/getSpravSysLanguages')  // 
+    .subscribe((data) => {this.spravSysLanguages = data as any[];
+    this.updateValues('languageId','languageName',this.spravSysLanguages); },
+    error => console.log(error));
+  }
+  getSpravSysLocales():void {    
+    this.http.get('/api/auth/getSpravSysLocales')  // 
+    .subscribe((data) => {this.spravSysLocales = data as any[];
+    this.updateValues('localeId','localeName',this.spravSysLocales); },
+    error => console.log(error));
+  }
+  getSpravSysTimeZones():void {    
+    this.http.get('/api/auth/getSpravSysTimeZones?suffix='+this.suffix)  // 
+    .subscribe((data) => {this.spravSysTimeZones = data as any[];
+    this.updateValues('timeZoneId','timeZoneName',this.spravSysTimeZones); },
+    error => console.log(error));
+  }
+  //set name into text field, that matched id in list IdAndName[] (if id is not null)
+  updateValues(id:string,name:string,list:IdAndName[]){
+    if(+this.formBaseInformation.get(id).value!=0){
+      list.forEach(x => {
+        if(x.id==this.formBaseInformation.get(id).value){
+          this.formBaseInformation.get(name).setValue(x.name);
+    }})} 
+    else{ // if id is null - setting '' into the field (if we don't do it - there will be no list of values, when place cursor into the field)
+      this.formBaseInformation.get(name).setValue('');
+      this.formBaseInformation.get(id).setValue('');
+    }
+  }
+  // set id of field value into null when field search value is '' 
+  checkEmptyFields(id:string,name:string){
+    if( this.formBaseInformation.get(name).value.length==0){
+      this.formBaseInformation.get(id).setValue(null);
+    }
+  }
+  clearField(field:string){
+    this.formBaseInformation.get(field).setValue('');
   }
 
   getData(){
@@ -327,16 +403,15 @@ export class UsersDocComponent implements OnInit {
   }
 
   updateDocument(){
-    this.updateDocumentResponse=null;
     return this.http.post('/api/auth/updateUser', this.formBaseInformation.value)
-            .subscribe(
-                (data) => {   
-                            this.updateDocumentResponse=data as string;
-                            this.getData();
-                            this.openSnackBar(translate('docs.msg.doc_sved_suc'),translate('docs.msg.close'));
-                          },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
-            );
+    .subscribe(
+      (data) => {let result=data as any;
+        switch(result){
+          case 1:{this.getData(); this.openSnackBar(translate('docs.msg.doc_sved_suc'),translate('docs.msg.close'));break;} 
+          case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_msg')}});break;}
+          case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});break;}
+        }
+      },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},);
   }
 
   getDocumentValuesById(){
@@ -367,12 +442,13 @@ export class UsersDocComponent implements OnInit {
                   this.formBaseInformation.get('date_birthday').setValue(documentResponse.date_birthday ? moment(documentResponse.date_birthday,'DD.MM.YYYY'):"");
                   this.formBaseInformation.get('additional').setValue(documentResponse.additional);
                   this.formBaseInformation.get('userGroupList').setValue(documentResponse.userGroupsId);
-                  this.formBaseInformation.get('time_zone_id').setValue(documentResponse.time_zone_id);
-                  this.formBaseInformation.get('vatin').setValue(documentResponse.vatin);
 
                   this.getDepartmentsList(this.formBaseInformation.get('company_id').value);  
                   this.getUserGroupListByCompanyId(this.formBaseInformation.get('company_id').value);
-                  this.updateValuesSpravSysTimeZones(); 
+
+
+
+
                   
                 } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();
@@ -432,51 +508,14 @@ export class UsersDocComponent implements OnInit {
     }  
   }
 
-  //фильтрация при каждом изменении в поле Часовой пояс
-  // private _filter(value: string): idAndName[] {
-  //   if(value !== undefined){
-  //     const filterValue = value.toLowerCase();
-  //     return this.spravSysTimeZones.filter(option => option.name_rus.toLowerCase().includes(filterValue));
-  //   } else return [];
-    
-  // }
 
   // filtration on each change of text field
-  private _filter(value: string, list:idAndName[]): idAndName[] {
+  private _filter(value: string, list:IdAndName[]): IdAndName[] {
     const filterValue = value.toLowerCase();
     return list.filter(option => option.name.toLowerCase().includes(filterValue));
   }
 
 
-  getSpravSysTimeZones():void {    
-    // alert(this._suffix )
-    this.http.get('/api/auth/getSpravSysTimeZones?suffix='+this._suffix)  // 
-    .subscribe((data) => {this.spravSysTimeZones = data as any[];
-    this.updateValuesSpravSysTimeZones(); },
-    error => console.log(error));
-    }
-  //если значение уже выбрано (id загрузилось), надо из массива объектов найти имя, соответствующее этому id 
-  updateValuesSpravSysTimeZones(){
-    if(+this.formBaseInformation.get('time_zone_id').value!=0)
-      {
-        this.spravSysTimeZones.forEach(x => {
-          if(x.id==this.formBaseInformation.get('time_zone_id').value){
-            this.formBaseInformation.get('time_zone_name').setValue(x.name);
-          }
-        })
-      } 
-      else //иначе обнулить поля id и имени. Без этого при установке курсора в поле список выскакивать не будет (х.з. почему так)
-      {
-        this.formBaseInformation.get('time_zone_name').setValue('');
-        this.formBaseInformation.get('time_zone_id').setValue('');
-      }
-  }
-  // //вызывается из html. необходима для сброса уже имеющегося значения. когда имя стирается, в id установится 0 
-  // checkEmptyTimeZoneField(){
-  //   if( this.formBaseInformation.get('time_zone_name').value.length==0){
-  //     this.formBaseInformation.get('time_zone_id').setValue('');
-  //   }
-  // }
   numberOnly(event): boolean {
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
     if (charCode > 31 && (charCode < 48 || charCode > 57)) { return false; } return true;}
@@ -484,15 +523,7 @@ export class UsersDocComponent implements OnInit {
   getBaseData(data) {    //+++ emit data to parent component
     this.baseData.emit(data);
   }
-  // set id of field value into null when field search value is '' 
-  checkEmptyFields(id:string,name:string){
-    if( this.formBaseInformation.get(name).value.length==0){
-      this.formBaseInformation.get(id).setValue(null);
-    }
-  }
-  clearField(field:string){
-    this.formBaseInformation.get(field).setValue('');
-  }
+
 }
 
 

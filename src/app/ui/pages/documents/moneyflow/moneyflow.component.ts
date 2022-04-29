@@ -138,7 +138,7 @@ export class MoneyflowComponent implements OnInit {
         sortColumn: new FormControl('date_created',[]), //
         sortAsc: new FormControl('desc',[]), //
         offset: new FormControl(0,[]), //
-        result: new FormControl(10,[]), //
+        result: new FormControl('10',[]), //
         filterOptionsIds: new FormControl([],[]), //
         searchString: new FormControl('',[]), //
       });
@@ -290,7 +290,7 @@ export class MoneyflowComponent implements OnInit {
           } else {  
               this.queryForm.get('sortAsc').setValue("asc")
           }
-      Cookie.set('moneyflow_sortAsc',this.queryForm.sortAsc);
+      Cookie.set('moneyflow_sortAsc',this.queryForm.get('sortAsc').value);
       } else {
           this.queryForm.get('sortColumn').setValue(valueSortColumn);
           this.queryForm.get('sortAsc').setValue("asc");
@@ -356,7 +356,7 @@ export class MoneyflowComponent implements OnInit {
   } 
 
   setDefaultCompany(){
-    if(Cookie.get('moneyflow_companyId')=='0' && this.company==0){
+    if((Cookie.get('moneyflow_companyId')=='0' && this.company==0)||!this.companyIdInList(Cookie.get('moneyflow_companyId'))){
       this.queryForm.get('companyId').setValue(this.myCompanyId);
       Cookie.set('moneyflow_companyId',this.queryForm.get('companyId').value);
     }
@@ -436,4 +436,7 @@ export class MoneyflowComponent implements OnInit {
       // this.queryForm.filterOptionsIds.push(+z.id);
     });
   } 
+  // sometimes in cookie "..._companyId" there value that not exists in list of companies. If it happens, company will be not selected and data not loaded until user select company manually
+  companyIdInList(id:any):boolean{this.receivedCompaniesList.forEach(c=>{if(+id==c.id) return true;});return false;}
+
 }

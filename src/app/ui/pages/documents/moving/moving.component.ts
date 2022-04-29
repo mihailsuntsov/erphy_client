@@ -132,7 +132,7 @@ export class MovingComponent implements OnInit {
       this.sendingQueryForm.sortAsc='desc';
       this.sendingQueryForm.sortColumn='date_time_created_sort';
       this.sendingQueryForm.offset=0;
-      this.sendingQueryForm.result=0;
+      this.sendingQueryForm.result='10';
       this.sendingQueryForm.searchCategoryString="";
       this.sendingQueryForm.filterOptionsIds = [];
   

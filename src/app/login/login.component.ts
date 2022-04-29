@@ -17,12 +17,15 @@ import { TokenStorageService } from '../auth/token-storage.service';// TokenStor
 import { Router } from '@angular/router';
 import {  Validators, FormGroup, FormControl } from '@angular/forms';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
+import { TranslocoService } from '@ngneat/transloco';
+// import { filter } from 'rxjs/operators';
+import { translate } from '@ngneat/transloco'; //+++
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
-  providers: [DelCookiesService]
+  providers: [DelCookiesService,Cookie]
 })
 export class LoginComponent implements OnInit {
   loginform: any ;
@@ -32,15 +35,23 @@ export class LoginComponent implements OnInit {
   roles: string[] = [];
   emptyLogin=false;
   emptyPassword=false;
+  // temp_language:string='en';
 
   constructor(
     private authService: AuthService, 
     private tokenStorage: TokenStorageService,
     private _router:Router,
+    private service: TranslocoService,
     // private Cookie: Cookie,
     private delCookiesService: DelCookiesService,) { }
 
   ngOnInit() {
+    // this.service.load('ru').subscribe();
+    // this.service.events$.pipe(filter(event => event.type==='translationLoadSuccess'));
+    if(Cookie.get('language')=='undefined' || Cookie.get('language')==null) Cookie.set('language', 'en');
+    this.setLanguage(Cookie.get('language'));
+    // if(Cookie.get('language')=='undefined' || Cookie.get('language')==null) this.setLanguage('en'); else {this.temp_language=Cookie.get('language')}
+
     if (this.tokenStorage.getToken()) {
       this.isLoggedIn = true;
       this.roles = this.tokenStorage.getAuthorities();
@@ -55,10 +66,24 @@ export class LoginComponent implements OnInit {
         username: new FormControl ('',[Validators.required,Validators.minLength(6)]),
         password: new FormControl ('',[Validators.required]),
       });
-      this.delCookiesService.delCookiesOnLogin();
-      Cookie.deleteAll();
     }
 
+    // this.temp_language=Cookie.get('language');
+    // Cookie.deleteAll();
+    // this.delCookiesService.delCookiesOnLogin();
+    // this.setLanguage(this.temp_language);
+  }
+  setLanguage(lang: string) {
+    this.service.setActiveLang(lang);
+    Cookie.set('language', lang);
+  }
+
+  get language() {
+    switch (Cookie.get('language')){
+      case 'en': return 'English';
+      case 'ru': return 'Русский';
+      default: return 'English';
+    }
   }
 
   onSubmit() {
@@ -78,7 +103,9 @@ export class LoginComponent implements OnInit {
         error => {
           console.log(error);
           if (error.error.message=="Error -> Unauthorized"){
-            this.errorMessage = "Неправильные логин или пароль."
+            this.errorMessage = translate('user.error.unauthorized')
+          } else if (error.error.message=="Error -> Not activated"){
+            this.errorMessage = translate('user.error.unactivated')
           }else{this.errorMessage = error.error.message;}
           this.isLoginFailed = true;
         }

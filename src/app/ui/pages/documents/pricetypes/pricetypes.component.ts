@@ -422,7 +422,7 @@ getTableHeaderTitles(){
     onClickRadioBtn(id:number, name:string){
       const body = {"id": this.sendingQueryForm.companyId, "id3":id}; 
       this.clearCheckboxSelection();
-        return this.http.post('/api/auth/setDefaultPriceType', body) 
+        return this.http.post('/api/auth/setDefaultPriceType', body) 
       .subscribe(
           (data) => {   
             this.getData();

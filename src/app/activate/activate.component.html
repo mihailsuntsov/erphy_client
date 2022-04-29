@@ -1,0 +1,36 @@
+
+  
+  <mat-card class="login-mat-card">
+    <div class="lang-select"
+        [matMenuTriggerFor]="addDocMenu">
+        <span>{{language}}</span><div class="arrow-wrap"><i class="material-icons" style="font-size: 18px;">arrow_drop_down</i></div>
+    </div>
+    <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
+        <button mat-menu-item (click)="setLanguage('en')">
+            <span>English</span>
+        </button>
+        <button mat-menu-item (click)="setLanguage('ru')">
+            <span>Русский</span>
+        </button>
+    </mat-menu>
+    
+    <mat-card-title style="text-align: center;">
+      {{'user.card.activation' | transloco}}
+    </mat-card-title>
+    <mat-card-content class="text-center">
+
+
+
+      <div *ngIf="isActivated && !emptyUUID">
+        <p>{{'user.msg.act_success' | transloco}}<br>{{'user.msg.please_login' | transloco}}</p>
+        <p><a routerLink="../auth/login" style="color:white"><button mat-button mat-raised-button color="primary" style="margin-top: 20px;">{{'user.btn.go_to_auth' | transloco}}</button></a></p>
+      </div>
+
+
+      <div *ngIf="emptyUUID || act_code_novalid" class="form-invalid">
+        {{'user.msg.error' | transloco}} {{errorMessage | transloco}}
+      </div>
+
+  
+    </mat-card-content>
+  </mat-card>

@@ -4,8 +4,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-
-
 import { SignUpInfo } from './signup-info';
 
 const httpOptions = {

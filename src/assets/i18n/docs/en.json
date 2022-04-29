@@ -33,7 +33,8 @@
         "bank_data":    "Bank data",
         "permissions":  "Permissions",
         "perm_n_access":"Access and permissions",
-        "account":      "User accounts"
+        "account":      "User accounts",
+        "lang_n_stand": "Languages and standards"
     },
     "field":{ 
         "-- COMMON":"--",
@@ -86,6 +87,7 @@
         "id_contract":  "ID of contract",
         "sell_name":    "Sell name",
         "name":         "Name",
+        "name_":        "Name",
         "from_sell_reg":"From the sell register",
         "to_sell_reg":  "To the sell register",
         "from_cash_rom":"From the cash room",
@@ -228,7 +230,12 @@
         "p_change":"Change",
         "p_gr_mrk_prod":"Group of marked products",     
         "p_w_code":     "Weight code",  
-        "__":"__"
+        "name_short":"Short name",
+        "name_full":"Full name",
+        "code_lit":"Letter code",
+        "code_num":"Numeral code",
+        "acc_currency": "Accounting currency"
+
     },
     "error":{ 
         "-- COMMON":"--",
@@ -487,7 +494,8 @@
         "cr_cn_pin_po": "Create a counter incoming payment for this outgoing payment",
         "cr_cn_oin_po": "Create a counter credit slip for this outgoing payment",
         "cr_cn_oin_wd": "Create a counter credit slip for this withdrawal",
-        "code_not_unic":"This code is not unique"
+        "code_not_unic":"This code is not unique",
+        "usr_crte_attn":"This data is displayed here only when the user is created. After creation, the user can change them himself"
     },
     "button":{        
         "test_connct":  "Connection test",
@@ -574,6 +582,7 @@
         "products":     "Products",
         "orderin_":     "Credit slip (internal)",
         "paymentin_":   "Incoming payment (internal)",
-        "set_templates":"Template settings"
+        "set_templates":"Template settings",
+        "currency":     "Currency"
     }
 }

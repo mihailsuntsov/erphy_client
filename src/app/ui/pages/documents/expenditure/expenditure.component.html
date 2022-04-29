@@ -159,7 +159,7 @@ class="spinner"
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='type'" class="material-icons sortarrow">arrow_upward</i>
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='type'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
-                            <td mat-cell *matCellDef="let row"> {{getExpenditureNameById(row.type)}} </td>
+                            <td mat-cell *matCellDef="let row"> {{t(getExpenditureNameById(row.type))}} </td>
                         </ng-container>
                         <ng-container matColumnDef="company">
                             <th mat-header-cell *matHeaderCellDef>

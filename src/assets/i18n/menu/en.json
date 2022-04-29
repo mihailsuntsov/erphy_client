@@ -186,7 +186,12 @@
         "est_rec_date": "ERD", "Estimated receive date":"",
         "acc_date":     "Acceptance date",
         "supplier":     "Supplier",
-        "date_complete":"Completed"
+        "date_complete":"Completed",  
+        "name_short":   "Short name",
+        "name_full":    "Full name",
+        "code_lit":     "Letter code",
+        "code_num":     "Numeral code",
+        "acc_currency": "Accounting currency"
     },
     "bottom":{
         "founded":      "Founded",
@@ -204,8 +209,9 @@
         "del_success":  "Deleted successfully to the bin",
         "del_bin_succ": "Successfully deleted to the bin",
         "bin_clr_succ": "The bin has been successfully emptied",
-        "pricetype_set":"Price type {{name}} successfully installed by default",
-        "status_set":   "Status {{name}} successfully installed by default",
+        "pricetype_set":"Price type \"{{name}}\" successfully installed by default",
+        "currency_set": "Currency \"{{name}}\" successfully set as accounting currency",
+        "status_set":   "Status \"{{name}}\" successfully installed by default",
         "no_del_childs":"Deletion is not possible - the following document numbers have derived (related child) documents:",
         "close":        "Close",
         "settngs_saved":"Settings saved successfully",
@@ -343,7 +349,8 @@
         "invoicesin":   "suppliers' invoices",
         "v_invoicein":  "received VAT invoice",  
         "v_invoicesin": "received VAT invoices",
-        "counterpays":  "Mutual payments with"
+        "counterpays":  "Mutual payments with",
+        "currencies":   "currencies"
     },
     "indicators":{
         "revenue":      "Revenue",

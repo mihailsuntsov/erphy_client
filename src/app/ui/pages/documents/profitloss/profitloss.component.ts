@@ -253,7 +253,7 @@ export class ProfitlossComponent implements OnInit {
   } 
 
   setDefaultCompany(){
-    if(Cookie.get('profitloss_companyId')=='0'){
+    if(Cookie.get('profitloss_companyId')=='0'||!this.companyIdInList(Cookie.get('profitloss_companyId'))){
       this.queryForm.get('companyId').setValue(this.myCompanyId);
       Cookie.set('profitloss_companyId',this.queryForm.get('companyId').value);
     }
@@ -314,4 +314,6 @@ export class ProfitlossComponent implements OnInit {
   getBaseData(data) {    //+++ emit data to parent component
     this.baseData.emit(data);
   }
+  // sometimes in cookie "..._companyId" there value that not exists in list of companies. If it happens, company will be not selected and data not loaded until user select company manually
+  companyIdInList(id:any):boolean{this.receivedCompaniesList.forEach(c=>{if(+id==c.id) return true;});return false;}
 }

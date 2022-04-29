@@ -202,7 +202,9 @@
         "from_date":    "From the date",
         "to_date":      "By date",
         "templ_name":   "Template name",
-        "templ_file":   "Template file"
+        "templ_file":   "Template file",
+        "parent_catgr": "Parent category",
+        "sku_supplier": "SKU of supplier"
     },
     "error":{   
         "field_miss":  "Required field is missing",
@@ -242,7 +244,8 @@
         "department":   "Department",
         "default_price":"Default price",
         "internal_bcod":"Internal",
-        "maker_bcod":   "Manufacturer's"
+        "maker_bcod":   "Manufacturer's",
+        "will_root_crt":"Not set (will be created as a root category)"
     },
     "kpi":{
         "hour":"Hour",

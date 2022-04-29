@@ -286,13 +286,7 @@ export class ExpenditureDocComponent implements OnInit {
     }
 
   updateDocument(){ 
-    const body= {
-      "id":                       this.formBaseInformation.get('id').value,
-      "company_id":               this.formBaseInformation.get('company_id').value,
-      "name":                     this.formBaseInformation.get('name').value,
-      "type":                     this.formBaseInformation.get('type').value,
-    }
-      return this.http.post('/api/auth/updateExpenditure', body)
+      return this.http.post('/api/auth/updateExpenditure', this.formBaseInformation.value)
       .subscribe((data) => {   
         let result=data as any;
         switch(result){

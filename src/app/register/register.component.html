@@ -1,0 +1,122 @@
+<mat-card *ngIf="isSignedUp" class="reg-mat-card text-center">
+  <mat-card-title>
+    {{'user.card.hurray' | transloco}}
+  </mat-card-title>
+  <mat-card-content class="text-center">
+    {{'user.msg.reg_completd1' | transloco}}<br>{{'user.msg.reg_completd2' | transloco}}<br>
+    <a routerLink="../auth/login" style="color:white"><button mat-button mat-raised-button color="primary" style="margin-top: 20px;">{{'user.btn.go_to_auth' | transloco}}</button></a>
+  </mat-card-content>
+  
+</mat-card>
+
+
+<!-- <ng-template #signupForm> -->
+<mat-card *ngIf="!isSignedUp;" class="reg-mat-card">
+  <div class="lang-select"
+      [matMenuTriggerFor]="addDocMenu">
+      <span>{{language}}</span><div class="arrow-wrap"><i class="material-icons" style="font-size: 18px;">arrow_drop_down</i></div>
+  </div>
+  <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
+      <button mat-menu-item (click)="setLanguage('en')">
+          <span>English</span>
+      </button>
+      <button mat-menu-item (click)="setLanguage('ru')">
+          <span>Русский</span>
+      </button>
+  </mat-menu>
+  
+  <mat-card-title class="text-center">
+    {{'user.card.registration' | transloco}}
+  </mat-card-title>
+  <mat-card-content>
+
+    <form [formGroup]="regform" class="reg-form">
+      <mat-form-field>
+        <input matInput 
+        placeholder="{{'user.field.ur_name' | transloco}}" 
+        formControlName="name" 
+        type="text"    
+        [ngClass]="{'is-invalid':regform.get('name').touched && regform.get('name').invalid}"
+        />
+        <mat-hint *ngIf="regform.get('name').touched && regform.get('name').invalid">   
+            <i *ngIf="regform.get('name').errors.required" class="form-invalid">{{'user.error.enter_ur_name' | transloco}}</i>
+            <i *ngIf="regform.get('name').errors.minlength" class="form-invalid">{{'user.error.name_mst_cnt' | transloco}}</i>
+        </mat-hint>
+        <mat-hint *ngIf="emptyName && !regform.get('name').touched">
+            <i *ngIf="regform.get('name').errors.required" class="form-invalid">{{'user.error.enter_ur_name' | transloco}}</i>
+        </mat-hint>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput 
+        placeholder="{{'user.field.login' | transloco}}" 
+        formControlName="username" 
+        type="text"    
+        [ngClass]="{'is-invalid':regform.get('username').touched && regform.get('username').invalid}"
+        />
+        <mat-hint *ngIf="regform.get('username').touched && regform.get('username').invalid">
+            <i *ngIf="regform.get('username').errors.required" class="form-invalid">{{'user.error.enter_login' | transloco}}<br></i>
+            <i *ngIf="regform.get('username').errors.minlength" class="form-invalid">{{'user.error.login_mst_cnt' | transloco}}<br></i>
+            <i *ngIf="regform.get('username').errors.maxlength" class="form-invalid">{{'user.error.login_max_lng' | transloco}}<br></i>
+            <i *ngIf="regform.get('username').errors.pattern &&
+                      !regform.get('username').errors.maxlength" class="form-invalid">{{'user.error.lgn_mst_cnt1' | transloco}}<br></i>
+        </mat-hint>
+        <mat-hint *ngIf="emptyLogin && !regform.get('username').touched">
+            <i *ngIf="regform.get('username').errors.required" class="form-invalid">{{'user.error.enter_login' | transloco}}<br></i>
+        </mat-hint>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput 
+        placeholder="E-mail" 
+        formControlName="email" 
+        type="text"    
+        [ngClass]="{'is-invalid':regform.get('email').touched && regform.get('email').invalid}"
+        />
+        <mat-hint *ngIf="regform.get('email').touched && regform.get('email').invalid">
+            <i *ngIf="regform.get('email').errors.required" class="form-invalid">{{'user.error.enter_email' | transloco}}</i>
+            <i *ngIf="regform.get('email').errors.email" class="form-invalid">{{'user.error.wrong_email' | transloco}}</i>
+        </mat-hint>
+        <mat-hint *ngIf="emptyEmail && !regform.get('email').touched">
+            <i *ngIf="regform.get('email').errors.required" class="form-invalid">{{'user.error.enter_email' | transloco}}</i>
+        </mat-hint>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input [type]="showPwd ? 'text' : 'password'" 
+        matInput         
+        placeholder="{{'user.field.password' | transloco}}" 
+        formControlName="password"  
+        [ngClass]="{'is-invalid':regform.get('password').touched && regform.get('password').invalid}"
+        />
+        <button mat-button 
+            type="button"
+            class="clear-button"
+            (click)="password()"
+            matSuffix mat-icon-button>
+            <mat-icon style="height: 2.2em;">visibility</mat-icon>
+        </button>
+        <mat-hint *ngIf="regform.get('password').touched && regform.get('password').invalid">
+            <i *ngIf="regform.get('password').errors.required" class="form-invalid">{{'user.error.enter_pwd' | transloco}}<br></i>
+            <i *ngIf="regform.get('password').errors.minlength" class="form-invalid">{{'user.error.pwd_mst_cnt2' | transloco}}<br></i>
+            <i *ngIf="regform.get('password').errors.maxlength" class="form-invalid">{{'user.error.pwd_mst_cnt3' | transloco}}<br></i>
+            <i *ngIf="regform.get('password').errors.pattern &&
+                      !regform.get('password').errors.maxlength" class="form-invalid">{{'user.error.pwd_mst_cnt1' | transloco}}<br></i>
+        </mat-hint>
+        <mat-hint *ngIf="emptyPassword && !regform.get('password').touched">
+            <i *ngIf="regform.get('password').errors.required" class="form-invalid">{{'user.error.enter_pwd' | transloco}}<br></i>
+        </mat-hint>
+      </mat-form-field>
+
+      <button mat-button mat-raised-button color="primary" style="margin-top: 20px;" (click)="onSubmit()" [disabled]="regform.invalid">{{'user.btn.registration' | transloco}}</button>
+      <div *ngIf="isSignUpFailed" class="form-invalid">
+        {{'user.error.reg_not_compl' | transloco}}: {{errorMessage}}
+      </div>
+    </form>  
+  
+    <div class="text-center" style="margin-top: 20px;">
+      <a routerLink="../login">{{'user.btn.enter' | transloco}}</a>
+    </div>
+  </mat-card-content>
+</mat-card>
+<!-- </ng-template> -->
