@@ -62,7 +62,7 @@ export class ProductBarcodesDialogComponent implements OnInit {
     // console.log("ean13:"+this.ean13_LastNum('460622411175'));
     // console.log("product_code_free:" + this.data.product_code_free);
     // console.log("st_prefix_barcode_pieced:" + this.data.st_prefix_barcode_pieced);
-    // console.log("ean13:"+this.ean13_LastNum("2"+this.data.st_prefix_barcode_pieced+this.data.product_code_free));
+    // console.log("ean13:"+this.ean13_LastNum(this.data.st_prefix_barcode_pieced+this.data.product_code_free));
   }
   
 
@@ -197,7 +197,7 @@ export class ProductBarcodesDialogComponent implements OnInit {
   generateEAN13barcode(){
     if(+this.data.product_code_free>0)
     {
-      let fullBarcode:string=this.ean13_LastNum("2"+this.data.st_prefix_barcode_pieced+this.data.product_code_free);
+      let fullBarcode:string=this.ean13_LastNum(this.data.st_prefix_barcode_pieced+this.data.product_code_free);
       this.formBaseInformation.get('value').setValue(fullBarcode);
       this.formBaseInformation.get('description').setValue(translate('modules.msg.internal_bcod'));
       // console.log("value1:"+this.formBaseInformation.get('value').value);

@@ -115,7 +115,8 @@
         "rprt_settings":"Report settings",
         "show_prnt_tmp":"Enable if the template should be displayed in the list",
         "select_file":  "Select file",
-        "add_template": "Add template"
+        "add_template": "Add template",
+        "clr_srch":     "Clear the search field, and select a different value"
     },
     "tab":{
     },
@@ -204,7 +205,10 @@
         "templ_name":   "Template name",
         "templ_file":   "Template file",
         "parent_catgr": "Parent category",
-        "sku_supplier": "SKU of supplier"
+        "sku_supplier": "SKU of supplier",
+        "language":     "Language",
+        "locale":       "Date and time standards",
+        "timezone":     "Timezone"
     },
     "error":{   
         "field_miss":  "Required field is missing",

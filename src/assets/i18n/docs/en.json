@@ -181,6 +181,8 @@
         "user_company": "Main company of the user",
         "dep_price_typ":"Department's price type",
         "customer_srch":"Customer search",
+        "prefix_pieced":"Barcode prefix of the piece product",
+        "prefix_packed":"Barcode prefix of the weight product",
         
         "-- SELL REGICTERS ":"--",
 
@@ -257,7 +259,8 @@
         "field_length":     "The allowed field length is from {{num1}} to {{num2}}",
         "lgn_must_contain": "The login must consist of latin letters and numbers, and begin with the letters",
         "pwd_must_contain": "The password must consist of latin letters and numbers, and begin with the letters",
-        "email":            "Incorrect format of e-mail",   
+        "email":            "Incorrect format of e-mail",      
+        "num_digits":       "Must be {{num}} digits",
         
         "-- RETURNS TO SUPPLIERS":"--",
 
@@ -341,7 +344,9 @@
         "cost_each":    "The average cost of goods is calculated separately for each department",
         "copy_file_addr":"Copy file link",
         "download_file":"Download file",
-        "clear_field":  "Clear the search field, and select a different value"
+        "clear_field":  "Clear the search field, and select a different value",
+        "prefix_pieced":"The first 2 digits of the EAN-13 barcode. Designed to form the company's internal barcodes for piece goods. Value from 20 to 29",
+        "prefix_packed":"The first 2 digits of the EAN-13 barcode. Designed to form the company's internal barcodes for weighted goods with coding of their mass. Value from 20 to 29"
     },
     "msg":{
         "error":        "Error!",

@@ -330,7 +330,7 @@
     
   <section class="home-section">
     <router-outlet  
-    *ngIf="authorized" 
+    *ngIf="authorized && isSettingsLoaded" 
     style="width:100%; height: 100%"
     (activate)="onOutletLoaded($event)"
     

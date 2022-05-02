@@ -31,8 +31,11 @@ export class UiComponent implements OnInit {
   // localized:boolean=false;
   locale:string='en-us';// locale (for dates, calendar etc.)
   suffix:string='en';   // en es ru etc
-  component:any;
-  settingsForm: any; // form for settings
+  accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
+  countryId:number;    // id of user's company country of jurisdiction
+  organization = '';    // organization of country of jurisdiction(e.g. EU)
+  component:any;        // child component of this component, loaded into <router-outlet></router-outlet>
+  settingsForm: any;    // form for settings
   isSettingsLoaded:boolean = false; // settigns must be loaded only once. After we need just send into router-outlet info about language & locale on every rout
   myId:number=null;
   myCompanyId:number=null;
@@ -56,13 +59,7 @@ export class UiComponent implements OnInit {
   {
     this.service.load('en').subscribe();
     this.service.events$.pipe(filter(event => event.type==='translationLoadSuccess'));
-    // .subscribe(() => {
-      // console.log(111)
-      // setTimeout(() => { 
-        // this.localized=true;
-      // }, 1000);
-      // 
-    // });
+
     
     // Форма настроек
     this.settingsForm = new FormGroup({
@@ -79,6 +76,10 @@ export class UiComponent implements OnInit {
 
     if(Cookie.get('dokio_token')){
       this.getAllMyPermissions();// -> getPermissions()
+      this.getSettings(false);
+      this.getMyId();
+      this.getMyCompanyId();
+      this.getCompaniesList();
     }     
     else this._router.navigate(['/login']);
   }
@@ -95,17 +96,9 @@ export class UiComponent implements OnInit {
     if(this.isSettingsLoaded){
       this.setLanguage(this.suffix); // setting language in Transloco by suffixes like en es ru etc
       this.setLocale  (this.locale); // setting locale in moment.js
-
-      // this.setMyId();
-      // this.setMyCompanyId();
-    } else {
-      this.getSettings(false);
-      this.getMyId();
-      this.getMyCompanyId();
-      this.getCompaniesList();
     }
 
-    //Below will subscribe to the searchItem emitter
+    //Below will subscribe to the baseData emitter
     component.baseData.subscribe((data) => {
        // Will receive the data from child here 
        let query=data as string;
@@ -137,32 +130,38 @@ export class UiComponent implements OnInit {
         case 'localeId':{
           component.setBaseDataParameter('localeId',this.settingsForm.get('localeId').value);
           break;}
+        case 'accountingCurrency':{
+          component.accountingCurrency=this.accountingCurrency;
+          break;}
+        case 'countryId':{
+          component.countryId=this.countryId;
+          break;}
+        case 'organization':{
+          component.organization=this.organization;
+          break;}
       }
     })
     
 
   }
-  
-//   onActivate(component) {
-//     console.log(component)
-//     component.anyFunction();
-//     //Below will subscribe to the searchItem emitter
-//     alert(1)
-//     component.searchItem.subscribe((data) => {
-//       alert(11)
-//        // Will receive the data from child here 
-//        let query=data as string;
-//        switch (query) {
-//         case 'myId': {
-//           component.myId=this.myId;;
-//           break;}
-//         case 'myCompanyId': {
-//           component.myCompanyId=this.myCompanyId;
-//           break;}
-//       }
-//     })
-//  }
 
+  // onActivate(component) {
+  //   component.baseData.subscribe((data) => {
+  //     let query=data as string;
+  //     switch (query) {
+  //       case 'accountingCurrency':{
+  //         component.accountingCurrency=this.accountingCurrency;
+  //         break;}
+  //       case 'countryId':{
+  //         component.countryId=this.countryId;
+  //         break;}
+  //       case 'organization':{
+  //         component.organization=this.organization;
+  //         break;}
+  //     }
+  //   })
+
+  // }
   setLanguage(lang: string) {
     this.service.setActiveLang(lang);
   }
@@ -176,7 +175,7 @@ export class UiComponent implements OnInit {
   }
 
   updateDashboard(locale:string){
-    if(this.component.dashboard){// если дочерний компонент - Дэшборд (стартовая страница) -  нужно обновить _adapter у всех виджетов, использующих даты
+    if(this.component && this.component.dashboard){// если дочерний компонент - Дэшборд (стартовая страница) -  нужно обновить _adapter у всех виджетов, использующих даты
       this.component.locale=locale; //меняем у Дэшборда локаль
       // alert("updateDashboard-"+this.component.locale+", "+this.component.actionsBeforeGetChilds)
       // setTimeout(() => {this.component.locale=locale;}, 5000);
@@ -266,8 +265,12 @@ export class UiComponent implements OnInit {
             this.settingsForm.get('localeId').setValue((result.locale_id&&result.locale_id>0)?result.locale_id:3);// en-us suffix
             this.locale=result.locale?result.locale:'en-us';// en-us
             this.suffix=result.suffix?result.suffix:'en';// suffix - at same time means language for Transloco
-            this.setLanguage(this.suffix); // setting language in Transloco by suffixes like en es ru etc
-            this.setLocale  (this.locale); // setting locale in moment.js
+            this.accountingCurrency=result.accounting_currency;// short name of Accounting currency of user's company (e.g. $ or EUR)
+            this.countryId=result.country_id;     // id of user's company country of jurisdiction
+            this.organization=result.organization;// organization of country of jurisdiction(e.g. EU)
+            this.setLanguage(this.suffix);        // setting language in Transloco by suffixes like en es ru etc
+            this.setLocale  (this.locale);        // setting locale in moment.js
+            
             if(updateDashboard) this.updateDashboard(this.locale);
             this.isSettingsLoaded = true;
           },

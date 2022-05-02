@@ -575,7 +575,7 @@
                                                 </div>
                                             </div>
                                             <!-- Регион -->
-                                            <mat-form-field style="display: none">
+                                            <!-- <mat-form-field style="display: none">
                                                 <input  matInput
                                                         placeholder="region_id"
                                                         formControlName="region_id"/>
@@ -598,9 +598,19 @@
                                                 </ng-container>
                                                 </mat-autocomplete>
                                             </mat-form-field>
-                                            <mat-progress-bar *ngIf="isRegionListLoading" mode="indeterminate"></mat-progress-bar>
+                                            <mat-progress-bar *ngIf="isRegionListLoading" mode="indeterminate"></mat-progress-bar> -->
+                                            
+                                            <mat-form-field class="mat-form-field-100">
+                                                <input   matInput
+                                                        placeholder="{{t('docs.field.region')}}"
+                                                        [readonly]=!editability
+                                                        maxlength="120"
+                                                        formControlName="region"/>
+                                                <mat-hint align="end" *ngIf="formBaseInformation.get('region').value.length>100">{{formBaseInformation.get('region').value.length}} / 120</mat-hint>
+                                            </mat-form-field>
+                                            
                                             <!-- Город -->
-                                            <mat-form-field style="display: none">
+                                            <!-- <mat-form-field style="display: none">
                                                 <input  matInput
                                                         placeholder="city_id"
                                                         formControlName="city_id"/>
@@ -623,7 +633,17 @@
                                                 </ng-container>
                                                 </mat-autocomplete>
                                             </mat-form-field>
-                                            <mat-progress-bar *ngIf="isCityListLoading" mode="indeterminate"></mat-progress-bar>
+                                            <mat-progress-bar *ngIf="isCityListLoading" mode="indeterminate"></mat-progress-bar> -->
+
+                                            <mat-form-field class="mat-form-field-100">
+                                                <input   matInput
+                                                        placeholder="{{t('docs.field.city_locality')}}"
+                                                        [readonly]=!editability
+                                                        maxlength="120"
+                                                        formControlName="city"/>
+                                                <mat-hint align="end" *ngIf="formBaseInformation.get('city').value.length>100">{{formBaseInformation.get('city').value.length}} / 120</mat-hint>
+                                            </mat-form-field>
+
                                             <!-- Улица -->
                                             <mat-form-field  class="mat-form-field-100">
                                                 <input   matInput

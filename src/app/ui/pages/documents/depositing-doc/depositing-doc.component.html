@@ -196,7 +196,7 @@
                                                                     <mat-select formControlName="kassa_id">                          
                                                                         <mat-option  *ngFor="let rt of kassaList" [value]="rt.id">
                                                                             <div (click)="onSelectKassa(rt.id,rt.name)">
-                                                                                <span style="margin:10px;"><b>{{rt.name}}</b></span>
+                                                                                <span style="margin:10px;"><b>{{rt.name}} - {{rt.id}}</b></span>
                                                                             </div>
                                                                         </mat-option> 
                                                                     </mat-select>

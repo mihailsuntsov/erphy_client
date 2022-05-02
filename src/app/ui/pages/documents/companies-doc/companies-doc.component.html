@@ -66,6 +66,10 @@
     </mat-card-content>
     <!-- !!! -->
     <mat-card-content *ngIf="!rightsDefined || (rightsDefined && (( +id>0 && allowToView)||(+id==0 && allowToCreate)))">
+        accountingCurrency-{{accountingCurrency}}<br>
+        countryId-{{countryId}}<br>
+        organization-{{organization}}<br>
+
         <form [formGroup]="formBaseInformation">   
             <mat-tab-group>
                 <mat-tab label="{{t('docs.tab.info')}}">
@@ -227,7 +231,7 @@
                                             </mat-autocomplete>
                                         </mat-form-field>
                                         <!-- Регион -->
-                                        <mat-form-field style="display: none">
+                                        <!-- <mat-form-field style="display: none">
                                             <input  matInput
                                                     placeholder="region_id"
                                                     formControlName="region_id"/>
@@ -250,15 +254,24 @@
                                             </ng-container>
                                             </mat-autocomplete>
                                         </mat-form-field>
-                                        <mat-progress-bar *ngIf="isRegionListLoading" mode="indeterminate"></mat-progress-bar>
+                                        <mat-progress-bar *ngIf="isRegionListLoading" mode="indeterminate"></mat-progress-bar> -->
+                                        
+                                        <mat-form-field>
+                                            <input   matInput
+                                                    placeholder="{{t('docs.field.region')}}"
+                                                    [readonly]=!editability
+                                                    maxlength="120"
+                                                    formControlName="region"/>
+                                            <mat-hint align="end" *ngIf="formBaseInformation.get('region').value.length>100">{{formBaseInformation.get('region').value.length}} / 120</mat-hint>
+                                        </mat-form-field>
+
                                         <!-- Город -->
-                                        <mat-form-field style="display: none">
+                                        <!-- <mat-form-field style="display: none">
                                             <input  matInput
                                                     placeholder="city_id"
                                                     formControlName="city_id"/>
                                         </mat-form-field>
                                         <mat-form-field class="mat-form-field-100" > 
-                                            <!-- <mat-label>{{(+formBaseInformation.get('city_id').value==0)?'Город или населённый пункт':(area!=''?'Населённый пункт':'Город')}}</mat-label> -->
                                             <mat-label>{{t('docs.field.city_locality')}}</mat-label>
                                             <input  matInput 
                                             [matAutocomplete]="auto6" 
@@ -276,7 +289,15 @@
                                             </ng-container>
                                             </mat-autocomplete>
                                         </mat-form-field>
-                                        <mat-progress-bar *ngIf="isCityListLoading" mode="indeterminate"></mat-progress-bar>
+                                        <mat-progress-bar *ngIf="isCityListLoading" mode="indeterminate"></mat-progress-bar> -->
+                                        <mat-form-field>
+                                            <input   matInput
+                                                    placeholder="{{t('docs.field.city_locality')}}"
+                                                    [readonly]=!editability
+                                                    maxlength="120"
+                                                    formControlName="city"/>
+                                            <mat-hint align="end" *ngIf="formBaseInformation.get('city').value.length>100">{{formBaseInformation.get('city').value.length}} / 120</mat-hint>
+                                        </mat-form-field>
                                         <!-- Улица -->
                                         <mat-form-field>
                                             <input   matInput
@@ -705,7 +726,7 @@
                                             </mat-autocomplete>
                                         </mat-form-field>
                                         <!-- Регион -->
-                                        <mat-form-field style="display: none">
+                                        <!-- <mat-form-field style="display: none">
                                             <input  matInput
                                                     placeholder="jr_region_id"
                                                     [readonly]=!editability
@@ -729,16 +750,23 @@
                                             </ng-container>
                                             </mat-autocomplete>
                                         </mat-form-field>
-                                        <mat-progress-bar *ngIf="isJrRegionListLoading" mode="indeterminate"></mat-progress-bar>
+                                        <mat-progress-bar *ngIf="isJrRegionListLoading" mode="indeterminate"></mat-progress-bar> -->
+                                        <mat-form-field>
+                                            <input   matInput
+                                                    placeholder="{{t('docs.field.region')}}"
+                                                    [readonly]=!editability
+                                                    maxlength="120"
+                                                    formControlName="jr_region"/>
+                                            <mat-hint align="end" *ngIf="formBaseInformation.get('jr_region').value.length>100">{{formBaseInformation.get('jr_region').value.length}} / 120</mat-hint>
+                                        </mat-form-field>
                                         <!-- Город -->
-                                        <mat-form-field style="display: none">
+                                        <!-- <mat-form-field style="display: none">
                                             <input  matInput
                                                     placeholder="jr_city_id"
                                                     [readonly]=!editability
                                                     formControlName="jr_city_id"/>
                                         </mat-form-field>
                                         <mat-form-field class="mat-form-field-100" > 
-                                            <!-- <mat-label>{{(+formBaseInformation.get('jr_city_id').value==0)?'Город или населённый пункт':(jr_area!=''?'Населённый пункт':'Город')}}</mat-label> -->
                                             <mat-label>{{t('docs.field.city_locality')}}</mat-label>
                                             <input  matInput 
                                             [matAutocomplete]="auto7" 
@@ -756,7 +784,17 @@
                                             </ng-container>
                                             </mat-autocomplete>
                                         </mat-form-field>
-                                        <mat-progress-bar *ngIf="isJrCityListLoading" mode="indeterminate"></mat-progress-bar>
+                                        <mat-progress-bar *ngIf="isJrCityListLoading" mode="indeterminate"></mat-progress-bar> -->
+                                        
+                                        <mat-form-field>
+                                            <input   matInput
+                                                    placeholder="{{t('docs.field.city_locality')}}"
+                                                    [readonly]=!editability
+                                                    maxlength="120"
+                                                    formControlName="jr_city"/>
+                                            <mat-hint align="end" *ngIf="formBaseInformation.get('jr_city').value.length>100">{{formBaseInformation.get('jr_city').value.length}} / 120</mat-hint>
+                                        </mat-form-field>
+
                                         <!-- Улица -->
                                         <mat-form-field>
                                             <input   matInput
@@ -926,7 +964,7 @@
                                     <mat-card-content class="input-form">
                 
                                         <!-- Валюта/Currency -->
-                                        <mat-form-field>
+                                        <!-- <mat-form-field>
                                             <mat-label>{{t('docs.field.currency')}}</mat-label>
                                             <mat-select  formControlName="currency_id" [disabled]=!editability>                          
                                                 <mat-option  *ngFor="let rt of receivedCurrencyList" [value]="rt.id">
@@ -936,7 +974,33 @@
                                             <mat-hint align="start" *ngIf="formBaseInformation.get('currency_id').touched">
                                                 <i *ngIf="+formBaseInformation.get('currency_id').value==0" class="form-invalid">{{t('docs.error.field_miss')}}</i>
                                             </mat-hint>
+                                        </mat-form-field> -->
+
+                                        <mat-form-field>
+                                            <mat-label>{{t('docs.field.prefix_pieced')}}</mat-label>
+                                            <input   matInput
+                                                    [readonly]=!editability
+                                                    (keypress)="numberOnly($event)"
+                                                    matTooltip="{{t('docs.tip.prefix_pieced')}}"
+                                                    maxlength="2"
+                                                    formControlName="st_prefix_barcode_pieced"/>                                                    
+                                            <mat-hint  align="start" *ngIf="formBaseInformation.get('st_prefix_barcode_pieced').touched && formBaseInformation.get('st_prefix_barcode_pieced').invalid">
+                                                <i *ngIf="formBaseInformation.get('st_prefix_barcode_pieced').errors.pattern" class="form-invalid">{{t('docs.error.num_digits',{num:"2"})}}</i>
+                                            </mat-hint>
                                         </mat-form-field>
+                                        <mat-form-field>
+                                            <mat-label>{{t('docs.field.prefix_packed')}}</mat-label>
+                                            <input   matInput
+                                                    [readonly]=!editability
+                                                    (keypress)="numberOnly($event)"
+                                                    matTooltip="{{t('docs.tip.prefix_packed')}}"
+                                                    maxlength="2"
+                                                    formControlName="st_prefix_barcode_packed"/>                                            
+                                                    <mat-hint  align="start" *ngIf="formBaseInformation.get('st_prefix_barcode_packed').touched && formBaseInformation.get('st_prefix_barcode_packed').invalid">
+                                                        <i *ngIf="formBaseInformation.get('st_prefix_barcode_packed').errors.pattern" class="form-invalid">{{t('docs.error.num_digits',{num:"2"})}}</i>
+                                                    </mat-hint>
+                                        </mat-form-field>
+
                                         <!-- Политика расчета средней себестоимости/Policy of netcost calculation -->
                                         <mat-form-field>
                                             <mat-label>{{t('docs.field.cost_politic')}}</mat-label>

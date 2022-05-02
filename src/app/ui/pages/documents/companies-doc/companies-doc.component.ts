@@ -37,7 +37,7 @@ interface docResponse {//интерфейс для получения ответ
   date_time_changed: string;//дату изменения
   date_time_created: string;//дату создания
 
-  currency_id: number;
+  // currency_id: number;
   nds_payer: boolean;
   fio_director: string;
   director_position: string;
@@ -63,9 +63,9 @@ interface docResponse {//интерфейс для получения ответ
   region_id: number;//id область
   city_id: number;//id город/нас.пункт
   country: number;//страна
-  region: number;//область
+  region: string;//область
   area: string; //район
-  city: number;//id город/нас.пункт
+  city: string;//город/нас.пункт
   street: string;//улица
   home: string;//дом
   flat: string;//квартира
@@ -81,9 +81,9 @@ interface docResponse {//интерфейс для получения ответ
   jr_region_id: number;//id область
   jr_city_id: number;//id город/нас.пункт
   jr_country: number;// страна
-  jr_region: number;//область
+  jr_region: string;//область
   jr_area: string; //район
-  jr_city: number;//город/нас.пункт
+  jr_city: string;//город/нас.пункт
   jr_street: string;//улица
   jr_home: string;//дом
   jr_flat: string;//квартира
@@ -202,10 +202,13 @@ export class CompaniesDocComponent implements OnInit {
   viz_jr_ip:boolean=false;
 
   idAndNameArr:IdAndName[]=[];
-  // idAndName:IdAndName=<IdAndName>{};
   receivedStatusesList: statusInterface [] = []; // массив для получения списка статусов
   status_color: string = '';
   receivedPriceTypesList: idNameDescription [] = [];//массив для получения списка типов цен
+  
+  accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
+  countryId:number;    // id of user's company country of jurisdiction
+  organization = '';    // organization of country of jurisdiction(e.g. EU)
 
   //Формы
   formBaseInformation:any;//форма для основной информации, содержащейся в документе
@@ -255,7 +258,7 @@ constructor(private activateRoute: ActivatedRoute,
       email:  new FormControl      ('',[Validators.maxLength(254)]),
 
       nds_payer: new FormControl      (false,[]),
-      currency_id:  new FormControl      ('',[Validators.required]),
+      // currency_id:  new FormControl      ('',[Validators.required]),
       fio_director: new FormControl      ('',[Validators.maxLength(120)]),
       director_position: new FormControl      ('',[Validators.maxLength(120)]),
       fio_glavbuh: new FormControl      ('',[Validators.maxLength(120)]),
@@ -272,8 +275,10 @@ constructor(private activateRoute: ActivatedRoute,
       //фактический адрес:
       zip_code:  new FormControl      ('',[Validators.maxLength(40)]),
       country_id:  new FormControl      ('',[]),
-      region_id:  new FormControl      ('',[]),
-      city_id:  new FormControl      ('',[]),
+      // region_id:  new FormControl      ('',[]),
+      // city_id:  new FormControl      ('',[]),
+      region:  new FormControl      ('',[]),
+      city:  new FormControl      ('',[]),
       street:  new FormControl      ('',[Validators.maxLength(120)]),
       home:  new FormControl      ('',[Validators.maxLength(16)]),
       flat:  new FormControl      ('',[Validators.maxLength(8)]),
@@ -288,8 +293,10 @@ constructor(private activateRoute: ActivatedRoute,
       //юридический адрес (для юрлиц) /адрес регистрации (для ип и физлиц)
       jr_zip_code:  new FormControl      ('',[Validators.maxLength(40)]),
       jr_country_id:  new FormControl      ('',[]),
-      jr_region_id:  new FormControl      ('',[]),
-      jr_city_id:  new FormControl      ('',[]),
+      // jr_region_id:  new FormControl      ('',[]),
+      // jr_city_id:  new FormControl      ('',[]),
+      jr_region:  new FormControl      ('',[]),
+      jr_city:  new FormControl      ('',[]),
       jr_street:  new FormControl      ('',[Validators.maxLength(120)]),
       jr_home:  new FormControl      ('',[Validators.maxLength(16)]),
       jr_flat:  new FormControl      ('',[Validators.maxLength(8)]),
@@ -306,8 +313,8 @@ constructor(private activateRoute: ActivatedRoute,
       country:  new FormControl      ('',[]),
       jr_country:  new FormControl      ('',[]),
       //Settings
-      st_prefix_barcode_pieced: new FormControl      ('',[]), // prefix of barcode for pieced product
-      st_prefix_barcode_packed: new FormControl      ('',[]), // prefix of barcode for packed product
+      st_prefix_barcode_pieced: new FormControl      ('',[Validators.pattern('^[0-9]{2}$')]), // prefix of barcode for pieced product
+      st_prefix_barcode_packed: new FormControl      ('',[Validators.pattern('^[0-9]{2}$')]), // prefix of barcode for packed product
       st_netcost_policy:        new FormControl      ('all',[]), // policy of netcost calculation by "all" company or by "each" department separately
     });
     this.formAboutDocument = new FormGroup({
@@ -321,12 +328,15 @@ constructor(private activateRoute: ActivatedRoute,
     });
 
     this.getSpravSysOPF();
-    this.getCurrencyList();
+    // this.getCurrencyList();
     this.getSpravSysCountries();
     this.getSetOfPermissions();
     //+++ getting base data from parent component
     // this.getBaseData('myId');    
-    this.getBaseData('myCompanyId');  
+    this.getBaseData('myCompanyId');      
+    this.getBaseData('accountingCurrency');   
+    this.getBaseData('countryId');   
+    this.getBaseData('organization');  
 
     if(this.data)//если документ вызывается в окне из другого документа
     {
@@ -394,23 +404,23 @@ constructor(private activateRoute: ActivatedRoute,
         this.refreshPermissions();
       }
   }
-  getCurrencyList(){
-    // console.log("getCurrencyList");
-    this.receivedCurrencyList=null;
-    this.http.get('/api/auth/getSpravSysCurrency')
-            .subscribe(
-                (data) => {this.receivedCurrencyList=data as any [];
-                  // console.log("receivedCurrencyList-"+this.receivedCurrencyList);
-                  this.setDefaultCurrency()},
-                error => console.log(error)
-            );
-  }
-  setDefaultCurrency(){
-    if(this.receivedCurrencyList.length>0 && +this.id==0)
-    {
-      this.formBaseInformation.get('currency_id').setValue(this.receivedCurrencyList[0].id);
-    }
-  }
+  // getCurrencyList(){
+  //   // console.log("getCurrencyList");
+  //   this.receivedCurrencyList=null;
+  //   this.http.get('/api/auth/getSpravSysCurrency')
+  //           .subscribe(
+  //               (data) => {this.receivedCurrencyList=data as any [];
+  //                 // console.log("receivedCurrencyList-"+this.receivedCurrencyList);
+  //                 this.setDefaultCurrency()},
+  //               error => console.log(error)
+  //           );
+  // }
+  // setDefaultCurrency(){
+  //   if(this.receivedCurrencyList.length>0 && +this.id==0)
+  //   {
+  //     this.formBaseInformation.get('currency_id').setValue(this.receivedCurrencyList[0].id);
+  //   }
+  // }
 
   getMyCompanyId(){ //+++
     if(+this.myCompanyId==0)
@@ -458,8 +468,10 @@ constructor(private activateRoute: ActivatedRoute,
                   this.formBaseInformation.get('zip_code').setValue(documentValues.zip_code);
                   this.formBaseInformation.get('country_id').setValue(documentValues.country_id);
                   this.formBaseInformation.get('country').setValue(documentValues.country);
-                  this.formBaseInformation.get('region_id').setValue(documentValues.region_id);
-                  this.formBaseInformation.get('city_id').setValue(documentValues.city_id);
+                  // this.formBaseInformation.get('region_id').setValue(documentValues.region_id);
+                  // this.formBaseInformation.get('city_id').setValue(documentValues.city_id);
+                  this.formBaseInformation.get('region').setValue(documentValues.region);
+                  this.formBaseInformation.get('city').setValue(documentValues.city);
                   this.formBaseInformation.get('street').setValue(documentValues.street);
                   this.formBaseInformation.get('home').setValue(documentValues.home);
                   this.formBaseInformation.get('flat').setValue(documentValues.flat);
@@ -471,8 +483,10 @@ constructor(private activateRoute: ActivatedRoute,
                   this.formBaseInformation.get('jr_zip_code').setValue(documentValues.jr_zip_code);
                   this.formBaseInformation.get('jr_country_id').setValue(documentValues.jr_country_id);
                   this.formBaseInformation.get('jr_country').setValue(documentValues.jr_country);
-                  this.formBaseInformation.get('jr_region_id').setValue(documentValues.jr_region_id);
-                  this.formBaseInformation.get('jr_city_id').setValue(documentValues.jr_city_id);
+                  // this.formBaseInformation.get('jr_region_id').setValue(documentValues.jr_region_id);
+                  // this.formBaseInformation.get('jr_city_id').setValue(documentValues.jr_city_id);                  
+                  this.formBaseInformation.get('jr_region').setValue(documentValues.jr_region);
+                  this.formBaseInformation.get('jr_city').setValue(documentValues.jr_city);
                   this.formBaseInformation.get('jr_street').setValue(documentValues.jr_street);
                   this.formBaseInformation.get('jr_home').setValue(documentValues.jr_home);
                   this.formBaseInformation.get('jr_flat').setValue(documentValues.jr_flat);
@@ -485,7 +499,7 @@ constructor(private activateRoute: ActivatedRoute,
                   this.formBaseInformation.get('jr_ip_ogrnip').setValue(documentValues.jr_ip_ogrnip);
                   this.formBaseInformation.get('jr_ip_svid_num').setValue(documentValues.jr_ip_svid_num);
                   this.formBaseInformation.get('jr_ip_reg_date').setValue(documentValues.jr_ip_reg_date?moment(documentValues.jr_ip_reg_date,'DD.MM.YYYY'):"");
-                  this.formBaseInformation.get('currency_id').setValue(documentValues.currency_id);
+                  // this.formBaseInformation.get('currency_id').setValue(documentValues.currency_id);
                   this.formBaseInformation.get('nds_payer').setValue(documentValues.nds_payer);
                   this.formBaseInformation.get('fio_director').setValue(documentValues.fio_director);
                   this.formBaseInformation.get('director_position').setValue(documentValues.director_position);
@@ -677,9 +691,11 @@ constructor(private activateRoute: ActivatedRoute,
         this.formBaseInformation.get('zip_code').setValue(this.formBaseInformation.get('jr_zip_code').value);
         this.formBaseInformation.get('country_id').setValue(+this.formBaseInformation.get('jr_country_id').value);
         this.formBaseInformation.get('country').setValue(this.formBaseInformation.get('jr_country').value);
-        this.formBaseInformation.get('region_id').setValue(this.formBaseInformation.get('jr_region_id').value);
+        // this.formBaseInformation.get('region_id').setValue(this.formBaseInformation.get('jr_region_id').value);        
+        this.formBaseInformation.get('region').setValue(this.formBaseInformation.get('jr_region').value);
         this.searchRegionCtrl.setValue(this.searchJrRegionCtrl.value);
-        this.formBaseInformation.get('city_id').setValue(this.formBaseInformation.get('jr_city_id').value);
+        // this.formBaseInformation.get('city_id').setValue(this.formBaseInformation.get('jr_city_id').value);
+        this.formBaseInformation.get('city').setValue(this.formBaseInformation.get('jr_city').value);
         this.searchCityCtrl.setValue(this.searchJrCityCtrl.value);
         this.formBaseInformation.get('street').setValue(this.formBaseInformation.get('jr_street').value);
         this.formBaseInformation.get('home').setValue(this.formBaseInformation.get('jr_home').value);
@@ -702,9 +718,11 @@ constructor(private activateRoute: ActivatedRoute,
         this.formBaseInformation.get('jr_zip_code').setValue(this.formBaseInformation.get('zip_code').value);
         this.formBaseInformation.get('jr_country_id').setValue(+this.formBaseInformation.get('country_id').value);
         this.formBaseInformation.get('jr_country').setValue(this.formBaseInformation.get('country').value);
-        this.formBaseInformation.get('jr_region_id').setValue(this.formBaseInformation.get('region_id').value);
+        // this.formBaseInformation.get('jr_region_id').setValue(this.formBaseInformation.get('region_id').value);
+        this.formBaseInformation.get('jr_region').setValue(this.formBaseInformation.get('region').value);
         this.searchJrRegionCtrl.setValue(this.searchRegionCtrl.value);
-        this.formBaseInformation.get('jr_city_id').setValue(this.formBaseInformation.get('city_id').value);
+        // this.formBaseInformation.get('jr_city_id').setValue(this.formBaseInformation.get('city_id').value);
+        this.formBaseInformation.get('jr_city').setValue(this.formBaseInformation.get('city').value);
         this.searchJrCityCtrl.setValue(this.searchCityCtrl.value);
         this.formBaseInformation.get('jr_street').setValue(this.formBaseInformation.get('street').value);
         this.formBaseInformation.get('jr_home').setValue(this.formBaseInformation.get('home').value);

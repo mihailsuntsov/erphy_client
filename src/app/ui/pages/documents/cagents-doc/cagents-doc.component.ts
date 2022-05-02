@@ -171,7 +171,7 @@ interface PaymentAccountsForm { //интерфейс для формы paymentAc
 
 export class CagentsDocComponent implements OnInit {
   id: number=0;// id документа
-  createdDocId: string[];//массив для получение id созданного документа
+  createdDocId: number;// для получение id созданного документа
   receivedCompaniesList: any [];//массив для получения списка предприятий
   myCompanyId:number=0;
   receivedSpravSysOPF: any [];//массив для получения данных справочника форм предприятий
@@ -290,8 +290,10 @@ constructor(private activateRoute: ActivatedRoute,
       //фактический адрес:
       zip_code:  new FormControl      ('',[Validators.maxLength(40)]),
       country_id:  new FormControl      ('',[]),
-      region_id:  new FormControl      ('',[]),
-      city_id:  new FormControl      ('',[]),
+      // region_id:  new FormControl      ('',[]),
+      // city_id:  new FormControl      ('',[]),      
+      region:  new FormControl      ('',[]),
+      city:  new FormControl      ('',[]),
       street:  new FormControl      ('',[Validators.maxLength(120)]),
       home:  new FormControl      ('',[Validators.maxLength(16)]),
       flat:  new FormControl      ('',[Validators.maxLength(8)]),
@@ -306,8 +308,10 @@ constructor(private activateRoute: ActivatedRoute,
       //юридический адрес (для юрлиц) /адрес регистрации (для ип и физлиц)
       jr_zip_code:  new FormControl      ('',[Validators.maxLength(40)]),
       jr_country_id:  new FormControl      ('',[]),
-      jr_region_id:  new FormControl      ('',[]),
-      jr_city_id:  new FormControl      ('',[]),
+      // jr_region_id:  new FormControl      ('',[]),
+      // jr_city_id:  new FormControl      ('',[]),
+      jr_region:  new FormControl      ('',[]),
+      jr_city:  new FormControl      ('',[]),
       jr_street:  new FormControl      ('',[Validators.maxLength(120)]),
       jr_home:  new FormControl      ('',[Validators.maxLength(16)]),
       jr_flat:  new FormControl      ('',[Validators.maxLength(8)]),
@@ -356,10 +360,10 @@ constructor(private activateRoute: ActivatedRoute,
     //слушалки на изменение полей адреса
     this.filteredSpravSysCountries=this.formBaseInformation.get('country').valueChanges.pipe(startWith(''),map((value:string) => this.filter_country(value)));
     this.filteredSpravSysJrCountries=this.formBaseInformation.get('jr_country').valueChanges.pipe(startWith(''),map((value:string) => this.filter_jr_country(value)));
-    this.onRegionSearchValueChanges();
-    this.onJrRegionSearchValueChanges();
-    this.onCitySearchValueChanges();
-    this.onJrCitySearchValueChanges();
+    // this.onRegionSearchValueChanges();
+    // this.onJrRegionSearchValueChanges();
+    // this.onCitySearchValueChanges();
+    // this.onJrCitySearchValueChanges();
   }
 //---------------------------------------------------------------------------------------------------------------------------------------                            
 // ----------------------------------------------------- *** ПРАВА *** ------------------------------------------------------------------
@@ -504,8 +508,10 @@ constructor(private activateRoute: ActivatedRoute,
                   this.formBaseInformation.get('email').setValue(documentValues.email);
                   this.formBaseInformation.get('zip_code').setValue(documentValues.zip_code);
                   this.formBaseInformation.get('country_id').setValue(documentValues.country_id);
-                  this.formBaseInformation.get('region_id').setValue(documentValues.region_id);
-                  this.formBaseInformation.get('city_id').setValue(documentValues.city_id);
+                  // this.formBaseInformation.get('region_id').setValue(documentValues.region_id);
+                  // this.formBaseInformation.get('city_id').setValue(documentValues.city_id);
+                  this.formBaseInformation.get('region').setValue(documentValues.region);
+                  this.formBaseInformation.get('city').setValue(documentValues.city);
                   this.formBaseInformation.get('street').setValue(documentValues.street);
                   this.formBaseInformation.get('home').setValue(documentValues.home);
                   this.formBaseInformation.get('flat').setValue(documentValues.flat);
@@ -518,8 +524,10 @@ constructor(private activateRoute: ActivatedRoute,
                   this.formBaseInformation.get('jr_jur_ogrn').setValue(documentValues.jr_jur_ogrn);
                   this.formBaseInformation.get('jr_zip_code').setValue(documentValues.jr_zip_code);
                   this.formBaseInformation.get('jr_country_id').setValue(documentValues.jr_country_id);
-                  this.formBaseInformation.get('jr_region_id').setValue(documentValues.jr_region_id);
-                  this.formBaseInformation.get('jr_city_id').setValue(documentValues.jr_city_id);
+                  // this.formBaseInformation.get('jr_region_id').setValue(documentValues.jr_region_id);
+                  // this.formBaseInformation.get('jr_city_id').setValue(documentValues.jr_city_id);
+                  this.formBaseInformation.get('jr_region').setValue(documentValues.jr_region);
+                  this.formBaseInformation.get('jr_city').setValue(documentValues.jr_city);
                   this.formBaseInformation.get('jr_street').setValue(documentValues.jr_street);
                   this.formBaseInformation.get('jr_home').setValue(documentValues.jr_home);
                   this.formBaseInformation.get('jr_flat').setValue(documentValues.jr_flat);
@@ -561,13 +569,11 @@ constructor(private activateRoute: ActivatedRoute,
   }
   
   createNewDocument(){
-    this.createdDocId=null;
     this.formBaseInformation.get('selectedCagentCategories').setValue(this.checkedList);
     this.http.post('/api/auth/insertCagent', this.formBaseInformation.value)
     .subscribe(
     (data) =>   {
-                    this.createdDocId=data as string [];
-                    this.id=+this.createdDocId[0];
+                    this.id=data as number;
                     this._router.navigate(['/ui/cagentsdoc', this.id]);
                     this.formBaseInformation.get('id').setValue(this.id);
                     this.rightsDefined=false; //!!!
@@ -841,10 +847,12 @@ constructor(private activateRoute: ActivatedRoute,
         this.formBaseInformation.get('zip_code').setValue(this.formBaseInformation.get('jr_zip_code').value);
         this.formBaseInformation.get('country_id').setValue(+this.formBaseInformation.get('jr_country_id').value);
         this.formBaseInformation.get('country').setValue(this.formBaseInformation.get('jr_country').value);
-        this.formBaseInformation.get('region_id').setValue(this.formBaseInformation.get('jr_region_id').value);
-        this.searchRegionCtrl.setValue(this.searchJrRegionCtrl.value);
-        this.formBaseInformation.get('city_id').setValue(this.formBaseInformation.get('jr_city_id').value);
-        this.searchCityCtrl.setValue(this.searchJrCityCtrl.value);
+        // this.formBaseInformation.get('region_id').setValue(this.formBaseInformation.get('jr_region_id').value);
+        // this.searchRegionCtrl.setValue(this.searchJrRegionCtrl.value);
+        this.formBaseInformation.get('region').setValue(this.formBaseInformation.get('jr_region').value);
+        // this.formBaseInformation.get('city_id').setValue(this.formBaseInformation.get('jr_city_id').value);
+        // this.searchCityCtrl.setValue(this.searchJrCityCtrl.value);
+        this.formBaseInformation.get('city').setValue(this.formBaseInformation.get('jr_city').value);
         this.formBaseInformation.get('street').setValue(this.formBaseInformation.get('jr_street').value);
         this.formBaseInformation.get('home').setValue(this.formBaseInformation.get('jr_home').value);
         this.formBaseInformation.get('flat').setValue(this.formBaseInformation.get('jr_flat').value);
@@ -866,10 +874,12 @@ constructor(private activateRoute: ActivatedRoute,
         this.formBaseInformation.get('jr_zip_code').setValue(this.formBaseInformation.get('zip_code').value);
         this.formBaseInformation.get('jr_country_id').setValue(+this.formBaseInformation.get('country_id').value);
         this.formBaseInformation.get('jr_country').setValue(this.formBaseInformation.get('country').value);
-        this.formBaseInformation.get('jr_region_id').setValue(this.formBaseInformation.get('region_id').value);
-        this.searchJrRegionCtrl.setValue(this.searchRegionCtrl.value);
-        this.formBaseInformation.get('jr_city_id').setValue(this.formBaseInformation.get('city_id').value);
-        this.searchJrCityCtrl.setValue(this.searchCityCtrl.value);
+        // this.formBaseInformation.get('jr_region_id').setValue(this.formBaseInformation.get('region_id').value);
+        // this.searchJrRegionCtrl.setValue(this.searchRegionCtrl.value);
+        this.formBaseInformation.get('jr_region').setValue(this.formBaseInformation.get('region').value);
+        // this.formBaseInformation.get('jr_city_id').setValue(this.formBaseInformation.get('city_id').value);
+        // this.searchJrCityCtrl.setValue(this.searchCityCtrl.value);
+        this.formBaseInformation.get('jr_city').setValue(this.formBaseInformation.get('city').value);
         this.formBaseInformation.get('jr_street').setValue(this.formBaseInformation.get('street').value);
         this.formBaseInformation.get('jr_home').setValue(this.formBaseInformation.get('home').value);
         this.formBaseInformation.get('jr_flat').setValue(this.formBaseInformation.get('flat').value);
@@ -877,197 +887,197 @@ constructor(private activateRoute: ActivatedRoute,
       }});
   }
   //  -----------------------     ***** поиск по подстроке для Региона  ***    --------------------------
-  onRegionSearchValueChanges(){
-    this.searchRegionCtrl.valueChanges
-    .pipe( 
-      debounceTime(500),
-      tap(() => {
-        this.filteredRegions = [];}),       
-      switchMap(fieldObject =>  
-        this.getSpravSysRegions()))
-    .subscribe(data => {
-      this.isRegionListLoading = false;
-      if (data == undefined) {
-        this.filteredRegions = [];
-      } else {
-        this.filteredRegions = data as Region[];
-  }});}
-  onSelectRegion(id:number,country_id:number,country:string){
-    this.formBaseInformation.get('region_id').setValue(+id);
-    //если выбрали регион, а страна не выбрана
-    if((this.formBaseInformation.get('country_id').value==null || this.formBaseInformation.get('country_id').value=='') && country_id>0){
-      this.formBaseInformation.get('country_id').setValue(country_id);
-      this.formBaseInformation.get('country').setValue(country);
-    }
-  }
-  checkEmptyRegionField(){
-    if(this.searchRegionCtrl.value.length==0){
-      this.formBaseInformation.get('region_id').setValue();
-      // this.formBaseInformation.get('city_id').setValue(null);
-      // this.searchCityCtrl.setValue('');
-  }};     
-  getSpravSysRegions(){ //заполнение Autocomplete
-    try {
-      if(this.canRegionAutocompleteQuery && this.searchRegionCtrl.value.length>1){
-        const body = {
-          "searchString":this.searchRegionCtrl.value,
-          "id":this.formBaseInformation.get('country_id').value};
-        this.isRegionListLoading  = true;
-        return this.http.post('/api/auth/getSpravSysRegions', body);
-      }else return [];
-    } catch (e) {
-      return [];}}
+  // onRegionSearchValueChanges(){
+  //   this.searchRegionCtrl.valueChanges
+  //   .pipe( 
+  //     debounceTime(500),
+  //     tap(() => {
+  //       this.filteredRegions = [];}),       
+  //     switchMap(fieldObject =>  
+  //       this.getSpravSysRegions()))
+  //   .subscribe(data => {
+  //     this.isRegionListLoading = false;
+  //     if (data == undefined) {
+  //       this.filteredRegions = [];
+  //     } else {
+  //       this.filteredRegions = data as Region[];
+  // }});}
+  // onSelectRegion(id:number,country_id:number,country:string){
+  //   this.formBaseInformation.get('region_id').setValue(+id);
+  //   //если выбрали регион, а страна не выбрана
+  //   if((this.formBaseInformation.get('country_id').value==null || this.formBaseInformation.get('country_id').value=='') && country_id>0){
+  //     this.formBaseInformation.get('country_id').setValue(country_id);
+  //     this.formBaseInformation.get('country').setValue(country);
+  //   }
+  // }
+  // checkEmptyRegionField(){
+  //   if(this.searchRegionCtrl.value.length==0){
+  //     this.formBaseInformation.get('region_id').setValue();
+  //     // this.formBaseInformation.get('city_id').setValue(null);
+  //     // this.searchCityCtrl.setValue('');
+  // }};     
+  // getSpravSysRegions(){ //заполнение Autocomplete
+  //   try {
+  //     if(this.canRegionAutocompleteQuery && this.searchRegionCtrl.value.length>1){
+  //       const body = {
+  //         "searchString":this.searchRegionCtrl.value,
+  //         "id":this.formBaseInformation.get('country_id').value};
+  //       this.isRegionListLoading  = true;
+  //       return this.http.post('/api/auth/getSpravSysRegions', body);
+  //     }else return [];
+  //   } catch (e) {
+  //     return [];}}
   //--------------------------------------------------------------------------------------------------------
   //---------------     ***** поиск по подстроке для Региона в юр. адресе  ***    --------------------------
-  onJrRegionSearchValueChanges(){
-    this.searchJrRegionCtrl.valueChanges
-    .pipe( 
-      debounceTime(500),
-      tap(() => {
-        this.filteredJrRegions = [];}),       
-      switchMap(fieldObject =>  
-        this.getSpravSysJrRegions()))
-    .subscribe(data => {
-      this.isJrRegionListLoading = false;
-      if (data == undefined) {
-        this.filteredJrRegions = [];
-      } else {
-        this.filteredJrRegions = data as Region[];
-  }});}
-  onSelectJrRegion(id:number,country_id:number,country:string){
-    this.formBaseInformation.get('jr_region_id').setValue(+id);
-    //если выбрали регион, а страна не выбрана
-    if((this.formBaseInformation.get('jr_country_id').value==null || this.formBaseInformation.get('jr_country_id').value=='') && country_id>0){
-      this.formBaseInformation.get('jr_country_id').setValue(country_id);
-      this.formBaseInformation.get('jr_country').setValue(country);
-    }
-  }
-  checkEmptyJrRegionField(){
-    if(this.searchJrRegionCtrl.value.length==0){
-      this.formBaseInformation.get('jr_region_id').setValue();
-      // this.formBaseInformation.get('jr_city_id').setValue(null);
-      // this.searchJrCityCtrl.setValue('');
-  }};     
-  getSpravSysJrRegions(){ //заполнение Autocomplete
-    try {
-      if(this.canJrRegionAutocompleteQuery && this.searchJrRegionCtrl.value.length>1){
-    // console.log(111);
+  // onJrRegionSearchValueChanges(){
+  //   this.searchJrRegionCtrl.valueChanges
+  //   .pipe( 
+  //     debounceTime(500),
+  //     tap(() => {
+  //       this.filteredJrRegions = [];}),       
+  //     switchMap(fieldObject =>  
+  //       this.getSpravSysJrRegions()))
+  //   .subscribe(data => {
+  //     this.isJrRegionListLoading = false;
+  //     if (data == undefined) {
+  //       this.filteredJrRegions = [];
+  //     } else {
+  //       this.filteredJrRegions = data as Region[];
+  // }});}
+  // onSelectJrRegion(id:number,country_id:number,country:string){
+  //   this.formBaseInformation.get('jr_region_id').setValue(+id);
+  //   //если выбрали регион, а страна не выбрана
+  //   if((this.formBaseInformation.get('jr_country_id').value==null || this.formBaseInformation.get('jr_country_id').value=='') && country_id>0){
+  //     this.formBaseInformation.get('jr_country_id').setValue(country_id);
+  //     this.formBaseInformation.get('jr_country').setValue(country);
+  //   }
+  // }
+  // checkEmptyJrRegionField(){
+  //   if(this.searchJrRegionCtrl.value.length==0){
+  //     this.formBaseInformation.get('jr_region_id').setValue();
+  //     // this.formBaseInformation.get('jr_city_id').setValue(null);
+  //     // this.searchJrCityCtrl.setValue('');
+  // }};     
+  // getSpravSysJrRegions(){ //заполнение Autocomplete
+  //   try {
+  //     if(this.canJrRegionAutocompleteQuery && this.searchJrRegionCtrl.value.length>1){
+  //   // console.log(111);
 
-        const body = {
-          "searchString":this.searchJrRegionCtrl.value,
-          "id":this.formBaseInformation.get('jr_country_id').value};
-          console.log(222);
-        this.isJrRegionListLoading  = true;
+  //       const body = {
+  //         "searchString":this.searchJrRegionCtrl.value,
+  //         "id":this.formBaseInformation.get('jr_country_id').value};
+  //         console.log(222);
+  //       this.isJrRegionListLoading  = true;
         
-        return this.http.post('/api/auth/getSpravSysRegions', body);
-      }else return [];
-    } catch (e) {
-      return [];}}
+  //       return this.http.post('/api/auth/getSpravSysRegions', body);
+  //     }else return [];
+  //   } catch (e) {
+  //     return [];}}
   //---------------------------------------------------------------------------------------------------
   //---------------     ***** поиск по подстроке для Города  ***    -----------------------------------
-  onCitySearchValueChanges(){
-    this.searchCityCtrl.valueChanges
-    .pipe( 
-      debounceTime(500),
-      tap(() => {
-        this.filteredCities = [];}),       
-      switchMap(fieldObject =>  
-        this.getSpravSysCities()))
-    .subscribe(data => {
-      this.isCityListLoading = false;
-      if (data == undefined) {
-        this.filteredCities = [];
-      } else {
-        this.filteredCities = data as City[];
-  }});}
+  // onCitySearchValueChanges(){
+  //   this.searchCityCtrl.valueChanges
+  //   .pipe( 
+  //     debounceTime(500),
+  //     tap(() => {
+  //       this.filteredCities = [];}),       
+  //     switchMap(fieldObject =>  
+  //       this.getSpravSysCities()))
+  //   .subscribe(data => {
+  //     this.isCityListLoading = false;
+  //     if (data == undefined) {
+  //       this.filteredCities = [];
+  //     } else {
+  //       this.filteredCities = data as City[];
+  // }});}
 
-  onSelectCity(id:any,area:string,region_id:number,region:string,country_id:number,country:string){
-    this.formBaseInformation.get('city_id').setValue(+id);
-    this.area=area;
-    if(area!=''){
-      setTimeout(()=> {
-        this.searchCityCtrl.setValue(this.searchCityCtrl.value+' ('+area+')'); 
-      },200); 
-    }//если выбрали город, а регион не выбран
-    if((this.formBaseInformation.get('region_id').value==null || this.formBaseInformation.get('region_id').value=='') && region_id>0){//если у города есть регион и он не выбран - устанавливаем регион
-      this.formBaseInformation.get('region_id').setValue(region_id);
-      this.searchRegionCtrl.setValue(region);
-    }//если выбрали регион, а страна не выбрана
-    if((this.formBaseInformation.get('country_id').value==null || this.formBaseInformation.get('country_id').value=='') && country_id>0){//если у города есть страна и она не выбрана - устанавливаем страну
-      this.formBaseInformation.get('country_id').setValue(country_id);
-      this.formBaseInformation.get('country').setValue(country);
-    }
-  }
+  // onSelectCity(id:any,area:string,region_id:number,region:string,country_id:number,country:string){
+  //   this.formBaseInformation.get('city_id').setValue(+id);
+  //   this.area=area;
+  //   if(area!=''){
+  //     setTimeout(()=> {
+  //       this.searchCityCtrl.setValue(this.searchCityCtrl.value+' ('+area+')'); 
+  //     },200); 
+  //   }//если выбрали город, а регион не выбран
+  //   if((this.formBaseInformation.get('region_id').value==null || this.formBaseInformation.get('region_id').value=='') && region_id>0){//если у города есть регион и он не выбран - устанавливаем регион
+  //     this.formBaseInformation.get('region_id').setValue(region_id);
+  //     this.searchRegionCtrl.setValue(region);
+  //   }//если выбрали регион, а страна не выбрана
+  //   if((this.formBaseInformation.get('country_id').value==null || this.formBaseInformation.get('country_id').value=='') && country_id>0){//если у города есть страна и она не выбрана - устанавливаем страну
+  //     this.formBaseInformation.get('country_id').setValue(country_id);
+  //     this.formBaseInformation.get('country').setValue(country);
+  //   }
+  // }
 
-  checkEmptyCityField(){
-    if(this.searchCityCtrl.value.length==0){
-      this.formBaseInformation.get('city_id').setValue(null);
-      this.area='';
-  }};     
-  getSpravSysCities(){ //заполнение Autocomplete
-    try {
-      if(this.canCityAutocompleteQuery && this.searchCityCtrl.value.length>1){
-        const body = {
-          "searchString":this.searchCityCtrl.value,
-          "id":this.formBaseInformation.get('country_id').value,
-          "id2":this.formBaseInformation.get('region_id').value}
-        this.isCityListLoading  = true;
-        return this.http.post('/api/auth/getSpravSysCities', body);
-      }else return [];
-    } catch (e) {
-      return [];}}    
+  // checkEmptyCityField(){
+  //   if(this.searchCityCtrl.value.length==0){
+  //     this.formBaseInformation.get('city_id').setValue(null);
+  //     this.area='';
+  // }};     
+  // getSpravSysCities(){ //заполнение Autocomplete
+  //   try {
+  //     if(this.canCityAutocompleteQuery && this.searchCityCtrl.value.length>1){
+  //       const body = {
+  //         "searchString":this.searchCityCtrl.value,
+  //         "id":this.formBaseInformation.get('country_id').value,
+  //         "id2":this.formBaseInformation.get('region_id').value}
+  //       this.isCityListLoading  = true;
+  //       return this.http.post('/api/auth/getSpravSysCities', body);
+  //     }else return [];
+  //   } catch (e) {
+  //     return [];}}    
 
   //--------------------------------------------------------------------------------------------------------
   //---------------     ***** поиск по подстроке для Города в юр. адресе  ***    --------------------------
-  onJrCitySearchValueChanges(){
-    this.searchJrCityCtrl.valueChanges
-    .pipe( 
-      debounceTime(500),
-      tap(() => {
-        this.filteredJrCities = [];}),       
-      switchMap(fieldObject =>  
-        this.getSpravSysJrCities()))
-    .subscribe(data => {
-      this.isJrCityListLoading = false;
-      if (data == undefined) {
-        this.filteredJrCities = [];
-      } else {
-        this.filteredJrCities = data as City[];
-  }});}
-  onSelectJrCity(id:any,jr_area:string,region_id:number,region:string,country_id:number,country:string){
-    this.formBaseInformation.get('jr_city_id').setValue(+id);
-    this.jr_area=jr_area;
-    if(jr_area!=''){
-      setTimeout(()=> {
-        this.searchJrCityCtrl.setValue(this.searchJrCityCtrl.value+' ('+jr_area+')'); 
-      },200); 
-    }//если выбрали город, а регион не выбран
-    if((this.formBaseInformation.get('jr_region_id').value==null || this.formBaseInformation.get('jr_region_id').value=='') && region_id>0){//если у города есть регион и он не выбран - устанавливаем регион
-      this.formBaseInformation.get('jr_region_id').setValue(region_id);
-      this.searchJrRegionCtrl.setValue(region);
-    }//если выбрали регион, а страна не выбрана
-    if((this.formBaseInformation.get('jr_country_id').value==null || this.formBaseInformation.get('jr_country_id').value=='') && country_id>0){//если у города есть страна и она не выбрана - устанавливаем страну
-      this.formBaseInformation.get('jr_country_id').setValue(country_id);
-      this.formBaseInformation.get('jr_country').setValue(country);
-    }
-  }
-  checkEmptyJrCityField(){
-    if(this.searchJrCityCtrl.value.length==0){
-      this.formBaseInformation.get('jr_city_id').setValue(null);
-      this.jr_area='';
-  }};     
-  getSpravSysJrCities(){ //заполнение Autocomplete
-    try {
-      if(this.canJrCityAutocompleteQuery && this.searchJrCityCtrl.value.length>1){
-        const body = {
-          "searchString":this.searchJrCityCtrl.value,
-          "id":this.formBaseInformation.get('jr_country_id').value,
-          "id2":this.formBaseInformation.get('jr_region_id').value}
-        this.isJrCityListLoading  = true;
-        return this.http.post('/api/auth/getSpravSysCities', body);
-      }else return [];
-    } catch (e) {
-      return [];}}    
+  // onJrCitySearchValueChanges(){
+  //   this.searchJrCityCtrl.valueChanges
+  //   .pipe( 
+  //     debounceTime(500),
+  //     tap(() => {
+  //       this.filteredJrCities = [];}),       
+  //     switchMap(fieldObject =>  
+  //       this.getSpravSysJrCities()))
+  //   .subscribe(data => {
+  //     this.isJrCityListLoading = false;
+  //     if (data == undefined) {
+  //       this.filteredJrCities = [];
+  //     } else {
+  //       this.filteredJrCities = data as City[];
+  // }});}
+  // onSelectJrCity(id:any,jr_area:string,region_id:number,region:string,country_id:number,country:string){
+  //   this.formBaseInformation.get('jr_city_id').setValue(+id);
+  //   this.jr_area=jr_area;
+  //   if(jr_area!=''){
+  //     setTimeout(()=> {
+  //       this.searchJrCityCtrl.setValue(this.searchJrCityCtrl.value+' ('+jr_area+')'); 
+  //     },200); 
+  //   }//если выбрали город, а регион не выбран
+  //   if((this.formBaseInformation.get('jr_region_id').value==null || this.formBaseInformation.get('jr_region_id').value=='') && region_id>0){//если у города есть регион и он не выбран - устанавливаем регион
+  //     this.formBaseInformation.get('jr_region_id').setValue(region_id);
+  //     this.searchJrRegionCtrl.setValue(region);
+  //   }//если выбрали регион, а страна не выбрана
+  //   if((this.formBaseInformation.get('jr_country_id').value==null || this.formBaseInformation.get('jr_country_id').value=='') && country_id>0){//если у города есть страна и она не выбрана - устанавливаем страну
+  //     this.formBaseInformation.get('jr_country_id').setValue(country_id);
+  //     this.formBaseInformation.get('jr_country').setValue(country);
+  //   }
+  // }
+  // checkEmptyJrCityField(){
+  //   if(this.searchJrCityCtrl.value.length==0){
+  //     this.formBaseInformation.get('jr_city_id').setValue(null);
+  //     this.jr_area='';
+  // }};     
+  // getSpravSysJrCities(){ //заполнение Autocomplete
+  //   try {
+  //     if(this.canJrCityAutocompleteQuery && this.searchJrCityCtrl.value.length>1){
+  //       const body = {
+  //         "searchString":this.searchJrCityCtrl.value,
+  //         "id":this.formBaseInformation.get('jr_country_id').value,
+  //         "id2":this.formBaseInformation.get('jr_region_id').value}
+  //       this.isJrCityListLoading  = true;
+  //       return this.http.post('/api/auth/getSpravSysCities', body);
+  //     }else return [];
+  //   } catch (e) {
+  //     return [];}}    
   //------------------------------С Т А Т У С Ы-------------------------------------------------
   getStatusesList(){
     this.receivedStatusesList=null;

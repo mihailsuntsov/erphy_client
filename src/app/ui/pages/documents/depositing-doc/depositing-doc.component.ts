@@ -455,6 +455,7 @@ export class DepositingDocComponent implements OnInit {
   onSelectKassa(id:number,name:string){
     this.formBaseInformation.get('orderout_id').setValue(null);
     this.formBaseInformation.get('kassa').setValue(name);
+    this.formBaseInformation.get('kassa_id').setValue(id);
     this.getOrderoutListByBoxofficeId();
   }
 

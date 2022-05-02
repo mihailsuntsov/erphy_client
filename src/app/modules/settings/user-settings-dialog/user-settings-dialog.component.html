@@ -3,7 +3,7 @@
         <div class="card-name">{{t('modules.card.settings')}}</div>
         <button 
             (click)="onNoClick()"
-            matTooltip="Закрыть окно настроек"
+            matTooltip="{{t('modules.tip.cls_sttng_wnd')}}"
             mat-raised-button 
             color="accent"
             class="button small-button">
@@ -29,7 +29,7 @@
                                         formControlName="languageId"/>
                             </mat-form-field>
                             <mat-form-field class="mat-form-field-100">
-                                <mat-label>Язык <span *ngIf="settingsForm.get('languageName').value==0||settingsForm.get('languageName').value==null" class="star">*</span></mat-label>
+                                <mat-label>{{t('modules.field.language')}} <span *ngIf="settingsForm.get('languageName').value==0||settingsForm.get('languageName').value==null" class="star">*</span></mat-label>
                                 <input matInput
                                     type="text"
                                     formControlName="languageName" 
@@ -40,7 +40,7 @@
                                     type="button"
                                     class="clear-button"
                                     (click)="clearField('languageName');checkEmptyFields('languageId','languageName');"
-                                    matTooltip='Очистить поле поиска, и выбрать другой язык'
+                                    matTooltip="{{t('modules.tip.clr_srch')}}"
                                     matSuffix mat-icon-button>
                                     <mat-icon>close</mat-icon>
                                 </button>
@@ -52,7 +52,7 @@
                                 </mat-option>
                                 </mat-autocomplete>
                                 <mat-hint  align="start" *ngIf="settingsForm.get('languageName').touched && settingsForm.get('languageId').invalid">
-                                    <i class="form-invalid">Язык не выбран.</i>
+                                    <i class="form-invalid">{{t('modules.error.field_miss')}}</i>
                                 </mat-hint>
                             </mat-form-field>
 
@@ -62,7 +62,7 @@
                                         formControlName="localeId"/>
                             </mat-form-field>
                             <mat-form-field class="mat-form-field-100">
-                                <mat-label>Локаль <span *ngIf="settingsForm.get('localeName').value==0||settingsForm.get('localeName').value==null" class="star">*</span></mat-label>
+                                <mat-label>{{t('modules.field.locale')}} <span *ngIf="settingsForm.get('localeName').value==0||settingsForm.get('localeName').value==null" class="star">*</span></mat-label>
                                 <input matInput
                                     type="text"
                                     formControlName="localeName" 
@@ -73,7 +73,7 @@
                                     type="button"
                                     class="clear-button"
                                     (click)="clearField('localeName');checkEmptyFields('localeId','localeName');"
-                                    matTooltip='Очистить поле поиска, и выбрать другую локаль'
+                                    matTooltip="{{t('modules.tip.clr_srch')}}"
                                     matSuffix mat-icon-button>
                                     <mat-icon>close</mat-icon>
                                 </button>
@@ -85,7 +85,7 @@
                                 </mat-option>
                                 </mat-autocomplete>
                                 <mat-hint  align="start" *ngIf="settingsForm.get('localeName').touched && settingsForm.get('localeId').invalid">
-                                    <i class="form-invalid">Локаль не выбрана.</i>
+                                    <i class="form-invalid">{{t('modules.error.field_miss')}}</i>
                                 </mat-hint>
                             </mat-form-field>
 
@@ -95,7 +95,7 @@
                                         formControlName="timeZoneId"/>
                             </mat-form-field>
                             <mat-form-field class="mat-form-field-100">
-                                <mat-label>Часовой пояс <span *ngIf="settingsForm.get('timeZoneName').value==0||settingsForm.get('timeZoneName').value==null" class="star">*</span></mat-label>
+                                <mat-label>{{t('modules.field.timezone')}} <span *ngIf="settingsForm.get('timeZoneName').value==0||settingsForm.get('timeZoneName').value==null" class="star">*</span></mat-label>
                                 <input matInput
                                     type="text"
                                     formControlName="timeZoneName" 
@@ -106,7 +106,7 @@
                                     type="button"
                                     class="clear-button"
                                     (click)="clearField('timeZoneName'); checkEmptyFields('timeZoneId','timeZoneName');"
-                                    matTooltip='Очистить поле поиска, и выбрать другой часовой пояс'
+                                    matTooltip="{{t('modules.tip.clr_srch')}}"
                                     matSuffix mat-icon-button>
                                     <mat-icon>close</mat-icon>
                                 </button>
@@ -118,7 +118,7 @@
                                 </mat-option>
                                 </mat-autocomplete>
                                 <mat-hint  align="start" *ngIf="settingsForm.get('timeZoneName').touched && settingsForm.get('timeZoneId').invalid">
-                                    <i class="form-invalid">Часовой пояс не выбран.</i>
+                                    <i class="form-invalid">{{t('modules.error.field_miss')}}</i>
                                 </mat-hint>
                             </mat-form-field>
                         </div>
@@ -131,12 +131,12 @@
                     <button 
                         (click)="applySettings()"
                         class="apply-button"
-                        matTooltip="Сохранить настройки и закрыть"
+                        matTooltip="{{t('modules.tip.save_n_close')}}"
                         mat-raised-button 
                         color="primary"
                         [disabled]="(!settingsForm.valid)"
                         >
-                        <i class="material-icons">done</i> Сохранить 
+                        <i class="material-icons">done</i> {{t('modules.button.save_n_close')}} 
                     </button>
                 </div>
 
