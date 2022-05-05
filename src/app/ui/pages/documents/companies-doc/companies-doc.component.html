@@ -66,9 +66,9 @@
     </mat-card-content>
     <!-- !!! -->
     <mat-card-content *ngIf="!rightsDefined || (rightsDefined && (( +id>0 && allowToView)||(+id==0 && allowToCreate)))">
-        accountingCurrency-{{accountingCurrency}}<br>
+        <!-- accountingCurrency-{{accountingCurrency}}<br>
         countryId-{{countryId}}<br>
-        organization-{{organization}}<br>
+        organization-{{organization}}<br> -->
 
         <form [formGroup]="formBaseInformation">   
             <mat-tab-group>
@@ -88,7 +88,7 @@
                                         </mat-form-field>
                                         <!-- Наименование -->
                                         <mat-form-field>
-                                            <mat-label>{{t('docs.field.name')}} <span *ngIf="formBaseInformation.get('name').value==''||formBaseInformation.get('name').value==null" class="star">*</span></mat-label>
+                                            <mat-label>{{t('docs.field.name_short')}} <span *ngIf="formBaseInformation.get('name').value==''||formBaseInformation.get('name').value==null" class="star">*</span></mat-label>
                                             <input   matInput
                                                     [readonly]=!editability
                                                     maxlength="500"
@@ -99,12 +99,11 @@
                                             <mat-hint align="end" *ngIf="formBaseInformation.get('name').value.length>450">{{formBaseInformation.get('name').value.length}} / 500</mat-hint>
                                         </mat-form-field>
                                         <!-- Организационно-правовая форма -->
-                                        <mat-form-field>
+                                        <!-- <mat-form-field>
                                             <mat-label>{{t('docs.field.form')}} <span *ngIf="+formBaseInformation.get('opf_id').value==0||formBaseInformation.get('opf_id').value==null" class="star">*</span></mat-label>
                                             <mat-select [disabled]=!editability
                                                         formControlName="opf_id" 
                                                         (selectionChange)="setJurElementsVisible()">                          
-                                                <!-- <mat-option value=0 selected></mat-option> -->
                                                 <mat-option *ngFor="let rt of receivedSpravSysOPF" [value]="rt.id" matTooltip={{rt.description}} >
                                                         {{rt.name}}
                                                 </mat-option> 
@@ -112,16 +111,41 @@
                                             <mat-hint align="start" *ngIf="formBaseInformation.get('opf_id').touched">
                                                 <i *ngIf="+formBaseInformation.get('opf_id').value==0" class="form-invalid">{{t('docs.error.field_miss')}}</i>
                                             </mat-hint>
-                                        </mat-form-field>
-                                        <!-- Код -->
-                                        <mat-form-field>
-                                            <input   matInput
-                                                    placeholder="{{t('docs.field.code')}}"
-                                                    [readonly]=!editability
-                                                    maxlength="30"
-                                                    formControlName="code"/>
-                                            <mat-hint align="end" *ngIf="formBaseInformation.get('code').value.length>20">{{formBaseInformation.get('code').value.length}} / 30</mat-hint>
-                                        </mat-form-field>
+                                        </mat-form-field> -->
+                                        <div class="row">
+                                            <div class="col-lg-6  col-md-12">
+                                                <mat-form-field  class="mat-form-field-100">
+                                                    <mat-label>{{t('docs.field.type')}}</mat-label>
+                                                    <mat-select  
+                                                        formControlName="type"
+                                                        [disabled]=!editability
+                                                    >                          
+                                                        <mat-option 
+                                                            value="entity" 
+                                                        >
+                                                                {{t('docs.list.entity')}}
+                                                        </mat-option>                     
+                                                        <mat-option 
+                                                            value="individual"
+                                                        >
+                                                                {{t('docs.list.individual')}}
+                                                        </mat-option>                                                 
+                                                    </mat-select>
+                                                </mat-form-field>
+                                            </div>
+                                            <div class="col-lg-6  col-md-12">
+                                                <!-- Код -->
+                                                <mat-form-field  class="mat-form-field-100">
+                                                    <input   matInput
+                                                            placeholder="{{t('docs.field.code')}}"
+                                                            [readonly]=!editability
+                                                            maxlength="30"
+                                                            formControlName="code"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('code').value.length>20">{{formBaseInformation.get('code').value.length}} / 30</mat-hint>
+                                                </mat-form-field>
+                                            </div>
+                                        </div>
+
                                         <!-- НДС -->
                                         <mat-form-field class="slideWidth100">
                                             <mat-slide-toggle 
@@ -181,8 +205,280 @@
                                         
                                     </mat-card-content>
                                 </mat-card>
+                                <mat-card>
+                                    <mat-card-header>
+                                        <mat-card-title class="card-title">{{t('docs.card.base_data')}}</mat-card-title>
+                                    </mat-card-header>
+                                    <mat-card-content class="input-form">
+                                        <!-- Полное наименование -->
+                                        <mat-form-field *ngIf="formBaseInformation.get('type').value=='entity'">
+                                            <textarea   matInput
+                                                    placeholder="{{t('docs.field.name_full')}}"
+                                                    [readonly]=!editability
+                                                    maxlength="500"
+                                                    formControlName="jr_jur_full_name">
+                                            </textarea>
+                                            <mat-hint align="end" *ngIf="formBaseInformation.get('jr_jur_full_name').value.length>400">{{formBaseInformation.get('jr_jur_full_name').value.length}} / 500</mat-hint>
+                                        </mat-form-field>
+                                        <!-- Фамилия -->
+                                        <mat-form-field *ngIf="formBaseInformation.get('type').value=='individual'">
+                                            <input   matInput
+                                                    placeholder="{{t('docs.field.surname')}}"
+                                                    [readonly]=!editability
+                                                    maxlength="120"
+                                                    formControlName="jr_fio_family"/>
+                                            <mat-hint align="end" *ngIf="formBaseInformation.get('jr_fio_family').value.length>100">{{formBaseInformation.get('jr_fio_family').value.length}} / 120</mat-hint>
+                                        </mat-form-field>
+                                        <!-- Имя -->
+                                        <mat-form-field *ngIf="formBaseInformation.get('type').value=='individual'">
+                                            <input   matInput
+                                                    placeholder="{{t('docs.field.person_name')}}"
+                                                    [readonly]=!editability
+                                                    maxlength="120"
+                                                    formControlName="jr_fio_name"/>
+                                            <mat-hint align="end" *ngIf="formBaseInformation.get('jr_fio_name').value.length>100">{{formBaseInformation.get('jr_fio_name').value.length}} / 120</mat-hint>
+                                        </mat-form-field>
+                                        <!-- Отчество -->
+                                        <mat-form-field *ngIf="formBaseInformation.get('type').value=='individual' && +formBaseInformation.get('jr_country_id').value==1">
+                                            <input   matInput
+                                                    placeholder="{{t('docs.field.middle_name')}}"
+                                                    maxlength="120"
+                                                    [readonly]=!editability
+                                                    formControlName="jr_fio_otchestvo"/>
+                                            <mat-hint align="end" *ngIf="formBaseInformation.get('jr_fio_otchestvo').value.length>100">{{formBaseInformation.get('jr_fio_otchestvo').value.length}} / 120</mat-hint>
+                                        </mat-form-field>
+                                        <!-- ИНН -->
+                                        <mat-form-field>
+                                            <input  matInput
+                                                    maxlength="12"
+                                                    placeholder="{{t('docs.field.'+tinName)}}"
+                                                    [readonly]=!editability
+                                                    (keypress)="numberOnly($event)"
+                                                    formControlName="jr_inn"/>
+                                        </mat-form-field>
+                                        <!-- КПП -->
+                                        <mat-form-field *ngIf="formBaseInformation.get('type').value=='entity' && +formBaseInformation.get('jr_country_id').value==1">
+                                            <input  matInput
+                                                    maxlength="9"
+                                                    [readonly]=!editability
+                                                    placeholder="{{t('docs.field.kpp')}}"
+                                                    (keypress)="numberOnly($event)"
+                                                    formControlName="jr_jur_kpp"/>
+                                        </mat-form-field>
+                                        <!-- ОГРН(ИП) / Registration number -->
+                                        <mat-form-field>
+                                            <input  matInput
+                                                    maxlength="13"
+                                                    [readonly]=!editability
+                                                    placeholder="{{t('docs.field.'+regNumberName)}}"
+                                                    (keypress)="numberOnly($event)"
+                                                    formControlName="jr_jur_ogrn"/>
+                                        </mat-form-field>
+                                        <!-- ОКПО -->
+                                        <mat-form-field *ngIf="formBaseInformation.get('type').value=='entity' && +formBaseInformation.get('jr_country_id').value==1">
+                                            <input  matInput
+                                                    maxlength="10"
+                                                    [readonly]=!editability
+                                                    placeholder="{{t('docs.field.okpo')}}"
+                                                    (keypress)="numberOnly($event)"
+                                                    formControlName="jr_okpo"/>
+                                            <mat-hint  align="start" *ngIf="formBaseInformation.get('jr_okpo').touched && formBaseInformation.get('jr_okpo').invalid">
+                                                <!-- <i *ngIf="formBaseInformation.get('jr_okpo').errors.pattern" class="form-invalid">ОКПО должен состоять из 8 или 10 цифр</i> -->
+                                            </mat-hint>
+                                        </mat-form-field>
+                                        <!-- Номер свидетельства -->
+                                        <mat-form-field *ngIf="formBaseInformation.get('type').value=='individual' && +formBaseInformation.get('jr_country_id').value==1">
+                                            <input   matInput
+                                                    placeholder="{{t('docs.field.reg_doc_num')}}"
+                                                    [readonly]=!editability
+                                                    maxlength="30"
+                                                    formControlName="jr_ip_svid_num"/>
+                                            <mat-hint align="end" *ngIf="formBaseInformation.get('jr_ip_svid_num').value.length>25">{{formBaseInformation.get('jr_ip_svid_num').value.length}} / 30</mat-hint>
+                                        </mat-form-field>
+                                        <!-- Дата регистрации -->
+                                        <mat-form-field *ngIf="formBaseInformation.get('type').value=='individual' && +formBaseInformation.get('jr_country_id').value==1">
+                                            <input  matInput 
+                                                    placeholder="{{t('docs.field.reg_date')}}"
+                                                    [readonly]=!editability
+                                                    formControlName="jr_ip_reg_date"
+                                                    [ngClass]="{'is-invalid':formBaseInformation.get('jr_ip_reg_date').touched && formBaseInformation.get('jr_ip_reg_date').invalid}"
+                                                    [matDatepicker]="dp"/>
+                                                    <mat-datepicker-toggle *ngIf="editability" matSuffix [for]="dp"></mat-datepicker-toggle>
+                                            <mat-datepicker #dp></mat-datepicker>
+                                            <mat-hint *ngIf="formBaseInformation.get('jr_ip_reg_date').touched && formBaseInformation.get('jr_ip_reg_date').invalid" class="invalid-feedback">
+                                                <i class="form-invalid">{{t('docs.error.date_format')}}</i>
+                                            </mat-hint>
+                                        </mat-form-field>
+                                    </mat-card-content>
+                                </mat-card>
                             </div> 
                             <div class="col-lg-4 col-xl-4 col-md-12">   
+                                <mat-card>
+                                    <div class="del-icon"  [style.display]="editability?'block':'none'">
+                                        <mat-icon   (click)="copyfromAddressToJurAddress()" 
+                                                    matTooltip="{{t('docs.tip.addr_copy_q')}}" 
+                                                    class="nav-icon">content_copy
+                                        </mat-icon>
+                                    </div>
+                                    <mat-card-header>
+                                        <mat-card-title class="card-title">{{t('docs.card.legal_address')}}</mat-card-title>
+                                    </mat-card-header>
+                                    
+                                    <mat-card-content class="input-form">
+                                        <!-- Индекс -->
+                                        <div class="row">
+                                            <div class="col-lg-6  col-md-12">
+                                                <mat-form-field  class="mat-form-field-100">
+                                                    <input   matInput
+                                                            placeholder="{{t('docs.field.zip_code')}}"
+                                                            [readonly]=!editability
+                                                            maxlength="40"
+                                                            formControlName="jr_zip_code"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('jr_zip_code').value.length>30">{{formBaseInformation.get('jr_zip_code').value.length}} / 40</mat-hint>
+                                                </mat-form-field>
+                                            </div>
+                                            <div class="col-lg-6  col-md-12">
+                                                <!-- Country -->
+                                                <mat-form-field  style="display: none;" >
+                                                    <input   matInput
+                                                            placeholder="{{t('docs.field.country')}}"
+                                                            [readonly]=!editability
+                                                            formControlName="jr_country_id"/>
+                                                </mat-form-field>
+                                                <mat-form-field style="width:100%">
+                                                    <mat-label>{{t('docs.field.country')}}</mat-label>
+                                                    <input matInput
+                                                    type="text"
+                                                    [readonly]=!editability
+                                                    formControlName="jr_country" 
+                                                    [matAutocomplete]="auto2" 
+                                                    (input)="checkEmptyListField('jr_country');"
+                                                    (change)="checkEmptyListField('jr_country');">
+                                                    <mat-autocomplete #auto2="matAutocomplete">
+                                                        <mat-option *ngFor="let option of filteredSpravSysJrCountries | async" [value]="option.name_ru">
+                                                            <div (click)="formBaseInformation.get('jr_country_id').setValue(option.id)">
+                                                                <span style="margin:10px;">{{option.name_ru}}</span>
+                                                            </div>
+                                                        </mat-option>
+                                                    </mat-autocomplete>
+                                                </mat-form-field>
+                                            </div>
+                                        </div>
+                                        <!-- Регион -->
+                                        <!-- <mat-form-field style="display: none">
+                                            <input  matInput
+                                                    placeholder="jr_region_id"
+                                                    [readonly]=!editability
+                                                    formControlName="jr_region_id"/>
+                                        </mat-form-field>
+                                        <mat-form-field class="mat-form-field-100" > 
+                                            <input  matInput 
+                                            placeholder="{{t('docs.field.region')}}"
+                                            [matAutocomplete]="auto5" 
+                                            [formControl]="searchJrRegionCtrl"
+                                            [readonly]=!editability
+                                            (input)="canJrRegionAutocompleteQuery=true; checkEmptyJrRegionField();"
+                                            (change)="canJrRegionAutocompleteQuery=false; checkEmptyJrRegionField();">
+                                            <mat-autocomplete #auto5="matAutocomplete">
+                                            <ng-container *ngIf="!isJrRegionListLoading" style="width:320px;">
+                                                <mat-option style="padding:0px" *ngFor="let value of filteredJrRegions" [value]="value.name_ru">
+                                                <div (click)="onSelectJrRegion(value.id,value.country_id,value.country_name_ru)">
+                                                    <span style="margin:10px;"><b>{{value.name_ru}}</b></span>
+                                                </div>
+                                                </mat-option>
+                                            </ng-container>
+                                            </mat-autocomplete>
+                                        </mat-form-field>
+                                        <mat-progress-bar *ngIf="isJrRegionListLoading" mode="indeterminate"></mat-progress-bar> -->
+                                        <mat-form-field>
+                                            <input   matInput
+                                                    placeholder="{{t('docs.field.region')}}"
+                                                    [readonly]=!editability
+                                                    maxlength="120"
+                                                    formControlName="jr_region"/>
+                                            <mat-hint align="end" *ngIf="formBaseInformation.get('jr_region').value.length>100">{{formBaseInformation.get('jr_region').value.length}} / 120</mat-hint>
+                                        </mat-form-field>
+                                        <!-- Город -->
+                                        <!-- <mat-form-field style="display: none">
+                                            <input  matInput
+                                                    placeholder="jr_city_id"
+                                                    [readonly]=!editability
+                                                    formControlName="jr_city_id"/>
+                                        </mat-form-field>
+                                        <mat-form-field class="mat-form-field-100" > 
+                                            <mat-label>{{t('docs.field.city_locality')}}</mat-label>
+                                            <input  matInput 
+                                            [matAutocomplete]="auto7" 
+                                            [formControl]="searchJrCityCtrl"
+                                            [readonly]=!editability
+                                            (input)="canJrCityAutocompleteQuery=true; checkEmptyJrCityField();"
+                                            (change)="canJrCityAutocompleteQuery=false; checkEmptyJrCityField();">
+                                            <mat-autocomplete #auto7="matAutocomplete">
+                                            <ng-container *ngIf="!isJrCityListLoading" style="width:320px;">
+                                                <mat-option style="padding:0px" *ngFor="let value of filteredJrCities" [value]="value.name_ru">
+                                                <div (click)="onSelectJrCity(value.id,value.area_ru,value.region_id,value.region_name_ru,value.country_id,value.country_name_ru)">
+                                                    <span style="margin:10px;"><b>{{value.name_ru}}</b> <i> {{value.area_ru}}</i></span>
+                                                </div>
+                                                </mat-option>
+                                            </ng-container>
+                                            </mat-autocomplete>
+                                        </mat-form-field>
+                                        <mat-progress-bar *ngIf="isJrCityListLoading" mode="indeterminate"></mat-progress-bar> -->
+                                        
+                                        <mat-form-field>
+                                            <input   matInput
+                                                    placeholder="{{t('docs.field.city_locality')}}"
+                                                    [readonly]=!editability
+                                                    maxlength="120"
+                                                    formControlName="jr_city"/>
+                                            <mat-hint align="end" *ngIf="formBaseInformation.get('jr_city').value.length>100">{{formBaseInformation.get('jr_city').value.length}} / 120</mat-hint>
+                                        </mat-form-field>
+
+                                        <!-- Улица -->
+                                        <mat-form-field>
+                                            <input   matInput
+                                                    placeholder="{{t('docs.field.street')}}"
+                                                    [readonly]=!editability
+                                                    maxlength="120"
+                                                    formControlName="jr_street"/>
+                                            <mat-hint align="end" *ngIf="formBaseInformation.get('jr_street').value.length>100">{{formBaseInformation.get('jr_street').value.length}} / 120</mat-hint>
+                                        </mat-form-field>
+                                        <div class="row">
+                                            <div class="col-lg-6  col-md-12">
+                                                <mat-form-field  class="mat-form-field-100">
+                                                <!-- Дом -->
+                                                    <input   matInput
+                                                            placeholder="{{t('docs.field.house')}}"
+                                                            [readonly]=!editability
+                                                            maxlength="16"
+                                                            formControlName="jr_home"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('jr_home').value.length>12">{{formBaseInformation.get('jr_home').value.length}} / 16</mat-hint>
+                                                </mat-form-field>
+                                            </div>
+                                            <div class="col-lg-6  col-md-12">
+                                                <!-- Квартира -->
+                                                <mat-form-field  class="mat-form-field-100">
+                                                    <input   matInput
+                                                            placeholder="{{t('docs.field.room')}}"
+                                                            [readonly]=!editability
+                                                            maxlength="8"
+                                                            formControlName="jr_flat"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('jr_flat').value.length>6">{{formBaseInformation.get('jr_flat').value.length}} / 8</mat-hint>
+                                                </mat-form-field>
+                                            </div>
+                                        </div>
+                                        <!-- Дополнение к адресу -->
+                                        <mat-form-field>
+                                            <textarea   matInput
+                                                    placeholder="{{t('docs.field.addr_addittnl')}}"
+                                                    [readonly]=!editability
+                                                    maxlength="240"
+                                                    formControlName="jr_additional_address">
+                                            </textarea>
+                                            <mat-hint align="end" *ngIf="formBaseInformation.get('jr_additional_address').value.length>200">{{formBaseInformation.get('jr_additional_address').value.length}} / 240</mat-hint>
+                                        </mat-form-field>
+                                    </mat-card-content>
+                                </mat-card>  
                                 <mat-card>
                                     <!-- АДРЕС -->
                                     <div class="del-icon"  [style.display]="editability?'block':'none'">
@@ -199,37 +495,48 @@
                                             {{formBaseInformation.get('companiesPaymentAccountsTable').value | json}}
                                             </pre> -->
                                         <!-- Индекс -->
-                                        <mat-form-field>
-                                            <input   matInput
-                                                    placeholder="{{t('docs.field.zip_code')}}"
+                                        <div class="row">
+                                            <div class="col-lg-6  col-md-12">
+                                                <mat-form-field  class="mat-form-field-100">
+                                                    <input   matInput
+                                                            placeholder="{{t('docs.field.zip_code')}}"
+                                                            [readonly]=!editability
+                                                            maxlength="40"
+                                                            formControlName="zip_code"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('zip_code').value.length>30">{{formBaseInformation.get('zip_code').value.length}} / 40</mat-hint>
+                                                </mat-form-field>
+                                            </div>
+                                            <div class="col-lg-6  col-md-12">
+                                                <!-- Country -->
+                                                <mat-form-field  style="display: none;" >
+                                                    <input   matInput
+                                                            placeholder="{{t('docs.field.country')}}"
+                                                            [readonly]=!editability
+                                                            formControlName="country_id"/>
+                                                </mat-form-field>
+                                                <mat-form-field style="width:100%">
+                                                    <mat-label>{{t('docs.field.country')}}</mat-label>
+                                                    <input matInput
+                                                    type="text"
                                                     [readonly]=!editability
-                                                    maxlength="40"
-                                                    formControlName="zip_code"/>
-                                            <mat-hint align="end" *ngIf="formBaseInformation.get('zip_code').value.length>30">{{formBaseInformation.get('zip_code').value.length}} / 40</mat-hint>
-                                        </mat-form-field>
-                                        <!-- Страна -->
-                                        <mat-form-field  style="display: none;" >
-                                            <input   matInput
-                                                    placeholder="{{t('docs.field.country')}}"
-                                                    formControlName="country_id"/>
-                                        </mat-form-field>
-                                        <mat-form-field  class="mat-form-field-100">
-                                            <mat-label>{{t('docs.field.country')}}</mat-label>
-                                            <input matInput
-                                            type="text"
-                                            formControlName="country" 
-                                            [readonly]=!editability
-                                            [matAutocomplete]="auto1" 
-                                            (input)="checkEmptyCountryField();"
-                                            (change)="checkEmptyCountryField();">
-                                            <mat-autocomplete #auto1="matAutocomplete">
-                                                <mat-option *ngFor="let option of filteredSpravSysCountries | async" [value]="option.name_ru">
-                                                    <div (click)="formBaseInformation.get('country_id').setValue(option.id)">
-                                                        <span style="margin:10px;">{{option.name_ru}}</span>
-                                                    </div>
-                                                </mat-option>
-                                            </mat-autocomplete>
-                                        </mat-form-field>
+                                                    formControlName="country" 
+                                                    [matAutocomplete]="auto2" 
+                                                    (input)="checkEmptyListField('country');"
+                                                    (change)="checkEmptyListField('country');">
+                                                    <mat-autocomplete #auto2="matAutocomplete">
+                                                        <mat-option *ngFor="let option of filteredSpravSysJrCountries | async" [value]="option.name_ru">
+                                                            <div (click)="formBaseInformation.get('country_id').setValue(option.id)">
+                                                                <span style="margin:10px;">{{option.name_ru}}</span>
+                                                            </div>
+                                                        </mat-option>
+                                                    </mat-autocomplete>
+                                                </mat-form-field>
+                                            </div>
+                                        </div>
+                                        
+
+
+
                                         <!-- Регион -->
                                         <!-- <mat-form-field style="display: none">
                                             <input  matInput
@@ -307,24 +614,30 @@
                                                     formControlName="street"/>
                                             <mat-hint align="end" *ngIf="formBaseInformation.get('street').value.length>100">{{formBaseInformation.get('street').value.length}} / 120</mat-hint>
                                         </mat-form-field>
-                                        <!-- Дом -->
-                                        <mat-form-field>
-                                            <input   matInput
-                                                    placeholder="{{t('docs.field.house')}}"
-                                                    [readonly]=!editability
-                                                    maxlength="16"
-                                                    formControlName="home"/>
-                                            <mat-hint align="end" *ngIf="formBaseInformation.get('home').value.length>12">{{formBaseInformation.get('home').value.length}} / 16</mat-hint>
-                                        </mat-form-field>
-                                        <!-- Квартира -->
-                                        <mat-form-field>
-                                            <input   matInput
-                                                    placeholder="{{t('docs.field.room')}}"
-                                                    maxlength="8"
-                                                    [readonly]=!editability
-                                                    formControlName="flat"/>
-                                            <mat-hint align="end" *ngIf="formBaseInformation.get('flat').value.length>6">{{formBaseInformation.get('flat').value.length}} / 8</mat-hint>
-                                        </mat-form-field>
+                                        <div class="row">
+                                            <div class="col-lg-6  col-md-12">
+                                                <mat-form-field  class="mat-form-field-100">
+                                                <!-- Дом -->
+                                                    <input   matInput
+                                                            placeholder="{{t('docs.field.house')}}"
+                                                            [readonly]=!editability
+                                                            maxlength="16"
+                                                            formControlName="home"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('home').value.length>12">{{formBaseInformation.get('home').value.length}} / 16</mat-hint>
+                                                </mat-form-field>
+                                            </div>
+                                            <div class="col-lg-6  col-md-12">
+                                                <!-- Квартира -->
+                                                <mat-form-field  class="mat-form-field-100">
+                                                    <input   matInput
+                                                            placeholder="{{t('docs.field.room')}}"
+                                                            maxlength="8"
+                                                            [readonly]=!editability
+                                                            formControlName="flat"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('flat').value.length>6">{{formBaseInformation.get('flat').value.length}} / 8</mat-hint>
+                                                </mat-form-field>
+                                            </div>
+                                        </div>
                                         <!-- Дополнение к адресу -->
                                         <mat-form-field>
                                             <textarea   matInput
@@ -545,296 +858,6 @@
                                     </mat-card-content>
                                 </mat-card> 
                             </div>
-                        </div>
-                    </div>   
-                </mat-tab>
-                <mat-tab label="{{t('docs.tab.legal_data')}}" *ngIf="+formBaseInformation.get('opf_id').value>0">
-                    <div class="container-fluid">
-                        <div class="row" style="padding: 10px">
-                            <div class="col-lg-6 col-md-12">   
-                                <mat-card>
-                                    <mat-card-header>
-                                        <mat-card-title class="card-title">{{t('docs.card.base_data')}}</mat-card-title>
-                                    </mat-card-header>
-                                    <mat-card-content class="input-form">
-                                        <!-- Полное наименование -->
-                                        <mat-form-field *ngIf="viz_jr_jur">
-                                            <textarea   matInput
-                                                    placeholder="{{t('docs.field.name')}}"
-                                                    [readonly]=!editability
-                                                    maxlength="500"
-                                                    formControlName="jr_jur_full_name">
-                                            </textarea>
-                                            <mat-hint align="end" *ngIf="formBaseInformation.get('jr_jur_full_name').value.length>400">{{formBaseInformation.get('jr_jur_full_name').value.length}} / 500</mat-hint>
-                                        </mat-form-field>
-                                        <!-- Фамилия -->
-                                        <mat-form-field *ngIf="!viz_jr_jur">
-                                            <input   matInput
-                                                    placeholder="{{t('docs.field.surname')}}"
-                                                    [readonly]=!editability
-                                                    maxlength="120"
-                                                    formControlName="jr_fio_family"/>
-                                            <mat-hint align="end" *ngIf="formBaseInformation.get('jr_fio_family').value.length>100">{{formBaseInformation.get('jr_fio_family').value.length}} / 120</mat-hint>
-                                        </mat-form-field>
-                                        <!-- Имя -->
-                                        <mat-form-field *ngIf="!viz_jr_jur">
-                                            <input   matInput
-                                                    placeholder="{{t('docs.field.person_name')}}"
-                                                    [readonly]=!editability
-                                                    maxlength="120"
-                                                    formControlName="jr_fio_name"/>
-                                            <mat-hint align="end" *ngIf="formBaseInformation.get('jr_fio_name').value.length>100">{{formBaseInformation.get('jr_fio_name').value.length}} / 120</mat-hint>
-                                        </mat-form-field>
-                                        <!-- Отчество -->
-                                        <mat-form-field *ngIf="!viz_jr_jur">
-                                            <input   matInput
-                                                    placeholder="{{t('docs.field.middle_name')}}"
-                                                    maxlength="120"
-                                                    [readonly]=!editability
-                                                    formControlName="jr_fio_otchestvo"/>
-                                            <mat-hint align="end" *ngIf="formBaseInformation.get('jr_fio_otchestvo').value.length>100">{{formBaseInformation.get('jr_fio_otchestvo').value.length}} / 120</mat-hint>
-                                        </mat-form-field>
-                                        <!-- ИНН -->
-                                        <mat-form-field>
-                                            <input  matInput
-                                                    maxlength="12"
-                                                    placeholder="{{t('docs.field.tin')}}"
-                                                    [readonly]=!editability
-                                                    (keypress)="numberOnly($event)"
-                                                    formControlName="jr_inn"/>
-                                            <mat-hint  align="start" *ngIf="formBaseInformation.get('jr_inn').touched && formBaseInformation.get('jr_inn').invalid">
-                                                <!-- <i *ngIf="formBaseInformation.get('jr_inn').errors.pattern" class="form-invalid">ИНН должен состоять из 10 или 12 цифр</i> -->
-                                            </mat-hint>
-                                        </mat-form-field>
-                                        <!-- КПП -->
-                                        <mat-form-field *ngIf="viz_jr_jur">
-                                            <input  matInput
-                                                    maxlength="9"
-                                                    [readonly]=!editability
-                                                    placeholder="{{t('docs.field.kpp')}}"
-                                                    (keypress)="numberOnly($event)"
-                                                    formControlName="jr_jur_kpp"/>
-                                            <mat-hint  align="start" *ngIf="formBaseInformation.get('jr_jur_kpp').touched && formBaseInformation.get('jr_jur_kpp').invalid">
-                                                <!-- <i *ngIf="formBaseInformation.get('jr_jur_kpp').errors.pattern" class="form-invalid">КПП должен состоять из 9 цифр</i> -->
-                                            </mat-hint>
-                                        </mat-form-field>
-                                        <!-- ОГРН -->
-                                        <mat-form-field *ngIf="viz_jr_jur">
-                                            <input  matInput
-                                                    maxlength="13"
-                                                    [readonly]=!editability
-                                                    placeholder="{{t('docs.field.ogrn')}}"
-                                                    (keypress)="numberOnly($event)"
-                                                    formControlName="jr_jur_ogrn"/>
-                                            <mat-hint  align="start" *ngIf="formBaseInformation.get('jr_jur_ogrn').touched && formBaseInformation.get('jr_jur_ogrn').invalid">
-                                                <!-- <i *ngIf="formBaseInformation.get('jr_jur_ogrn').errors.pattern" class="form-invalid">ОГРН должен состоять из 13 цифр</i> -->
-                                            </mat-hint>
-                                        </mat-form-field>
-                                        <!-- ОГРНИП -->
-                                        <mat-form-field *ngIf="viz_jr_ip">
-                                            <input  matInput
-                                                    maxlength="15"
-                                                    [readonly]=!editability
-                                                    placeholder="{{t('docs.field.ogrnip')}}"
-                                                    (keypress)="numberOnly($event)"
-                                                    formControlName="jr_ip_ogrnip"/>
-                                            <mat-hint  align="start" *ngIf="formBaseInformation.get('jr_ip_ogrnip').touched && formBaseInformation.get('jr_ip_ogrnip').invalid">
-                                                <!-- <i *ngIf="formBaseInformation.get('jr_ip_ogrnip').errors.pattern" class="form-invalid">ОГРНИП должен состоять из 15 цифр</i> -->
-                                            </mat-hint>
-                                        </mat-form-field>
-                                        <!-- ОКПО -->
-                                        <mat-form-field *ngIf="viz_jr_ip || viz_jr_jur">
-                                            <input  matInput
-                                                    maxlength="10"
-                                                    [readonly]=!editability
-                                                    placeholder="{{t('docs.field.okpo')}}"
-                                                    (keypress)="numberOnly($event)"
-                                                    formControlName="jr_okpo"/>
-                                            <mat-hint  align="start" *ngIf="formBaseInformation.get('jr_okpo').touched && formBaseInformation.get('jr_okpo').invalid">
-                                                <!-- <i *ngIf="formBaseInformation.get('jr_okpo').errors.pattern" class="form-invalid">ОКПО должен состоять из 8 или 10 цифр</i> -->
-                                            </mat-hint>
-                                        </mat-form-field>
-                                        <!-- Номер свидетельства -->
-                                        <mat-form-field *ngIf="viz_jr_ip">
-                                            <input   matInput
-                                                    placeholder="{{t('docs.field.reg_doc_num')}}"
-                                                    [readonly]=!editability
-                                                    maxlength="30"
-                                                    formControlName="jr_ip_svid_num"/>
-                                            <mat-hint align="end" *ngIf="formBaseInformation.get('jr_ip_svid_num').value.length>25">{{formBaseInformation.get('jr_ip_svid_num').value.length}} / 30</mat-hint>
-                                        </mat-form-field>
-                                        <!-- Дата регистрации -->
-                                        <mat-form-field *ngIf="viz_jr_ip">
-                                            <input  matInput 
-                                                    placeholder="{{t('docs.field.reg_date')}}"
-                                                    [readonly]=!editability
-                                                    formControlName="jr_ip_reg_date"
-                                                    [ngClass]="{'is-invalid':formBaseInformation.get('jr_ip_reg_date').touched && formBaseInformation.get('jr_ip_reg_date').invalid}"
-                                                    [matDatepicker]="dp"/>
-                                                    <mat-datepicker-toggle *ngIf="editability" matSuffix [for]="dp"></mat-datepicker-toggle>
-                                            <mat-datepicker #dp></mat-datepicker>
-                                            <mat-hint *ngIf="formBaseInformation.get('jr_ip_reg_date').touched && formBaseInformation.get('jr_ip_reg_date').invalid" class="invalid-feedback">
-                                                <i class="form-invalid">{{t('docs.error.date_format')}}</i>
-                                            </mat-hint>
-                                        </mat-form-field>
-                                    </mat-card-content>
-                                </mat-card>
-                            </div>
-                            <div class="col-lg-6 col-md-12"> 
-                                <mat-card>
-                                    <div class="del-icon"  [style.display]="editability?'block':'none'">
-                                        <mat-icon   (click)="copyfromAddressToJurAddress()" 
-                                                    matTooltip="{{t('docs.tip.addr_copy_q')}}" 
-                                                    class="nav-icon">content_copy
-                                        </mat-icon>
-                                    </div>
-                                    <mat-card-header>
-                                        <mat-card-title class="card-title">{{t('docs.card.legal_address')}}</mat-card-title>
-                                    </mat-card-header>
-                                    
-                                    <mat-card-content class="input-form">
-                                        <!-- Индекс -->
-                                        <mat-form-field>
-                                            <input   matInput
-                                                    placeholder="{{t('docs.field.zip_code')}}"
-                                                    [readonly]=!editability
-                                                    maxlength="40"
-                                                    formControlName="jr_zip_code"/>
-                                            <mat-hint align="end" *ngIf="formBaseInformation.get('jr_zip_code').value.length>30">{{formBaseInformation.get('jr_zip_code').value.length}} / 40</mat-hint>
-                                        </mat-form-field>
-                                        <mat-form-field  style="display: none;" >
-                                            <input   matInput
-                                                    placeholder="{{t('docs.field.country')}}"
-                                                    [readonly]=!editability
-                                                    formControlName="jr_country_id"/>
-                                        </mat-form-field>
-                                        <mat-form-field style="width:100%">
-                                            <mat-label>{{t('docs.field.country')}}</mat-label>
-                                            <input matInput
-                                            type="text"
-                                            [readonly]=!editability
-                                            formControlName="jr_country" 
-                                            [matAutocomplete]="auto2" 
-                                            (input)="checkEmptyJrCountryField();"
-                                            (change)="checkEmptyJrCountryField();">
-                                            <mat-autocomplete #auto2="matAutocomplete">
-                                                <mat-option *ngFor="let option of filteredSpravSysJrCountries | async" [value]="option.name_ru">
-                                                    <div (click)="formBaseInformation.get('jr_country_id').setValue(option.id)">
-                                                        <span style="margin:10px;">{{option.name_ru}}</span>
-                                                    </div>
-                                                </mat-option>
-                                            </mat-autocomplete>
-                                        </mat-form-field>
-                                        <!-- Регион -->
-                                        <!-- <mat-form-field style="display: none">
-                                            <input  matInput
-                                                    placeholder="jr_region_id"
-                                                    [readonly]=!editability
-                                                    formControlName="jr_region_id"/>
-                                        </mat-form-field>
-                                        <mat-form-field class="mat-form-field-100" > 
-                                            <input  matInput 
-                                            placeholder="{{t('docs.field.region')}}"
-                                            [matAutocomplete]="auto5" 
-                                            [formControl]="searchJrRegionCtrl"
-                                            [readonly]=!editability
-                                            (input)="canJrRegionAutocompleteQuery=true; checkEmptyJrRegionField();"
-                                            (change)="canJrRegionAutocompleteQuery=false; checkEmptyJrRegionField();">
-                                            <mat-autocomplete #auto5="matAutocomplete">
-                                            <ng-container *ngIf="!isJrRegionListLoading" style="width:320px;">
-                                                <mat-option style="padding:0px" *ngFor="let value of filteredJrRegions" [value]="value.name_ru">
-                                                <div (click)="onSelectJrRegion(value.id,value.country_id,value.country_name_ru)">
-                                                    <span style="margin:10px;"><b>{{value.name_ru}}</b></span>
-                                                </div>
-                                                </mat-option>
-                                            </ng-container>
-                                            </mat-autocomplete>
-                                        </mat-form-field>
-                                        <mat-progress-bar *ngIf="isJrRegionListLoading" mode="indeterminate"></mat-progress-bar> -->
-                                        <mat-form-field>
-                                            <input   matInput
-                                                    placeholder="{{t('docs.field.region')}}"
-                                                    [readonly]=!editability
-                                                    maxlength="120"
-                                                    formControlName="jr_region"/>
-                                            <mat-hint align="end" *ngIf="formBaseInformation.get('jr_region').value.length>100">{{formBaseInformation.get('jr_region').value.length}} / 120</mat-hint>
-                                        </mat-form-field>
-                                        <!-- Город -->
-                                        <!-- <mat-form-field style="display: none">
-                                            <input  matInput
-                                                    placeholder="jr_city_id"
-                                                    [readonly]=!editability
-                                                    formControlName="jr_city_id"/>
-                                        </mat-form-field>
-                                        <mat-form-field class="mat-form-field-100" > 
-                                            <mat-label>{{t('docs.field.city_locality')}}</mat-label>
-                                            <input  matInput 
-                                            [matAutocomplete]="auto7" 
-                                            [formControl]="searchJrCityCtrl"
-                                            [readonly]=!editability
-                                            (input)="canJrCityAutocompleteQuery=true; checkEmptyJrCityField();"
-                                            (change)="canJrCityAutocompleteQuery=false; checkEmptyJrCityField();">
-                                            <mat-autocomplete #auto7="matAutocomplete">
-                                            <ng-container *ngIf="!isJrCityListLoading" style="width:320px;">
-                                                <mat-option style="padding:0px" *ngFor="let value of filteredJrCities" [value]="value.name_ru">
-                                                <div (click)="onSelectJrCity(value.id,value.area_ru,value.region_id,value.region_name_ru,value.country_id,value.country_name_ru)">
-                                                    <span style="margin:10px;"><b>{{value.name_ru}}</b> <i> {{value.area_ru}}</i></span>
-                                                </div>
-                                                </mat-option>
-                                            </ng-container>
-                                            </mat-autocomplete>
-                                        </mat-form-field>
-                                        <mat-progress-bar *ngIf="isJrCityListLoading" mode="indeterminate"></mat-progress-bar> -->
-                                        
-                                        <mat-form-field>
-                                            <input   matInput
-                                                    placeholder="{{t('docs.field.city_locality')}}"
-                                                    [readonly]=!editability
-                                                    maxlength="120"
-                                                    formControlName="jr_city"/>
-                                            <mat-hint align="end" *ngIf="formBaseInformation.get('jr_city').value.length>100">{{formBaseInformation.get('jr_city').value.length}} / 120</mat-hint>
-                                        </mat-form-field>
-
-                                        <!-- Улица -->
-                                        <mat-form-field>
-                                            <input   matInput
-                                                    placeholder="{{t('docs.field.street')}}"
-                                                    [readonly]=!editability
-                                                    maxlength="120"
-                                                    formControlName="jr_street"/>
-                                            <mat-hint align="end" *ngIf="formBaseInformation.get('jr_street').value.length>100">{{formBaseInformation.get('jr_street').value.length}} / 120</mat-hint>
-                                        </mat-form-field>
-                                        <!-- Дом -->
-                                        <mat-form-field>
-                                            <input   matInput
-                                                    placeholder="{{t('docs.field.house')}}"
-                                                    [readonly]=!editability
-                                                    maxlength="16"
-                                                    formControlName="jr_home"/>
-                                            <mat-hint align="end" *ngIf="formBaseInformation.get('jr_home').value.length>12">{{formBaseInformation.get('jr_home').value.length}} / 16</mat-hint>
-                                        </mat-form-field>
-                                        <!-- Квартира -->
-                                        <mat-form-field>
-                                            <input   matInput
-                                                    placeholder="{{t('docs.field.room')}}"
-                                                    [readonly]=!editability
-                                                    maxlength="8"
-                                                    formControlName="jr_flat"/>
-                                            <mat-hint align="end" *ngIf="formBaseInformation.get('jr_flat').value.length>6">{{formBaseInformation.get('jr_flat').value.length}} / 8</mat-hint>
-                                        </mat-form-field>
-                                        <!-- Дополнение к адресу -->
-                                        <mat-form-field>
-                                            <textarea   matInput
-                                                    placeholder="{{t('docs.field.addr_addittnl')}}"
-                                                    [readonly]=!editability
-                                                    maxlength="240"
-                                                    formControlName="jr_additional_address">
-                                            </textarea>
-                                            <mat-hint align="end" *ngIf="formBaseInformation.get('jr_additional_address').value.length>200">{{formBaseInformation.get('jr_additional_address').value.length}} / 240</mat-hint>
-                                        </mat-form-field>
-                                    </mat-card-content>
-                                </mat-card>    
-                            </div>  
                         </div>
                     </div>   
                 </mat-tab>

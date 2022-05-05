@@ -43,7 +43,7 @@ export class BoxofficeDocComponent implements OnInit {
 
   id: number = 0;// id документа
   createdDocId: string[];//массив для получение id созданного документа
-  receivedCompaniesList: any [];//массив для получения списка предприятий
+  receivedCompaniesList: any [] = [];//массив для получения списка предприятий
   myCompanyId:number=0;
   myId:number=0;
   creatorId:number=0;

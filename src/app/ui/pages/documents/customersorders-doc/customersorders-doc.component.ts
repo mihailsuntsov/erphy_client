@@ -233,7 +233,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
 
   id: number = 0;// id документа
   createdDocId: string[];//массив для получение id созданного документа
-  receivedCompaniesList: any [];//массив для получения списка предприятий
+  receivedCompaniesList: any [] = [];//массив для получения списка предприятий
   receivedDepartmentsList: SecondaryDepartment [] = [];//массив для получения списка отделений
   receivedStatusesList: statusInterface [] = []; // массив для получения статусов
   receivedMyDepartmentsList: SecondaryDepartment [] = [];//массив для получения списка отделений

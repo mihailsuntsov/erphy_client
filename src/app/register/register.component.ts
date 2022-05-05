@@ -3,7 +3,7 @@ import { AuthService } from '../auth/auth.service';
 import { SignUpInfo } from '../auth/signup-info';
 import {  Validators, FormGroup, FormControl } from '@angular/forms';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
-import { TranslocoService } from '@ngneat/transloco';
+import { translate, TranslocoService } from '@ngneat/transloco';
 
 @Component({
   selector: 'app-register',
@@ -67,8 +67,19 @@ export class RegisterComponent implements OnInit {
           this.isSignUpFailed = false;
         },
         error => {
-          console.log(error);
-          this.errorMessage = error.error.message;
+          console.log(error.error.message);
+          switch(error.error.message){
+            case 'login_registered':{
+              this.errorMessage=translate('user.error.login_registered');
+              break;
+            }              
+            case 'email_registered':{
+              this.errorMessage=translate('user.error.email_registered');
+              break;
+            }
+            default:
+              this.errorMessage = error.error.message;
+          }
           this.isSignUpFailed = true;
         }
       );

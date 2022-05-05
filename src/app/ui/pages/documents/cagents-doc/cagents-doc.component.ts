@@ -33,7 +33,7 @@ interface docResponse {//интерфейс для получения ответ
   changer:string;// кто изменил
   changer_id: number;// id кто изменил
   opf:string;//организационно-правовая форма предприятия
-  opf_id: number;//id организационно-правовая форма предприятия
+  // opf_id: number;//id организационно-правовая форма предприятия
   name: string; //наименование
   description: string;//описание
   date_time_changed: string;//дату изменения
@@ -86,6 +86,7 @@ interface docResponse {//интерфейс для получения ответ
   jr_ip_ogrnip: string;//ОГРНИП (для ИП)
   jr_ip_svid_num: string; // номер свидетельства (для ИП). string т.к. оно может быть типа "серия 77 №42343232"
   jr_ip_reg_date: string; // дата регистрации ИП (для ИП)
+  type: string;// entity or individual
 }
 
 interface CagentCategoriesTreeNode {
@@ -172,7 +173,7 @@ interface PaymentAccountsForm { //интерфейс для формы paymentAc
 export class CagentsDocComponent implements OnInit {
   id: number=0;// id документа
   createdDocId: number;// для получение id созданного документа
-  receivedCompaniesList: any [];//массив для получения списка предприятий
+  receivedCompaniesList: any [] = [];//массив для получения списка предприятий
   myCompanyId:number=0;
   receivedSpravSysOPF: any [];//массив для получения данных справочника форм предприятий
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра карточки документа
@@ -279,7 +280,6 @@ constructor(private activateRoute: ActivatedRoute,
       company_id: new FormControl      ('',[Validators.required]),
       company: new FormControl      ('',[]),
       opf: new FormControl      ('',[]),
-      opf_id: new FormControl      ('',[Validators.required]),
       name: new FormControl      ('',[Validators.required,Validators.maxLength(500)]),
       description: new FormControl      ('',[Validators.maxLength(1000)]),
       selectedCagentCategories:new FormControl      ([],[]),
@@ -329,6 +329,7 @@ constructor(private activateRoute: ActivatedRoute,
       
       country:  new FormControl      ('',[]),
       jr_country:  new FormControl      ('',[]),
+      type:  new FormControl      ('entity',[]),// entity or individual
     });
     this.formAboutDocument = new FormGroup({
       id: new FormControl      ('',[]),
@@ -364,6 +365,17 @@ constructor(private activateRoute: ActivatedRoute,
     // this.onJrRegionSearchValueChanges();
     // this.onCitySearchValueChanges();
     // this.onJrCitySearchValueChanges();
+  }
+  
+  get regNumberName(){
+    if(+this.formBaseInformation.get('jr_country_id').value==1)
+      if(this.formBaseInformation.get('type').value=='entity') return 'ogrn'; else return 'ogrnip';
+    else return 'reg_number';
+  }
+  get tinName(){ // TIN, Tax ID, ИНН, VAT e.t.c
+    if([47,212].includes(+this.formBaseInformation.get('jr_country_id').value)) // if not USA or US virgin lands
+      return 'tax_id'; 
+    else return 'tin';
   }
 //---------------------------------------------------------------------------------------------------------------------------------------                            
 // ----------------------------------------------------- *** ПРАВА *** ------------------------------------------------------------------
@@ -498,7 +510,7 @@ constructor(private activateRoute: ActivatedRoute,
                   this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
                   this.formBaseInformation.get('company_id').setValue(+documentValues.company_id);
                   this.formBaseInformation.get('company').setValue(documentValues.company);
-                  this.formBaseInformation.get('opf_id').setValue(+documentValues.opf_id);
+                  // this.formBaseInformation.get('opf_id').setValue(+documentValues.opf_id);
                   this.formBaseInformation.get('opf').setValue(documentValues.opf);
                   this.formBaseInformation.get('name').setValue(documentValues.name);
                   this.formBaseInformation.get('description').setValue(documentValues.description);
@@ -540,6 +552,7 @@ constructor(private activateRoute: ActivatedRoute,
                   this.formBaseInformation.get('jr_ip_ogrnip').setValue(documentValues.jr_ip_ogrnip);
                   this.formBaseInformation.get('jr_ip_svid_num').setValue(documentValues.jr_ip_svid_num);
                   this.formBaseInformation.get('jr_ip_reg_date').setValue(documentValues.jr_ip_reg_date?moment(documentValues.jr_ip_reg_date,'DD.MM.YYYY'):"");
+                  this.formBaseInformation.get('type').setValue(documentValues.type);
                   // alert("1-"+this.checkedList)
                   this.checkedList=documentValues.cagent_categories_id?documentValues.cagent_categories_id:[];
                   // alert("2-"+this.checkedList)
@@ -553,7 +566,7 @@ constructor(private activateRoute: ActivatedRoute,
                   this.getPriceTypesList();
                   this.loadTrees();
                   this.getSpravSysCountries();
-                  this.setJurElementsVisible();
+                  // this.setJurElementsVisible();
                   this.getCagentsContacts();
                   this.getCagentsPaymentAccounts();
                   
@@ -621,19 +634,19 @@ constructor(private activateRoute: ActivatedRoute,
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
     if (charCode > 31 && (charCode < 48 || charCode > 57)) { return false; } return true;}
 
-  setJurElementsVisible(){
-    let opf=+this.formBaseInformation.get('opf_id').value;
-      if(opf==1){// выбран ИП
-        this.viz_jr_jur=false;
-        this.viz_jr_ip=true;
-      } else if(opf==2){ //Выбран самозанятый или физлицо
-        this.viz_jr_jur=false;
-        this.viz_jr_ip=false;
-      } else {//выбран юрлицо (ООО, ЗАО и др.)
-        this.viz_jr_jur=true;
-        this.viz_jr_ip=false;
-      }
-  }
+  // setJurElementsVisible(){
+  //   let opf=+this.formBaseInformation.get('opf_id').value;
+  //     if(opf==1){// выбран ИП
+  //       this.viz_jr_jur=false;
+  //       this.viz_jr_ip=true;
+  //     } else if(opf==2){ //Выбран самозанятый или физлицо
+  //       this.viz_jr_jur=false;
+  //       this.viz_jr_ip=false;
+  //     } else {//выбран юрлицо (ООО, ЗАО и др.)
+  //       this.viz_jr_jur=true;
+  //       this.viz_jr_ip=false;
+  //     }
+  // }
 //*****************************************************************************************************************************************/
 //*********************************************           T R E E           ***************************************************************/
 //*****************************************************************************************************************************************/
@@ -1217,11 +1230,11 @@ constructor(private activateRoute: ActivatedRoute,
     arr.forEach(m =>{
       add.push(this._fb.group({
       id: m.id,
-      bik: new FormControl (m.bik,[Validators.required,Validators.pattern('^[0-9]{9}$')]),
-      name:  new FormControl (m.name,[Validators.required]),
-      address:  new FormControl (m.address,[Validators.required]),
-      payment_account:  new FormControl (m.payment_account,[Validators.required]),
-      corr_account:  new FormControl (m.corr_account,[Validators.required]),
+      bik: new FormControl (m.bik,[,Validators.pattern('^[0-9]{9}$')]),
+      name:  new FormControl (m.name,[]),
+      address:  new FormControl (m.address,[]),
+      payment_account:  new FormControl (m.payment_account,[]),
+      corr_account:  new FormControl (m.corr_account,[]),
       output_order: this.getPaymentAccountsOutputOrder()
       }))
     })
@@ -1230,11 +1243,11 @@ constructor(private activateRoute: ActivatedRoute,
     const add = this.formBaseInformation.get('cagentsPaymentAccountsTable') as FormArray;
     add.push(this._fb.group({
       id: [],
-      bik: new FormControl ('',[Validators.required,Validators.pattern('^[0-9]{9}$')]),
-      name:  new FormControl ('',[Validators.required]),
-      address:  new FormControl ('',[Validators.required]),
-      payment_account:  new FormControl ('',[Validators.required]),
-      corr_account:  new FormControl ('',[Validators.required]),
+      bik: new FormControl ('',[,Validators.pattern('^[0-9]{9}$')]),
+      name:  new FormControl ('',[]),
+      address:  new FormControl ('',[]),
+      payment_account:  new FormControl ('',[]),
+      corr_account:  new FormControl ('',[]),
       output_order: this.getPaymentAccountsOutputOrder()
     }))
   }

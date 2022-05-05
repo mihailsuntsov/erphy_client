@@ -48,7 +48,7 @@ export class TraderesultsReportComponent implements OnInit {
   receivedSumByPeriod: any;//массив для получения данных по суммам показателей за месяц
   dataSource = new MatTableDataSource<DocTable>(this.receivedMatTable); //источник данных для материал таблицы
   displayedColumns: string[]=[];//массив отображаемых столбцов таблицы
-  receivedCompaniesList: any [];//массив для получения списка предприятий
+  receivedCompaniesList: any [] = [];//массив для получения списка предприятий
   receivedDepartmentsList: any [];//массив для получения списка отделений
   receivedUsersList  : any [];//массив для получения списка пользователей
   defaultId:number=0;//для подстановки дефолтных значений выпадающих списков

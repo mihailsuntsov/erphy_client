@@ -81,7 +81,7 @@ export class KassaDocComponent implements OnInit {
   myCompanyId:number=0; //id моего предприятия (под моим понимается залогиненного пользователя)
   creatorId:number=0; // id создателя
   createdDocId: number;// id созданного документа
-  receivedCompaniesList: any [];//массив для получения списка предприятий
+  receivedCompaniesList: any [] = [];//массив для получения списка предприятий
   receivedDepartmentsList: idAndName [] = [];//массив для получения списка отделений
   receivedMyDepartmentsList: idAndName [] = [];//массив для получения списка отделений
   receivedUsersList  : any [];//массив для получения списка пользователей

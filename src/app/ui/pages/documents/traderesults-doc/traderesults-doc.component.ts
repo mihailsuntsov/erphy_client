@@ -75,7 +75,7 @@ export class TraderesultsDocComponent implements OnInit {
   id: number;// id документа
   createdDocId: string[];//массив для получение id созданного документа
   updateDocumentResponse: string;//массив для получения данных
-  receivedCompaniesList: any [];//массив для получения списка предприятий
+  receivedCompaniesList: any [] = [];//массив для получения списка предприятий
   receivedDepartmentsList: any [];//массив для получения списка отделений
   receivedUsersList  : any [];//массив для получения списка пользователей
   defaultId:number=0;//для подстановки дефолтных значений выпадающих списков

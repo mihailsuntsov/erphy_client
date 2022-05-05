@@ -52,7 +52,7 @@ export class StatusesDocComponent implements OnInit {
 
   id: number = 0;// id документа
   createdDocId: string[];//массив для получение id созданного документа
-  receivedCompaniesList: any [];//массив для получения списка предприятий
+  receivedCompaniesList: any [] = [];//массив для получения списка предприятий
   receivedDocumentsList: idAndName [] = [];//массив для получения списка отделений
   myCompanyId:number=0;
   myId:number=0;

@@ -55,7 +55,7 @@ export class FilesDocComponent implements OnInit {
 
   id: number;// id документа
   createdDocId: string[];//массив для получение id созданного документа
-  receivedCompaniesList: any [];//массив для получения списка предприятий
+  receivedCompaniesList: any [] = [];//массив для получения списка предприятий
   myCompanyId:number=0;
   myId:number=0;
   

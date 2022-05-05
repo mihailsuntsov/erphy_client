@@ -57,7 +57,7 @@ export class ProductgroupsDocComponent implements OnInit {
   id: number=0;// id документа
   createdDocId: string[];//массив для получение id созданного документа
   updateDocumentResponse: string;//массив для получения данных
-  receivedCompaniesList: any [];//массив для получения списка предприятий
+  receivedCompaniesList: any [] = [];//массив для получения списка предприятий
   defaultId=0;//для подстановки дефолтных значений выпадающих списков
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы 
   receivedSetsOfFields: any [] = [] ;//массив для получения сетов полей

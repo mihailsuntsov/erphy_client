@@ -42,7 +42,7 @@ export class EdizmDocComponent implements OnInit {
   id: number=0;// id документа
   createdDocId: string[];//массив для получение id созданного документа
   updateDocumentResponse: string;//массив для получения данных
-  receivedCompaniesList: any [];//массив для получения списка предприятий
+  receivedCompaniesList: any [] = [];//массив для получения списка предприятий
   defaultId:number=0;//для подстановки дефолтных значений выпадающих списков
   receivedSpravSysPriceRole: any [];//Справочник роли цены (Основная, Скидочная)
 

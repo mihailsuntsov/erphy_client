@@ -54,7 +54,7 @@ export class ProductsComponent implements OnInit {
   dataSource = new MatTableDataSource<DocTable>(this.receivedMatTable); //источник данных для материал таблицы
   displayedColumns: string[]=[];//массив отображаемых столбцов таблицы
   selection = new SelectionModel<DocTable>(true, []);//Class to be used to power selecting one or more options from a list.
-  receivedCompaniesList: any [];//массив для получения списка предприятий
+  receivedCompaniesList: any [] = [];//массив для получения списка предприятий
   myCompanyId:number=0;//
   TREE_DATA: FoodNode[]=[];
   numRootCategories: number=0;

@@ -46,7 +46,7 @@ export class PricetypesDocComponent implements OnInit {
   myCompanyId:number=0;
   myId:number=0;
   updateDocumentResponse: string;//массив для получения данных
-  receivedCompaniesList: any [];//массив для получения списка предприятий
+  receivedCompaniesList: any [] = [];//массив для получения списка предприятий
   defaultId:number=0;//для подстановки дефолтных значений выпадающих списков
   receivedSpravSysPriceRole: any [];//Справочник роли цены (Основная, Скидочная)
 

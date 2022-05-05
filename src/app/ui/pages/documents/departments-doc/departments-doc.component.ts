@@ -50,7 +50,7 @@ export class DepartmentsDocComponent implements OnInit {
 
   createdDocId: string[];//массив для получение id созданного документа
   updateDocumentResponse: string;//массив для получения данных
-  receivedCompaniesList: any [];//массив для получения списка предприятий
+  receivedCompaniesList: any [] = [];//массив для получения списка предприятий
   receivedDepartmentsList: any [];//массив для получения списка отеделний
   receivedPriceTypesList: idNameDescription [] = [];//массив для получения списка типов цен
   paymentAccounts:any[]=[];// список расчётных счетов предприятия

@@ -51,7 +51,9 @@
             "reg_not_compl":"Registration failed",
             "no_activ_uuid": "No account activation ID",
             "activ_error": "Error activating user account",
-            "act_code_nova": "Activation code is invalid"
+            "act_code_nova": "Activation code is invalid",
+            "login_registered":"This login is already registered",
+            "email_registered":"This e-mail is already registered"
         },
         "btn":{
             "enter":        "Sign in",

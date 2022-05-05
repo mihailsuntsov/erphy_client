@@ -60,7 +60,6 @@ export class UiComponent implements OnInit {
     this.service.load('en').subscribe();
     this.service.events$.pipe(filter(event => event.type==='translationLoadSuccess'));
 
-    
     // Форма настроек
     this.settingsForm = new FormGroup({
       timeZoneId: new FormControl               (null,[]),            // user's timezone
@@ -83,22 +82,18 @@ export class UiComponent implements OnInit {
     }     
     else this._router.navigate(['/login']);
   }
+
+
   // when child component loaded - it gets locale and language from here
   onOutletLoaded(component) {
     this.component=component;
-
-
-
-
-
-
 
     if(this.isSettingsLoaded){
       this.setLanguage(this.suffix); // setting language in Transloco by suffixes like en es ru etc
       this.setLocale  (this.locale); // setting locale in moment.js
     }
 
-    //Below will subscribe to the baseData emitter
+    //Below will subscribe to the baseData emitter (e.g. @Output() baseData: EventEmitter<any> = new EventEmitter(); in code: this.baseData.emit('localeId');)
     component.baseData.subscribe((data) => {
        // Will receive the data from child here 
        let query=data as string;
@@ -145,23 +140,6 @@ export class UiComponent implements OnInit {
 
   }
 
-  // onActivate(component) {
-  //   component.baseData.subscribe((data) => {
-  //     let query=data as string;
-  //     switch (query) {
-  //       case 'accountingCurrency':{
-  //         component.accountingCurrency=this.accountingCurrency;
-  //         break;}
-  //       case 'countryId':{
-  //         component.countryId=this.countryId;
-  //         break;}
-  //       case 'organization':{
-  //         component.organization=this.organization;
-  //         break;}
-  //     }
-  //   })
-
-  // }
   setLanguage(lang: string) {
     this.service.setActiveLang(lang);
   }
@@ -191,28 +169,28 @@ export class UiComponent implements OnInit {
      this.http.post('/api/auth/getAllMyPermissions', {}) 
       .subscribe(
           (data) => {   
-                      this.permissionsSet=data as any [];
-                      this.authorized=true;// если запрос произошел без ошибки 401 (Unauthorized) - значит JWT-ключ еще не протух
-                      this.getUserInfo(); 
-                  },
-                  error => {
-                    console.log(error);
-                    let errStatus= error.status ? `${error.status} - ${error.statusText}`:'';
-                    let errMsg = (error.status=='401'||error.status=='401 - Unauthorized')?'Вы не авторизованы в системе':(error.message) ? error.message :'';
-                    this.MessageDialog.open(MessageDialog,
-                    {
-                      width:'400px',
-                      data:{
-                        head:translate('docs.msg.error'),
-                        message:'<p><b>Статус ошибки:</b> '+errStatus+'</p><p><b>Tекст ошибки:</b> '+errMsg+'</p>'
-                      }
-                    }).afterClosed().subscribe(
-                        result => {
-                          Cookie.set('dokio_token', '', -1, '/');
-                          this.logout();
-                        }
-                    );
-                  },
+            this.permissionsSet=data as any [];
+            this.authorized=true;// если запрос произошел без ошибки 401 (Unauthorized) - значит JWT-ключ еще не протух
+            this.getUserInfo(); 
+          },
+          error => {
+            console.log(error);
+            let errStatus= error.status ? `${error.status} - ${error.statusText}`:'';
+            let errMsg = (error.status=='401'||error.status=='401 - Unauthorized')?'Вы не авторизованы в системе':(error.message) ? error.message :'';
+            this.MessageDialog.open(MessageDialog,
+            {
+              width:'400px',
+              data:{
+                head:translate('docs.msg.error'),
+                message:'<p><b>Статус ошибки:</b> '+errStatus+'</p><p><b>Tекст ошибки:</b> '+errMsg+'</p>'
+              }
+            }).afterClosed().subscribe(
+                result => {
+                  Cookie.set('dokio_token', '', -1, '/');
+                  this.logout();
+                }
+            );
+          },
       );
   }
   hasPermission(permId:number):boolean

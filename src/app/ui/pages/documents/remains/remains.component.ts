@@ -58,7 +58,7 @@ export class RemainsComponent implements OnInit {
   displayedColumns: string[]=[];//массив отображаемых столбцов таблицы
   selection = new SelectionModel<DocTable>(true, []);//Class to be used to power selecting one or more options from a list.
   selectionFilterOptions = new SelectionModel<IdAndName>(true, []);//Class to be used to power selecting one or more options from a list.
-  receivedCompaniesList: any [];//массив для получения списка предприятий
+  receivedCompaniesList: any [] = [];//массив для получения списка предприятий
   receivedDepartmentsList: IdAndName [] = [];//массив для получения списка отделений
   receivedMyDepartmentsList: IdAndName [] = [];//массив для получения списка СВОИХ отделений
   completedStartQueries:number=0;

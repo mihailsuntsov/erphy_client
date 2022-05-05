@@ -63,7 +63,7 @@ export class PricesComponent implements OnInit {
   displayedColumns: string[]=[];//массив отображаемых столбцов таблицы
   selection = new SelectionModel<DocTable>(true, []);//Class to be used to power selecting one or more options from a list.
   selectionFilterOptions = new SelectionModel<idAndName>(true, []);//Class to be used to power selecting one or more options from a list.
-  receivedCompaniesList: any [];//массив для получения списка предприятий
+  receivedCompaniesList: any [] = [];//массив для получения списка предприятий
   receivedPriceTypesList: idNameDescription [] = [];//массив для получения списка типов цен
   completedStartQueries:number=0;
   myCompanyId:number=0;//

@@ -52,7 +52,7 @@ export class UsergroupDocComponent implements OnInit {
 
   createdDocId: string[];//массив для получение id созданного документа
   updateDocumentResponse: string;//массив для получения данных
-  receivedCompaniesList: any [];//массив для получения списка предприятий
+  receivedCompaniesList: any [] = [];//массив для получения списка предприятий
   receivedDocumentsWithPermissions: docListResponse []=[] ;//массив для получения JSON со списком документов и правами (listPermissions) у каждого документа
   receivedPermissions:listPermissions[]=[];
   nonSortedReceivedPermissions:listPermissions[];

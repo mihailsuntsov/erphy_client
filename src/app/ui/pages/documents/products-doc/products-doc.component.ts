@@ -155,7 +155,7 @@ interface docResponse {//интерфейс для получения ответ
 export class ProductsDocComponent implements OnInit {
   id: number;// id документа
   createdDocId: string[];//массив для получение id созданного документа
-  receivedCompaniesList: any [];//массив для получения списка предприятий
+  receivedCompaniesList: any [] = [];//массив для получения списка предприятий
   myCompanyId:number=0;
   imageToShow:any; // переменная в которую будет подгружаться главная картинка товара
   receivedPriceTypesList: ProductPricesTable [] = [];//массив для получения списка типов цен

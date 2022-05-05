@@ -47,7 +47,7 @@ export class PricetypesComponent implements OnInit {
   dataSource = new MatTableDataSource<CheckBox>(this.receivedMatTable); //источник данных для материал таблицы
   displayedColumns: string[]=[];//массив отображаемых столбцов таблицы
   selection = new SelectionModel<CheckBox>(true, []);//Class to be used to power selecting one or more options from a list.
-  receivedCompaniesList: any [];//массив для получения списка предприятий
+  receivedCompaniesList: any [] = [];//массив для получения списка предприятий
   receivedSpravSysPriceRole: any [];//Справочник роли цены (Основная, Скидочная)
   myCompanyId:number=0;
   myId:number=0;
