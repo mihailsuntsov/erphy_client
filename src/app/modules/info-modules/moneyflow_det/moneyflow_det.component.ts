@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, Optional} from '@angular/core';
+import { Component, EventEmitter, Inject, OnInit, Optional, Output} from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -62,7 +62,7 @@ export class MoneyflowDetComponent implements OnInit {
     {value: 10, viewValue: '10'},
     {value: 25, viewValue: '25'}
   ];
-  
+
   //переменные пагинации
   size: any;
   pagenum: any;  // - Страница, которая сейчас выбрана в пагинаторе
@@ -75,6 +75,7 @@ export class MoneyflowDetComponent implements OnInit {
   displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
   //***********************************************************************************************************************/
+  // @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
   constructor(
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
@@ -114,9 +115,12 @@ export class MoneyflowDetComponent implements OnInit {
         // Cookie.set('moneyflow_det_result',this.queryForm.get('result').value); else this.queryForm.get('result').setValue(Cookie.get('moneyflow_det_result'));
       
       this.fillOptionsList();//заполняем список опций фильтра
-    
-      this.getCompaniesList();// 
 
+      this.myId = this.data.myId;
+      this.myCompanyId = this.data.myCompanyId;
+      this.receivedCompaniesList=this.data.companiesList;
+
+      this.getCompaniesList();// 
     }
 
     // -------------------------------------- *** ПРАВА *** ------------------------------------
@@ -237,30 +241,37 @@ export class MoneyflowDetComponent implements OnInit {
       duration: 3000,
     });
   }
-  getCompaniesList(){
-    this.receivedCompaniesList=null;
-    this.loadSpravService.getCompaniesList()
-            .subscribe(
-                (data) => {this.receivedCompaniesList=data as any [];
-                  this.getSetOfPermissions();
-                },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
-            );
+  getCompaniesList(){ //+++
+    if(this.receivedCompaniesList.length==0)
+      this.loadSpravService.getCompaniesList()
+        .subscribe(
+            (data) => 
+            {
+              this.receivedCompaniesList=data as any [];
+              this.getSetOfPermissions();
+            },                      
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+        );
+    else this.getSetOfPermissions();
   }
-  getMyId(){
-    this.loadSpravService.getMyId()
+  getMyId(){ //+++
+    if(+this.myId==0)
+      this.loadSpravService.getMyId()
             .subscribe(
                 (data) => {this.myId=data as any;
                   this.getMyCompanyId();},
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
+    else this.getMyCompanyId();
   }
-  getMyCompanyId(){
-    this.loadSpravService.getMyCompanyId().subscribe(
-      (data) => {
-        this.myCompanyId=data as number;
-        this.setDefaultCompany();
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
+  getMyCompanyId(){ //+++
+    if(+this.myCompanyId==0)
+      this.loadSpravService.getMyCompanyId().subscribe(
+        (data) => {
+          this.myCompanyId=data as number;
+          this.setDefaultCompany();
+        }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
+    else this.setDefaultCompany();
   }
 
   setDefaultCompany(){
