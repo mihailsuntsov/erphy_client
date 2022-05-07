@@ -106,6 +106,12 @@
                     <button mat-menu-item (click)="goToNewDocument()">
                         <span>{{t('docs.docs.acceptance')}}</span>
                     </button>
+                    <button mat-menu-item (click)="createLinkedDoc('Paymentout')">
+                        <span>{{t('docs.docs.paymentout')}}</span>
+                    </button>
+                    <button mat-menu-item (click)="createLinkedDoc('Orderout')">
+                        <span>{{t('docs.docs.orderout')}}</span>
+                    </button>
                     <button mat-menu-item (click)="createLinkedDoc('Returnsup')">
                         <span>{{t('docs.docs.returnsup')}}</span>
                     </button>

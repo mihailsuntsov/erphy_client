@@ -211,6 +211,7 @@
         "bin_clr_succ": "The bin has been successfully emptied",
         "pricetype_set":"Price type \"{{name}}\" successfully installed by default",
         "currency_set": "Currency \"{{name}}\" successfully set as accounting currency",
+        "expndtre_set": "Expenditure \"{{name}}\" successfully installed by default",
         "status_set":   "Status \"{{name}}\" successfully installed by default",
         "no_del_childs":"Deletion is not possible - the following document numbers have derived (related child) documents:",
         "close":        "Close",

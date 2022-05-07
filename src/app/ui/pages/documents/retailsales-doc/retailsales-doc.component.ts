@@ -740,6 +740,7 @@ export class RetailsalesDocComponent implements OnInit {
             //вставляем настройки в форму настроек
             
             this.settingsForm.get('pricingType').setValue(result.pricingType?result.pricingType:'priceType');
+            this.settingsForm.get('priceTypeId').setValue(result.priceTypeId);
             this.settingsForm.get('plusMinus').setValue(result.plusMinus?result.plusMinus:'plus');
             this.settingsForm.get('changePrice').setValue(result.changePrice?result.changePrice:50);
             this.settingsForm.get('changePriceType').setValue(result.changePriceType?result.changePriceType:'procents');

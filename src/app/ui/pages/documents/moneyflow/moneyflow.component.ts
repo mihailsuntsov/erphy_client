@@ -101,6 +101,7 @@ export class MoneyflowComponent implements OnInit {
   pagenum: any;  // - Страница, которая сейчас выбрана в пагинаторе
   maxpage: any;  // - Последняя страница в пагинаторe (т.е. maxpage=8 при пагинаторе [345678])
   listsize: any; // - Последняя страница в пагинации (но не в пагинаторе. т.е. в пагинаторе может быть [12345] а listsize =10)
+  dateFormat:string = 'DD/MM/YYYY'; // user's format of the date
 
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
   selectionFilterOptions = new SelectionModel<number>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние
@@ -159,6 +160,7 @@ export class MoneyflowComponent implements OnInit {
         this.getBaseData('myId');    
         this.getBaseData('myCompanyId');  
         this.getBaseData('companiesList');      
+        this.getBaseData('dateFormat');      
 
       this.fillOptionsList();//заполняем список опций фильтра
 
@@ -387,6 +389,7 @@ export class MoneyflowComponent implements OnInit {
         myId:this.myId,
         myCompanyId:this.myCompanyId,
         companiesList:this.receivedCompaniesList,
+        dateFormat:this.dateFormat
         // dateFrom:this.queryForm.get('dateFrom').value,
         // dateTo:this.queryForm.get('dateTo').value,
         // cagent:cagent,

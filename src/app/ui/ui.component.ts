@@ -31,6 +31,7 @@ export class UiComponent implements OnInit {
   // localized:boolean=false;
   locale:string='en-us';// locale (for dates, calendar etc.)
   suffix:string='en';   // en es ru etc
+  dateFormat:string = 'DD/MM/YYYY'; // format of the date
   accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
   countryId:number;    // id of user's company country of jurisdiction
   organization = '';    // organization of country of jurisdiction(e.g. EU)
@@ -134,6 +135,9 @@ export class UiComponent implements OnInit {
         case 'organization':{
           component.organization=this.organization;
           break;}
+        case 'dateFormat':{
+          component.dateFormat=this.dateFormat;
+        }
       }
     })
     
@@ -248,7 +252,7 @@ export class UiComponent implements OnInit {
             this.organization=result.organization;// organization of country of jurisdiction(e.g. EU)
             this.setLanguage(this.suffix);        // setting language in Transloco by suffixes like en es ru etc
             this.setLocale  (this.locale);        // setting locale in moment.js
-            
+            this.dateFormat=result.dateFormat;
             if(updateDashboard) this.updateDashboard(this.locale);
             this.isSettingsLoaded = true;
           },

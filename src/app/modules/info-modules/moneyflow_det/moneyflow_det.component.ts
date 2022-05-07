@@ -93,8 +93,8 @@ export class MoneyflowDetComponent implements OnInit {
       this.queryForm = new FormGroup({ //форма для отправки запроса 
         companyId: new FormControl(this.data.companyId,[]), // предприятие, по которому идет запрос данных (передаётся из вызывающего окна)
         // cagentId: new FormControl(this.data.cagentId,[]), // контрагент, по которому идет запрос данных (передаётся из вызывающего окна)
-        dateFrom: new FormControl(this.data.date?moment(this.data.date,'DD.MM.YYYY'):moment().startOf('year'),[]),   // дата С
-        dateTo: new FormControl(this.data.date?moment(this.data.date,'DD.MM.YYYY'):moment(),[]),     // дата По
+        dateFrom: new FormControl(this.data.date?moment(this.data.date,this.data.dateFormat):moment().startOf('year'),[]),   // дата С
+        dateTo: new FormControl(this.data.date?moment(this.data.date,this.data.dateFormat):moment(),[]),     // дата По
         sortColumn: new FormControl('date_time_created_sort',[]), //
         sortAsc: new FormControl('desc',[]), //
         offset: new FormControl(0,[]), //

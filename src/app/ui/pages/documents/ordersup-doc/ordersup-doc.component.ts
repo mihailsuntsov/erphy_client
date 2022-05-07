@@ -713,7 +713,7 @@ export class OrdersupDocComponent implements OnInit {
             this.settingsForm.get('autoAdd').setValue(result.autoAdd);
             this.settingsForm.get('autoPrice').setValue(result.auto_price);
             this.settingsForm.get('autocreate').setValue(result.autocreate);
-            this.settingsForm.get('name').setValue(result.name);
+            this.settingsForm.get('name').setValue(result.name?result.name:'');
             //если предприятия из настроек больше нет в списке предприятий (например, для пользователя урезали права, и выбранное предприятие более недоступно)
             //настройки не принимаем 
             if(this.isCompanyInList(+result.companyId)){

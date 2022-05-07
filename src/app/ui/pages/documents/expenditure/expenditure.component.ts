@@ -204,6 +204,7 @@ export class ExpenditureComponent implements OnInit {
     if(this.showOpenDocIcon) this.displayedColumns.push('opendoc');
     this.displayedColumns.push('name');
     this.displayedColumns.push('type');
+    this.displayedColumns.push('is_default');
     this.displayedColumns.push('company');
     this.displayedColumns.push('creator');
     this.displayedColumns.push('date_time_created');
@@ -245,6 +246,18 @@ export class ExpenditureComponent implements OnInit {
     return this.selection.selected.length>0;
   }  
 
+  onClickRadioBtn(id:number, name:string){
+    this.clearCheckboxSelection();
+    return this.http.post('/api/auth/setDefaultExpenditure', {"id": this.sendingQueryForm.companyId, "id3":id}).subscribe(
+    (data) => { let result=data as any;
+      switch(result){
+        case 1:{this.getData();this.openSnackBar(translate('menu.msg.expndtre_set',{name: name}), translate('menu.msg.close'));break;}  //+++
+        case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+        case -1:{this.getData();this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+      }
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
+  }
+  
   /** Selects all rows if they are not all selected; otherwise clear selection. */
   masterToggle() {
     this.isThereSelected() ?

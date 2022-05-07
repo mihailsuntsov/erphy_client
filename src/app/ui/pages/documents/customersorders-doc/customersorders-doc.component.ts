@@ -446,11 +446,17 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
       shipment_date: new FormControl      ('',[Validators.required]),
       retailSalesProductTable: new FormArray([]),
       shipmentProductTable: new FormArray   ([]),
+      invoiceoutProductTable: new FormArray   ([]),
       linked_doc_id: new FormControl      (null,[]),//id связанного документа (в данном случае Отгрузка)
       parent_uid: new FormControl         (null,[]),// uid родительского документа
       child_uid: new FormControl          (null,[]),// uid дочернего документа
       linked_doc_name: new FormControl    (null,[]),//имя (таблицы) связанного документа
       uid: new FormControl                ('',[]),  //uid создаваемого связанного документа
+      // параметры для входящих ордеров и платежей
+      payment_account_id: new FormControl ('',[]),//id расчтёного счёта      
+      boxoffice_id: new FormControl       ('',[]), // касса предприятия или обособленного подразделения
+      internal: new FormControl           (false,[]), // внутренний платеж     
+
     });
     this.formAboutDocument = new FormGroup({
       id: new FormControl                       ('',[]),
@@ -1015,6 +1021,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
             //вставляем настройки в форму настроек
            
             this.settingsForm.get('pricingType').setValue(result.pricingType?result.pricingType:'priceType');
+            this.settingsForm.get('priceTypeId').setValue(result.priceTypeId);
             this.settingsForm.get('plusMinus').setValue(result.plusMinus?result.plusMinus:'plus');
             this.settingsForm.get('changePrice').setValue(result.changePrice?result.changePrice:50);
             this.settingsForm.get('changePriceType').setValue(result.changePriceType?result.changePriceType:'procents');
@@ -1951,22 +1958,33 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
     let uid = uuidv4();
     let canCreateLinkedDoc:CanCreateLinkedDoc=this.canCreateLinkedDoc(docname); //проверим на возможность создания связанного документа
     if(canCreateLinkedDoc.can){
-      switch (docname){
-        case 'Paymentin':{
-          this.formLinkedDocs.get('summ').setValue(this.sumPrice); 
-          this.formLinkedDocs.get('nds').setValue(this.sumNds); 
-          break;
-        }
-        default:{
-          this.formLinkedDocs.get('department_id').setValue(this.formBaseInformation.get('department_id').value);
-          this.formLinkedDocs.get('nds').setValue(this.formBaseInformation.get('nds').value);
-          this.formLinkedDocs.get('nds_included').setValue(this.formBaseInformation.get('nds_included').value);
-          this.formLinkedDocs.get('shipment_date').setValue(this.formBaseInformation.get('shipment_date').value?moment(this.formBaseInformation.get('shipment_date').value,'DD.MM.YYYY'):"");
-          this.formLinkedDocs.get('description').setValue(translate('docs.msg.created_from')+translate('docs.docs.c_order')+' '+translate('docs.top.number')+this.formBaseInformation.get('doc_number').value);
-          this.formLinkedDocs.get('customers_orders_id').setValue(this.id);
-          this.getProductsTableLinkedDoc(docname);//формируем таблицу товаров для создаваемого документа
-        }
+      // switch (docname){
+      //   case 'Paymentin':{
+      //     this.formLinkedDocs.get('summ').setValue(this.sumPrice); 
+      //     this.formLinkedDocs.get('nds').setValue(this.sumNds); 
+      //     break;
+      //   }
+      //   default:{
+        
+      this.formLinkedDocs.get('department_id').setValue(this.formBaseInformation.get('department_id').value);
+      this.formLinkedDocs.get('nds').setValue(this.formBaseInformation.get('nds').value);
+      this.formLinkedDocs.get('nds_included').setValue(this.formBaseInformation.get('nds_included').value);
+      this.formLinkedDocs.get('shipment_date').setValue(this.formBaseInformation.get('shipment_date').value?moment(this.formBaseInformation.get('shipment_date').value,'DD.MM.YYYY'):"");
+      this.formLinkedDocs.get('description').setValue(translate('docs.msg.created_from')+translate('docs.docs.c_order')+' '+translate('docs.top.number')+this.formBaseInformation.get('doc_number').value);
+      this.formLinkedDocs.get('customers_orders_id').setValue(this.id);
+      
+      // параметры для входящих ордеров и платежей (Paymentin, Orderin)
+      if(docname=='Paymentin'||docname=='Orderin'){
+        this.formLinkedDocs.get('payment_account_id').setValue(null);//id расчтёного счёта      
+        this.formLinkedDocs.get('boxoffice_id').setValue(null);
+        this.formLinkedDocs.get('summ').setValue(this.productSearchAndTableComponent.totalProductSumm)
+        this.formLinkedDocs.get('nds').setValue(this.productSearchAndTableComponent.getTotalNds());
       }
+
+      if(docname!=='Paymentin'&&docname!=='Orderin')// для данных документов таблица с товарами не нужна
+          this.getProductsTableLinkedDoc(docname);//формируем таблицу товаров для создаваемого документа
+      //   }
+      // }
 
       this.formLinkedDocs.get('company_id').setValue(this.formBaseInformation.get('company_id').value);
       this.formLinkedDocs.get('cagent_id').setValue(this.formBaseInformation.get('cagent_id').value);
@@ -1978,8 +1996,8 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
       this.formLinkedDocs.get('is_completed').setValue(false);
       
       
-      
-      if(docname=='RetailSales'){// т.к. Розничная продажа проводится по факту ее создания, то мы не можем просто создать ее, как это делаем с другими связанными документами. Нужно только открыть ее страницу и передать туда все данные из Заказа покупателя.
+      // т.к. Розничная продажа проводится по факту ее создания, то мы не можем просто создать ее, как это делаем с другими связанными документами. Нужно только открыть ее страницу и передать туда все данные из Заказа покупателя.
+      if(docname=='RetailSales'){
         let retailSalesProductTable: Array <RetailSalesProductTable> =this.getRetailSalesProductsTable();
         let objToSend: NavigationExtras = //NavigationExtras - спец. объект, в котором можно передавать данные в процессе роутинга
         {

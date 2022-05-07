@@ -3,7 +3,7 @@ import {HttpClient} from '@angular/common/http';
   
 @Injectable()
 export class CommonUtilitesService{
-    constructor(private http: HttpClient){ }
+    constructor(private http: HttpClient){ }
     
 
 

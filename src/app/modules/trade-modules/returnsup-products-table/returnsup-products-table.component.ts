@@ -59,8 +59,10 @@ interface SpravTaxesSet{
   name: string;
   description: string;
   name_api_atol: string;
-  is_active: string;
-  calculated: string;
+  is_active: boolean;
+  calculated: boolean;
+  value:number;
+  multiplier:number;
 }
 
 @Component({
@@ -79,6 +81,8 @@ export class ReturnsupProductsTableComponent implements OnInit {
   totalProductSumm:number=0;//всего разница
   indivisibleErrorOfSearchForm:boolean; // дробное кол-во товара при неделимом товаре в форме поиска
   indivisibleErrorOfProductTable:boolean;// дробное кол-во товара при неделимом товаре в таблице товаров
+  totalNds:number=0;//всего НДС
+  nds_included= true; // тут НДС, если он есть, всегда включен в стоимость
 
   //для Autocomplete по поиску товаров
   searchProductCtrl = new FormControl();//поле для поиска товаров
@@ -106,7 +110,7 @@ export class ReturnsupProductsTableComponent implements OnInit {
 
   // Расценка (все настройки здесь - по умолчанию. После первого же сохранения настроек данные настройки будут заменяться в методе getSettings() )
   productPrice:number=0; //Цена найденного и выбранного в форме поиска товара.
- priceUpDownFieldName:string = translate('modules.field.markup'); // Наименование поля с наценкой-скидкой
+  priceUpDownFieldName:string = translate('modules.field.markup'); // Наименование поля с наценкой-скидкой
   priceTypeId_temp:number; // id типа цены. Нужна для временного хранения типа цены на время сброса формы поиска товара
   companyId_temp:number; // id предприятия. Нужна для временного хранения предприятия на время сброса формы formBaseInformation
 
@@ -665,8 +669,27 @@ export class ReturnsupProductsTableComponent implements OnInit {
     })
     this.indivisibleErrorOfProductTable=result;
   }
+  //пересчитывает НДС в таблице товаров
+  tableNdsRecount(){
+    this.totalNds=0;
+    if(this.formBaseInformation!=undefined){//метод может вызываться из ngOnChanges, а т.к. он стартует до ngOnInit, то formBaseInformation может еще не быть
+      this.formBaseInformation.value.returnsupProductTable.map(i =>{
+        if(this.nds){
+            this.totalNds += this.getTaxFromPrice(i['product_sumprice'], i['nds_id']);
+        }
+      })}
+  }
+  getTaxFromPrice(price:number, taxId:number):number {
+    // вычисляет налог из цены. Например, для цены 100, уже содержащей в себе налог, и налога 20% вернёт: 100 * 20 / 120 = 16.67
+    let value=0;
+    this.spravTaxesSet.forEach(a=>{if(+a.id == taxId) {value=a.value}});
+    return parseFloat((price*value/(100+value)).toFixed(2));
+  }
 
-
+  getTotalNds() {//возвращает общую НДС
+    this.tableNdsRecount();
+    return (this.totalNds);
+  }
 
   //****************************************************************************** МАССОВОЕ ДОБАВЛЕНИЕ ТОВАРОВ ЧЕРЕЗ СПРАВОЧНИК *******************************************************************
   openDialogProductCategoriesSelect(selection:string){

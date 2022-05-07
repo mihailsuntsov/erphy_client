@@ -111,14 +111,20 @@
                         <button mat-menu-item (click)="goToNewDocument()">
                             <span>{{t('docs.docs.c_order')}}</span>
                         </button>
+                        <button mat-menu-item (click)="createLinkedDoc('Invoiceout')">
+                            <span>{{t('docs.docs.invoiceout')}}</span>
+                        </button>
+                        <button mat-menu-item (click)="createLinkedDoc('Paymentin')">
+                            <span>{{t('docs.docs.paymentin')}}</span>
+                        </button>
+                        <button mat-menu-item (click)="createLinkedDoc('Orderin')">
+                            <span>{{t('docs.docs.orderin')}}</span>
+                        </button>
                         <button mat-menu-item (click)="createLinkedDoc('Shipment')">
                             <span>{{t('docs.docs.shipment')}}</span>
                         </button>
                         <button mat-menu-item (click)="createLinkedDoc('RetailSales')">
                             <span>{{t('docs.docs.retailsale')}}</span>
-                        </button>
-                        <button mat-menu-item (click)="createLinkedDoc('Paymentin')">
-                            <span>{{t('docs.docs.paymentin')}}</span>
                         </button>
                     </mat-menu>            
                     <button 
@@ -739,6 +745,7 @@
                                         [saveSettings]="settingsForm.get('saveSettings').value"
                                         [receivedPriceTypesList]="receivedPriceTypesList"
                                         [spravTaxesSet]="spravTaxesSet"
+                                        [priceTypeId]="settingsForm.get('priceTypeId').value"
                                         [readonly]="is_completed"
                                     ></app-product-search-and-table>
                                 </div>

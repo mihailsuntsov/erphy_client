@@ -310,6 +310,11 @@ export class InvoiceinDocComponent implements OnInit {
       child_uid: new FormControl          (null,[]),// uid дочернего документа
       linked_doc_name: new FormControl    (null,[]),//имя (таблицы) связанного документа
       uid: new FormControl                ('',[]),  //uid создаваемого связанного документа
+      // параметры для ордеров и платежей
+      payment_account_id: new FormControl ('',[]),//id расчтёного счёта      
+      boxoffice_id: new FormControl       ('',[]), // касса предприятия или обособленного подразделения
+      internal: new FormControl           (false,[]), // внутренний платеж     
+      summ:     new FormControl           ('',[]),
     });
 
     // Форма настроек
@@ -775,6 +780,7 @@ export class InvoiceinDocComponent implements OnInit {
                   this.getPriceTypesList();
                   this.loadFilesInfo();
                   this.getDepartmentsList();//отделения
+                  this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
                   this.getStatusesList();//статусы документа Счёт поставщика
                   this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                   //!!!
@@ -1294,9 +1300,17 @@ deleteFile(id:number){
       }
       
       
+      // параметры для исходящих ордеров и платежей (Paymentout, Orderout)
+      if(docname=='Paymentout'||docname=='Orderout'){
+        this.formLinkedDocs.get('payment_account_id').setValue(null);//id расчтёного счёта      
+        this.formLinkedDocs.get('boxoffice_id').setValue(null);
+        this.formLinkedDocs.get('summ').setValue(this.invoiceinProductsTableComponent.totalProductSumm)
+        this.formLinkedDocs.get('nds').setValue(this.invoiceinProductsTableComponent.getTotalNds());
+      }
 
-      
-      this.getProductsTableLinkedDoc(docname);//формируем таблицу товаров для создаваемого документа
+      if(docname!=='Paymentout'&&docname!=='Orderout')// для данных документов таблица с товарами не нужна
+        this.getProductsTableLinkedDoc(docname);//формируем таблицу товаров для создаваемого документа
+
       this.http.post('/api/auth/insert'+docname, this.formLinkedDocs.value)
       .subscribe(
       (data) => {
@@ -1308,6 +1322,14 @@ deleteFile(id:number){
                     }
                     case -1:{//недостаточно прав
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm_creat',{name:translate('docs.docs.'+this.commonUtilites.getDocNameByDocAlias(docname))})}});
+                      break;
+                    }
+                    case -20:{//расчётный счёт не определен
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.cant_def_accn',{name:translate('docs.docs.'+this.commonUtilites.getDocNameByDocAlias(docname))})}});
+                      break;
+                    }
+                    case -21:{//касса не определена
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.cant_def_cbox',{name:translate('docs.docs.'+this.commonUtilites.getDocNameByDocAlias(docname))})}});
                       break;
                     }
                     default:{// Документ успешно создался в БД 

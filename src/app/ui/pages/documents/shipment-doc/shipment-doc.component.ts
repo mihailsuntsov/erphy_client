@@ -1502,7 +1502,7 @@ export class ShipmentDocComponent implements OnInit {
         this.formLinkedDocs.get('child_uid').setValue(uid);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
       }
 
-      if(docname!=='Vatinvoiceout'&&docname!=='Paymentin'&&docname!=='Orderin')
+      if(docname!=='Vatinvoiceout'&&docname!=='Paymentin'&&docname!=='Orderin')// для данных документов таблица с товарами не нужна
         this.getProductsTableLinkedDoc(docname);//формируем таблицу товаров для создаваемого документа
       
       this.http.post('/api/auth/insert'+docname, this.formLinkedDocs.value)

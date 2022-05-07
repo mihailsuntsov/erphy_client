@@ -44,7 +44,7 @@ export class PricingDialogComponent implements OnInit {
     this.changePrice=this.data.changePrice;
     // this.parentDocName=this.data.parentDocName;
     this.pricingForm = new FormGroup({
-      //тип расценки (радиокнопки: 1. Тип цены (priceType), 2. Себестоимость (costPrice) 3. Вручную (manual))
+      //тип расценки 
       pricingType: new FormControl              (this.data.pricingType,[]),
       //тип цены
       priceTypeId: new FormControl              (this.data.priceTypeId,[]),

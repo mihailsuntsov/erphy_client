@@ -83,6 +83,7 @@ export class InvoiceinProductsTableComponent implements OnInit {
   totalProductSumm:number=0;//всего разница
   indivisibleErrorOfSearchForm:boolean; // дробное кол-во товара при неделимом товаре в форме поиска
   indivisibleErrorOfProductTable:boolean;// дробное кол-во товара при неделимом товаре в таблице товаров
+  totalNds:number=0;//всего НДС
 
   //для Autocomplete по поиску товаров
   searchProductCtrl = new FormControl();//поле для поиска товаров
@@ -523,7 +524,7 @@ export class InvoiceinProductsTableComponent implements OnInit {
     return current_row_id;
   }
 
-  getNdsMultiplifierBySelectedId(srchId:number):number {
+  getTaxMultiplifierBySelectedId(srchId:number):number {
     //возвращает множитель по выбранному НДС. например, для 20% будет 1.2, 0% - 1 и т.д 
         let value=0;
         this.spravTaxesSet.forEach(a=>{
@@ -545,6 +546,12 @@ export class InvoiceinProductsTableComponent implements OnInit {
           error => console.log(error)
       );
   }
+  getTaxFromPrice(price:number, taxId:number):number {
+    // вычисляет налог из цены. Например, для цены 100, уже содержащей в себе налог, и налога 20% вернёт: 100 * 20 / 120 = 16.67
+    let value=0;
+    this.spravTaxesSet.forEach(a=>{if(+a.id == taxId) {value=a.value}});
+    return parseFloat((price*value/(100+value)).toFixed(2));
+  }
 
     //пересчитывает НДС в таблице товаров
   tableRecount(nds_included?:boolean){
@@ -556,20 +563,27 @@ export class InvoiceinProductsTableComponent implements OnInit {
       //перерасчет НДС в таблице товаров
       if(this.formBaseInformation.controls['invoiceinProductTable'].value.length>0)
       {
+        this.totalNds=0;
         let switcherNDS:boolean = this.nds;
         let switcherNDSincluded:boolean = this.nds_included;
         let multiplifierNDS:number = 1;//множитель НДС. Рассчитывается для каждой строки таблицы. Например, для НДС 20% будет 1.2, для 0 или без НДС будет 1
         let KZ:number = 0; //коэффициент затрат, равен делению расходов на итоговую сумму
         this.formBaseInformation.value.invoiceinProductTable.map(i =>
         {
-          multiplifierNDS = this.getNdsMultiplifierBySelectedId(+i['nds_id']);
-          //если включён переключатель "НДС", но переключатель "НДС включена" выключен,
+          multiplifierNDS = this.getTaxMultiplifierBySelectedId(+i['nds_id']);
+          //если включён переключатель "Налог", но переключатель "Налог включен" выключен,
           if(switcherNDS && !switcherNDSincluded){
-          //..к сумме добавляем НДС
+          //..к сумме добавляем Налог
             i['product_sumprice']=this.numToPrice(+(+i['product_count']*(+i['product_price'])*multiplifierNDS).toFixed(2),2);
-          }else i['product_sumprice']=this.numToPrice(+((+i['product_count'])*(+i['product_price'])).toFixed(2),2);//..иначе не добавляем, и сумма - это просто произведение количества на цену
+            this.totalNds += +this.numToPrice(+(+i['product_count']*(+i['product_price'])*(multiplifierNDS-1)).toFixed(2),2);//суммируем общий налог
+          }else {
+            i['product_sumprice']=this.numToPrice(+((+i['product_count'])*(+i['product_price'])).toFixed(2),2);//..иначе не добавляем, и сумма - это просто произведение количества на цену
+            //если включены переключатели "Налог" и "Налог включен" - Налог уже в цене, и нужно вычислить его из неё
+            if(switcherNDS && switcherNDSincluded){
+              this.totalNds += this.getTaxFromPrice(i['product_sumprice'], i['nds_id']);
+            }
+          }
         });
-
         this.finishRecount();                                    // подсчёт TOTALS
       }
     }
@@ -577,7 +591,7 @@ export class InvoiceinProductsTableComponent implements OnInit {
   calcSumPriceOfProduct(){
     let switcherNDS:boolean = this.nds;
     let switcherNDSincluded:boolean = this.nds_included;
-    let selectedNDS:number = this.getNdsMultiplifierBySelectedId(+this.formSearch.get('nds_id').value)
+    let selectedNDS:number = this.getTaxMultiplifierBySelectedId(+this.formSearch.get('nds_id').value)
     //Сначала считаем конечную цену как произведение количества на цену за ед. товара
     this.formSearch.get('product_sumprice').setValue(this.numToPrice(
       (+this.formSearch.get('product_count').value)*(+this.formSearch.get('product_price').value)
@@ -640,6 +654,10 @@ onChangeProductPrice(row_index:number){
   }}
   getTotalSumPrice() { //бежим по столбцу product_sumprice и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
     return  (this.formBaseInformation.value.invoiceinProductTable.map(t => +t.product_sumprice).reduce((acc, value) => acc + value, 0)).toFixed(2);
+  }
+  getTotalNds() {//возвращает общую НДС
+    this.tableRecount();
+    return (this.totalNds);
   }
 
   //возвращает таблицу товаров в родительский компонент для сохранения

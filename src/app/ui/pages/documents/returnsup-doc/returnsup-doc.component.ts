@@ -300,6 +300,11 @@ export class ReturnsupDocComponent implements OnInit {
       child_uid: new FormControl          (null,[]),// uid дочернего документа
       linked_doc_name: new FormControl    (null,[]),//имя (таблицы) связанного документа
       uid: new FormControl                ('',[]),  //uid создаваемого связанного документа
+      // параметры для входящих ордеров и платежей
+      payment_account_id: new FormControl ('',[]),//id расчтёного счёта      
+      boxoffice_id: new FormControl       ('',[]), // касса предприятия или обособленного подразделения
+      internal: new FormControl           (false,[]), // внутренний платеж     
+      summ:     new FormControl           ('',[]),
     });
 
     // Форма настроек
@@ -1184,7 +1189,7 @@ export class ReturnsupDocComponent implements OnInit {
       this.formLinkedDocs.get('department_id').setValue(this.formBaseInformation.get('department_id').value);
       this.formLinkedDocs.get('cagent_id').setValue(this.formBaseInformation.get('cagent_id').value);
       this.formLinkedDocs.get('nds').setValue(this.formBaseInformation.get('nds').value);
-      this.formLinkedDocs.get('nds_included').setValue(this.formBaseInformation.get('nds_included').value);
+      // this.formLinkedDocs.get('nds_included').setValue(this.formBaseInformation.get('nds_included').value);
       this.formLinkedDocs.get('description').setValue(translate('docs.msg.created_from')+translate('docs.docs.returnsup')+' '+translate('docs.top.number')+this.formBaseInformation.get('doc_number').value);
       this.formLinkedDocs.get('is_completed').setValue(false);
       this.formLinkedDocs.get('linked_doc_id').setValue(this.id);//id связанного документа (того, из которого инициируется создание данного документа)
@@ -1192,7 +1197,17 @@ export class ReturnsupDocComponent implements OnInit {
       this.formLinkedDocs.get('child_uid').setValue(uid);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
       this.formLinkedDocs.get('linked_doc_name').setValue('returnsup');//имя (таблицы) связанного документа
       this.formLinkedDocs.get('uid').setValue(uid);
-      this.getProductsTableLinkedDoc(docname);//формируем таблицу товаров для создаваемого документа
+      // параметры для входящих ордеров и платежей (Paymentin, Orderin)
+      if(docname=='Paymentin'||docname=='Orderin'){
+        this.formLinkedDocs.get('payment_account_id').setValue(null);//id расчтёного счёта      
+        this.formLinkedDocs.get('boxoffice_id').setValue(null);
+        this.formLinkedDocs.get('summ').setValue(this.returnsupProductsTableComponent.totalProductSumm)
+        this.formLinkedDocs.get('nds').setValue(this.returnsupProductsTableComponent.getTotalNds());
+      }
+
+      if(docname!=='Paymentin'&&docname!=='Orderin')// для данных документов таблица с товарами не нужна
+        this.getProductsTableLinkedDoc(docname);//формируем таблицу товаров для создаваемого документа
+
       this.http.post('/api/auth/insert'+docname, this.formLinkedDocs.value)
       .subscribe(
       (data) => {
@@ -1204,6 +1219,14 @@ export class ReturnsupDocComponent implements OnInit {
                     }
                     case -1:{//недостаточно прав
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm_creat',{name:translate('docs.docs.'+this.commonUtilites.getDocNameByDocAlias(docname))})}});
+                      break;
+                    }
+                    case -20:{//расчётный счёт не определен
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.cant_def_accn',{name:translate('docs.docs.'+this.commonUtilites.getDocNameByDocAlias(docname))})}});
+                      break;
+                    }
+                    case -21:{//касса не определена
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.cant_def_cbox',{name:translate('docs.docs.'+this.commonUtilites.getDocNameByDocAlias(docname))})}});
                       break;
                     }
                     default:{// Документ успешно создался в БД 
