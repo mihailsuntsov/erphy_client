@@ -206,6 +206,7 @@ viewMode:string = "grid"; // способ отображения файлов - 
       this.sendingQueryForm.selectedNodeId="0";
       this.sendingQueryForm.searchCategoryString="";
       this.sendingQueryForm.trash=false;
+
       
       // console.log("Cookie.get('files_result') - "+Cookie.get('files_result'));
 
@@ -221,6 +222,10 @@ viewMode:string = "grid"; // способ отображения файлов - 
       //сохраненные в куках параметры
       try{
       this.sendingQueryForm.trash=Cookie.get('files_trash')=="true"?true:false;
+      // alert(Cookie.get('files_companyId'))
+      if(Cookie.get('files_companyId')=='undefined' || Cookie.get('files_companyId')==null)     
+        Cookie.set('files_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('files_companyId')=="0"?"0":+Cookie.get('files_companyId'));
+        // alert(this.sendingQueryForm.companyId)
       if(Cookie.get('files_sortAsc')=='undefined' || Cookie.get('files_sortAsc')==null)       
         Cookie.set('files_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('files_sortAsc');
       if(Cookie.get('files_sortColumn')=='undefined' || Cookie.get('files_sortColumn')==null)    
@@ -401,6 +406,12 @@ viewMode:string = "grid"; // способ отображения файлов - 
         },
         error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
         ); 
+  }
+
+  onCompanySelection(){
+    Cookie.set('files_companyId',this.sendingQueryForm.companyId);
+    // this.resetOptions();
+    this.getData();
   }
 
     setViewMode(value){
@@ -670,12 +681,21 @@ viewMode:string = "grid"; // способ отображения файлов - 
       else this.setDefaultCompany();
     } 
 
+    // setDefaultCompany(){
+    //   if(this.data)
+    //     this.sendingQueryForm.companyId=this.data.companyId;
+    //   else 
+    //     this.sendingQueryForm.companyId=this.myCompanyId;
+    //   this.getCRUD_rights();
+    // }
+
     setDefaultCompany(){
-      if(this.data)
-        this.sendingQueryForm.companyId=this.data.companyId;
-      else 
+      if(Cookie.get('files_companyId')=='0'||!this.companyIdInList(Cookie.get('files_companyId'))){
+        // alert((Cookie.get('files_companyId')=='0') + ' --- ' + (!this.companyIdInList(Cookie.get('files_companyId'))))
         this.sendingQueryForm.companyId=this.myCompanyId;
-      this.getCRUD_rights();
+        Cookie.set('files_companyId',this.sendingQueryForm.companyId);
+      }
+        this.getCRUD_rights();
     }
 
     clickBtnAddCategory(): void {
@@ -958,6 +978,9 @@ clickBtnFileUplioad(){
       const i = Math.floor(Math.log(bytes) / Math.log(k));
       return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
   }
+
+  // sometimes in cookie "..._companyId" there value that not exists in list of companies. If it happens, company will be not selected and data not loaded until user select company manually
+  companyIdInList(id:any):boolean{let r=false;this.receivedCompaniesList.forEach(c=>{if(+id==c.id) r=true});return r}
 
   getIcon(ext:string){
     switch (ext.toLowerCase()) {

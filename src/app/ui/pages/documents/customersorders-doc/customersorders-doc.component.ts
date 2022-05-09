@@ -1451,7 +1451,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
     let currentStatus:number=this.formBaseInformation.get('status_id').value;
     if(complete){
       this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с завершением - временно устанавливаем true, временно - чтобы это ушло в запросе на сервер, но не повлияло на внешний вид документа, если вернется не true
-      if(this.settingsForm.get('statusIdOnAutocreateOnCheque').value){//если в настройках есть "Статус при проведении" - временно выставляем его
+      if(this.settingsForm.get('statusIdOnAutocreateOnCheque').value&&this.statusIdInList(this.settingsForm.get('statusOnFinishId').value)){// если в настройках есть "Статус при проведении" - временно выставляем его
         this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnAutocreateOnCheque').value);}
     }
     return this.http.post('/api/auth/updateCustomersOrders',  this.formBaseInformation.value)
@@ -1481,7 +1481,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
                   this.productSearchAndTableComponent.hideOrShowNdsColumn(); //чтобы спрятать столбцы чекбоксов и удаления строк в таблице товаров
                   this.productSearchAndTableComponent.tableNdsRecount();
                 }
-                if(this.settingsForm.get('statusIdOnAutocreateOnCheque').value){//если в настройках есть "Статус при завершении" - выставим его
+                if(this.settingsForm.get('statusIdOnAutocreateOnCheque').value&&this.statusIdInList(this.settingsForm.get('statusOnFinishId').value)){// если в настройках есть "Статус при завершении" - выставим его
                   this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnAutocreateOnCheque').value);}
                 this.setStatusColor();//чтобы обновился цвет статуса
               }
@@ -2271,4 +2271,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
   //     this.openSnackBar("Чек был успешно напечатан. Создание нового Заказа покупателя", "Закрыть");
   //   }
   // }
+
+  // The situation can be, that in settings there is "Status after ompletion" for company A, but document created for company B. If it happens, when completion is over, Dokio can set this status of company A to the document, but that's wrong! 
+  statusIdInList(id:number):boolean{let r=false;this.receivedStatusesList.forEach(c=>{if(id==+c.id) r=true});return r}
 }

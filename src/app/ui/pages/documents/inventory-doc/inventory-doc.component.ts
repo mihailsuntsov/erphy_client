@@ -451,6 +451,7 @@ export class InventoryDocComponent implements OnInit {
     this.actionsBeforeGetChilds=0;
     this.getDepartmentsList();
     this.getPriceTypesList();
+    this.getStatusesList();
   }
 
   onDepartmentChange(){
@@ -836,7 +837,7 @@ export class InventoryDocComponent implements OnInit {
     this.getProductsTable();    
     let currentStatus:number=this.formBaseInformation.get('status_id').value;
     if(complete) {
-      if(this.settingsForm.get('statusOnFinishId').value)//если в настройках есть "Статус при проведении" - выставим его
+      if(this.settingsForm.get('statusOnFinishId').value&&this.statusIdInList(this.settingsForm.get('statusOnFinishId').value))// если в настройках есть "Статус при проведении" - выставим его
         this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);
       this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением
     }
@@ -871,7 +872,7 @@ export class InventoryDocComponent implements OnInit {
                     this.inventoryProductsTableComponent.showColumns(); //чтобы спрятать столбцы после проведения 
                     this.inventoryProductsTableComponent.getProductsTable();
                   }
-                  if(this.settingsForm.get('statusIdOnComplete').value){//если в настройках есть "Статус при проведении" - выставим его
+                  if(this.settingsForm.get('statusIdOnComplete').value&&this.statusIdInList(this.settingsForm.get('statusIdOnComplete').value)){// если в настройках есть "Статус при проведении" - выставим его
                     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
                   this.setStatusColor();//чтобы обновился цвет статуса
                 }
@@ -1422,6 +1423,8 @@ deleteFile(id:number){
   getBaseData(data) {    //+++ emit data to parent component
     this.baseData.emit(data);
   }
+  // The situation can be, that in settings there is "Status after ompletion" for company A, but document created for company B. If it happens, when completion is over, Dokio can set this status of company A to the document, but that's wrong! 
+  statusIdInList(id:number):boolean{let r=false;this.receivedStatusesList.forEach(c=>{if(id==+c.id) r=true});return r}
 }
 
 

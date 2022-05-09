@@ -625,6 +625,7 @@ export class ShipmentDocComponent implements OnInit {
     this.formAboutDocument.get('company').setValue(this.getCompanyNameById(this.formBaseInformation.get('company_id').value));
     this.getDepartmentsList();
     this.getPriceTypesList();
+    this.getStatusesList();
     this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
   }
 
@@ -1218,7 +1219,7 @@ export class ShipmentDocComponent implements OnInit {
     let currentStatus:number=this.formBaseInformation.get('status_id').value;
     if(complete){
       this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с завершением - временно устанавливаем true, временно - чтобы это ушло в запросе на сервер, но не повлияло на внешний вид документа, если вернется не true
-      if(this.settingsForm.get('statusIdOnComplete').value){//если в настройках есть "Статус при завершении" - временно выставляем его
+      if(this.settingsForm.get('statusIdOnComplete').value&&this.statusIdInList(this.settingsForm.get('statusIdOnComplete').value)){// если в настройках есть "Статус при завершении" - временно выставляем его
         this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
     }
     this.http.post('/api/auth/updateShipment',  this.formBaseInformation.value)
@@ -1267,7 +1268,7 @@ export class ShipmentDocComponent implements OnInit {
                     this.productSearchAndTableComponent.getProductsTable();
                     // this.productSearchAndTableComponent.tableNdsRecount();
                   }
-                  if(this.settingsForm.get('statusIdOnComplete').value){//если в настройках есть "Статус при завершении" - выставим его
+                  if(this.settingsForm.get('statusIdOnComplete').value&&this.statusIdInList(this.settingsForm.get('statusIdOnComplete').value)){// если в настройках есть "Статус при завершении" - выставим его
                     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
                   this.setStatusColor();//чтобы обновился цвет статуса
                 }
@@ -1794,5 +1795,7 @@ drawLinkedDocsScheme(){
   getBaseData(data) {    //+++ emit data to parent component
     this.baseData.emit(data);
   }
+  // The situation can be, that in settings there is "Status after ompletion" for company A, but document created for company B. If it happens, when completion is over, Dokio can set this status of company A to the document, but that's wrong! 
+  statusIdInList(id:number):boolean{let r=false;this.receivedStatusesList.forEach(c=>{if(id==+c.id) r=true});return r}
 }
 

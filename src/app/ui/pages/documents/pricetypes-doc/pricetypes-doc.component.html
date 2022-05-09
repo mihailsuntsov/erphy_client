@@ -66,13 +66,18 @@
                                                     formControlName="id"/>
                                         </mat-form-field>
 
-                                        <mat-form-field [ngClass]="{invisible: visAfterCreatingBlocks}">
+                                        <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: +id>0}">
                                             <mat-label>{{t('docs.field.company')}}</mat-label>
                                             <mat-select  formControlName="company_id">                          
                                                 <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
                                                         {{rt.name}}
                                                 </mat-option> 
                                             </mat-select>
+                                        </mat-form-field>
+                                        <mat-form-field class="mat-form-field-100" *ngIf="+id>0">
+                                            <mat-label>{{t('docs.field.company')}}</mat-label>
+                                            <input  matInput [readonly]="true"
+                                                    [ngModel]="formAboutDocument.get('company').value" [ngModelOptions]="{standalone: true}"/>
                                         </mat-form-field>
                                         <mat-form-field>
                                             <input   matInput

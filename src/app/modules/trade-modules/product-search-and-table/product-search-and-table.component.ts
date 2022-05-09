@@ -439,7 +439,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
     {// список товаров не должен содержать одинаковые товары из одного и того же склада. Тут проверяем на это
       if(+i['product_id']==this.formSearch.get('product_id').value && +i['department_id']==this.formSearch.get('secondaryDepartmentId').value)
       {//такой товар с таким складом уже занесён в таблицу товаров ранее, и надо поругаться.
-        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:'Данный товар из выбранного вами склада уже есть в списке товаров!',}});
+        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:"translate('modules.msg.prod_in_list')",}});
         thereProductInTableWithSameId=true; 
       }
     });
@@ -615,17 +615,17 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
       case 'sklad': {//если sklad - в поле Тип цены выставляем тип цены склада
         if(this.department_type_price_id>0){
           this.formSearch.get('price_type_id').setValue(this.department_type_price_id);}
-        else {this.showWarningTypePriceDialog('Склад', 'cклада',this.department)}
+        else {this.showWarningTypePriceDialog(translate('modules.msg.department'), translate('modules.msg._department_'),this.department)}
         break;}
       case 'cagent': {//если cagent - в поле Тип цены выставляем тип покупателя склада
         if(this.cagent_type_price_id>0)
           this.formSearch.get('price_type_id').setValue(this.cagent_type_price_id);
-        else this.showWarningTypePriceDialog('Покупатель', 'покупателя',this.cagent)
+        else this.showWarningTypePriceDialog(translate('modules.msg.customer'), translate('modules.msg._customer_'),this.cagent)
         break;}
       default:{      //если defprice - в поле Тип цены выставляем тип цены по-умолчанию
         if(this.default_type_price_id>0)
           this.formSearch.get('price_type_id').setValue(this.default_type_price_id);
-        else this.showWarningTypePriceDialog('Цена по умолчанию', 'вашего предприятия','('+this.company+')');
+        else this.showWarningTypePriceDialog(translate('modules.msg.default_price'), translate('modules.msg._company_'),'('+this.company+')');
       }
     }
     this.selected_type_price_id=this.formSearch.get('price_type_id').value;
@@ -635,7 +635,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   showWarningTypePriceDialog(typePrice:string, subj:string, subjname:string){
     if(subjname.length>0)// при старте Розничных продаж предприятие, отделение или покупатель могут быть не выбраны (из настроек). Следовательно, предупреждение, что у subj нет типа цены смысла не несёт
       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:
-    'Для документа "Заказ покупателя" в качестве приоритетного установлен тип цены "'+typePrice+'", но у '+subj+' "'+subjname+'" тип цены '+(this.priorityTypePriceSide=='defprice'?'по умолчанию в справочнике "Типы цен" ':'')+'не выбран'
+      translate('modules.msg.in_settings_')+typePrice+translate('modules.msg._but_')+subj+' "'+subjname+'"'+translate('modules.msg._price_type_')+(this.priorityTypePriceSide=='defprice'?translate('modules.msg._in_registry_'):'')
     }});
   }
   //--------------------------------------- **** поиск по подстроке для товара  ***** ------------------------------------
@@ -715,7 +715,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
     this.selected_type_price_id = +this.formSearch.get('price_type_id').value;
     if(this.priorityTypePriceId!=this.selected_type_price_id && +this.priorityTypePriceId!=0){//если тип цены, выбранный через поле "Приоритет типа цены" отличен от типа цены, выбранного через поле "Тип цены"
       //показываем предупреждение
-      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:'Выбранный тип цены отличается от приоритетного типа ('+this.getPriceTypesNameById(this.priorityTypePriceId)+')'}});
+      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('modules.msg.diff_pricetyp')+" ("+this.getPriceTypesNameById(this.priorityTypePriceId)+")"}});
     }
     if(+this.formSearch.get('product_id').value>0){//если товар в форме поиска выбран
       this.getProductsPriceAndRemains();
@@ -861,8 +861,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
     return this.http.post('/api/auth/savePricingSettings'+this.parentDocName, this.settingsForm.value)
             .subscribe(
                 (data) => {   
-                          this.openSnackBar("Настройки расценки успешно сохранены", "Закрыть");
-                          
+                          this.openSnackBar(translate('modules.msg.sett_saved_sc'), translate('docs.msg.close'));                          
                         },
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
             );

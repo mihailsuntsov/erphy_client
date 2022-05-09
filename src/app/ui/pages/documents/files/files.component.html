@@ -233,7 +233,7 @@ class="spinner"
                                         </div>
                                     </div>
                                     <div class="flex">
-                                        <mat-form-field style="width:70px;" class="num-of-rows">
+                                        <mat-form-field style="width:50px;" class="num-of-rows">
                                             <mat-label>{{cu.cap(t('menu.docs.files'))}}</mat-label>
                                             <mat-select [(value)]="sendingQueryForm.result" (selectionChange)="setNumOfPages()" class="form-control" id="selectRowsPerPage" name="result">                           
                                                 <mat-option  *ngFor="let num of numRows" [value]="num.value">
@@ -242,17 +242,17 @@ class="spinner"
                                             </mat-select>
                                         </mat-form-field>
                                         
-                                        <mat-form-field [ngClass]="{invisible: mode=='select'}" style="margin-left: 10px; width: 150px;">
+                                        <mat-form-field [ngClass]="{invisible: mode=='select'}" style="margin-left: 10px; max-width: 250px;">
                                             <mat-label>{{t('menu.top.company')}}</mat-label>
-                                            <mat-select  [(value)]="sendingQueryForm.companyId" (selectionChange)="getData()">                          
+                                            <mat-select  [(value)]="sendingQueryForm.companyId" (selectionChange)="onCompanySelection()">                          
                                                 <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
                                                         {{rt.name}}
                                                 </mat-option>
                                             </mat-select>
                                         </mat-form-field>
 
-                                        <div class="flex" *ngIf="sendingQueryForm.selectedNodeName" style="margin-left: 10px; width: 150px;">
-                                            <mat-form-field  style="margin-left: 10px; width: 150px;">
+                                        <div class="flex" *ngIf="sendingQueryForm.selectedNodeName" style="margin-left: 10px; max-width: 250px;">
+                                            <mat-form-field  style="margin-left: 10px; width: 100%;">
                                                 <input matInput  
                                                 placeholder="{{t('menu.top.category')}}" 
                                                 [(ngModel)]="sendingQueryForm.selectedNodeName" 
@@ -267,7 +267,7 @@ class="spinner"
                                                 </button>
                                             </mat-form-field>
                                         </div>
-                                        <div  class="emptyspace flex evenly"  style="text-align: center; width: 100%; overflow: hidden;">
+                                        <div  class="emptyspace flex evenly"  style="text-align: center; width: 70%; overflow: hidden;">
                                             <span [ngClass]="{selected_mode_button: viewMode=='table',deselected_mode_button: viewMode=='grid'}"  (click)="setViewMode('table')" matTooltip="{{t('menu.tip.as_table')}}"><i class="material-icons">view_list</i></span>
                                             <span [ngClass]="{selected_mode_button: viewMode=='grid', deselected_mode_button: viewMode=='table'}"  (click)="setViewMode('grid')" matTooltip="{{t('menu.tip.as_icons')}}"><i class="material-icons">view_module</i></span>
                                             <span  *ngIf="allowToRecoverFiles||allowToDeleteFromTrash||allowToClearTrash"[ngClass]="{selected_mode_button: sendingQueryForm.trash, deselected_mode_button: !sendingQueryForm.trash}"  

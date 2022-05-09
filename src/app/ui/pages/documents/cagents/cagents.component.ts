@@ -196,21 +196,21 @@ export class CagentsComponent implements OnInit {
     );
   }
 
-  getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==129)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==130)});
-    this.allowToDeleteAllCompanies = permissionsSet.some(         function(e){return(e==131)});
-    this.allowToDeleteMyCompany = permissionsSet.some(            function(e){return(e==132)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==133)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==134)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==135)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==136)});
-    this.allowCategoryCreateAllCompanies = permissionsSet.some(   function(e){return(e==137)});
-    this.allowCategoryCreateMyCompany = permissionsSet.some(      function(e){return(e==138)});
-    this.allowCategoryUpdateAllCompanies = permissionsSet.some(   function(e){return(e==139)});
-    this.allowCategoryUpdateMyCompany = permissionsSet.some(      function(e){return(e==140)});
-    this.allowCategoryDeleteAllCompanies = permissionsSet.some(   function(e){return(e==141)});
-    this.allowCategoryDeleteMyCompany = permissionsSet.some(      function(e){return(e==142)});   
+  getCRUD_rights(){
+    this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==129)});
+    this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==130)});
+    this.allowToDeleteAllCompanies = this.permissionsSet.some(         function(e){return(e==131)});
+    this.allowToDeleteMyCompany = this.permissionsSet.some(            function(e){return(e==132)});
+    this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==133)});
+    this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==134)});
+    this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==135)});
+    this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==136)});
+    this.allowCategoryCreateAllCompanies = this.permissionsSet.some(   function(e){return(e==137)});
+    this.allowCategoryCreateMyCompany = this.permissionsSet.some(      function(e){return(e==138)});
+    this.allowCategoryUpdateAllCompanies = this.permissionsSet.some(   function(e){return(e==139)});
+    this.allowCategoryUpdateMyCompany = this.permissionsSet.some(      function(e){return(e==140)});
+    this.allowCategoryDeleteAllCompanies = this.permissionsSet.some(   function(e){return(e==141)});
+    this.allowCategoryDeleteMyCompany = this.permissionsSet.some(      function(e){return(e==142)});   
     this.getData();
   }
 
@@ -475,14 +475,15 @@ export class CagentsComponent implements OnInit {
       if(this.data)//если документ открыт в окне - ставим предприятие родительского документа (из которгого открыт)
       {
         this.sendingQueryForm.companyId=this.data.companyId;
-        this.getCRUD_rights(this.permissionsSet);
+        this.getCRUD_rights();
       } 
       else 
       {
-        if(+this.sendingQueryForm.companyId==0){
+        if(Cookie.get('cagents_companyId')=='0'||!this.companyIdInList(Cookie.get('cagents_companyId'))){
           this.sendingQueryForm.companyId=this.myCompanyId;
+          Cookie.set('cagents_companyId',this.sendingQueryForm.companyId);
         }
-        this.getCRUD_rights(this.permissionsSet);
+        this.getCRUD_rights();
       }
     }
 
@@ -752,4 +753,6 @@ recountNumChildsOfSelectedCategory(){//считает количество по�
       this.sendingQueryForm.filterOptionsIds.push(+z.id);
     });
   }
+  // sometimes in cookie "..._companyId" there value that not exists in list of companies. If it happens, company will be not selected and data not loaded until user select company manually
+  companyIdInList(id:any):boolean{let r=false;this.receivedCompaniesList.forEach(c=>{if(+id==c.id) r=true});return r}
 }

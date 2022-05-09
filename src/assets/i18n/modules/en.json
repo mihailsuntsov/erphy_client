@@ -227,7 +227,22 @@
         "internal_bcod":"Internal barcode",
         "maker_bcod":   "Manufacturer's barcode",
         "ean13_imposbl":"Creating an EAN-13 barcode is not possible because the \"Code\" field on the product card is empty",
-        "ean8_imposbl": "Creating an EAN-8 barcode is not possible because the \"Code\" field on the product card is empty"
+        "ean8_imposbl": "Creating an EAN-8 barcode is not possible because the \"Code\" field on the product card is empty",
+        
+        "diff_pricetyp":"The selected price type is different from the priority type",
+        "sett_saved_sc":"Rate settings saved successfully",
+        "prod_in_list" :"This product from the department you selected is already in the list of products!",
+
+        "customer":     "Customer",
+        "department":   "Department",
+        "default_price":"Default price",
+        "in_settings_": "In the document settings, the priority price type is set to \"",
+        "_but_":        "\", but ",
+        "_departament_":"departament's",
+        "_customer_":   "customer's",
+        "_company_":    "company's",
+        "_price_type_": " price type is not selected ",
+        "_in_registry_":"in the registry \"Price types\""
     },
     "button":{
         "save_n_close": "Save",

@@ -441,7 +441,7 @@ export class VatinvoiceinComponent implements OnInit {
   } 
 
   setDefaultCompany(){
-    if(Cookie.get('vatinvoicein_companyId')=='0'){
+    if(Cookie.get('vatinvoicein_companyId')=='0'||!this.companyIdInList(Cookie.get('vatinvoicein_companyId'))){
       this.sendingQueryForm.companyId=this.myCompanyId;
       Cookie.set('vatinvoicein_companyId',this.sendingQueryForm.companyId);
     }
@@ -546,4 +546,6 @@ export class VatinvoiceinComponent implements OnInit {
       this.sendingQueryForm.filterOptionsIds.push(+z.id);
     });
   }
+  // sometimes in cookie "..._companyId" there value that not exists in list of companies. If it happens, company will be not selected and data not loaded until user select company manually
+  companyIdInList(id:any):boolean{let r=false;this.receivedCompaniesList.forEach(c=>{if(+id==c.id) r=true});return r}
 }

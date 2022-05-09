@@ -513,7 +513,7 @@ export class RetailsalesComponent implements OnInit {
   }
 
   setDefaultCompany(){
-    if(Cookie.get('retailsales_companyId')=='0'){
+    if(Cookie.get('retailsales_companyId')=='0'||!this.companyIdInList(Cookie.get('retailsales_companyId'))){
       this.sendingQueryForm.companyId=this.myCompanyId;
       Cookie.set('retailsales_companyId',this.sendingQueryForm.companyId);
     }
@@ -639,6 +639,8 @@ export class RetailsalesComponent implements OnInit {
     this.selectionFilterOptions.clear();
     this.sendingQueryForm.filterOptionsIds = [];
   }
+  // sometimes in cookie "..._companyId" there value that not exists in list of companies. If it happens, company will be not selected and data not loaded until user select company manually
+  companyIdInList(id:any):boolean{let r=false;this.receivedCompaniesList.forEach(c=>{if(+id==c.id) r=true});return r}
   // fillOptionsList(){
   //   this.optionsIds=[{id:1, name: 'menu.top.only_del'},]; //+++
   // }

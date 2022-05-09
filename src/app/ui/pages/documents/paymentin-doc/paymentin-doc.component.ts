@@ -791,7 +791,7 @@ export class PaymentinDocComponent implements OnInit {
     let currentStatus:number=this.formBaseInformation.get('status_id').value;
     if(complete){
       this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - временно устанавливаем true, временно - чтобы это ушло в запросе на сервер, но не повлияло на внешний вид документа, если вернется не true
-      if(this.settingsForm.get('statusIdOnComplete').value){//если в настройках есть "Статус при проведении" - временно выставляем его
+      if(this.settingsForm.get('statusIdOnComplete').value&&this.statusIdInList(this.settingsForm.get('statusIdOnComplete').value)){// если в настройках есть "Статус при проведении" - временно выставляем его
         this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
     }
     this.http.post('/api/auth/updatePaymentin',  this.formBaseInformation.value)
@@ -834,7 +834,7 @@ export class PaymentinDocComponent implements OnInit {
                 if(complete) {
                   this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведённости = true
                   this.balanceAccountComponent.getBalance();//пересчитаем баланс расчётного счёта
-                  if(this.settingsForm.get('statusIdOnComplete').value){//если в настройках есть "Статус при проведении" - выставим его
+                  if(this.settingsForm.get('statusIdOnComplete').value&&this.statusIdInList(this.settingsForm.get('statusIdOnComplete').value)){// если в настройках есть "Статус при проведении" - выставим его
                     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
                   this.setStatusColor();//чтобы обновился цвет статуса
                   // если не внутренний перевод
@@ -1400,5 +1400,7 @@ deleteFile(id:number){
   getBaseData(data) {    //+++ emit data to parent component
     this.baseData.emit(data);
   }
+  // The situation can be, that in settings there is "Status after ompletion" for company A, but document created for company B. If it happens, when completion is over, Dokio can set this status of company A to the document, but that's wrong! 
+  statusIdInList(id:number):boolean{let r=false;this.receivedStatusesList.forEach(c=>{if(id==+c.id) r=true});return r}
 }
 

@@ -178,10 +178,7 @@
                                                             <mat-form-field [ngClass]="{invisible: visAfterCreatingBlocks}" >
                                                                 <mat-label>{{t('docs.field.company')}}</mat-label>
                                                                 <mat-select  formControlName="company_id" 
-                                                                (selectionChange)="
-                                                                loadTrees(); 
-                                                                formBaseInformation.get('product_code_free').setValue('');
-                                                                product_code_free_isReadOnly=true">                          
+                                                                (selectionChange)="onCompanyChange()">                          
                                                                     <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
                                                                             {{rt.abbreviation}}{{rt.name}}
                                                                     </mat-option> 

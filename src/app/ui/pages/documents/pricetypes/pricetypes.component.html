@@ -59,7 +59,7 @@ class="spinner"
                         <mat-form-field class="company-select" style="margin-left: 10px; max-width: 250px;"><!--+++-->
                             <mat-label>{{t('menu.top.company')}}</mat-label>
                             <mat-select  [(value)]="sendingQueryForm.companyId" 
-                            (selectionChange)="getData()">                          
+                            (selectionChange)="onCompanySelection()">                          
                                 <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
                                         {{rt.name}}
                                 </mat-option>

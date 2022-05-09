@@ -567,6 +567,8 @@ export class RetailsalesDocComponent implements OnInit {
     this.getDepartmentsList();
     this.getPriceTypesList();
     this.getSpravTaxes();//загрузка налогов
+    this.getStatusesList();
+    this.getSpravSysEdizm();
   }
 
   onDepartmentChange(){

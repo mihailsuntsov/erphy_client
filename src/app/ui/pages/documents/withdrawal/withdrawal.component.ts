@@ -375,7 +375,7 @@ export class WithdrawalComponent implements OnInit {
   }
 
   setDefaultCompany(){
-    if(Cookie.get('withdrawal_companyId')=='0'){
+    if(Cookie.get('withdrawal_companyId')=='0'||!this.companyIdInList(Cookie.get('withdrawal_companyId'))){
       this.sendingQueryForm.companyId=this.myCompanyId;
       Cookie.set('withdrawal_companyId',this.sendingQueryForm.companyId);
     }
@@ -448,6 +448,8 @@ export class WithdrawalComponent implements OnInit {
   fillOptionsList(){
     // this.optionsIds=[{id:1, name: 'menu.top.only_del'},]; //+++
   }
+  // sometimes in cookie "..._companyId" there value that not exists in list of companies. If it happens, company will be not selected and data not loaded until user select company manually
+  companyIdInList(id:any):boolean{let r=false;this.receivedCompaniesList.forEach(c=>{if(+id==c.id) r=true});return r}
   // clickApplyFilters(){
   //   let showOnlyDeletedCheckboxIsOn:boolean = false; //присутствует ли включенный чекбокс "Показывать только удалённые"
   //   this.selectionFilterOptions.selected.forEach(z=>{

@@ -443,6 +443,6 @@ export class MoneyflowComponent implements OnInit {
     });
   } 
   // sometimes in cookie "..._companyId" there value that not exists in list of companies. If it happens, company will be not selected and data not loaded until user select company manually
-  companyIdInList(id:any):boolean{this.receivedCompaniesList.forEach(c=>{if(+id==c.id) return true;});return false;}
+  companyIdInList(id:any):boolean{let r=false;this.receivedCompaniesList.forEach(c=>{if(+id==c.id) r=true});return r}
 
 }

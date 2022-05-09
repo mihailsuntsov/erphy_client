@@ -26,6 +26,7 @@ import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { translate } from '@ngneat/transloco'; //+++
+import { Router } from '@angular/router';
 
 import { MomentDefault } from 'src/app/services/moment-default';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
@@ -287,6 +288,7 @@ constructor(private activateRoute: ActivatedRoute,
   public dialogAddCagents: MatDialog,
   public ShowImageDialog: MatDialog,
   public ProductCagentsDialogComponent: MatDialog,
+  private _router:Router,
   public ProductBarcodesDialogComponent: MatDialog,
   public dialogRefProduct: MatDialogRef<ProductsDocComponent>,
   private _adapter: DateAdapter<any>,
@@ -485,7 +487,7 @@ refreshPermissions():boolean{
       this.getDepartmentsList();
     }else{//если еще не создан - устанавливаем дефолтное предприятие для документа
       this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
-      this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
+      this.getSpravTaxes();//загрузка налогов
       this.getSpravSysEdizm();
       this.refreshPermissions();
     }
@@ -554,7 +556,7 @@ refreshPermissions():boolean{
                   this.getSpravSysEdizm(); //загрузка единиц измерения
                   this.getProductBarcodesPrefixes(); //загрузка префиксов штрих-кодов
                   this.getProductPrices(); // загрузка типов цен
-                  this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
+                  this.getSpravTaxes();//загрузка налогов
                   //!!!
                 } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();
@@ -716,6 +718,7 @@ refreshPermissions():boolean{
       (data) =>   {
                       this.createdDocId=data as string [];
                       this.id=+this.createdDocId[0];
+                      this._router.navigate(['/ui/productsdoc', this.id]);
                       this.formBaseInformation.get('id').setValue(this.id);
                       this.rightsDefined=false; //!!!
                       this.getData();
@@ -759,8 +762,8 @@ refreshPermissions():boolean{
       return this.loadSpravService.getSpravSysPPR()
           .subscribe((data) => {this.spravSysPPRSet=data as any[];},
           error => console.log(error));}
-  getSpravTaxes(companyId:number){
-      this.loadSpravService.getSpravTaxes(companyId)
+  getSpravTaxes(){
+      this.loadSpravService.getSpravTaxes(this.formBaseInformation.get('company_id').value)
         .subscribe((data) => {this.spravTaxesSet=data as any[];},
         error => console.log(error));}
   getSpravSysMarkableGroup(){
@@ -832,6 +835,13 @@ refreshPermissions():boolean{
     if( this.formBaseInformation.get('markable_group_name').value.length==0){
       this.formBaseInformation.get('markable_group_id').setValue(0);
     }
+  }
+  onCompanyChange(){
+    this.loadTrees();
+    this.getSpravTaxes(); 
+    this.getSpravSysEdizm();
+    this.formBaseInformation.get('product_code_free').setValue('');
+    this.product_code_free_isReadOnly=true
   }
 //*****************************************************************************************************************************************/
 //*********************************************           T R E E           ***************************************************************/

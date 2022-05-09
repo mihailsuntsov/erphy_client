@@ -439,7 +439,7 @@ export class BoxofficeComponent implements OnInit {
   } 
 
   setDefaultCompany(){
-    if(Cookie.get('boxoffice_companyId')=='0'){
+    if(Cookie.get('boxoffice_companyId')=='0'||!this.companyIdInList(Cookie.get('boxoffice_companyId'))){
       this.sendingQueryForm.companyId=this.myCompanyId;
       Cookie.set('boxoffice_companyId',this.sendingQueryForm.companyId);
     }
@@ -506,4 +506,6 @@ export class BoxofficeComponent implements OnInit {
   getBaseData(data) {    //+++ emit data to parent component
     this.baseData.emit(data);
   }
+  // sometimes in cookie "..._companyId" there value that not exists in list of companies. If it happens, company will be not selected and data not loaded until user select company manually
+  companyIdInList(id:any):boolean{let r=false;this.receivedCompaniesList.forEach(c=>{if(+id==c.id) r=true});return r}
 }
