@@ -70,7 +70,7 @@ export class UniversalCategoriesDialogComponent implements OnInit {
     return this.http.post('/api/auth/update'+this.data.docName+'Category', this.formBaseInformation.value)
             .subscribe(
                 (data) => {   
-                          this.openSnackBar("Категория сохранена", "Закрыть");
+                  this.openSnackBar(translate('modules.msg.cat_saved'), translate('modules.button.close'));
                           this.dialogRef.close();
                         },
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
@@ -82,7 +82,7 @@ export class UniversalCategoriesDialogComponent implements OnInit {
     .subscribe(
         (data) => {   
                   this.data.categoryId=data as number;
-                  this.openSnackBar("Категория создана", "Закрыть");
+                  this.openSnackBar(translate('modules.msg.cat_created'), translate('modules.button.close'));
                   this.dialogRef.close(this.data.categoryId);
                 },
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
@@ -117,7 +117,7 @@ export class UniversalCategoriesDialogComponent implements OnInit {
     return this.http.post('/api/auth/saveChange'+this.data.docName+'CategoriesOrder', this.orderCategories)
             .subscribe(
                 (data) => {   
-                            this.openSnackBar("Порядок категорий успешно сохранён", "Закрыть");
+                            this.openSnackBar(translate('modules.msg.ord_cat_saved'), translate('modules.button.close'));
                             this.dialogRef.close();
                         },
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},

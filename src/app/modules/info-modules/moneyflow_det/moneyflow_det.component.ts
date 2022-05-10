@@ -275,10 +275,8 @@ export class MoneyflowDetComponent implements OnInit {
   }
 
   setDefaultCompany(){
-    // if(Cookie.get('moneyflow_det_companyId')=='0'){
+    if(+this.queryForm.get('companyId').value==0)
       this.queryForm.get('companyId').setValue(this.myCompanyId);
-      // Cookie.set('moneyflow_det_companyId',this.queryForm.get('companyId').value);
-    // }
     this.getCRUD_rights(this.permissionsSet);
   }
 

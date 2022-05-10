@@ -324,7 +324,7 @@ export class MutualpaymentComponent implements OnInit {
       this.receivedCompaniesList.push(myCompany);
     }
   }
-  openReceiptsWindow(cagentId:number,cagent:string) {
+  openDetailsWindow(cagentId:number,cagent:string) {
     this.mutualpaymentDetDialog.open(MutualpaymentDetComponent, {
       maxWidth: '95vw',
       maxHeight: '95vh',

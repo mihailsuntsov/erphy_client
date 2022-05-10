@@ -5,24 +5,26 @@
             mat-raised-button 
             [disabled]="(!formBaseInformation.valid)"
             (click)="saveRemains()"
+            matTooltip="{{'docs.tip.save' | transloco}}"
             color="primary"
-            class="button">
-            <i class="material-icons">done</i> Сохранить
+            class="button small-button">
+            <i class="material-icons">save</i> 
         </button>
         <button 
             (click)="onNoClick()"
             mat-raised-button 
-            color="accent"
-            class="button">
-            <i class="material-icons">close</i> Отмена
+            color="accent"            
+            matTooltip="{{'modules.tip.close_window' | transloco}}"
+            class="button small-button">
+            <i class="material-icons">close</i>
         </button>
     </mat-card-title>
     <mat-card-content > 
         
         <form [formGroup]="formBaseInformation">   
             <mat-form-field  [style.display]="'block'">
-                <input matInput matTooltip='Количество товара, соответствующее его минимальному остатку в отделении'
-                        placeholder="Минимальный остаток "
+                <input matInput 
+                        placeholder="{{'modules.field.min_balance' | transloco}}"
                         (keypress)="numberOnlyPlusDotAndComma($event)"
                         formControlName="min_quantity"/>
                 <mat-hint align="start" *ngIf="formBaseInformation.get('min_quantity').touched">
@@ -30,11 +32,6 @@
                     <i *ngIf="formBaseInformation.get('min_quantity').value==''" class="form-invalid">{{t('docs.error.field_miss')}}</i>
                 </mat-hint>
             </mat-form-field>
-            <!-- <mat-form-field  [style.display]="'block'">
-                <input matInput matTooltip='Количество товара для предупреждения о приближении к минимальному остатку'
-                        placeholder="Предупреждение"
-                        formControlName="warning_quantity"/>
-            </mat-form-field> -->
         </form>
 
     </mat-card-content> 

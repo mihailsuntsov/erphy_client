@@ -154,7 +154,7 @@ interface docResponse {//интерфейс для получения ответ
 })
 
 export class ProductsDocComponent implements OnInit {
-  id: number;// id документа
+  id: number = 0;// id документа
   createdDocId: string[];//массив для получение id созданного документа
   receivedCompaniesList: any [] = [];//массив для получения списка предприятий
   myCompanyId:number=0;
@@ -265,14 +265,14 @@ cagentsInfo : cagentsInfo [] = []; //массив для получения ин
 // ******  переменные штрихкодов  ******
 barcodesInfo : barcodesInfo [] = []; //массив для получения информации 
 // ******  справочники  ******************
-spravSysPPRSet: any[];//сет признаков предмета расчета 
-spravTaxesSet: SpravTaxesSet[];//сет НДС 
+spravSysPPRSet: any[]=[];//сет признаков предмета расчета 
+spravTaxesSet: SpravTaxesSet[]=[];//сет НДС 
 spravSysMarkableGroupSet: idAndName[] = [];//сет маркированных товаров
 filteredSpravSysMarkableGroupSet: Observable<idAndName[]>;//сет маркированных товаров
 spravSysEdizmOfProductAll: idAndName[] = [];// массив, куда будут грузиться все единицы измерения товара
 filteredSpravSysEdizmOfProductAll: Observable<idAndName[]>; //массив для отфильтрованных единиц измерения
-spravSysEdizmOfProductWeight: any[];// весовые единицы измерения товара
-spravSysEdizmOfProductVolume: any[];// объёмные единицы измерения товара
+spravSysEdizmOfProductWeight: any[]=[];// весовые единицы измерения товара
+spravSysEdizmOfProductVolume: any[]=[];// объёмные единицы измерения товара
 
 constructor(private activateRoute: ActivatedRoute,
   private http: HttpClient,
@@ -293,7 +293,8 @@ constructor(private activateRoute: ActivatedRoute,
   public dialogRefProduct: MatDialogRef<ProductsDocComponent>,
   private _adapter: DateAdapter<any>,
   @Optional() @Inject(MAT_DIALOG_DATA) public data: any) { 
-     this.id = +activateRoute.snapshot.params['id'];// +null returns 0
+    if(activateRoute.snapshot.params['id'])
+      this.id = +activateRoute.snapshot.params['id'];// +null returns 0
   }
   onNoClick(): void {this.dialogRefProduct.close();}
   ngOnInit() {
@@ -326,7 +327,7 @@ constructor(private activateRoute: ActivatedRoute,
       by_weight: new FormControl      ('',[]),
       edizm_name: new FormControl      ('',[Validators.required]),
       edizm_id: new FormControl      ('',[Validators.required]),
-      nds_id: new FormControl      (1,[]),
+      nds_id: new FormControl      (null,[]),
       weight: new FormControl      ('',[Validators.pattern('^[0-9]{1,12}(?:[.,][0-9]{0,3})?\r?$')]),
       volume: new FormControl      ('',[Validators.pattern('^[0-9]{1,12}(?:[.,][0-9]{0,3})?\r?$')]),
       weight_edizm_id: new FormControl      ('',[]),
@@ -764,7 +765,12 @@ refreshPermissions():boolean{
           error => console.log(error));}
   getSpravTaxes(){
       this.loadSpravService.getSpravTaxes(this.formBaseInformation.get('company_id').value)
-        .subscribe((data) => {this.spravTaxesSet=data as any[];},
+        .subscribe((data) => {
+          this.spravTaxesSet=data as any[];
+            // if the tax does not set, let's set the first status as default
+          if(+this.formBaseInformation.get('nds_id').value==0 && this.spravTaxesSet.length>0)
+            this.formBaseInformation.get('nds_id').setValue(this.spravTaxesSet[0].id)
+        },
         error => console.log(error));}
   getSpravSysMarkableGroup(){
       return this.http.post('/api/auth/getSpravSysMarkableGroup', {}) 

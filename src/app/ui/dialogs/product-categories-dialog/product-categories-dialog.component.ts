@@ -73,7 +73,7 @@ export class ProductCategoriesDialogComponent implements OnInit {
     return this.http.post('/api/auth/updateProductCategory', this.formBaseInformation.value)
             .subscribe(
                 (data) => {   
-                          this.openSnackBar("Категория сохранена", "Закрыть");
+                          this.openSnackBar(translate('modules.msg.cat_saved'), translate('modules.button.close'));
                           this.dialogRef.close();
                         },
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
@@ -85,7 +85,7 @@ export class ProductCategoriesDialogComponent implements OnInit {
     .subscribe(
         (data) => {   
                   this.data.categoryId=data as number;
-                  this.openSnackBar("Категория создана", "Закрыть");
+                  this.openSnackBar(translate('modules.msg.cat_created'), translate('modules.button.close'));
                   this.dialogRef.close(this.data.categoryId);
                 },
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
@@ -120,7 +120,7 @@ export class ProductCategoriesDialogComponent implements OnInit {
     return this.http.post('/api/auth/saveChangeCategoriesOrder', this.orderCategories)
             .subscribe(
                 (data) => {   
-                            this.openSnackBar("Порядок категорий успешно сохранён", "Закрыть");
+                            this.openSnackBar(translate('modules.msg.ord_cat_saved'), translate('modules.button.close'));
                             this.dialogRef.close();
                         },
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},

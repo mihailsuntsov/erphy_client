@@ -111,6 +111,9 @@ export class UiComponent implements OnInit {
         case 'companiesList': {
           component.receivedCompaniesList=this.companiesList;
           break;}
+        case 'reloadCompaniesList': {
+          this.getCompaniesList();
+          break;}
         case 'updateDashboard': {
           this.updateDashboard(this.locale)
           break;}

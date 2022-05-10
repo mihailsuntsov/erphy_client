@@ -19,16 +19,16 @@ import { translate } from '@ngneat/transloco'; //+++
 
             <div class="flex">
                 <div style="width:50%; display:flex">
-                    <p style="margin: auto;">Количество копий:</p>
+                    <p style="margin: auto;">{{'modules.field.num_copies' | transloco}}:</p>
                 </div>
                 <div style="width:50%">
                     <mat-form-field style="width:100%">
                         <mat-select formControlName="id1">
-                            <mat-option [value]="1">1 копия</mat-option>
-                            <mat-option [value]="2">2 копии</mat-option>
-                            <mat-option [value]="3">3 копии</mat-option>
-                            <mat-option [value]="4">4 копии</mat-option>
-                            <mat-option [value]="5">5 копий</mat-option>
+                            <mat-option [value]="1">1</mat-option>
+                            <mat-option [value]="2">2</mat-option>
+                            <mat-option [value]="3">3</mat-option>
+                            <mat-option [value]="4">4</mat-option>
+                            <mat-option [value]="5">5</mat-option>
                         </mat-select>
                     </mat-form-field>
                 </div>
@@ -38,14 +38,14 @@ import { translate } from '@ngneat/transloco'; //+++
 
             <div class="flex">
                 <div style="width:50%; display:flex">
-                    <p style="margin: auto;">Артикул:</p>
+                    <p style="margin: auto;">{{'modules.field.sku' | transloco}}:</p>
                 </div>
                 <div style="width:50%"> 
                     <mat-radio-group
                         formControlName="id2"
                         class="e-radio-group">
-                        <mat-radio-button class="e-radio-button" [value]="1">Копировать</mat-radio-button>
-                        <mat-radio-button class="e-radio-button" [value]="2">Не копировать</mat-radio-button>
+                        <mat-radio-button class="e-radio-button" [value]="1">{{'modules.list.copy' | transloco}}</mat-radio-button>
+                        <mat-radio-button class="e-radio-button" [value]="2">{{'modules.list.no_copy' | transloco}}</mat-radio-button>
                     </mat-radio-group>
                 </div> 
             </div>     
@@ -54,15 +54,15 @@ import { translate } from '@ngneat/transloco'; //+++
 
             <div class="flex">
                 <div style="width:50%; display:flex"> 
-                    <p style="margin: auto;">Код:</p>
+                    <p style="margin: auto;">{{'modules.field.code' | transloco}}:</p>
                 </div>      
                 <div style="width:50%">     
                     <mat-radio-group
                         formControlName="id3"
                         class="e-radio-group">
-                        <mat-radio-button class="e-radio-button" [value]="1">Присвоить новый</mat-radio-button>
-                        <mat-radio-button class="e-radio-button" [value]="2">Как в оригинале</mat-radio-button>
-                        <mat-radio-button class="e-radio-button" [value]="3">Оставить пустым</mat-radio-button>
+                        <mat-radio-button class="e-radio-button" [value]="1">{{'modules.list.set_new' | transloco}}</mat-radio-button>
+                        <mat-radio-button class="e-radio-button" [value]="2">{{'modules.list.like_orig' | transloco}}</mat-radio-button>
+                        <mat-radio-button class="e-radio-button" [value]="3">{{'modules.list.stay_empty' | transloco}}</mat-radio-button>
                     </mat-radio-group>
                 </div>
             </div>
@@ -71,25 +71,25 @@ import { translate } from '@ngneat/transloco'; //+++
 
             <div class="flex">
                 <div style="width:50%; display:flex"> 
-                    <p style="margin: auto;">Штрих-коды:</p>
+                    <p style="margin: auto;">{{'modules.field.barcodes' | transloco}}:</p>
                 </div>      
                 <div style="width:50%">     
                     <mat-radio-group
                         formControlName="id4"
                         class="e-radio-group">
-                        <mat-radio-button class="e-radio-button" [value]="1">Не копировать</mat-radio-button>
-                        <mat-radio-button class="e-radio-button" [value]="2">Копировать</mat-radio-button>
+                        <mat-radio-button class="e-radio-button" [value]="1">{{'modules.list.no_copy' | transloco}}</mat-radio-button>
+                        <mat-radio-button class="e-radio-button" [value]="2">{{'modules.list.copy' | transloco}}</mat-radio-button>
                     </mat-radio-group>
                 </div>
             </div>
             <div class="flex" style="width:100%;"
             *ngIf="+formBaseInformation.get('id4').value==2 && +formBaseInformation.get('id3').value!=2">
-                <p style="margin: auto;">Внимание! Если у дублируемого оригинала есть внутренние штрих-коды, основанные на поле «Код», в дубликатах они станут неактуальны, т.к. значение поля «Код» у них будет другим.</p>
+                <p style="margin: auto;">{{'modules.msg.copy_prod_bar' | transloco}}</p>
             </div>
         </form>
         <div mat-dialog-actions>
-            <button mat-raised-button color="warn" (click)="goToDoDuplicates()" style="flex-grow: 1;" cdkFocusInitial>Начать</button>
-            <button mat-raised-button color="primary" (click)="onNoClick()" style="flex-grow: 1;">Отмена</button>
+            <button mat-raised-button color="warn" (click)="goToDoDuplicates()" style="flex-grow: 1;" cdkFocusInitial>{{'modules.button.begin' | transloco}}</button>
+            <button mat-raised-button color="primary" (click)="onNoClick()" style="flex-grow: 1;">{{'modules.button.cancel' | transloco}}</button>
         </div>
     </div>`,
     styles: [` 

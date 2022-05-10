@@ -346,6 +346,7 @@ export class CompaniesComponent {
       this.dataSource.data = this.receivedMatTable;
       this.openSnackBar(translate('menu.msg.del_success'), translate('menu.msg.close'));
       this.getData();
+      this.getBaseData('reloadCompaniesList');  
     },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
   }
 
@@ -364,6 +365,7 @@ export class CompaniesComponent {
         this.dataSource.data = this.receivedMatTable;
         this.openSnackBar(translate('menu.msg.rec_success'), translate('menu.msg.close'));
         this.getData();
+        this.getBaseData('reloadCompaniesList');  
       },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
   }
 
@@ -434,8 +436,8 @@ export class CompaniesComponent {
     });
     
   }
-  // getBaseData(data) {    //+++ emit data to parent component
-  //   this.baseData.emit(data);
-  // }
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
+  }
 }
 

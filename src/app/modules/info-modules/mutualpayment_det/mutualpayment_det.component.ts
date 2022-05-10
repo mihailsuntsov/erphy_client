@@ -259,10 +259,8 @@ export class MutualpaymentDetComponent implements OnInit {
   }
 
   setDefaultCompany(){
-    // if(Cookie.get('mutualpayment_det_companyId')=='0'){
+    if(+this.queryForm.get('companyId').value==0)
       this.queryForm.get('companyId').setValue(this.myCompanyId);
-      // Cookie.set('mutualpayment_det_companyId',this.queryForm.get('companyId').value);
-    // }
     this.getCRUD_rights(this.permissionsSet);
   }
 

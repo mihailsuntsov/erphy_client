@@ -565,6 +565,7 @@ constructor(private activateRoute: ActivatedRoute,
         this.id=+this.createdDocId[0];
         this._router.navigate(['/ui/companiesdoc', this.id]);
         this.formBaseInformation.get('id').setValue(this.id);
+        this.getBaseData('reloadCompaniesList');  
         this.rightsDefined=false; //!!!
         this.getData();
         this.openSnackBar(translate('docs.msg.doc_crtd_suc'),translate('docs.msg.close'));

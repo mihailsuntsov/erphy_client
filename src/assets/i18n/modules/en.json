@@ -141,7 +141,8 @@
         "new_orders":   "New orders",
         "money":        "Money",
         "your_debt":    "Your debt",
-        "you_owed":     "You're owed"
+        "you_owed":     "You're owed",
+        "price_f_type": "Price of type"
     },
     "field":{ 
         "company":      "Company",
@@ -150,7 +151,7 @@
         "description":  "Description",
         "additional":   "Additional",
         "tax":          "Tax",
-        "p_sku":        "SKU",
+        "sku":          "SKU",
         "prod_srch":    "Product search",
         "input_name":   "Enter part of the product name, SKU or barcode",
         "count":        "Qty",
@@ -208,7 +209,11 @@
         "sku_supplier": "SKU of supplier",
         "language":     "Language",
         "locale":       "Date and time standards",
-        "timezone":     "Timezone"
+        "timezone":     "Timezone",
+        "min_balance":  "Minimum balance",
+        "num_copies":   "Number of copies",
+        "code":         "Code",
+        "barcodes":     "Barcodes"
     },
     "error":{   
         "field_miss":  "Required field is missing",
@@ -242,15 +247,21 @@
         "_customer_":   "customer's",
         "_company_":    "company's",
         "_price_type_": " price type is not selected ",
-        "_in_registry_":"in the registry \"Price types\""
+        "_in_registry_":"in the registry \"Price types\"",
+        "copy_prod_bar":"Attention! If the duplicating original has internal barcodes based on the \"Code\" field, they will become irrelevant in duplicates, because the value of the \"Code\" field will be different for them",
+        "ord_cat_saved":"Category order saved",
+        "cat_saved":    "Category saved",
+        "cat_created":  "Category created"
     },
     "button":{
         "save_n_close": "Save",
         "prods":        "Products",
         "to_list":      "To the list",
         "apply_price":  "Apply price",
-        "close":        "close",
-        "categories":   "Categories"
+        "close":        "Close",
+        "categories":   "Categories",
+        "begin":        "Start",
+        "cancel":       "Cancel"
     },
     "list":{
         "price_type":   "Price type",
@@ -264,7 +275,12 @@
         "default_price":"Default price",
         "internal_bcod":"Internal",
         "maker_bcod":   "Manufacturer's",
-        "will_root_crt":"Not set (will be created as a root category)"
+        "will_root_crt":"Not set (will be created as a root category)",
+        "no_copy":      "Do not copy",
+        "copy":         "Copy",
+        "set_new":      "Assign new",
+        "like_orig":    "Like original",
+        "stay_empty":   "Stay empty"
     },
     "kpi":{
         "hour":"Hour",
