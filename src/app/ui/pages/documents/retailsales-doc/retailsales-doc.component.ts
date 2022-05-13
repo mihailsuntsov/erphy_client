@@ -186,6 +186,7 @@ export class RetailsalesDocComponent implements OnInit {
   spravSysEdizmOfProductAll: IdAndNameAndShortname[] = [];// массив, куда будут грузиться все единицы измерения товара
   receivedPriceTypesList: IdNameDescription [] = [];//массив для получения списка типов цен
   displayedColumns:string[];//отображаемые колонки таблицы с товарами
+  accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
 
   //для загрузки связанных документов
   linkedDocsReturn:LinkedDocs[]=[];
@@ -394,7 +395,8 @@ export class RetailsalesDocComponent implements OnInit {
     this.getBaseData('myId');    
     this.getBaseData('myCompanyId');  
     this.getBaseData('companiesList');  
-    this.getBaseData('myDepartmentsList');    
+    this.getBaseData('myDepartmentsList');  
+    this.getBaseData('accountingCurrency');    
   }
   //чтобы не было ExpressionChangedAfterItHasBeenCheckedError
   ngAfterContentChecked() {
@@ -893,6 +895,7 @@ export class RetailsalesDocComponent implements OnInit {
                   this.getStatusesList();//статусы документа Розничная продажа
                   this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                   this.hideOrShowNdsColumn();//расчет прятать или показывать колонку НДС
+                  this.getSettings();
                   this.cheque_nds=documentValues.nds;//нужно ли передавать в кассу (в чек) данные об НДС
                   //!!!
                 } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++

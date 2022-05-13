@@ -155,7 +155,7 @@
 
                 <form [formGroup]="formBaseInformation">   
 
-                        <mat-tab-group>
+                        <mat-tab-group  (selectedTabChange)="onSelectTab($event)">
 
                                 <mat-tab label="{{t('docs.tab.info')}}">
                                         <div class="container-fluid">
@@ -763,7 +763,12 @@
                                 </mat-tab>
 
                                 <mat-tab  *ngIf="visAfterCreatingBlocks"  label="{{t('docs.tab.operations')}}">
-                                    
+                                    <mat-spinner 
+                                        strokeWidth="3" 
+                                        class="spinner"
+                                        [diameter]="50"
+                                        *ngIf="gettingTableData"
+                                    ></mat-spinner>
                                     <mat-card class="card">
                                         <mat-card-content>
                                             <div class="card  w-100">
@@ -801,7 +806,7 @@
                                                                 [ngModelOptions]="{standalone: true}">
                                                             </div>
                                                         </div> 
-                                                        <div class="flex">
+                                                        <div class="flex" >
                                                             <mat-form-field style="width:50px;" class="num-of-rows">
                                                                 <mat-label>{{t('docs.field.p_rows')}}</mat-label>
                                                                 <mat-select [(value)]="formProductHistory.result" (selectionChange)="setNumOfPages()" class="form-control" id="selectRowsPerPage" name="result">                           
@@ -810,15 +815,15 @@
                                                                     </mat-option>
                                                                 </mat-select>
                                                             </mat-form-field>
-                                                            <mat-form-field  style="margin-left: 10px">
+                                                            <!-- <mat-form-field  style="margin-left: 10px">
                                                                 <mat-label>{{t('docs.field.company')}}</mat-label>
                                                                 <mat-select  [(value)]="formProductHistory.companyId" (selectionChange)="getTable()">                          
                                                                     <mat-option  *ngFor="let rt of receivedCompaniesListForHistoryReport" [value]="rt.id">
                                                                             {{rt.name}}
                                                                     </mat-option>
                                                                 </mat-select>
-                                                            </mat-form-field>
-                                                            <mat-form-field style="margin-left: 10px">
+                                                            </mat-form-field> -->
+                                                            <mat-form-field style="margin-left: 10px; min-width: 300px;">
                                                                 <mat-label>{{t('docs.field.department')}}</mat-label>
                                                                 <mat-select  [(value)]="formProductHistory.departmentId" (selectionChange)="getTable()">
                                                                     <mat-option *ngIf="receivedMyDepartmentsList && receivedMyDepartmentsList.length>1" value="0" selected>Все доступные отделения</mat-option>                          
@@ -885,41 +890,35 @@
                                                             <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
                                                                 <ng-container matColumnDef="department">
                                                                     <th mat-header-cell *matHeaderCellDef matTooltip="{{t('docs.tip.p_name_depart')}}">
-                                                                    <span (click)="setSort('department')" class="sortheader"> {{t('docs.field.department')}}  
-                                                                        <i *ngIf="this.formProductHistory.sortAsc=='asc' && this.formProductHistory.sortColumn=='department'" class="material-icons sortarrow">arrow_upward</i>
-                                                                        <i *ngIf="this.formProductHistory.sortAsc=='desc' && this.formProductHistory.sortColumn=='department'" class="material-icons sortarrow">arrow_downward</i>
+                                                                    <span class="sortheader"> {{t('docs.field.department')}}  
                                                                     </span>
                                                                     <td mat-cell *matCellDef="let row"> {{row.department}} </td>
                                                                 </ng-container>
                                                                 <ng-container matColumnDef="docName">
                                                                     <th mat-header-cell *matHeaderCellDef matTooltip="{{t('docs.tip.p_name_operat')}}">
-                                                                    <span (click)="setSort('docName')" class="sortheader"> {{t('docs.field.p_operation')}} 
-                                                                        <i *ngIf="this.formProductHistory.sortAsc=='asc' && this.formProductHistory.sortColumn=='docName'" class="material-icons sortarrow">arrow_upward</i>
-                                                                        <i *ngIf="this.formProductHistory.sortAsc=='desc' && this.formProductHistory.sortColumn=='docName'" class="material-icons sortarrow">arrow_downward</i>
+                                                                    <span class="sortheader"> {{t('docs.field.p_operation')}} 
                                                                     </span>
-                                                                    <td mat-cell *matCellDef="let row"> {{row.docName}} </td>
+                                                                    <td mat-cell *matCellDef="let row">
+                                                                        <a class="inactive" target="_blank" href="ui/{{row.page_name}}doc/{{row.docId}}">
+                                                                            {{row.docName}}
+                                                                        </a>
+                                                                    </td>
                                                                 </ng-container>
                                                                 <ng-container matColumnDef="before">
                                                                     <th mat-header-cell *matHeaderCellDef matTooltip="{{t('docs.tip.p_count_produ')}}">
-                                                                    <span (click)="setSort('before')" class="sortheader"> {{t('docs.field.p_cnt_bf')}} 
-                                                                        <i *ngIf="this.formProductHistory.sortAsc=='asc' && this.formProductHistory.sortColumn=='before'" class="material-icons sortarrow">arrow_upward</i>
-                                                                        <i *ngIf="this.formProductHistory.sortAsc=='desc' && this.formProductHistory.sortColumn=='before'" class="material-icons sortarrow">arrow_downward</i>
+                                                                    <span class="sortheader"> {{t('docs.field.p_cnt_bf')}} 
                                                                     </span>
                                                                     <td mat-cell *matCellDef="let row"> {{round(row.quantity-row.change)}} </td>
                                                                 </ng-container>
                                                                 <ng-container matColumnDef="change">
                                                                     <th mat-header-cell *matHeaderCellDef matTooltip="{{t('docs.tip.p_ch_products')}}">
-                                                                    <span (click)="setSort('change')" class="sortheader"> {{t('docs.field.p_change')}} 
-                                                                        <i *ngIf="this.formProductHistory.sortAsc=='asc' && this.formProductHistory.sortColumn=='change'" class="material-icons sortarrow">arrow_upward</i>
-                                                                        <i *ngIf="this.formProductHistory.sortAsc=='desc' && this.formProductHistory.sortColumn=='change'" class="material-icons sortarrow">arrow_downward</i>
+                                                                    <span class="sortheader"> {{t('docs.field.p_change')}} 
                                                                     </span>
                                                                     <td mat-cell *matCellDef="let row"> {{(row.change>0?'+':'')}}{{row.change}} </td>
                                                                 </ng-container>
                                                                 <ng-container matColumnDef="quantity">
                                                                     <th mat-header-cell *matHeaderCellDef matTooltip="{{t('docs.tip.p_cnt_prod_op')}}">
-                                                                    <span (click)="setSort('quantity')" class="sortheader"> {{t('docs.field.p_cnt_af')}}
-                                                                        <i *ngIf="this.formProductHistory.sortAsc=='asc' && this.formProductHistory.sortColumn=='quantity'" class="material-icons sortarrow">arrow_upward</i>
-                                                                        <i *ngIf="this.formProductHistory.sortAsc=='desc' && this.formProductHistory.sortColumn=='quantity'" class="material-icons sortarrow">arrow_downward</i>
+                                                                    <span class="sortheader"> {{t('docs.field.p_cnt_af')}}
                                                                     </span>
                                                                     <td mat-cell *matCellDef="let row"> {{row.quantity}} </td>
                                                                 </ng-container>
@@ -933,48 +932,58 @@
                                                                 </ng-container>
                                                                 <ng-container matColumnDef="price">
                                                                     <th mat-header-cell *matHeaderCellDef matTooltip="{{t('docs.tip.p_operat_pric')}}">
-                                                                    <span (click)="setSort('price')" class="sortheader"> {{t('docs.field.p_oper_price')}} 
-                                                                        <i *ngIf="this.formProductHistory.sortAsc=='asc' && this.formProductHistory.sortColumn=='price'" class="material-icons sortarrow">arrow_upward</i>
-                                                                        <i *ngIf="this.formProductHistory.sortAsc=='desc' && this.formProductHistory.sortColumn=='price'" class="material-icons sortarrow">arrow_downward</i>
+                                                                    <span class="sortheader"> {{t('docs.field.p_oper_price')}} 
                                                                     </span>
                                                                     <td mat-cell *matCellDef="let row"> {{row.price}} </td>
                                                                 </ng-container>
                                                                 <!-- <ng-container matColumnDef="last_purchase_price">
                                                                     <th mat-header-cell *matHeaderCellDef matTooltip="Цена, по которой товар поступил на склад в последней операции приёмки или оприходования">
                                                                     <span (click)="setSort('last_purchase_price')" class="sortheader"> Последняя цена<br>получения 
-                                                                        <i *ngIf="this.formProductHistory.sortAsc=='asc' && this.formProductHistory.sortColumn=='last_purchase_price'" class="material-icons sortarrow">arrow_upward</i>
-                                                                        <i *ngIf="this.formProductHistory.sortAsc=='desc' && this.formProductHistory.sortColumn=='last_purchase_price'" class="material-icons sortarrow">arrow_downward</i>
                                                                     </span>
                                                                     <td mat-cell *matCellDef="let row"> {{row.last_purchase_price}} </td>
                                                                 </ng-container> -->
                                                                 <!-- <ng-container matColumnDef="avg_purchase_price">
                                                                     <th mat-header-cell *matHeaderCellDef matTooltip="Средняя цена, по которой товар поступал на склад. Рассчитывается исходя из цен поступления товара и остатков от предыдущих поступлений.">
                                                                     <span (click)="setSort('avg_purchase_price')" class="sortheader"> Средняя цена<br>получения
-                                                                        <i *ngIf="this.formProductHistory.sortAsc=='asc' && this.formProductHistory.sortColumn=='avg_purchase_price'" class="material-icons sortarrow">arrow_upward</i>
-                                                                        <i *ngIf="this.formProductHistory.sortAsc=='desc' && this.formProductHistory.sortColumn=='avg_purchase_price'" class="material-icons sortarrow">arrow_downward</i>
                                                                     </span>
                                                                     <td mat-cell *matCellDef="let row"> {{row.avg_purchase_price}} </td>
                                                                 </ng-container> -->
                                                                 <ng-container matColumnDef="netcost">
                                                                     <th mat-header-cell *matHeaderCellDef matTooltip="{{t('docs.tip.p_net_cost_op')}}">
-                                                                    <span (click)="setSort('netcost')" class="sortheader"> {{t('docs.field.p_op_netcost')}} 
-                                                                        <i *ngIf="this.formProductHistory.sortAsc=='asc' && this.formProductHistory.sortColumn=='netcost'" class="material-icons sortarrow">arrow_upward</i>
-                                                                        <i *ngIf="this.formProductHistory.sortAsc=='desc' && this.formProductHistory.sortColumn=='netcost'" class="material-icons sortarrow">arrow_downward</i>
+                                                                    <span class="sortheader"> {{t('docs.field.p_op_netcost')}} 
                                                                     </span>
                                                                     <td mat-cell *matCellDef="let row"> {{row.netcost}} </td>
                                                                 </ng-container>
                                                                 <ng-container matColumnDef="avg_netcost_price">
                                                                     <th mat-header-cell *matHeaderCellDef matTooltip="{{t('docs.tip.p_av_net_cost')}}">
-                                                                    <span (click)="setSort('avg_netcost_price')" class="sortheader"> {{t('docs.field.p_av_netcost')}} 
-                                                                        <i *ngIf="this.formProductHistory.sortAsc=='asc' && this.formProductHistory.sortColumn=='avg_netcost_price'" class="material-icons sortarrow">arrow_upward</i>
-                                                                        <i *ngIf="this.formProductHistory.sortAsc=='desc' && this.formProductHistory.sortColumn=='avg_netcost_price'" class="material-icons sortarrow">arrow_downward</i>
+                                                                    <span class="sortheader"> {{t('docs.field.p_av_netcost')}} 
                                                                     </span>
                                                                     <td mat-cell *matCellDef="let row"> {{row.avg_netcost_price}} </td>
                                                                 </ng-container>
                                                                 
                                                                 <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                                                                 <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                                                                
+                                                                <!-- Part "Data not founded" --> <!--+++-->
+                                                                <ng-container matColumnDef="data_not_found">
+                                                                    <td mat-footer-cell *matFooterCellDef colspan="13" class="text-center">
+                                                                        {{t('menu.msg.dt_not_fnd')}}
+                                                                    </td>
+                                                                </ng-container>
+                                                                <ng-container matColumnDef="nocolumn">
+                                                                    <td mat-footer-cell *matFooterCellDef colspan="13" style="display: none;"></td>
+                                                                </ng-container>
+                                                                <tr mat-footer-row 
+                                                                *matFooterRowDef="[(dataSource.data&&dataSource.data.length==0)?'data_not_found':'nocolumn']" 
+                                                                [ngStyle]="(dataSource.data && dataSource.data.length==0 && !gettingTableData)?{}:{'display': 'none'}"></tr>
+                                                                <!-- End of Part "Data not founded" -->
+
                                                             </table>
+                                                            <div class="flex">
+                                                                <div class="col-sm">
+                                                                    <p> </p>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     <!-- </form> -->
                                                 </div> 

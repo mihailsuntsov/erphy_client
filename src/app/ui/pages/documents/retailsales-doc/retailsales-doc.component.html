@@ -226,7 +226,7 @@
                                                                     <app-balance-cagent 
                                                                             [company_id]="formBaseInformation.get('company_id').value"
                                                                             [cagent_id]="formBaseInformation.get('cagent_id').value"
-                                                                            [currency]="'руб.'">
+                                                                            [currency]="accountingCurrency">
                                                                     </app-balance-cagent>
                                                                 </mat-form-field>
                                                                 <mat-form-field *ngIf="id==0 && !is_addingNewCagent" class="mat-form-field-100" [ngClass]="{invisible: +id>0}"> 
@@ -248,7 +248,7 @@
                                                                     <app-balance-cagent 
                                                                     [company_id]="formBaseInformation.get('company_id').value"
                                                                     [cagent_id]="formBaseInformation.get('cagent_id').value"
-                                                                    [currency]="'руб.'">
+                                                                    [currency]="accountingCurrency">
                                                                     </app-balance-cagent>
 
                                                                     <mat-autocomplete #auto4="matAutocomplete">
@@ -364,7 +364,7 @@
                                 </mat-card>
                             </div>  
 
-                            <div class="col-xl-4 col-md-6 col-sm-12">  
+                            <div class="col-xl-4 col-md-6 col-sm-12">
                                 <app-kkm 
                                         *ngIf="canGetChilds && settingsForm.get('showKkm').value"
                                     (getTotalSumPriceEvent)="getTotalSumPriceHandler()"

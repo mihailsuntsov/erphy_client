@@ -115,7 +115,7 @@ interface docResponse {//интерфейс для получения ответ
     id: number;
   }
   export interface NumRow {//интерфейс для списка количества строк
-    value: string;
+    value: number;
     viewValue: string;
   }
   interface idNameDescription{
@@ -201,10 +201,10 @@ receivedDepartmentsList: idAndName [] = [];//массив для получен�
 receivedMyDepartmentsList: idAndName [] = [];//массив для получения списка СВОИХ отделений
 productHistoryTable: ProductHistoryTable[]=[];//массив для получения данных по отчету об истории изменений товара
 numRows: NumRow[] = [
-  {value: '10', viewValue: '10'},
-  {value: '25', viewValue: '25'},
-  {value: '50', viewValue: '50'},
-  {value: '100', viewValue: '100'},
+  {value: 10, viewValue: '10'},
+  {value: 25, viewValue: '25'},
+  {value: 50, viewValue: '50'},
+  {value: 100, viewValue: '100'},
   // {value: '500', viewValue: '500'},
   // {value: '1000', viewValue: '1000'}
 ];
@@ -212,6 +212,7 @@ documentsIds: idAndName [] = [];
 
 checkedChangesList:number[]=[]; //массив для накапливания id выбранных документов чекбоксов в отчете по истории товара, вида [2,5,27...], а так же для заполнения загруженными значениями чекбоксов
 
+gettingTableData:boolean=false;
 
 
 
@@ -484,7 +485,7 @@ refreshPermissions():boolean{
     console.log("setDefaultCompany");
     //если документ создан - устанавливаем дефолтное предприятие для отчёта
     if(+this.id>0){
-      this.formProductHistory.companyId=this.myCompanyId;
+      // this.formProductHistory.companyId=this.myCompanyId;
       this.getDepartmentsList();
     }else{//если еще не создан - устанавливаем дефолтное предприятие для документа
       this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
@@ -495,7 +496,7 @@ refreshPermissions():boolean{
   }
   getDepartmentsList(){
     this.receivedDepartmentsList=null;
-    this.loadSpravService.getDepartmentsListByCompanyId(+this.formProductHistory.companyId,false)
+    this.loadSpravService.getDepartmentsListByCompanyId(+this.formBaseInformation.get('company_id').value,false)
             .subscribe(
                 (data) => {this.receivedDepartmentsList=data as any [];
                             this.getMyDepartmentsList();},
@@ -552,7 +553,7 @@ refreshPermissions():boolean{
                   this.formBaseInformation.get('indivisible').setValue(documentValues.indivisible);
                   this.searchProductGroupsCtrl.setValue(documentValues.productgroup);
                   this.checkedList=documentValues.product_categories_id;
-                  
+                  this.formProductHistory.companyId=this.formBaseInformation.get('company_id').value;
                   this.getSpravSysMarkableGroup(); //загрузка справочника маркированных групп товаров
                   this.getSpravSysEdizm(); //загрузка единиц измерения
                   this.getProductBarcodesPrefixes(); //загрузка префиксов штрих-кодов
@@ -1413,6 +1414,7 @@ checkProductCodeFreeUnical() {
     // let depIdHasChanged:boolean=false;
     this.formProductHistory.productId=+this.id;
     this.formProductHistory.docTypesIds=this.checkedChangesList;
+    this.gettingTableData=true;
     // if(this.formProductHistory.departmentId==0){
       // let ids:number[]=[];
       // depIdHasChanged=true;
@@ -1422,13 +1424,16 @@ checkProductCodeFreeUnical() {
       // this.formProductHistory.departmentId=(ids.length>1?0:);
     // } // если нужно вывести по всем отделениям - отправляем 0, либо id отделения, если по выбранному
     this.productHistoryService.getTable(this.formProductHistory)
-            .subscribe(
-                (data) => {
-                  this.dataSource.data=data as any []; 
-                },
-                error => console.log(error) 
-            );
-    // if(depIdHasChanged)this.formProductHistory.departmentId=0;
+      .subscribe(
+          (data) => {
+            this.gettingTableData=false;
+            if(!data){
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('docs.msg.c_err_exe_qury')}})
+            }
+            this.dataSource.data=data as any []; 
+          },
+          error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+      );
   }
   getTableHeaderTitles(){
     this.displayedColumns=[];
@@ -1546,10 +1551,13 @@ checkProductCodeFreeUnical() {
           row_index++;
         });
   }
-  round(n:number){
-    return n.toFixed(2);
+  round(n:number):string{
+    return parseFloat(n.toFixed(3)).toString(); //toFixed-округляет, parseFloat-преобр. в число, toString-отбрасывает 000 в конце числа
   }
   getBaseData(data) {    //+++ emit data to parent component
     this.baseData.emit(data);
+  }
+  onSelectTab(a){
+    if(a.index==1 && this.dataSource.data.length==0) this.getTable();
   }
 }
