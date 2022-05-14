@@ -135,7 +135,7 @@
                                                 <div class="col-lg-8 col-md-12">
                                                     <div class="container-fluid" style="padding-right: 0px; padding-left: 0px;">
                                                         <div class="row">
-                                                            <div class="col-lg-1 col-md-12" style="min-width: 100px;"> 
+                                                            <div class="col-lg-1 col-md-12" style="min-width: 120px;"> 
                                                                 <mat-form-field  class="mat-form-field-100">
                                                                     <mat-label>{{t('modules.field.count')}}</mat-label>
                                                                     <input  matInput 
@@ -146,6 +146,7 @@
                                                                             (change)="checkProductCountInForm();calcSumPriceOfProduct()"
                                                                             (keypress)="numberOnlyPlusDotAndComma($event);"
                                                                             [readonly]="+formSearch.get('product_id').value==0?true:false"/>
+                                                                    <span matSuffix>{{formSearch.get('edizm').value}}</span>
                                                                     <mat-hint  align="start">
                                                                         <i *ngIf="formSearch.get('product_count').invalid && formSearch.get('product_count').errors.pattern" class="form-invalid">{{t('modules.error.price_format',{int:6,fract:3})}} </i>
                                                                         <i *ngIf="formSearch.get('product_count').value!=null && (+formSearch.get('product_count').value==0) && formSearch.get('product_count').value!=''" class="form-invalid">{{t('modules.error.more_than',{num:0})}}</i>
@@ -155,7 +156,7 @@
                                                                     </mat-hint>
                                                                 </mat-form-field>
                                                             </div>
-                                                            <div class="col-lg-1 col-md-12" style="min-width: 100px;"> 
+                                                            <div class="col-lg-1 col-md-12" style="min-width: 120px;"> 
                                                                 <mat-form-field class="mat-form-field-100">
                                                                     <input  matInput 
                                                                             placeholder="{{t('modules.field.price')}}{{formSearch.get('edizm').value==''?'':' '+t('modules.field.for')+' 1'}}{{formSearch.get('edizm').value}}"
@@ -164,6 +165,7 @@
                                                                             (change)="checkProductPriceInForm();calcSumPriceOfProduct()"
                                                                             (keypress)="numberOnlyPlusDotAndComma($event)"
                                                                             [readonly]="+formSearch.get('product_id').value==0?true:false"/>
+                                                                    <span matSuffix>{{accountingCurrency}}</span>
                                                                     <mat-hint align="start">
                                                                         <i *ngIf=" formSearch.get('product_price').invalid && formSearch.get('product_price').errors.pattern && formSearch.get('product_price').value>0 && formSearch.get('product_price').touched" class="form-invalid">{{t('modules.error.price_format',{int:7,fract:2})}}</i>
                                                                         <i *ngIf="(formSearch.get('product_price').value==null || formSearch.get('product_price').value=='') && formSearch.get('product_price').value!='0' && +this.formSearch.get('product_id').value>0 && formSearch.get('product_price').touched" class="form-invalid">{{t('docs.error.field_miss')}}</i>
@@ -172,58 +174,55 @@
                                                                     </mat-hint>
                                                                 </mat-form-field>
                                                             </div>
-                                                            <div class="col-lg-1  col-md-12"  style="min-width: 80px;">
-                                                                <mat-form-field class="mat-form-field-100">
-                                                                    <input  matInput 
-                                                                            placeholder="{{t('modules.field.unit')}}"
-                                                                            [ngModel]="formSearch.get('edizm').value"
-                                                                            [ngModelOptions]="{standalone: true}"
-                                                                            [readonly]=true
-                                                                            />
-                                                                </mat-form-field>
-                                                            </div>
-                                                            <div class="col-lg-1 col-md-12" style="min-width: 100px;">
+                                                            <div class="col-lg-1 col-md-12" style="min-width: 120px;">
                                                                 <mat-form-field class="mat-form-field-100">
                                                                     <input  matInput matTooltip="{{t('modules.tip.avail_to_mov')}} {{department_from}}"
-                                                                            placeholder="{{t('modules.field.available')}}{{formSearch.get('edizm').value==''?'':', '}}{{formSearch.get('edizm').value}}"
+                                                                            placeholder="{{t('modules.field.available')}}"
                                                                             formControlName="available"
                                                                             [readonly]=true
                                                                             />
+                                                                    <span matSuffix>{{formSearch.get('edizm').value}}</span>
                                                                 </mat-form-field>
                                                             </div>
-                                                            <div class="col-lg-1  col-md-12" style="min-width: 80px;">
+                                                            <div class="col-lg-1  col-md-12" style="min-width: 120px;">
                                                                 <mat-form-field class="mat-form-field-100">
                                                                     <input  matInput matTooltip="{{t('modules.tip.total_dep_frm')}} {{department_from}}"
-                                                                            placeholder="{{t('modules.field.remains')}}{{formSearch.get('edizm').value==''?'':', '}}{{formSearch.get('edizm').value}}"
+                                                                            placeholder="{{t('modules.field.remains')}}"
                                                                             formControlName="total"
                                                                             [readonly]=true
                                                                             />
+                                                                    <span matSuffix>{{formSearch.get('edizm').value}}</span>
                                                                 </mat-form-field>
                                                             </div>
-                                                            <div class="col-lg-1  col-md-12" style="min-width: 100px;">
+                                                            <div class="col-lg-1  col-md-12" style="min-width: 120px;">
                                                                 <mat-form-field class="mat-form-field-100">
                                                                     <input  matInput matTooltip="{{t('modules.tip.resrv_dep_frm')}} {{department_from}}"
-                                                                            placeholder="{{t('modules.field.reserved')}}{{formSearch.get('edizm').value==''?'':', '}}{{formSearch.get('edizm').value}}"
+                                                                            placeholder="{{t('modules.field.reserved')}}"
                                                                             formControlName="reserved"
                                                                             [readonly]=true
                                                                             />
-                                                                            <button mat-button 
-                                                                            type="button"
-                                                                            (click)="openDialogProductReserves(formSearch.get('product_id').value )"
-                                                                            *ngIf="+formSearch.get('product_id').value>0" 
-                                                                            matTooltip="{{t('modules.tip.inf_res_dep_f')}}"
-                                                                            matSuffix mat-icon-button>
-                                                                            <mat-icon>info</mat-icon>
-                                                                            </button>
+                                                                            <span matSuffix>
+                                                                                {{formSearch.get('edizm').value}}
+                                                                                <button mat-button 
+                                                                                    type="button"
+                                                                                    (click)="openDialogProductReserves(formSearch.get('product_id').value )"
+                                                                                    *ngIf="+formSearch.get('product_id').value>0" 
+                                                                                    matTooltip="{{t('modules.tip.inf_res_dep_f')}}"
+                                                                                    matSuffix mat-icon-button>
+                                                                                    <mat-icon>info</mat-icon>
+                                                                                </button>
+                                                                            </span>
+                                                                            
                                                                 </mat-form-field>
                                                             </div>
-                                                            <div class="col-lg-1  col-md-12" style="min-width: 100px;">
+                                                            <div class="col-lg-1  col-md-12" style="min-width: 120px;">
                                                                 <mat-form-field class="mat-form-field-100">
                                                                     <input  matInput 
                                                                             placeholder="{{t('modules.field.sum')}}"
                                                                             formControlName="product_sumprice"
                                                                             [readonly]=true
                                                                             />
+                                                                    <span matSuffix>{{accountingCurrency}}</span>
                                                                 </mat-form-field>
                                                             </div>
                                                         </div>
@@ -309,14 +308,14 @@
                                             </span>
                                         </th>
                                         <td mat-cell *matCellDef="let row; let i = index" 
-                                        class="cell-padding width-60"
+                                        class="cell-padding width-120"
                                         [formGroupName]="i"
                                         
                                         [matTooltip]="((getControlTablefield().controls[i].get('product_count').value>(getControlTablefield().controls[i].get('available').value)&&getControlTablefield().controls[i].get('is_material').value) && !readonly &&!(getControlTablefield().controls[i].get('product_count').invalid && getControlTablefield().controls[i].get('product_count').errors.pattern)) ? 'Количество товара больше доступного количетсва' : ''"
                                         [ngStyle]="   ((getControlTablefield().controls[i].get('product_count').value>(getControlTablefield().controls[i].get('available').value)&&getControlTablefield().controls[i].get('is_material').value) && !readonly &&!(getControlTablefield().controls[i].get('product_count').invalid && getControlTablefield().controls[i].get('product_count').errors.pattern))?{'background-color': '#ffe4e1'}:{'background-color': 'white'}"
                                         >
                                             <input matInput 
-                                                class="table-field-editable"
+                                                class="table-field-editable quantity-field"
                                                 [ngClass]="{'table-field-editable':!readonly}"
                                                 [readonly]=readonly
                                                 style="width:  95%;"
@@ -325,6 +324,7 @@
                                                 (keyup)="onChangeProductCount(i);"
                                                 (keypress)="numberOnlyPlusDotAndComma($event)"
                                             />
+                                            <span matSuffix>{{row.edizm}}</span>
                                             <control-messages  class="table-form-invalid" [control]="getControlTablefield().controls[i].get('product_count')"></control-messages>
                                             <mat-hint align="start">
                                                 <i *ngIf="  getControlTablefield().controls[i].get('product_count').value =='0'" class="table-form-invalid">
@@ -337,19 +337,14 @@
                                                 </i>
                                                 <i *ngIf="getControlTablefield().controls[i].get('product_count').invalid && getControlTablefield().controls[i].get('product_count').errors.pattern" class="table-form-invalid">{{t('docs.error.price_format',{int:7,fract:3})}}</i>
                                             </mat-hint>
-                                        <td mat-footer-cell *matFooterCellDef class="cell-padding width-60"></td>
-                                    </ng-container>
-                                    <ng-container matColumnDef="edizm" [formArrayName]="'movingProductTable'">
-                                        <th mat-header-cell *matHeaderCellDef class="cell-padding width-60">{{t('modules.col.unit')}}</th>
-                                        <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i" class="cell-padding width-60"> {{row.edizm}} </td>
-                                        <td mat-footer-cell *matFooterCellDef class="cell-padding width-60"></td>
+                                        <td mat-footer-cell *matFooterCellDef class="cell-padding width-120"></td>
                                     </ng-container>
                                     <ng-container matColumnDef="product_price" [formArrayName]="'movingProductTable'">
                                         <th mat-header-cell *matHeaderCellDef style="width: 80px;">
                                             <span 
                                                 style="cursor: default;"
                                                 matTooltip="{{t('modules.tip.price')}}">
-                                                {{t('modules.col.price')}}
+                                                {{t('modules.col.price')}}, {{accountingCurrency}}
                                             </span>
                                         </th>
                                         <td mat-cell 
@@ -382,8 +377,8 @@
                                             </span>
                                         </th>
                                         <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> 
-                                            <span *ngIf="getControlTablefield().controls[i].get('is_material').value">{{row.available}}</span>
-                                        </td>
+                                            <span class="quantity-field" *ngIf="getControlTablefield().controls[i].get('is_material').value">{{row.available}}</span> <span *ngIf="getControlTablefield().controls[i].get('is_material').value" matSuffix>{{row.edizm}}</span>
+                                        </td>                                        
                                         <td mat-footer-cell *matFooterCellDef></td>
                                     </ng-container>
                                     <ng-container matColumnDef="reserved" [formArrayName]="'movingProductTable'">
@@ -397,28 +392,31 @@
                                         <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> 
                                             <span 
                                                 style="cursor: pointer;"
+                                                class="quantity-field"
                                                 *ngIf="getControlTablefield().controls[i].get('is_material').value"
                                                 (click)="openDialogProductReserves(row.product_id)"
                                                 matTooltip="{{t('modules.tip.inf_res_dep_f')}}">
                                                 {{row.reserved}} 
-                                            </span>
+                                            </span> <span *ngIf="getControlTablefield().controls[i].get('is_material').value" matSuffix>{{row.edizm}}</span>
+                                            
                                         </td>
                                         <td mat-footer-cell *matFooterCellDef></td>
                                     </ng-container>
                                     <ng-container matColumnDef="total" [formArrayName]="'movingProductTable'">
                                         <th mat-header-cell *matHeaderCellDef>{{t('modules.col.remains')}}</th>
-                                        <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> {{row.total}} </td>
+                                        <!-- <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> {{row.total}} </td> -->
+                                        <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> <span class="quantity-field">{{row.total}}</span> <span matSuffix>{{row.edizm}}</span> </td>
                                         <td mat-footer-cell *matFooterCellDef></td>
                                         <td mat-footer-cell *matFooterCellDef></td>
                                     </ng-container>
                                     <ng-container matColumnDef="product_sumprice" [formArrayName]="'movingProductTable'">
-                                        <th mat-header-cell *matHeaderCellDef>{{t('modules.col.sum')}}</th>
+                                        <th mat-header-cell *matHeaderCellDef>{{t('modules.col.sum')}}, {{accountingCurrency}}</th>
                                         <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> {{row.product_sumprice}} </td>
                                         <td mat-footer-cell *matFooterCellDef> {{totalProductSumm}}</td>
                                         <td mat-footer-cell *matFooterCellDef></td>
                                     </ng-container>
                                     <ng-container matColumnDef="product_netcost">
-                                        <th mat-header-cell *matHeaderCellDef>{{t('modules.col.cost_per_unit')}}</th>
+                                        <th mat-header-cell *matHeaderCellDef>{{t('modules.col.cost_per_unit')}}, {{accountingCurrency}}</th>
                                         <td mat-cell *matCellDef="let row">{{row.product_netcost}}</td>
                                         <td mat-footer-cell *matFooterCellDef></td>
                                     </ng-container>

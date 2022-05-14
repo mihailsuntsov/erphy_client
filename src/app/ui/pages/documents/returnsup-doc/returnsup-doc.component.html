@@ -270,7 +270,7 @@
                                                                     <app-balance-cagent 
                                                                     [company_id]="formBaseInformation.get('company_id').value"
                                                                     [cagent_id]="formBaseInformation.get('cagent_id').value"
-                                                                    [currency]="'руб.'">
+                                                                    [currency]="accountingCurrency">
                                                                     </app-balance-cagent>
                                                                 </mat-form-field>
 
@@ -285,7 +285,7 @@
                                                                     <app-balance-cagent 
                                                                             [company_id]="formBaseInformation.get('company_id').value"
                                                                             [cagent_id]="formBaseInformation.get('cagent_id').value"
-                                                                            [currency]="'руб.'">
+                                                                            [currency]="accountingCurrency">
                                                                     </app-balance-cagent>
 
                                                                     <mat-autocomplete #auto4="matAutocomplete">
@@ -406,6 +406,7 @@
                                     [hideTenths]="settingsForm.get('hideTenths').value"
                                     [changePrice]="settingsForm.get('changePrice').value"
                                     [changePriceType]="settingsForm.get('changePriceType').value"
+                                    [accountingCurrency]="accountingCurrency"
                                 ></app-returnsup-products-table>
                             </div>
                         </div>

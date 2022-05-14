@@ -289,7 +289,7 @@
                                                                     <app-balance-cagent 
                                                                         [company_id]="formBaseInformation.get('company_id').value"
                                                                         [cagent_id]="formBaseInformation.get('cagent_id').value"
-                                                                        [currency]="'руб.'">
+                                                                        [currency]="accountingCurrency">
                                                                     </app-balance-cagent>
 
                                                                     <mat-hint  align="start" *ngIf="searchCagentCtrl.touched && formBaseInformation.get('cagent_id').invalid">
@@ -304,7 +304,7 @@
                                                                     <app-balance-cagent 
                                                                     [company_id]="formBaseInformation.get('company_id').value"
                                                                     [cagent_id]="formBaseInformation.get('cagent_id').value"
-                                                                    [currency]="'руб.'">
+                                                                    [currency]="accountingCurrency">
                                                                     </app-balance-cagent>
                                                                 </mat-form-field>
                                                             </div>
@@ -408,6 +408,7 @@
                                     [nds]="formBaseInformation.get('nds').value"
                                     [nds_included]="formBaseInformation.get('nds_included').value"
                                     [spravTaxesSet]="spravTaxesSet"
+                                    [accountingCurrency]="accountingCurrency"
                                 ></app-ordersup-products-table>
                             </div>
                         </div>

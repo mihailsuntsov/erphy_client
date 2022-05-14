@@ -138,6 +138,7 @@ export class InventoryProductsTableComponent implements OnInit {
   @Input() defaultActualBalance:string;
   @Input() otherActualBalance:number;
   @Input() autoAdd:boolean;
+  @Input() accountingCurrency:string;// short name of Accounting currency of user's company (e.g. $ or EUR)
 
   @Output() changeProductsTableLength = new EventEmitter<any>();   //событие изменения таблицы товаров (а именно - количества товаров в ней)
 
@@ -213,7 +214,7 @@ export class InventoryProductsTableComponent implements OnInit {
     // if(!this.readonly)
       // this.displayedColumns.push('select');
     // this.displayedColumns.push('index','row_id');
-    this.displayedColumns.push('name','estimated_balance','actual_balance','edizm','product_price','difference','discrepancy');
+    this.displayedColumns.push('name','estimated_balance','actual_balance','product_price','difference','discrepancy');
     if(!this.readonly)
       this.displayedColumns.push('delete');
   }

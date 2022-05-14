@@ -138,6 +138,7 @@ export class OrderinDocComponent implements OnInit {
   movingTypes:any[]=[]; // список типов перемещений: из кассы предприятия - boxoffice, с расч. счета - account, из кассы ККМ - kassa
   paymentAccounts:any[]=[];  // список расчётных счетов предприятия
   kassaList:any[]=[];  // список касс ККМ по отделениям, которые привязаны к кассе предприятия boxoffice_id
+  accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
 
   withdrawalList: any[];             // список выемок, из которых поступили средства
   paymentoutList: any[];             // список исходящих платежей, из которых поступили средства
@@ -303,6 +304,7 @@ export class OrderinDocComponent implements OnInit {
     this.getBaseData('myId');    
     this.getBaseData('myCompanyId');  
     this.getBaseData('companiesList');    
+    this.getBaseData('accountingCurrency');  
   }
   //чтобы не было ExpressionChangedAfterItHasBeenCheckedError
   ngAfterContentChecked() {

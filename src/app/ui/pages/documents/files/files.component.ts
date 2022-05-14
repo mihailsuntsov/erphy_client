@@ -1024,6 +1024,8 @@ clickBtnFileUplioad(){
         return( 'xls' );
       case '.zip':
         return( 'zip' );
+      case '.rar':
+        return( 'rar' );
       default:
         return( 'any' );
     }

@@ -267,6 +267,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
   secondaryDepartments:SecondaryDepartment[]=[];// склады в выпадающем списке складов формы поиска товара
   spravSysEdizmOfProductAll: idAndNameAndShorname[] = [];// массив, куда будут грузиться все единицы измерения товара
   receivedPriceTypesList: idNameDescription [] = [];//массив для получения списка типов цен
+  accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
 
   //печать документов
   gettingTemplatesData: boolean = false; // идёт загрузка шаблонов
@@ -546,6 +547,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
     this.getBaseData('myCompanyId');  
     this.getBaseData('companiesList');  
     this.getBaseData('myDepartmentsList');    
+    this.getBaseData('accountingCurrency');  
 
     //слушалки на изменение полей адреса
     this.filteredSpravSysCountries=this.formBaseInformation.get('country').valueChanges.pipe(startWith(''),map((value:string) => this.filter_country(value)));

@@ -130,6 +130,7 @@ export class OrdersupProductsTableComponent implements OnInit {
   @Input() nds:boolean;
   @Input() nds_included:boolean;
   @Input() spravTaxesSet: SpravTaxesSet[] = []; //массив имен и id для ндс 
+  @Input() accountingCurrency:string;// short name of Accounting currency of user's company (e.g. $ or EUR)
   @Output() changeProductsTableLength = new EventEmitter<any>();   //событие изменения таблицы товаров (а именно - количества товаров в ней)
   @Output() totalSumPriceEvent = new EventEmitter<string>();
 
@@ -172,6 +173,7 @@ export class OrdersupProductsTableComponent implements OnInit {
     this.searchProductCtrl.setValue('');
     setTimeout(() => { this.productSearchField.nativeElement.focus();}, 1000);
   }
+  getTaxNameById(id:number){let name='';this.spravTaxesSet.map(i=>{if(+i.id==id)name=i.name}); return name}
 
   doOnInit(){
     this.getProductsTable();
@@ -184,7 +186,7 @@ export class OrdersupProductsTableComponent implements OnInit {
     // if(!this.readonly)
       // this.displayedColumns.push('select');
     // this.displayedColumns.push('index','row_id','product_id');
-    this.displayedColumns.push('name','product_count','edizm','available','reserved','total','product_price','product_sumprice');
+    this.displayedColumns.push('name','product_count','available','reserved','total','product_price','product_sumprice');
     if(this.nds)
       this.displayedColumns.push('nds');
     if(!this.readonly)
@@ -442,7 +444,7 @@ export class OrdersupProductsTableComponent implements OnInit {
     {// список товаров не должен содержать одинаковые товары из одного и того же склада. Тут проверяем на это
       if(+i['product_id']==this.formSearch.get('product_id').value)
       {//такой товар с таким складом уже занесён в таблицу товаров ранее, и надо смёрджить их, т.е. слить в один, просуммировав их фактические остатки.
-        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:'Данный товар уже выбран'}});
+        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('modules.msg.prd_alr_slctd')}});
         thereProductInTableWithSameId=true; 
       }
     });

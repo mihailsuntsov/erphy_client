@@ -582,6 +582,8 @@ createImageFromBlob(image: Blob) {
         return( 'xls' );
       case '.zip':
         return( 'zip' );
+      case '.rar':
+        return( 'rar' );
       default:
         return( 'any' );
     }

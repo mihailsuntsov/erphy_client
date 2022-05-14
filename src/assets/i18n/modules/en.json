@@ -142,7 +142,8 @@
         "money":        "Money",
         "your_debt":    "Your debt",
         "you_owed":     "You're owed",
-        "price_f_type": "Price of type"
+        "price_f_type": "Price of type",
+        "prod_list":    "Product list"
     },
     "field":{ 
         "company":      "Company",
@@ -251,7 +252,8 @@
         "copy_prod_bar":"Attention! If the duplicating original has internal barcodes based on the \"Code\" field, they will become irrelevant in duplicates, because the value of the \"Code\" field will be different for them",
         "ord_cat_saved":"Category order saved",
         "cat_saved":    "Category saved",
-        "cat_created":  "Category created"
+        "cat_created":  "Category created",
+        "prd_alr_slctd":"This product has already been selected"
     },
     "button":{
         "save_n_close": "Save",

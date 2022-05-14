@@ -7,7 +7,7 @@
                     
                     <div class="flex card" style="padding: 0px 15px; font-size: 20px;">
                         <div class="card-name">
-                            {{(readonly&&parentDocName=='RetailSales')?t('modules.card.sold_goods'):t('modules.card.srch_prodcts')}}
+                            {{readonly?t('modules.card.prod_list'):t('modules.card.srch_prodcts')}}
                         </div>
                         <div>
                             
@@ -113,12 +113,13 @@
                                                                 <mat-form-field  class="mat-form-field-100">
                                                                     <input  matInput 
                                                                             #countInput
-                                                                            placeholder="{{t('modules.field.count')}}{{edizmName==''?'':', '}}{{edizmName}}"
+                                                                            placeholder="{{t('modules.field.count')}}"
                                                                             formControlName="product_count"
                                                                             (input)="calcSumPriceOfProduct();checkIndivisibleErrorOfSearchForm();"
                                                                             (change)="calcSumPriceOfProduct();checkIndivisibleErrorOfSearchForm();"
                                                                             (keypress)="numberOnlyPlusDotAndComma($event)"
                                                                             [readonly]="+formSearch.get('product_id').value==0?true:false"/>
+                                                                    <span matSuffix>{{edizmName}}</span>
                                                                     <mat-hint  align="start" *ngIf="formSearch.get('product_count').dirty">
                                                                         <i *ngIf="formSearch.get('product_count').invalid && formSearch.get('product_count').errors.pattern" class="form-invalid">{{t('modules.error.price_format',{int:6,fract:3})}} </i>
                                                                         <i *ngIf="(+formSearch.get('product_count').value==0) && formSearch.get('product_count').value!=''" class="form-invalid">{{t('modules.error.more_than',{num:0})}}</i>
@@ -132,36 +133,43 @@
                                                             <div class="col-lg-3  col-md-12">
                                                                 <mat-form-field class="mat-form-field-100">
                                                                     <input  matInput 
-                                                                            placeholder="{{t('modules.field.available')}}{{edizmName==''?'':', '}}{{edizmName}}"
+                                                                            placeholder="{{t('modules.field.available')}}"
                                                                             formControlName="available"
                                                                             [readonly]=true
                                                                             />
+                                                                    <span matSuffix>{{edizmName}}</span>
                                                                 </mat-form-field>
                                                             </div>
                                                             <div class="col-lg-3  col-md-12">
                                                                 <mat-form-field class="mat-form-field-100">
                                                                     <input  matInput 
-                                                                            placeholder="{{t('modules.field.reserved')}}{{edizmName==''?'':', '}}{{edizmName}}"
+                                                                            placeholder="{{t('modules.field.reserved')}}"
                                                                             formControlName="reserved"
                                                                             [readonly]=true
                                                                             />
-                                                                            <button mat-button 
-                                                                            type="button"
-                                                                            (click)="openDialogProductReserves(formSearch.get('secondaryDepartmentId').value,this.formSearch.get('product_id').value )"
-                                                                            *ngIf="+formSearch.get('product_id').value>0" 
-                                                                            matTooltip="{{t('modules.tip.other_orders')}}"
-                                                                            matSuffix mat-icon-button>
-                                                                            <mat-icon>info</mat-icon>
-                                                                            </button>
+                                                                            <span matSuffix>
+                                                                                {{edizmName}}
+                                                                                <button mat-button 
+                                                                                    type="button"
+                                                                                    (click)="openDialogProductReserves(formSearch.get('secondaryDepartmentId').value,this.formSearch.get('product_id').value )"
+                                                                                    *ngIf="+formSearch.get('product_id').value>0" 
+                                                                                    matTooltip="{{t('modules.tip.other_orders')}}"
+                                                                                    matSuffix mat-icon-button>
+                                                                                    <mat-icon>info</mat-icon>
+                                                                                </button>
+                                                                            </span>
+
+                                                                            
                                                                 </mat-form-field>
                                                             </div>
                                                             <div class="col-lg-3  col-md-12">
                                                                 <mat-form-field class="mat-form-field-100">
                                                                     <input  matInput 
-                                                                            placeholder="{{t('modules.field.total')}}{{edizmName==''?'':', '}}{{edizmName}}"
+                                                                            placeholder="{{t('modules.field.total')}}"
                                                                             formControlName="total"
                                                                             [readonly]=true
                                                                             />
+                                                                            <span matSuffix>{{edizmName}}</span>
                                                                 </mat-form-field>
                                                             </div>
                                                         </div>
@@ -387,14 +395,18 @@
                                                                             (change)="calcSumPriceOfProduct()"
                                                                             (keypress)="numberOnlyPlusDotAndComma($event)"
                                                                             [readonly]="+formSearch.get('product_id').value==0?true:false"/>
-                                                                            <button mat-button 
+                                                                    <span matSuffix>
+                                                                        {{accountingCurrency}}
+                                                                        <button mat-button 
                                                                             type="button"
                                                                             (click)="openDialogPricing(formSearch.get('product_id').value,formSearch.get('secondaryDepartmentId').value,formSearch.get('price_type_id').value, 'searchForm')"
                                                                             *ngIf="+formSearch.get('product_id').value>0" 
                                                                             matTooltip="{{t('modules.tip.pricing_else')}}"
                                                                             matSuffix mat-icon-button>
                                                                             <mat-icon>assessment</mat-icon>
-                                                                            </button>
+                                                                        </button>
+                                                                    </span>
+                                                                            
                                                                     <mat-hint align="start">
                                                                         <i *ngIf=" formSearch.get('product_price').invalid && formSearch.get('product_price').errors.pattern && formSearch.get('product_price').value>0 && formSearch.get('product_price').touched" class="form-invalid">{{t('modules.error.price_format',{int:7,fract:2})}}</i>
                                                                         <i *ngIf="formSearch.get('product_price').value=='' && +this.formSearch.get('product_id').value>0 && formSearch.get('product_price').touched" class="form-invalid">{{t('modules.error.field_miss')}}</i>
@@ -411,6 +423,7 @@
                                                                             [value]="(+formSearch.get('product_id').value==0 && formSearch.get('product_sumprice').value==0)?'':formSearch.get('product_sumprice').value"
                                                                             [readonly]=true
                                                                             />
+                                                                    <span matSuffix>{{accountingCurrency}}</span>
                                                                 </mat-form-field>
                                                             </div>
                                                             <div class="col-lg-3  col-md-12">
@@ -495,18 +508,20 @@
                                             </span>
                                         </th>
                                         <td mat-cell *matCellDef="let row; let i = index" 
+                                        style="width: 80px;"
                                         [formGroupName]="i"
                                         [matTooltip]="((getControlTablefield().controls[i].get('product_count').value>(getControlTablefield().controls[i].get('available').value)&&getControlTablefield().controls[i].get('is_material').value) && !readonly && !(getControlTablefield().controls[i].get('product_count').invalid && getControlTablefield().controls[i].get('product_count').errors.pattern)) ? t('modules.tip.qtt_more_avlb') : ''"
                                         [ngStyle]="   ((getControlTablefield().controls[i].get('product_count').value>((getControlTablefield().controls[i].get('available').value)+getControlTablefield().controls[i].get('shipped').value)&&getControlTablefield().controls[i].get('is_material').value) && !readonly && !(getControlTablefield().controls[i].get('product_count').invalid && getControlTablefield().controls[i].get('product_count').errors.pattern))?{'background-color': '#ffe4e1'}:{'background-color': 'white'}">
                                             <input matInput 
-                                                class="table-field-editable"
+                                                class="table-field-editable quantity-field"
                                                 [ngClass]="{'table-field-editable':!readonly}"
                                                 [readonly]=readonly
-                                                style="width:  95%;"
+                                                style="width: 50px !important;"
                                                 placeholder=""
                                                 formControlName="product_count"
                                                 (keyup)="onChangeProductCount(i);"
                                             />
+                                            <span matSuffix>{{row.edizm}}</span>
                                             <control-messages  class="table-form-invalid" [control]="getControlTablefield().controls[i].get('product_count')"></control-messages>
                                             <mat-hint align="start" >
                                                 <i *ngIf="  getControlTablefield().controls[i].get('product_count').value !='' && 
@@ -518,17 +533,12 @@
                                             </mat-hint>
                                         <td mat-footer-cell *matFooterCellDef></td>
                                     </ng-container>
-                                    <ng-container matColumnDef="edizm" [formArrayName]="'customersOrdersProductTable'">
-                                        <th mat-header-cell *matHeaderCellDef>{{t('modules.col.unit')}}</th>
-                                        <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> {{row.edizm}} </td>
-                                        <td mat-footer-cell *matFooterCellDef></td>
-                                    </ng-container>
                                     <ng-container matColumnDef="product_price" [formArrayName]="'customersOrdersProductTable'">
-                                        <th mat-header-cell *matHeaderCellDef style="width: 80px;">
+                                        <th mat-header-cell *matHeaderCellDef style="width: 60px;">
                                             <span 
                                                 style="cursor: default;"
                                                 matTooltip="{{t('modules.tip.price')}}">
-                                                {{t('modules.col.price')}}
+                                                {{t('modules.col.price')}}, {{accountingCurrency}}
                                             </span>
                                         </th>
                                         <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i">
@@ -536,7 +546,6 @@
                                             <input matInput 
                                                 [ngClass]="{'table-field-editable':!readonly}"
                                                 [readonly]=readonly
-                                                style="width: 95%;"
                                                 placeholder=""
                                                 formControlName="product_price"
                                                 (keyup)="onChangeProductPrice(i);"
@@ -550,7 +559,7 @@
                                         <td mat-footer-cell *matFooterCellDef></td>
                                     </ng-container>
                                     <ng-container matColumnDef="product_sumprice" [formArrayName]="'customersOrdersProductTable'">
-                                        <th mat-header-cell *matHeaderCellDef>{{t('modules.col.sum')}}</th>
+                                        <th mat-header-cell *matHeaderCellDef>{{t('modules.col.sum')}}, {{accountingCurrency}}</th>
                                         <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> {{row.product_sumprice}} </td>
                                         <td mat-footer-cell *matFooterCellDef> {{totalProductSumm}}</td>
                                     </ng-container>
@@ -563,19 +572,21 @@
                                         </span>
                                         </th>
                                         <td mat-cell *matCellDef="let row; let i = index" 
+                                        style="width: 80px;"
                                         [formGroupName]="i"
                                         [matTooltip]="((getControlTablefield().controls[i].get('reserved_current').value>(getControlTablefield().controls[i].get('available').value+getControlTablefield().controls[i].get('shipped').value)&&getControlTablefield().controls[i].get('is_material').value)&&!(getControlTablefield().controls[i].get('reserved_current').invalid && getControlTablefield().controls[i].get('reserved_current').errors.pattern)) ? t('modules.tip.qtt_rsrv_avlb') : ''"
                                         [ngStyle]="   ((getControlTablefield().controls[i].get('reserved_current').value>(getControlTablefield().controls[i].get('available').value+getControlTablefield().controls[i].get('shipped').value)&&getControlTablefield().controls[i].get('is_material').value)&&!(getControlTablefield().controls[i].get('reserved_current').invalid && getControlTablefield().controls[i].get('reserved_current').errors.pattern))?{'background-color': '#ffe4e1'}:{'background-color': 'white'}">
                                            
-                                        <input matInput 
+                                            <input matInput 
                                                 [ngClass]="{'table-field-editable':!readonly}"
                                                 [readonly]=readonly
-                                                style="width:  95%;"
+                                                style="width: 50px !important;"
                                                 *ngIf="getControlTablefield().controls[i].get('is_material').value"
                                                 placeholder=""
                                                 (keyup)="onChangeReserves(i)"
                                                 formControlName="reserved_current"
                                             />
+                                            <span matSuffix>{{row.edizm}}</span>
                                             <control-messages  class="table-form-invalid" [control]="getControlTablefield().controls[i].get('reserved_current')"></control-messages>
                                             <mat-hint align="start" >
                                                 <i *ngIf="  getControlTablefield().controls[i].get('reserved_current').value !='' && 
@@ -599,7 +610,7 @@
                                             </span>
                                         </th>
                                         <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> 
-                                            <span *ngIf="getControlTablefield().controls[i].get('is_material').value">{{row.available}}</span>
+                                            <span  class="quantity-field-sm" *ngIf="getControlTablefield().controls[i].get('is_material').value">{{row.available}}</span> <span *ngIf="getControlTablefield().controls[i].get('is_material').value" matSuffix>{{row.edizm}}</span>
                                         </td>
                                         <td mat-footer-cell *matFooterCellDef></td>
                                     </ng-container>
@@ -612,42 +623,44 @@
                                             </span>
                                         </th>
                                         <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> 
-                                            <span *ngIf="getControlTablefield().controls[i].get('is_material').value">{{row.total}}</span>
-                                        </td>
+                                            <span class="quantity-field-sm" *ngIf="getControlTablefield().controls[i].get('is_material').value">{{row.total}}</span> <span *ngIf="getControlTablefield().controls[i].get('is_material').value" matSuffix>{{row.edizm}}</span>
+                                        </td>                                      
+                                        
                                         <td mat-footer-cell *matFooterCellDef></td>
                                     </ng-container>
                                     <ng-container matColumnDef="reserved" [formArrayName]="'customersOrdersProductTable'">
                                         <th mat-header-cell *matHeaderCellDef>
                                             <span 
-                                                style="cursor: default;"
                                                 matTooltip="{{t('modules.tip.other_res_cnt')}}">
                                                 {{t('modules.col.reserved')}}
                                             </span>
                                         </th>
                                         <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> 
                                             <span 
+                                                class="quantity-field-sm"
                                                 style="cursor: pointer;"
                                                 *ngIf="getControlTablefield().controls[i].get('is_material').value"
                                                 (click)="openDialogProductReserves(row.department_id,row.product_id)"
                                                 matTooltip="{{t('modules.tip.other_orders_')}} {{row.department}}">
                                                 {{row.reserved}} 
-                                            </span>
+                                            </span> <span *ngIf="getControlTablefield().controls[i].get('is_material').value" matSuffix>{{row.edizm}}</span>
                                         </td>
                                         <td mat-footer-cell *matFooterCellDef></td>
                                     </ng-container>
                                     <ng-container matColumnDef="shipped" [formArrayName]="'customersOrdersProductTable'">
                                         <th mat-header-cell *matHeaderCellDef  style="min-width: 60px;max-width: 70px;">
                                             <span 
-                                            style="cursor: default;"
                                             matTooltip="{{t('modules.tip.shipped')}}">
                                             {{t('modules.col.shipped')}}
-                                        </span>
+                                        </span> 
                                         </th>
-                                        <td mat-cell 
-                                        *matCellDef="let row; let i = index" 
-                                        [formGroupName]="i"
-                                        [ngStyle]="((getControlTablefield().controls[i].get('product_count').value<=(getControlTablefield().controls[i].get('shipped').value)&&getControlTablefield().controls[i].get('is_material').value)&&!(getControlTablefield().controls[i].get('product_count').invalid && getControlTablefield().controls[i].get('product_count').errors.pattern))?{'background-color': '#bbfebc'}:{'background-color': 'white'}"
-                                        > {{row.shipped}} </td>
+                                        <td mat-cell  
+                                            *matCellDef="let row; let i = index" 
+                                            [formGroupName]="i"
+                                            [ngStyle]="((getControlTablefield().controls[i].get('product_count').value<=(getControlTablefield().controls[i].get('shipped').value)&&getControlTablefield().controls[i].get('is_material').value)&&!(getControlTablefield().controls[i].get('product_count').invalid && getControlTablefield().controls[i].get('product_count').errors.pattern))?{'background-color': '#bbfebc'}:{'background-color': 'white'}"
+                                            > 
+                                            <span class="quantity-field-sm" *ngIf="getControlTablefield().controls[i].get('is_material').value">{{row.shipped}}</span> <span *ngIf="getControlTablefield().controls[i].get('is_material').value" matSuffix>{{row.edizm}}</span>
+                                        </td>
                                         <td mat-footer-cell *matFooterCellDef></td>
                                     </ng-container>
                                     <ng-container matColumnDef="price_type" [formArrayName]="'customersOrdersProductTable'">
@@ -655,7 +668,7 @@
                                             <span 
                                                 style="cursor: default;"
                                                 matTooltip="{{t('modules.tip.price_type')}}">
-                                                {{t('modules.col.price_type')}}
+                                                {{t('modules.col.price_type')}}, {{accountingCurrency}}
                                             </span>
                                         </th>
                                         <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> 
@@ -682,7 +695,7 @@
                                             style="width:  95%;"
                                             (selectionChange)="onChangeProductNds()" 
                                             [ngClass]="{'table-field-editable':!readonly}"
-                                            [disabled]=false>                          
+                                            [disabled]=readonly>                          
                                                 <mat-option  *ngFor="let rt of spravTaxesSet" [value]="rt.id">
                                                         {{rt.name}}
                                                 </mat-option> 

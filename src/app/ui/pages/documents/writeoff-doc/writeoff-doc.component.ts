@@ -121,6 +121,7 @@ export class WriteoffDocComponent implements OnInit {
   receivedDepartmentsList: IdAndName [] = [];//массив для получения списка отделений
   receivedStatusesList: StatusInterface [] = []; // массив для получения статусов
   receivedMyDepartmentsList: IdAndName [] = [];//массив для получения списка отделений
+  accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
   myCompanyId:number=0;
   myId:number=0;
   // allFields: any[][] = [];//[номер строки начиная с 0][объект - вся инфо о товаре (id,кол-во, цена... )] - массив товаров
@@ -274,6 +275,7 @@ export class WriteoffDocComponent implements OnInit {
     this.getBaseData('myCompanyId');  
     this.getBaseData('companiesList');  
     this.getBaseData('myDepartmentsList'); 
+    this.getBaseData('accountingCurrency');  
   }
   //чтобы не было ExpressionChangedAfterItHasBeenCheckedError
   ngAfterContentChecked() {

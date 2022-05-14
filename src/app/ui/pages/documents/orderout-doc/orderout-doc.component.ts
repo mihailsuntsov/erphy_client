@@ -142,6 +142,7 @@ export class OrderoutDocComponent implements OnInit {
   rightsDefined:boolean; // определены ли права //!!!
   lastCheckedDocNumber:string='';
   receivedKassaDepartmentsList: idAndName [] = [];//массив для получения списка отделений
+  accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
 
   //для загрузки связанных документов
   linkedDocsReturn:LinkedDocs[]=[];
@@ -298,6 +299,7 @@ export class OrderoutDocComponent implements OnInit {
     this.getBaseData('myId');    
     this.getBaseData('myCompanyId');  
     this.getBaseData('companiesList');  
+    this.getBaseData('accountingCurrency');  
   }
   //чтобы не было ExpressionChangedAfterItHasBeenCheckedError
   ngAfterContentChecked() {

@@ -210,6 +210,7 @@ export class ShipmentDocComponent implements OnInit {
   spravSysEdizmOfProductAll: IdAndNameAndShortname[] = [];// массив, куда будут грузиться все единицы измерения товара
   receivedPriceTypesList: IdNameDescription [] = [];//массив для получения списка типов цен
   displayedColumns:string[];//отображаемые колонки таблицы с товарами
+  accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
 
   //для загрузки связанных документов
   linkedDocsReturn:LinkedDocs[]=[];
@@ -454,6 +455,7 @@ export class ShipmentDocComponent implements OnInit {
     this.getBaseData('myCompanyId');  
     this.getBaseData('companiesList');  
     this.getBaseData('myDepartmentsList');    
+    this.getBaseData('accountingCurrency');  
   }
   //чтобы не было ExpressionChangedAfterItHasBeenCheckedError
   ngAfterContentChecked() {

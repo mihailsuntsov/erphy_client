@@ -123,19 +123,21 @@
                                                 <div class="col-lg-8 col-md-12">
                                                     <div class="container-fluid" style="padding-right: 0px; padding-left: 0px;">
                                                         <div class="row">
-                                                            <div class="col-lg-2  col-md-12">
+                                                            <div class="col-lg-2  col-md-12" style="min-width: 116px;">
                                                                 <mat-form-field class="mat-form-field-100">
                                                                     <input  matInput 
-                                                                            placeholder="{{t('modules.field.est_balance')}}{{formSearch.get('edizm').value==''?'':', '}}{{formSearch.get('edizm').value}}"
+                                                                            placeholder="{{t('modules.field.est_balance')}}"
                                                                             formControlName="estimated_balance"
                                                                             [readonly]=true
                                                                             />
+                                                                    <span matSuffix>{{formSearch.get('edizm').value}}</span>
                                                                 </mat-form-field>
                                                             </div>
-                                                            <div class="col-lg-2 col-md-12"> 
+                                                            <div class="col-lg-2 col-md-12" style="min-width: 116px;"> 
                                                                 <mat-form-field  class="mat-form-field-100">
                                                                     <mat-label>{{t('modules.field.fact_balance')}}</mat-label>
                                                                     <input  matInput 
+                                                                            class="table-field-editable quantity-field"
                                                                             #estimated_balance
                                                                             [placeholder]="placeholderActualBalance"
                                                                             formControlName="actual_balance"
@@ -143,6 +145,7 @@
                                                                             (change)="checkActualBalanceInForm()"
                                                                             (keypress)="numberOnlyPlusDotAndComma($event)"
                                                                             [readonly]="+formSearch.get('product_id').value==0?true:false"/>
+                                                                    <span matSuffix>{{formSearch.get('edizm').value}}</span>
                                                                     <mat-hint  align="start" >
                                                                         <i *ngIf="formSearch.get('actual_balance').invalid && formSearch.get('actual_balance').errors.pattern" class="form-invalid">{{t('docs.error.price_format',{int:6,fract:3})}} </i>
                                                                         <i *ngIf="(formSearch.get('actual_balance').value==null || formSearch.get('actual_balance').value=='') && +this.formSearch.get('product_id').value>0  && formSearch.get('actual_balance').touched" class="form-invalid">{{t('docs.error.field_miss')}}</i>
@@ -150,7 +153,7 @@
                                                                     </mat-hint>
                                                                 </mat-form-field>
                                                             </div>
-                                                            <div class="col-lg-2 col-md-12"> 
+                                                            <div class="col-lg-2 col-md-12" style="min-width: 116px;"> 
                                                                 <mat-form-field class="mat-form-field-100">
                                                                     <input  matInput 
                                                                             placeholder="{{t('modules.field.price')}}{{formSearch.get('edizm').value==''?'':' '+t('modules.field.for')+' 1'}}{{formSearch.get('edizm').value}}"
@@ -159,14 +162,18 @@
                                                                             (change)="checkProductPriceInForm()"
                                                                             (keypress)="numberOnlyPlusDotAndComma($event)"
                                                                             [readonly]="+formSearch.get('product_id').value==0?true:false"/>
-                                                                            <button mat-button 
+                                                                    <span matSuffix>
+                                                                        {{accountingCurrency}}
+                                                                        <button mat-button 
                                                                             type="button"
                                                                             (click)="openDialogPricing()"
                                                                             *ngIf="+formSearch.get('product_id').value>0" 
-                                                                            matTooltip='Расценить товар иначе'
+                                                                            matTooltip="{{t('modules.tip.pricing_else')}}"
                                                                             matSuffix mat-icon-button>
                                                                             <mat-icon>assessment</mat-icon>
-                                                                            </button>
+                                                                        </button>
+                                                                    </span>
+                                                                            
                                                                     <mat-hint align="start">
                                                                         <i *ngIf=" formSearch.get('product_price').invalid && formSearch.get('product_price').errors.pattern && formSearch.get('product_price').value!=='' && formSearch.get('product_price').dirty" class="form-invalid">{{t('docs.error.price_format',{int:7,fract:2})}}</i>
                                                                         <i *ngIf="formSearch.get('product_price').value=='' && +this.formSearch.get('product_id').value>0 && formSearch.get('product_price').touched" class="form-invalid">{{t('docs.error.field_miss')}}</i>
@@ -176,17 +183,7 @@
                                                                         
                                                                 </mat-form-field>
                                                             </div>
-                                                            <div class="col-lg-2  col-md-12">
-                                                                <mat-form-field class="mat-form-field-100">
-                                                                    <input  matInput 
-                                                                            placeholder="{{t('modules.field.unit')}}"
-                                                                            [ngModel]="formSearch.get('edizm').value"
-                                                                            [ngModelOptions]="{standalone: true}"
-                                                                            [readonly]=true
-                                                                            />
-                                                                </mat-form-field>
-                                                            </div>
-                                                            <div class="col-lg-2  col-md-12">
+                                                            <div class="col-lg-2  col-md-12" style="min-width: 116px;">
                                                                 <mat-form-field class="mat-form-field-100">
                                                                     <input  matInput 
                                                                             placeholder="{{t('modules.field.difference')}}"
@@ -194,17 +191,17 @@
                                                                             [ngModelOptions]="{standalone: true}"
                                                                             [readonly]=true
                                                                             />
+                                                                    <span matSuffix>{{formSearch.get('edizm').value}}</span>
                                                                 </mat-form-field>
-                                                            </div>
-                                                            
-                                                            <div class="col-lg-2  col-md-12">
+                                                            </div>                                                            
+                                                            <div class="col-lg-2  col-md-12" style="min-width: 116px;">
                                                                 <mat-form-field class="mat-form-field-100">
                                                                     <input  matInput 
                                                                             placeholder="{{t('modules.field.ex_def')}}"
                                                                             [ngModel]="+formSearch.get('product_id').value==0?'':((+formSearch.get('actual_balance').value-(+formSearch.get('estimated_balance').value))*+formSearch.get('product_price').value).toFixed(3).replace('.000', '').replace('.00', '')"
                                                                             [ngModelOptions]="{standalone: true}"
                                                                             [readonly]=true
-                                                                            />
+                                                                    /><span matSuffix>{{accountingCurrency}}</span>
                                                                 </mat-form-field>
                                                             </div>
                                                         </div>
@@ -278,7 +275,7 @@
                                     </ng-container>
                                     <ng-container matColumnDef="estimated_balance"[formArrayName]="'inventoryProductTable'">
                                         <th mat-header-cell *matHeaderCellDef style="max-width: 60px;"  matTooltip="{{t('modules.tip.est_balance')}}">{{t('modules.field.est_balance')}}</th>
-                                        <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> {{row.estimated_balance}} </td>
+                                        <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> <span class="quantity-field">{{row.estimated_balance}}</span> <span matSuffix>{{row.edizm}}</span> </td>
                                         <td mat-footer-cell *matFooterCellDef></td>
                                     </ng-container>
                                     <ng-container matColumnDef="actual_balance" [formArrayName]="'inventoryProductTable'">
@@ -290,12 +287,12 @@
                                             </span>
                                         </th>
                                         <td mat-cell *matCellDef="let row; let i = index" 
-                                        class="cell-padding width-60"
+                                        class="cell-padding width-120"
                                         [formGroupName]="i"
                                         [matTooltip]="((getControlTablefield().controls[i].get('actual_balance').invalid && getControlTablefield().controls[i].get('actual_balance').errors.pattern)) ? t('modules.tip.err_value') : ''"
                                         [ngStyle]="   ((getControlTablefield().controls[i].get('actual_balance').invalid && getControlTablefield().controls[i].get('actual_balance').errors.pattern))?{'background-color': '#ffe4e1'}:{'background-color': 'white'}">
                                             <input matInput 
-                                                class="table-field-editable"
+                                                class="table-field-editable quantity-field"
                                                 [ngClass]="{'table-field-editable':!readonly}"
                                                 [readonly]=readonly
                                                 style="width:  95%;"
@@ -303,6 +300,7 @@
                                                 formControlName="actual_balance"
                                                 (keyup)="onChangeActualBalance(i);"
                                             />
+                                            <span matSuffix>{{row.edizm}}</span>
                                             <control-messages  class="table-form-invalid" [control]="getControlTablefield().controls[i].get('actual_balance')"></control-messages>
                                             <mat-hint align="start" >
                                                 <i *ngIf="  getControlTablefield().controls[i].get('actual_balance').value !='' && 
@@ -312,14 +310,14 @@
                                                 </i>
                                                 <i *ngIf="getControlTablefield().controls[i].get('actual_balance').invalid && getControlTablefield().controls[i].get('actual_balance').errors.pattern" class="table-form-invalid">{{t('docs.error.price_format',{int:7,fract:3})}}</i>
                                             </mat-hint>
-                                        <td mat-footer-cell *matFooterCellDef class="cell-padding width-60"></td>
+                                        <td mat-footer-cell *matFooterCellDef class="cell-padding width-120"></td>
                                     </ng-container>
                                     <ng-container matColumnDef="product_price" [formArrayName]="'inventoryProductTable'">
                                         <th mat-header-cell *matHeaderCellDef style="width: 80px;">
                                             <span 
                                                 style="cursor: default;"
                                                 matTooltip="{{t('modules.tip.price')}}">
-                                                {{t('modules.col.price')}}
+                                                {{t('modules.col.price')}}, {{accountingCurrency}}
                                             </span>
                                         </th>
                                         <td mat-cell 
@@ -343,25 +341,20 @@
                                         </td>
                                         <td mat-footer-cell *matFooterCellDef></td>
                                     </ng-container>
-                                    <ng-container matColumnDef="edizm" [formArrayName]="'inventoryProductTable'">
-                                        <th mat-header-cell *matHeaderCellDef class="cell-padding width-60">{{t('modules.col.unit')}}</th>
-                                        <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i" class="cell-padding width-60"> {{row.edizm}} </td>
-                                        <td mat-footer-cell *matFooterCellDef class="cell-padding width-60"></td>
-                                    </ng-container>
                                     <ng-container matColumnDef="difference" [formArrayName]="'inventoryProductTable'">
                                         <th mat-header-cell *matHeaderCellDef matTooltip="{{t('modules.tip.difference')}}">{{t('modules.field.difference')}}</th>
-                                        <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> {{row.difference}} </td>
+                                        <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> <span class="quantity-field">{{row.difference}}</span> <span matSuffix>{{row.edizm}}</span> </td>
                                         <td mat-footer-cell *matFooterCellDef> {{totalDifference}}</td>
                                     </ng-container>
-                                    <ng-container matColumnDef="discrepancy" [formArrayName]="'inventoryProductTable'">
-                                        <th mat-header-cell *matHeaderCellDef matTooltip="{{t('modules.tip.ex_def_expln')}}">{{t('modules.field.ex_def')}}</th>
+                                    <ng-container matColumnDef="discrepancy" [formArrayName]="'inventoryProductTable'"> <!--Excess/Shortage-->>
+                                        <th mat-header-cell *matHeaderCellDef matTooltip="{{t('modules.tip.ex_def_expln')}}">{{t('modules.field.ex_def')}}, {{accountingCurrency}}</th>
                                         <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> {{row.discrepancy}} </td>
                                         <td mat-footer-cell *matFooterCellDef> {{totalDiscrepancy}}</td>
                                     </ng-container>
                                     <ng-container matColumnDef="delete" [formArrayName]="'inventoryProductTable'">
                                         <th mat-header-cell *matHeaderCellDef style="width: 30px;"><mat-icon style="cursor: default" (click)="clearTable()" matTooltip="{{t('modules.tip.del_frm_tabl_')}}">close</mat-icon></th>
                                         <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i">
-                                            <mat-icon matTooltip="Удалить товар" style="cursor: default" (click)="deleteProductRow(row,i)">delete_forever</mat-icon>
+                                            <mat-icon matTooltip="{{t('modules.tip.del_frm_table')}}" style="cursor: default" (click)="deleteProductRow(row,i)">delete_forever</mat-icon>
                                         </td>
                                         <td mat-footer-cell *matFooterCellDef></td>
                                     </ng-container>

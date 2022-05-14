@@ -136,6 +136,7 @@ export class VatinvoiceoutDocComponent implements OnInit {
   receivedPriceTypesList: IdNameDescription [] = [];//массив для получения списка типов цен
   canEditCompAndDepth=true;
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
+  accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
 
   //для загрузки связанных документов
   linkedDocsReturn:LinkedDocs[]=[];
@@ -286,6 +287,7 @@ export class VatinvoiceoutDocComponent implements OnInit {
       if(this.mode=='window'){this.id=this.data.id; this.formBaseInformation.get('id').setValue(this.id);}
     } 
 
+    this.getBaseData('accountingCurrency');  
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Поставщик"
     this.onCagent2SearchValueChanges();//отслеживание изменений поля "Грузополучатель"
     this.getSetOfPermissions();

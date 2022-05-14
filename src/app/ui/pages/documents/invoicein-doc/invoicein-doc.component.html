@@ -288,7 +288,7 @@
                                                                     <app-balance-cagent 
                                                                             [company_id]="formBaseInformation.get('company_id').value"
                                                                             [cagent_id]="formBaseInformation.get('cagent_id').value"
-                                                                            [currency]="'руб.'">
+                                                                            [currency]="accountingCurrency">
                                                                     </app-balance-cagent>
                                                                     <mat-autocomplete #auto4="matAutocomplete">
                                                                     <ng-container *ngIf="!isCagentListLoading" style="width:320px;">
@@ -311,7 +311,7 @@
                                                                             <app-balance-cagent 
                                                                                     [company_id]="formBaseInformation.get('company_id').value"
                                                                                     [cagent_id]="formBaseInformation.get('cagent_id').value"
-                                                                                    [currency]="'руб.'">
+                                                                                    [currency]="accountingCurrency">
                                                                             </app-balance-cagent>
                                                                 </mat-form-field>
                                                             </div>
@@ -445,6 +445,7 @@
                                     [nds]="formBaseInformation.get('nds').value"
                                     [nds_included]="formBaseInformation.get('nds_included').value"
                                     [spravTaxesSet]="spravTaxesSet"
+                                    [accountingCurrency]="accountingCurrency"
                                 ></app-invoicein-products-table>
                             </div>
                         </div>

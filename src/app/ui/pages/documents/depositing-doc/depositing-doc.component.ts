@@ -101,6 +101,7 @@ export class DepositingDocComponent implements OnInit {
   rightsDefined:boolean; // определены ли права
   lastCheckedDocNumber:string=''; // последний проверенный номер (чтобы не отправлять запросы с одинаковыми номерами)
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, select - оконный режим выбора файлов
+  accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
 
 
   orderoutList: any[];               // список расходных ордеров, из которых поступили средства
@@ -240,6 +241,7 @@ export class DepositingDocComponent implements OnInit {
     this.getBaseData('myCompanyId');  
     this.getBaseData('companiesList');  
     this.getBaseData('myDepartmentsList');    
+    this.getBaseData('accountingCurrency');  
   }
   //чтобы не было ExpressionChangedAfterItHasBeenCheckedError
   ngAfterContentChecked() {

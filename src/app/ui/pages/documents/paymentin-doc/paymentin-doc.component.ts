@@ -138,6 +138,7 @@ export class PaymentinDocComponent implements OnInit {
   rightsDefined:boolean; // определены ли права
   lastCheckedDocNumber:string='';
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
+  accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
 
   paymentoutList: any[];             // список исходящих платежей, из которых поступили средства
   orderoutList: any[];               // список расходных ордеров, из которых поступили средства
@@ -296,6 +297,7 @@ export class PaymentinDocComponent implements OnInit {
     this.getBaseData('myId');    
     this.getBaseData('myCompanyId');  
     this.getBaseData('companiesList');  
+    this.getBaseData('accountingCurrency');  
   }
   //чтобы не было ExpressionChangedAfterItHasBeenCheckedError
   ngAfterContentChecked() {

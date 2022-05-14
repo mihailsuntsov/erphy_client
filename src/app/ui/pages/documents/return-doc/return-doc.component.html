@@ -269,7 +269,7 @@
                                                                     <app-balance-cagent 
                                                                             [company_id]="formBaseInformation.get('company_id').value"
                                                                             [cagent_id]="formBaseInformation.get('cagent_id').value"
-                                                                            [currency]="'руб.'">
+                                                                            [currency]="accountingCurrency">
                                                                     </app-balance-cagent>
                                                                     <mat-autocomplete #auto4="matAutocomplete">
                                                                     <ng-container *ngIf="!isCagentListLoading" style="width:320px;">
@@ -292,7 +292,7 @@
                                                                     <app-balance-cagent 
                                                                             [company_id]="formBaseInformation.get('company_id').value"
                                                                             [cagent_id]="formBaseInformation.get('cagent_id').value"
-                                                                            [currency]="'руб.'">
+                                                                            [currency]="accountingCurrency">
                                                                     </app-balance-cagent>
                                                                 </mat-form-field>
                                                             </div>
@@ -390,6 +390,7 @@
                                     [readonly]="formBaseInformation.get('is_completed').value"
                                     [nds]="formBaseInformation.get('nds').value"
                                     [spravTaxesSet]="spravTaxesSet"
+                                    [accountingCurrency]="accountingCurrency"
                                 ></app-return-products-table>
                             </div>
                         </div>

@@ -72,11 +72,8 @@ tr.mat-footer-row {
 .cell-padding{
     padding: 0px 10px 0 10px;
 }
-.width-60{
-    width: 60px;
-}
-.width-60{
-    width: 80px;
+.width-120{
+    width: 120px;
 }
 ::ng-deep td  .mat-select-arrow { /*прячем стрелку mat-select НДС в таблице товаров*/
     border-top: 0px;

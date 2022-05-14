@@ -163,6 +163,7 @@ export class ReturnsupDocComponent implements OnInit {
   panelPostingOpenState=false;
   spravTaxesSet: SpravTaxesSet[] = []; //массив имен и id для ндс 
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
+  accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
 
   //для загрузки связанных документов
   LinkedDocsWriteoff:LinkedDocs[]=[];
@@ -376,6 +377,7 @@ export class ReturnsupDocComponent implements OnInit {
     this.getBaseData('myCompanyId');  
     this.getBaseData('companiesList');  
     this.getBaseData('myDepartmentsList');  
+    this.getBaseData('accountingCurrency');  
   }
   //чтобы не было ExpressionChangedAfterItHasBeenCheckedError
   ngAfterContentChecked() {

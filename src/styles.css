@@ -165,3 +165,11 @@ body {
   background-color: white;
   margin-bottom: 28px !important;
 }
+.quantity-field{
+  display: inline-block;
+  width: 60px !important;
+}
+.quantity-field-sm{
+  display: inline-block;
+  width: 45px !important;
+}

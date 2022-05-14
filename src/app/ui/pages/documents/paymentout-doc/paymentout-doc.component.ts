@@ -136,6 +136,7 @@ export class PaymentoutDocComponent implements OnInit {
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
   rightsDefined:boolean; // определены ли права
   lastCheckedDocNumber:string='';
+  accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
 
 
   //для загрузки связанных документов
@@ -290,6 +291,7 @@ export class PaymentoutDocComponent implements OnInit {
     this.getBaseData('myId');    
     this.getBaseData('myCompanyId');  
     this.getBaseData('companiesList'); 
+    this.getBaseData('accountingCurrency');  
   }
   //чтобы не было ExpressionChangedAfterItHasBeenCheckedError
   ngAfterContentChecked() {

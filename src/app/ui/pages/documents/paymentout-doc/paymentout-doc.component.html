@@ -260,7 +260,7 @@
                                                                     <app-balance-account 
                                                                         [company_id]="formBaseInformation.get('company_id').value"
                                                                         [account_id]="formBaseInformation.get('payment_account_id').value"
-                                                                        [currency]="'руб.'">
+                                                                        [currency]="accountingCurrency">
                                                                     </app-balance-account>
                                                                 </mat-form-field>
                                                                 
@@ -273,7 +273,7 @@
                                                                     <app-balance-account 
                                                                         [company_id]="formBaseInformation.get('company_id').value"
                                                                         [account_id]="formBaseInformation.get('payment_account_id').value"
-                                                                        [currency]="'руб.'">
+                                                                        [currency]="accountingCurrency">
                                                                     </app-balance-account>
                                                                 </mat-form-field>
                                                             </div>
@@ -312,7 +312,7 @@
                                                                     <app-balance-cagent 
                                                                     [company_id]="formBaseInformation.get('company_id').value"
                                                                     [cagent_id]="formBaseInformation.get('cagent_id').value"
-                                                                    [currency]="'руб.'">
+                                                                    [currency]="accountingCurrency">
                                                                     </app-balance-cagent>
                                                                     <mat-autocomplete #auto4="matAutocomplete">
                                                                     <ng-container *ngIf="!isCagentListLoading" style="width:320px;">
@@ -335,7 +335,7 @@
                                                                     <app-balance-cagent 
                                                                     [company_id]="formBaseInformation.get('company_id').value"
                                                                     [cagent_id]="formBaseInformation.get('cagent_id').value"
-                                                                    [currency]="'руб.'">
+                                                                    [currency]="accountingCurrency">
                                                                     </app-balance-cagent>
                                                                 </mat-form-field>
                                                             </div>
@@ -369,7 +369,7 @@
                                                                     <app-balance-boxoffice 
                                                                         [company_id]="formBaseInformation.get('company_id').value"
                                                                         [boxoffice_id]="formBaseInformation.get('boxoffice_id').value"
-                                                                        [currency]="'руб.'">
+                                                                        [currency]="accountingCurrency">
                                                                     </app-balance-boxoffice>
                                                                 </mat-form-field>
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="formBaseInformation.get('is_completed').value">
@@ -380,7 +380,7 @@
                                                                             <app-balance-boxoffice 
                                                                                 [company_id]="formBaseInformation.get('company_id').value"
                                                                                 [boxoffice_id]="formBaseInformation.get('boxoffice_id').value"
-                                                                                [currency]="'руб.'">
+                                                                                [currency]="accountingCurrency">
                                                                             </app-balance-boxoffice>
                                                                 </mat-form-field>
                                                             </div>
@@ -397,7 +397,7 @@
                                                                     <app-balance-account 
                                                                         [company_id]="formBaseInformation.get('company_id').value"
                                                                         [account_id]="formBaseInformation.get('payment_account_to_id').value"
-                                                                        [currency]="'руб.'">
+                                                                        [currency]="accountingCurrency">
                                                                     </app-balance-account>
                                                                 </mat-form-field>
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="formBaseInformation.get('is_completed').value">
@@ -408,7 +408,7 @@
                                                                             <app-balance-account 
                                                                                 [company_id]="formBaseInformation.get('company_id').value"
                                                                                 [account_id]="formBaseInformation.get('payment_account_to_id').value"
-                                                                                [currency]="'руб.'">
+                                                                                [currency]="accountingCurrency">
                                                                             </app-balance-account>
                                                                 </mat-form-field>
                                                             </div>

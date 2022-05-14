@@ -286,7 +286,7 @@
                                                                         <app-balance-cagent 
                                                                         [company_id]="formBaseInformation.get('company_id').value"
                                                                         [cagent_id]="formBaseInformation.get('cagent_id').value"
-                                                                        [currency]="'руб.'">
+                                                                        [currency]="accountingCurrency">
                                                                         </app-balance-cagent>
 
                                                                         <mat-autocomplete #auto4="matAutocomplete">
@@ -310,7 +310,7 @@
                                                                         <app-balance-cagent 
                                                                         [company_id]="formBaseInformation.get('company_id').value"
                                                                         [cagent_id]="formBaseInformation.get('cagent_id').value"
-                                                                        [currency]="'руб.'">
+                                                                        [currency]="accountingCurrency">
                                                                         </app-balance-cagent>
                                                                     </mat-form-field>
                                                                 </div>
@@ -747,6 +747,7 @@
                                         [spravTaxesSet]="spravTaxesSet"
                                         [priceTypeId]="settingsForm.get('priceTypeId').value"
                                         [readonly]="is_completed"
+                                        [accountingCurrency]="accountingCurrency"
                                     ></app-product-search-and-table>
                                 </div>
                             </div>

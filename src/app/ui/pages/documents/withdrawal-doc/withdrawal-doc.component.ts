@@ -99,6 +99,7 @@ export class WithdrawalDocComponent implements OnInit {
   rightsDefined:boolean; // определены ли права
   lastCheckedDocNumber:string=''; // последний проверенный номер (чтобы не отправлять запросы с одинаковыми номерами)
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, select - оконный режим выбора файлов
+  accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
 
   //для загрузки связанных документов
   linkedDocsReturn:LinkedDocs[]=[];
@@ -263,6 +264,7 @@ export class WithdrawalDocComponent implements OnInit {
     this.getBaseData('myCompanyId');  
     this.getBaseData('companiesList');  
     this.getBaseData('myDepartmentsList');
+    this.getBaseData('accountingCurrency');  
   }
   //чтобы не было ExpressionChangedAfterItHasBeenCheckedError
   ngAfterContentChecked() {

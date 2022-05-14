@@ -128,6 +128,7 @@ export class InventoryDocComponent implements OnInit {
   canEditCompAndDepth=true;
   panelWriteoffOpenState=false;
   panelPostingOpenState=false;
+  accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
 
   //для загрузки связанных документов
   LinkedDocsWriteoff:LinkedDocs[]=[];
@@ -292,6 +293,7 @@ export class InventoryDocComponent implements OnInit {
     this.getBaseData('myCompanyId');  
     this.getBaseData('companiesList');  
     this.getBaseData('myDepartmentsList');    
+    this.getBaseData('accountingCurrency');  
   }
 
   //чтобы не было ExpressionChangedAfterItHasBeenCheckedError

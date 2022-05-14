@@ -107,7 +107,7 @@ export class ReturnProductsTableComponent implements OnInit {
   // Расценка (все настройки здесь - по умолчанию. После первого же сохранения настроек данные настройки будут заменяться в методе getSettings() )
   productPrice:number=0; //Цена найденного и выбранного в форме поиска товара.
   netCostPrice:number = 0; // себестоимость найденного и выбранного в форме поиска товара.
- priceUpDownFieldName:string = translate('modules.field.markup'); // Наименование поля с наценкой-скидкой
+  priceUpDownFieldName:string = translate('modules.field.markup'); // Наименование поля с наценкой-скидкой
   priceTypeId_temp:number; // id типа цены. Нужна для временного хранения типа цены на время сброса формы поиска товара
   companyId_temp:number; // id предприятия. Нужна для временного хранения предприятия на время сброса формы formBaseInformation
 
@@ -132,6 +132,7 @@ export class ReturnProductsTableComponent implements OnInit {
   @Input() autoAdd:boolean;
   @Input() nds:boolean;
   @Input() spravTaxesSet: SpravTaxesSet[] = []; //массив имен и id для ндс 
+  @Input() accountingCurrency:string;// short name of Accounting currency of user's company (e.g. $ or EUR)
   @Output() changeProductsTableLength = new EventEmitter<any>();   //событие изменения таблицы товаров (а именно - количества товаров в ней)
   @Output() totalSumPriceEvent = new EventEmitter<string>();
 
@@ -182,12 +183,13 @@ export class ReturnProductsTableComponent implements OnInit {
     this.showColumns();
     this.onProductSearchValueChanges();//отслеживание изменений поля "Поиск товара"
   }
+  getTaxNameById(id:number){let name='';this.spravTaxesSet.map(i=>{if(+i.id==id)name=i.name}); return name}
   showColumns(){
     this.displayedColumns=[];
     // if(!this.readonly)
       // this.displayedColumns.push('select');
     // this.displayedColumns.push('index','row_id');
-    this.displayedColumns.push('name','product_count','edizm','product_price','product_sumprice','product_netcost','product_sumnetcost');
+    this.displayedColumns.push('name','product_count','product_price','product_sumprice','product_netcost','product_sumnetcost');
     if(this.nds)
       this.displayedColumns.push('nds');
     if(!this.readonly)
@@ -444,7 +446,7 @@ export class ReturnProductsTableComponent implements OnInit {
     {// список товаров не должен содержать одинаковые товары из одного и того же склада. Тут проверяем на это
       if(+i['product_id']==this.formSearch.get('product_id').value)
       {//такой товар с таким складом уже занесён в таблицу товаров ранее, и надо смёрджить их, т.е. слить в один, просуммировав их фактические остатки.
-        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:'Данный товар уже выбран'}});
+        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('modules.msg.prd_alr_slctd')}});
         thereProductInTableWithSameId=true; 
       }
     });

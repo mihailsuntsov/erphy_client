@@ -199,6 +199,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   @Input() spravTaxesSet: SpravTaxesSet[]; //массив имен и id для ндс 
   @Input() readonly:boolean;
   @Input() priceTypeId:number;
+  @Input() accountingCurrency:string;// short name of Accounting currency of user's company (e.g. $ or EUR)
   
   // @Input() parent_document_id:string;// из какого документа вызывают. Например, CustomersOrders, RetailSales
   @Input() autoAdd:boolean;//автодобавление товара из формы поиска товара в таблицу
@@ -286,6 +287,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
     setTimeout(() => { this.productSearchFieldValue.nativeElement.focus(); }, 1000);
   }
 
+  getTaxNameById(id:number){let name='';this.spravTaxesSet.map(i=>{if(+i.id==id)name=i.name}); return name}
   trackByIndex(i: any) { return i; }
 
 
@@ -439,7 +441,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
     {// список товаров не должен содержать одинаковые товары из одного и того же склада. Тут проверяем на это
       if(+i['product_id']==this.formSearch.get('product_id').value && +i['department_id']==this.formSearch.get('secondaryDepartmentId').value)
       {//такой товар с таким складом уже занесён в таблицу товаров ранее, и надо поругаться.
-        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:"translate('modules.msg.prod_in_list')",}});
+        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('modules.msg.prod_in_list'),}});
         thereProductInTableWithSameId=true; 
       }
     });
@@ -524,7 +526,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
     if(!this.readonly)
       if(this.parentDocName=='CustomersOrders')
         this.displayedColumns.push('select');
-    this.displayedColumns.push('name','product_count','edizm','product_price','product_sumprice');
+    this.displayedColumns.push('name','product_count','product_price','product_sumprice');
     if(this.parentDocName=='CustomersOrders')
       this.displayedColumns.push('reserved_current');
     this.displayedColumns.push('available','total','reserved');

@@ -134,6 +134,7 @@ export class VatinvoiceinDocComponent implements OnInit {
   receivedPriceTypesList: IdNameDescription [] = [];//массив для получения списка типов цен
   canEditCompAndDepth=true;
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
+  accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
 
   //для загрузки связанных документов
   linkedDocsReturn:LinkedDocs[]=[];
@@ -278,6 +279,7 @@ export class VatinvoiceinDocComponent implements OnInit {
     this.getBaseData('myId');    
     this.getBaseData('myCompanyId');  
     this.getBaseData('companiesList');  
+    this.getBaseData('accountingCurrency');  
   }
   //чтобы не было ExpressionChangedAfterItHasBeenCheckedError
   ngAfterContentChecked() {
