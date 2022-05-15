@@ -744,7 +744,7 @@ export class InventoryDocComponent implements OnInit {
                       console.log("3-"+!this.formBaseInformation.valid);
                       break;
                     }
-                    case 0:{//недостаточно прав
+                    case -1:{//недостаточно прав
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm_creat',{name:translate('docs.docs.inventory')})}});
                       break;
                     }
