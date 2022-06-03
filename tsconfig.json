@@ -12,7 +12,8 @@
     "moduleResolution": "node",
     "importHelpers": true,
     "target": "es2015",
-    "lib": ["es2018", "dom", "dom.iterable", "scripthost"]
+    "lib": ["es2018", "dom", "dom.iterable", "scripthost"],
+    "resolveJsonModule": true
   },
   "angularCompilerOptions": {
     "fullTemplateTypeCheck": true,

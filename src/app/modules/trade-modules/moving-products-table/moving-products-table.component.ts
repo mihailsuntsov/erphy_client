@@ -91,8 +91,8 @@ export class MovingProductsTableComponent implements OnInit {
   canAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredProducts: ProductSearchResponse[] = [];
   productImageName:string = null;
-  mainImageAddress:string = 'assets/images/no_foto.jpg';
-  thumbImageAddress:string = 'assets/images/no_foto.jpg';
+  mainImageAddress:string = 'assets_/images/no_foto.jpg';
+  thumbImageAddress:string = 'assets_/images/no_foto.jpg';
   imageToShow:any; // переменная в которую будет подгружаться картинка товара (если он jpg или png)
 
   //форма поиска товара
@@ -705,7 +705,7 @@ export class MovingProductsTableComponent implements OnInit {
   resetFormSearch(){
       this.formSearchReadOnly=false;
       this.searchProductCtrl.setValue('');
-      this.thumbImageAddress="assets/images/no_foto.jpg";      
+      this.thumbImageAddress="assets_/images/no_foto.jpg";      
       this.mainImageAddress="";
       this.productImageName=null;
       this.imageToShow=null;

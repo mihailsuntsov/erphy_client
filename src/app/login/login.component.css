@@ -28,6 +28,36 @@
     top: 9px;
     font-size: small;
     cursor: pointer;
+    z-index: 1000;
+}
+ .version{
+    position: absolute;
+    margin-left: auto;
+    margin-right: auto;
+    left: 0;
+    right: 0;
+    text-align: center;
+    bottom: 5px;
+    font-size: x-small;
+    cursor: pointer;
+    z-index: 1000;
+}
+.version-info{
+    text-align: left;
+    font-size: small;
+}
+.version-mat-card{
+    position: absolute;
+    bottom: -90px;
+    margin-left: auto;
+    margin-right: auto;
+    left: 0 !important;
+    right: 0;
+    width: 190px;
+}
+.versions-incomp{
+    color: red;
+    font-weight: bold;
 }
 .arrow-wrap{
     position: absolute;
@@ -36,3 +66,4 @@
     width: 5px;
     height: 5px;
 }
+

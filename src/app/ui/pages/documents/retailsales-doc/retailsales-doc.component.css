@@ -264,7 +264,7 @@ div#costPrice input {
 }
 .paytype-button-row {
     display: table-cell;
-    width: 100%px;
+    width: 100px;
     margin: 8px 8px 8px 0;
   }
 ::ng-deep .mat-stroked-button{

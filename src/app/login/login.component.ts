@@ -15,11 +15,27 @@ import { AuthService } from '../auth/auth.service';
 import { DelCookiesService } from '../services/del-cookies.service';
 import { TokenStorageService } from '../auth/token-storage.service';// TokenStorageService используется для управления токеном в sessionStorage браузера
 import { Router } from '@angular/router';
-import {  Validators, FormGroup, FormControl } from '@angular/forms';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
+import { MatDialog } from '@angular/material/dialog';
+import { Validators, FormGroup, FormControl } from '@angular/forms';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { TranslocoService } from '@ngneat/transloco';
-// import { filter } from 'rxjs/operators';
-import { translate } from '@ngneat/transloco'; //+++
+import { HttpClient } from '@angular/common/http';
+import { translate } from '@ngneat/transloco';
+import  packageJson from 'package.json';
+
+// Global settings
+interface SettingsGeneral{
+showRegistrationLink:boolean;
+allowRegistration:boolean;
+showForgotLink:boolean;
+allowRecoverPassword:boolean;
+backendVersion:string;
+backendVersionDate:string;
+databaseVersion:string;
+databaseVersionDate:string;
+showInSignin:string;
+}
 
 @Component({
   selector: 'app-login',
@@ -35,19 +51,32 @@ export class LoginComponent implements OnInit {
   roles: string[] = [];
   emptyLogin=false;
   emptyPassword=false;
-  // temp_language:string='en';
+  frontendVersion=packageJson.version;
+  displayVerson=false;
+  versionsCompatible=true;     // versions of frontend, backend and database are compatible with each other
+  settingsGeneral:SettingsGeneral= {
+    allowRecoverPassword: false,
+    allowRegistration: false,
+    showForgotLink: false,
+    showRegistrationLink: false,
+    backendVersion:'',
+    backendVersionDate:'',
+    databaseVersion:'',
+    databaseVersionDate:'',
+    showInSignin:''
+  };
+
 
   constructor(
     private authService: AuthService, 
     private tokenStorage: TokenStorageService,
     private _router:Router,
     private service: TranslocoService,
-    // private Cookie: Cookie,
+    public MessageDialog: MatDialog,
+    private http: HttpClient,
     private delCookiesService: DelCookiesService,) { }
 
   ngOnInit() {
-    // this.service.load('ru').subscribe();
-    // this.service.events$.pipe(filter(event => event.type==='translationLoadSuccess'));
     if(Cookie.get('language')=='undefined' || Cookie.get('language')==null) Cookie.set('language', 'en');
     this.setLanguage(Cookie.get('language'));
     // if(Cookie.get('language')=='undefined' || Cookie.get('language')==null) this.setLanguage('en'); else {this.temp_language=Cookie.get('language')}
@@ -68,10 +97,7 @@ export class LoginComponent implements OnInit {
       });
     }
 
-    // this.temp_language=Cookie.get('language');
-    // Cookie.deleteAll();
-    // this.delCookiesService.delCookiesOnLogin();
-    // this.setLanguage(this.temp_language);
+    this.getSettingsGeneral();
   }
   setLanguage(lang: string) {
     this.service.setActiveLang(lang);
@@ -120,7 +146,26 @@ export class LoginComponent implements OnInit {
       }
     }
   }
-  
+
+  getSettingsGeneral(){
+    return this.http.get('/api/public/getSettingsGeneral')
+      .subscribe(
+          (data) => {   
+              this.settingsGeneral=data as SettingsGeneral;
+          },
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
+          );
+  }
+  getVersionToDisplay():string{
+    return packageJson.version.slice(0, 5);
+  }
+  getVersionWoPatches(v:string):string{
+    return v.slice(0, 5);
+  }
+  isVersionsCompatible():boolean{
+    return  this.getVersionWoPatches(packageJson.version)==this.getVersionWoPatches(this.settingsGeneral.backendVersion) && 
+            this.getVersionWoPatches(packageJson.version)==this.getVersionWoPatches(this.settingsGeneral.databaseVersion);
+  }
   reloadPage() {
     window.location.reload();
     

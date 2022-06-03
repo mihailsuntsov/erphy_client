@@ -130,7 +130,7 @@ flex: 1 1 auto;
     height: 174px;
   }
   .grid-header-image {
-    background-image: url('https://material.angular.io/assets/img/examples/shiba1.jpg');
+    background-image: url('https://material.angular.io/assets_/img/examples/shiba1.jpg');
     background-size: cover;
   }
   .card-blocks{

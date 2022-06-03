@@ -260,7 +260,7 @@ categoriesExpanded=false;//открыты или закрыты категори
 // *****  переменные картинок  ***** 
 imagesInfo : ImagesInfo [] = []; //массив для получения информации по картинкам товара
 progress: { percentage: number } = { percentage: 0 };
-noImageAddress: string="../../../../../../assets/images/no_foto.jpg"; // заглушка для главной картинки товара
+noImageAddress: string="../../../../../../assets_/images/no_foto.jpg"; // заглушка для главной картинки товара
 // ******  переменные поставщиков ******
 cagentsInfo : cagentsInfo [] = []; //массив для получения информации 
 // ******  переменные штрихкодов  ******
@@ -1050,7 +1050,7 @@ refreshPermissions():boolean{
         this.createImageFromBlob(blob);
       });
     } 
-    // else this.noImageAddress="../../../../../../assets/images/no_foto.jpg";
+    // else this.noImageAddress="../../../../../../assets_/images/no_foto.jpg";
   }
 
   clickBtnDeleteImage(id: number): void {

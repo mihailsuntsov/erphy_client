@@ -324,7 +324,7 @@ class="spinner"
                                                     </span>
                                                     <td mat-cell *matCellDef="let row">
                                                             <a  [routerLink]="['../../filesdoc', row.id ]">
-                                                                <img class="file_icon" src="../../../../../../assets/images/ext_icons/{{getIcon(row.extention)}}.png" width=40>
+                                                                <img class="file_icon" src="../../../../../../assets_/images/ext_icons/{{getIcon(row.extention)}}.png" width=40>
                                                             </a>
                                                     </td>
                                                 </ng-container>
@@ -410,9 +410,9 @@ class="spinner"
                                                     <mat-card class="grid-card">
                                                         <div class="iconArea" *ngIf="block.extention.toUpperCase() != '.PNG' && block.extention.toUpperCase() != '.JPG' && block.extention.toUpperCase() != '.JPEG'; else other_content">
                                                             <a *ngIf="mode!='select'" [routerLink]="['../../filesdoc', block.id ]">
-                                                                <img class="file_icon" src="../../../../../../assets/images/ext_icons/{{getIcon(block.extention)}}.png" width=120>
+                                                                <img class="file_icon" src="../../../../../../assets_/images/ext_icons/{{getIcon(block.extention)}}.png" width=120>
                                                             </a>
-                                                            <img *ngIf="mode=='select'" class="file_icon" src="../../../../../../assets/images/ext_icons/{{getIcon(block.extention)}}.png" width=120>
+                                                            <img *ngIf="mode=='select'" class="file_icon" src="../../../../../../assets_/images/ext_icons/{{getIcon(block.extention)}}.png" width=120>
                                                         </div>
                                                         <ng-template #other_content>
                                                             <div class="iconArea">

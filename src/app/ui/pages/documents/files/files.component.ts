@@ -143,7 +143,7 @@ export class FilesComponent implements OnInit {
 selectedFiles: FileList;
 progress: { percentage: number } = { percentage: 0 };
 mainImageAddress: string; // имя или адрес главной картинки
-imgBegin:string='<img src="../../../../../../assets/images/ext_icons/';
+imgBegin:string='<img src="../../../../../../assets_/images/ext_icons/';
 imgEnd:string='" width=50>';
 viewMode:string = "grid"; // способ отображения файлов - таблицей table или сеткой grid 
 

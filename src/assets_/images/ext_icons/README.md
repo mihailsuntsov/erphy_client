@@ -202,4 +202,4 @@ If you feel that you have a copyright issue, please feel free to [report it](htt
 
 ## Screenshot
 
-![Icon Samples](https://dmhendricks.github.io/demo/file-icon-vectors/assets/images/screenshot.png "Sample Icons")
+![Icon Samples](https://dmhendricks.github.io/demo/file-icon-vectors/assets_/images/screenshot.png "Sample Icons")

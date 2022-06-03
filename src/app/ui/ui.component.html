@@ -3,7 +3,7 @@
     <div class="logo-details">
       <i class="material-icons unselectable" (click)="menuClick($event)">menu</i>
       <!-- <a href="/ui/dashboard"><span class="logo-name">ДОКИО</span></a> -->
-      <a routerLink="dashboard"><span class="logo-name">{{t('sidebar.title')}}</span></a>
+      <a routerLink="dashboard"><span class="logo-name"><img src="assets_/images/logo.svg" style="width:100%" alt="Logo" /></span></a>
     </div>
     <ul class="nav-links">
       <li *ngIf="hasPermission(183)||hasPermission(360)||hasPermission(424)||hasPermission(444)||hasPermission(528)">
