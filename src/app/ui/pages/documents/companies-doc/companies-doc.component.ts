@@ -961,7 +961,7 @@ constructor(private activateRoute: ActivatedRoute,
     arr.forEach(m =>{
       add.push(this._fb.group({
       id: m.id,
-      bik: new FormControl (m.bik,[,Validators.pattern('^[0-9]{9}$')]),
+      bik: new FormControl (m.bik,[]),
       name:  new FormControl (m.name,[]),
       address:  new FormControl (m.address,[]),
       payment_account:  new FormControl (m.payment_account,[]),
@@ -974,7 +974,7 @@ constructor(private activateRoute: ActivatedRoute,
     const add = this.formBaseInformation.get('companiesPaymentAccountsTable') as FormArray;
     add.push(this._fb.group({
       id: [],
-      bik: new FormControl ('',[,Validators.pattern('^[0-9]{9}$')]),
+      bik: new FormControl ('',[]),
       name:  new FormControl ('',[]),
       address:  new FormControl ('',[]),
       payment_account:  new FormControl ('',[]),

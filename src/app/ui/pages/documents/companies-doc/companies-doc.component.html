@@ -520,11 +520,11 @@
                                                     type="text"
                                                     [readonly]=!editability
                                                     formControlName="country" 
-                                                    [matAutocomplete]="auto2" 
+                                                    [matAutocomplete]="auto3" 
                                                     (input)="checkEmptyListField('country');"
                                                     (change)="checkEmptyListField('country');">
-                                                    <mat-autocomplete #auto2="matAutocomplete">
-                                                        <mat-option *ngFor="let option of filteredSpravSysJrCountries | async" [value]="option.name_ru">
+                                                    <mat-autocomplete #auto3="matAutocomplete">
+                                                        <mat-option *ngFor="let option of filteredSpravSysCountries | async" [value]="option.name_ru">
                                                             <div (click)="formBaseInformation.get('country_id').setValue(option.id)">
                                                                 <span style="margin:10px;">{{option.name_ru}}</span>
                                                             </div>
@@ -905,7 +905,6 @@
                                                         <mat-label>{{t('docs.field.bic')}}{{formBaseInformation.get('companiesPaymentAccountsTable').controls[i].get('bik').value.toString().length!='9'?'*':''}}</mat-label>
                                                         <input  matInput
                                                                 #bik
-                                                                (keypress)="numberOnly($event)"
                                                                 [readonly]=!editability
                                                                 maxlength="9"
                                                                 formControlName="bik"/>

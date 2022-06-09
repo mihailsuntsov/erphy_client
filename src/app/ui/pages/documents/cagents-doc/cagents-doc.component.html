@@ -883,7 +883,6 @@
                                                                 <mat-label>{{t('docs.field.bic')}} {{formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('bik').value.length!='9'?'*':''}}</mat-label>
                                                                 <input  matInput
                                                                         #bik
-                                                                        (keypress)="numberOnly($event)"
                                                                         [readonly]=!editability
                                                                         maxlength="9"
                                                                         formControlName="bik"/>
