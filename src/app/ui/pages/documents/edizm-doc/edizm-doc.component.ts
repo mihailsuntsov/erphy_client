@@ -267,7 +267,7 @@ export class EdizmDocComponent implements OnInit {
                 (data) =>   {
                                 this.createdDocId=data as string [];
                                 this.id=+this.createdDocId[0];
-                                this._router.navigate(['/ui/taxesdoc', this.id]);
+                                this._router.navigate(['/ui/edizmdoc', this.id]);
                                 this.formBaseInformation.get('id').setValue(this.id);
                                 this.getData();
                                 this.openSnackBar(translate('docs.msg.doc_crtd_suc'),translate('docs.msg.close'));

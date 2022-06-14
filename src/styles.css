@@ -173,3 +173,9 @@ body {
   display: inline-block;
   width: 45px !important;
 }
+.mat-card-header-text {
+  margin: 0 16px !important;
+}
+.mat-card-content {
+  margin: 0 6px !important;
+} 

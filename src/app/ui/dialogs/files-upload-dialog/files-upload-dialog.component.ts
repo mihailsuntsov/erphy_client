@@ -46,9 +46,9 @@ maxFileSize:number = 10 * 1024 * 1024; // = 10 Mb; Также нужно мен�
   }
 
   ngOnInit() {
-    console.log("data.categoryId:"+this.data.categoryId);
-    console.log("data.companyId:"+this.data.companyId);
-    console.log("data.categoryName:"+this.data.categoryName);
+    // console.log("data.categoryId:"+this.data.categoryId);
+    // console.log("data.companyId:"+this.data.companyId);
+    // console.log("data.categoryName:"+this.data.categoryName);
     this.formBaseInformation = new FormGroup({
       categoryId:     new FormControl (+this.data.categoryId,[]),//id категории для файлов (ПУСТО - КОРНЕВАЯ БУДЕТ)
       anonyme_access: new FormControl (false,[]),
@@ -100,9 +100,7 @@ maxFileSize:number = 10 * 1024 * 1024; // = 10 Mb; Также нужно мен�
      });
     } else {
       this.aboutMaxSize(file.name,(file.size/1024/1024).toFixed(2));
-      
     }
-    
   }
 
   nextFileSwitcher(){
@@ -111,15 +109,11 @@ maxFileSize:number = 10 * 1024 * 1024; // = 10 Mb; Также нужно мен�
       this.upload(this.filesArray[this.currentIndexFileArray]);
     } else {
     if(this.countUploadedFiles>0){
-    this.openSnackBar("Файлы загружены. Всего загруженных файлов: "+this.countUploadedFiles, "Закрыть");
-    } else this.openSnackBar("Файлы не были загружены", "Закрыть");
+    this.openSnackBar(translate('modules.msg.files_uploadd')+this.countUploadedFiles, translate('modules.button.close'));
+    } else this.openSnackBar(translate('modules.msg.files_no_upld'), translate('modules.button.close'));
     this.onNoClick();
     }
   }
-
-
-
-
   
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
@@ -127,37 +121,13 @@ maxFileSize:number = 10 * 1024 * 1024; // = 10 Mb; Также нужно мен�
     });
   }
 
-  aboutSharedFiles(){
-    const dialogRef = this.MessageDialog.open(MessageDialog, {
-      width: '400px',
-      data:
-      { 
-        head: 'Файл для общего доступа',
-        message: 'Если файл открыт для общего доступа, на него не распространяются права категорий, к которым он относится, и его можно скачать по внешней ссылке. Данная опция нужна для для картинок сайта, фото товаров интернет-магазина и др.'
-      },
-    });
-    dialogRef.afterClosed().subscribe(result => {});  
-  }
-
-  aboutDescription(){
-    const dialogRef = this.MessageDialog.open(MessageDialog, {
-      width: '400px',
-      data:
-      { 
-        head: 'Описание файла',
-        message: 'Описание файла - это краткая текстовая заметка по загружаемому файлу.'
-      },
-    });
-    dialogRef.afterClosed().subscribe(result => {});  
-  }
-
   aboutMaxCountFiles(){
     const dialogRef = this.MessageDialog.open(MessageDialog, {
       width: '400px',
       data:
       { 
-        head: 'Количество файлов',
-        message: 'Максимальное количество файлов для одной операции загрузки равно 10. Пожалуйста, выберите меньшее количество файлов.'
+        head: translate('modules.msg.files_amount'),
+        message: translate('modules.msg.files_amount_')
       },
     });
     dialogRef.afterClosed().subscribe(result => {
@@ -171,8 +141,8 @@ maxFileSize:number = 10 * 1024 * 1024; // = 10 Mb; Также нужно мен�
       width: '400px',
       data:
       { 
-        head: 'Размер файла',
-        message: 'Файл '+fileName+' размером '+fileSize+' Мб., превышает максимально допустимый для загрузки размер файла, равный '+this.maxFileSize/1024/1024+' Мб.',
+        head: translate('modules.msg.file_size'),
+        message: translate('modules.msg.file_')+fileName+translate('modules.msg._with_size_')+fileSize+translate('modules.msg._mb_')+translate('modules.msg._more_than')+this.maxFileSize/1024/1024+translate('modules.msg._mb_'),
       },
     });
     dialogRef.afterClosed().subscribe(result => {

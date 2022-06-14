@@ -133,7 +133,8 @@
                 "companies":"Предприятия",
                 "departments":"Отделения",
                 "users":"Пользователи",
-                "usergroup":"Роли"
+                "usergroup":"Роли",
+                "accounts":"Расчётные счета"
             }
         }
     }

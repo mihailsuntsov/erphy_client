@@ -133,10 +133,11 @@
         "contact_name": "Name",
         "position":     "Position",
         "full_name":    "Bank name",
-        "bic":          "SWIFT",
-        "corr_bank":    "Correspondent bank",         
-        "corr_account": "Corr. account",      
-        "account":      "Account",
+        "bic":          "BIC",
+        "swift":        "SWIFT",
+        "intermediatery":"Intermediary/Correspondent Bank",
+        "corr_account": "Correspondent account",
+        "account":      "Beneficiary Account",
         "iban":         "IBAN",
         "bban":         "BBAN",
         "sepa":         "SEPA",
@@ -185,6 +186,7 @@
         "prefix_pieced":"Barcode prefix of the piece product",
         "prefix_packed":"Barcode prefix of the weight product",
         "type":         "Type",
+        "sku_supplier": "Supplier's SKU",
         
         "-- SELL REGICTERS ":"--",
 
@@ -502,7 +504,8 @@
         "cr_cn_oin_po": "Create a counter credit slip for this outgoing payment",
         "cr_cn_oin_wd": "Create a counter credit slip for this withdrawal",
         "code_not_unic":"This code is not unique",
-        "usr_crte_attn":"This data is displayed here only when the user is created. After creation, the user can change them himself"
+        "usr_crte_attn":"This data is displayed here only when the user is created. After creation, the user can change them himself",
+        "no_prods":     "No products in the table"
     },
     "button":{        
         "test_connct":  "Connection test",
@@ -592,6 +595,7 @@
         "orderin_":     "Credit slip (internal)",
         "paymentin_":   "Incoming payment (internal)",
         "set_templates":"Template settings",
-        "currency":     "Currency"
+        "currency":     "Currency",
+        "accounts":     "Bank account"
     }
 }

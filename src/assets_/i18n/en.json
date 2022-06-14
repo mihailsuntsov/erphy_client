@@ -132,7 +132,8 @@
                 "companies":"Companies",
                 "departments":"Departments",
                 "users":"Users",
-                "usergroup":"Roles"
+                "usergroup":"Roles",
+                "accounts":"Bank accounts"
             }
         }
     }

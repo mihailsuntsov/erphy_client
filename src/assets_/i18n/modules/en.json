@@ -116,7 +116,10 @@
         "show_prnt_tmp":"Enable if the template should be displayed in the list",
         "select_file":  "Select file",
         "add_template": "Add template",
-        "clr_srch":     "Clear the search field, and select a different value"
+        "clr_srch":     "Clear the search field, and select a different value",
+        "auto_prce_add":"Automatically substitute the price from the last purchase price",
+        "shared_file":  "Shared file available via external link",
+        "select_upl_fl":"Select files for upload"
     },
     "tab":{
     },
@@ -143,7 +146,11 @@
         "your_debt":    "Your debt",
         "you_owed":     "You're owed",
         "price_f_type": "Price of type",
-        "prod_list":    "Product list"
+        "prod_list":    "Product list",
+        "cat_select":   "Category selection",
+        "prods_select": "Products selection",
+        "cat_selectd":  "Selected categories",
+        "prods_selectd":"Selected products"
     },
     "field":{ 
         "company":      "Company",
@@ -166,6 +173,7 @@
         "discount":     "Discount",
         "no_fractals":  "W/o penny",
         "auto_add":     "Auto add",
+        "auto_price":   "Auto price",
         "compl_status": "Status after completion",
         "for":          "for","--Note: In the context of 'Price for 1 unit of a product'":"",
         "reserved":     "Reserved",
@@ -214,14 +222,20 @@
         "min_balance":  "Minimum balance",
         "num_copies":   "Number of copies",
         "code":         "Code",
-        "barcodes":     "Barcodes"
+        "barcodes":     "Barcodes",
+        "file_category":"File category",
+        "shared_file":  "Shared file",
+        "uploading":    "Uploading"
     },
-    "error":{   
-        "field_miss":  "Required field is missing",
-        "price_format":"Incorrect format. Up to {{int}} digits in the integer and up to {{fract}} digits in the fractional part are allowed",
+    "error":{
+        "field_miss":   "Required field is missing",
+        "price_format": "Incorrect format. Up to {{int}} digits in the integer and up to {{fract}} digits in the fractional part are allowed",
         "mst_be_integr":"Should be an integer",
         "more_than":    "Should be more than {{num}}",
-        "available":    "Available"
+        "available":    "Available",
+        "ne_rght_prod": "Insufficient rights to view the list of goods and services, and their categories. For the \"Products\" document, you must enable all or one of the following rights in your role:",
+        "_rght_all_com":"View documents of all companies",
+        "_rght_my_com": "View your company documents"
     },
     "msg":{
         "error":        "Error!",
@@ -253,7 +267,16 @@
         "ord_cat_saved":"Category order saved",
         "cat_saved":    "Category saved",
         "cat_created":  "Category created",
-        "prd_alr_slctd":"This product has already been selected"
+        "prd_alr_slctd":"This product has already been selected",
+        "files_uploadd":"The files have been uploaded. Total uploaded files: ",
+        "files_no_upld":"Files have not been uploaded",
+        "files_amount": "Number of files",
+        "files_amount_":"The maximum number of files for a single upload operation is 10. Please select fewer files",
+        "file_size":    "File size",
+        "file_":        "File ",
+        "_with_size_":  " with a size of ",
+        "_mb_":         " Mb",
+        "_more_than":   ", exceeds the maximum file size allowed for uploading - "
     },
     "button":{
         "save_n_close": "Save",
@@ -282,7 +305,8 @@
         "copy":         "Copy",
         "set_new":      "Assign new",
         "like_orig":    "Like original",
-        "stay_empty":   "Stay empty"
+        "stay_empty":   "Stay empty",
+        "no_category":  "Uncategorized"
     },
     "kpi":{
         "hour":"Hour",

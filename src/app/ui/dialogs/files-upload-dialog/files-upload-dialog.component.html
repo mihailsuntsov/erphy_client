@@ -3,26 +3,26 @@
         <div class="card-name">{{data.title}}</div>
         
         <button 
-            onclick="document.getElementById('fileToUpload').click()" matTooltip="Выбрать файл для загрузки."
+            onclick="document.getElementById('fileToUpload').click()" matTooltip="{{'modules.tip.select_upl_fl' | transloco}}"
             mat-raised-button 
             color="primary"
-            class="button">
-            <i class="material-icons">add_circle_outline</i> Открыть
+            class="button small-button">
+            <i class="material-icons">add_circle_outline</i>
         </button>
         <button 
             (click)="onNoClick()"
             mat-raised-button 
             color="accent"
-            class="button">
-            <i class="material-icons">close</i> Отмена
+            class="button small-button">
+            <i class="material-icons">close</i>
         </button>
     </mat-card-title>
     <mat-card-content > 
         <form [formGroup]="formBaseInformation">   
             <mat-form-field style="width: 100%">
-                <mat-label>Категория файла</mat-label>
+                <mat-label>{{'modules.field.file_category' | transloco}}</mat-label>
                 <mat-select  formControlName="categoryId">        
-                    <mat-option [value]="0" selected>Без категории</mat-option>
+                    <mat-option [value]="0" selected>{{'modules.list.no_category' | transloco}}</mat-option>
                     <mat-option [value]="data.categoryId" *ngIf="+data.categoryId>0">{{data.categoryName}}</mat-option>
                 </mat-select>  
             </mat-form-field>
@@ -30,21 +30,16 @@
                 <input   matInput
                         placeholder="{{'docs.field.description' | transloco}}"
                         formControlName="description"/>
-                    <button mat-button matSuffix mat-icon-button aria-label="search" style="font-size: 150%;color: gray;" (click)="aboutDescription()">
-                        <mat-icon>contact_support</mat-icon>
-                    </button>
             </mat-form-field>
             <mat-form-field style="width: 100%">
                 <mat-slide-toggle matInput 
                     formControlName="sharedFile"
                     class="example-margin"
+                    matTooltip="{{'modules.tip.shared_file' | transloco}}"
                     [checked]="checked">
-                    Файл для общего доступа
+                    {{'modules.field.shared_file' | transloco}}
                 </mat-slide-toggle>
                 <textarea matInput hidden></textarea>
-                <button mat-button matSuffix mat-icon-button aria-label="search" style="font-size: 150%;color: gray;" (click)="aboutSharedFiles()">
-                    <mat-icon>contact_support</mat-icon>
-                </button>
             </mat-form-field>
             <div class="div-100"> 
                 <div *ngIf="currentFileUpload" class="progress">
@@ -53,7 +48,7 @@
                          - {{progress.percentage}}%</div>
                 </div>
                 <div *ngIf="currentFileUpload" class="div-100">
-                    Загружается: {{uploadingFileName}}
+                    {{'modules.field.uploading' | transloco}}: {{uploadingFileName}}
                 </div>
                 <div class="center" style="width:100%; height: 38px;">
                     <input id="fileToUpload" type="file" style="display:none;"  (change)="selectFile($event)" multiple> 

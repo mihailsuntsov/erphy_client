@@ -766,6 +766,7 @@ export class AcceptanceDocComponent implements OnInit {
                   this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
                   this.getStatusesList();//статусы документа Приёмка
                   this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+                  this.getSettings(); // настройки документа Приёмка
                 //!!!
                 } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();
@@ -944,8 +945,13 @@ export class AcceptanceDocComponent implements OnInit {
   updateDocument(complete?:boolean){ //+++
     this.getProductsTable();    
     let currentStatus:number=this.formBaseInformation.get('status_id').value;
-    if(complete){
+    if(complete){if(this.acceptanceProductsTableComponent.getProductTable().length==0){
+      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.no_prods')}});      
+      throw new Error(translate('docs.msg.no_prods'));
+    }
       this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - временно устанавливаем true, временно - чтобы это ушло в запросе на сервер, но не повлияло на внешний вид документа, если вернется не true
+      console.log('statusOnFinishId - ' + this.settingsForm.get('statusOnFinishId').value);
+      console.log('statusIdInList - ' + this.statusIdInList(this.settingsForm.get('statusOnFinishId').value));
       if(this.settingsForm.get('statusOnFinishId').value&&this.statusIdInList(this.settingsForm.get('statusOnFinishId').value)){// если в настройках есть "Статус при проведении" - временно выставляем его
         this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);}
     }

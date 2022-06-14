@@ -842,7 +842,7 @@
                         <mat-tab label="{{t('docs.tab.bank_data')}}">
                             <div class="container-fluid">
                                 <div class="row" style="padding: 10px">
-                                    <div class="col-xl-5 col-lg-9 col-md-12">
+                                    <div class="col-xl-7 col-lg-10 col-md-12">
                                         <mat-card>
                                             <mat-card-header>
                                                 <mat-card-title class="card-title">{{t('docs.card.bank_data')}}</mat-card-title>
@@ -868,65 +868,116 @@
                                                         </div>
                                                         <mat-card-content class="input-form" >
                                                             <mat-form-field>
-                                                                <mat-label>{{t('docs.field.name')}} {{formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('name').value==''?'*':''}}</mat-label>
+                                                                <mat-label>{{t('docs.field.name')}}</mat-label>
                                                                 <input  matInput
                                                                         maxlength="300"
                                                                         [readonly]=!editability
                                                                         #name
                                                                         formControlName="name"/>
                                                                 <mat-hint align="end" *ngIf="name.value.length>250">{{name.value.length}} / 300</mat-hint>
-                                                                <mat-hint align="start" *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('name').touched && formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('name').invalid">
+                                                                <!-- <mat-hint align="start" *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('name').touched && formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('name').invalid">
                                                                     <i *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('name').value==''" class="form-invalid">{{t('docs.error.field_miss')}}</i>
-                                                                </mat-hint>
+                                                                </mat-hint> -->
                                                             </mat-form-field>
                                                             <mat-form-field>
-                                                                <mat-label>{{t('docs.field.bic')}} {{formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('bik').value.length!='9'?'*':''}}</mat-label>
-                                                                <input  matInput
-                                                                        #bik
-                                                                        [readonly]=!editability
-                                                                        maxlength="9"
-                                                                        formControlName="bik"/>
-                                                                <mat-hint align="start" *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('bik').touched && formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('bik').invalid">
-                                                                    <i *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('bik').errors.pattern" class="form-invalid">БИК должен состоять из 9 цифр</i>
-                                                                    <i *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('bik').value==''" class="form-invalid">{{t('docs.error.field_miss')}}</i>
-                                                                </mat-hint>
-                                                            </mat-form-field>
-                                                            <mat-form-field>
-                                                                <mat-label>{{t('docs.field.address')}} {{formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('address').value==''?'*':''}}</mat-label>
+                                                                <mat-label>{{t('docs.field.address')}}</mat-label>
                                                                 <input  matInput
                                                                         #address
                                                                         [readonly]=!editability
                                                                         maxlength="300"
                                                                         formControlName="address"/>
                                                                 <mat-hint align="end" *ngIf="address.value.length>250">{{address.value.length}} / 300</mat-hint>
-                                                                <mat-hint align="start" *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('address').touched && formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('address').invalid">
+                                                                <!-- <mat-hint align="start" *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('address').touched && formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('address').invalid">
                                                                     <i *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('address').value==''" class="form-invalid">{{t('docs.error.field_miss')}}</i>
-                                                                </mat-hint>
+                                                                </mat-hint> -->
                                                             </mat-form-field>
+                                                            <div class="row">
+                                                                <div class="col-lg-5  col-md-12">
+                                                                <mat-form-field class="mat-form-field-100">
+                                                                    <mat-label>{{t('docs.field.swift')}}</mat-label>
+                                                                    <input  matInput
+                                                                            #swift
+                                                                            [readonly]=!editability
+                                                                            maxlength="11"
+                                                                            formControlName="swift"/>
+                                                                    <mat-hint align="end" *ngIf="swift.value.length>80">{{swift.value.length}} / 100</mat-hint>
+                                                                    <!-- <mat-hint align="start" *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('swift').touched && formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('swift').invalid">
+                                                                        <i *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('swift').value==''" class="form-invalid">{{t('docs.error.field_miss')}}</i>
+                                                                    </mat-hint> -->
+                                                                    <mat-hint align="end" *ngIf="swift.value.length>8">{{swift.value.length}} / 11</mat-hint>
+                                                                </mat-form-field>
+                                                                </div>
+                                                                <div class="col-lg-7  col-md-12">
+                                                                <mat-form-field class="mat-form-field-100">
+                                                                    <mat-label>{{t('docs.field.iban')}}</mat-label>
+                                                                    <input  matInput
+                                                                            #iban
+                                                                            [readonly]=!editability
+                                                                            maxlength="34"
+                                                                            formControlName="iban"/>
+                                                                    <mat-hint align="end" *ngIf="iban.value.length>30">{{iban.value.length}} / 34</mat-hint>
+                                                                    <!-- <mat-hint align="start" *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('iban').touched && formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('iban').invalid">
+                                                                        <i *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('iban').value==''" class="form-invalid">{{t('docs.error.field_miss')}}</i>
+                                                                    </mat-hint> -->
+                                                                </mat-form-field>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row">
+                                                                <div class="col-lg-5  col-md-12">
+                                                                    <mat-form-field class="mat-form-field-100">
+                                                                        <mat-label>{{t('docs.field.bic')}}</mat-label>
+                                                                        <input  matInput
+                                                                                #bik
+                                                                                [readonly]=!editability
+                                                                                maxlength="9"
+                                                                                formControlName="bik"/>
+                                                                        <!-- <mat-hint align="start" *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('bik').touched && formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('bik').invalid">
+                                                                            <i *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('bik').errors.pattern" class="form-invalid">БИК должен состоять из 9 цифр</i>
+                                                                            <i *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('bik').value==''" class="form-invalid">{{t('docs.error.field_miss')}}</i>
+                                                                        </mat-hint> -->
+                                                                    </mat-form-field>
+                                                                </div>
+                                                                <div class="col-lg-7  col-md-12">
+                                                                    <mat-form-field class="mat-form-field-100">
+                                                                        <mat-label>{{t('docs.field.account')}}</mat-label>
+                                                                        <input  matInput
+                                                                                #payment_account
+                                                                                [readonly]=!editability
+                                                                                maxlength="100"
+                                                                                formControlName="payment_account"/>
+                                                                        <mat-hint align="end" *ngIf="payment_account.value.length>80">{{payment_account.value.length}} / 100</mat-hint>
+                                                                        <!-- <mat-hint align="start" *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('payment_account').touched && formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('payment_account').invalid">
+                                                                            <i *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('payment_account').value==''" class="form-invalid">{{t('docs.error.field_miss')}}</i>
+                                                                        </mat-hint> -->
+                                                                    </mat-form-field>
+                                                                </div>
+                                                            </div>
                                                             <mat-form-field>
-                                                                <mat-label>{{t('docs.field.corr_account')}} {{formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('corr_account').value==''?'*':''}}</mat-label>
+                                                                <mat-label>{{t('docs.field.corr_account')}}</mat-label>
                                                                 <input  matInput
                                                                         #corr_account
                                                                         [readonly]=!editability
                                                                         maxlength="100"
                                                                         formControlName="corr_account"/>
                                                                 <mat-hint align="end" *ngIf="corr_account.value.length>80">{{corr_account.value.length}} / 100</mat-hint>
-                                                                <mat-hint align="start" *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('corr_account').touched && formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('corr_account').invalid">
+                                                                <!-- <mat-hint align="start" *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('corr_account').touched && formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('corr_account').invalid">
                                                                     <i *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('corr_account').value==''" class="form-invalid">{{t('docs.error.field_miss')}}</i>
-                                                                </mat-hint>
-                                                            </mat-form-field>
+                                                                </mat-hint> -->
+                                                            </mat-form-field>                                                            
                                                             <mat-form-field>
-                                                                <mat-label>{{t('docs.field.account')}} {{formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('payment_account').value==''?'*':''}}</mat-label>
+                                                                <mat-label>{{t('docs.field.intermediatery')}}</mat-label>
                                                                 <input  matInput
-                                                                        #payment_account
+                                                                        #intermediatery
                                                                         [readonly]=!editability
-                                                                        maxlength="100"
-                                                                        formControlName="payment_account"/>
-                                                                <mat-hint align="end" *ngIf="payment_account.value.length>80">{{payment_account.value.length}} / 100</mat-hint>
-                                                                <mat-hint align="start" *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('payment_account').touched && formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('payment_account').invalid">
-                                                                    <i *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('payment_account').value==''" class="form-invalid">{{t('docs.error.field_miss')}}</i>
-                                                                </mat-hint>
+                                                                        maxlength="2048"
+                                                                        formControlName="intermediatery"/>
+                                                                <mat-hint align="end" *ngIf="intermediatery.value.length>1900">{{intermediatery.value.length}} / 2048</mat-hint>
+                                                                <!-- <mat-hint align="start" *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('intermediatery').touched && formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('intermediatery').invalid">
+                                                                    <i *ngIf="formBaseInformation.get('cagentsPaymentAccountsTable').controls[i].get('intermediatery').value==''" class="form-invalid">{{t('docs.error.field_miss')}}</i>
+                                                                </mat-hint> -->
                                                             </mat-form-field>
+
+
                                                             <mat-form-field style="display: none">
                                                                 <input matInput placeholder="id" formControlName="id"/>
                                                             </mat-form-field>

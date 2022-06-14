@@ -24,9 +24,9 @@ li {list-style: none;}
     margin: 10px 0 10px 0;
 }
 .invisible{display:none;}
-::ng-deep .mat-card-header-text {
+/* ::ng-deep .mat-card-header-text {
     margin: 0px 0px !important;
-}
+} */
 .button{
     margin-left: 10px;
 }

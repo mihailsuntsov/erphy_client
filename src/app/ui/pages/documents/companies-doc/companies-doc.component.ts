@@ -966,6 +966,9 @@ constructor(private activateRoute: ActivatedRoute,
       address:  new FormControl (m.address,[]),
       payment_account:  new FormControl (m.payment_account,[]),
       corr_account:  new FormControl (m.corr_account,[]),
+      intermediatery:  new FormControl (m.intermediatery,[]),
+      swift:  new FormControl (m.swift,[]),
+      iban:  new FormControl (m.iban,[]),
       output_order: this.getPaymentAccountsOutputOrder()
       }))
     })
@@ -979,6 +982,9 @@ constructor(private activateRoute: ActivatedRoute,
       address:  new FormControl ('',[]),
       payment_account:  new FormControl ('',[]),
       corr_account:  new FormControl ('',[]),
+      intermediatery:  new FormControl ('',[]),
+      swift:  new FormControl ('',[]),
+      iban:  new FormControl ('',[]),
       output_order: this.getPaymentAccountsOutputOrder()
     }))
   }
@@ -1013,6 +1019,9 @@ constructor(private activateRoute: ActivatedRoute,
                         payment_account: m.get('payment_account').value,
                         corr_account: m.get('corr_account').value,
                         output_order: m.get('output_order').value,
+                        intermediatery:  m.get('intermediatery').value,
+                        swift:  m.get('swift').value,
+                        iban:  m.get('iban').value,
                       })
                     });
     moveItemInArray(resultContainer, event.previousIndex, event.currentIndex);

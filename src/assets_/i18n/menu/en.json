@@ -350,8 +350,9 @@
         "invoicesin":   "suppliers' invoices",
         "v_invoicein":  "received VAT invoice",  
         "v_invoicesin": "received VAT invoices",
-        "counterpays":  "Mutual payments with",
-        "currencies":   "currencies"
+        "counterpays":  "mutual payments with",
+        "currencies":   "currencies",
+        "accounts":     "bank accounts"
     },
     "indicators":{
         "revenue":      "Revenue",

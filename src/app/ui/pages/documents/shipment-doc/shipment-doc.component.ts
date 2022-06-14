@@ -812,7 +812,7 @@ export class ShipmentDocComponent implements OnInit {
             this.settingsForm.get('priorityTypePriceSide').setValue(result.priorityTypePriceSide?result.priorityTypePriceSide:'defprice');
             // this.settingsForm.get('autocreateOnStart').setValue(result.autocreateOnStart);
             this.settingsForm.get('autocreate').setValue(result.autocreate);
-            this.settingsForm.get('statusIdOnComplete').setValue(result.statusIdOnComplete);
+            this.settingsForm.get('statusIdOnComplete').setValue(result.statusOnFinishId);
             this.settingsForm.get('showKkm').setValue(result.showKkm);
             this.settingsForm.get('autoAdd').setValue(result.autoAdd);
 
@@ -1216,11 +1216,17 @@ export class ShipmentDocComponent implements OnInit {
           },
       );
   }
-  updateDocument(complete?:boolean){ 
+  updateDocument(complete?:boolean){
     this.getProductsTable();    
     let currentStatus:number=this.formBaseInformation.get('status_id').value;
     if(complete){
+      if(this.productSearchAndTableComponent.getProductTable().length==0){
+        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.no_prods')}});      
+        throw new Error(translate('docs.msg.no_prods'));
+      }
       this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с завершением - временно устанавливаем true, временно - чтобы это ушло в запросе на сервер, но не повлияло на внешний вид документа, если вернется не true
+      console.log('statusIdOnComplete - ' + this.settingsForm.get('statusIdOnComplete').value);
+      console.log('statusIdInList - ' + this.statusIdInList(this.settingsForm.get('statusIdOnComplete').value));
       if(this.settingsForm.get('statusIdOnComplete').value&&this.statusIdInList(this.settingsForm.get('statusIdOnComplete').value)){// если в настройках есть "Статус при завершении" - временно выставляем его
         this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
     }
