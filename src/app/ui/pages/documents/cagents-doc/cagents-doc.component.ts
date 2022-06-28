@@ -87,6 +87,7 @@ interface docResponse {//интерфейс для получения ответ
   jr_ip_svid_num: string; // номер свидетельства (для ИП). string т.к. оно может быть типа "серия 77 №42343232"
   jr_ip_reg_date: string; // дата регистрации ИП (для ИП)
   type: string;// entity or individual
+  legal_form: string;// legal form of individual (ie entrepreneur, ...)
 }
 
 interface CagentCategoriesTreeNode {
@@ -330,6 +331,7 @@ constructor(private activateRoute: ActivatedRoute,
       country:  new FormControl      ('',[]),
       jr_country:  new FormControl      ('',[]),
       type:  new FormControl      ('entity',[]),// entity or individual
+      legal_form:  new FormControl      ('',[Validators.maxLength(240)]),
     });
     this.formAboutDocument = new FormGroup({
       id: new FormControl      ('',[]),
@@ -553,6 +555,7 @@ constructor(private activateRoute: ActivatedRoute,
                   this.formBaseInformation.get('jr_ip_svid_num').setValue(documentValues.jr_ip_svid_num);
                   this.formBaseInformation.get('jr_ip_reg_date').setValue(documentValues.jr_ip_reg_date?moment(documentValues.jr_ip_reg_date,'DD.MM.YYYY'):"");
                   this.formBaseInformation.get('type').setValue(documentValues.type);
+                  this.formBaseInformation.get('legal_form').setValue(documentValues.legal_form);
                   // alert("1-"+this.checkedList)
                   this.checkedList=documentValues.cagent_categories_id?documentValues.cagent_categories_id:[];
                   // alert("2-"+this.checkedList)
@@ -586,14 +589,22 @@ constructor(private activateRoute: ActivatedRoute,
     this.http.post('/api/auth/insertCagent', this.formBaseInformation.value)
     .subscribe(
     (data) =>   {
-                    this.id=data as number;
-                    this._router.navigate(['/ui/cagentsdoc', this.id]);
-                    this.formBaseInformation.get('id').setValue(this.id);
-                    this.rightsDefined=false; //!!!
-                    this.getData();
-                    this.openSnackBar(translate('docs.msg.doc_crtd_suc'),translate('docs.msg.close'));
-    },
-    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+          let result=data as any;
+          switch(result){
+            case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_msg')}});break;}
+            case -1:  {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});break;}
+            case -120:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.out_of_plan')}});break;}
+            default:{  
+                        this.id=result;
+                        this._router.navigate(['/ui/cagentsdoc', this.id]);
+                        this.formBaseInformation.get('id').setValue(this.id);
+                        this.rightsDefined=false; //!!!
+                        this.getData();
+                        this.openSnackBar(translate('docs.msg.doc_crtd_suc'),translate('docs.msg.close'));
+            }
+          }
+        },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
   

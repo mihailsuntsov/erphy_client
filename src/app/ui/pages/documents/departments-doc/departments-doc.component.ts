@@ -285,6 +285,7 @@ export class DepartmentsDocComponent implements OnInit {
             switch(result){
               case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_msg')}});break;}
               case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});break;}
+              case -120:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.out_of_plan')}});break;}
               default:{  
                           this.id=result;
                           this._router.navigate(['/ui/departmentsdoc', this.id]);

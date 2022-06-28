@@ -361,11 +361,13 @@ export class CompaniesComponent {
     return this.http.post('/api/auth/undeleteCompanies', body) 
       .subscribe(
       (data) => {   
-        this.receivedMatTable=data as any []; 
-        this.dataSource.data = this.receivedMatTable;
-        this.openSnackBar(translate('menu.msg.rec_success'), translate('menu.msg.close'));
-        this.getData();
-        this.getBaseData('reloadCompaniesList');  
+        let result=data as any;
+        switch(result){
+          case 1:{this.getData();this.getBaseData('reloadCompaniesList'); this.openSnackBar(translate('menu.msg.rec_success'), translate('menu.msg.close'));break;} 
+          case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+          case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+          case -120:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.out_of_plan')}});break;}
+        }
       },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
   }
 

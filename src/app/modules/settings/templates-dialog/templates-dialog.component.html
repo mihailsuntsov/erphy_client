@@ -1,4 +1,4 @@
-<mat-card class="card for-sticky-header" *transloco="let t">
+<mat-card class="card for-sticky-header" *transloco="let t" style="padding: 15px !important;">
     <mat-card-title class="flex">
         <div class="card-name">{{t('docs.docs.set_templates')}}</div>
         <button 
@@ -127,7 +127,7 @@
                                                 <mat-icon   
                                                     matTooltip="{{t('modules.tip.select_file')}}"
                                                     class="add_circle"
-                                                    (click)="addFileInField(getControlTablefield().controls[i].get('id').value)">
+                                                    (click)="addFileInField(getControlTablefield().controls[i].get('output_order').value)">
                                                     add_circle
                                                 </mat-icon>
                                             </div>
@@ -135,7 +135,7 @@
                                                 <mat-icon 
                                                         *ngIf="editability && file_id.value"
                                                         class="del-file"
-                                                        (click)="deleteFileInField(file_id.value)"
+                                                        (click)="deleteFileInField(getControlTablefield().controls[i].get('output_order').value)"
                                                         matTooltip="{{t('docs.tip.del_file')}}"
                                                         >
                                                     <mat-icon>delete_forever</mat-icon>

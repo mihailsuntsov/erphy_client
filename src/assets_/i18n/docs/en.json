@@ -127,7 +127,7 @@
         "color":        "Color",
         "status_type":  "Status type",
         "doc":          "Document",
-        "code":         "Code",
+        "code":         "ID",
         "form":         "Type",
         "price_type":   "Price type",
         "contact_name": "Name",
@@ -187,6 +187,7 @@
         "prefix_packed":"Barcode prefix of the weight product",
         "type":         "Type",
         "sku_supplier": "Supplier's SKU",
+        "legal_form":   "Legal form",
         
         "-- SELL REGICTERS ":"--",
 
@@ -410,8 +411,9 @@
         "_already_comp":" is already completed",
         "doc_crtd_suc": "Document successfully created",       
         "doc_sved_suc": "Document successfully saved",
-        "user_login_th":"A user with this username is already in the system",
+        "user_login_th":"A user with this login is already in the system",
         "user_email_th":"A user with this e-mail is already in the system",
+        "out_of_plan":  "Tariff plan restrictions",
         "cant_decmp_wd":"The document \"Withdrawal\" is not accessible to cancel the completion. To return money to the sales register, use the documents \"Debit slip\" and \"Depositing\"",
         "cant_decmp_dp":"The document \"Depositing\" is not accessible to cancel the completion. To return money from the sales register to the cash room, use the documents \"Withdrawal\" and \"Credit slip\"",
         "ne_money_op":  "There are not enough money to carry out this operation",

@@ -305,6 +305,15 @@
                                                             formControlName="jr_fio_otchestvo"/>
                                                     <mat-hint align="end" *ngIf="formBaseInformation.get('jr_fio_otchestvo').value.length>100">{{formBaseInformation.get('jr_fio_otchestvo').value.length}} / 120</mat-hint>
                                                 </mat-form-field>
+                                                <!-- Правовая форма -->
+                                                <mat-form-field *ngIf="formBaseInformation.get('type').value=='individual'">
+                                                    <input  matInput
+                                                            placeholder="{{t('docs.field.legal_form')}}"
+                                                            maxlength="240"
+                                                            [readonly]=!editability
+                                                            formControlName="legal_form"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('legal_form').value.length>200">{{formBaseInformation.get('legal_form').value.length}} / 240</mat-hint>
+                                                </mat-form-field>
                                                 <!-- ИНН -->
                                                 <mat-form-field>
                                                     <input  matInput

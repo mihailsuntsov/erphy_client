@@ -173,7 +173,7 @@
                                                     />
                                                     <mat-hint *ngIf="formBaseInformation.get('username').touched && formBaseInformation.get('username').invalid">
                                                         <i *ngIf="formBaseInformation.get('username').errors.required" class="form-invalid">{{t('docs.error.field_miss')}}<br></i>
-                                                        <i *ngIf="formBaseInformation.get('username').errors.minlength" class="form-invalid">{{t('docs.error.field_length',{num1:6,num2:4})}}<br></i>
+                                                        <i *ngIf="formBaseInformation.get('username').errors.minlength" class="form-invalid">{{t('docs.error.field_length',{num1:4,num2:20})}}<br></i>
                                                         <i *ngIf="formBaseInformation.get('username').errors.maxlength" class="form-invalid">{{t('docs.error.field_length',{num1:6,num2:20})}}<br></i>
                                                         <i *ngIf="formBaseInformation.get('username').errors.pattern &&
                                                                     !formBaseInformation.get('username').errors.maxlength" class="form-invalid">{{t('docs.error.lgn_must_contain')}}<br></i>

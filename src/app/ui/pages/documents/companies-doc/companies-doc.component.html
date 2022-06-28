@@ -247,6 +247,15 @@
                                                     formControlName="jr_fio_otchestvo"/>
                                             <mat-hint align="end" *ngIf="formBaseInformation.get('jr_fio_otchestvo').value.length>100">{{formBaseInformation.get('jr_fio_otchestvo').value.length}} / 120</mat-hint>
                                         </mat-form-field>
+                                        <!-- Правовая форма -->
+                                        <mat-form-field *ngIf="formBaseInformation.get('type').value=='individual'">
+                                            <input  matInput
+                                                    placeholder="{{t('docs.field.legal_form')}}"
+                                                    maxlength="240"
+                                                    [readonly]=!editability
+                                                    formControlName="legal_form"/>
+                                            <mat-hint align="end" *ngIf="formBaseInformation.get('legal_form').value.length>200">{{formBaseInformation.get('legal_form').value.length}} / 240</mat-hint>
+                                        </mat-form-field>
                                         <!-- ИНН -->
                                         <mat-form-field>
                                             <input  matInput
@@ -819,7 +828,7 @@
                                             <!-- </mat-card-content> -->
                                         <!-- </mat-card>  -->
                                     </mat-expansion-panel>
-                                    <mat-card-content class="input-form" style="margin-top: 20px;">
+                                    <mat-card-content class="input-form" style="margin-top: 20px !important;">
                                         <div class="box-list">
                                             <ng-container *ngFor="let i of filesInfo">
                                                 <div class="filename-row">

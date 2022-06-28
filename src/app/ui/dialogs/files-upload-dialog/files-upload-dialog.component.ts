@@ -56,10 +56,13 @@ maxFileSize:number = 10 * 1024 * 1024; // = 10 Mb; Также нужно мен�
       sharedFile:     new FormControl (this.checked,[]),
       description:    new FormControl ('',[]),
     });
+    
+    // auto-open file selection window
+    document.getElementById('fileToUpload').click();
   }
 
   clickBtnOpenFile(){
-    console.log("sharedFile - "+this.formBaseInformation.get('sharedFile').value);
+    // console.log("sharedFile - "+this.formBaseInformation.get('sharedFile').value);
   }
 
    selectFile(event) {
@@ -78,26 +81,32 @@ maxFileSize:number = 10 * 1024 * 1024; // = 10 Mb; Также нужно мен�
   upload(file:File){
     this.progress.percentage = 0;
     this.currentFileUpload = file;
-    console.log(file.name);
+    // console.log(file.name);
 
     if (file.size<=(this.maxFileSize))
     {
       this.uploadingFileName=file.name;
       this.uploadService.pushFileToStorage(
         this.currentFileUpload,
-       +this.data.companyId,
+        +this.data.companyId,
         this.formBaseInformation.get('sharedFile').value,
         this.formBaseInformation.get('description').value,
-       +this.formBaseInformation.get('categoryId').value).
-       subscribe(event => {
-       if (event.type === HttpEventType.UploadProgress) {
-         this.progress.percentage = Math.round(100 * event.loaded / event.total);
-       } else if (event instanceof HttpResponse) {
-        this.currentFileUpload=null;
-         this.countUploadedFiles++;
-         this.nextFileSwitcher();
-       }
-     });
+        +this.formBaseInformation.get('categoryId').value).
+      subscribe(event => {
+        if (event.type === HttpEventType.UploadProgress) {
+          this.progress.percentage = Math.round(100 * event.loaded / event.total);
+        } else 
+          if (event instanceof HttpResponse) {
+            // console.log(event.body)
+            if(event.body!=="-120"){
+              this.currentFileUpload=null;
+              this.countUploadedFiles++;
+              this.nextFileSwitcher();
+            } else {//if current file will be uploaded, then sum size of all master-user files will out of bounds of tariff plan
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.out_of_plan')}});
+            }
+          }
+      });
     } else {
       this.aboutMaxSize(file.name,(file.size/1024/1024).toFixed(2));
     }
@@ -109,9 +118,9 @@ maxFileSize:number = 10 * 1024 * 1024; // = 10 Mb; Также нужно мен�
       this.upload(this.filesArray[this.currentIndexFileArray]);
     } else {
     if(this.countUploadedFiles>0){
-    this.openSnackBar(translate('modules.msg.files_uploadd')+this.countUploadedFiles, translate('modules.button.close'));
+      this.openSnackBar(translate('modules.msg.files_uploadd')+this.countUploadedFiles, translate('modules.button.close'));
     } else this.openSnackBar(translate('modules.msg.files_no_upld'), translate('modules.button.close'));
-    this.onNoClick();
+      this.onNoClick();
     }
   }
   

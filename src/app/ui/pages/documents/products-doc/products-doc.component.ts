@@ -716,17 +716,24 @@ refreshPermissions():boolean{
     this.createdDocId=null;
     this.formBaseInformation.get('selectedProductCategories').setValue(this.checkedList);
     this.http.post('/api/auth/insertProduct', this.formBaseInformation.value)
-    .subscribe(
-      (data) =>   {
-                      this.createdDocId=data as string [];
-                      this.id=+this.createdDocId[0];
-                      this._router.navigate(['/ui/productsdoc', this.id]);
-                      this.formBaseInformation.get('id').setValue(this.id);
-                      this.rightsDefined=false; //!!!
-                      this.getData();
-                      this.openSnackBar(translate('docs.msg.doc_crtd_succ',{name:translate('docs.docs.products')}), translate('docs.msg.close'));
-                  },
-      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
+      .subscribe(
+        (data) =>   {
+          let result=data as any;
+          switch(result){
+            case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_msg')}});break;}
+            case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});break;}
+            case -120:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.out_of_plan')}});break;}
+            default:{  
+                        this.id=result;
+                        this._router.navigate(['/ui/productsdoc', this.id]);
+                        this.formBaseInformation.get('id').setValue(this.id);
+                        this.rightsDefined=false; //!!!
+                        this.getData();
+                        this.openSnackBar(translate('docs.msg.doc_crtd_suc'),translate('docs.msg.close'));
+            }
+          }
+        },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
   openSnackBar(message: string, action: string) {

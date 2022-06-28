@@ -9,7 +9,7 @@ export class UploadFileService {
  
   pushFileToStorage(file: File, companyId: any,anonyme_access:any,  description:string, categoryId:any): Observable<HttpEvent<{}>> {
     const formdata: FormData = new FormData();
- console.log('description: '+description);
+//  console.log('description: '+description);
     formdata.append('file', file);
     formdata.append('companyId', companyId);
     formdata.append('anonyme_access', anonyme_access);
@@ -20,7 +20,7 @@ export class UploadFileService {
       reportProgress: true,
       responseType: 'text'
     });
- console.log("this.http.request(req) - "+this.http.request(req));
+//  console.log("this.http.request(req) - "+this.http.request(req));
     return this.http.request(req);
   }
  

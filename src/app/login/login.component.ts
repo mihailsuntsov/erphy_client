@@ -35,6 +35,7 @@ backendVersionDate:string;
 databaseVersion:string;
 databaseVersionDate:string;
 showInSignin:string;
+planDefaultId:number
 }
 
 @Component({
@@ -63,7 +64,8 @@ export class LoginComponent implements OnInit {
     backendVersionDate:'',
     databaseVersion:'',
     databaseVersionDate:'',
-    showInSignin:''
+    showInSignin:'',
+    planDefaultId:0,
   };
 
 
@@ -92,7 +94,7 @@ export class LoginComponent implements OnInit {
     } else {
       
       this.loginform = new FormGroup({
-        username: new FormControl ('',[Validators.required,Validators.minLength(6)]),
+        username: new FormControl ('',[Validators.required,Validators.minLength(4)]),
         password: new FormControl ('',[Validators.required]),
       });
     }
@@ -163,6 +165,7 @@ export class LoginComponent implements OnInit {
     return v.slice(0, 5);
   }
   isVersionsCompatible():boolean{
+
     return  this.getVersionWoPatches(packageJson.version)==this.getVersionWoPatches(this.settingsGeneral.backendVersion) && 
             this.getVersionWoPatches(packageJson.version)==this.getVersionWoPatches(this.settingsGeneral.databaseVersion);
   }

@@ -218,7 +218,9 @@ export class TemplatesDialogComponent implements OnInit {
     }
     
   }
-  addFileInField(template_id:number) {
+  // using output_order as a row id, because id of new rows is null
+  addFileInField(output_order:number) {
+    console.log(`output_order: ${output_order}`);
     const dialogRef = this.dialogAddFiles.open(FilesComponent, {
       maxWidth: '95vw',
       maxHeight: '95vh',
@@ -234,7 +236,7 @@ export class TemplatesDialogComponent implements OnInit {
       console.log(`Dialog result: ${result}`);
       if(result){
         this.formBaseInformation.get('templatesList').controls.forEach(m =>{
-          if(m.get('id').value==template_id){
+          if(m.get('output_order').value==output_order){
             m.get('file_id').setValue(result[0]);
             m.get('file_original_name').setValue(translate('docs.msg.file_slctd'));
           }
@@ -242,7 +244,34 @@ export class TemplatesDialogComponent implements OnInit {
       };
     });
   }
-  deleteFileInField(file_id:number) {
+  // addFileInField(template_id:number) {
+  //   const dialogRef = this.dialogAddFiles.open(FilesComponent, {
+  //     maxWidth: '95vw',
+  //     maxHeight: '95vh',
+  //     height: '95%',
+  //     width: '95%',
+  //     data:
+  //     { 
+  //       mode: 'select',
+  //       companyId: this.company_id
+  //     },
+  //   });
+  //   dialogRef.afterClosed().subscribe(result => {
+  //     console.log(`Dialog result: ${result}`);
+  //     if(result){
+  //       this.formBaseInformation.get('templatesList').controls.forEach(m =>{
+  //         // for rows that is already exists in database and have an id
+  //         if(m.get('id').value==template_id){
+  //           m.get('file_id').setValue(result[0]);
+  //           m.get('file_original_name').setValue(translate('docs.msg.file_slctd'));
+  //         }
+  //       });
+  //     };
+  //   });
+  // }
+
+  // using output_order as a row id, because the same file id can't be unic, as it can be repeated in many fields
+  deleteFileInField(output_order:number) {
     const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
       width: '400px',
       data:
@@ -255,7 +284,7 @@ export class TemplatesDialogComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
         this.formBaseInformation.get('templatesList').controls.forEach(m =>{
-          if(m.get('file_id').value==file_id){
+          if(m.get('output_order').value==output_order){
             m.get('file_id').setValue(null);
             m.get('file_original_name').setValue("");
           }

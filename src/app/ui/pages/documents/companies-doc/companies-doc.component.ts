@@ -9,7 +9,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
-import { debounceTime, tap, switchMap } from 'rxjs/operators';
+// import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FilesComponent } from '../files/files.component';
 import { FilesDocComponent } from '../files-doc/files-doc.component';
@@ -98,6 +98,7 @@ interface docResponse {//интерфейс для получения ответ
   jr_ip_reg_date: string; // дата регистрации ИП (для ИП)
 
   type: string;// entity or individual
+  legal_form: string;// legal form of individual (ie entrepreneur, ...)
 
   //Settings
   st_prefix_barcode_pieced: number;// prefix of barcode for pieced product
@@ -161,7 +162,6 @@ interface idNameDescription{ //универсалный интерфейс дл�
 
 export class CompaniesDocComponent implements OnInit {
   id: number=0;// id документа
-  createdDocId: string[];//массив для получение id созданного документа
   receivedd: any [];//массив для получения списка предприятий
   myCompanyId:number=0;
   receivedSpravSysOPF: any [];//массив для получения данных справочника форм предприятий
@@ -315,6 +315,7 @@ constructor(private activateRoute: ActivatedRoute,
       country:  new FormControl      ('',[]),
       jr_country:  new FormControl      ('',[]),
       type:  new FormControl      ('entity',[]),// entity or individual
+      legal_form:  new FormControl      ('',[Validators.maxLength(240)]),
       //Settings
       st_prefix_barcode_pieced: new FormControl      ('',[Validators.pattern('^[0-9]{2}$')]), // prefix of barcode for pieced product
       st_prefix_barcode_packed: new FormControl      ('',[Validators.pattern('^[0-9]{2}$')]), // prefix of barcode for packed product
@@ -523,16 +524,17 @@ constructor(private activateRoute: ActivatedRoute,
                   this.formBaseInformation.get('glavbuh_signature_id').setValue(documentValues.glavbuh_signature_id);
                   this.formBaseInformation.get('stamp_id').setValue(documentValues.stamp_id);
                   this.formBaseInformation.get('card_template_id').setValue(documentValues.card_template_id);
-                  this.formBaseInformation.get('card_template_original_filename').setValue(this.formBaseInformation.get('card_template_id').value?documentValues.card_template_original_filename:"Файл не добавлен");
+                  this.formBaseInformation.get('card_template_original_filename').setValue(this.formBaseInformation.get('card_template_id').value?documentValues.card_template_original_filename:translate('docs.msg.file_slctd_no'));
                   this.formBaseInformation.get('card_template_filename').setValue(documentValues.card_template_filename);
-                  this.formBaseInformation.get('director_signature_filename').setValue(this.formBaseInformation.get('director_signature_id').value?documentValues.director_signature_filename:"Файл не добавлен");
-                  this.formBaseInformation.get('stamp_filename').setValue(this.formBaseInformation.get('stamp_id').value?documentValues.stamp_filename:"Файл не добавлен");
-                  this.formBaseInformation.get('glavbuh_signature_filename').setValue(this.formBaseInformation.get('glavbuh_signature_id').value?documentValues.glavbuh_signature_filename:"Файл не добавлен");
+                  this.formBaseInformation.get('director_signature_filename').setValue(this.formBaseInformation.get('director_signature_id').value?documentValues.director_signature_filename:translate('docs.msg.file_slctd_no'));
+                  this.formBaseInformation.get('stamp_filename').setValue(this.formBaseInformation.get('stamp_id').value?documentValues.stamp_filename:translate('docs.msg.file_slctd_no'));
+                  this.formBaseInformation.get('glavbuh_signature_filename').setValue(this.formBaseInformation.get('glavbuh_signature_id').value?documentValues.glavbuh_signature_filename:translate('docs.msg.file_slctd_no'));
                   this.formBaseInformation.get('st_prefix_barcode_pieced').setValue(documentValues.st_prefix_barcode_pieced);
                   this.formBaseInformation.get('st_prefix_barcode_packed').setValue(documentValues.st_prefix_barcode_packed);
                   this.formBaseInformation.get('st_netcost_policy').setValue(documentValues.st_netcost_policy);
                   
                   this.formBaseInformation.get('type').setValue(documentValues.type);
+                  this.formBaseInformation.get('legal_form').setValue(documentValues.legal_form);
 
                   this.searchRegionCtrl.setValue(documentValues.region);
                   this.searchJrRegionCtrl.setValue(documentValues.jr_region);
@@ -557,18 +559,24 @@ constructor(private activateRoute: ActivatedRoute,
   }
   
   createNewDocument(){
-    this.createdDocId=null;
     this.http.post('/api/auth/insertCompany', this.formBaseInformation.value)
     .subscribe(
     (data) =>   {
-        this.createdDocId=data as string [];
-        this.id=+this.createdDocId[0];
-        this._router.navigate(['/ui/companiesdoc', this.id]);
-        this.formBaseInformation.get('id').setValue(this.id);
-        this.getBaseData('reloadCompaniesList');  
-        this.rightsDefined=false; //!!!
-        this.getData();
-        this.openSnackBar(translate('docs.msg.doc_crtd_suc'),translate('docs.msg.close'));
+      let result=data as any;
+          switch(result){
+            case  null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_msg')}});break;}
+            case  -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});break;}
+            case -120:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.out_of_plan')}});break;}
+            default:{  
+              this.id=data as number;
+              this._router.navigate(['/ui/companiesdoc', this.id]);
+              this.formBaseInformation.get('id').setValue(this.id);
+              this.getBaseData('reloadCompaniesList');  
+              this.rightsDefined=false; //!!!
+              this.getData();
+              this.openSnackBar(translate('docs.msg.doc_crtd_suc'),translate('docs.msg.close'));
+        }
+      }
     },
     error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
