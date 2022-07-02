@@ -129,8 +129,8 @@ export class PricesComponent implements OnInit {
   canCagentAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredCagents: any;
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
-  optionsIds: idAndName [] = [{id:"3", name:"Скрывать не закупаемые товары"},
-                              {id:"4", name:"Скрывать снятые с продажи"},
+  optionsIds: idAndName [] = [{id:"3", name:"menu.top.hide_nonbuy"},
+                              {id:"4", name:"menu.top.hide_selloff"},
                               // {id:"1", name:"Мало"},
                               // {id:"2 ", name:"Достаточно"},
                             ]//список опций для вывода во всплывающем меню опций для фильтра

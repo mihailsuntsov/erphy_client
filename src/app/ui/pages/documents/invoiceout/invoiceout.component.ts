@@ -99,8 +99,8 @@ export class InvoiceoutComponent implements OnInit {
   visBtnCopy = false;
   visBtnDelete = false;
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
-  selectionFilterOptions = new SelectionModel<number>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние  // !!!
-  optionsIds: idAndName [];
+  selectionFilterOptions = new SelectionModel<idAndName>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние  // !!!
+  optionsIds: idAndName [] = [];
   displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
   option:number = 0; // опция для фильтра при переходе в данный модуль по роутеру // !!!
@@ -125,6 +125,7 @@ export class InvoiceoutComponent implements OnInit {
       if(activateRoute.snapshot.params['option']){
         this.option = +activateRoute.snapshot.params['option'];
         this.company = +activateRoute.snapshot.params['company'];
+        // this.resetOptions();
       }
      }
 
@@ -138,7 +139,7 @@ export class InvoiceoutComponent implements OnInit {
       this.sendingQueryForm.searchCategoryString="";
       // !!!
       this.sendingQueryForm.filterOptionsIds = [this.option];
-      if(this.option>0) this.selectionFilterOptions.toggle(this.option);
+      
 
       if(this.company==0){
         if(Cookie.get('invoiceout_companyId')=='undefined' || Cookie.get('invoiceout_companyId')==null)     
@@ -162,6 +163,10 @@ export class InvoiceoutComponent implements OnInit {
       this.getBaseData('myDepartmentsList');
     
     this.fillOptionsList();//заполняем список опций фильтра
+    if(this.option>0){        
+      this.selectionFilterOptions.select(this.optionsIds[this.option-1]);
+    } 
+
       // Форма настроек
     this.settingsForm = new FormGroup({
       // id отделения
@@ -270,7 +275,7 @@ export class InvoiceoutComponent implements OnInit {
   getData(){
     if(this.refreshPermissions() && this.allowToView)
     {
-      console.log('department 1 = '+this.sendingQueryForm.departmentId);
+      // console.log('department 1 = '+this.sendingQueryForm.departmentId);
       this.doFilterCompaniesList(); //если нет просмотра по всем предприятиям - фильтруем список предприятий до своего предприятия
       this.doFilterDepartmentsList();//если нет просмотра по свому предприятию - фильтруем список отделений предприятия до своих отделений
       this.getTableHeaderTitles();
@@ -674,7 +679,7 @@ export class InvoiceoutComponent implements OnInit {
   clickApplyFilters(){
     let showOnlyDeletedCheckboxIsOn:boolean = false; //присутствует ли включенный чекбокс "Показывать только удалённые"
     this.selectionFilterOptions.selected.forEach(z=>{
-      if(z==1){showOnlyDeletedCheckboxIsOn=true;}
+      if(z.id==1){showOnlyDeletedCheckboxIsOn=true;}
     })
     this.displayingDeletedDocs=showOnlyDeletedCheckboxIsOn;
     this.clearCheckboxSelection();
@@ -692,14 +697,14 @@ export class InvoiceoutComponent implements OnInit {
   }
   // !!!
   clickFilterOptionsCheckbox(row){
-    this.selectionFilterOptions.toggle(row.id); 
+    this.selectionFilterOptions.toggle(row); 
     this.createFilterOptionsCheckedList();
   } 
   // !!!
   createFilterOptionsCheckedList(){//this.sendingQueryForm.filterOptionsIds - массив c id выбранных чекбоксов вида "7,5,1,3,6,2,4", который заполняется при нажатии на чекбокс
     this.sendingQueryForm.filterOptionsIds = [];//                                                     
     this.selectionFilterOptions.selected.forEach(z=>{
-      this.sendingQueryForm.filterOptionsIds.push(z);
+      this.sendingQueryForm.filterOptionsIds.push(z.id);
     });
   }
   // sometimes in cookie "..._companyId" there value that not exists in list of companies. If it happens, company will be not selected and data not loaded until user select company manually

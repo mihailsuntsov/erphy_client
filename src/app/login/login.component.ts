@@ -79,9 +79,10 @@ export class LoginComponent implements OnInit {
     private delCookiesService: DelCookiesService,) { }
 
   ngOnInit() {
-    if(Cookie.get('language')=='undefined' || Cookie.get('language')==null) Cookie.set('language', 'en');
-    this.setLanguage(Cookie.get('language'));
-    // if(Cookie.get('language')=='undefined' || Cookie.get('language')==null) this.setLanguage('en'); else {this.temp_language=Cookie.get('language')}
+    if(Cookie.get('language')=='undefined' || Cookie.get('language')==null || Cookie.get('language')=='null')
+      this.setLanguage('en');
+    this.service.setActiveLang(Cookie.get('language'));
+    // if(Cookie.get('language')=='undefined' || Cookie.get('language')==null || Cookie.get('language')=='null') this.setLanguage('en'); else {this.temp_language=Cookie.get('language')}
 
     if (this.tokenStorage.getToken()) {
       this.isLoggedIn = true;
@@ -103,7 +104,7 @@ export class LoginComponent implements OnInit {
   }
   setLanguage(lang: string) {
     this.service.setActiveLang(lang);
-    Cookie.set('language', lang);
+    Cookie.set('language', lang, 8760, '/')
   }
 
   get language() {

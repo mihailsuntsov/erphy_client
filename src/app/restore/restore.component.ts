@@ -33,8 +33,9 @@ export class RestoreComponent implements OnInit {
 
   ngOnInit() {
     // alert( Cookie.get('language'))
-    if(Cookie.get('language')=='undefined' || Cookie.get('language')==null) Cookie.set('language', 'en');
-    this.setLanguage(Cookie.get('language'));
+    if(Cookie.get('language')=='undefined' || Cookie.get('language')==null || Cookie.get('language')=='null')
+      this.setLanguage('en');
+    this.service.setActiveLang(Cookie.get('language'));
       this.restoreform = new FormGroup({
         email: new FormControl ('',[Validators.required,Validators.email]),
       });
@@ -43,8 +44,7 @@ export class RestoreComponent implements OnInit {
   setLanguage(lang: string) {
     // alert('Now lang in cookie is '+Cookie.get('language')+', changing to '+lang)
     this.service.setActiveLang(lang);
-    Cookie.set('language', lang);
-    // setTimeout(() => { Cookie.set('language', lang); }, 5000);
+    Cookie.set('language', lang, 8760, '/')
   }
 
   get language() {

@@ -117,7 +117,7 @@ export class KassaComponent implements OnInit {
 
   ngOnInit(): void {
     this.sendingQueryForm.sortAsc="desc";
-    this.sendingQueryForm.sortColumn="p.name";
+    this.sendingQueryForm.sortColumn="name";
     this.sendingQueryForm.offset=0;
     this.sendingQueryForm.result="10";
     this.sendingQueryForm.companyId="0";

@@ -35,19 +35,19 @@ export class ActivateComponent implements OnInit {
     }
 
   ngOnInit() {
-    if(Cookie.get('language')=='undefined' || Cookie.get('language')==null) Cookie.set('language', 'en');
-    this.setLanguage(Cookie.get('language'));
-
+    if(Cookie.get('language')=='undefined' || Cookie.get('language')==null || Cookie.get('language')=='null')
+      this.setLanguage('en');
+    this.service.setActiveLang(Cookie.get('language'));
     if (!this.uuid || this.uuid == '') {
       this.errorMessage = 'user.error.no_activ_uuid';
       this.emptyUUID=true;
     } else this.onSubmit();
-
   }
   
   setLanguage(lang: string) {
+    // alert('Now lang in cookie is '+Cookie.get('language')+', changing to '+lang)
     this.service.setActiveLang(lang);
-    Cookie.set('language', lang);
+    Cookie.set('language', lang, 8760, '/')
   }
 
   get language() {
