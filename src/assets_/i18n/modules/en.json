@@ -119,7 +119,8 @@
         "clr_srch":     "Clear the search field, and select a different value",
         "auto_prce_add":"Automatically substitute the price from the last purchase price",
         "shared_file":  "Shared file available via external link",
-        "select_upl_fl":"Select files for upload"
+        "select_upl_fl":"Select files for upload",
+        "amnt_mov_prod":"Amount of products to move"
     },
     "tab":{
     },

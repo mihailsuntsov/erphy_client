@@ -869,7 +869,7 @@ constructor(private activateRoute: ActivatedRoute,
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
         this.formBaseInformation.get('zip_code').setValue(this.formBaseInformation.get('jr_zip_code').value);
-        this.formBaseInformation.get('country_id').setValue(+this.formBaseInformation.get('jr_country_id').value);
+        this.formBaseInformation.get('country_id').setValue(this.formBaseInformation.get('jr_country_id').value);
         this.formBaseInformation.get('country').setValue(this.formBaseInformation.get('jr_country').value);
         // this.formBaseInformation.get('region_id').setValue(this.formBaseInformation.get('jr_region_id').value);
         // this.searchRegionCtrl.setValue(this.searchJrRegionCtrl.value);
@@ -896,7 +896,7 @@ constructor(private activateRoute: ActivatedRoute,
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
         this.formBaseInformation.get('jr_zip_code').setValue(this.formBaseInformation.get('zip_code').value);
-        this.formBaseInformation.get('jr_country_id').setValue(+this.formBaseInformation.get('country_id').value);
+        this.formBaseInformation.get('jr_country_id').setValue(this.formBaseInformation.get('country_id').value);
         this.formBaseInformation.get('jr_country').setValue(this.formBaseInformation.get('country').value);
         // this.formBaseInformation.get('jr_region_id').setValue(this.formBaseInformation.get('region_id').value);
         // this.searchJrRegionCtrl.setValue(this.searchRegionCtrl.value);

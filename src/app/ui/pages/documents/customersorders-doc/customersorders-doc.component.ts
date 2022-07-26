@@ -1201,9 +1201,9 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
     if(this.formBaseInformation.get('country').value!='') this.addressString+=this.formBaseInformation.get('country').value+', ';
     if(this.formBaseInformation.get('region').value!='') this.addressString+=this.formBaseInformation.get('region').value+', ';
     if(this.formBaseInformation.get('city').value!='') this.addressString+=this.formBaseInformation.get('city').value+', ';
-    if(this.formBaseInformation.get('street').value!='') this.addressString+='ул. '+this.formBaseInformation.get('street').value+' ';
-    if(this.formBaseInformation.get('home').value!='') this.addressString+='д. '+this.formBaseInformation.get('home').value+' ';
-    if(this.formBaseInformation.get('flat').value!='') this.addressString+='кв. '+this.formBaseInformation.get('flat').value+' ';
+    if(this.formBaseInformation.get('street').value!='') this.addressString+=this.formBaseInformation.get('street').value+' ';
+    if(this.formBaseInformation.get('home').value!='') this.addressString+=this.formBaseInformation.get('home').value+' ';
+    if(this.formBaseInformation.get('flat').value!='') this.addressString+=this.formBaseInformation.get('flat').value+' ';
     if(this.formBaseInformation.get('additional_address').value!='') this.addressString+='('+this.formBaseInformation.get('additional_address').value+')';
   }
   getTotalProductCount() {//бежим по столбцу product_count и складываем (аккумулируем) в acc начиная с 0 значения этого столбца

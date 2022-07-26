@@ -1,7 +1,7 @@
 {
   "name": "dokio",
-  "version": "1.0.2",
-  "date": "02-07-2022",
+  "version": "1.0.3-1",
+  "date": "12-07-2022",
   "scripts": {
     "ng": "ng",
     "start": "node --max-old-space-size=4096 ./node_modules/@angular/cli/bin/ng serve -o --proxy-config proxy.conf.json",

@@ -39,10 +39,10 @@ export class FormUploadComponent implements OnInit {
         // console.log("fileType="+file.type);
         this.upload();
       } else {
-        alert('Размер файла должен быть не более 1 Мб');
+        alert('File size must be no more 1 Mb');
       }
     } else {
-      alert('Файл не является картинкой формата \"JPEG\"');
+      alert('File is not \"JPEG\" picture');
     }
   }
  

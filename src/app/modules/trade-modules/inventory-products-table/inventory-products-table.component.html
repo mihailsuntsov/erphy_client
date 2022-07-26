@@ -299,6 +299,7 @@
                                                 placeholder=""
                                                 formControlName="actual_balance"
                                                 (keyup)="onChangeActualBalance(i);"
+                                                (keypress)="numberOnlyPlusDotAndComma($event)"
                                             />
                                             <span matSuffix>{{row.edizm}}</span>
                                             <control-messages  class="table-form-invalid" [control]="getControlTablefield().controls[i].get('actual_balance')"></control-messages>

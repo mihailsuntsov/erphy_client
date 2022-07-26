@@ -784,12 +784,12 @@ export class InventoryProductsTableComponent implements OnInit {
   }
 
   
-
-
+  //заменяет запятую на точку при вводе цены или количества в заданной ячейке
   commaToDotInTableField(row_index:number, fieldName:string){
     const control = this.getControlTablefield();
-    control.controls[row_index].get(fieldName).setValue(+(control.controls[row_index].get(fieldName).value.toString().replace(",", ".")));
+    control.controls[row_index].get(fieldName).setValue(control.controls[row_index].get(fieldName).value.replace(",", "."));
   }
+
   checkActualBalanceInForm(){
     if(this.formSearch.get('actual_balance').value!=null && this.formSearch.get('actual_balance').value!='')
       this.formSearch.get('actual_balance').setValue((this.formSearch.get('actual_balance').value).replace(",", "."));

@@ -43,6 +43,7 @@ interface ProductSearchResponse{  // интерфейс получения сп�
   remains: number;                // остатки 
   nds_id: number;                 // ндс 
   indivisible: boolean;           // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
+  avgCostPrice: number;           // средняя себестоимость товара 
 }
 interface ShortInfoAboutProduct{//интерф. для получения инфо о состоянии товара в отделении (кол-во, последняя поставка), и средним ценам (закупочной и себестоимости) товара
   quantity:number;
@@ -301,7 +302,7 @@ export class ReturnProductsTableComponent implements OnInit {
     this.productImageName = this.filteredProducts[0].filename;                                      // картинка товара
     this.formSearch.get('remains').setValue(this.filteredProducts[0].remains);                      // остатки - кол-во товара по БД
     this.formSearch.get('nds_id').setValue(this.filteredProducts[0].nds_id);                        // id НДС 
-    this.formSearch.get('product_netcost').setValue(0);                                             // себестоимость 
+    this.formSearch.get('product_netcost').setValue(this.filteredProducts[0].avgCostPrice);         // средняя себестоимость 
     this.formSearch.get('indivisible').setValue(this.filteredProducts[0].indivisible);              // неделимость (необходимо для проверки правильности ввода кол-ва товара)
     this.afterSelectProduct();
     this.filteredProducts=[];
@@ -315,7 +316,7 @@ export class ReturnProductsTableComponent implements OnInit {
     this.productImageName = product.filename;                                      // картинка товара
     this.formSearch.get('remains').setValue(product.remains);                      // остатки - кол-во товара по БД
     this.formSearch.get('nds_id').setValue(product.nds_id);                        // id НДС 
-    this.formSearch.get('product_netcost').setValue(0);                            // себестоимость 
+    this.formSearch.get('product_netcost').setValue(product.avgCostPrice);         // средняя себестоимость 
     this.formSearch.get('indivisible').setValue(product.indivisible);              // неделимость (необходимо для проверки правильности ввода кол-ва товара)
     this.canAutocompleteQuery=false;
     this.afterSelectProduct();

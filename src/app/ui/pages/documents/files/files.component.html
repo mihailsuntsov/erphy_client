@@ -302,6 +302,7 @@ class="spinner"
                                                 <ng-container matColumnDef="select">
                                                         <th mat-header-cell *matHeaderCellDef style="width: 40px;">
                                                             <mat-checkbox (change)="$event ? masterToggle() : null"
+                                                                            style = "margin-right: 10px"
                                                                             id="headCheckbox"
                                                                             [checked]="selection.hasValue() && isAllSelected()"
                                                                             [indeterminate]="selection.hasValue() && !isAllSelected()"
@@ -310,6 +311,7 @@ class="spinner"
                                                         </th>
                                                         <td mat-cell *matCellDef="let row">
                                                             <mat-checkbox (click)="$event.stopPropagation()"
+                                                                            style = "margin-right: 10px"
                                                                             (change)="$event ? clickTableCheckbox(row) : null"
                                                                             [checked]="selection.isSelected(row)"
                                                                             [aria-label]="checkboxLabel(row)">

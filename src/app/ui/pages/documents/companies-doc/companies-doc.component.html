@@ -220,15 +220,6 @@
                                             </textarea>
                                             <mat-hint align="end" *ngIf="formBaseInformation.get('jr_jur_full_name').value.length>400">{{formBaseInformation.get('jr_jur_full_name').value.length}} / 500</mat-hint>
                                         </mat-form-field>
-                                        <!-- Фамилия -->
-                                        <mat-form-field *ngIf="formBaseInformation.get('type').value=='individual'">
-                                            <input   matInput
-                                                    placeholder="{{t('docs.field.surname')}}"
-                                                    [readonly]=!editability
-                                                    maxlength="120"
-                                                    formControlName="jr_fio_family"/>
-                                            <mat-hint align="end" *ngIf="formBaseInformation.get('jr_fio_family').value.length>100">{{formBaseInformation.get('jr_fio_family').value.length}} / 120</mat-hint>
-                                        </mat-form-field>
                                         <!-- Имя -->
                                         <mat-form-field *ngIf="formBaseInformation.get('type').value=='individual'">
                                             <input   matInput
@@ -238,6 +229,15 @@
                                                     formControlName="jr_fio_name"/>
                                             <mat-hint align="end" *ngIf="formBaseInformation.get('jr_fio_name').value.length>100">{{formBaseInformation.get('jr_fio_name').value.length}} / 120</mat-hint>
                                         </mat-form-field>
+                                        <!-- Фамилия -->
+                                        <mat-form-field *ngIf="formBaseInformation.get('type').value=='individual'">
+                                            <input   matInput
+                                                    placeholder="{{t('docs.field.surname')}}"
+                                                    [readonly]=!editability
+                                                    maxlength="120"
+                                                    formControlName="jr_fio_family"/>
+                                            <mat-hint align="end" *ngIf="formBaseInformation.get('jr_fio_family').value.length>100">{{formBaseInformation.get('jr_fio_family').value.length}} / 120</mat-hint>
+                                        </mat-form-field>                                        
                                         <!-- Отчество -->
                                         <mat-form-field *ngIf="formBaseInformation.get('type').value=='individual' && +formBaseInformation.get('jr_country_id').value==1">
                                             <input   matInput
@@ -711,9 +711,12 @@
                                                 <div class="input-form">
                                                     <mat-form-field *ngIf="id>0">
                                                         <div *ngIf="editability && !formBaseInformation.get('director_signature_id').value" class="add-file">
-                                                            <button class="hand" matTooltip="{{t('docs.tip.add_file')}}" mat-mini-fab color="primary" (click)="addFileInField('director')" matTooltip="Загрузить файл">
-                                                                <mat-icon>add</mat-icon>
-                                                            </button>
+                                                            <mat-icon   
+                                                                matTooltip="{{t('docs.tip.add_file')}}"
+                                                                class="hand add_circle"
+                                                                (click)="addFileInField('director')">
+                                                                add_circle
+                                                            </mat-icon>
                                                         </div>
                                                         <div style="min-width:70px;">
                                                             <mat-icon   *ngIf="formBaseInformation.get('director_signature_id').value"
@@ -740,9 +743,12 @@
                                                     <!-- Подпись гл. бухгалтера -->
                                                     <mat-form-field *ngIf="id>0">
                                                         <div *ngIf="editability && !formBaseInformation.get('glavbuh_signature_id').value" class="add-file">
-                                                            <button class="hand" matTooltip="{{t('docs.tip.add_file')}}" mat-mini-fab color="primary" (click)="addFileInField('glavbuh')" matTooltip="Загрузить файл">
-                                                                <mat-icon>add</mat-icon>
-                                                            </button>
+                                                            <mat-icon   
+                                                                matTooltip="{{t('docs.tip.add_file')}}"
+                                                                class="hand add_circle"
+                                                                (click)="addFileInField('glavbuh')">
+                                                                add_circle
+                                                            </mat-icon>
                                                         </div>
                                                         <div style="min-width:70px;">
                                                             <mat-icon   *ngIf="formBaseInformation.get('glavbuh_signature_id').value"
@@ -769,9 +775,12 @@
                                                     <!-- Печать предприятия -->
                                                     <mat-form-field *ngIf="id>0">
                                                         <div *ngIf="editability && !formBaseInformation.get('stamp_id').value" class="add-file">
-                                                            <button class="hand" matTooltip="{{t('docs.tip.add_file')}}" mat-mini-fab color="primary" (click)="addFileInField('stamp')" matTooltip="Загрузить файл">
-                                                                <mat-icon>add</mat-icon>
-                                                            </button>
+                                                            <mat-icon   
+                                                                matTooltip="{{t('docs.tip.add_file')}}"
+                                                                class="hand add_circle"
+                                                                (click)="addFileInField('stamp')">
+                                                                add_circle
+                                                            </mat-icon>
                                                         </div>
                                                         <div style="min-width:70px;">
                                                             <mat-icon   *ngIf="formBaseInformation.get('stamp_id').value"
@@ -796,11 +805,14 @@
                                                                 formControlName="stamp_filename"/>
                                                     </mat-form-field>
                                                     <!-- Файл шаблона карточки предприятия -->
-                                                    <mat-form-field *ngIf="id>0">
+                                                    <!-- <mat-form-field *ngIf="id>0">
                                                         <div *ngIf="editability && !formBaseInformation.get('card_template_id').value" class="add-file">
-                                                            <button class="hand" matTooltip="{{t('docs.tip.add_file')}}" mat-mini-fab color="primary" (click)="addFileInField('card_template')" matTooltip="Загрузить файл">
-                                                                <mat-icon>add</mat-icon>
-                                                            </button>
+                                                            <mat-icon   
+                                                                matTooltip="{{t('docs.tip.add_file')}}"
+                                                                class="hand add_circle"
+                                                                (click)="addFileInField('card_template')">
+                                                                add_circle
+                                                            </mat-icon>
                                                         </div>
                                                         <div style="min-width:70px;">
                                                             <mat-icon   *ngIf="formBaseInformation.get('card_template_id').value"
@@ -823,7 +835,7 @@
                                                                 placeholder="{{t('docs.field.file_templ_cr')}}"
                                                                 [readonly]=true
                                                                 formControlName="card_template_original_filename"/>
-                                                    </mat-form-field>
+                                                    </mat-form-field> -->
                                                 </div>
                                             <!-- </mat-card-content> -->
                                         <!-- </mat-card>  -->

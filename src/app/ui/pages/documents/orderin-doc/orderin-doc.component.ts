@@ -412,7 +412,7 @@ export class OrderinDocComponent implements OnInit {
         .subscribe(
             (data) => 
             {
-              this.formAboutDocument.get('company').setValue(this.getCompanyNameById(this.formBaseInformation.get('company_id').value));
+              // this.formAboutDocument.get('company').setValue(this.getCompanyNameById(this.formBaseInformation.get('company_id').value));
               this.receivedCompaniesList=data as any [];
               this.doFilterCompaniesList();
             },                      

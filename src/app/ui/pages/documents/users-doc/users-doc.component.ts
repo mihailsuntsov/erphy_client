@@ -164,9 +164,9 @@ export class UsersDocComponent implements OnInit {
       vatin: new FormControl      ('',[Validators.maxLength(12), Validators.minLength(12),Validators.pattern('^[0-9]{12}$')]),
       selectedUserDepartments: new FormControl([],[]),
       userGroupList: new FormControl      ([],[]),      
-      timeZoneId: new FormControl  (24,[]),
-      localeId: new FormControl      (4,[]),
-      languageId: new FormControl    (1,[]),
+      timeZoneId: new FormControl  (24,[Validators.required]),
+      localeId: new FormControl      (4,[Validators.required]),
+      languageId: new FormControl    (1,[Validators.required]),
       localeName: new FormControl      ('',[]),
       languageName: new FormControl    ('',[]),
     });

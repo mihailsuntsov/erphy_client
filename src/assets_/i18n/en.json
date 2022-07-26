@@ -87,7 +87,7 @@
 
                 "return":"Customers returns",
                 "customersorders":"Customers orders",
-                "shipment":"Shipments",
+                "shipment":"Sales",
                 "invoiceout":"Invoices to customers",
                 "vatinvoiceout":"Issued VAT invoices",
 
@@ -98,11 +98,11 @@
                 "withdrawal":"Withdrawals",
                 "depositing":"Depositings",
 
-                "products":"Products",
+                "products":"Products and Services",
                 "remains":"In-stock balance",
                 "prices":"Prices",
                 "inventory":"Inventories",
-                "writeoff":"Writeoffs",
+                "writeoff":"Write-offs",
                 "posting":"Postings",
                 "moving":"Movings",
 

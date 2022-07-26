@@ -97,13 +97,24 @@ maxFileSize:number = 10 * 1024 * 1024; // = 10 Mb; Также нужно мен�
           this.progress.percentage = Math.round(100 * event.loaded / event.total);
         } else 
           if (event instanceof HttpResponse) {
-            // console.log(event.body)
-            if(event.body!=="-120"){
-              this.currentFileUpload=null;
-              this.countUploadedFiles++;
-              this.nextFileSwitcher();
-            } else {//if current file will be uploaded, then sum size of all master-user files will out of bounds of tariff plan
-              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.out_of_plan')}});
+            switch(event.body){   
+              case null:{// null возвращает если не удалось создать документ из-за ошибки 
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.crte_doc_err',{name:translate('docs.docs.file')})}}); 
+                break;
+              }
+              case "-1":{//недостаточно прав
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}});
+                break;
+              }
+              case "-120":{//if current file will be uploaded, then sum size of all master-user files will out of bounds of tariff plan
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.out_of_plan')}});
+                break;
+              }
+              default:{//успешно создалась в БД 
+                this.currentFileUpload=null;
+                this.countUploadedFiles++;
+                this.nextFileSwitcher();
+              }
             }
           }
       });

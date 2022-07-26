@@ -44,6 +44,15 @@ height: 100%;
 width:100%;
 border: 0px solid black;
 }
+
+.add_circle {
+    cursor: pointer;
+    position: absolute;
+    top: 24px;
+    right: 0px;
+    color: #585858;
+    z-index: 1000;
+}
 /*--------------категории-------------------*/
 .showchilds{
 font-size: 18px;

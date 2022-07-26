@@ -12,7 +12,7 @@
 }
 
 .login-mat-card{
-    
+    padding-bottom: 23px;
     width:100%;
     max-width: 500px;
     margin-top: 200px;
@@ -38,17 +38,17 @@
     right: 0;
     text-align: center;
     bottom: 5px;
-    font-size: x-small;
+    font-size: 10px;
     cursor: pointer;
     z-index: 1000;
 }
 .version-info{
     text-align: left;
-    font-size: small;
+    font-size: 16px;
 }
 .version-mat-card{
     position: absolute;
-    bottom: -90px;
+    bottom: -100px;
     margin-left: auto;
     margin-right: auto;
     left: 0 !important;

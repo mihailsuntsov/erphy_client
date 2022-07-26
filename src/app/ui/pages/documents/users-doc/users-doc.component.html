@@ -291,7 +291,7 @@
                                                             formControlName="timeZoneId"/>
                                                 </mat-form-field>
                                                 <mat-form-field class="mat-form-field-100">
-                                                    <mat-label>Язык <span *ngIf="formBaseInformation.get('languageName').value==0||formBaseInformation.get('languageName').value==null" class="star">*</span></mat-label>
+                                                    <mat-label>{{t('modules.field.language')}} <span *ngIf="formBaseInformation.get('languageName').value==0||formBaseInformation.get('languageName').value==null" class="star">*</span></mat-label>
                                                     <input matInput
                                                         type="text"
                                                         formControlName="languageName" 
@@ -302,7 +302,7 @@
                                                         type="button"
                                                         class="clear-button"
                                                         (click)="clearField('languageName');checkEmptyFields('languageId','languageName');"
-                                                        matTooltip='Очистить поле поиска, и выбрать другой язык'
+                                                        matTooltip="{{t('docs.tip.clear_field')}}"
                                                         matSuffix mat-icon-button>
                                                         <mat-icon>close</mat-icon>
                                                     </button>
@@ -314,7 +314,7 @@
                                                     </mat-option>
                                                     </mat-autocomplete>
                                                     <mat-hint  align="start" *ngIf="formBaseInformation.get('languageName').touched && formBaseInformation.get('languageId').invalid">
-                                                        <i class="form-invalid">Язык не выбран.</i>
+                                                        <i class="form-invalid">{{t('docs.error.field_miss')}}</i>
                                                     </mat-hint>
                                                 </mat-form-field>
                     
@@ -324,7 +324,7 @@
                                                             formControlName="localeId"/>
                                                 </mat-form-field>
                                                 <mat-form-field class="mat-form-field-100">
-                                                    <mat-label>Локаль <span *ngIf="formBaseInformation.get('localeName').value==0||formBaseInformation.get('localeName').value==null" class="star">*</span></mat-label>
+                                                    <mat-label>{{t('modules.field.locale')}} <span *ngIf="formBaseInformation.get('localeName').value==0||formBaseInformation.get('localeName').value==null" class="star">*</span></mat-label>
                                                     <input matInput
                                                         type="text"
                                                         formControlName="localeName" 
@@ -335,7 +335,7 @@
                                                         type="button"
                                                         class="clear-button"
                                                         (click)="clearField('localeName');checkEmptyFields('localeId','localeName');"
-                                                        matTooltip='Очистить поле поиска, и выбрать другую локаль'
+                                                        matTooltip="{{t('docs.tip.clear_field')}}"
                                                         matSuffix mat-icon-button>
                                                         <mat-icon>close</mat-icon>
                                                     </button>
@@ -347,7 +347,7 @@
                                                     </mat-option>
                                                     </mat-autocomplete>
                                                     <mat-hint  align="start" *ngIf="formBaseInformation.get('localeName').touched && formBaseInformation.get('localeId').invalid">
-                                                        <i class="form-invalid">Локаль не выбрана.</i>
+                                                        <i class="form-invalid">{{t('docs.error.field_miss')}}</i>
                                                     </mat-hint>
                                                 </mat-form-field>
                                                 <mat-form-field>

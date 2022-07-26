@@ -163,7 +163,7 @@ interface idNameDescription{ //универсалный интерфейс дл�
 export class CompaniesDocComponent implements OnInit {
   id: number=0;// id документа
   receivedd: any [];//массив для получения списка предприятий
-  myCompanyId:number=0;
+  myCompanyId:number=null;
   receivedSpravSysOPF: any [];//массив для получения данных справочника форм предприятий
   receivedCurrencyList: any [];// список валют
   filesInfo : filesInfo [] = []; //массив для получения информации по прикрепленным к документу файлам 
@@ -276,7 +276,7 @@ constructor(private activateRoute: ActivatedRoute,
 
       //фактический адрес:
       zip_code:  new FormControl      ('',[Validators.maxLength(40)]),
-      country_id:  new FormControl      ('',[]),
+      country_id:  new FormControl      (null,[]),
       // region_id:  new FormControl      ('',[]),
       // city_id:  new FormControl      ('',[]),
       region:  new FormControl      ('',[]),
@@ -294,7 +294,7 @@ constructor(private activateRoute: ActivatedRoute,
       jr_jur_ogrn:  new FormControl      ('',[Validators.pattern('^[0-9]{13}$')]),
       //юридический адрес (для юрлиц) /адрес регистрации (для ип и физлиц)
       jr_zip_code:  new FormControl      ('',[Validators.maxLength(40)]),
-      jr_country_id:  new FormControl      ('',[]),
+      jr_country_id:  new FormControl      (null,[]),
       // jr_region_id:  new FormControl      ('',[]),
       // jr_city_id:  new FormControl      ('',[]),
       jr_region:  new FormControl      ('',[]),
@@ -687,7 +687,7 @@ constructor(private activateRoute: ActivatedRoute,
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
         this.formBaseInformation.get('zip_code').setValue(this.formBaseInformation.get('jr_zip_code').value);
-        this.formBaseInformation.get('country_id').setValue(+this.formBaseInformation.get('jr_country_id').value);
+        this.formBaseInformation.get('country_id').setValue(this.formBaseInformation.get('jr_country_id').value);
         this.formBaseInformation.get('country').setValue(this.formBaseInformation.get('jr_country').value);
         // this.formBaseInformation.get('region_id').setValue(this.formBaseInformation.get('jr_region_id').value);        
         this.formBaseInformation.get('region').setValue(this.formBaseInformation.get('jr_region').value);
@@ -714,7 +714,7 @@ constructor(private activateRoute: ActivatedRoute,
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
         this.formBaseInformation.get('jr_zip_code').setValue(this.formBaseInformation.get('zip_code').value);
-        this.formBaseInformation.get('jr_country_id').setValue(+this.formBaseInformation.get('country_id').value);
+        this.formBaseInformation.get('jr_country_id').setValue(this.formBaseInformation.get('country_id').value);
         this.formBaseInformation.get('jr_country').setValue(this.formBaseInformation.get('country').value);
         // this.formBaseInformation.get('jr_region_id').setValue(this.formBaseInformation.get('region_id').value);
         this.formBaseInformation.get('jr_region').setValue(this.formBaseInformation.get('region').value);
