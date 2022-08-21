@@ -11,7 +11,7 @@ import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { QueryFormService } from './get-paymentin-table.service';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
-import { FormGroup, FormControl } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl } from '@angular/forms';
 import { SettingsPaymentinDialogComponent } from 'src/app/modules/settings/settings-paymentin-dialog/settings-paymentin-dialog.component';
 import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
 import { translate, TranslocoService } from '@ngneat/transloco'; //+++
@@ -135,15 +135,15 @@ export class PaymentinComponent implements OnInit {
       
       this.fillOptionsList();//заполняем список опций фильтра
       // Форма настроек
-    this.settingsForm = new FormGroup({
+    this.settingsForm = new UntypedFormGroup({
       //покупатель по умолчанию
-      cagentId: new FormControl                 (null,[]),
+      cagentId: new UntypedFormControl                 (null,[]),
       //наименование покупателя
-      cagent: new FormControl                   ('',[]),
+      cagent: new UntypedFormControl                   ('',[]),
       //предприятие, для которого создаются настройки
-      companyId: new FormControl                (null,[]),
+      companyId: new UntypedFormControl                (null,[]),
       //статус после успешного отбития чека, перед созданием нового документа
-      statusIdOnComplete: new FormControl       ('',[]),
+      statusIdOnComplete: new UntypedFormControl       ('',[]),
     });
 
       this.getCompaniesList();// 

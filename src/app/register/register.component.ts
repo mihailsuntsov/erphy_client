@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 import { SignUpInfo } from '../auth/signup-info';
-import {  Validators, FormGroup, FormControl } from '@angular/forms';
+import {  Validators, UntypedFormGroup, UntypedFormControl } from '@angular/forms';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { translate, TranslocoService } from '@ngneat/transloco';
 
@@ -25,12 +25,12 @@ export class RegisterComponent implements OnInit {
 
   constructor(private authService: AuthService,
     private service: TranslocoService,) { 
-    this.regform = new FormGroup({
-      name: new FormControl ('',[Validators.required,Validators.minLength(2)]),
-      username: new FormControl ('',[Validators.required,Validators.minLength(4),Validators.maxLength(20),Validators.pattern('^[a-zA-Z][a-zA-Z0-9-_\.]{1,20}$')]),
-      email: new FormControl ('',[Validators.required,Validators.email]),
-      password: new FormControl ('',[Validators.required,Validators.minLength(6),Validators.maxLength(20),Validators.pattern('^[a-zA-Z][a-zA-Z0-9-_\.]{1,20}$')]),
-      language: new FormControl ('',[]),
+    this.regform = new UntypedFormGroup({
+      name: new UntypedFormControl ('',[Validators.required,Validators.minLength(2)]),
+      username: new UntypedFormControl ('',[Validators.required,Validators.minLength(4),Validators.maxLength(20),Validators.pattern('^[a-zA-Z][a-zA-Z0-9-_\.]{1,20}$')]),
+      email: new UntypedFormControl ('',[Validators.required,Validators.email]),
+      password: new UntypedFormControl ('',[Validators.required,Validators.minLength(6),Validators.maxLength(20),Validators.pattern('^[a-zA-Z][a-zA-Z0-9-_\.]{1,20}$')]),
+      language: new UntypedFormControl ('',[]),
     });
   }
 

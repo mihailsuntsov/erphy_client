@@ -11,7 +11,7 @@ import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { QueryFormService } from './get-vatinvoicein-table.service';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
-import { FormGroup, FormControl } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl } from '@angular/forms';
 import { SettingsVatinvoiceinDialogComponent } from 'src/app/modules/settings/settings-vatinvoicein-dialog/settings-vatinvoicein-dialog.component';
 import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
 import { translate, TranslocoService } from '@ngneat/transloco'; //+++
@@ -135,11 +135,11 @@ export class VatinvoiceinComponent implements OnInit {
     
       this.fillOptionsList();//заполняем список опций фильтра
       // Форма настроек
-    this.settingsForm = new FormGroup({
+    this.settingsForm = new UntypedFormGroup({
       //предприятие, для которого создаются настройки
-      companyId: new FormControl                (null,[]),
+      companyId: new UntypedFormControl                (null,[]),
       //статус после успешного отбития чека, перед созданием нового документа
-      statusIdOnComplete: new FormControl       ('',[]),
+      statusIdOnComplete: new UntypedFormControl       ('',[]),
     });
 
       this.getCompaniesList();// 

@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { LoadSpravService } from 'src/app/services/loadsprav';
 import { MatDialog } from '@angular/material/dialog';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
@@ -92,10 +92,10 @@ export class OpexComponent implements OnInit {
 
   ngOnInit(): void {
 
-    this.queryForm = new FormGroup({ //форма для отправки запроса 
-      companyId: new FormControl(this.companyId,[]), // предприятие, по которому идет запрос данных
-      dateFrom: new FormControl(moment().startOf('year')),   // дата С
-      dateTo: new FormControl(moment().endOf('year')),     // дата По
+    this.queryForm = new UntypedFormGroup({ //форма для отправки запроса 
+      companyId: new UntypedFormControl(this.companyId,[]), // предприятие, по которому идет запрос данных
+      dateFrom: new UntypedFormControl(moment().startOf('year')),   // дата С
+      dateTo: new UntypedFormControl(moment().endOf('year')),     // дата По
     });
   }
  

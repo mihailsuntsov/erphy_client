@@ -8,7 +8,7 @@ import { SettingsDashboardComponent } from 'src/app/modules/settings/settings-da
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpClient } from '@angular/common/http';
-import { FormGroup, FormControl } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl } from '@angular/forms';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { LoadSpravService } from 'src/app/services/loadsprav';
 import { translate } from '@ngneat/transloco'; //+++
@@ -71,9 +71,9 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     // Форма настроек
-    this.settingsForm = new FormGroup({
+    this.settingsForm = new UntypedFormGroup({
       //предприятие, для которого создаются настройки
-      companyId: new FormControl                (null,[]),
+      companyId: new UntypedFormControl                (null,[]),
     });
     this.getBaseData('myCompanyId');
     this.getBaseData('updateDashboard');

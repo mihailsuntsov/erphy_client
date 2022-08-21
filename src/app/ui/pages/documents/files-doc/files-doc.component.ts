@@ -1,7 +1,7 @@
 import { Component, OnInit , Inject, Optional, Output, EventEmitter} from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from './loadsprav';
-import { Validators, FormGroup, FormControl, FormBuilder} from '@angular/forms';
+import { Validators, UntypedFormGroup, UntypedFormControl, UntypedFormBuilder} from '@angular/forms';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatDialog,  MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -86,9 +86,9 @@ rightsDefined:boolean = false;//!!!
 
 checkedList:any[]; //массив для накапливания id выбранных чекбоксов вида [2,5,27...], а так же для заполнения загруженными значениями чекбоксов
 
-searchFileGroupsCtrl = new FormControl();
+searchFileGroupsCtrl = new UntypedFormControl();
 
-fieldsForm: FormGroup;
+fieldsForm: UntypedFormGroup;
 dataFields: any;
 receivedSetsOfFields: any [] = [] ;//массив для получения сетов полей
 fieldIdEditNow:number=0;    //     id редактируемого кастомного поля в fieldsForm  
@@ -130,7 +130,7 @@ constructor(private activateRoute: ActivatedRoute,
   private loadSpravService:   LoadSpravService,
   private _snackBar: MatSnackBar,
   private MessageDialog: MatDialog,
-  private fb: FormBuilder,
+  private fb: UntypedFormBuilder,
   public ConfirmDialog: MatDialog,
   @Optional() @Inject(MAT_DIALOG_DATA) public data: any,
   public ShowImageDialog: MatDialog) { 
@@ -144,33 +144,33 @@ constructor(private activateRoute: ActivatedRoute,
         fields: this.fb.array([])
      });
 
-    this.formBaseInformation = new FormGroup({
-      id: new FormControl                         (this.id,[]),
-      original_name: new FormControl              ('',[Validators.required]),
-      description: new FormControl                ('',[]),
-      anonyme_access: new FormControl             ('',[]),
+    this.formBaseInformation = new UntypedFormGroup({
+      id: new UntypedFormControl                         (this.id,[]),
+      original_name: new UntypedFormControl              ('',[Validators.required]),
+      description: new UntypedFormControl                ('',[]),
+      anonyme_access: new UntypedFormControl             ('',[]),
       // slideToggle: new FormControl             ('',[]),
-      company_id: new FormControl                 ('',[Validators.required]),
-      company: new FormControl                    ('',[]),
-      selectedFileCategories:new FormControl      ([],[]),
+      company_id: new UntypedFormControl                 ('',[Validators.required]),
+      company: new UntypedFormControl                    ('',[]),
+      selectedFileCategories:new UntypedFormControl      ([],[]),
       //для этих полей нет, но они нужны:
-      name: new FormControl                       ('',[]),
-      extention: new FormControl                  ('',[]),
-      file_size: new FormControl                  ('',[]),
-      mime_type: new FormControl                  ('',[]),
+      name: new UntypedFormControl                       ('',[]),
+      extention: new UntypedFormControl                  ('',[]),
+      file_size: new UntypedFormControl                  ('',[]),
+      mime_type: new UntypedFormControl                  ('',[]),
     });
-    this.formAboutDocument = new FormGroup({
-      id: new FormControl                         ('',[]),
-      master: new FormControl                     ('',[]),
-      creator: new FormControl                    ('',[]),
-      changer: new FormControl                    ('',[]),
-      company: new FormControl                    ('',[]),
-      date_time_created: new FormControl          ('',[]),
-      date_time_changed: new FormControl          ('',[]),
+    this.formAboutDocument = new UntypedFormGroup({
+      id: new UntypedFormControl                         ('',[]),
+      master: new UntypedFormControl                     ('',[]),
+      creator: new UntypedFormControl                    ('',[]),
+      changer: new UntypedFormControl                    ('',[]),
+      company: new UntypedFormControl                    ('',[]),
+      date_time_created: new UntypedFormControl          ('',[]),
+      date_time_changed: new UntypedFormControl          ('',[]),
     });
-    this.selectedFileCategory = new FormGroup({
-      selectedNodeId: new FormControl             ('',[]),
-      SelectedNodeName: new FormControl           ('',[]),
+    this.selectedFileCategory = new UntypedFormGroup({
+      selectedNodeId: new UntypedFormControl             ('',[]),
+      SelectedNodeName: new UntypedFormControl           ('',[]),
     });
     this.checkedList = [];
     this.getSetOfPermissions();

@@ -1,7 +1,7 @@
 import { Component, OnInit , Inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { HttpClient } from '@angular/common/http';
-import { FormGroup, Validators, FormControl } from '@angular/forms';
+import { UntypedFormGroup, Validators, UntypedFormControl } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { startWith, map } from 'rxjs/operators';
 import { LoadSpravService } from '../../../services/loadsprav';
@@ -43,13 +43,14 @@ export class UserSettingsDialogComponent implements OnInit {
   
   ngOnInit(): void {
 
-    this.settingsForm = new FormGroup({
-      timeZoneId: new FormControl                 (this.data.timeZoneId,[Validators.required]),
-      timeZoneName: new FormControl               ('',[]),
-      languageId: new FormControl                 (this.data.languageId,[Validators.required]),
-      languageName: new FormControl               ('',[]),
-      localeId: new FormControl                   (this.data.localeId,[Validators.required]),
-      localeName: new FormControl                 ('',[]),
+    this.settingsForm = new UntypedFormGroup({
+      timeZoneId: new UntypedFormControl                 (this.data.timeZoneId,[Validators.required]),
+      timeZoneName: new UntypedFormControl               ('',[]),
+      languageId: new UntypedFormControl                 (this.data.languageId,[Validators.required]),
+      languageName: new UntypedFormControl               ('',[]),
+      localeId: new UntypedFormControl                   (this.data.localeId,[Validators.required]),
+      localeName: new UntypedFormControl                 ('',[]),
+      timeFormat: new UntypedFormControl                 (this.data.timeFormat,[Validators.required]),
     });
 
     // this.locale=this.data.locale;

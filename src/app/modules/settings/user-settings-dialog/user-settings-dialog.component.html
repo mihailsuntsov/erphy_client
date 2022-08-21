@@ -88,7 +88,23 @@
                                     <i class="form-invalid">{{t('modules.error.field_miss')}}</i>
                                 </mat-hint>
                             </mat-form-field>
-
+                            <mat-form-field  class="mat-form-field-100">
+                                <mat-label>{{t('modules.field.time_format')}}</mat-label>
+                                <mat-select  
+                                    formControlName="timeFormat"
+                                >                          
+                                    <mat-option 
+                                        value="12" 
+                                    >
+                                            9:15 AM
+                                    </mat-option>                     
+                                    <mat-option 
+                                        value="24"
+                                    >
+                                            21:15
+                                    </mat-option>                                                 
+                                </mat-select>
+                            </mat-form-field>
                             <mat-form-field style="display: none;" >
                                 <input   matInput
                                         placeholder="Timezone"

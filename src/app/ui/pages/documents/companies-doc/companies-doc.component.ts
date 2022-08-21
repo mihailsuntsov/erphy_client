@@ -1,7 +1,7 @@
 import { Component, OnInit , Inject, Optional, Output, EventEmitter } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
-import { Validators, FormGroup, FormArray, FormControl, FormBuilder } from '@angular/forms';
+import { Validators, UntypedFormGroup, UntypedFormArray, UntypedFormControl, UntypedFormBuilder } from '@angular/forms';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog,  MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -178,21 +178,21 @@ export class CompaniesDocComponent implements OnInit {
   filteredSpravSysJrCountries: Observable<IdAndName_ru[]>; //массив для отфильтрованных Юр Страна
   // Регионы
   //для поиска района по подстроке
-  searchRegionCtrl = new FormControl();//поле для поиска
+  searchRegionCtrl = new UntypedFormControl();//поле для поиска
   isRegionListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canRegionAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredRegions: Region[];//массив для загрузки найденных по подстроке регионов
-  searchJrRegionCtrl = new FormControl();//поле для поиска
+  searchJrRegionCtrl = new UntypedFormControl();//поле для поиска
   isJrRegionListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canJrRegionAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredJrRegions: Region[];//массив для загрузки найденных по подстроке регионов
   // Города
   //для поиска района по подстроке
-  searchCityCtrl = new FormControl();//поле для поиска
+  searchCityCtrl = new UntypedFormControl();//поле для поиска
   isCityListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canCityAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredCities: City[];//массив для загрузки найденных по подстроке городов
-  searchJrCityCtrl = new FormControl();//поле для поиска
+  searchJrCityCtrl = new UntypedFormControl();//поле для поиска
   isJrCityListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canJrCityAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredJrCities: City[];//массив для загрузки найденных по подстроке городов
@@ -240,7 +240,7 @@ constructor(private activateRoute: ActivatedRoute,
   public MessageDialog: MatDialog,
   private loadSpravService:   LoadSpravService,
   private _snackBar: MatSnackBar,
-  private _fb: FormBuilder, //чтобы билдить группу форм myForm: FormBuilder, //для билдинга групп форм по контактным лицам и банковским реквизитам
+  private _fb: UntypedFormBuilder, //чтобы билдить группу форм myForm: FormBuilder, //для билдинга групп форм по контактным лицам и банковским реквизитам
   @Optional() @Inject(MAT_DIALOG_DATA) public data: any,
   public ConfirmDialog: MatDialog,
   private _adapter: DateAdapter<any>) { 
@@ -249,86 +249,86 @@ constructor(private activateRoute: ActivatedRoute,
   }
 
   ngOnInit() {
-    this.formBaseInformation = new FormGroup({
-      id: new FormControl      (this.id,[]),
-      company: new FormControl      ('',[]),
-      opf: new FormControl      ('',[]),
+    this.formBaseInformation = new UntypedFormGroup({
+      id: new UntypedFormControl      (this.id,[]),
+      company: new UntypedFormControl      ('',[]),
+      opf: new UntypedFormControl      ('',[]),
       // opf_id: new FormControl      ('',[]),
-      name: new FormControl      ('',[Validators.required,Validators.maxLength(500)]),
-      code: new FormControl      ('',[Validators.maxLength(30)]),
-      telephone: new FormControl      ('',[Validators.maxLength(60)]),
-      site:  new FormControl      ('',[Validators.maxLength(120)]),
-      email:  new FormControl      ('',[Validators.maxLength(254)]),
+      name: new UntypedFormControl      ('',[Validators.required,Validators.maxLength(500)]),
+      code: new UntypedFormControl      ('',[Validators.maxLength(30)]),
+      telephone: new UntypedFormControl      ('',[Validators.maxLength(60)]),
+      site:  new UntypedFormControl      ('',[Validators.maxLength(120)]),
+      email:  new UntypedFormControl      ('',[Validators.maxLength(254)]),
 
-      nds_payer: new FormControl      (false,[]),
-      fio_director: new FormControl      ('',[Validators.maxLength(120)]),
-      director_position: new FormControl      ('',[Validators.maxLength(120)]),
-      fio_glavbuh: new FormControl      ('',[Validators.maxLength(120)]),
-      director_signature_id: new FormControl      ('',[]),
-      glavbuh_signature_id: new FormControl      ('',[]),
-      stamp_id: new FormControl      ('',[]),
-      director_signature_filename: new FormControl      ('',[]),
-      glavbuh_signature_filename: new FormControl      ('',[]),
-      stamp_filename: new FormControl      ('',[]),
-      card_template_filename: new FormControl      ('',[]),
-      card_template_original_filename: new FormControl      ('',[]),
-      card_template_id: new FormControl      ('',[]),
+      nds_payer: new UntypedFormControl      (false,[]),
+      fio_director: new UntypedFormControl      ('',[Validators.maxLength(120)]),
+      director_position: new UntypedFormControl      ('',[Validators.maxLength(120)]),
+      fio_glavbuh: new UntypedFormControl      ('',[Validators.maxLength(120)]),
+      director_signature_id: new UntypedFormControl      ('',[]),
+      glavbuh_signature_id: new UntypedFormControl      ('',[]),
+      stamp_id: new UntypedFormControl      ('',[]),
+      director_signature_filename: new UntypedFormControl      ('',[]),
+      glavbuh_signature_filename: new UntypedFormControl      ('',[]),
+      stamp_filename: new UntypedFormControl      ('',[]),
+      card_template_filename: new UntypedFormControl      ('',[]),
+      card_template_original_filename: new UntypedFormControl      ('',[]),
+      card_template_id: new UntypedFormControl      ('',[]),
 
       //фактический адрес:
-      zip_code:  new FormControl      ('',[Validators.maxLength(40)]),
-      country_id:  new FormControl      (null,[]),
+      zip_code:  new UntypedFormControl      ('',[Validators.maxLength(40)]),
+      country_id:  new UntypedFormControl      (null,[]),
       // region_id:  new FormControl      ('',[]),
       // city_id:  new FormControl      ('',[]),
-      region:  new FormControl      ('',[]),
-      city:  new FormControl      ('',[]),
-      street:  new FormControl      ('',[Validators.maxLength(120)]),
-      home:  new FormControl      ('',[Validators.maxLength(16)]),
-      flat:  new FormControl      ('',[Validators.maxLength(8)]),
-      additional_address:  new FormControl      ('',[Validators.maxLength(240)]),
-      status_id:  new FormControl      ('',[]),
-      price_type_id:  new FormControl      ('',[]),
-      discount_card:   new FormControl      ('',[Validators.maxLength(30)]),
+      region:  new UntypedFormControl      ('',[]),
+      city:  new UntypedFormControl      ('',[]),
+      street:  new UntypedFormControl      ('',[Validators.maxLength(120)]),
+      home:  new UntypedFormControl      ('',[Validators.maxLength(16)]),
+      flat:  new UntypedFormControl      ('',[Validators.maxLength(8)]),
+      additional_address:  new UntypedFormControl      ('',[Validators.maxLength(240)]),
+      status_id:  new UntypedFormControl      ('',[]),
+      price_type_id:  new UntypedFormControl      ('',[]),
+      discount_card:   new UntypedFormControl      ('',[Validators.maxLength(30)]),
       //Юридические реквизиты new FormControl      ('',[]),
-      jr_jur_full_name:  new FormControl      ('',[Validators.maxLength(500)]),
-      jr_jur_kpp:  new FormControl      ('',[Validators.pattern('^[0-9]{9}$')]),
-      jr_jur_ogrn:  new FormControl      ('',[Validators.pattern('^[0-9]{13}$')]),
+      jr_jur_full_name:  new UntypedFormControl      ('',[Validators.maxLength(500)]),
+      jr_jur_kpp:  new UntypedFormControl      ('',[Validators.pattern('^[0-9]{9}$')]),
+      jr_jur_ogrn:  new UntypedFormControl      ('',[Validators.pattern('^[0-9]{13}$')]),
       //юридический адрес (для юрлиц) /адрес регистрации (для ип и физлиц)
-      jr_zip_code:  new FormControl      ('',[Validators.maxLength(40)]),
-      jr_country_id:  new FormControl      (null,[]),
+      jr_zip_code:  new UntypedFormControl      ('',[Validators.maxLength(40)]),
+      jr_country_id:  new UntypedFormControl      (null,[]),
       // jr_region_id:  new FormControl      ('',[]),
       // jr_city_id:  new FormControl      ('',[]),
-      jr_region:  new FormControl      ('',[]),
-      jr_city:  new FormControl      ('',[]),
-      jr_street:  new FormControl      ('',[Validators.maxLength(120)]),
-      jr_home:  new FormControl      ('',[Validators.maxLength(16)]),
-      jr_flat:  new FormControl      ('',[Validators.maxLength(8)]),
-      jr_additional_address:  new FormControl      ('',[Validators.maxLength(240)]),
-      jr_inn:  new FormControl      ('',[Validators.pattern('^([0-9]{10}|[0-9]{12})$')]),
-      jr_okpo:  new FormControl      ('',[Validators.pattern('^([0-9]{8}|[0-9]{10})$')]),
-      jr_fio_family:  new FormControl      ('',[Validators.maxLength(120)]),
-      jr_fio_name:  new FormControl      ('',[Validators.maxLength(120)]),
-      jr_fio_otchestvo:  new FormControl      ('',[Validators.maxLength(120)]),
-      jr_ip_ogrnip:  new FormControl      ('',[Validators.pattern('^[0-9]{15}$')]),
-      jr_ip_svid_num:  new FormControl      ('',[Validators.maxLength(30)]),
-      jr_ip_reg_date:  new FormControl      ('',[]),//на дату валидаторы не вешаются, у нее свой валидатор
-      companiesPaymentAccountsTable: new FormArray ([]) ,
-      country:  new FormControl      ('',[]),
-      jr_country:  new FormControl      ('',[]),
-      type:  new FormControl      ('entity',[]),// entity or individual
-      legal_form:  new FormControl      ('',[Validators.maxLength(240)]),
+      jr_region:  new UntypedFormControl      ('',[]),
+      jr_city:  new UntypedFormControl      ('',[]),
+      jr_street:  new UntypedFormControl      ('',[Validators.maxLength(120)]),
+      jr_home:  new UntypedFormControl      ('',[Validators.maxLength(16)]),
+      jr_flat:  new UntypedFormControl      ('',[Validators.maxLength(8)]),
+      jr_additional_address:  new UntypedFormControl      ('',[Validators.maxLength(240)]),
+      jr_inn:  new UntypedFormControl      ('',[Validators.pattern('^([0-9]{10}|[0-9]{12})$')]),
+      jr_okpo:  new UntypedFormControl      ('',[Validators.pattern('^([0-9]{8}|[0-9]{10})$')]),
+      jr_fio_family:  new UntypedFormControl      ('',[Validators.maxLength(120)]),
+      jr_fio_name:  new UntypedFormControl      ('',[Validators.maxLength(120)]),
+      jr_fio_otchestvo:  new UntypedFormControl      ('',[Validators.maxLength(120)]),
+      jr_ip_ogrnip:  new UntypedFormControl      ('',[Validators.pattern('^[0-9]{15}$')]),
+      jr_ip_svid_num:  new UntypedFormControl      ('',[Validators.maxLength(30)]),
+      jr_ip_reg_date:  new UntypedFormControl      ('',[]),//на дату валидаторы не вешаются, у нее свой валидатор
+      companiesPaymentAccountsTable: new UntypedFormArray ([]) ,
+      country:  new UntypedFormControl      ('',[]),
+      jr_country:  new UntypedFormControl      ('',[]),
+      type:  new UntypedFormControl      ('entity',[]),// entity or individual
+      legal_form:  new UntypedFormControl      ('',[Validators.maxLength(240)]),
       //Settings
-      st_prefix_barcode_pieced: new FormControl      ('',[Validators.pattern('^[0-9]{2}$')]), // prefix of barcode for pieced product
-      st_prefix_barcode_packed: new FormControl      ('',[Validators.pattern('^[0-9]{2}$')]), // prefix of barcode for packed product
-      st_netcost_policy:        new FormControl      ('all',[]), // policy of netcost calculation by "all" company or by "each" department separately
+      st_prefix_barcode_pieced: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{2}$')]), // prefix of barcode for pieced product
+      st_prefix_barcode_packed: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{2}$')]), // prefix of barcode for packed product
+      st_netcost_policy:        new UntypedFormControl      ('all',[]), // policy of netcost calculation by "all" company or by "each" department separately
     });
-    this.formAboutDocument = new FormGroup({
-      id: new FormControl      ('',[]),
-      master: new FormControl      ('',[]),
-      creator: new FormControl      ('',[]),
-      changer: new FormControl      ('',[]),
-      company: new FormControl      ('',[]),
-      date_time_created: new FormControl      ('',[]),
-      date_time_changed: new FormControl      ('',[]),
+    this.formAboutDocument = new UntypedFormGroup({
+      id: new UntypedFormControl      ('',[]),
+      master: new UntypedFormControl      ('',[]),
+      creator: new UntypedFormControl      ('',[]),
+      changer: new UntypedFormControl      ('',[]),
+      company: new UntypedFormControl      ('',[]),
+      date_time_created: new UntypedFormControl      ('',[]),
+      date_time_changed: new UntypedFormControl      ('',[]),
     });
 
     this.getSpravSysOPF();
@@ -964,35 +964,35 @@ constructor(private activateRoute: ActivatedRoute,
     );
   }
   fillPaymentAccountsArray(arr: any[]){
-    const add = this.formBaseInformation.get('companiesPaymentAccountsTable') as FormArray;
+    const add = this.formBaseInformation.get('companiesPaymentAccountsTable') as UntypedFormArray;
     add.clear();
     arr.forEach(m =>{
       add.push(this._fb.group({
       id: m.id,
-      bik: new FormControl (m.bik,[]),
-      name:  new FormControl (m.name,[]),
-      address:  new FormControl (m.address,[]),
-      payment_account:  new FormControl (m.payment_account,[]),
-      corr_account:  new FormControl (m.corr_account,[]),
-      intermediatery:  new FormControl (m.intermediatery,[]),
-      swift:  new FormControl (m.swift,[]),
-      iban:  new FormControl (m.iban,[]),
+      bik: new UntypedFormControl (m.bik,[]),
+      name:  new UntypedFormControl (m.name,[]),
+      address:  new UntypedFormControl (m.address,[]),
+      payment_account:  new UntypedFormControl (m.payment_account,[]),
+      corr_account:  new UntypedFormControl (m.corr_account,[]),
+      intermediatery:  new UntypedFormControl (m.intermediatery,[]),
+      swift:  new UntypedFormControl (m.swift,[]),
+      iban:  new UntypedFormControl (m.iban,[]),
       output_order: this.getPaymentAccountsOutputOrder()
       }))
     })
   }
   addNewPaymentAccount() {
-    const add = this.formBaseInformation.get('companiesPaymentAccountsTable') as FormArray;
+    const add = this.formBaseInformation.get('companiesPaymentAccountsTable') as UntypedFormArray;
     add.push(this._fb.group({
       id: [],
-      bik: new FormControl ('',[]),
-      name:  new FormControl ('',[]),
-      address:  new FormControl ('',[]),
-      payment_account:  new FormControl ('',[]),
-      corr_account:  new FormControl ('',[]),
-      intermediatery:  new FormControl ('',[]),
-      swift:  new FormControl ('',[]),
-      iban:  new FormControl ('',[]),
+      bik: new UntypedFormControl ('',[]),
+      name:  new UntypedFormControl ('',[]),
+      address:  new UntypedFormControl ('',[]),
+      payment_account:  new UntypedFormControl ('',[]),
+      corr_account:  new UntypedFormControl ('',[]),
+      intermediatery:  new UntypedFormControl ('',[]),
+      swift:  new UntypedFormControl ('',[]),
+      iban:  new UntypedFormControl ('',[]),
       output_order: this.getPaymentAccountsOutputOrder()
     }))
   }
@@ -1008,7 +1008,7 @@ constructor(private activateRoute: ActivatedRoute,
     });
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
-        const add = this.formBaseInformation.get('companiesPaymentAccountsTable') as FormArray;
+        const add = this.formBaseInformation.get('companiesPaymentAccountsTable') as UntypedFormArray;
     add.removeAt(index);
     this.setPaymentAccountsOutputOrders();
       }
@@ -1037,7 +1037,7 @@ constructor(private activateRoute: ActivatedRoute,
     this.setPaymentAccountsOutputOrders();//после того как переставили контакты местами - нужно обновить их очередность вывода (output_order)
   }
   getPaymentAccountsOutputOrder(){//генерирует очередность для нового контакта
-    const add = this.formBaseInformation.get('companiesPaymentAccountsTable') as FormArray; 
+    const add = this.formBaseInformation.get('companiesPaymentAccountsTable') as UntypedFormArray; 
     return (add.length+1);
   }
   setPaymentAccountsOutputOrders(){//заново переустанавливает очередность у всех контактов (при перетаскивании)

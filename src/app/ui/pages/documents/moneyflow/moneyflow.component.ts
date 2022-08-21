@@ -9,7 +9,7 @@ import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
-import { FormGroup, FormControl } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl } from '@angular/forms';
 import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
 import { translate, TranslocoService } from '@ngneat/transloco'; //+++
 
@@ -132,16 +132,16 @@ export class MoneyflowComponent implements OnInit {
         this.company = +activateRoute.snapshot.params['company']; }
 
     ngOnInit() {
-      this.queryForm = new FormGroup({ //форма для отправки запроса 
-        companyId: new FormControl(this.company,[]), // предприятие, по которому идет запрос данных
-        dateFrom: new FormControl(moment().startOf('year'),[]),   // дата С
-        dateTo: new FormControl(moment(),[]),     // дата По
-        sortColumn: new FormControl('date_created',[]), //
-        sortAsc: new FormControl('desc',[]), //
-        offset: new FormControl(0,[]), //
-        result: new FormControl('10',[]), //
-        filterOptionsIds: new FormControl([],[]), //
-        searchString: new FormControl('',[]), //
+      this.queryForm = new UntypedFormGroup({ //форма для отправки запроса 
+        companyId: new UntypedFormControl(this.company,[]), // предприятие, по которому идет запрос данных
+        dateFrom: new UntypedFormControl(moment().startOf('year'),[]),   // дата С
+        dateTo: new UntypedFormControl(moment(),[]),     // дата По
+        sortColumn: new UntypedFormControl('date_created',[]), //
+        sortAsc: new UntypedFormControl('desc',[]), //
+        offset: new UntypedFormControl(0,[]), //
+        result: new UntypedFormControl('10',[]), //
+        filterOptionsIds: new UntypedFormControl([],[]), //
+        searchString: new UntypedFormControl('',[]), //
       });
       if(this.company==0){
         if(Cookie.get('moneyflow_companyId')=='undefined' || Cookie.get('moneyflow_companyId')==null)     

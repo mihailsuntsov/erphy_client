@@ -7,7 +7,7 @@ import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
-import { FormGroup, FormControl } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl } from '@angular/forms';
 import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
 import { translate, TranslocoService } from '@ngneat/transloco'; //+++
 
@@ -119,11 +119,11 @@ export class ProfitlossComponent implements OnInit {
     private _adapter: DateAdapter<any>) { }
 
     ngOnInit() {
-      this.queryForm = new FormGroup({ //форма для отправки запроса 
-        companyId: new FormControl(0,[]), // предприятие, по которому идет запрос данных
-        dateFrom: new FormControl(moment().startOf('year'),[]),   // дата С
-        dateTo: new FormControl(moment(),[]),     // дата По
-        filterOptionsIds: new FormControl([],[]), //
+      this.queryForm = new UntypedFormGroup({ //форма для отправки запроса 
+        companyId: new UntypedFormControl(0,[]), // предприятие, по которому идет запрос данных
+        dateFrom: new UntypedFormControl(moment().startOf('year'),[]),   // дата С
+        dateTo: new UntypedFormControl(moment(),[]),     // дата По
+        filterOptionsIds: new UntypedFormControl([],[]), //
       });
 
       if(Cookie.get('profitloss_companyId')=='undefined' || Cookie.get('profitloss_companyId')==null)     

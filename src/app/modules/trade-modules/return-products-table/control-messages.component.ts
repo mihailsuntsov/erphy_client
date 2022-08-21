@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { UntypedFormControl } from '@angular/forms';
 import { ValidationService } from './validation.service';
 import { translate } from '@ngneat/transloco'; //+++
 
@@ -8,7 +8,7 @@ import { translate } from '@ngneat/transloco'; //+++
   template: `<div *ngIf="errorMessage !== null">{{errorMessage}}</div>`
 })
 export class ControlMessagesComponent {
-  @Input() control: FormControl;
+  @Input() control: UntypedFormControl;
   constructor() { }
 
   get errorMessage() {

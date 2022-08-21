@@ -218,7 +218,7 @@
         "parent_catgr": "Parent category",
         "sku_supplier": "SKU of supplier",
         "language":     "Language",
-        "locale":       "Date and time standards",
+        "locale":       "Date standards",
         "timezone":     "Timezone",
         "min_balance":  "Minimum balance",
         "num_copies":   "Number of copies",
@@ -226,7 +226,8 @@
         "barcodes":     "Barcodes",
         "file_category":"File category",
         "shared_file":  "Shared file",
-        "uploading":    "Uploading"
+        "uploading":    "Uploading",
+        "time_format":  "Time format"
     },
     "error":{
         "field_miss":   "Required field is missing",

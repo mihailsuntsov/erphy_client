@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, EventEmitter, Inject, OnInit, Optional, Output, ViewChild} from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
-import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl } from '@angular/forms';
+import { UntypedFormGroup, FormArray,  UntypedFormBuilder,  Validators, UntypedFormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
@@ -114,7 +114,7 @@ export class DepositingDocComponent implements OnInit {
 
   // Формы
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
-  formBaseInformation: FormGroup; //массив форм для накопления информации о Заказе покупателя
+  formBaseInformation: UntypedFormGroup; //массив форм для накопления информации о Заказе покупателя
   formLinkedDocs: any;  // Форма для отправки при создании связанных документов
 
   //переменные прав
@@ -150,7 +150,7 @@ export class DepositingDocComponent implements OnInit {
 
   constructor(private activateRoute: ActivatedRoute,
     private cdRef:ChangeDetectorRef,
-    private _fb: FormBuilder, //чтобы билдить группу форм depositingProductTable
+    private _fb: UntypedFormBuilder, //чтобы билдить группу форм depositingProductTable
     private http: HttpClient,
     public ConfirmDialog: MatDialog,
     public MessageDialog: MatDialog,
@@ -171,59 +171,59 @@ export class DepositingDocComponent implements OnInit {
     
     // console.log('--------**************************----------')
     // console.log(this.routerAdditionalData);
-    this.formBaseInformation = new FormGroup({
-      id: new FormControl                 (this.id,[]),
-      company_id: new FormControl         (null,[Validators.required]),
-      department_id: new FormControl      (null,[Validators.required]),
-      doc_number: new FormControl         ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
-      creator_id: new FormControl         ('',[]),
-      kassa_id: new FormControl           ('',[Validators.required]),
-      kassa: new FormControl              ('',[]),      
-      boxoffice_id: new FormControl       ('',[Validators.required]),
-      boxoffice: new FormControl          ('',[]),
-      creator: new FormControl            ('',[]),
-      balance_after: new FormControl      ('0.00',[Validators.pattern('^-?[0-9]{1,9}(?:[.,][0-9]{0,2})?\r?$'), ValidationService.numberNotNegative]),  // сколько останется в кассе после выемки
-      description: new FormControl        ('',[]),
-      department: new FormControl         ('',[]),
-      orderout_id: new FormControl        ('',[Validators.required]),
-      orderout: new FormControl           ('',[]),
-      summ: new FormControl               ('0.00',[Validators.required, Validators.pattern('^-?[0-9]{1,9}(?:[.,][0-9]{0,2})?\r?$'), ValidationService.numberNotNegative]),
-      is_delivered: new FormControl       (false,[]),
-      is_completed: new FormControl       (true,[]), // Внесение всегда создается уже проведенной, ибо тут нет смысла делать лишние действия
-      uid: new FormControl                ('',[]), // uid идентификатор для создаваемой Розн. продажи. Нужен для построения связанности между документами, или например, чтобы избежать дублей при создании
-      linked_doc_id: new FormControl      ('',[]), // id связанного документа (того, из которого инициируется создание данного документа)
-      parent_uid: new FormControl         ('',[]), // uid исходящего (родительского) документа
-      child_uid: new FormControl          ('',[]), // uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
-      linked_doc_name: new FormControl    ('',[]), // имя (таблицы) связанного документа
+    this.formBaseInformation = new UntypedFormGroup({
+      id: new UntypedFormControl                 (this.id,[]),
+      company_id: new UntypedFormControl         (null,[Validators.required]),
+      department_id: new UntypedFormControl      (null,[Validators.required]),
+      doc_number: new UntypedFormControl         ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
+      creator_id: new UntypedFormControl         ('',[]),
+      kassa_id: new UntypedFormControl           ('',[Validators.required]),
+      kassa: new UntypedFormControl              ('',[]),      
+      boxoffice_id: new UntypedFormControl       ('',[Validators.required]),
+      boxoffice: new UntypedFormControl          ('',[]),
+      creator: new UntypedFormControl            ('',[]),
+      balance_after: new UntypedFormControl      ('0.00',[Validators.pattern('^-?[0-9]{1,9}(?:[.,][0-9]{0,2})?\r?$'), ValidationService.numberNotNegative]),  // сколько останется в кассе после выемки
+      description: new UntypedFormControl        ('',[]),
+      department: new UntypedFormControl         ('',[]),
+      orderout_id: new UntypedFormControl        ('',[Validators.required]),
+      orderout: new UntypedFormControl           ('',[]),
+      summ: new UntypedFormControl               ('0.00',[Validators.required, Validators.pattern('^-?[0-9]{1,9}(?:[.,][0-9]{0,2})?\r?$'), ValidationService.numberNotNegative]),
+      is_delivered: new UntypedFormControl       (false,[]),
+      is_completed: new UntypedFormControl       (true,[]), // Внесение всегда создается уже проведенной, ибо тут нет смысла делать лишние действия
+      uid: new UntypedFormControl                ('',[]), // uid идентификатор для создаваемой Розн. продажи. Нужен для построения связанности между документами, или например, чтобы избежать дублей при создании
+      linked_doc_id: new UntypedFormControl      ('',[]), // id связанного документа (того, из которого инициируется создание данного документа)
+      parent_uid: new UntypedFormControl         ('',[]), // uid исходящего (родительского) документа
+      child_uid: new UntypedFormControl          ('',[]), // uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
+      linked_doc_name: new UntypedFormControl    ('',[]), // имя (таблицы) связанного документа
       
     });
-    this.formAboutDocument = new FormGroup({
-      id: new FormControl                       ('',[]),
-      master: new FormControl                   ('',[]),
-      creator: new FormControl                  ('',[]),
-      changer: new FormControl                  ('',[]),
-      company: new FormControl                  ('',[]),
-      date_time_created: new FormControl        ('',[]),
-      date_time_changed: new FormControl        ('',[]),
+    this.formAboutDocument = new UntypedFormGroup({
+      id: new UntypedFormControl                       ('',[]),
+      master: new UntypedFormControl                   ('',[]),
+      creator: new UntypedFormControl                  ('',[]),
+      changer: new UntypedFormControl                  ('',[]),
+      company: new UntypedFormControl                  ('',[]),
+      date_time_created: new UntypedFormControl        ('',[]),
+      date_time_changed: new UntypedFormControl        ('',[]),
     });
     // Форма для отправки при создании ПКО из кассы ККТ
-    this.formLinkedDocs = new FormGroup({
-      kassa_from_id: new FormControl      (null,[Validators.required]),
-      company_id: new FormControl         (null,[Validators.required]),
-      department_id: new FormControl      (null,[Validators.required]),
-      summ: new FormControl               ('',[]),
-      nds: new FormControl                (0,[]),
-      description: new FormControl        ('',[]),
-      boxoffice_id: new FormControl       (null,[]),
-      depositing_id: new FormControl       (null,[]),
-      internal: new FormControl           (false,[]),
-      moving_type: new FormControl        ('',[]),
-      is_completed: new FormControl       (false,[]),
-      linked_doc_id: new FormControl      (null,[]),  // id связанного документа (в данном случае Внесение)
-      parent_uid: new FormControl         (null,[]),  // uid родительского документа
-      child_uid: new FormControl          (null,[]),  // uid дочернего документа
-      linked_doc_name: new FormControl    (null,[]),  // имя (таблицы) связанного документа
-      uid: new FormControl                ('',[]),    // uid создаваемого связанного документа
+    this.formLinkedDocs = new UntypedFormGroup({
+      kassa_from_id: new UntypedFormControl      (null,[Validators.required]),
+      company_id: new UntypedFormControl         (null,[Validators.required]),
+      department_id: new UntypedFormControl      (null,[Validators.required]),
+      summ: new UntypedFormControl               ('',[]),
+      nds: new UntypedFormControl                (0,[]),
+      description: new UntypedFormControl        ('',[]),
+      boxoffice_id: new UntypedFormControl       (null,[]),
+      depositing_id: new UntypedFormControl       (null,[]),
+      internal: new UntypedFormControl           (false,[]),
+      moving_type: new UntypedFormControl        ('',[]),
+      is_completed: new UntypedFormControl       (false,[]),
+      linked_doc_id: new UntypedFormControl      (null,[]),  // id связанного документа (в данном случае Внесение)
+      parent_uid: new UntypedFormControl         (null,[]),  // uid родительского документа
+      child_uid: new UntypedFormControl          (null,[]),  // uid дочернего документа
+      linked_doc_name: new UntypedFormControl    (null,[]),  // имя (таблицы) связанного документа
+      uid: new UntypedFormControl                ('',[]),    // uid создаваемого связанного документа
     });
 
     if(this.data) // когда открываем в модальном окне - получаем из блока кассы ККМ данные для заполения полей

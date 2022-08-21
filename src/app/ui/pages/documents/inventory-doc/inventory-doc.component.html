@@ -65,7 +65,6 @@
                     [matMenuTriggerFor]="addDocMenu"
                     mat-raised-button 
                     matTooltip="{{t('docs.tip.create_docs')}}"
-                    [disabled]="!childFormValid||!formBaseInformation.valid||inventoryProductsTableComponent.indivisibleErrorOfProductTable" 
                     *ngIf="+id>0 && inventoryProductsTableComponent"
                     color="primary"
                     class="button small-button">

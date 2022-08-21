@@ -1,6 +1,6 @@
 import { Component, OnInit , Inject} from '@angular/core';
 import {MatDialogRef, MAT_DIALOG_DATA} from '@angular/material/dialog';
-import { Validators, FormGroup, FormControl} from '@angular/forms';
+import { Validators, UntypedFormGroup, UntypedFormControl} from '@angular/forms';
 import { HttpClient} from '@angular/common/http';
 import { MatSnackBar} from '@angular/material/snack-bar';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
@@ -43,12 +43,12 @@ export class ProductCategoriesDialogComponent implements OnInit {
     // console.log("data.parentCategoryId:"+this.data.parentCategoryId);
     console.log("data.docName:"+this.data.docName);
 
-    this.formBaseInformation = new FormGroup({
-      parentCategoryId: new FormControl(+this.data.parentCategoryId,[]),//id РОДИТЕЛЬСКОЙ категории для создаваемой категории (ПУСТО - КОРНЕВАЯ БУДЕТ)
+    this.formBaseInformation = new UntypedFormGroup({
+      parentCategoryId: new UntypedFormControl(+this.data.parentCategoryId,[]),//id РОДИТЕЛЬСКОЙ категории для создаваемой категории (ПУСТО - КОРНЕВАЯ БУДЕТ)
                                                                         //или для изменения порядка дочерних категорий
-      categoryId: new FormControl(+this.data.categoryId,[]),//id созданной, редактируемой или удаляемой категории
-      name: new FormControl            (this.data.categoryName,[Validators.required]),
-      companyId: new FormControl(+this.data.companyId,[]),//id выбранного предприятия
+      categoryId: new UntypedFormControl(+this.data.categoryId,[]),//id созданной, редактируемой или удаляемой категории
+      name: new UntypedFormControl            (this.data.categoryName,[Validators.required]),
+      companyId: new UntypedFormControl(+this.data.companyId,[]),//id выбранного предприятия
     });
 
     if(this.data.actionType=='changeOrder'){

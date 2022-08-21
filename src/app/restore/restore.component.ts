@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { Validators, FormGroup, FormControl } from '@angular/forms';
+import { Validators, UntypedFormGroup, UntypedFormControl } from '@angular/forms';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { TranslocoService } from '@ngneat/transloco';
@@ -36,8 +36,8 @@ export class RestoreComponent implements OnInit {
     if(Cookie.get('language')=='undefined' || Cookie.get('language')==null || Cookie.get('language')=='null')
       this.setLanguage('en');
     this.service.setActiveLang(Cookie.get('language'));
-      this.restoreform = new FormGroup({
-        email: new FormControl ('',[Validators.required,Validators.email]),
+      this.restoreform = new UntypedFormGroup({
+        email: new UntypedFormControl ('',[Validators.required,Validators.email]),
       });
   }
 

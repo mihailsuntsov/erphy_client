@@ -1,7 +1,7 @@
 import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
-import { FormGroup, Validators, FormControl } from '@angular/forms';
+import { UntypedFormGroup, Validators, UntypedFormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -98,30 +98,30 @@ export class TaxesDocComponent implements OnInit {
     }
 
   ngOnInit() {
-    this.formBaseInformation = new FormGroup({
-      id: new FormControl      (this.id,[]),
-      company_id: new FormControl      ('',[Validators.required]),
-      taxesIdsInOrderOfList:new FormControl      ([],[]),//массив для формирования необходимого порядка вывода налогов
-      name: new FormControl      ('',[Validators.required,Validators.maxLength(30)]),
-      description: new FormControl      ('',[]),
-      value: new FormControl      (0,[Validators.required,Validators.pattern('^[0-9]{1,2}?\r?$')]),
-      multiplier: new FormControl      (1,[]),
-      is_active: new FormControl      (true,[]),
-      is_deleted: new FormControl      (false,[]),
-      name_api_atol: new FormControl      ('',[Validators.maxLength(10)]),
+    this.formBaseInformation = new UntypedFormGroup({
+      id: new UntypedFormControl      (this.id,[]),
+      company_id: new UntypedFormControl      ('',[Validators.required]),
+      taxesIdsInOrderOfList:new UntypedFormControl      ([],[]),//массив для формирования необходимого порядка вывода налогов
+      name: new UntypedFormControl      ('',[Validators.required,Validators.maxLength(30)]),
+      description: new UntypedFormControl      ('',[]),
+      value: new UntypedFormControl      (0,[Validators.required,Validators.pattern('^[0-9]{1,2}?\r?$')]),
+      multiplier: new UntypedFormControl      (1,[]),
+      is_active: new UntypedFormControl      (true,[]),
+      is_deleted: new UntypedFormControl      (false,[]),
+      name_api_atol: new UntypedFormControl      ('',[Validators.maxLength(10)]),
       // color: new FormControl      ('#d0d0d0',[Validators.required]),
       // doc_id: new FormControl      (0,[Validators.required]),
       // doc:new FormControl      ('',[]),
       // status_type: new FormControl      (1,[Validators.required]),//тип статуса 1 - обычный; 2 - конечный положительный 3 - конечный отрицательный
     });
-    this.formAboutDocument = new FormGroup({
-      id: new FormControl      ('',[]),
-      master: new FormControl      ('',[]),
-      creator: new FormControl      ('',[]),
-      changer: new FormControl      ('',[]),
-      company: new FormControl      ('',[]),
-      date_time_created: new FormControl      ('',[]),
-      date_time_changed: new FormControl      ('',[]),
+    this.formAboutDocument = new UntypedFormGroup({
+      id: new UntypedFormControl      ('',[]),
+      master: new UntypedFormControl      ('',[]),
+      creator: new UntypedFormControl      ('',[]),
+      changer: new UntypedFormControl      ('',[]),
+      company: new UntypedFormControl      ('',[]),
+      date_time_created: new UntypedFormControl      ('',[]),
+      date_time_changed: new UntypedFormControl      ('',[]),
     });
 
     this.getSetOfPermissions();

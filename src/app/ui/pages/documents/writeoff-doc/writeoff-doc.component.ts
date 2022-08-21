@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, EventEmitter, Inject, OnInit, Optional, Output, ViewChild} from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
-import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormArray,  UntypedFormBuilder,  Validators, UntypedFormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
@@ -144,7 +144,7 @@ export class WriteoffDocComponent implements OnInit {
 
   // Формы
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
-  formBaseInformation: FormGroup; //массив форм для накопления информации о Возврате поставщику
+  formBaseInformation: UntypedFormGroup; //массив форм для накопления информации о Возврате поставщику
   settingsForm: any; // форма с настройками
   formReturnsup:any// Форма для отправки при создании Возврата поставщику
 
@@ -195,7 +195,7 @@ export class WriteoffDocComponent implements OnInit {
 
   constructor(private activateRoute: ActivatedRoute,
     private cdRef:ChangeDetectorRef,
-    private _fb: FormBuilder, //чтобы билдить группу форм writeoffProductTable
+    private _fb: UntypedFormBuilder, //чтобы билдить группу форм writeoffProductTable
     private http: HttpClient,
     public ConfirmDialog: MatDialog,
     public dialogAddFiles: MatDialog,
@@ -213,54 +213,54 @@ export class WriteoffDocComponent implements OnInit {
     }
 
   ngOnInit(): void {
-    this.formBaseInformation = new FormGroup({
-      id: new FormControl      (this.id,[]),
-      company_id: new FormControl      ('',[Validators.required]),
-      department_id: new FormControl      ('',[Validators.required]),
-      doc_number: new FormControl      ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
-      writeoff_date: new FormControl      ('',[Validators.required]),
-      description: new FormControl      ('',[]),
-      department: new FormControl      ('',[]),
-      status_id: new FormControl          ('',[]),
-      status_name: new FormControl        ('',[]),
-      status_color: new FormControl       ('',[]),
-      status_description: new FormControl ('',[]),
-      is_completed: new FormControl       (false,[]),
-      writeoffProductTable: new FormArray([]),
-      uid: new FormControl                (uuidv4(),[]),
+    this.formBaseInformation = new UntypedFormGroup({
+      id: new UntypedFormControl      (this.id,[]),
+      company_id: new UntypedFormControl      ('',[Validators.required]),
+      department_id: new UntypedFormControl      ('',[Validators.required]),
+      doc_number: new UntypedFormControl      ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
+      writeoff_date: new UntypedFormControl      ('',[Validators.required]),
+      description: new UntypedFormControl      ('',[]),
+      department: new UntypedFormControl      ('',[]),
+      status_id: new UntypedFormControl          ('',[]),
+      status_name: new UntypedFormControl        ('',[]),
+      status_color: new UntypedFormControl       ('',[]),
+      status_description: new UntypedFormControl ('',[]),
+      is_completed: new UntypedFormControl       (false,[]),
+      writeoffProductTable: new UntypedFormArray([]),
+      uid: new UntypedFormControl                (uuidv4(),[]),
     });
-    this.formAboutDocument = new FormGroup({
-      id: new FormControl                       ('',[]),
-      master: new FormControl                   ('',[]),
-      creator: new FormControl                  ('',[]),
-      changer: new FormControl                  ('',[]),
-      company: new FormControl                  ('',[]),
-      date_time_created: new FormControl        ('',[]),
-      date_time_changed: new FormControl        ('',[]),
+    this.formAboutDocument = new UntypedFormGroup({
+      id: new UntypedFormControl                       ('',[]),
+      master: new UntypedFormControl                   ('',[]),
+      creator: new UntypedFormControl                  ('',[]),
+      changer: new UntypedFormControl                  ('',[]),
+      company: new UntypedFormControl                  ('',[]),
+      date_time_created: new UntypedFormControl        ('',[]),
+      date_time_changed: new UntypedFormControl        ('',[]),
     });
 
     // Форма настроек
-    this.settingsForm = new FormGroup({
+    this.settingsForm = new UntypedFormGroup({
       // предприятие, для которого создаются настройки
-      companyId: new FormControl                (null,[]),
+      companyId: new UntypedFormControl                (null,[]),
       // id отделения
-      departmentId: new FormControl             (null,[]),
+      departmentId: new UntypedFormControl             (null,[]),
       // тип расценки. priceType - по типу цены, avgCostPrice - средн. себестоимость, lastPurchasePrice - Последняя закупочная цена, avgPurchasePrice - Средняя закупочная цена, manual - вручную
-      pricingType: new FormControl              ('avgCostPrice',[]), // по умолчанию ставим "Средняя закупочная цена"
+      pricingType: new UntypedFormControl              ('avgCostPrice',[]), // по умолчанию ставим "Средняя закупочная цена"
       // тип цены
-      priceTypeId: new FormControl              (null,[]),
+      priceTypeId: new UntypedFormControl              (null,[]),
       // наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType
-      changePrice: new FormControl              (0,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]), // по умолчанию "плюс 10%"
+      changePrice: new UntypedFormControl              (0,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]), // по умолчанию "плюс 10%"
       // Наценка (plus) или скидка (minus)
-      plusMinus: new FormControl                ('plus',[]),
+      plusMinus: new UntypedFormControl                ('plus',[]),
       // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
-      changePriceType: new FormControl          ('procents',[]),
+      changePriceType: new UntypedFormControl          ('procents',[]),
       // убрать десятые (копейки)
-      hideTenths: new FormControl               (true,[]),
+      hideTenths: new UntypedFormControl               (true,[]),
       // статус после проведения инвентаризации
-      statusOnFinishId: new FormControl         ('',[]),
+      statusOnFinishId: new UntypedFormControl         ('',[]),
       // автодобавление товара из формы поиска в таблицу
-      autoAdd:  new FormControl                 (false,[]),
+      autoAdd:  new UntypedFormControl                 (false,[]),
     });
 
     if(this.data)//если документ вызывается в окне из другого документа
@@ -651,14 +651,14 @@ export class WriteoffDocComponent implements OnInit {
                
   formingProductRowFromApiResponse(row: WriteoffProductTable) {
     return this._fb.group({
-      id: new FormControl (row.id,[]),
-      product_id:         new FormControl (row.product_id,[]),
-      writeoff_id:        new FormControl (this.id,[]),
-      product_count:      new FormControl ((+row.product_count),[]),
-      product_price:      new FormControl ((+row.product_price).toFixed(2),[]),
-      product_sumprice:   new FormControl ((+row.product_count*(+row.product_price)).toFixed(2),[]),
-      reason_id:          new FormControl ((row.reason_id),[]),
-      additional:         new FormControl ((row.additional),[]),
+      id: new UntypedFormControl (row.id,[]),
+      product_id:         new UntypedFormControl (row.product_id,[]),
+      writeoff_id:        new UntypedFormControl (this.id,[]),
+      product_count:      new UntypedFormControl ((+row.product_count),[]),
+      product_price:      new UntypedFormControl ((+row.product_price).toFixed(2),[]),
+      product_sumprice:   new UntypedFormControl ((+row.product_count*(+row.product_price)).toFixed(2),[]),
+      reason_id:          new UntypedFormControl ((row.reason_id),[]),
+      additional:         new UntypedFormControl ((row.additional),[]),
     });
   }
   
@@ -890,7 +890,7 @@ export class WriteoffDocComponent implements OnInit {
   }
   //забирает таблицу товаров из дочернего компонента и помещает ее в основную форму
   getProductsTable(){
-    const control = <FormArray>this.formBaseInformation.get('writeoffProductTable');
+    const control = <UntypedFormArray>this.formBaseInformation.get('writeoffProductTable');
     control.clear();
     this.writeoffProductsTableComponent.getProductTable().forEach(row=>{
       control.push(this.formingProductRowFromApiResponse(row));

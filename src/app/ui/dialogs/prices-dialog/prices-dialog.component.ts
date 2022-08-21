@@ -1,6 +1,6 @@
 import { Component, OnInit , Inject} from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA} from '@angular/material/dialog';
-import { Validators, FormGroup, FormControl} from '@angular/forms';
+import { Validators, UntypedFormGroup, UntypedFormControl} from '@angular/forms';
 import { HttpClient} from '@angular/common/http';
 import { MatSnackBar} from '@angular/material/snack-bar';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
@@ -26,8 +26,8 @@ export class PricesDialogComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.formBaseInformation = new FormGroup({
-      price: new FormControl('',[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+    this.formBaseInformation = new UntypedFormGroup({
+      price: new UntypedFormControl('',[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       // warning_quantity: new FormControl('',[]),
     });
 
@@ -46,7 +46,7 @@ export class PricesDialogComponent implements OnInit {
     return this.http.post('/api/auth/savePrices', body)
     .subscribe(
         (data) => {   
-                  this.openSnackBar("Цены сохранены", "Закрыть");
+                  this.openSnackBar(translate('docs.msg.doc_sved_suc'),translate('docs.msg.close'));
                   this.dialogRef.close(1);
                 },
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},

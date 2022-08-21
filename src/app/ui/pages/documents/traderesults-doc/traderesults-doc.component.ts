@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from './loadsprav';
-import { Validators, FormGroup, FormControl} from '@angular/forms';
+import { Validators, UntypedFormGroup, UntypedFormControl} from '@angular/forms';
 import {HttpClient} from '@angular/common/http';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
@@ -113,33 +113,33 @@ export class TraderesultsDocComponent implements OnInit {
 
 
   ngOnInit() {
-    this.formBaseInformation = new FormGroup({
-      id: new FormControl      (this.id,[]),
-      company_id: new FormControl      ('',[Validators.required]),
-      department_id: new FormControl      ('',[Validators.required]),
-      employee_id: new FormControl      ('',[Validators.required]),
-      company: new FormControl      ('',[]),
-      department: new FormControl      ('',[]),
-      employee: new FormControl      ('',[]),
-      trade_date: new FormControl      ('',[]),
-      incoming_cash_checkout: new FormControl      ('',[]),
-      incoming_cashless_checkout: new FormControl      ('',[]),
-      incoming_cash2: new FormControl      ('',[]),
-      incoming_cashless2: new FormControl      ('',[]),
-      refund_cash: new FormControl      ('',[]),
-      refund_cashless: new FormControl      ('',[]),
-      encashment_cash: new FormControl      ('',[]),
-      encashment_cashless: new FormControl      ('',[]),
-      additional: new FormControl      ('',[]),
+    this.formBaseInformation = new UntypedFormGroup({
+      id: new UntypedFormControl      (this.id,[]),
+      company_id: new UntypedFormControl      ('',[Validators.required]),
+      department_id: new UntypedFormControl      ('',[Validators.required]),
+      employee_id: new UntypedFormControl      ('',[Validators.required]),
+      company: new UntypedFormControl      ('',[]),
+      department: new UntypedFormControl      ('',[]),
+      employee: new UntypedFormControl      ('',[]),
+      trade_date: new UntypedFormControl      ('',[]),
+      incoming_cash_checkout: new UntypedFormControl      ('',[]),
+      incoming_cashless_checkout: new UntypedFormControl      ('',[]),
+      incoming_cash2: new UntypedFormControl      ('',[]),
+      incoming_cashless2: new UntypedFormControl      ('',[]),
+      refund_cash: new UntypedFormControl      ('',[]),
+      refund_cashless: new UntypedFormControl      ('',[]),
+      encashment_cash: new UntypedFormControl      ('',[]),
+      encashment_cashless: new UntypedFormControl      ('',[]),
+      additional: new UntypedFormControl      ('',[]),
     });
-    this.formAboutDocument = new FormGroup({
-      id: new FormControl      ('',[]),
-      master: new FormControl      ('',[]),
-      creator: new FormControl      ('',[]),
-      changer: new FormControl      ('',[]),
-      company: new FormControl      ('',[]),
-      date_time_created: new FormControl      ('',[]),
-      date_time_changed: new FormControl      ('',[]),
+    this.formAboutDocument = new UntypedFormGroup({
+      id: new UntypedFormControl      ('',[]),
+      master: new UntypedFormControl      ('',[]),
+      creator: new UntypedFormControl      ('',[]),
+      changer: new UntypedFormControl      ('',[]),
+      company: new UntypedFormControl      ('',[]),
+      date_time_created: new UntypedFormControl      ('',[]),
+      date_time_changed: new UntypedFormControl      ('',[]),
     });
    // this.checkedList = [];
    

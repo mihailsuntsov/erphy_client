@@ -307,8 +307,8 @@
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="this.formBaseInformation.get('is_completed').value">                                                               
                                                                     <input matInput
                                                                     [readonly]=true
-                                                                    value="{{(formBaseInformation.get('overhead_netcost_method').value=='1'?'Распределить по себестоимости':'Не распределять по себестоимости')}}"
-                                                                    placeholder="Распределение расходов"/>
+                                                                    value="{{(formBaseInformation.get('overhead_netcost_method').value=='1'?t('docs.field.distr_cst'):t('docs.field.not_distr_cst'))}}"
+                                                                    placeholder="{{t('docs.field.expenses')}}"/>
                                                                 </mat-form-field>
                                                             </div>
                                                         </div>

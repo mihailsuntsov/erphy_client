@@ -7,7 +7,7 @@ import { LoadSpravService } from '../../../services/loadsprav';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
-import { FormGroup, FormControl } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl } from '@angular/forms';
 import { translate } from '@ngneat/transloco'; //+++
 
 import { MomentDefault } from 'src/app/services/moment-default';
@@ -88,17 +88,17 @@ export class MutualpaymentDetComponent implements OnInit {
     public _adapter: DateAdapter<any>) {_adapter.setLocale(this.data.locale) }
 
     ngOnInit() {
-      this.queryForm = new FormGroup({ //форма для отправки запроса 
-        companyId: new FormControl(this.data.companyId,[]), // предприятие, по которому идет запрос данных (передаётся из вызывающего окна)
-        cagentId: new FormControl(this.data.cagentId,[]), // контрагент, по которому идет запрос данных (передаётся из вызывающего окна)
-        dateFrom: new FormControl(this.data.dateFrom?moment(this.data.dateFrom,'DD.MM.YYYY'):moment().startOf('year'),[]),   // дата С
-        dateTo: new FormControl(this.data.dateTo?moment(this.data.dateTo,'DD.MM.YYYY'):moment(),[]),     // дата По
-        sortColumn: new FormControl('date_time_created_sort',[]), //
-        sortAsc: new FormControl('desc',[]), //
-        offset: new FormControl(0,[]), //
-        result: new FormControl(10,[]), //
-        filterOptionsIds: new FormControl([],[]), //
-        searchString: new FormControl('',[]), //
+      this.queryForm = new UntypedFormGroup({ //форма для отправки запроса 
+        companyId: new UntypedFormControl(this.data.companyId,[]), // предприятие, по которому идет запрос данных (передаётся из вызывающего окна)
+        cagentId: new UntypedFormControl(this.data.cagentId,[]), // контрагент, по которому идет запрос данных (передаётся из вызывающего окна)
+        dateFrom: new UntypedFormControl(this.data.dateFrom?moment(this.data.dateFrom,'DD.MM.YYYY'):moment().startOf('year'),[]),   // дата С
+        dateTo: new UntypedFormControl(this.data.dateTo?moment(this.data.dateTo,'DD.MM.YYYY'):moment(),[]),     // дата По
+        sortColumn: new UntypedFormControl('date_time_created_sort',[]), //
+        sortAsc: new UntypedFormControl('desc',[]), //
+        offset: new UntypedFormControl(0,[]), //
+        result: new UntypedFormControl(10,[]), //
+        filterOptionsIds: new UntypedFormControl([],[]), //
+        searchString: new UntypedFormControl('',[]), //
       });
 
       // if(Cookie.get('mutualpayment_det_companyId')=='undefined' || Cookie.get('mutualpayment_det_companyId')==null)     

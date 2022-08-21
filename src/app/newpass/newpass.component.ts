@@ -4,7 +4,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute} from '@angular/router';
 import { AuthService } from '../auth/auth.service';
 import { Router } from '@angular/router';
-import {  Validators, FormGroup, FormControl } from '@angular/forms';
+import {  Validators, UntypedFormGroup, UntypedFormControl } from '@angular/forms';
 import { TranslocoService } from '@ngneat/transloco';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { translate } from '@ngneat/transloco'; //+++
@@ -48,8 +48,8 @@ export class NewpassComponent implements OnInit {
       this.emptyUUID=true;
     }
 
-    this.newpassform = new FormGroup({
-      password:  new FormControl ('',[Validators.required,Validators.minLength(6),Validators.maxLength(20),Validators.pattern('^[a-zA-Z][a-zA-Z0-9-_\.]{1,20}$')]),
+    this.newpassform = new UntypedFormGroup({
+      password:  new UntypedFormControl ('',[Validators.required,Validators.minLength(6),Validators.maxLength(20),Validators.pattern('^[a-zA-Z][a-zA-Z0-9-_\.]{1,20}$')]),
     });
 
 

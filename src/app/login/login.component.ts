@@ -17,7 +17,7 @@ import { TokenStorageService } from '../auth/token-storage.service';// TokenStor
 import { Router } from '@angular/router';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatDialog } from '@angular/material/dialog';
-import { Validators, FormGroup, FormControl } from '@angular/forms';
+import { Validators, UntypedFormGroup, UntypedFormControl } from '@angular/forms';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { TranslocoService } from '@ngneat/transloco';
 import { HttpClient } from '@angular/common/http';
@@ -94,9 +94,9 @@ export class LoginComponent implements OnInit {
       this.goToHomePage();
     } else {
       
-      this.loginform = new FormGroup({
-        username: new FormControl ('',[Validators.required,Validators.minLength(4)]),
-        password: new FormControl ('',[Validators.required]),
+      this.loginform = new UntypedFormGroup({
+        username: new UntypedFormControl ('',[Validators.required,Validators.minLength(4)]),
+        password: new UntypedFormControl ('',[Validators.required]),
       });
     }
 

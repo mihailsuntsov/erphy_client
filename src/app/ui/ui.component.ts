@@ -9,7 +9,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { TranslocoService } from '@ngneat/transloco';
 import { UserSettingsDialogComponent } from 'src/app/modules/settings/user-settings-dialog/user-settings-dialog.component';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { filter } from 'rxjs/operators';
 import { translate } from '@ngneat/transloco'; //+++
 import { DelCookiesService } from '../services/del-cookies.service';
@@ -62,10 +62,11 @@ export class UiComponent implements OnInit {
     this.service.events$.pipe(filter(event => event.type==='translationLoadSuccess'));
 
     // Форма настроек
-    this.settingsForm = new FormGroup({
-      timeZoneId: new FormControl               (null,[]),            // user's timezone
-      languageId: new FormControl               (null,[]),            // language of user interface
-      localeId: new FormControl                 (null,[]),            // locale id (for dates, calendar etc.)
+    this.settingsForm = new UntypedFormGroup({
+      timeZoneId: new UntypedFormControl               (null,[]),            // user's timezone
+      languageId: new UntypedFormControl               (null,[]),            // language of user interface
+      localeId: new UntypedFormControl                 (null,[]),            // locale id (for dates, calendar etc.)
+      timeFormat: new UntypedFormControl               (null,[]),            // user's time format - 12 or 24
     });
 
     this.info = {
@@ -141,6 +142,9 @@ export class UiComponent implements OnInit {
         case 'dateFormat':{
           component.dateFormat=this.dateFormat;
         }
+        case 'timeFormat':{
+          component.timeFormat=this.settingsForm.get('timeFormat').value;
+        }
       }
     })
     
@@ -156,6 +160,7 @@ export class UiComponent implements OnInit {
     //если это другой компонент и он работает с датами (т.е. у него есть _adapter) - поменяем у него локаль
     try{ this.component._adapter.setLocale(locale)} catch (e) {console.log('There is no _adapter in this component')}
     try{ this.component.locale=locale} catch (e) {console.log('There is no locale in this component')}
+    try{ this.component.timeFormat = this.settingsForm.get('timeFormat').value} catch (e) {console.log('There is no timeFormat in this component')}
     // try{ this.component.suffix=this.suffix} catch (e) {console.log('There is no suffix in this component')}
   }
 
@@ -248,6 +253,8 @@ export class UiComponent implements OnInit {
             this.settingsForm.get('timeZoneId').setValue((result.time_zone_id&&result.time_zone_id>0)?result.time_zone_id:21);// Europe, London (+0 GMT)
             this.settingsForm.get('languageId').setValue((result.language_id&&result.language_id>0)?result.language_id:1);// English
             this.settingsForm.get('localeId').setValue((result.locale_id&&result.locale_id>0)?result.locale_id:3);// en-us suffix
+            this.settingsForm.get('timeFormat').setValue((result.timeFormat)?result.timeFormat:'12');// 12 or 24
+
             this.locale=result.locale?result.locale:'en-us';// en-us
             this.suffix=result.suffix?result.suffix:'en';// suffix - at same time means language for Transloco
             this.accountingCurrency=result.accounting_currency;// short name of Accounting currency of user's company (e.g. $ or EUR)
@@ -275,7 +282,7 @@ export class UiComponent implements OnInit {
         timeZoneId:   this.settingsForm.get('timeZoneId').value,
         languageId:   this.settingsForm.get('languageId').value,
         localeId:     this.settingsForm.get('localeId').value,
-        // locale:       this.locale, 
+        timeFormat:   this.settingsForm.get('timeFormat').value,
         suffix:       this.suffix,
       },
     });
@@ -285,6 +292,7 @@ export class UiComponent implements OnInit {
         if(result.get('timeZoneId')) this.settingsForm.get('timeZoneId').setValue(result.get('timeZoneId').value);
         if(result.get('languageId')) this.settingsForm.get('languageId').setValue(result.get('languageId').value);
         if(result.get('localeId')) this.settingsForm.get('localeId').setValue(result.get('localeId').value);
+        if(result.get('timeFormat')) this.settingsForm.get('timeFormat').setValue(result.get('timeFormat').value);
         this.saveUserSettings();
       }
     });

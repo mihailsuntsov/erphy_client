@@ -8,7 +8,7 @@ import { SelectionModel } from '@angular/cdk/collections';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { Router } from '@angular/router';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
-import { Validators, FormGroup, FormControl } from '@angular/forms';
+import { Validators, UntypedFormGroup, UntypedFormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -111,21 +111,21 @@ export class UsergroupDocComponent implements OnInit {
     }
 
   ngOnInit() {
-    this.formBaseInformation = new FormGroup({
-      id: new FormControl      (this.id,[]),
-      name: new FormControl      ('',[Validators.required]),
-      company_id: new FormControl      ('',[Validators.required]),
-      description: new FormControl      ('',[]),
-      selectedUserGroupPermissions:new FormControl      ([],[]),
+    this.formBaseInformation = new UntypedFormGroup({
+      id: new UntypedFormControl      (this.id,[]),
+      name: new UntypedFormControl      ('',[Validators.required]),
+      company_id: new UntypedFormControl      ('',[Validators.required]),
+      description: new UntypedFormControl      ('',[]),
+      selectedUserGroupPermissions:new UntypedFormControl      ([],[]),
     });
-    this.formAboutDocument = new FormGroup({
-      id: new FormControl      ('',[]),
-      master: new FormControl      ('',[]),
-      creator: new FormControl      ('',[]),
-      changer: new FormControl      ('',[]),
-      company: new FormControl      ('',[]),
-      date_time_created: new FormControl      ('',[]),
-      date_time_changed: new FormControl      ('',[]),
+    this.formAboutDocument = new UntypedFormGroup({
+      id: new UntypedFormControl      ('',[]),
+      master: new UntypedFormControl      ('',[]),
+      creator: new UntypedFormControl      ('',[]),
+      changer: new UntypedFormControl      ('',[]),
+      company: new UntypedFormControl      ('',[]),
+      date_time_created: new UntypedFormControl      ('',[]),
+      date_time_changed: new UntypedFormControl      ('',[]),
     });
     this.checkedList = [];
     this.getSetOfPermissions();

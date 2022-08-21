@@ -1,7 +1,7 @@
 import { Component, OnInit , Inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { HttpClient } from '@angular/common/http';
-import { FormGroup, Validators, FormControl } from '@angular/forms';
+import { UntypedFormGroup, Validators, UntypedFormControl } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { LoadSpravService } from '../../../services/loadsprav';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
@@ -39,8 +39,8 @@ export class SettingsDashboardComponent implements OnInit {getSettingsDashboard
     this.myCompanyId = this.data.myCompanyId;
 
     //форма для сохранения настроек (настройки сохраняются в родительском модуле (dashboard), куда отправляются при закрытии диалога)
-    this.settingsForm = new FormGroup({
-      companyId: new FormControl                (null,[Validators.required]),
+    this.settingsForm = new UntypedFormGroup({
+      companyId: new UntypedFormControl                (null,[Validators.required]),
     });
 
     this.getSettings();

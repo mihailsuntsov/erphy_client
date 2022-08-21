@@ -65,6 +65,7 @@
         "return_date":  "Return date",
         "customer":     "Customer",
         "acc_date":     "Acceptance date",
+        "acc_time":     "Acceptance time",
         "new_customer": "New customer",
         "new_cust_name":"New customer's name",
         "cust_search":  "Customer's search",

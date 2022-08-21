@@ -41,7 +41,7 @@ body {
     position: sticky;
     top: 16px;
     margin-top: -16px;
-    z-index: 1000;
+    z-index: 999;
     /* background: white; */
   }
   #topBlock {    
@@ -159,7 +159,9 @@ body {
 .completed{
   background-color: seagreen !important;
 }
-
+.mat-icon{
+  overflow: inherit !important;
+}
 .mat-card-title {
   display: block;
   background-color: white;
@@ -179,3 +181,11 @@ body {
 .mat-card-content {
   margin: 0 6px !important;
 } 
+
+.timepicker__header{
+  background-color: #673ab7 !important;
+}
+.clock-face__number > span.active {
+  background-color: #673ab7 !important;
+  color: #fff;
+}

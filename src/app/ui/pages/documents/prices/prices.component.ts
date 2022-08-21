@@ -12,7 +12,7 @@ import { QueryFormService } from './get-prices-table.service';
 import { PricesDialogComponent } from 'src/app/ui/dialogs/prices-dialog/prices-dialog.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
-import { FormControl  } from '@angular/forms';
+import { UntypedFormControl  } from '@angular/forms';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
 import { translate, TranslocoService } from '@ngneat/transloco'; //+++
@@ -124,7 +124,7 @@ export class PricesComponent implements OnInit {
   hasChild = (_: number, node: ExampleFlatNode) => node.expandable;
 
   //для поиска контрагента (поставщика) по подстроке
-  searchCagentCtrl = new FormControl();//поле для поиска
+  searchCagentCtrl = new UntypedFormControl();//поле для поиска
   isCagentListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canCagentAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredCagents: any;

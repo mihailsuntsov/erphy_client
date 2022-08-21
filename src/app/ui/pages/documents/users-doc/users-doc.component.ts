@@ -5,7 +5,7 @@ import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 // поэтому в конструкторе мы можем получить его.
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
-import { Validators, FormGroup, FormControl } from '@angular/forms';
+import { Validators, UntypedFormGroup, UntypedFormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from './auth.service';
 import { MatDialog } from '@angular/material/dialog';
@@ -144,40 +144,40 @@ export class UsersDocComponent implements OnInit {
    }
 
   ngOnInit() {
-    this.formBaseInformation = new FormGroup({
-      id: new FormControl      (this.id,[]),
-      name: new FormControl      ('',[Validators.required]),
-      company_id: new FormControl      ('',[Validators.required]),
-      address: new FormControl      ('',[]),
-      additional: new FormControl      ('',[]),
-      username: new FormControl ({ value: '', disabled: (+this.id>0)},[Validators.required,Validators.minLength(4),Validators.maxLength(20),Validators.pattern('^[a-zA-Z][a-zA-Z0-9-_\.]{1,20}$')]),
-      email: new FormControl ({ value: '', disabled: (+this.id>0)},[Validators.required,Validators.email]),
-      password: new FormControl ({ value: '', disabled: (+this.id>0)},[Validators.required,Validators.minLength(6),Validators.maxLength(20),Validators.pattern('^[a-zA-Z][a-zA-Z0-9-_\.]{1,20}$')]),
-      fio_family: new FormControl      ('',[Validators.required]),
-      fio_name: new FormControl      ('',[Validators.required]),
-      fio_otchestvo: new FormControl      ('',[]),
-      sex: new FormControl      ('',[]),
-      date_birthday: new FormControl      ('',[]),
-      status_account: new FormControl      ('2',[]),
-      status_employee: new FormControl      ('',[]),
-      timeZoneName: new FormControl      ('',[]),
-      vatin: new FormControl      ('',[Validators.maxLength(12), Validators.minLength(12),Validators.pattern('^[0-9]{12}$')]),
-      selectedUserDepartments: new FormControl([],[]),
-      userGroupList: new FormControl      ([],[]),      
-      timeZoneId: new FormControl  (24,[Validators.required]),
-      localeId: new FormControl      (4,[Validators.required]),
-      languageId: new FormControl    (1,[Validators.required]),
-      localeName: new FormControl      ('',[]),
-      languageName: new FormControl    ('',[]),
+    this.formBaseInformation = new UntypedFormGroup({
+      id: new UntypedFormControl      (this.id,[]),
+      name: new UntypedFormControl      ('',[Validators.required]),
+      company_id: new UntypedFormControl      ('',[Validators.required]),
+      address: new UntypedFormControl      ('',[]),
+      additional: new UntypedFormControl      ('',[]),
+      username: new UntypedFormControl ({ value: '', disabled: (+this.id>0)},[Validators.required,Validators.minLength(4),Validators.maxLength(20),Validators.pattern('^[a-zA-Z][a-zA-Z0-9-_\.]{1,20}$')]),
+      email: new UntypedFormControl ({ value: '', disabled: (+this.id>0)},[Validators.required,Validators.email]),
+      password: new UntypedFormControl ({ value: '', disabled: (+this.id>0)},[Validators.required,Validators.minLength(6),Validators.maxLength(20),Validators.pattern('^[a-zA-Z][a-zA-Z0-9-_\.]{1,20}$')]),
+      fio_family: new UntypedFormControl      ('',[Validators.required]),
+      fio_name: new UntypedFormControl      ('',[Validators.required]),
+      fio_otchestvo: new UntypedFormControl      ('',[]),
+      sex: new UntypedFormControl      ('',[]),
+      date_birthday: new UntypedFormControl      ('',[]),
+      status_account: new UntypedFormControl      ('2',[]),
+      status_employee: new UntypedFormControl      ('',[]),
+      timeZoneName: new UntypedFormControl      ('',[]),
+      vatin: new UntypedFormControl      ('',[Validators.maxLength(12), Validators.minLength(12),Validators.pattern('^[0-9]{12}$')]),
+      selectedUserDepartments: new UntypedFormControl([],[]),
+      userGroupList: new UntypedFormControl      ([],[]),      
+      timeZoneId: new UntypedFormControl  (24,[Validators.required]),
+      localeId: new UntypedFormControl      (4,[Validators.required]),
+      languageId: new UntypedFormControl    (1,[Validators.required]),
+      localeName: new UntypedFormControl      ('',[]),
+      languageName: new UntypedFormControl    ('',[]),
     });
-    this.formAboutDocument = new FormGroup({
-      id: new FormControl           ('',[]),
-      master: new FormControl       ('',[]),
-      creator: new FormControl      ('',[]),
-      changer: new FormControl      ('',[]),
-      company: new FormControl      ('',[]),
-      date_time_created: new FormControl      ('',[]),
-      date_time_changed: new FormControl      ('',[]),
+    this.formAboutDocument = new UntypedFormGroup({
+      id: new UntypedFormControl           ('',[]),
+      master: new UntypedFormControl       ('',[]),
+      creator: new UntypedFormControl      ('',[]),
+      changer: new UntypedFormControl      ('',[]),
+      company: new UntypedFormControl      ('',[]),
+      date_time_created: new UntypedFormControl      ('',[]),
+      date_time_changed: new UntypedFormControl      ('',[]),
     });
 
     //+++ getting base data from parent component

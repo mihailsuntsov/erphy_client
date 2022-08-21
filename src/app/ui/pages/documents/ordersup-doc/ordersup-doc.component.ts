@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, EventEmitter, Inject, OnInit, Optional, Output, ViewChild} from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
-import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormArray,  UntypedFormBuilder,  Validators, UntypedFormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
@@ -179,7 +179,7 @@ export class OrdersupDocComponent implements OnInit {
 
   // Формы
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
-  formBaseInformation: FormGroup; //массив форм для накопления информации о Возврате поставщику
+  formBaseInformation: UntypedFormGroup; //массив форм для накопления информации о Возврате поставщику
   settingsForm: any; // форма с настройками
   formLinkedDocs: any;  // Форма для отправки при создании связанных документов
 
@@ -187,7 +187,7 @@ export class OrdersupDocComponent implements OnInit {
   // visAfterCreatingBlocks = true; //блоки, отображаемые ПОСЛЕ создания документа (id >0)
 
   //для поиска контрагента (поставщика) по подстроке
-  searchCagentCtrl = new FormControl();//поле для поиска
+  searchCagentCtrl = new UntypedFormControl();//поле для поиска
   isCagentListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canCagentAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredCagents: any;
@@ -237,7 +237,7 @@ export class OrdersupDocComponent implements OnInit {
 
   constructor(private activateRoute: ActivatedRoute,
     private cdRef:ChangeDetectorRef,
-    private _fb: FormBuilder, //чтобы билдить группу форм ordersupProductTable
+    private _fb: UntypedFormBuilder, //чтобы билдить группу форм ordersupProductTable
     private http: HttpClient,
     private templatesDialogComponent: MatDialog,
     public ConfirmDialog: MatDialog,
@@ -257,79 +257,79 @@ export class OrdersupDocComponent implements OnInit {
     }
 
   ngOnInit(): void {
-    this.formBaseInformation = new FormGroup({
-      id: new FormControl      (this.id,[]),
-      company_id: new FormControl               ('',[Validators.required]),
-      department_id: new FormControl            ('',[Validators.required]),
-      cagent_id: new FormControl                ('',[Validators.required]),
-      doc_number: new FormControl               ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
-      ordersup_date: new FormControl            ('',[]),
-      description: new FormControl              ('',[]),
-      department: new FormControl               ('',[]),
-      cagent: new FormControl                   ('',[]),
-      nds: new FormControl                      (false,[]),
-      nds_included: new FormControl             (true,[]),
-      status_id: new FormControl                ('',[]),
-      status_name: new FormControl              ('',[]),
-      status_color: new FormControl             ('',[]),
-      status_description: new FormControl       ('',[]),
-      is_completed: new FormControl             (false,[]),
-      name: new FormControl                     ('',[]),
-      ordersupProductTable: new FormArray       ([]),
-      uid: new FormControl                      ('',[]),// uuid идентификатор
+    this.formBaseInformation = new UntypedFormGroup({
+      id: new UntypedFormControl      (this.id,[]),
+      company_id: new UntypedFormControl               ('',[Validators.required]),
+      department_id: new UntypedFormControl            ('',[Validators.required]),
+      cagent_id: new UntypedFormControl                ('',[Validators.required]),
+      doc_number: new UntypedFormControl               ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
+      ordersup_date: new UntypedFormControl            ('',[]),
+      description: new UntypedFormControl              ('',[]),
+      department: new UntypedFormControl               ('',[]),
+      cagent: new UntypedFormControl                   ('',[]),
+      nds: new UntypedFormControl                      (false,[]),
+      nds_included: new UntypedFormControl             (true,[]),
+      status_id: new UntypedFormControl                ('',[]),
+      status_name: new UntypedFormControl              ('',[]),
+      status_color: new UntypedFormControl             ('',[]),
+      status_description: new UntypedFormControl       ('',[]),
+      is_completed: new UntypedFormControl             (false,[]),
+      name: new UntypedFormControl                     ('',[]),
+      ordersupProductTable: new UntypedFormArray       ([]),
+      uid: new UntypedFormControl                      ('',[]),// uuid идентификатор
     });
-    this.formAboutDocument = new FormGroup({
-      id: new FormControl                       ('',[]),
-      master: new FormControl                   ('',[]),
-      creator: new FormControl                  ('',[]),
-      changer: new FormControl                  ('',[]),
-      company: new FormControl                  ('',[]),
-      date_time_created: new FormControl        ('',[]),
-      date_time_changed: new FormControl        ('',[]),
+    this.formAboutDocument = new UntypedFormGroup({
+      id: new UntypedFormControl                       ('',[]),
+      master: new UntypedFormControl                   ('',[]),
+      creator: new UntypedFormControl                  ('',[]),
+      changer: new UntypedFormControl                  ('',[]),
+      company: new UntypedFormControl                  ('',[]),
+      date_time_created: new UntypedFormControl        ('',[]),
+      date_time_changed: new UntypedFormControl        ('',[]),
     });
 
-    this.formLinkedDocs = new FormGroup({
-      customers_orders_id: new FormControl    (null,[]),
-      date_return: new FormControl        ('',[]),
-      nds: new FormControl                ('',[]),
-      name: new FormControl               ('',[]),
-      nds_included: new FormControl       ('',[]),
-      is_completed: new FormControl       (null,[]),
-      cagent_id: new FormControl          (null,[Validators.required]),
-      company_id: new FormControl         (null,[Validators.required]),
-      department_id: new FormControl      (null,[Validators.required]),
-      description: new FormControl        ('',[]),
-      shipment_date: new FormControl      ('',[Validators.required]),
-      returnsupProductTable: new FormArray([]),
-      invoiceinProductTable: new FormArray([]),
-      acceptanceProductTable: new FormArray([]),
-      linked_doc_id: new FormControl      (null,[]),//id связанного документа (в данном случае Отгрузка)
-      parent_uid: new FormControl         (null,[]),// uid родительского документа
-      child_uid: new FormControl          (null,[]),// uid дочернего документа
-      linked_doc_name: new FormControl    (null,[]),//имя (таблицы) связанного документа
-      uid: new FormControl                ('',[]),  //uid создаваемого связанного документа
+    this.formLinkedDocs = new UntypedFormGroup({
+      customers_orders_id: new UntypedFormControl    (null,[]),
+      date_return: new UntypedFormControl        ('',[]),
+      nds: new UntypedFormControl                ('',[]),
+      name: new UntypedFormControl               ('',[]),
+      nds_included: new UntypedFormControl       ('',[]),
+      is_completed: new UntypedFormControl       (null,[]),
+      cagent_id: new UntypedFormControl          (null,[Validators.required]),
+      company_id: new UntypedFormControl         (null,[Validators.required]),
+      department_id: new UntypedFormControl      (null,[Validators.required]),
+      description: new UntypedFormControl        ('',[]),
+      shipment_date: new UntypedFormControl      ('',[Validators.required]),
+      returnsupProductTable: new UntypedFormArray([]),
+      invoiceinProductTable: new UntypedFormArray([]),
+      acceptanceProductTable: new UntypedFormArray([]),
+      linked_doc_id: new UntypedFormControl      (null,[]),//id связанного документа (в данном случае Отгрузка)
+      parent_uid: new UntypedFormControl         (null,[]),// uid родительского документа
+      child_uid: new UntypedFormControl          (null,[]),// uid дочернего документа
+      linked_doc_name: new UntypedFormControl    (null,[]),//имя (таблицы) связанного документа
+      uid: new UntypedFormControl                ('',[]),  //uid создаваемого связанного документа
     });
 
     // Форма настроек
-    this.settingsForm = new FormGroup({
+    this.settingsForm = new UntypedFormGroup({
       // id отделения
-      departmentId: new FormControl             (null,[]),
+      departmentId: new UntypedFormControl             (null,[]),
       //покупатель по умолчанию
-      cagentId: new FormControl                 (null,[]),
+      cagentId: new UntypedFormControl                 (null,[]),
       //наименование покупателя
-      cagent: new FormControl                   ('',[]),
+      cagent: new UntypedFormControl                   ('',[]),
       //наименование заказа по умолчанию
-      name:  new FormControl               ('',[]),
+      name:  new UntypedFormControl               ('',[]),
       //предприятие, для которого создаются настройки
-      companyId: new FormControl                (null,[]),
+      companyId: new UntypedFormControl                (null,[]),
       //автосоздание нового документа, если все поля заполнены
-      autocreate: new FormControl               (false,[]),
+      autocreate: new UntypedFormControl               (false,[]),
       //статус после успешного отбития чека, перед созданием нового документа
-      statusIdOnComplete: new FormControl       ('',[]),
+      statusIdOnComplete: new UntypedFormControl       ('',[]),
       // автодобавление товара в таблицу товаров
-      autoAdd:  new FormControl                 (false,[]),
+      autoAdd:  new UntypedFormControl                 (false,[]),
       // автовыставление цены (последняя закупочная цена)
-      autoPrice:  new FormControl               (false,[]),
+      autoPrice:  new UntypedFormControl               (false,[]),
     });
 
     if(this.data)//если документ вызывается в окне из другого документа
@@ -816,14 +816,14 @@ export class OrdersupDocComponent implements OnInit {
 
   formingProductRowFromApiResponse(row: OrdersupProductTable) {
     return this._fb.group({
-      id: new FormControl (row.id,[]),
-      product_id:         new FormControl (row.product_id,[]),
-      ordersup_id:      new FormControl (this.id,[]),
-      nds_id:             new FormControl (row.nds_id,[]),
-      product_count:      new FormControl ((+row.product_count),[]),
+      id: new UntypedFormControl (row.id,[]),
+      product_id:         new UntypedFormControl (row.product_id,[]),
+      ordersup_id:      new UntypedFormControl (this.id,[]),
+      nds_id:             new UntypedFormControl (row.nds_id,[]),
+      product_count:      new UntypedFormControl ((+row.product_count),[]),
       // product_netcost:    new FormControl ((+row.product_netcost).toFixed(2),[]),
-      product_price:      new FormControl ((+row.product_price).toFixed(2),[]),
-      product_sumprice: new FormControl (this.numToPrice(row.product_sumprice,2),[]),
+      product_price:      new UntypedFormControl ((+row.product_price).toFixed(2),[]),
+      product_sumprice: new UntypedFormControl (this.numToPrice(row.product_sumprice,2),[]),
     });
   }
   
@@ -1030,7 +1030,7 @@ export class OrdersupDocComponent implements OnInit {
   }
   //забирает таблицу товаров из дочернего компонента и помещает ее в основную форму
   getProductsTable(){
-    const control = <FormArray>this.formBaseInformation.get('ordersupProductTable');
+    const control = <UntypedFormArray>this.formBaseInformation.get('ordersupProductTable');
     control.clear();
     this.ordersupProductsTableComponent.getProductTable().forEach(row=>{
       control.push(this.formingProductRowFromApiResponse(row));
@@ -1355,7 +1355,7 @@ deleteFile(id:number){
     let canAddRow: boolean;
     //Получим название метода для маппинга в соответствующее название сета в бэкэнде (например для аргумента 'Posting' отдаст 'postingProductTable', который замаппится в этоn сет: private Set<PostingProductForm> postingProductTable;)
     methodNameProductTable=this.commonUtilites.getMethodNameByDocAlias(docname);
-    const control = <FormArray>this.formLinkedDocs.get(methodNameProductTable);
+    const control = <UntypedFormArray>this.formLinkedDocs.get(methodNameProductTable);
     control.clear();
     this.ordersupProductsTableComponent.getProductTable().forEach(row=>{
       if(this.ordersupProductsTableComponent.checkedList.length>0){  //если есть выделенные чекбоксами позиции - надо взять только их, иначе берем все позиции
@@ -1368,11 +1368,11 @@ deleteFile(id:number){
   }
   formingProductRowLinkedDoc(row: OrdersupProductTable) {
     return this._fb.group({
-      product_id: new FormControl (row.product_id,[]),
-      product_count: new FormControl (row.product_count,[]),
-      product_price:  new FormControl (row.product_price,[]),
-      product_sumprice: new FormControl (((row.product_count)*row.product_price).toFixed(2),[]),
-      nds_id:  new FormControl (row.nds_id,[]),
+      product_id: new UntypedFormControl (row.product_id,[]),
+      product_count: new UntypedFormControl (row.product_count,[]),
+      product_price:  new UntypedFormControl (row.product_price,[]),
+      product_sumprice: new UntypedFormControl (((row.product_count)*row.product_price).toFixed(2),[]),
+      nds_id:  new UntypedFormControl (row.nds_id,[]),
     });
   }
   // можно ли создать связанный документ (да - если есть товары, подходящие для этого)

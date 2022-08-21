@@ -1,7 +1,7 @@
 import { Component, OnInit , Inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { HttpClient } from '@angular/common/http';
-import { FormGroup, Validators, FormControl } from '@angular/forms';
+import { UntypedFormGroup, Validators, UntypedFormControl } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { LoadSpravService } from '../../../services/loadsprav';
@@ -34,12 +34,12 @@ export class SettingsVatinvoiceoutDialogComponent implements OnInit {
   allowToCreateMyCompany:boolean;
 
   // для поиска контрагента (получателя) по подстроке
-  searchCagentCtrl = new FormControl();//поле для поиска
+  searchCagentCtrl = new UntypedFormControl();//поле для поиска
   isCagentListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canCagentAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredCagents: any[];
   // грузополучатель 
-  searchCagent2Ctrl = new FormControl();//поле для поиска
+  searchCagent2Ctrl = new UntypedFormControl();//поле для поиска
   isCagent2ListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canCagent2AutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredCagents2: any[];
@@ -65,20 +65,20 @@ export class SettingsVatinvoiceoutDialogComponent implements OnInit {
     this.allowToCreateAllCompanies=this.data.allowToCreateAllCompanies;
     this.allowToCreateMyCompany=this.data.allowToCreateMyCompany;
 
-    this.settingsForm = new FormGroup({
+    this.settingsForm = new UntypedFormGroup({
       
       //предприятие, для которого создаются настройки
-      companyId: new FormControl                (null,[Validators.required]),
+      companyId: new UntypedFormControl                (null,[Validators.required]),
       //id контрагент по умолчанию
-      cagentId: new FormControl               (null,[]),
+      cagentId: new UntypedFormControl               (null,[]),
       //название контрагента по умолчанию
-      cagent: new FormControl                 ('',[]),
+      cagent: new UntypedFormControl                 ('',[]),
       //id грузополучатель по умолчанию
-      cagent2Id: new FormControl               (null,[]),
+      cagent2Id: new UntypedFormControl               (null,[]),
       //название грузополучателя по умолчанию
-      cagent2: new FormControl                 ('',[]),
+      cagent2: new UntypedFormControl                 ('',[]),
       //статус при успешном проведении
-      statusIdOnComplete: new FormControl(null,[]),
+      statusIdOnComplete: new UntypedFormControl(null,[]),
     });
     this.onCagentSearchValueChanges();//отслеживание изменений поля "контрагент"
     this.onCagent2SearchValueChanges();//отслеживание изменений поля "Грузополучатель"

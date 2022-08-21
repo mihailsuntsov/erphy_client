@@ -1,7 +1,7 @@
 import { Component, OnInit , Inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { HttpClient } from '@angular/common/http';
-import { FormGroup, Validators, FormControl } from '@angular/forms';
+import { UntypedFormGroup, Validators, UntypedFormControl } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { LoadSpravService } from '../../../services/loadsprav';
@@ -46,7 +46,7 @@ export class SettingsOrdersupDialogComponent implements OnInit {
   allowToCreateMyDepartments:boolean;
 
   //для поиска контрагента (получателя) по подстроке
-  searchCagentCtrl = new FormControl();//поле для поиска
+  searchCagentCtrl = new UntypedFormControl();//поле для поиска
   isCagentListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canCagentAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredCagents: any;
@@ -79,26 +79,26 @@ export class SettingsOrdersupDialogComponent implements OnInit {
     this.allowToCreateMyCompany=this.data.allowToCreateMyCompany;
     this.allowToCreateMyDepartments=this.data.allowToCreateMyDepartments;
 
-    this.settingsForm = new FormGroup({
+    this.settingsForm = new UntypedFormGroup({
       
       //наименование заказа по умолчанию
-      name:  new FormControl               ('',[]),
+      name:  new UntypedFormControl               ('',[]),
       //предприятие, для которого создаются настройки
-      companyId: new FormControl                (null,[Validators.required]),
+      companyId: new UntypedFormControl                (null,[Validators.required]),
       //отделение по умолчанию
-      departmentId: new FormControl             (null,[]),
+      departmentId: new UntypedFormControl             (null,[]),
       //id Поставщик по умолчанию
-      cagentId: new FormControl               (null,[]),
+      cagentId: new UntypedFormControl               (null,[]),
       //название поставщика по умолчанию
-      cagent: new FormControl                 ('',[]),
+      cagent: new UntypedFormControl                 ('',[]),
       //автосоздание на старте документа, если автозаполнились все поля необходимые поля
-      autocreate: new FormControl       (false,[]),
+      autocreate: new UntypedFormControl       (false,[]),
       //статус при успешном проведении
-      statusIdOnComplete: new FormControl(null,[]),
+      statusIdOnComplete: new UntypedFormControl(null,[]),
       // автодобавление товара в таблицу товаров
-      autoAdd:  new FormControl                 (false,[]),
+      autoAdd:  new UntypedFormControl                 (false,[]),
       // автовыставление цены (последняя закупочная цена)
-      autoPrice:  new FormControl                 (false,[]),
+      autoPrice:  new UntypedFormControl                 (false,[]),
 
     });
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Поставщик"

@@ -9,7 +9,7 @@ import { Validators } from '@angular/forms';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { QueryFormService } from './get-docs-table.service';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
-import { FormGroup, FormControl } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl } from '@angular/forms';
 import { SettingsReturnsupDialogComponent } from 'src/app/modules/settings/settings-returnsup-dialog/settings-returnsup-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
@@ -157,27 +157,27 @@ export class ReturnsupComponent implements OnInit {
       this.fillOptionsList();//заполняем список опций фильтра
   
       // Форма настроек
-      this.settingsForm = new FormGroup({
+      this.settingsForm = new UntypedFormGroup({
         // предприятие, для которого создаются настройки
-        companyId: new FormControl                (null,[]),
+        companyId: new UntypedFormControl                (null,[]),
         // id отделения
-        departmentId: new FormControl             (null,[]),
+        departmentId: new UntypedFormControl             (null,[]),
         // тип расценки. priceType - по типу цены, avgCostPrice - средн. себестоимость, lastPurchasePrice - Последняя закупочная цена, avgPurchasePrice - Средняя закупочная цена, manual - вручную
-        pricingType: new FormControl              ('lastPurchasePrice',[]), // по умолчанию ставим "Последняя закупочная цена"
+        pricingType: new UntypedFormControl              ('lastPurchasePrice',[]), // по умолчанию ставим "Последняя закупочная цена"
         // тип цены
-        priceTypeId: new FormControl              (null,[]),
+        priceTypeId: new UntypedFormControl              (null,[]),
         // наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType
-        changePrice: new FormControl              (0,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]), // по умолчанию "плюс 10%"
+        changePrice: new UntypedFormControl              (0,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]), // по умолчанию "плюс 10%"
         // Наценка (plus) или скидка (minus)
-        plusMinus: new FormControl                ('plus',[]),
+        plusMinus: new UntypedFormControl                ('plus',[]),
         // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
-        changePriceType: new FormControl          ('procents',[]),
+        changePriceType: new UntypedFormControl          ('procents',[]),
         // убрать десятые (копейки)
-        hideTenths: new FormControl               (true,[]),
+        hideTenths: new UntypedFormControl               (true,[]),
         // статус после завершения инвентаризации
-        statusOnFinishId: new FormControl         ('',[]),
+        statusOnFinishId: new UntypedFormControl         ('',[]),
         // автодобавление товара из формы поиска в таблицу
-        autoAdd:  new FormControl                 (false,[]),
+        autoAdd:  new UntypedFormControl                 (false,[]),
       });
       
         this.getCompaniesList();// 

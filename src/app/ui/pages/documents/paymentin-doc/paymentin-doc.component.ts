@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, EventEmitter, Inject, OnInit, Optional, Output, ViewChild} from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
-import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormArray,  UntypedFormBuilder,  Validators, UntypedFormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
@@ -151,12 +151,12 @@ export class PaymentinDocComponent implements OnInit {
 
   // Формы
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
-  formBaseInformation: FormGroup; //массив форм для накопления информации о Возврате поставщику
+  formBaseInformation: UntypedFormGroup; //массив форм для накопления информации о Возврате поставщику
   settingsForm: any; // форма с настройками
   formLinkedDocs: any;  // Форма для отправки при создании связанных документов
 
   //для поиска контрагента (поставщика) по подстроке
-  searchCagentCtrl = new FormControl();//поле для поиска
+  searchCagentCtrl = new UntypedFormControl();//поле для поиска
   isCagentListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canCagentAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredCagents: any;
@@ -197,7 +197,7 @@ export class PaymentinDocComponent implements OnInit {
 
   constructor(private activateRoute: ActivatedRoute,
     private cdRef:ChangeDetectorRef,
-    private _fb: FormBuilder, //чтобы билдить группу форм paymentinProductTable    
+    private _fb: UntypedFormBuilder, //чтобы билдить группу форм paymentinProductTable    
     public SettingsPaymentinDialogComponent: MatDialog,
     private http: HttpClient,
     public ConfirmDialog: MatDialog,
@@ -215,74 +215,74 @@ export class PaymentinDocComponent implements OnInit {
     }
 
   ngOnInit(): void {
-    this.formBaseInformation = new FormGroup({
-      id: new FormControl      (this.id,[]),
-      company_id: new FormControl               ('',[Validators.required]),
-      cagent_id: new FormControl                ('',[]),
-      doc_number: new FormControl               ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
-      description: new FormControl              ('',[]),
-      cagent: new FormControl                   ('',[]),
-      nds: new FormControl                      (0,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
-      summ: new FormControl                     ('',[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
-      status_id: new FormControl                ('',[]),
-      status_name: new FormControl              ('',[]),
-      status_color: new FormControl             ('',[]),
-      payment_account_id: new FormControl       ('',[Validators.required]),
-      moving_type: new FormControl              ('',[]),
-      payment_account: new FormControl          ('',[]),
-      status_description: new FormControl       ('',[]),
-      boxoffice_from_id: new FormControl        ('',[]),
-      payment_account_from_id: new FormControl  ('',[]), // расч счет, с которого переводят
-      boxoffice_from: new FormControl           ('',[]),
-      payment_account_from: new FormControl     ('',[]), // расч счет, с которого переводят
-      is_completed: new FormControl             (false,[]),
-      paymentinProductTable: new FormArray      ([]),
-      internal: new FormControl                 (false,[]), // внутренний платеж
-      income_number: new FormControl            ('',[]),
-      income_number_date: new FormControl       ('',[]),//на дату валидаторы не вешаются, у нее свой валидатор
-      paymentout_id: new FormControl            ('',[]),             // id исходящего платежа, из которого поступили средства
-      orderout_id: new FormControl              ('',[]),             // id расходного ордера, из которого поступили средства
-      paymentout: new FormControl               ('',[]),             // номер исходящего платежа, из которого поступили средства
-      orderout: new FormControl                 ('',[]),             // номер расходного ордера, из которого поступили средства
-      uid: new FormControl                      ('',[]),// uuid идентификатор
+    this.formBaseInformation = new UntypedFormGroup({
+      id: new UntypedFormControl      (this.id,[]),
+      company_id: new UntypedFormControl               ('',[Validators.required]),
+      cagent_id: new UntypedFormControl                ('',[]),
+      doc_number: new UntypedFormControl               ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
+      description: new UntypedFormControl              ('',[]),
+      cagent: new UntypedFormControl                   ('',[]),
+      nds: new UntypedFormControl                      (0,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      summ: new UntypedFormControl                     ('',[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      status_id: new UntypedFormControl                ('',[]),
+      status_name: new UntypedFormControl              ('',[]),
+      status_color: new UntypedFormControl             ('',[]),
+      payment_account_id: new UntypedFormControl       ('',[Validators.required]),
+      moving_type: new UntypedFormControl              ('',[]),
+      payment_account: new UntypedFormControl          ('',[]),
+      status_description: new UntypedFormControl       ('',[]),
+      boxoffice_from_id: new UntypedFormControl        ('',[]),
+      payment_account_from_id: new UntypedFormControl  ('',[]), // расч счет, с которого переводят
+      boxoffice_from: new UntypedFormControl           ('',[]),
+      payment_account_from: new UntypedFormControl     ('',[]), // расч счет, с которого переводят
+      is_completed: new UntypedFormControl             (false,[]),
+      paymentinProductTable: new UntypedFormArray      ([]),
+      internal: new UntypedFormControl                 (false,[]), // внутренний платеж
+      income_number: new UntypedFormControl            ('',[]),
+      income_number_date: new UntypedFormControl       ('',[]),//на дату валидаторы не вешаются, у нее свой валидатор
+      paymentout_id: new UntypedFormControl            ('',[]),             // id исходящего платежа, из которого поступили средства
+      orderout_id: new UntypedFormControl              ('',[]),             // id расходного ордера, из которого поступили средства
+      paymentout: new UntypedFormControl               ('',[]),             // номер исходящего платежа, из которого поступили средства
+      orderout: new UntypedFormControl                 ('',[]),             // номер расходного ордера, из которого поступили средства
+      uid: new UntypedFormControl                      ('',[]),// uuid идентификатор
     });
-    this.formAboutDocument = new FormGroup({
-      id: new FormControl                       ('',[]),
-      master: new FormControl                   ('',[]),
-      creator: new FormControl                  ('',[]),
-      changer: new FormControl                  ('',[]),
-      company: new FormControl                  ('',[]),
-      date_time_created: new FormControl        ('',[]),
-      date_time_changed: new FormControl        ('',[]),
+    this.formAboutDocument = new UntypedFormGroup({
+      id: new UntypedFormControl                       ('',[]),
+      master: new UntypedFormControl                   ('',[]),
+      creator: new UntypedFormControl                  ('',[]),
+      changer: new UntypedFormControl                  ('',[]),
+      company: new UntypedFormControl                  ('',[]),
+      date_time_created: new UntypedFormControl        ('',[]),
+      date_time_changed: new UntypedFormControl        ('',[]),
     });
 
-    this.formLinkedDocs = new FormGroup({
-      nds: new FormControl                ('',[]),
+    this.formLinkedDocs = new UntypedFormGroup({
+      nds: new UntypedFormControl                ('',[]),
       // nds_included: new FormControl       ('',[]),
-      is_completed: new FormControl       (null,[]),
-      summ: new FormControl               ('',[]), 
-      description: new FormControl        ('',[]), 
-      parent_tablename: new FormControl   ('',[]), //для счёта фактуры выданного
-      paymentin_id: new FormControl       ('',[]), //для счёта фактуры выданного
-      cagent_id: new FormControl          (null,[Validators.required]),
-      company_id: new FormControl         (null,[Validators.required]),
-      linked_doc_id: new FormControl      (null,[]),//id связанного документа (в данном случае Отгрузка)
-      parent_uid: new FormControl         (null,[]),// uid родительского документа
-      child_uid: new FormControl          (null,[]),// uid дочернего документа
-      linked_doc_name: new FormControl    (null,[]),//имя (таблицы) связанного документа
-      uid: new FormControl                ('',[]),  //uid создаваемого связанного документа
+      is_completed: new UntypedFormControl       (null,[]),
+      summ: new UntypedFormControl               ('',[]), 
+      description: new UntypedFormControl        ('',[]), 
+      parent_tablename: new UntypedFormControl   ('',[]), //для счёта фактуры выданного
+      paymentin_id: new UntypedFormControl       ('',[]), //для счёта фактуры выданного
+      cagent_id: new UntypedFormControl          (null,[Validators.required]),
+      company_id: new UntypedFormControl         (null,[Validators.required]),
+      linked_doc_id: new UntypedFormControl      (null,[]),//id связанного документа (в данном случае Отгрузка)
+      parent_uid: new UntypedFormControl         (null,[]),// uid родительского документа
+      child_uid: new UntypedFormControl          (null,[]),// uid дочернего документа
+      linked_doc_name: new UntypedFormControl    (null,[]),//имя (таблицы) связанного документа
+      uid: new UntypedFormControl                ('',[]),  //uid создаваемого связанного документа
     });
 
     // Форма настроек
-    this.settingsForm = new FormGroup({
+    this.settingsForm = new UntypedFormGroup({
       //покупатель по умолчанию
-      cagentId: new FormControl                 (null,[]),
+      cagentId: new UntypedFormControl                 (null,[]),
       //наименование покупателя
-      cagent: new FormControl                   ('',[]),
+      cagent: new UntypedFormControl                   ('',[]),
       //предприятие, для которого создаются настройки
-      companyId: new FormControl                (null,[]),
+      companyId: new UntypedFormControl                (null,[]),
       //статус после успешного отбития чека, перед созданием нового документа
-      statusIdOnComplete: new FormControl       ('',[]),
+      statusIdOnComplete: new UntypedFormControl       ('',[]),
     });
 
     if(this.data)//если документ вызывается в окне из другого документа

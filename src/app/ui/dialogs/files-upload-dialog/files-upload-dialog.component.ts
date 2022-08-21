@@ -1,6 +1,6 @@
 import { Component, OnInit , Inject} from '@angular/core';
 import {MatDialogRef, MAT_DIALOG_DATA} from '@angular/material/dialog';
-import { Validators, FormGroup, FormControl} from '@angular/forms';
+import { Validators, UntypedFormGroup, UntypedFormControl} from '@angular/forms';
 import { MatSnackBar} from '@angular/material/snack-bar';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatDialog } from '@angular/material/dialog';
@@ -49,12 +49,12 @@ maxFileSize:number = 10 * 1024 * 1024; // = 10 Mb; Также нужно мен�
     // console.log("data.categoryId:"+this.data.categoryId);
     // console.log("data.companyId:"+this.data.companyId);
     // console.log("data.categoryName:"+this.data.categoryName);
-    this.formBaseInformation = new FormGroup({
-      categoryId:     new FormControl (+this.data.categoryId,[]),//id категории для файлов (ПУСТО - КОРНЕВАЯ БУДЕТ)
-      anonyme_access: new FormControl (false,[]),
-      companyId:      new FormControl (+this.data.companyId,[]),//id выбранного предприятия
-      sharedFile:     new FormControl (this.checked,[]),
-      description:    new FormControl ('',[]),
+    this.formBaseInformation = new UntypedFormGroup({
+      categoryId:     new UntypedFormControl (+this.data.categoryId,[]),//id категории для файлов (ПУСТО - КОРНЕВАЯ БУДЕТ)
+      anonyme_access: new UntypedFormControl (false,[]),
+      companyId:      new UntypedFormControl (+this.data.companyId,[]),//id выбранного предприятия
+      sharedFile:     new UntypedFormControl (this.checked,[]),
+      description:    new UntypedFormControl ('',[]),
     });
     
     // auto-open file selection window

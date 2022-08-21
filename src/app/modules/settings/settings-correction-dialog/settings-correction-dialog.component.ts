@@ -1,7 +1,7 @@
 import { Component, OnInit , Inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { HttpClient } from '@angular/common/http';
-import { FormGroup, Validators, FormControl } from '@angular/forms';
+import { UntypedFormGroup, Validators, UntypedFormControl } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { LoadSpravService } from '../../../services/loadsprav';
@@ -56,12 +56,12 @@ export class SettingsCorrectionDialogComponent implements OnInit {
     this.allowToCreateAllCompanies=this.data.allowToCreateAllCompanies;
     this.allowToCreateMyCompany=this.data.allowToCreateMyCompany;
 
-    this.settingsForm = new FormGroup({
+    this.settingsForm = new UntypedFormGroup({
       
       //предприятие, для которого создаются настройки
-      companyId: new FormControl                (null,[Validators.required]),
+      companyId: new UntypedFormControl                (null,[Validators.required]),
       //статус при успешном проведении
-      statusIdOnComplete: new FormControl(null,[]),
+      statusIdOnComplete: new UntypedFormControl(null,[]),
     });
     this.getSettings();
     

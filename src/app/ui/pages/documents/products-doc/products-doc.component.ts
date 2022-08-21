@@ -5,7 +5,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { SelectionModel } from '@angular/cdk/collections';
 import { ActivatedRoute } from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
-import { Validators, FormGroup, FormControl, FormArray, FormBuilder} from '@angular/forms';
+import { Validators, UntypedFormGroup, UntypedFormControl, UntypedFormArray, UntypedFormBuilder} from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog,  MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
@@ -217,8 +217,8 @@ gettingTableData:boolean=false;
 
 
 checkedList:any[]; //массив для накапливания id выбранных чекбоксов вида [2,5,27...], а так же для заполнения загруженными значениями чекбоксов
-searchProductGroupsCtrl = new FormControl();
-fieldsForm: FormGroup;
+searchProductGroupsCtrl = new UntypedFormControl();
+fieldsForm: UntypedFormGroup;
 dataFields: any;
 receivedSetsOfFields: any [] = [] ;//массив для получения сетов полей
 fieldIdEditNow:number=0;    //     id редактируемого кастомного поля в fieldsForm  
@@ -280,9 +280,9 @@ constructor(private activateRoute: ActivatedRoute,
   private loadSpravService:   LoadSpravService,
   private httpService:   LoadSpravService,
   private _snackBar: MatSnackBar,
-  private fb: FormBuilder,
+  private fb: UntypedFormBuilder,
   public ConfirmDialog: MatDialog,
-  private _fb: FormBuilder, //чтобы билдить группу форм productPricesTable
+  private _fb: UntypedFormBuilder, //чтобы билдить группу форм productPricesTable
   public productHistoryService: ProductHistoryService,
   public MessageDialog: MatDialog,
   public dialogAddImages: MatDialog,
@@ -310,51 +310,51 @@ constructor(private activateRoute: ActivatedRoute,
     this.fieldsForm = this.fb.group({
         fields: this.fb.array([])
      });  
-    this.formBaseInformation = new FormGroup({
-      id: new FormControl      (this.id,[]),
-      company_id: new FormControl      ('',[Validators.required]),
-      company: new FormControl      ('',[]),
-      productgroup_id: new FormControl      ('',[]),
-      productgroup: new FormControl      ('',[]),
-      article: new FormControl      ('',[]),
-      name: new FormControl      ('',[Validators.required]),
-      description: new FormControl      ('',[]),
-      selectedProductCategories:new FormControl      ([],[]),
-      imagesIdsInOrderOfList:new FormControl      ([],[]),
-      cagentsIdsInOrderOfList:new FormControl      ([],[]),
-      product_code: new FormControl      ('',[]),
-      product_code_free: new FormControl      ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
-      ppr_id: new FormControl      (1,[]),
-      by_weight: new FormControl      ('',[]),
-      edizm_name: new FormControl      ('',[Validators.required]),
-      edizm_id: new FormControl      ('',[Validators.required]),
-      nds_id: new FormControl      (null,[]),
-      weight: new FormControl      ('',[Validators.pattern('^[0-9]{1,12}(?:[.,][0-9]{0,3})?\r?$')]),
-      volume: new FormControl      ('',[Validators.pattern('^[0-9]{1,12}(?:[.,][0-9]{0,3})?\r?$')]),
-      weight_edizm_id: new FormControl      ('',[]),
-      volume_edizm_id: new FormControl      ('',[]),
-      markable: new FormControl      ('',[]),
-      markable_group_name: new FormControl      ('',[]),
-      markable_group_id: new FormControl      ('',[]),
-      excizable: new FormControl      ('',[]),
-      not_buy: new FormControl      ('',[]),
-      not_sell: new FormControl      ('',[]),
-      indivisible: new FormControl      ('',[]),
-      productPricesTable: new FormArray([]),//массив с формами цен
+    this.formBaseInformation = new UntypedFormGroup({
+      id: new UntypedFormControl      (this.id,[]),
+      company_id: new UntypedFormControl      ('',[Validators.required]),
+      company: new UntypedFormControl      ('',[]),
+      productgroup_id: new UntypedFormControl      ('',[]),
+      productgroup: new UntypedFormControl      ('',[]),
+      article: new UntypedFormControl      ('',[]),
+      name: new UntypedFormControl      ('',[Validators.required]),
+      description: new UntypedFormControl      ('',[]),
+      selectedProductCategories:new UntypedFormControl      ([],[]),
+      imagesIdsInOrderOfList:new UntypedFormControl      ([],[]),
+      cagentsIdsInOrderOfList:new UntypedFormControl      ([],[]),
+      product_code: new UntypedFormControl      ('',[]),
+      product_code_free: new UntypedFormControl      ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
+      ppr_id: new UntypedFormControl      (1,[]),
+      by_weight: new UntypedFormControl      ('',[]),
+      edizm_name: new UntypedFormControl      ('',[Validators.required]),
+      edizm_id: new UntypedFormControl      ('',[Validators.required]),
+      nds_id: new UntypedFormControl      (null,[]),
+      weight: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{1,12}(?:[.,][0-9]{0,3})?\r?$')]),
+      volume: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{1,12}(?:[.,][0-9]{0,3})?\r?$')]),
+      weight_edizm_id: new UntypedFormControl      ('',[]),
+      volume_edizm_id: new UntypedFormControl      ('',[]),
+      markable: new UntypedFormControl      ('',[]),
+      markable_group_name: new UntypedFormControl      ('',[]),
+      markable_group_id: new UntypedFormControl      ('',[]),
+      excizable: new UntypedFormControl      ('',[]),
+      not_buy: new UntypedFormControl      ('',[]),
+      not_sell: new UntypedFormControl      ('',[]),
+      indivisible: new UntypedFormControl      ('',[]),
+      productPricesTable: new UntypedFormArray([]),//массив с формами цен
     });
-    this.formAboutDocument = new FormGroup({
-      id: new FormControl      ('',[]),
-      master: new FormControl      ('',[]),
-      creator: new FormControl      ('',[]),
-      changer: new FormControl      ('',[]),
-      company: new FormControl      ('',[]),
-      date_time_created: new FormControl      ('',[]),
-      date_time_changed: new FormControl      ('',[]),
+    this.formAboutDocument = new UntypedFormGroup({
+      id: new UntypedFormControl      ('',[]),
+      master: new UntypedFormControl      ('',[]),
+      creator: new UntypedFormControl      ('',[]),
+      changer: new UntypedFormControl      ('',[]),
+      company: new UntypedFormControl      ('',[]),
+      date_time_created: new UntypedFormControl      ('',[]),
+      date_time_changed: new UntypedFormControl      ('',[]),
     });
 
-    this.selectedProductCategory = new FormGroup({
-      selectedNodeId: new FormControl      ('',[]),
-      SelectedNodeName: new FormControl      ('',[]),
+    this.selectedProductCategory = new UntypedFormGroup({
+      selectedNodeId: new UntypedFormControl      ('',[]),
+      SelectedNodeName: new UntypedFormControl      ('',[]),
     });
     this.checkedList = [];
     this.fillDocumentsList();
@@ -590,7 +590,7 @@ refreshPermissions():boolean{
   }
 
   getFieldsFormControls() {
-    return (this.fieldsForm.get('fields') as FormArray).controls;
+    return (this.fieldsForm.get('fields') as UntypedFormArray).controls;
   }
 
   getProductGroupFieldsListWithValues(){//загружает кастомные поля со значениями (field_type=2) или их сеты (field_type=1) 
@@ -607,7 +607,7 @@ refreshPermissions():boolean{
   }
   patchFieldsFormArray() {
     this.fieldsForm = this.fb.group({fields: this.fb.array([])});// если поля каждый раз не переопределять, они будут пушиться уже к существующим, и сохранение не будет корректно работать
-    const control = <FormArray>this.fieldsForm.get('fields');
+    const control = <UntypedFormArray>this.fieldsForm.get('fields');
     this.dataFields.forEach((x: { id: any; parent_set_id: any; name: any; value: any; }) => {
       console.log("pushing");
       control.push(this.patchValues(x.id, x.parent_set_id, x.name, x.value, this.id))
@@ -1501,7 +1501,7 @@ checkProductCodeFreeUnical() {
   }
   getProductPrices(){
     this.receivedPriceTypesList=null;
-    const control = <FormArray>this.formBaseInformation.get('productPricesTable');
+    const control = <UntypedFormArray>this.formBaseInformation.get('productPricesTable');
     control.clear();
     this.loadSpravService.getProductPrices(+this.id)
     .subscribe(
@@ -1525,15 +1525,15 @@ checkProductCodeFreeUnical() {
   formingProductPricesRow(row: ProductPricesTable) {
     return this._fb.group({
       row_id: [this.getRowId()],// row_id нужен для идентифицирования строк у которых нет id (например из только что создали и не сохранили)
-      price_type_id: new FormControl (row.price_type_id,[]),
-      price_name: new FormControl (row.price_name,[]),
-      price_value: new FormControl (row.price_value,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
-      price_description: new FormControl (row.price_description,[]),
+      price_type_id: new UntypedFormControl (row.price_type_id,[]),
+      price_name: new UntypedFormControl (row.price_name,[]),
+      price_value: new UntypedFormControl (row.price_value,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      price_description: new UntypedFormControl (row.price_description,[]),
     });
   }
 
   getControlPriceTable(){
-    const control = <FormArray>this.formBaseInformation.get('productPricesTable');
+    const control = <UntypedFormArray>this.formBaseInformation.get('productPricesTable');
     return control;
   }
 

@@ -1,6 +1,6 @@
 import { Component, OnInit , Inject} from '@angular/core';
 import {MatDialogRef, MAT_DIALOG_DATA} from '@angular/material/dialog';
-import { Validators, FormGroup, FormControl} from '@angular/forms';
+import { Validators, UntypedFormGroup, UntypedFormControl} from '@angular/forms';
 import { HttpClient} from '@angular/common/http';
 import { MatSnackBar} from '@angular/material/snack-bar';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
@@ -31,10 +31,10 @@ export class ProductCagentsDialogComponent implements OnInit {
     console.log("cagentArticle:"+this.data.cagentArticle);
     console.log("cagentAdditional:"+this.data.cagentAdditional);
     
-    this.formBaseInformation = new FormGroup({
-      cagentArticle: new FormControl(this.data.cagentArticle,[]),// артикул товара у поставщика
-      cagentAdditional: new FormControl(this.data.cagentAdditional,[]),// примечание (дополнительная информация)
-      docName: new FormControl(this.data.docName,[]),// 
+    this.formBaseInformation = new UntypedFormGroup({
+      cagentArticle: new UntypedFormControl(this.data.cagentArticle,[]),// артикул товара у поставщика
+      cagentAdditional: new UntypedFormControl(this.data.cagentAdditional,[]),// примечание (дополнительная информация)
+      docName: new UntypedFormControl(this.data.docName,[]),// 
     });
   }
   

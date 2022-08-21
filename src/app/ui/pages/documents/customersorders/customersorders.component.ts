@@ -10,7 +10,7 @@ import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { QueryFormService } from './get-customersorders-table.service';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
-import { FormGroup, Validators, FormControl } from '@angular/forms';
+import { UntypedFormGroup, Validators, UntypedFormControl } from '@angular/forms';
 import { SettingsCustomersordersDialogComponent } from 'src/app/modules/settings/settings-customersorders-dialog/settings-customersorders-dialog.component';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import {MessageDialog} from 'src/app/ui/dialogs/messagedialog.component';
@@ -173,42 +173,42 @@ export class CustomersordersComponent implements OnInit {
     } 
 
     // Форма настроек
-    this.settingsForm = new FormGroup({
+    this.settingsForm = new UntypedFormGroup({
       // id отделения
-      departmentId: new FormControl             (null,[]),
+      departmentId: new UntypedFormControl             (null,[]),
       //покупатель по умолчанию
-      customerId: new FormControl               (null,[]),
+      customerId: new UntypedFormControl               (null,[]),
       //наименование покупателя
-      customer: new FormControl                 ('',[]),
+      customer: new UntypedFormControl                 ('',[]),
       //наименование заказа по умолчанию
-      orderName:  new FormControl               ('',[]),
+      orderName:  new UntypedFormControl               ('',[]),
       // тип расценки. priceType - по типу цены, costPrice - себестоимость, manual - вручную
-      pricingType: new FormControl              ('priceType',[]),
+      pricingType: new UntypedFormControl              ('priceType',[]),
       //тип цены
-      priceTypeId: new FormControl              (null,[]),
+      priceTypeId: new UntypedFormControl              (null,[]),
       //наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType
-      changePrice: new FormControl              (50,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      changePrice: new UntypedFormControl              (50,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       // Наценка (plus) или скидка (minus)
-      plusMinus: new FormControl                ('plus',[]),
+      plusMinus: new UntypedFormControl                ('plus',[]),
       // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
-      changePriceType: new FormControl          ('procents',[]),
+      changePriceType: new UntypedFormControl          ('procents',[]),
       //убрать десятые (копейки)
-      hideTenths: new FormControl               (true,[]),
+      hideTenths: new UntypedFormControl               (true,[]),
       //сохранить настройки
-      saveSettings: new FormControl             (true,[]),
+      saveSettings: new UntypedFormControl             (true,[]),
       //предприятие, для которого создаются настройки
-      companyId: new FormControl                (null,[]),
+      companyId: new UntypedFormControl                (null,[]),
       //наименование заказа
-      name:  new FormControl                    ('',[]),
+      name:  new UntypedFormControl                    ('',[]),
       //приоритет типа цены : Склад (sklad) Покупатель (cagent) Цена по-умолчанию (defprice)
-      priorityTypePriceSide: new FormControl    ('defprice',[]),
+      priorityTypePriceSide: new UntypedFormControl    ('defprice',[]),
       //настройки операций с ККМ
       //Оплата чека прихода (наличными - nal безналичными - electronically смешанная - mixed)
-      selectedPaymentType:   new FormControl    ('cash',[]),
+      selectedPaymentType:   new UntypedFormControl    ('cash',[]),
       //автосоздание на старте документа, если автозаполнились все поля
-      autocreateOnStart: new FormControl        (false,[]),
+      autocreateOnStart: new UntypedFormControl        (false,[]),
       //статус после успешного отбития чека, перед созданием нового документа
-      statusIdOnAutocreateOnCheque: new FormControl('',[]),
+      statusIdOnAutocreateOnCheque: new UntypedFormControl('',[]),
     });
       this.getCompaniesList();// 
     }

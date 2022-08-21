@@ -8,7 +8,7 @@ import { LoadSpravService } from '../../../../services/loadsprav';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { QueryFormService } from './get-docs-table.service';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
-import { FormGroup, FormControl } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl } from '@angular/forms';
 import { SettingsReturnDialogComponent } from 'src/app/modules/settings/settings-return-dialog/settings-return-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
@@ -156,17 +156,17 @@ export class ReturnComponent implements OnInit {
       this.fillOptionsList();//заполняем список опций фильтра
   
       // Форма настроек
-      this.settingsForm = new FormGroup({
+      this.settingsForm = new UntypedFormGroup({
         // предприятие, для которого создаются настройки
-        companyId: new FormControl                (null,[]),
+        companyId: new UntypedFormControl                (null,[]),
         // id отделения
-        departmentId: new FormControl             (null,[]),
+        departmentId: new UntypedFormControl             (null,[]),
         // статус после завершения инвентаризации
-        statusOnFinishId: new FormControl         ('',[]),
+        statusOnFinishId: new UntypedFormControl         ('',[]),
         // автодобавление товара из формы поиска в таблицу
-        autoAdd: new FormControl                  (false,[]),  
+        autoAdd: new UntypedFormControl                  (false,[]),  
         // отображать блок работы с онлайн кассой 
-        showKkm:  new FormControl                 (false,[]),
+        showKkm:  new UntypedFormControl                 (false,[]),
       });      
         this.getCompaniesList();
       }

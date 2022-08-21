@@ -1,6 +1,6 @@
 import { Component, OnInit , Inject} from '@angular/core';
 import {MatDialogRef, MAT_DIALOG_DATA} from '@angular/material/dialog';
-import { Validators, FormGroup, FormControl} from '@angular/forms';
+import { Validators, UntypedFormGroup, UntypedFormControl} from '@angular/forms';
 import { HttpClient} from '@angular/common/http';
 import { MatSnackBar} from '@angular/material/snack-bar';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
@@ -34,14 +34,14 @@ export class ProductGroupFieldsDialogComponent implements OnInit {
     console.log("data.company_id:"+this.data.company_id);
     console.log("data.sets:"+this.data.sets);
 
-    this.formBaseInformation = new FormGroup({
-      id: new FormControl      (this.data.id,[]),                 //id поля
-      company_id: new FormControl      (this.data.company_id,[]), //предприятие
-      field_type: new FormControl      (this.data.field_type,[]), //(тип: 2 - поле, 1 - сет полей)
-      group_id: new FormControl        (this.data.group_id,[]),//id группы товаров (документа, содержащего поля)
-      parent_set_id: new FormControl   (this.data.parent_set_id,[Validators.required]),//выбранная группа полей (сет полей) в качестве родительской для поля
-      name: new FormControl            (this.data.name,[Validators.required]),
-      description: new FormControl     (this.data.description,[]),
+    this.formBaseInformation = new UntypedFormGroup({
+      id: new UntypedFormControl      (this.data.id,[]),                 //id поля
+      company_id: new UntypedFormControl      (this.data.company_id,[]), //предприятие
+      field_type: new UntypedFormControl      (this.data.field_type,[]), //(тип: 2 - поле, 1 - сет полей)
+      group_id: new UntypedFormControl        (this.data.group_id,[]),//id группы товаров (документа, содержащего поля)
+      parent_set_id: new UntypedFormControl   (this.data.parent_set_id,[Validators.required]),//выбранная группа полей (сет полей) в качестве родительской для поля
+      name: new UntypedFormControl            (this.data.name,[Validators.required]),
+      description: new UntypedFormControl     (this.data.description,[]),
     });
 
     if(this.data.field_type==1){//не валидировать parent_set_id если тип - сет полей (тогда выпадающего списка с родительским сетом вообще не будет)

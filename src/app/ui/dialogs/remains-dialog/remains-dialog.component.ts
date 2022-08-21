@@ -1,6 +1,6 @@
 import { Component, OnInit , Inject} from '@angular/core';
 import {MatDialogRef, MAT_DIALOG_DATA} from '@angular/material/dialog';
-import { Validators, FormGroup, FormControl} from '@angular/forms';
+import { Validators, UntypedFormGroup, UntypedFormControl} from '@angular/forms';
 import { HttpClient} from '@angular/common/http';
 import { MatSnackBar} from '@angular/material/snack-bar';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
@@ -26,8 +26,8 @@ export class RemainsDialogComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.formBaseInformation = new FormGroup({
-      min_quantity: new FormControl('',[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
+    this.formBaseInformation = new UntypedFormGroup({
+      min_quantity: new UntypedFormControl('',[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
       // warning_quantity: new FormControl('',[]),
     });
   }

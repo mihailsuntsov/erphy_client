@@ -3,7 +3,7 @@ import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { Router } from '@angular/router';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
-import { FormGroup, Validators, FormControl } from '@angular/forms';
+import { UntypedFormGroup, Validators, UntypedFormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
@@ -95,12 +95,12 @@ export class KassaDocComponent implements OnInit {
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
   
   //для поиска контрагента по подстроке
-  searchCagentCtrl = new FormControl();//поле для поиска
+  searchCagentCtrl = new UntypedFormControl();//поле для поиска
   isCagentListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canCagentAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredCagents: any;
   //для поиска услуги эквайринга по подстроке
-  searchServiceCtrl = new FormControl();//поле для поиска
+  searchServiceCtrl = new UntypedFormControl();//поле для поиска
   isServiceListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canServiceAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredServices: any;
@@ -158,39 +158,39 @@ export class KassaDocComponent implements OnInit {
         this.id = +activateRoute.snapshot.params['id'];}
 
   ngOnInit(): void {
-    this.formBaseInformation = new FormGroup({              
-      id:                 new FormControl(this.id,[]),               // id документа
-      company_id:         new FormControl('',[Validators.required]), // id предприятия
-      department_id:      new FormControl('',[Validators.required]), // id отделения
-      name:               new FormControl('',[Validators.maxLength(60),  Validators.required]), // наименование кассы
-      server_type:        new FormControl('atol',[Validators.required]), // тип сервера: atol - atol web server, kkmserver - kkmserver.ru
-      sno1_id:            new FormControl('',[Validators.required]), // id системы налогообложения
-      billing_address:    new FormControl('',[Validators.maxLength(300), Validators.required]), // место расчетов
-      device_server_uid:  new FormControl('',[Validators.maxLength(20),  Validators.required]), // идентификатор кассы на сервере касс (atol web server или kkmserver)
-      additional:         new FormControl('',[]), // дополнительная информация
-      server_address:     new FormControl('http://127.0.0.1:16732',[Validators.maxLength(300), Validators.required]), // адрес сервера и порт в локальной сети или интернете вида http://127.0.0.1:16732
-      allow_to_use:       new FormControl(false,[]), // разрешено исползовать
-      zn_kkt:             new FormControl('',[Validators.maxLength(64),  Validators.required]), // заводской номер кассы
-      is_virtual:         new FormControl(false,[]),  // виртуальная (сейчас не используется, на будущее)
-      allow_acquiring:    new FormControl(false,[]),  // прием безнала на данной кассе
-      acquiring_bank_id:  new FormControl('',[]),     // id банка-эквайера
-      acquiring_bank:     new FormControl('',[]),     // название банка-эквайера
-      acquiring_precent:  new FormControl('',[Validators.max(100),Validators.min(0)]),     // процент банку за услугу эквайринга 
-      acquiring_service_id:new FormControl('',[]),    // id услуги эквайринга
-      acquiring_service:  new FormControl('',[]),     // наименование услуги эквайринга
-      payment_account_id: new FormControl('',[]),     // id расчетного счета
-      payment_account:    new FormControl('',[]),     // расчетный счет
-      expenditure_id:     new FormControl('',[]),     // id статьи расходов
-      expenditure:        new FormControl('',[]),     // статья расходов
+    this.formBaseInformation = new UntypedFormGroup({              
+      id:                 new UntypedFormControl(this.id,[]),               // id документа
+      company_id:         new UntypedFormControl('',[Validators.required]), // id предприятия
+      department_id:      new UntypedFormControl('',[Validators.required]), // id отделения
+      name:               new UntypedFormControl('',[Validators.maxLength(60),  Validators.required]), // наименование кассы
+      server_type:        new UntypedFormControl('atol',[Validators.required]), // тип сервера: atol - atol web server, kkmserver - kkmserver.ru
+      sno1_id:            new UntypedFormControl('',[Validators.required]), // id системы налогообложения
+      billing_address:    new UntypedFormControl('',[Validators.maxLength(300), Validators.required]), // место расчетов
+      device_server_uid:  new UntypedFormControl('',[Validators.maxLength(20),  Validators.required]), // идентификатор кассы на сервере касс (atol web server или kkmserver)
+      additional:         new UntypedFormControl('',[]), // дополнительная информация
+      server_address:     new UntypedFormControl('http://127.0.0.1:16732',[Validators.maxLength(300), Validators.required]), // адрес сервера и порт в локальной сети или интернете вида http://127.0.0.1:16732
+      allow_to_use:       new UntypedFormControl(false,[]), // разрешено исползовать
+      zn_kkt:             new UntypedFormControl('',[Validators.maxLength(64),  Validators.required]), // заводской номер кассы
+      is_virtual:         new UntypedFormControl(false,[]),  // виртуальная (сейчас не используется, на будущее)
+      allow_acquiring:    new UntypedFormControl(false,[]),  // прием безнала на данной кассе
+      acquiring_bank_id:  new UntypedFormControl('',[]),     // id банка-эквайера
+      acquiring_bank:     new UntypedFormControl('',[]),     // название банка-эквайера
+      acquiring_precent:  new UntypedFormControl('',[Validators.max(100),Validators.min(0)]),     // процент банку за услугу эквайринга 
+      acquiring_service_id:new UntypedFormControl('',[]),    // id услуги эквайринга
+      acquiring_service:  new UntypedFormControl('',[]),     // наименование услуги эквайринга
+      payment_account_id: new UntypedFormControl('',[]),     // id расчетного счета
+      payment_account:    new UntypedFormControl('',[]),     // расчетный счет
+      expenditure_id:     new UntypedFormControl('',[]),     // id статьи расходов
+      expenditure:        new UntypedFormControl('',[]),     // статья расходов
     });
-    this.formAboutDocument = new FormGroup({
-      id:                 new FormControl('',[]),
-      master:             new FormControl('',[]),
-      creator:            new FormControl('',[]),
-      changer:            new FormControl('',[]),
-      company:            new FormControl('',[]),
-      date_time_created:  new FormControl('',[]),
-      date_time_changed:  new FormControl('',[]),
+    this.formAboutDocument = new UntypedFormGroup({
+      id:                 new UntypedFormControl('',[]),
+      master:             new UntypedFormControl('',[]),
+      creator:            new UntypedFormControl('',[]),
+      changer:            new UntypedFormControl('',[]),
+      company:            new UntypedFormControl('',[]),
+      date_time_created:  new UntypedFormControl('',[]),
+      date_time_changed:  new UntypedFormControl('',[]),
     });
     this.onCagentSearchValueChanges();//отслеживание изменений поля Банк для эквайринга
     this.onServiceSearchValueChanges();//отслеживание изменений поля Услуга эквайринга

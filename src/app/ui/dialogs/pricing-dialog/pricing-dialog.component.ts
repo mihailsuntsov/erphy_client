@@ -1,7 +1,7 @@
 import { Component, OnInit , Inject, ViewChild} from '@angular/core';
 import {MatDialogRef, MAT_DIALOG_DATA} from '@angular/material/dialog';
 import { HttpClient} from '@angular/common/http';
-import { FormGroup, Validators, FormControl } from '@angular/forms';
+import { UntypedFormGroup, Validators, UntypedFormControl } from '@angular/forms';
 import { translate } from '@ngneat/transloco'; //+++
 
 interface idNameDescription{
@@ -43,25 +43,25 @@ export class PricingDialogComponent implements OnInit {
     this.priceTypesList=this.data.priceTypesList;
     this.changePrice=this.data.changePrice;
     // this.parentDocName=this.data.parentDocName;
-    this.pricingForm = new FormGroup({
+    this.pricingForm = new UntypedFormGroup({
       //тип расценки 
-      pricingType: new FormControl              (this.data.pricingType,[]),
+      pricingType: new UntypedFormControl              (this.data.pricingType,[]),
       //тип цены
-      priceTypeId: new FormControl              (this.data.priceTypeId,[]),
+      priceTypeId: new UntypedFormControl              (this.data.priceTypeId,[]),
       // цена до наценки/скидки. В зависимости от выбранного типа расценки может быть ценой типа цены, себестоимостью или ценой, выставленной вручную.
-      prePrice: new FormControl                 (0,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      prePrice: new UntypedFormControl                 (0,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       //наценка/скидка в цифре (например, 50)
-      changePrice: new FormControl              (this.data.changePrice,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      changePrice: new UntypedFormControl              (this.data.changePrice,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       //наценка или скидка (+ или -)
-      plusMinus: new FormControl                (this.data.plusMinus,[]),
+      plusMinus: new UntypedFormControl                (this.data.plusMinus,[]),
       // тип наценки/скидки (валюта или проценты)
-      changePriceType: new FormControl          (this.data.changePriceType,[]),
+      changePriceType: new UntypedFormControl          (this.data.changePriceType,[]),
       //убрать десятые (копейки)
-      hideTenths: new FormControl               (this.data.hideTenths,[]),
+      hideTenths: new UntypedFormControl               (this.data.hideTenths,[]),
       //конечная цена (возвращаемая документу при закрытии диалога)
-      resultPrice: new FormControl              ('0.00',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      resultPrice: new UntypedFormControl              ('0.00',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       //сохранить настройки
-      saveSettings: new FormControl             (this.data.saveSettings,[]),
+      saveSettings: new UntypedFormControl             (this.data.saveSettings,[]),
     });
 
     this.getProductPrice();

@@ -9,7 +9,7 @@ import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
-import { FormGroup, FormControl } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl } from '@angular/forms';
 import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
 import { translate, TranslocoService } from '@ngneat/transloco'; //+++
 
@@ -108,16 +108,16 @@ export class MutualpaymentComponent implements OnInit {
     }
 
     ngOnInit() {        
-        this.queryForm = new FormGroup({ //форма для отправки запроса 
-        companyId: new FormControl(this.company,[]), // предприятие, по которому идет запрос данных
-        dateFrom: new FormControl(moment().startOf('year'),[]),   // дата С
-        dateTo: new FormControl(moment(),[]),     // дата По
-        sortColumn: new FormControl(+this.option>0?'summ_on_end':'cagent',[]), //
-        sortAsc: new FormControl(+this.option==2?'asc':'desc',[]), //
-        offset: new FormControl(0,[]), //
-        result: new FormControl('10',[]), //
-        searchString: new FormControl('',[]), //
-        filterOptionsIds: new FormControl([this.option],[]),
+        this.queryForm = new UntypedFormGroup({ //форма для отправки запроса 
+        companyId: new UntypedFormControl(this.company,[]), // предприятие, по которому идет запрос данных
+        dateFrom: new UntypedFormControl(moment().startOf('year'),[]),   // дата С
+        dateTo: new UntypedFormControl(moment(),[]),     // дата По
+        sortColumn: new UntypedFormControl(+this.option>0?'summ_on_end':'cagent',[]), //
+        sortAsc: new UntypedFormControl(+this.option==2?'asc':'desc',[]), //
+        offset: new UntypedFormControl(0,[]), //
+        result: new UntypedFormControl('10',[]), //
+        searchString: new UntypedFormControl('',[]), //
+        filterOptionsIds: new UntypedFormControl([this.option],[]),
       });
       if(this.option>0) this.selectionFilterOptions.toggle(this.option);
       if(this.company==0){

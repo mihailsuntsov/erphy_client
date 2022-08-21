@@ -1,7 +1,7 @@
 import { Component, OnInit , Inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { HttpClient } from '@angular/common/http';
-import { FormGroup, Validators, FormControl } from '@angular/forms';
+import { UntypedFormGroup, Validators, UntypedFormControl } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { LoadSpravService } from '../../../services/loadsprav';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
@@ -65,18 +65,18 @@ export class SettingsReturnDialogComponent implements OnInit {
     this.allowToCreateMyCompany=this.data.allowToCreateMyCompany;
     this.allowToCreateMyDepartments=this.data.allowToCreateMyDepartments;
 
-    this.settingsForm = new FormGroup({
+    this.settingsForm = new UntypedFormGroup({
       // предприятие, для которого создаются настройки
-      companyId: new FormControl                (null,[]),
+      companyId: new UntypedFormControl                (null,[]),
       // id отделения
-      departmentId: new FormControl             (null,[]),
+      departmentId: new UntypedFormControl             (null,[]),
       // наименование инвертаризации по умолчанию
       // статус после завершения инвентаризации
-      statusOnFinishId: new FormControl         ('',[]),
+      statusOnFinishId: new UntypedFormControl         ('',[]),
       // автодобавление товара из формы поиска в таблицу
-      autoAdd:  new FormControl                 (false,[]),
+      autoAdd:  new UntypedFormControl                 (false,[]),
       // отображать блок работы с онлайн кассой 
-      showKkm:  new FormControl                 (false,[]),
+      showKkm:  new UntypedFormControl                 (false,[]),
     });
     this.getSettings();
     

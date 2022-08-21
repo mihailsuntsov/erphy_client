@@ -1,7 +1,7 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
-import { Validators, FormGroup, FormControl} from '@angular/forms';
+import { Validators, UntypedFormGroup, UntypedFormControl} from '@angular/forms';
 import {HttpClient} from '@angular/common/http';
 import { Router } from '@angular/router';
 import {MatSnackBar} from '@angular/material/snack-bar';
@@ -92,24 +92,24 @@ export class EdizmDocComponent implements OnInit {
     }
 
   ngOnInit() {
-    this.formBaseInformation = new FormGroup({
-      id: new FormControl      (this.id,[]),
-      company_id: new FormControl      ('',[Validators.required]),
-      company: new FormControl      ('',[]),
-      name: new FormControl      ('',[Validators.required]),
-      short_name: new FormControl      ('',[Validators.required]),
-      type_id: new FormControl      ('',[Validators.required]),
-      equals_si: new FormControl      ('1',[Validators.required]),
+    this.formBaseInformation = new UntypedFormGroup({
+      id: new UntypedFormControl      (this.id,[]),
+      company_id: new UntypedFormControl      ('',[Validators.required]),
+      company: new UntypedFormControl      ('',[]),
+      name: new UntypedFormControl      ('',[Validators.required]),
+      short_name: new UntypedFormControl      ('',[Validators.required]),
+      type_id: new UntypedFormControl      ('',[Validators.required]),
+      equals_si: new UntypedFormControl      ('1',[Validators.required]),
 
     });
-    this.formAboutDocument = new FormGroup({
-      id: new FormControl      ('',[]),
-      master: new FormControl      ('',[]),
-      creator: new FormControl      ('',[]),
-      changer: new FormControl      ('',[]),
-      company: new FormControl      ('',[]),
-      date_time_created: new FormControl      ('',[]),
-      date_time_changed: new FormControl      ('',[]),
+    this.formAboutDocument = new UntypedFormGroup({
+      id: new UntypedFormControl      ('',[]),
+      master: new UntypedFormControl      ('',[]),
+      creator: new UntypedFormControl      ('',[]),
+      changer: new UntypedFormControl      ('',[]),
+      company: new UntypedFormControl      ('',[]),
+      date_time_created: new UntypedFormControl      ('',[]),
+      date_time_changed: new UntypedFormControl      ('',[]),
     });
    // this.checkedList = [];
    

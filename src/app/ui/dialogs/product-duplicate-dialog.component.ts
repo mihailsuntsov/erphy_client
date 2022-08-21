@@ -2,7 +2,7 @@ import {MatDialogRef,MAT_DIALOG_DATA} from '@angular/material/dialog';
 import { Component , OnInit, Inject} from '@angular/core';
 import { HttpClient} from '@angular/common/http';
 import { MatSnackBar} from '@angular/material/snack-bar';
-import { Validators, FormGroup, FormControl} from '@angular/forms';
+import { Validators, UntypedFormGroup, UntypedFormControl} from '@angular/forms';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { translate } from '@ngneat/transloco'; //+++
@@ -129,12 +129,12 @@ formBaseInformation:any;//форма для основной информаци�
 
     console.log("productId:"+this.data.productId);
     
-    this.formBaseInformation = new FormGroup({
-        id:  new FormControl(this.data.productId,[]), // id товара
-        id1: new FormControl(1,[]), // количество копий
-        id2: new FormControl(1,[]), // артикул: 1-копировать, 2-не копировать
-        id3: new FormControl(1,[]), // код: 1-оставить пустым, 2-как в оригинале, 3-присвоить новый
-        id4: new FormControl(1,[]), // штрих-код: 1-оставить пустым, 2-как в оригинале
+    this.formBaseInformation = new UntypedFormGroup({
+        id:  new UntypedFormControl(this.data.productId,[]), // id товара
+        id1: new UntypedFormControl(1,[]), // количество копий
+        id2: new UntypedFormControl(1,[]), // артикул: 1-копировать, 2-не копировать
+        id3: new UntypedFormControl(1,[]), // код: 1-оставить пустым, 2-как в оригинале, 3-присвоить новый
+        id4: new UntypedFormControl(1,[]), // штрих-код: 1-оставить пустым, 2-как в оригинале
         // cagentAdditional: new FormControl(this.data.cagentAdditional,[]),// примечание (дополнительная информация)
         // docName: new FormControl(this.data.docName,[]),// 
     });

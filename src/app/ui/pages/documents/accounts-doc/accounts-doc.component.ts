@@ -1,7 +1,7 @@
 import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
-import { FormGroup, Validators, FormControl } from '@angular/forms';
+import { UntypedFormGroup, Validators, UntypedFormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
@@ -89,27 +89,27 @@ export class PaymentAccountDocComponent implements OnInit {
     }
 
   ngOnInit() {
-    this.formBaseInformation = new FormGroup({
-      id: new FormControl      (this.id,[]),
-      company_id: new FormControl       ('',[Validators.required]),
-      name: new FormControl             ('',[Validators.required,Validators.maxLength(300)]),
-      payment_account: new FormControl  ('',[Validators.required,Validators.maxLength(100)]),
-      bik: new FormControl              ('',[Validators.maxLength(9)]),
-      corr_account: new FormControl     ('',[Validators.maxLength(100)]),
-      address: new FormControl          ('',[Validators.maxLength(300)]),
-      swift: new FormControl            ('',[Validators.maxLength(11)]),
-      iban: new FormControl             ('',[Validators.maxLength(34)]),
-      intermediatery: new FormControl   ('',[Validators.maxLength(2048)]),
-      description: new FormControl      ('',[]),
+    this.formBaseInformation = new UntypedFormGroup({
+      id: new UntypedFormControl      (this.id,[]),
+      company_id: new UntypedFormControl       ('',[Validators.required]),
+      name: new UntypedFormControl             ('',[Validators.required,Validators.maxLength(300)]),
+      payment_account: new UntypedFormControl  ('',[Validators.required,Validators.maxLength(100)]),
+      bik: new UntypedFormControl              ('',[Validators.maxLength(9)]),
+      corr_account: new UntypedFormControl     ('',[Validators.maxLength(100)]),
+      address: new UntypedFormControl          ('',[Validators.maxLength(300)]),
+      swift: new UntypedFormControl            ('',[Validators.maxLength(11)]),
+      iban: new UntypedFormControl             ('',[Validators.maxLength(34)]),
+      intermediatery: new UntypedFormControl   ('',[Validators.maxLength(2048)]),
+      description: new UntypedFormControl      ('',[]),
     });
-    this.formAboutDocument = new FormGroup({
-      id: new FormControl           ('',[]),
-      master: new FormControl       ('',[]),
-      creator: new FormControl      ('',[]),
-      changer: new FormControl      ('',[]),
-      company: new FormControl      ('',[]),
-      date_time_created: new FormControl      ('',[]),
-      date_time_changed: new FormControl      ('',[]),
+    this.formAboutDocument = new UntypedFormGroup({
+      id: new UntypedFormControl           ('',[]),
+      master: new UntypedFormControl       ('',[]),
+      creator: new UntypedFormControl      ('',[]),
+      changer: new UntypedFormControl      ('',[]),
+      company: new UntypedFormControl      ('',[]),
+      date_time_created: new UntypedFormControl      ('',[]),
+      date_time_changed: new UntypedFormControl      ('',[]),
     });
 
     this.getSetOfPermissions();

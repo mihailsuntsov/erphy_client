@@ -1,7 +1,7 @@
 import { Component, OnInit , Inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { HttpClient } from '@angular/common/http';
-import { FormGroup, Validators, FormControl } from '@angular/forms';
+import { UntypedFormGroup, Validators, UntypedFormControl } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { LoadSpravService } from '../../../services/loadsprav';
@@ -51,7 +51,7 @@ export class SettingsCustomersordersDialogComponent implements OnInit {
   allowToCreateMyDepartments:boolean;
 
   //для поиска контрагента (получателя) по подстроке
-  searchCustomerCtrl = new FormControl();//поле для поиска
+  searchCustomerCtrl = new UntypedFormControl();//поле для поиска
   isCagentListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canCagentAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredCagents: any;
@@ -84,40 +84,40 @@ export class SettingsCustomersordersDialogComponent implements OnInit {
     this.allowToCreateMyCompany=this.data.allowToCreateMyCompany;
     this.allowToCreateMyDepartments=this.data.allowToCreateMyDepartments;
 
-    this.settingsForm = new FormGroup({
+    this.settingsForm = new UntypedFormGroup({
       
       //наименование заказа по умолчанию
       // orderName:  new FormControl               ('',[]),
       //тип расценки (радиокнопки: 1. Тип цены (priceType), 2. Себестоимость (costPrice) 3. Вручную (manual))
-      pricingType: new FormControl              ('priceType',[]),
+      pricingType: new UntypedFormControl              ('priceType',[]),
       //тип цены
-      priceTypeId: new FormControl              (null,[]),
+      priceTypeId: new UntypedFormControl              (null,[]),
       //наценка/скидка в цифре (например, 50)
-      changePrice: new FormControl              (50,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      changePrice: new UntypedFormControl              (50,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       //наценка или скидка (+ или -)
-      plusMinus: new FormControl                ('plus',[]),
+      plusMinus: new UntypedFormControl                ('plus',[]),
       // тип наценки/скидки (валюта или проценты)
-      changePriceType: new FormControl          ('procents',[]),
+      changePriceType: new UntypedFormControl          ('procents',[]),
       //убрать десятые (копейки)
-      hideTenths: new FormControl               (true,[]),
+      hideTenths: new UntypedFormControl               (true,[]),
       //сохранить настройки
-      saveSettings: new FormControl             (true,[]),
+      saveSettings: new UntypedFormControl             (true,[]),
       //предприятие, для которого создаются настройки
-      companyId: new FormControl                (null,[Validators.required]),
+      companyId: new UntypedFormControl                (null,[Validators.required]),
       //отделение по умолчанию
-      departmentId: new FormControl             (null,[]),
+      departmentId: new UntypedFormControl             (null,[]),
       //id покупатель по умолчанию
-      customerId: new FormControl               (null,[]),
+      customerId: new UntypedFormControl               (null,[]),
       //название покупателя по умолчанию
-      customer: new FormControl                 ('',[]),
+      customer: new UntypedFormControl                 ('',[]),
       //наименование заказа
-      name:  new FormControl                    ('',[]),
+      name:  new UntypedFormControl                    ('',[]),
       //приоритет типа цены : Склад (sklad) Покупатель (cagent) Цена по-умолчанию (defprice)
-      priorityTypePriceSide: new FormControl    ('defprice',[]),
+      priorityTypePriceSide: new UntypedFormControl    ('defprice',[]),
       //автосоздание на старте документа, если автозаполнились все поля
-      autocreateOnStart: new FormControl        (false,[]),
+      autocreateOnStart: new UntypedFormControl        (false,[]),
       //статус после успешного отбития чека, перед созданием нового документа
-      statusIdOnAutocreateOnCheque: new FormControl(null,[]),
+      statusIdOnAutocreateOnCheque: new UntypedFormControl(null,[]),
     });
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Покупатель"
     this.getSettings();

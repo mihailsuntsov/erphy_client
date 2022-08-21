@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, EventEmitter, Inject, OnInit, Optional, Output, ViewChild} from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
-import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl } from '@angular/forms';
+import { UntypedFormGroup, FormArray,  UntypedFormBuilder,  Validators, UntypedFormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TemplatesDialogComponent } from 'src/app/modules/settings/templates-dialog/templates-dialog.component';
@@ -146,7 +146,7 @@ export class VatinvoiceinDocComponent implements OnInit {
 
   // Формы
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
-  formBaseInformation: FormGroup; //массив форм для накопления информации о Возврате поставщику
+  formBaseInformation: UntypedFormGroup; //массив форм для накопления информации о Возврате поставщику
   settingsForm: any; // форма с настройками
   formLinkedDocs: any;  // Форма для отправки при создании связанных документов
 
@@ -187,7 +187,7 @@ export class VatinvoiceinDocComponent implements OnInit {
 
   constructor(private activateRoute: ActivatedRoute,
     private cdRef:ChangeDetectorRef,
-    private _fb: FormBuilder, //чтобы билдить группу форм vatinvoiceinProductTable    
+    private _fb: UntypedFormBuilder, //чтобы билдить группу форм vatinvoiceinProductTable    
     public SettingsVatinvoiceinDialogComponent: MatDialog,
     private http: HttpClient,
     public ConfirmDialog: MatDialog,
@@ -206,54 +206,54 @@ export class VatinvoiceinDocComponent implements OnInit {
     }
 
   ngOnInit(): void {
-    this.formBaseInformation = new FormGroup({
-      id: new FormControl                       (this.id,[]),
-      company_id: new FormControl               ('',[Validators.required]),
-      cagent_id: new FormControl                ('',[Validators.required]),
-      doc_number: new FormControl               ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
-      description: new FormControl              ('',[]),
-      cagent: new FormControl                   ('',[]),
-      summ: new FormControl                     ('',[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
-      paydoc_number: new FormControl            ('',[]),
-      paydoc_date: new FormControl              ('',[]),
-      status_id: new FormControl                ('',[]),
-      status_name: new FormControl              ('',[]),
-      status_color: new FormControl             ('',[]),
-      status_description: new FormControl       ('',[]),
-      is_completed: new FormControl             (false,[]),
-      uid: new FormControl                      ('',[]),    // uuid идентификатор
+    this.formBaseInformation = new UntypedFormGroup({
+      id: new UntypedFormControl                       (this.id,[]),
+      company_id: new UntypedFormControl               ('',[Validators.required]),
+      cagent_id: new UntypedFormControl                ('',[Validators.required]),
+      doc_number: new UntypedFormControl               ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
+      description: new UntypedFormControl              ('',[]),
+      cagent: new UntypedFormControl                   ('',[]),
+      summ: new UntypedFormControl                     ('',[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      paydoc_number: new UntypedFormControl            ('',[]),
+      paydoc_date: new UntypedFormControl              ('',[]),
+      status_id: new UntypedFormControl                ('',[]),
+      status_name: new UntypedFormControl              ('',[]),
+      status_color: new UntypedFormControl             ('',[]),
+      status_description: new UntypedFormControl       ('',[]),
+      is_completed: new UntypedFormControl             (false,[]),
+      uid: new UntypedFormControl                      ('',[]),    // uuid идентификатор
     });
-    this.formAboutDocument = new FormGroup({
-      id: new FormControl                       ('',[]),
-      master: new FormControl                   ('',[]),
-      creator: new FormControl                  ('',[]),
-      changer: new FormControl                  ('',[]),
-      company: new FormControl                  ('',[]),
-      date_time_created: new FormControl        ('',[]),
-      date_time_changed: new FormControl        ('',[]),
+    this.formAboutDocument = new UntypedFormGroup({
+      id: new UntypedFormControl                       ('',[]),
+      master: new UntypedFormControl                   ('',[]),
+      creator: new UntypedFormControl                  ('',[]),
+      changer: new UntypedFormControl                  ('',[]),
+      company: new UntypedFormControl                  ('',[]),
+      date_time_created: new UntypedFormControl        ('',[]),
+      date_time_changed: new UntypedFormControl        ('',[]),
     });
 
-    this.formLinkedDocs = new FormGroup({
-      nds: new FormControl                ('',[]),
-      description: new FormControl        ('',[]),
-      parent_tablename: new FormControl   ('',[]), //для счёта фактуры выданного
-      vatinvoicein_id: new FormControl   ('',[]), //для счёта фактуры выданного
-      is_completed: new FormControl       (null,[]),
-      cagent_id: new FormControl          (null,[Validators.required]),
-      company_id: new FormControl         (null,[Validators.required]),
-      linked_doc_id: new FormControl      (null,[]),//id связанного документа (в данном случае Отгрузка)
-      parent_uid: new FormControl         (null,[]),// uid родительского документа
-      child_uid: new FormControl          (null,[]),// uid дочернего документа
-      linked_doc_name: new FormControl    (null,[]),//имя (таблицы) связанного документа
-      uid: new FormControl                ('',[]),  //uid создаваемого связанного документа
+    this.formLinkedDocs = new UntypedFormGroup({
+      nds: new UntypedFormControl                ('',[]),
+      description: new UntypedFormControl        ('',[]),
+      parent_tablename: new UntypedFormControl   ('',[]), //для счёта фактуры выданного
+      vatinvoicein_id: new UntypedFormControl   ('',[]), //для счёта фактуры выданного
+      is_completed: new UntypedFormControl       (null,[]),
+      cagent_id: new UntypedFormControl          (null,[Validators.required]),
+      company_id: new UntypedFormControl         (null,[Validators.required]),
+      linked_doc_id: new UntypedFormControl      (null,[]),//id связанного документа (в данном случае Отгрузка)
+      parent_uid: new UntypedFormControl         (null,[]),// uid родительского документа
+      child_uid: new UntypedFormControl          (null,[]),// uid дочернего документа
+      linked_doc_name: new UntypedFormControl    (null,[]),//имя (таблицы) связанного документа
+      uid: new UntypedFormControl                ('',[]),  //uid создаваемого связанного документа
     });
 
     // Форма настроек
-    this.settingsForm = new FormGroup({
+    this.settingsForm = new UntypedFormGroup({
       //предприятие, для которого создаются настройки
-      companyId: new FormControl                (null,[]),
+      companyId: new UntypedFormControl                (null,[]),
       //статус после успешного отбития чека, перед созданием нового документа
-      statusIdOnComplete: new FormControl       ('',[]),
+      statusIdOnComplete: new UntypedFormControl       ('',[]),
     });
 
     if(this.data)//если документ вызывается в окне из другого документа

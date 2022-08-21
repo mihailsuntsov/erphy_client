@@ -5,7 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
-import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl } from '@angular/forms';
+import { UntypedFormGroup, FormArray,  FormBuilder,  Validators, UntypedFormControl } from '@angular/forms';
 import { KkmAtolChequesService } from 'src/app/services/kkm_atol_cheques';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LoadSpravService } from 'src/app/services/loadsprav';
@@ -178,18 +178,18 @@ export class KkmComponent implements OnInit {
 
   ngOnInit(): void {
     //форма настроек кассира
-    this.kassaSettingsForm = new FormGroup({
-      selected_kassa_id: new FormControl             (null,[Validators.required]), // id кассы
-      cashier_value_id: new FormControl         ('current',[Validators.required]), //кассир: 'current'-текущая учетная запись, 'another'-другая учетная запись, 'custom' произвольные ФИО
-      customCashierFio: new FormControl         ('',[Validators.required]), // значение поля ФИО при выборе пункта "Произвольное ФИО"
-      customCashierVatin: new FormControl       ('',[Validators.required,Validators.pattern('^[0-9]{12}$'),Validators.maxLength(12),Validators.minLength(12)]),// значение поля ИНН при выборе пункта "Произвольное ФИО"
-      billing_address: new FormControl           ('settings',[]),// id адреса места расчётов. 'settings' - как в настройках кассы, 'customer' - брать из адреса заказчика, 'custom' произвольный адрес. Если 2 или 3 нет но один из них выбран - печатается settings
-      custom_billing_address: new FormControl     ('',[Validators.required]),// адрес места расчетов типа г.Такой-то, ул.... и т.д.
+    this.kassaSettingsForm = new UntypedFormGroup({
+      selected_kassa_id: new UntypedFormControl             (null,[Validators.required]), // id кассы
+      cashier_value_id: new UntypedFormControl         ('current',[Validators.required]), //кассир: 'current'-текущая учетная запись, 'another'-другая учетная запись, 'custom' произвольные ФИО
+      customCashierFio: new UntypedFormControl         ('',[Validators.required]), // значение поля ФИО при выборе пункта "Произвольное ФИО"
+      customCashierVatin: new UntypedFormControl       ('',[Validators.required,Validators.pattern('^[0-9]{12}$'),Validators.maxLength(12),Validators.minLength(12)]),// значение поля ИНН при выборе пункта "Произвольное ФИО"
+      billing_address: new UntypedFormControl           ('settings',[]),// id адреса места расчётов. 'settings' - как в настройках кассы, 'customer' - брать из адреса заказчика, 'custom' произвольный адрес. Если 2 или 3 нет но один из них выбран - печатается settings
+      custom_billing_address: new UntypedFormControl     ('',[Validators.required]),// адрес места расчетов типа г.Такой-то, ул.... и т.д.
     });
     //логин другого кассира
-    this.loginform = new FormGroup({
-      username: new FormControl ('',[Validators.required,Validators.minLength(6)]),
-      password: new FormControl ('',[Validators.required]),
+    this.loginform = new UntypedFormGroup({
+      username: new UntypedFormControl ('',[Validators.required,Validators.minLength(6)]),
+      password: new UntypedFormControl ('',[Validators.required]),
     });
     if(Cookie.get('anotherCashierVatin')=='undefined' || Cookie.get('anotherCashierVatin')==null)    
       Cookie.set('anotherCashierVatin',''); else this.anotherCashierVatin=Cookie.get('anotherCashierVatin');

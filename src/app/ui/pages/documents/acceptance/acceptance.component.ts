@@ -10,7 +10,7 @@ import { LoadSpravService } from './loadsprav';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { QueryFormService } from './get-acceptance-table.service';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
-import { FormGroup, FormControl } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl } from '@angular/forms';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { SettingsAcceptanceDialogComponent } from 'src/app/modules/settings/settings-acceptance-dialog/settings-acceptance-dialog.component';
 import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
@@ -147,17 +147,17 @@ export class AcceptanceComponent implements OnInit {
       this.fillOptionsList();//заполняем список опций фильтра
 
       // Форма настроек
-      this.settingsForm = new FormGroup({
+      this.settingsForm = new UntypedFormGroup({
         // предприятие, для которого создаются настройки
-        companyId: new FormControl                (null,[]),
+        companyId: new UntypedFormControl                (null,[]),
         // id отделения
-        departmentId: new FormControl             (null,[]),
+        departmentId: new UntypedFormControl             (null,[]),
         // статус после завершения
-        statusOnFinishId: new FormControl         ('',[]),
+        statusOnFinishId: new UntypedFormControl         ('',[]),
         // автодобавление товара из формы поиска в таблицу
-        autoAdd: new FormControl                  (false,[]),  
+        autoAdd: new UntypedFormControl                  (false,[]),  
         // автовыставление цены из последней закупочной цены
-        autoPrice: new FormControl                (false,[]),           // автовыставление цены из последней закупочной цены
+        autoPrice: new UntypedFormControl                (false,[]),           // автовыставление цены из последней закупочной цены
       });
 
     //+++ getting base data from parent component

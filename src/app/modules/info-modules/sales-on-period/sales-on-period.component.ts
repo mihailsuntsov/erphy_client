@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { ProductCategoriesSelectComponent } from 'src/app/modules/trade-modules/product-categories-select/product-categories-select.component';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
@@ -40,8 +40,8 @@ export class SalesOnPeriodComponent implements OnInit {
   queryForm:any;//форма для отправки запроса 
   units:UnitsSet[] = [{id:'hour', name:'modules.kpi.hour'}, {id:'day', name:'modules.kpi.day'}, {id:'week', name:'modules.kpi.week'}, {id:'month', name:'modules.kpi.month'}, {id:'year', name:'modules.kpi.year'}];
   reportTypeName: string = '';
-  departmentControl = new FormControl(); //поле для поиска и отображения наименования выбранного отделения
-  employeeControl = new FormControl(); //поле для поиска и отображения выбранного сотрудника
+  departmentControl = new UntypedFormControl(); //поле для поиска и отображения наименования выбранного отделения
+  employeeControl = new UntypedFormControl(); //поле для поиска и отображения выбранного сотрудника
   receivedEmployeeList: IdAndName[]; // список сотрудников
   filteredDepartments: Observable<IdAndName[]>;
   filteredEmployee: Observable<IdAndName[]>;
@@ -90,22 +90,22 @@ export class SalesOnPeriodComponent implements OnInit {
 
   ngOnInit(): void {
 
-    this.queryForm = new FormGroup({ //форма для отправки запроса 
-      companyId: new FormControl(this.companyId,[]), // предприятие, по которому идет запрос данных
-      periodType: new FormControl('month',[]), // отрезок времени для анализа (день, месяц, год, или выбранный период) 
-      unit: new FormControl(),       // какая единица одного бара на графике (час, неделя, месяц, день, год)
-      dateFrom: new FormControl(),   // дата С
-      dateTo: new FormControl(),     // дата По
-      type: new FormControl('sell',[]), // тип отчета - продажи или закупки (buy, sell)
-      reportOn:new FormControl('categories',[]), // по категориям или по товарам/услугам (categories, products)
-      reportOnIds: new FormControl([],[]), //id категорий/товаров/услуг (того, что выбрано в reportOn)
-      departmentsIds: new FormControl([],[]), //id всех отобранных отделений
-      departmentId: new FormControl(0,[]), //id выбранного по autocomplete отделения
-      employeeIds: new FormControl([],[]), //id сотрудников
-      employeeId: new FormControl(0,[]), //id выбранного по autocomplete сотрудника
-      all: new FormControl(false,[]), //отчет по всем (категориям или товарам-услугам, в зависимости от того, что выбрано)
-      includeChilds: new FormControl(true,[]), // включая все подкатегории выбранных категорий
-      withSeparation: new FormControl(false,[]), // с разбивкой. Например, на каждый временной отрезок будет представлено несколько значений выбранных категорий по отдельности (иначе эти значения суммируются)
+    this.queryForm = new UntypedFormGroup({ //форма для отправки запроса 
+      companyId: new UntypedFormControl(this.companyId,[]), // предприятие, по которому идет запрос данных
+      periodType: new UntypedFormControl('month',[]), // отрезок времени для анализа (день, месяц, год, или выбранный период) 
+      unit: new UntypedFormControl(),       // какая единица одного бара на графике (час, неделя, месяц, день, год)
+      dateFrom: new UntypedFormControl(),   // дата С
+      dateTo: new UntypedFormControl(),     // дата По
+      type: new UntypedFormControl('sell',[]), // тип отчета - продажи или закупки (buy, sell)
+      reportOn:new UntypedFormControl('categories',[]), // по категориям или по товарам/услугам (categories, products)
+      reportOnIds: new UntypedFormControl([],[]), //id категорий/товаров/услуг (того, что выбрано в reportOn)
+      departmentsIds: new UntypedFormControl([],[]), //id всех отобранных отделений
+      departmentId: new UntypedFormControl(0,[]), //id выбранного по autocomplete отделения
+      employeeIds: new UntypedFormControl([],[]), //id сотрудников
+      employeeId: new UntypedFormControl(0,[]), //id выбранного по autocomplete сотрудника
+      all: new UntypedFormControl(false,[]), //отчет по всем (категориям или товарам-услугам, в зависимости от того, что выбрано)
+      includeChilds: new UntypedFormControl(true,[]), // включая все подкатегории выбранных категорий
+      withSeparation: new UntypedFormControl(false,[]), // с разбивкой. Например, на каждый временной отрезок будет представлено несколько значений выбранных категорий по отдельности (иначе эти значения суммируются)
     });
 
     // this.onStart(); - запуск вызывается из модуля Dashboard после загрузки всех справочников

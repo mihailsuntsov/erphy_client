@@ -1,6 +1,6 @@
 import { Component, OnInit , Inject, ViewChild } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { Validators, FormGroup, FormControl, ValidationErrors, ValidatorFn, FormBuilder } from '@angular/forms';
+import { Validators, UntypedFormGroup, UntypedFormControl, ValidationErrors, ValidatorFn, UntypedFormBuilder } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 // import { ValidationService } from '../../../services/validation.service';
@@ -26,7 +26,7 @@ export class ProductBarcodesDialogComponent implements OnInit {
     public MessageDialog: MatDialog,
     private http: HttpClient,
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private formBuilder: FormBuilder) {
+    private formBuilder: UntypedFormBuilder) {
       
     }
   onNoClick(): void {
@@ -46,12 +46,12 @@ export class ProductBarcodesDialogComponent implements OnInit {
   // });
   
 
-    this.formBaseInformation = new FormGroup({
-      barcodeName:  new FormControl(this.data.name,[]),
-      productId:    new FormControl(this.data.productId,[]),
-      value:        new FormControl((this.data.value),[]),
-      barcode_id:   new FormControl(this.data.barcodeId,[Validators.required]),
-      description:  new FormControl(this.data.description,[]),
+    this.formBaseInformation = new UntypedFormGroup({
+      barcodeName:  new UntypedFormControl(this.data.name,[]),
+      productId:    new UntypedFormControl(this.data.productId,[]),
+      value:        new UntypedFormControl((this.data.value),[]),
+      barcode_id:   new UntypedFormControl(this.data.barcodeId,[Validators.required]),
+      description:  new UntypedFormControl(this.data.description,[]),
     });
     this.formBaseInformation.setValidators(this.isBarcodeValid())
     //this.formBaseInformation.get('value').setValue(' ');
@@ -152,7 +152,7 @@ export class ProductBarcodesDialogComponent implements OnInit {
 
   isBarcodeValid() : ValidatorFn
   {
-    return (group: FormGroup): ValidationErrors => 
+    return (group: UntypedFormGroup): ValidationErrors => 
     {
 
       const value = group.controls['value'].value;

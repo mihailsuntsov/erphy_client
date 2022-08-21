@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, EventEmitter, OnInit, Output, ViewChild} from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
-import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormArray,  UntypedFormBuilder,  Validators, UntypedFormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
@@ -136,7 +136,7 @@ export class InventoryDocComponent implements OnInit {
 
   // Формы
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
-  formBaseInformation: FormGroup; //массив форм для накопления информации о Заказе покупателя
+  formBaseInformation: UntypedFormGroup; //массив форм для накопления информации о Заказе покупателя
   settingsForm: any; // форма с настройками
   formWP:any// Форма для отправки при создании Списания или Оприходования
 
@@ -210,7 +210,7 @@ export class InventoryDocComponent implements OnInit {
 
   constructor(private activateRoute: ActivatedRoute,
     private cdRef:ChangeDetectorRef,
-    private _fb: FormBuilder, //чтобы билдить группу форм inventoryProductTable
+    private _fb: UntypedFormBuilder, //чтобы билдить группу форм inventoryProductTable
     private http: HttpClient,
     public ConfirmDialog: MatDialog,
     public dialogAddFiles: MatDialog,
@@ -229,63 +229,63 @@ export class InventoryDocComponent implements OnInit {
   ngOnInit(): void {
 
 
-    this.formBaseInformation = new FormGroup({
-      id: new FormControl                 (this.id,[]),
-      company_id: new FormControl         (null,[Validators.required]),
-      department_id: new FormControl      (null,[Validators.required]),
-      doc_number: new FormControl         ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
-      description: new FormControl        ('',[]),
-      department: new FormControl         ('',[]),
-      name: new FormControl               ('',[]),
-      status_id: new FormControl          ('',[]),
-      status_name: new FormControl        ('',[]),
-      status_color: new FormControl       ('',[]),
-      status_description: new FormControl ('',[]),
-      is_completed: new FormControl       (false,[]),
-      uid: new FormControl                (uuidv4(),[]),
-      inventoryProductTable: new FormArray([]),
+    this.formBaseInformation = new UntypedFormGroup({
+      id: new UntypedFormControl                 (this.id,[]),
+      company_id: new UntypedFormControl         (null,[Validators.required]),
+      department_id: new UntypedFormControl      (null,[Validators.required]),
+      doc_number: new UntypedFormControl         ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
+      description: new UntypedFormControl        ('',[]),
+      department: new UntypedFormControl         ('',[]),
+      name: new UntypedFormControl               ('',[]),
+      status_id: new UntypedFormControl          ('',[]),
+      status_name: new UntypedFormControl        ('',[]),
+      status_color: new UntypedFormControl       ('',[]),
+      status_description: new UntypedFormControl ('',[]),
+      is_completed: new UntypedFormControl       (false,[]),
+      uid: new UntypedFormControl                (uuidv4(),[]),
+      inventoryProductTable: new UntypedFormArray([]),
     });
-    this.formAboutDocument = new FormGroup({
-      id: new FormControl                       ('',[]),
-      master: new FormControl                   ('',[]),
-      creator: new FormControl                  ('',[]),
-      changer: new FormControl                  ('',[]),
-      company: new FormControl                  ('',[]),
-      date_time_created: new FormControl        ('',[]),
-      date_time_changed: new FormControl        ('',[]),
+    this.formAboutDocument = new UntypedFormGroup({
+      id: new UntypedFormControl                       ('',[]),
+      master: new UntypedFormControl                   ('',[]),
+      creator: new UntypedFormControl                  ('',[]),
+      changer: new UntypedFormControl                  ('',[]),
+      company: new UntypedFormControl                  ('',[]),
+      date_time_created: new UntypedFormControl        ('',[]),
+      date_time_changed: new UntypedFormControl        ('',[]),
     });
     
     // Форма для отправки при создании Списания или Оприходования
-      this.formWP = new FormGroup({
-        linked_doc_id: new FormControl      (null,[]),//id связанного документа (в данном случае Инвентаризации)
-        parent_uid: new FormControl         (null,[]),// uid родительского документа
-        child_uid: new FormControl          (null,[]),// uid дочернего документа
-        linked_doc_name: new FormControl    (null,[]),//имя (таблицы) связанного документа
-        uid: new FormControl                ('',[]),
-        posting_date: new FormControl       ('',[]),
-        writeoff_date: new FormControl      ('',[]),
-        company_id: new FormControl         (null,[Validators.required]),
-        department_id: new FormControl      (null,[Validators.required]),
-        description: new FormControl        ('',[]),
-        writeoffProductTable: new FormArray ([]),
-        postingProductTable: new FormArray  ([]),
+      this.formWP = new UntypedFormGroup({
+        linked_doc_id: new UntypedFormControl      (null,[]),//id связанного документа (в данном случае Инвентаризации)
+        parent_uid: new UntypedFormControl         (null,[]),// uid родительского документа
+        child_uid: new UntypedFormControl          (null,[]),// uid дочернего документа
+        linked_doc_name: new UntypedFormControl    (null,[]),//имя (таблицы) связанного документа
+        uid: new UntypedFormControl                ('',[]),
+        posting_date: new UntypedFormControl       ('',[]),
+        writeoff_date: new UntypedFormControl      ('',[]),
+        company_id: new UntypedFormControl         (null,[Validators.required]),
+        department_id: new UntypedFormControl      (null,[Validators.required]),
+        description: new UntypedFormControl        ('',[]),
+        writeoffProductTable: new UntypedFormArray ([]),
+        postingProductTable: new UntypedFormArray  ([]),
 
       });
     // Форма настроек
-    this.settingsForm = new FormGroup({
-      companyId: new FormControl                (null,[Validators.required]), // предприятие, для которого создаются настройки
-      departmentId: new FormControl             (null,[]),                    // id отделения
-      name:  new FormControl                    ('',[]),                      // наименование инвертаризации по умолчанию
-      pricingType: new FormControl              ('avgCostPrice',[]),          // по умолчанию ставим "Средняя закупочная цена"// тип расценки. priceType - по типу цены, avgCostPrice - средн. себестоимость, lastPurchasePrice - Последняя закупочная цена, avgPurchasePrice - Средняя закупочная цена, manual - вручную
-      priceTypeId: new FormControl              (null,[Validators.required]), // тип цены
-      changePrice: new FormControl              (0,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]), // наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType, по умолчанию "плюс 10%"
-      plusMinus: new FormControl                ('plus',[]),                  // Наценка (plus) или скидка (minus)
-      changePriceType: new FormControl          ('procents',[]),              // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
-      hideTenths: new FormControl               (true,[]),                    // убрать десятые (копейки)
-      statusOnFinishId: new FormControl         ('',[]),                      // статус после проведения инвентаризации
-      defaultActualBalance: new FormControl     ('',[]),                      //  фактический баланс по умолчанию. "estimated" - как расчётный, "other" - другой (выбирается в other_actual_balance)
-      otherActualBalance: new FormControl       (0,[Validators.pattern('^[0-9]{1,6}(?:[.,][0-9]{0,3})?\r?$')]),// "другой" фактический баланс по умолчанию. Например, 1
-      autoAdd: new FormControl                  (false,[]),                   // автодобавление товара из формы поиска в таблицу
+    this.settingsForm = new UntypedFormGroup({
+      companyId: new UntypedFormControl                (null,[Validators.required]), // предприятие, для которого создаются настройки
+      departmentId: new UntypedFormControl             (null,[]),                    // id отделения
+      name:  new UntypedFormControl                    ('',[]),                      // наименование инвертаризации по умолчанию
+      pricingType: new UntypedFormControl              ('avgCostPrice',[]),          // по умолчанию ставим "Средняя закупочная цена"// тип расценки. priceType - по типу цены, avgCostPrice - средн. себестоимость, lastPurchasePrice - Последняя закупочная цена, avgPurchasePrice - Средняя закупочная цена, manual - вручную
+      priceTypeId: new UntypedFormControl              (null,[Validators.required]), // тип цены
+      changePrice: new UntypedFormControl              (0,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]), // наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType, по умолчанию "плюс 10%"
+      plusMinus: new UntypedFormControl                ('plus',[]),                  // Наценка (plus) или скидка (minus)
+      changePriceType: new UntypedFormControl          ('procents',[]),              // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
+      hideTenths: new UntypedFormControl               (true,[]),                    // убрать десятые (копейки)
+      statusOnFinishId: new UntypedFormControl         ('',[]),                      // статус после проведения инвентаризации
+      defaultActualBalance: new UntypedFormControl     ('',[]),                      //  фактический баланс по умолчанию. "estimated" - как расчётный, "other" - другой (выбирается в other_actual_balance)
+      otherActualBalance: new UntypedFormControl       (0,[Validators.pattern('^[0-9]{1,6}(?:[.,][0-9]{0,3})?\r?$')]),// "другой" фактический баланс по умолчанию. Например, 1
+      autoAdd: new UntypedFormControl                  (false,[]),                   // автодобавление товара из формы поиска в таблицу
     });
     this.getSetOfPermissions();
     //+++ getting base data from parent component
@@ -677,13 +677,13 @@ export class InventoryDocComponent implements OnInit {
 
   formingProductRowFromApiResponse(row: InventoryProductTable) {
     return this._fb.group({
-      id: new FormControl (row.id,[]),
-      product_id: new FormControl (row.product_id,[]),
-      inventory_id: new FormControl (+this.id,[]),
-      name: new FormControl (row.name,[]),
-      estimated_balance: new FormControl (row.estimated_balance,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
-      actual_balance: new FormControl (row.actual_balance,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
-      product_price:  new FormControl (this.numToPrice(row.product_price,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),ValidationService.priceMoreThanZero]),
+      id: new UntypedFormControl (row.id,[]),
+      product_id: new UntypedFormControl (row.product_id,[]),
+      inventory_id: new UntypedFormControl (+this.id,[]),
+      name: new UntypedFormControl (row.name,[]),
+      estimated_balance: new UntypedFormControl (row.estimated_balance,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
+      actual_balance: new UntypedFormControl (row.actual_balance,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
+      product_price:  new UntypedFormControl (this.numToPrice(row.product_price,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),ValidationService.priceMoreThanZero]),
     });
   }
 
@@ -893,7 +893,7 @@ export class InventoryDocComponent implements OnInit {
   }
   //забирает таблицу товаров из дочернего компонента и помещает ее в основную форму
   getProductsTable(){
-    const control = <FormArray>this.formBaseInformation.get('inventoryProductTable');
+    const control = <UntypedFormArray>this.formBaseInformation.get('inventoryProductTable');
     control.clear();
     this.inventoryProductsTableComponent.getProductTable().forEach(row=>{
       control.push(this.formingProductRowFromApiResponse(row));
@@ -1068,7 +1068,7 @@ export class InventoryDocComponent implements OnInit {
   getProductsTableWP(docname:string){
     let tableName:string;//для маппинга в соответствующие названия сетов в бэкэнде (например private Set<PostingProductForm> postingProductTable;)
     if(docname=='Writeoff') tableName='writeoffProductTable'; else tableName='postingProductTable';
-    const control = <FormArray>this.formWP.get(tableName);
+    const control = <UntypedFormArray>this.formWP.get(tableName);
     control.clear();
     this.inventoryProductsTableComponent.getProductTable().forEach(row=>{
       if(docname=='Writeoff'){// Если Списание - отбираем из всего списка только товары с недостачей
@@ -1128,11 +1128,11 @@ export class InventoryDocComponent implements OnInit {
     let product_count:number;
     if(docname=='Writeoff') product_count=row.estimated_balance-row.actual_balance; else product_count=row.actual_balance-row.estimated_balance;// чтобы в insertWriteoff ушло положительное число
     return this._fb.group({
-      product_id: new FormControl (row.product_id,[]),
-      product_count: new FormControl (product_count,[]),
-      product_price:  new FormControl (row.product_price,[]),
-      product_sumprice: new FormControl (((product_count)*row.product_price).toFixed(2),[]),
-      reason_id: new FormControl (3,[]), // 3 - Недостачи и потери от порчи ценностей
+      product_id: new UntypedFormControl (row.product_id,[]),
+      product_count: new UntypedFormControl (product_count,[]),
+      product_price:  new UntypedFormControl (row.product_price,[]),
+      product_sumprice: new UntypedFormControl (((product_count)*row.product_price).toFixed(2),[]),
+      reason_id: new UntypedFormControl (3,[]), // 3 - Недостачи и потери от порчи ценностей
     });
   }
 

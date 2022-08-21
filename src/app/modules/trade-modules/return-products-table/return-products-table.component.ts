@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, Output} from '@angular/core';
 import { EventEmitter } from '@angular/core';
-import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormArray,  UntypedFormBuilder,  Validators, UntypedFormControl } from '@angular/forms';
 import { SelectionModel } from '@angular/cdk/collections';
 import { Observable } from 'rxjs';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
@@ -82,7 +82,7 @@ export class ReturnProductsTableComponent implements OnInit {
   indivisibleErrorOfProductTable:boolean;// дробное кол-во товара при неделимом товаре в таблице товаров
 
   //для Autocomplete по поиску товаров
-  searchProductCtrl = new FormControl();//поле для поиска товаров
+  searchProductCtrl = new UntypedFormControl();//поле для поиска товаров
   isProductListLoading  = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredProducts: ProductSearchResponse[] = [];
@@ -137,7 +137,7 @@ export class ReturnProductsTableComponent implements OnInit {
   @Output() changeProductsTableLength = new EventEmitter<any>();   //событие изменения таблицы товаров (а именно - количества товаров в ней)
   @Output() totalSumPriceEvent = new EventEmitter<string>();
 
-  constructor( private _fb: FormBuilder,
+  constructor( private _fb: UntypedFormBuilder,
     public MessageDialog: MatDialog,
     public ProductReservesDialogComponent: MatDialog,
     public ConfirmDialog: MatDialog,
@@ -150,23 +150,23 @@ export class ReturnProductsTableComponent implements OnInit {
 
   ngOnInit(): void {
 
-    this.formBaseInformation = new FormGroup({
-      returnProductTable: new FormArray([]),
+    this.formBaseInformation = new UntypedFormGroup({
+      returnProductTable: new UntypedFormArray([]),
     });
     // форма поиска и добавления товара
-    this.formSearch = new FormGroup({
-      row_id: new FormControl                   ('',[]),
-      product_id: new FormControl               ('',[Validators.required]),   // id товара
-      edizm: new FormControl                    ('',[]),                      // наименование единицы измерения товара
-      product_price : new FormControl           ('',[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),                      // цена товара (которая уйдет в таблицу выбранных товаров). Т.е. мы как можем вписать цену вручную, так и выбрать из предложенных (см. выше)
-      product_count : new FormControl           ('',[Validators.required,Validators.pattern('^[0-9]{1,6}(?:[.,][0-9]{0,3})?\r?$')]),                      // количество товара к возврату
-      product_netcost : new FormControl         ('',[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),                      // себестоимость единицы товара
-      remains : new FormControl                 ('',[]),                      // остатки на складе
-      nds_id: new FormControl                   ('',[]),                      // НДС
+    this.formSearch = new UntypedFormGroup({
+      row_id: new UntypedFormControl                   ('',[]),
+      product_id: new UntypedFormControl               ('',[Validators.required]),   // id товара
+      edizm: new UntypedFormControl                    ('',[]),                      // наименование единицы измерения товара
+      product_price : new UntypedFormControl           ('',[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),                      // цена товара (которая уйдет в таблицу выбранных товаров). Т.е. мы как можем вписать цену вручную, так и выбрать из предложенных (см. выше)
+      product_count : new UntypedFormControl           ('',[Validators.required,Validators.pattern('^[0-9]{1,6}(?:[.,][0-9]{0,3})?\r?$')]),                      // количество товара к возврату
+      product_netcost : new UntypedFormControl         ('',[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),                      // себестоимость единицы товара
+      remains : new UntypedFormControl                 ('',[]),                      // остатки на складе
+      nds_id: new UntypedFormControl                   ('',[]),                      // НДС
       // nds: new FormControl                      (0,[]),                    // НДС в валютном ввыражении
-      product_sumprice : new FormControl        (0,[]),                       // суммарная стоимость товара = цена * кол-во
-      product_sumnetcost : new FormControl      (0,[]),                       // суммарная себестоимость товара = себестоимость * кол-во
-      indivisible: new FormControl              ('',[]),                      // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
+      product_sumprice : new UntypedFormControl        (0,[]),                       // суммарная стоимость товара = цена * кол-во
+      product_sumnetcost : new UntypedFormControl      (0,[]),                       // суммарная себестоимость товара = себестоимость * кол-во
+      indivisible: new UntypedFormControl              ('',[]),                      // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
     });
 
     this.doOnInit();
@@ -197,7 +197,7 @@ export class ReturnProductsTableComponent implements OnInit {
       this.displayedColumns.push('delete');
   }
   getControlTablefield(){
-    const control = <FormArray>this.formBaseInformation.get('returnProductTable');
+    const control = <UntypedFormArray>this.formBaseInformation.get('returnProductTable');
     return control;
   }
   clearTable(): void {
@@ -397,7 +397,7 @@ export class ReturnProductsTableComponent implements OnInit {
   getProductsTable(){
     let productsTable: ReturnProductTable[]=[];
     //сбрасываем, иначе при сохранении будут прибавляться дубли и прочие глюки
-    const control = <FormArray>this.formBaseInformation.get('returnProductTable');
+    const control = <UntypedFormArray>this.formBaseInformation.get('returnProductTable');
     this.gettingTableData=true;
     control.clear();
     this.row_id=0;
@@ -420,28 +420,28 @@ export class ReturnProductsTableComponent implements OnInit {
 
   formingProductRowFromApiResponse(row: ReturnProductTable) {
     return this._fb.group({
-      id: new FormControl (row.id,[]),
+      id: new UntypedFormControl (row.id,[]),
       row_id: [this.getRowId()],// row_id нужен для идентифицирования строк у которых нет id (например из только что создали и не сохранили)
-      product_id: new FormControl (row.product_id,[]),
+      product_id: new UntypedFormControl (row.product_id,[]),
       // return_id:  new FormControl (+this.parentDocId,[]),
-      name: new FormControl (row.name,[]),
-      edizm: new FormControl (row.edizm,[]),
-      remains: new FormControl (+row.remains,[]),
-      nds_id: new FormControl (+row.nds_id,[]),
-      product_sumprice: new FormControl ((+row.product_count*(+row.product_price)).toFixed(2),[]),
-      product_sumnetcost: new FormControl ((+row.product_count*(+row.product_netcost)).toFixed(2),[]),
-      product_count:  new FormControl (row.product_count,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
-      product_netcost:  new FormControl (this.numToPrice(row.product_netcost,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
-      product_price:  new FormControl (this.numToPrice(row.product_price,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),
+      name: new UntypedFormControl (row.name,[]),
+      edizm: new UntypedFormControl (row.edizm,[]),
+      remains: new UntypedFormControl (+row.remains,[]),
+      nds_id: new UntypedFormControl (+row.nds_id,[]),
+      product_sumprice: new UntypedFormControl ((+row.product_count*(+row.product_price)).toFixed(2),[]),
+      product_sumnetcost: new UntypedFormControl ((+row.product_count*(+row.product_netcost)).toFixed(2),[]),
+      product_count:  new UntypedFormControl (row.product_count,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
+      product_netcost:  new UntypedFormControl (this.numToPrice(row.product_netcost,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      product_price:  new UntypedFormControl (this.numToPrice(row.product_price,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),
       // ValidationService.priceMoreThanZero  -- пока исключил ошибку "Цена=0", чтобы позволить сохранять с нулевой ценой, а также делать с ней связанные документы.
       ]),
-      indivisible:  new FormControl (row.indivisible,[]),
+      indivisible:  new UntypedFormControl (row.indivisible,[]),
     });
   }
 
   addProductRow(){ 
   this.productSearchField.nativeElement.focus();//убираем курсор из текущего поля, чтобы оно не было touched и красным после сброса формы
-  const control = <FormArray>this.formBaseInformation.get('returnProductTable');
+  const control = <UntypedFormArray>this.formBaseInformation.get('returnProductTable');
   let thereProductInTableWithSameId:boolean=false;
     this.formBaseInformation.value.returnProductTable.map(i => 
     {// список товаров не должен содержать одинаковые товары из одного и того же склада. Тут проверяем на это
@@ -463,19 +463,19 @@ export class ReturnProductsTableComponent implements OnInit {
   //формирование строки таблицы с товарами для заказа покупателя из формы поиска товара
   formingProductRowFromSearchForm() {
     return this._fb.group({
-      id: new FormControl (null,[]),
+      id: new UntypedFormControl (null,[]),
       row_id: [this.getRowId()],
-      product_id:  new FormControl (+this.formSearch.get('product_id').value,[]),
-      name:  new FormControl (this.searchProductCtrl.value,[]),
-      edizm:  new FormControl (this.formSearch.get('edizm').value,[]),
-      product_price: new FormControl (this.formSearch.get('product_price').value,[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),/*ValidationService.priceMoreThanZero*/]),
-      product_count:  new FormControl (this.formSearch.get('product_count').value,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
-      product_netcost:  new FormControl (this.formSearch.get('product_netcost').value,[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
-      remains: new FormControl (+this.formSearch.get('remains').value,[]),
-      nds_id: new FormControl (+this.formSearch.get('nds_id').value,[]),
-      product_sumprice: new FormControl ((+this.formSearch.get('product_count').value*(+this.formSearch.get('product_price').value)).toFixed(2),[]),
-      product_sumnetcost: new FormControl ((+this.formSearch.get('product_count').value*(+this.formSearch.get('product_netcost').value)).toFixed(2),[]),
-      indivisible:  new FormControl (this.formSearch.get('indivisible').value,[]),
+      product_id:  new UntypedFormControl (+this.formSearch.get('product_id').value,[]),
+      name:  new UntypedFormControl (this.searchProductCtrl.value,[]),
+      edizm:  new UntypedFormControl (this.formSearch.get('edizm').value,[]),
+      product_price: new UntypedFormControl (this.formSearch.get('product_price').value,[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),/*ValidationService.priceMoreThanZero*/]),
+      product_count:  new UntypedFormControl (this.formSearch.get('product_count').value,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
+      product_netcost:  new UntypedFormControl (this.formSearch.get('product_netcost').value,[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      remains: new UntypedFormControl (+this.formSearch.get('remains').value,[]),
+      nds_id: new UntypedFormControl (+this.formSearch.get('nds_id').value,[]),
+      product_sumprice: new UntypedFormControl ((+this.formSearch.get('product_count').value*(+this.formSearch.get('product_price').value)).toFixed(2),[]),
+      product_sumnetcost: new UntypedFormControl ((+this.formSearch.get('product_count').value*(+this.formSearch.get('product_netcost').value)).toFixed(2),[]),
+      indivisible:  new UntypedFormControl (this.formSearch.get('indivisible').value,[]),
       // nds: new FormControl (+this.formSearch.get('remains').value,[]),
     });
   }
@@ -491,7 +491,7 @@ export class ReturnProductsTableComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
-        const control = <FormArray>this.formBaseInformation.get('returnProductTable');
+        const control = <UntypedFormArray>this.formBaseInformation.get('returnProductTable');
         // if(+row.id==0){// ещё не сохраненная позиция, можно не удалять с сервера (т.к. ее там нет), а только удалить локально
           control.removeAt(index);
           this.refreshTableColumns();
@@ -514,7 +514,7 @@ export class ReturnProductsTableComponent implements OnInit {
 
   resetRowIds(){
     this.row_id=0;
-    const control = <FormArray>this.formBaseInformation.get('returnProductTable');
+    const control = <UntypedFormArray>this.formBaseInformation.get('returnProductTable');
     this.formBaseInformation.value.returnProductTable.map(i => 
       {
         control.controls[this.row_id].get('row_id').setValue(this.row_id);
@@ -715,7 +715,7 @@ export class ReturnProductsTableComponent implements OnInit {
   }
   
   addProductRowFromProductsList(row: ProductSearchResponse){ 
-  const control = <FormArray>this.formBaseInformation.get('returnProductTable');
+  const control = <UntypedFormArray>this.formBaseInformation.get('returnProductTable');
   let thereProductInTableWithSameId:boolean=false;
     this.formBaseInformation.value.returnProductTable.map(i => 
     { // список товаров не должен содержать одинаковые товары из одного и того же склада. Тут проверяем на это
@@ -739,17 +739,17 @@ export class ReturnProductsTableComponent implements OnInit {
   formingProductRowFromProductsList(row: ProductSearchResponse) {
     return this._fb.group({
       row_id: [this.getRowId()],// row_id нужен для идентифицирования строк у которых нет id (например из только что создали и не сохранили)
-      product_id: new FormControl (row.product_id,[]),
-      name: new FormControl (row.name,[]),
-      edizm: new FormControl (row.edizm,[]),
-      remains: new FormControl (+row.remains,[]),
-      product_count:  new FormControl (1,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
-      product_netcost:  new FormControl (0,[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
-      product_price:  new FormControl (0,[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
-      product_sumprice: new FormControl (0,[]),
-      product_sumnetcost: new FormControl (0,[]),
-      nds_id: new FormControl (row.nds_id,[]),
-      indivisible: new FormControl (row.indivisible,[]),
+      product_id: new UntypedFormControl (row.product_id,[]),
+      name: new UntypedFormControl (row.name,[]),
+      edizm: new UntypedFormControl (row.edizm,[]),
+      remains: new UntypedFormControl (+row.remains,[]),
+      product_count:  new UntypedFormControl (1,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
+      product_netcost:  new UntypedFormControl (0,[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      product_price:  new UntypedFormControl (0,[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      product_sumprice: new UntypedFormControl (0,[]),
+      product_sumnetcost: new UntypedFormControl (0,[]),
+      nds_id: new UntypedFormControl (row.nds_id,[]),
+      indivisible: new UntypedFormControl (row.indivisible,[]),
     });
   }
 

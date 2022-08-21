@@ -1,7 +1,7 @@
 import { Component, OnInit , Inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { HttpClient } from '@angular/common/http';
-import { FormGroup, Validators, FormControl } from '@angular/forms';
+import { UntypedFormGroup, Validators, UntypedFormControl } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { LoadSpravService } from '../../../services/loadsprav';
@@ -36,7 +36,7 @@ export class SettingsOrderinDialogComponent implements OnInit {
   allowToCreateMyCompany:boolean;
 
   //для поиска контрагента (получателя) по подстроке
-  searchCagentCtrl = new FormControl();//поле для поиска
+  searchCagentCtrl = new UntypedFormControl();//поле для поиска
   isCagentListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canCagentAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredCagents: any;
@@ -60,16 +60,16 @@ export class SettingsOrderinDialogComponent implements OnInit {
     this.allowToCreateAllCompanies=this.data.allowToCreateAllCompanies;
     this.allowToCreateMyCompany=this.data.allowToCreateMyCompany;
 
-    this.settingsForm = new FormGroup({
+    this.settingsForm = new UntypedFormGroup({
       
       //предприятие, для которого создаются настройки
-      companyId: new FormControl                (null,[Validators.required]),
+      companyId: new UntypedFormControl                (null,[Validators.required]),
       //id Поставщик по умолчанию
-      cagentId: new FormControl               (null,[]),
+      cagentId: new UntypedFormControl               (null,[]),
       //название поставщика по умолчанию
-      cagent: new FormControl                 ('',[]),
+      cagent: new UntypedFormControl                 ('',[]),
       //статус при успешном проведении
-      statusIdOnComplete: new FormControl(null,[]),
+      statusIdOnComplete: new UntypedFormControl(null,[]),
     });
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Поставщик"
     this.getSettings();

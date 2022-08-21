@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, Output, OnChanges,  SimpleChanges } from '@angular/core';
 import { EventEmitter } from '@angular/core';
-import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormArray,  UntypedFormBuilder,  Validators, UntypedFormControl } from '@angular/forms';
 import { SelectionModel } from '@angular/cdk/collections';
 import { Observable , of} from 'rxjs';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
@@ -127,7 +127,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   indivisibleErrorOfProductTable:boolean;// дробное кол-во товара при неделимом товаре в таблице товаров
 
   //для Autocomplete по поиску товаров
-  searchProductCtrl = new FormControl();//поле для поиска товаров
+  searchProductCtrl = new UntypedFormControl();//поле для поиска товаров
   isProductListLoading  = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredProducts: productSearchResponse[] = [];
@@ -209,7 +209,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
 
 
   constructor(
-    private _fb: FormBuilder,
+    private _fb: UntypedFormBuilder,
     public MessageDialog: MatDialog,
     public ProductReservesDialogComponent: MatDialog,
     public ConfirmDialog: MatDialog,
@@ -221,57 +221,57 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   ) {}
 
   ngOnInit(): void {
-    this.formBaseInformation = new FormGroup({
-      customersOrdersProductTable: new FormArray([]),
+    this.formBaseInformation = new UntypedFormGroup({
+      customersOrdersProductTable: new UntypedFormArray([]),
     });
-    this.formSearch = new FormGroup({
-      row_id: new FormControl                   ('',[]),
-      product_id: new FormControl               ('',[Validators.required]),
-      customers_orders_id: new FormControl      ('',[]),
-      product_count: new FormControl            ('',[Validators.pattern('^[0-9]{1,6}(?:[.,][0-9]{0,3})?\r?$')]),
-      product_price: new FormControl            ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
-      product_sumprice: new FormControl         (0 ,[]),
+    this.formSearch = new UntypedFormGroup({
+      row_id: new UntypedFormControl                   ('',[]),
+      product_id: new UntypedFormControl               ('',[Validators.required]),
+      customers_orders_id: new UntypedFormControl      ('',[]),
+      product_count: new UntypedFormControl            ('',[Validators.pattern('^[0-9]{1,6}(?:[.,][0-9]{0,3})?\r?$')]),
+      product_price: new UntypedFormControl            ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      product_sumprice: new UntypedFormControl         (0 ,[]),
       // тип расценки. priceType - по типу цены, costPrice - себестоимость, manual - вручную
-      pricingType: new FormControl              (this.pricingType ,[]),
+      pricingType: new UntypedFormControl              (this.pricingType ,[]),
       //величина наценки или скидки. В чем выражается (валюта или проценты) - определяет changePriceType
-      changePrice: new FormControl              (this.changePrice,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      changePrice: new UntypedFormControl              (this.changePrice,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       // Наценка (plus) или скидка (minus)
-      plusMinus: new FormControl                (this.plusMinus,[]),
+      plusMinus: new UntypedFormControl                (this.plusMinus,[]),
       // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
-      changePriceType: new FormControl          (this.changePriceType,[]),
-      price_type_id: new FormControl            (this.priceTypeId ,[]),
-      edizm_id: new FormControl                 (0 ,[]),
-      additional: new FormControl               ('',[]),
-      nds_id: new FormControl                   ('',[Validators.required]),
-      secondaryDepartmentId: new FormControl    (0 ,[Validators.required]),// id склада, выбранного в форме поиска товара
-      available: new FormControl                ('',[]),//доступно
-      reserved: new FormControl                 ('',[]),//зарезервировано в этом отделении в других Заказах покупателя
-      total: new FormControl                    ('',[]),//остатки
-      reserve: new FormControl                  (false,[]),//резервировать (да-нет)
-      ppr_name_api_atol: new FormControl        ('',[]), //Признак предмета расчета в системе Атол. Невидимое поле. Нужно для передачи в таблицу товаров в качестве тега для чека на ккм Атол
-      is_material: new FormControl              ('',[]), //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
-      reserved_current: new FormControl         ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
-      indivisible: new FormControl              ('',[]), // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
+      changePriceType: new UntypedFormControl          (this.changePriceType,[]),
+      price_type_id: new UntypedFormControl            (this.priceTypeId ,[]),
+      edizm_id: new UntypedFormControl                 (0 ,[]),
+      additional: new UntypedFormControl               ('',[]),
+      nds_id: new UntypedFormControl                   ('',[Validators.required]),
+      secondaryDepartmentId: new UntypedFormControl    (0 ,[Validators.required]),// id склада, выбранного в форме поиска товара
+      available: new UntypedFormControl                ('',[]),//доступно
+      reserved: new UntypedFormControl                 ('',[]),//зарезервировано в этом отделении в других Заказах покупателя
+      total: new UntypedFormControl                    ('',[]),//остатки
+      reserve: new UntypedFormControl                  (false,[]),//резервировать (да-нет)
+      ppr_name_api_atol: new UntypedFormControl        ('',[]), //Признак предмета расчета в системе Атол. Невидимое поле. Нужно для передачи в таблицу товаров в качестве тега для чека на ккм Атол
+      is_material: new UntypedFormControl              ('',[]), //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
+      reserved_current: new UntypedFormControl         ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
+      indivisible: new UntypedFormControl              ('',[]), // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
     });
 
     // Форма для сохранения настроек при расценке
-    this.settingsForm = new FormGroup({
+    this.settingsForm = new UntypedFormGroup({
       //убрать десятые (копейки)
-      hideTenths: new FormControl               (true,[]),
+      hideTenths: new UntypedFormControl               (true,[]),
       //сохранить настройки
-      saveSettings: new FormControl             (true,[]),
+      saveSettings: new UntypedFormControl             (true,[]),
       //предприятие, для которого создаются настройки
-      companyId: new FormControl                (null,[]),
+      companyId: new UntypedFormControl                (null,[]),
       // тип расценки. priceType - по типу цены, costPrice - себестоимость, manual - вручную
-      pricingType: new FormControl              ('priceType',[]),
+      pricingType: new UntypedFormControl              ('priceType',[]),
       //тип цены
-      priceTypeId: new FormControl              (null,[]),
+      priceTypeId: new UntypedFormControl              (null,[]),
       //наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType
-      changePrice: new FormControl              (50,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      changePrice: new UntypedFormControl              (50,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       // Наценка (plus) или скидка (minus)
-      plusMinus: new FormControl                ('plus',[]),
+      plusMinus: new UntypedFormControl                ('plus',[]),
       // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
-      changePriceType: new FormControl          ('procents',[]),
+      changePriceType: new UntypedFormControl          ('procents',[]),
     });
 
     this.doOnInit();
@@ -373,7 +373,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   getProductsTable(){
     let ProductsTable: CustomersOrdersProductTable[]=[];
     //сбрасываем, иначе при сохранении будут прибавляться дубли и прочие глюки
-    const control = <FormArray>this.formBaseInformation.get('customersOrdersProductTable');
+    const control = <UntypedFormArray>this.formBaseInformation.get('customersOrdersProductTable');
     this.gettingTableData=true;
     control.clear();
     this.http.get('/api/auth/get'+this.parentDocName+'ProductTable?id='+this.parentDocId)
@@ -394,38 +394,38 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   formingProductRowFromApiResponse(row: CustomersOrdersProductTable) {
     let multiplifierNDS = this.getTaxMultiplifierBySelectedId(+row.nds_id);
     return this._fb.group({
-      id: new FormControl (row.id,[]),
+      id: new UntypedFormControl (row.id,[]),
       row_id: [this.getRowId()],// row_id нужен для идентифицирования строк у которых нет id (например из только что создали и не сохранили)
-      product_id: new FormControl (row.product_id,[]),
-      customers_orders_id: new FormControl (this.parentDocId,[]),
-      name: new FormControl (row.name,[]),
-      product_count: new FormControl (row.product_count,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$'), ValidationService.countMoreThanZero]),
-      edizm: new FormControl (row.edizm,[]),
-      edizm_id:  new FormControl (row.edizm_id,[]), 
-      product_price:  new FormControl (this.numToPrice(row.product_price,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),ValidationService.priceMoreThanZero]),
-      product_price_of_type_price: new FormControl (row.product_price,[]),
-      product_sumprice: new FormControl (this.numToPrice(+(row.product_count*row.product_price*(this.nds&&!this.nds_included?multiplifierNDS:1)).toFixed(2),2),[]),
-      available:  new FormControl ((row.total)-(row.reserved),[]),
-      price_type:  new FormControl (row.price_type,[]),
+      product_id: new UntypedFormControl (row.product_id,[]),
+      customers_orders_id: new UntypedFormControl (this.parentDocId,[]),
+      name: new UntypedFormControl (row.name,[]),
+      product_count: new UntypedFormControl (row.product_count,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$'), ValidationService.countMoreThanZero]),
+      edizm: new UntypedFormControl (row.edizm,[]),
+      edizm_id:  new UntypedFormControl (row.edizm_id,[]), 
+      product_price:  new UntypedFormControl (this.numToPrice(row.product_price,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),ValidationService.priceMoreThanZero]),
+      product_price_of_type_price: new UntypedFormControl (row.product_price,[]),
+      product_sumprice: new UntypedFormControl (this.numToPrice(+(row.product_count*row.product_price*(this.nds&&!this.nds_included?multiplifierNDS:1)).toFixed(2),2),[]),
+      available:  new UntypedFormControl ((row.total)-(row.reserved),[]),
+      price_type:  new UntypedFormControl (row.price_type,[]),
       price_type_id: [row.price_type_id],
-      nds:  new FormControl (row.nds,[]),
-      nds_id: new FormControl (row.nds_id,[]),
-      reserve:  new FormControl (row.reserve,[]),// переключатель Резерв
-      reserved:  new FormControl (row.reserved,[]), // сколько зарезервировано этого товара в других документах за исключением этого
-      total: new FormControl (row.total,[]),
-      priority_type_price: new FormControl (row.priority_type_price,[]),// приоритет типа цены: Склад (sklad) Покупатель (cagent) Цена по-умолчанию (defprice)
-      department_id: new FormControl (row.department_id,[]), //id отделения, выбранного в форме поиска 
-      department: new FormControl (row.department,[]), //имя отделения, выбранного в форме поиска 
-      shipped:  new FormControl (row.shipped,[]),
-      ppr_name_api_atol:  new FormControl (row.ppr_name_api_atol,[]), //Признак предмета расчета в системе Атол
-      is_material:  new FormControl (row.is_material,[]), //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
-      reserved_current:  new FormControl (row.reserved_current,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),// зарезервировано единиц товара в отделении (складе) в ЭТОМ (текущем) Заказе покупателя
-      indivisible:  new FormControl (row.indivisible,[]),
+      nds:  new UntypedFormControl (row.nds,[]),
+      nds_id: new UntypedFormControl (row.nds_id,[]),
+      reserve:  new UntypedFormControl (row.reserve,[]),// переключатель Резерв
+      reserved:  new UntypedFormControl (row.reserved,[]), // сколько зарезервировано этого товара в других документах за исключением этого
+      total: new UntypedFormControl (row.total,[]),
+      priority_type_price: new UntypedFormControl (row.priority_type_price,[]),// приоритет типа цены: Склад (sklad) Покупатель (cagent) Цена по-умолчанию (defprice)
+      department_id: new UntypedFormControl (row.department_id,[]), //id отделения, выбранного в форме поиска 
+      department: new UntypedFormControl (row.department,[]), //имя отделения, выбранного в форме поиска 
+      shipped:  new UntypedFormControl (row.shipped,[]),
+      ppr_name_api_atol:  new UntypedFormControl (row.ppr_name_api_atol,[]), //Признак предмета расчета в системе Атол
+      is_material:  new UntypedFormControl (row.is_material,[]), //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
+      reserved_current:  new UntypedFormControl (row.reserved_current,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),// зарезервировано единиц товара в отделении (складе) в ЭТОМ (текущем) Заказе покупателя
+      indivisible:  new UntypedFormControl (row.indivisible,[]),
     });
   }
 
   getRoutedProductsTable(){
-    const control = <FormArray>this.formBaseInformation.get('customersOrdersProductTable');
+    const control = <UntypedFormArray>this.formBaseInformation.get('customersOrdersProductTable');
     control.clear();
     this.routedProductsTable.forEach(row=>{
       control.push(this.formingProductRowFromApiResponse(row));
@@ -446,7 +446,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
       }
     });
     if(!thereProductInTableWithSameId){//такого товара  для выбранного складад в списке ещё нет. Добавляем в таблицу (в форму formBaseInformation)
-      const control = <FormArray>this.formBaseInformation.get('customersOrdersProductTable');
+      const control = <UntypedFormArray>this.formBaseInformation.get('customersOrdersProductTable');
       control.push(this.formingProductRowFromSearchForm());
      this.resetFormSearch();//подготовка формы поиска к дальнейшему вводу товара
      this.finishRecount(); // подсчёт тоталов в таблице
@@ -455,34 +455,34 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
    //формирование строки таблицы с товарами для заказа покупателя из формы поиска товара
    formingProductRowFromSearchForm() {
     return this._fb.group({
-      id: new FormControl (null,[]),
+      id: new UntypedFormControl (null,[]),
       row_id: [this.getRowId()],
       // bik: new FormControl ('',[Validators.required,Validators.pattern('^[0-9]{9}$')]),
-      product_id:  new FormControl (+this.formSearch.get('product_id').value,[]),
-      customers_orders_id:  new FormControl (+this.parentDocId,[]),
-      name:  new FormControl (this.searchProductCtrl.value,[]),
-      product_count:  new FormControl (+this.formSearch.get('product_count').value,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$'), ValidationService.countMoreThanZero]),
-      edizm:  new FormControl (this.edizmName,[]),
-      edizm_id:  new FormControl (+this.formSearch.get('edizm_id').value,[]),
-      product_price: new FormControl (this.formSearch.get('product_price').value,[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),ValidationService.priceMoreThanZero]),
-      product_price_of_type_price:  new FormControl (+this.formSearch.get('product_price').value,[]),
-      product_sumprice:  new FormControl (this.formSearch.get('product_sumprice').value,[]),
-      available:  new FormControl (+this.formSearch.get('available').value,[]),
-      nds:  new FormControl (this.getNdsNameBySelectedId(+this.formSearch.get('nds_id').value),[]),
-      nds_id:  new FormControl (+this.formSearch.get('nds_id').value,[]),
-      price_type:  new FormControl    ((this.selected_price==+this.formSearch.get('product_price').value && this.formSearch.get('pricingType').value=='priceType')?this.getPriceTypeNameBySelectedId(+this.formSearch.get('price_type_id').value):'',[]),
-      price_type_id:  new FormControl ((this.selected_price==+this.formSearch.get('product_price').value && this.formSearch.get('pricingType').value=='priceType')?+this.formSearch.get('price_type_id').value:null,[]),
-      reserve: new FormControl (this.formSearch.get('reserve').value,[]),// переключатель Резерв
-      reserved: new FormControl (this.formSearch.get('reserved').value,[]), // сколько зарезервировано этого товара в других документах за исключением этого
-      total: new FormControl (this.formSearch.get('total').value,[]),
-      priority_type_price: new FormControl (this.priorityTypePriceSide,[]),// приоритет типа цены: Склад (sklad) Покупатель (cagent) Цена по-умолчанию (defprice)
-      department_id: new FormControl (this.formSearch.get('secondaryDepartmentId').value,[]), //id отделения, выбранного в форме поиска 
-      department: new FormControl (this.getSecondaryDepartmentById(+this.formSearch.get('secondaryDepartmentId').value).name,[]), //имя отделения, выбранного в форме поиска 
-      shipped: new FormControl (0,[]),// ведь еще ничего не отгрузили
-      ppr_name_api_atol:  new FormControl (this.formSearch.get('ppr_name_api_atol').value,[]), //Признак предмета расчета в системе Атол
-      is_material:  new FormControl (this.formSearch.get('is_material').value,[]), //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
-      reserved_current:  new FormControl (this.formSearch.get('reserve').value?this.formSearch.get('product_count').value:0,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),// зарезервировано единиц товара в отделении (складе) в ЭТОМ (текущем) Заказе покупателя
-      indivisible:  new FormControl (this.formSearch.get('indivisible').value,[]),
+      product_id:  new UntypedFormControl (+this.formSearch.get('product_id').value,[]),
+      customers_orders_id:  new UntypedFormControl (+this.parentDocId,[]),
+      name:  new UntypedFormControl (this.searchProductCtrl.value,[]),
+      product_count:  new UntypedFormControl (+this.formSearch.get('product_count').value,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$'), ValidationService.countMoreThanZero]),
+      edizm:  new UntypedFormControl (this.edizmName,[]),
+      edizm_id:  new UntypedFormControl (+this.formSearch.get('edizm_id').value,[]),
+      product_price: new UntypedFormControl (this.formSearch.get('product_price').value,[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),ValidationService.priceMoreThanZero]),
+      product_price_of_type_price:  new UntypedFormControl (+this.formSearch.get('product_price').value,[]),
+      product_sumprice:  new UntypedFormControl (this.formSearch.get('product_sumprice').value,[]),
+      available:  new UntypedFormControl (+this.formSearch.get('available').value,[]),
+      nds:  new UntypedFormControl (this.getNdsNameBySelectedId(+this.formSearch.get('nds_id').value),[]),
+      nds_id:  new UntypedFormControl (+this.formSearch.get('nds_id').value,[]),
+      price_type:  new UntypedFormControl    ((this.selected_price==+this.formSearch.get('product_price').value && this.formSearch.get('pricingType').value=='priceType')?this.getPriceTypeNameBySelectedId(+this.formSearch.get('price_type_id').value):'',[]),
+      price_type_id:  new UntypedFormControl ((this.selected_price==+this.formSearch.get('product_price').value && this.formSearch.get('pricingType').value=='priceType')?+this.formSearch.get('price_type_id').value:null,[]),
+      reserve: new UntypedFormControl (this.formSearch.get('reserve').value,[]),// переключатель Резерв
+      reserved: new UntypedFormControl (this.formSearch.get('reserved').value,[]), // сколько зарезервировано этого товара в других документах за исключением этого
+      total: new UntypedFormControl (this.formSearch.get('total').value,[]),
+      priority_type_price: new UntypedFormControl (this.priorityTypePriceSide,[]),// приоритет типа цены: Склад (sklad) Покупатель (cagent) Цена по-умолчанию (defprice)
+      department_id: new UntypedFormControl (this.formSearch.get('secondaryDepartmentId').value,[]), //id отделения, выбранного в форме поиска 
+      department: new UntypedFormControl (this.getSecondaryDepartmentById(+this.formSearch.get('secondaryDepartmentId').value).name,[]), //имя отделения, выбранного в форме поиска 
+      shipped: new UntypedFormControl (0,[]),// ведь еще ничего не отгрузили
+      ppr_name_api_atol:  new UntypedFormControl (this.formSearch.get('ppr_name_api_atol').value,[]), //Признак предмета расчета в системе Атол
+      is_material:  new UntypedFormControl (this.formSearch.get('is_material').value,[]), //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
+      reserved_current:  new UntypedFormControl (this.formSearch.get('reserve').value?this.formSearch.get('product_count').value:0,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),// зарезервировано единиц товара в отделении (складе) в ЭТОМ (текущем) Заказе покупателя
+      indivisible:  new UntypedFormControl (this.formSearch.get('indivisible').value,[]),
     });
   }
   getSecondaryDepartmentById(id:number):SecondaryDepartment{
@@ -541,7 +541,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   }
 
   getControlTablefield(){
-    const control = <FormArray>this.formBaseInformation.get('customersOrdersProductTable');
+    const control = <UntypedFormArray>this.formBaseInformation.get('customersOrdersProductTable');
     return control;
   }
   openProductCard(docId:number) {
@@ -587,7 +587,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
     });
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
-        const control = <FormArray>this.formBaseInformation.get('customersOrdersProductTable');
+        const control = <UntypedFormArray>this.formBaseInformation.get('customersOrdersProductTable');
         // if(+row.id==0){// ещё не сохраненная позиция, можно не удалять с сервера (т.к. ее там нет), а только удалить локально
           control.removeAt(index);
           this.getTotalSumPrice();//чтобы пересчиталась сумма в чеке

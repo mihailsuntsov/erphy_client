@@ -12,7 +12,7 @@ import { QueryFormService } from './get-remains-table.service';
 import { ProductCategoriesDialogComponent } from 'src/app/ui/dialogs/product-categories-dialog/product-categories-dialog.component';
 import { RemainsDialogComponent } from 'src/app/ui/dialogs/remains-dialog/remains-dialog.component';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
-import { FormControl  } from '@angular/forms';
+import { UntypedFormControl  } from '@angular/forms';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
@@ -119,7 +119,7 @@ export class RemainsComponent implements OnInit {
   hasChild = (_: number, node: ExampleFlatNode) => node.expandable;
 
   //для поиска контрагента (поставщика) по подстроке
-  searchCagentCtrl = new FormControl();//поле для поиска
+  searchCagentCtrl = new UntypedFormControl();//поле для поиска
   isCagentListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canCagentAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredCagents: any;

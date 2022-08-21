@@ -5,7 +5,7 @@ import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 // поэтому в конструкторе мы можем получить его.
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
-import { Validators, FormGroup, FormControl} from '@angular/forms';
+import { Validators, UntypedFormGroup, UntypedFormControl} from '@angular/forms';
 import { Router } from '@angular/router';
 import {HttpClient} from '@angular/common/http';
 import {MatSnackBar} from '@angular/material/snack-bar';
@@ -102,26 +102,26 @@ export class DepartmentsDocComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.formBaseInformation = new FormGroup({
-      id: new FormControl                       (this.id,[]),
-      name: new FormControl                     ('',[Validators.required]),
-      company_id: new FormControl               ('',[Validators.required]),
-      parent_id: new FormControl                ('',[]),
-      price_id: new FormControl                 ('',[]),
-      address: new FormControl                  ('',[]),
-      additional: new FormControl               ('',[]),
-      boxoffice_id: new FormControl             ('',[]), // касса предприятия, к которой относится отделение
-      payment_account_id: new FormControl       ('',[]), // расч. счёт по умолчанию
+    this.formBaseInformation = new UntypedFormGroup({
+      id: new UntypedFormControl                       (this.id,[]),
+      name: new UntypedFormControl                     ('',[Validators.required]),
+      company_id: new UntypedFormControl               ('',[Validators.required]),
+      parent_id: new UntypedFormControl                ('',[]),
+      price_id: new UntypedFormControl                 ('',[]),
+      address: new UntypedFormControl                  ('',[]),
+      additional: new UntypedFormControl               ('',[]),
+      boxoffice_id: new UntypedFormControl             ('',[]), // касса предприятия, к которой относится отделение
+      payment_account_id: new UntypedFormControl       ('',[]), // расч. счёт по умолчанию
     });
-    this.formAboutDocument = new FormGroup({
-      id: new FormControl                       ('',[]),
-      owner: new FormControl                    ('',[]),
-      creator: new FormControl                  ('',[]),
-      changer: new FormControl                  ('',[]),
-      parent: new FormControl                   ('',[]),
-      company: new FormControl                  ('',[]),
-      date_time_created: new FormControl        ('',[]),
-      date_time_changed: new FormControl        ('',[]),
+    this.formAboutDocument = new UntypedFormGroup({
+      id: new UntypedFormControl                       ('',[]),
+      owner: new UntypedFormControl                    ('',[]),
+      creator: new UntypedFormControl                  ('',[]),
+      changer: new UntypedFormControl                  ('',[]),
+      parent: new UntypedFormControl                   ('',[]),
+      company: new UntypedFormControl                  ('',[]),
+      date_time_created: new UntypedFormControl        ('',[]),
+      date_time_changed: new UntypedFormControl        ('',[]),
     });
     this.getSetOfPermissions();
     //+++ getting base data from parent component

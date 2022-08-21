@@ -3,7 +3,7 @@ import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { KkmAtolService } from '../../../../services/kkm_atol';
 import { KkmAtolChequesService } from '../../../../services/kkm_atol_cheques';
-import { FormGroup, FormArray,  FormBuilder,  Validators, FormControl } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormArray,  UntypedFormBuilder,  Validators, UntypedFormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
@@ -194,7 +194,7 @@ export class RetailsalesDocComponent implements OnInit {
 
   // Формы
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
-  formBaseInformation: FormGroup; //массив форм для накопления информации о Заказе покупателя
+  formBaseInformation: UntypedFormGroup; //массив форм для накопления информации о Заказе покупателя
   settingsForm: any; // форма с настройками
   formReturn:any// Форма для отправки при создании Возврата покупателя
 
@@ -259,7 +259,7 @@ export class RetailsalesDocComponent implements OnInit {
   doc_number_isReadOnly=true;
 
   //для поиска контрагента (получателя) по подстроке
-  searchCagentCtrl = new FormControl();//поле для поиска
+  searchCagentCtrl = new UntypedFormControl();//поле для поиска
   isCagentListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canCagentAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredCagents: any;
@@ -269,7 +269,7 @@ export class RetailsalesDocComponent implements OnInit {
 
   constructor(private activateRoute: ActivatedRoute,
     private cdRef:ChangeDetectorRef,
-    private _fb: FormBuilder, //чтобы билдить группу форм retailSalesProductTable
+    private _fb: UntypedFormBuilder, //чтобы билдить группу форм retailSalesProductTable
     private http: HttpClient,
     public ConfirmDialog: MatDialog,
     public dialogAddFiles: MatDialog,
@@ -291,102 +291,102 @@ export class RetailsalesDocComponent implements OnInit {
   ngOnInit() {
     console.log('--------**************************----------')
     console.log(this.routerAdditionalData);
-    this.formBaseInformation = new FormGroup({
-      id: new FormControl                 (this.id,[]),
-      company_id: new FormControl         (null,[Validators.required]),
-      department_id: new FormControl      (null,[Validators.required]),
-      doc_number: new FormControl         ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
-      cagent_id: new FormControl          ({disabled: false, value: '' },[Validators.required]),
-      cagent: new FormControl             ('',[]),
-      description: new FormControl        ('',[]),
-      department: new FormControl         ('',[]),
-      retailSalesProductTable: new FormArray([]),
-      nds: new FormControl                (false,[]),
-      nds_included: new FormControl       (true,[]),
-      name: new FormControl               ('',[]),
-      status_id: new FormControl          ('',[]),
-      status_name: new FormControl        ('',[]),
-      is_completed: new FormControl       (false,[]),
-      status_color: new FormControl       ('',[]),
-      status_description: new FormControl ('',[]),
-      customers_orders_id: new FormControl ('',[]),
-      new_cagent: new FormControl         ({disabled: true, value: '' },[Validators.required]),
-      uid: new FormControl                ('',[]), // uid идентификатор для создаваемой Розн. продажи. Нужен для построения связанности между документами, или например, чтобы избежать дублей при создании
-      linked_doc_id: new FormControl      ('',[]), // id связанного документа (того, из которого инициируется создание данного документа)
-      parent_uid: new FormControl         ('',[]), // uid исходящего (родительского) документа
-      child_uid: new FormControl          ('',[]), // uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
-      linked_doc_name: new FormControl    ('',[]), // имя (таблицы) связанного документа
+    this.formBaseInformation = new UntypedFormGroup({
+      id: new UntypedFormControl                 (this.id,[]),
+      company_id: new UntypedFormControl         (null,[Validators.required]),
+      department_id: new UntypedFormControl      (null,[Validators.required]),
+      doc_number: new UntypedFormControl         ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
+      cagent_id: new UntypedFormControl          ({disabled: false, value: '' },[Validators.required]),
+      cagent: new UntypedFormControl             ('',[]),
+      description: new UntypedFormControl        ('',[]),
+      department: new UntypedFormControl         ('',[]),
+      retailSalesProductTable: new UntypedFormArray([]),
+      nds: new UntypedFormControl                (false,[]),
+      nds_included: new UntypedFormControl       (true,[]),
+      name: new UntypedFormControl               ('',[]),
+      status_id: new UntypedFormControl          ('',[]),
+      status_name: new UntypedFormControl        ('',[]),
+      is_completed: new UntypedFormControl       (false,[]),
+      status_color: new UntypedFormControl       ('',[]),
+      status_description: new UntypedFormControl ('',[]),
+      customers_orders_id: new UntypedFormControl ('',[]),
+      new_cagent: new UntypedFormControl         ({disabled: true, value: '' },[Validators.required]),
+      uid: new UntypedFormControl                ('',[]), // uid идентификатор для создаваемой Розн. продажи. Нужен для построения связанности между документами, или например, чтобы избежать дублей при создании
+      linked_doc_id: new UntypedFormControl      ('',[]), // id связанного документа (того, из которого инициируется создание данного документа)
+      parent_uid: new UntypedFormControl         ('',[]), // uid исходящего (родительского) документа
+      child_uid: new UntypedFormControl          ('',[]), // uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
+      linked_doc_name: new UntypedFormControl    ('',[]), // имя (таблицы) связанного документа
     });
-    this.formAboutDocument = new FormGroup({
-      id: new FormControl                       ('',[]),
-      master: new FormControl                   ('',[]),
-      creator: new FormControl                  ('',[]),
-      changer: new FormControl                  ('',[]),
-      company: new FormControl                  ('',[]),
-      date_time_created: new FormControl        ('',[]),
-      date_time_changed: new FormControl        ('',[]),
+    this.formAboutDocument = new UntypedFormGroup({
+      id: new UntypedFormControl                       ('',[]),
+      master: new UntypedFormControl                   ('',[]),
+      creator: new UntypedFormControl                  ('',[]),
+      changer: new UntypedFormControl                  ('',[]),
+      company: new UntypedFormControl                  ('',[]),
+      date_time_created: new UntypedFormControl        ('',[]),
+      date_time_changed: new UntypedFormControl        ('',[]),
     });
     // Форма для отправки при создании Возврата покупателя
-    this.formReturn = new FormGroup({
-      retail_sales_id: new FormControl    (null,[]),
-      date_return: new FormControl        ('',[]),
-      nds: new FormControl                ('',[]),
-      cagent_id: new FormControl          (null,[Validators.required]),
-      company_id: new FormControl         (null,[Validators.required]),
-      department_id: new FormControl      (null,[Validators.required]),
-      description: new FormControl        ('',[]),
-      returnProductTable: new FormArray   ([]),
-      linked_doc_id: new FormControl      (null,[]),//id связанного документа (в данном случае Розничная продажа)
-      parent_uid: new FormControl         (null,[]),// uid родительского документа
-      child_uid: new FormControl          (null,[]),// uid дочернего документа
-      linked_doc_name: new FormControl    (null,[]),//имя (таблицы) связанного документа
-      uid: new FormControl                ('',[]),  //uid создаваемого связанного документа
+    this.formReturn = new UntypedFormGroup({
+      retail_sales_id: new UntypedFormControl    (null,[]),
+      date_return: new UntypedFormControl        ('',[]),
+      nds: new UntypedFormControl                ('',[]),
+      cagent_id: new UntypedFormControl          (null,[Validators.required]),
+      company_id: new UntypedFormControl         (null,[Validators.required]),
+      department_id: new UntypedFormControl      (null,[Validators.required]),
+      description: new UntypedFormControl        ('',[]),
+      returnProductTable: new UntypedFormArray   ([]),
+      linked_doc_id: new UntypedFormControl      (null,[]),//id связанного документа (в данном случае Розничная продажа)
+      parent_uid: new UntypedFormControl         (null,[]),// uid родительского документа
+      child_uid: new UntypedFormControl          (null,[]),// uid дочернего документа
+      linked_doc_name: new UntypedFormControl    (null,[]),//имя (таблицы) связанного документа
+      uid: new UntypedFormControl                ('',[]),  //uid создаваемого связанного документа
 
     });
     // Форма настроек
-    this.settingsForm = new FormGroup({
+    this.settingsForm = new UntypedFormGroup({
       //предприятие, для которого создаются настройки
-      companyId: new FormControl                (null,[]),
+      companyId: new UntypedFormControl                (null,[]),
       // id отделения
-      departmentId: new FormControl             (null,[]),
+      departmentId: new UntypedFormControl             (null,[]),
       //покупатель по умолчанию
-      customerId: new FormControl               (null,[]),
+      customerId: new UntypedFormControl               (null,[]),
       //наименование покупателя
-      customer: new FormControl                 ('',[]),
+      customer: new UntypedFormControl                 ('',[]),
       //наименование заказа по умолчанию
       // orderName:  new FormControl               ('',[]),
       // тип расценки. priceType - по типу цены, costPrice - себестоимость, manual - вручную
-      pricingType: new FormControl              ('priceType',[]),
+      pricingType: new UntypedFormControl              ('priceType',[]),
       //тип цены
-      priceTypeId: new FormControl              (null,[]),
+      priceTypeId: new UntypedFormControl              (null,[]),
       //наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType
-      changePrice: new FormControl              (50,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      changePrice: new UntypedFormControl              (50,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       // Наценка (plus) или скидка (minus)
-      plusMinus: new FormControl                ('plus',[]),
+      plusMinus: new UntypedFormControl                ('plus',[]),
       // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
-      changePriceType: new FormControl          ('procents',[]),
+      changePriceType: new UntypedFormControl          ('procents',[]),
       //убрать десятые (копейки)
-      hideTenths: new FormControl               (true,[]),
+      hideTenths: new UntypedFormControl               (true,[]),
       //сохранить настройки
-      saveSettings: new FormControl             (true,[]),
+      saveSettings: new UntypedFormControl             (true,[]),
       
       //наименование заказа
-      name:  new FormControl                    ('',[]),
+      name:  new UntypedFormControl                    ('',[]),
       //приоритет типа цены : Склад (sklad) Покупатель (cagent) Цена по-умолчанию (defprice)
-      priorityTypePriceSide: new FormControl    ('defprice',[]),
+      priorityTypePriceSide: new UntypedFormControl    ('defprice',[]),
       //настройки операций с ККМ
       //Оплата чека прихода (наличными - nal безналичными - electronically смешанная - mixed)
-      selectedPaymentType:   new FormControl    ('cash',[]),
+      selectedPaymentType:   new UntypedFormControl    ('cash',[]),
       //автосоздание на старте документа, если автозаполнились все поля
       // autocreateOnStart: new FormControl        (false,[]),
       //автосоздание нового документа, если в текущем успешно напечатан чек
-      autocreateOnCheque: new FormControl       (false,[]),
+      autocreateOnCheque: new UntypedFormControl       (false,[]),
       //статус после успешного отбития чека, перед созданием нового документа
-      statusIdOnAutocreateOnCheque: new FormControl(null,[]),
+      statusIdOnAutocreateOnCheque: new UntypedFormControl(null,[]),
       //показывать блок ККМ
-      showKkm: new FormControl                  (null,[]),
+      showKkm: new UntypedFormControl                  (null,[]),
       // автодобавление товара из формы поиска в таблицу
-      autoAdd: new FormControl                  (false,[]),            
+      autoAdd: new UntypedFormControl                  (false,[]),            
     });
     
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Покупатель"
@@ -936,31 +936,31 @@ export class RetailsalesDocComponent implements OnInit {
 
   formingProductRowFromApiResponse(row: RetailSalesProductTable) {
     return this._fb.group({
-      id: new FormControl (row.id,[]),
-      product_id: new FormControl (row.product_id,[]),
-      retail_sales_id: new FormControl (+this.id,[]),
-      name: new FormControl (row.name,[]),
-      product_count: new FormControl (row.product_count,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$'), ValidationService.countMoreThanZero]),
-      edizm: new FormControl (row.edizm,[]),
-      edizm_id:  new FormControl (row.edizm_id,[]), 
-      product_price:  new FormControl (this.numToPrice(row.product_price,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),ValidationService.priceMoreThanZero]),
-      product_price_of_type_price: new FormControl (row.product_price,[]),
-      product_sumprice: new FormControl (this.numToPrice(row.product_sumprice,2),[]),
-      available:  new FormControl ((row.total)-(row.reserved),[]),
-      price_type:  new FormControl (row.price_type,[]),
+      id: new UntypedFormControl (row.id,[]),
+      product_id: new UntypedFormControl (row.product_id,[]),
+      retail_sales_id: new UntypedFormControl (+this.id,[]),
+      name: new UntypedFormControl (row.name,[]),
+      product_count: new UntypedFormControl (row.product_count,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$'), ValidationService.countMoreThanZero]),
+      edizm: new UntypedFormControl (row.edizm,[]),
+      edizm_id:  new UntypedFormControl (row.edizm_id,[]), 
+      product_price:  new UntypedFormControl (this.numToPrice(row.product_price,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),ValidationService.priceMoreThanZero]),
+      product_price_of_type_price: new UntypedFormControl (row.product_price,[]),
+      product_sumprice: new UntypedFormControl (this.numToPrice(row.product_sumprice,2),[]),
+      available:  new UntypedFormControl ((row.total)-(row.reserved),[]),
+      price_type:  new UntypedFormControl (row.price_type,[]),
       price_type_id: [row.price_type_id],
-      nds:  new FormControl (row.nds,[]),
-      nds_id: new FormControl (row.nds_id,[]),
-      reserve:  new FormControl (row.reserve,[]),// переключатель Резерв
-      reserved:  new FormControl (row.reserved,[]), // сколько зарезервировано этого товара в других документах за исключением этого
-      total: new FormControl (row.total,[]),
-      priority_type_price: new FormControl (row.priority_type_price,[]),// приоритет типа цены: Склад (sklad) Покупатель (cagent) Цена по-умолчанию (defprice)
-      department_id: new FormControl (row.department_id,[]), //id отделения, выбранного в форме поиска 
-      department: new FormControl (row.department,[]), //имя отделения, выбранного в форме поиска 
-      shipped:  new FormControl (row.shipped,[]),
-      ppr_name_api_atol:  new FormControl (row.ppr_name_api_atol,[]), //Признак предмета расчета в системе Атол
-      is_material:  new FormControl (row.is_material,[]), //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
-      reserved_current:  new FormControl (row.reserved_current,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),// зарезервировано единиц товара в отделении (складе) в ЭТОМ (текущем) Заказе покупателя
+      nds:  new UntypedFormControl (row.nds,[]),
+      nds_id: new UntypedFormControl (row.nds_id,[]),
+      reserve:  new UntypedFormControl (row.reserve,[]),// переключатель Резерв
+      reserved:  new UntypedFormControl (row.reserved,[]), // сколько зарезервировано этого товара в других документах за исключением этого
+      total: new UntypedFormControl (row.total,[]),
+      priority_type_price: new UntypedFormControl (row.priority_type_price,[]),// приоритет типа цены: Склад (sklad) Покупатель (cagent) Цена по-умолчанию (defprice)
+      department_id: new UntypedFormControl (row.department_id,[]), //id отделения, выбранного в форме поиска 
+      department: new UntypedFormControl (row.department,[]), //имя отделения, выбранного в форме поиска 
+      shipped:  new UntypedFormControl (row.shipped,[]),
+      ppr_name_api_atol:  new UntypedFormControl (row.ppr_name_api_atol,[]), //Признак предмета расчета в системе Атол
+      is_material:  new UntypedFormControl (row.is_material,[]), //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
+      reserved_current:  new UntypedFormControl (row.reserved_current,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),// зарезервировано единиц товара в отделении (складе) в ЭТОМ (текущем) Заказе покупателя
     });
   }
    //Конвертирует число в строку типа 0.00 например 6.40, 99.25
@@ -1123,7 +1123,7 @@ export class RetailsalesDocComponent implements OnInit {
   }
   //забирает таблицу товаров из дочернего компонента и помещает ее в основную форму
   getProductsTable(){
-    const control = <FormArray>this.formBaseInformation.get('retailSalesProductTable');
+    const control = <UntypedFormArray>this.formBaseInformation.get('retailSalesProductTable');
     control.clear();
     this.productSearchAndTableComponent.getProductTable().forEach(row=>{
       control.push(this.formingProductRowFromApiResponse(row));
@@ -1348,7 +1348,7 @@ export class RetailsalesDocComponent implements OnInit {
   getProductsTableLinkedDoc(docname:string){
     let tableName:string;//для маппинга в соответствующие названия сетов в бэкэнде (например private Set<PostingProductForm> postingProductTable;)
     tableName='returnProductTable';
-    const control = <FormArray>this.formReturn.get(tableName);
+    const control = <UntypedFormArray>this.formReturn.get(tableName);
     control.clear();
     this.productSearchAndTableComponent.getProductTable().forEach(row=>{
           control.push(this.formingProductRowLinkedDoc(row,docname));
@@ -1356,11 +1356,11 @@ export class RetailsalesDocComponent implements OnInit {
   }
   formingProductRowLinkedDoc(row: RetailSalesProductTable, docname:string) {
     return this._fb.group({
-      product_id: new FormControl (row.product_id,[]),
-      product_count: new FormControl (row.product_count,[]),
-      product_price:  new FormControl (row.product_price,[]),
-      product_sumprice: new FormControl (((row.product_count)*row.product_price).toFixed(2),[]),
-      nds_id:  new FormControl (row.nds_id,[]),
+      product_id: new UntypedFormControl (row.product_id,[]),
+      product_count: new UntypedFormControl (row.product_count,[]),
+      product_price:  new UntypedFormControl (row.product_price,[]),
+      product_sumprice: new UntypedFormControl (((row.product_count)*row.product_price).toFixed(2),[]),
+      nds_id:  new UntypedFormControl (row.nds_id,[]),
     });
   }
   // можно ли создать связанный документ (да - если есть товары, подходящие для этого, и нет уже завершённого документа)

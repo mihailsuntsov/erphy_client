@@ -11,7 +11,7 @@ import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { QueryFormService } from './get-invoicein-table.service';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
-import { FormGroup, FormControl } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl } from '@angular/forms';
 import { SettingsInvoiceinDialogComponent } from 'src/app/modules/settings/settings-invoicein-dialog/settings-invoicein-dialog.component';
 import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
 import { translate, TranslocoService } from '@ngneat/transloco'; //+++
@@ -149,25 +149,25 @@ export class InvoiceinComponent implements OnInit {
       
       this.fillOptionsList();//заполняем список опций фильтра
       // Форма настроек
-    this.settingsForm = new FormGroup({
+    this.settingsForm = new UntypedFormGroup({
       // id отделения
-      departmentId: new FormControl             (null,[]),
+      departmentId: new UntypedFormControl             (null,[]),
       //покупатель по умолчанию
-      cagentId: new FormControl                 (null,[]),
+      cagentId: new UntypedFormControl                 (null,[]),
       //наименование покупателя
-      cagent: new FormControl                   ('',[]),
+      cagent: new UntypedFormControl                   ('',[]),
       //наименование заказа по умолчанию
-      name:  new FormControl                    ('',[]),
+      name:  new UntypedFormControl                    ('',[]),
       //предприятие, для которого создаются настройки
-      companyId: new FormControl                (null,[]),
+      companyId: new UntypedFormControl                (null,[]),
       //автосоздание нового документа, если все поля заполнены
-      autocreate: new FormControl               (false,[]),
+      autocreate: new UntypedFormControl               (false,[]),
       //статус после успешного отбития чека, перед созданием нового документа
-      statusIdOnComplete: new FormControl       ('',[]),
+      statusIdOnComplete: new UntypedFormControl       ('',[]),
       // автодобавление товара в таблицу товаров
-      autoAdd:  new FormControl                 (false,[]),
+      autoAdd:  new UntypedFormControl                 (false,[]),
       // автовыставление цены (последняя закупочная цена)
-      autoPrice:  new FormControl               (false,[]),
+      autoPrice:  new UntypedFormControl               (false,[]),
     });
 
       this.getCompaniesList();

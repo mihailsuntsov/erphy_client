@@ -1,7 +1,7 @@
 import { Component, OnInit , Inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { HttpClient } from '@angular/common/http';
-import { FormGroup, FormArray, Validators, FormControl, FormBuilder } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormArray, Validators, UntypedFormControl, UntypedFormBuilder } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { FilesComponent } from 'src/app/ui/pages/documents/files/files.component';
 import { FilesDocComponent } from 'src/app/ui/pages/documents/files-doc/files-doc.component';
@@ -49,7 +49,7 @@ export class TemplatesDialogComponent implements OnInit {
   formBaseInformation:any;//форма для основной информации, содержащейся в документе
 
   constructor(
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
     private http: HttpClient,
     public TemplatesDialog: MatDialogRef<TemplatesDialogComponent>,
     public MessageDialog: MatDialog,
@@ -66,10 +66,10 @@ export class TemplatesDialogComponent implements OnInit {
     this.company_id=this.data.company_id;
     this.document_id=this.data.document_id;
 
-    this.formBaseInformation = new FormGroup({
-      company_id:     new FormControl       (this.data.company_id, [Validators.required]),
-      document_id:    new FormControl       (this.data.document_id,[Validators.required]),
-      templatesList:  new FormArray         ([]) ,
+    this.formBaseInformation = new UntypedFormGroup({
+      company_id:     new UntypedFormControl       (this.data.company_id, [Validators.required]),
+      document_id:    new UntypedFormControl       (this.data.document_id,[Validators.required]),
+      templatesList:  new UntypedFormArray         ([]) ,
     });
 
     this.getTemplatesList();
@@ -92,24 +92,24 @@ export class TemplatesDialogComponent implements OnInit {
   }
 
   fillTemplatesArray(arr: TemplatesList[]){
-    const add = this.formBaseInformation.get('templatesList') as FormArray;
+    const add = this.formBaseInformation.get('templatesList') as UntypedFormArray;
     add.clear();
     arr.forEach(m =>{
       add.push(this.fb.group({
-      id:                   new FormControl (m.id,[]),
-      company_id:           new FormControl (m.company_id,[Validators.required]),
-      document_id:          new FormControl (m.document_id,[Validators.required]),
-      file_id:              new FormControl (m.file_id,[Validators.required]),
-      file_name:            new FormControl (m.file_name,[]),
-      file_original_name:   new FormControl (m.file_original_name,[Validators.required]),
-      is_show:              new FormControl (m.is_show,[Validators.required]),
-      name:                 new FormControl (m.name,[Validators.required]),
+      id:                   new UntypedFormControl (m.id,[]),
+      company_id:           new UntypedFormControl (m.company_id,[Validators.required]),
+      document_id:          new UntypedFormControl (m.document_id,[Validators.required]),
+      file_id:              new UntypedFormControl (m.file_id,[Validators.required]),
+      file_name:            new UntypedFormControl (m.file_name,[]),
+      file_original_name:   new UntypedFormControl (m.file_original_name,[Validators.required]),
+      is_show:              new UntypedFormControl (m.is_show,[Validators.required]),
+      name:                 new UntypedFormControl (m.name,[Validators.required]),
       output_order:         this.getTemplatesOutputOrder()
       }))
     })
   }
   getTemplatesOutputOrder(){//генерирует очередность для нового шаблона
-    const add = this.formBaseInformation.get('templatesList') as FormArray; 
+    const add = this.formBaseInformation.get('templatesList') as UntypedFormArray; 
     return (add.length+1);
   }
 
@@ -144,16 +144,16 @@ export class TemplatesDialogComponent implements OnInit {
   }
 
   addNewTemplate() {
-    const add = this.formBaseInformation.get('templatesList') as FormArray;
+    const add = this.formBaseInformation.get('templatesList') as UntypedFormArray;
     add.push(this.fb.group({
-      id:                   new FormControl ('',[]),
-      company_id:           new FormControl (this.company_id,[Validators.required]),
-      document_id:          new FormControl (this.document_id,[Validators.required]),
-      file_id:              new FormControl ('',[Validators.required]),
-      file_name:            new FormControl ('',[]),
-      file_original_name:   new FormControl ('',[Validators.required]),
-      is_show:              new FormControl (true,[Validators.required]),
-      name:                 new FormControl ('',[Validators.required]),
+      id:                   new UntypedFormControl ('',[]),
+      company_id:           new UntypedFormControl (this.company_id,[Validators.required]),
+      document_id:          new UntypedFormControl (this.document_id,[Validators.required]),
+      file_id:              new UntypedFormControl ('',[Validators.required]),
+      file_name:            new UntypedFormControl ('',[]),
+      file_original_name:   new UntypedFormControl ('',[Validators.required]),
+      is_show:              new UntypedFormControl (true,[Validators.required]),
+      name:                 new UntypedFormControl ('',[Validators.required]),
       output_order:         this.getTemplatesOutputOrder()
     }))
   }
@@ -170,7 +170,7 @@ export class TemplatesDialogComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
-        const add = this.formBaseInformation.get('templatesList') as FormArray;
+        const add = this.formBaseInformation.get('templatesList') as UntypedFormArray;
         add.removeAt(index);
         this.setTemplatesOutputOrders();
       }
@@ -196,7 +196,7 @@ export class TemplatesDialogComponent implements OnInit {
     });
   }
   getControlTablefield(){
-    const control = <FormArray>this.formBaseInformation.get('templatesList');
+    const control = <UntypedFormArray>this.formBaseInformation.get('templatesList');
     return control;
   }
 //*****************************************************************************************************************************************/
