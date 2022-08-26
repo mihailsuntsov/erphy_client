@@ -100,6 +100,7 @@ interface DocResponse {//интерфейс для получения ответ
   uid:string;
   is_completed: boolean;
   customers_orders_id:number;
+  invoiceout_time:string;
 }
 interface FilesInfo {
   id: string;
@@ -209,6 +210,7 @@ export class InvoiceoutDocComponent implements OnInit {
   receivedPriceTypesList: IdNameDescription [] = [];//массив для получения списка типов цен
   displayedColumns:string[];//отображаемые колонки таблицы с товарами
   accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
+  timeFormat:string='24';   //12 or 24
 
   //для загрузки связанных документов
   linkedDocsReturn:LinkedDocs[]=[];
@@ -330,6 +332,7 @@ export class InvoiceoutDocComponent implements OnInit {
       status_description: new UntypedFormControl ('',[]),
       new_cagent: new UntypedFormControl         ({disabled: true, value: '' },[Validators.required]),
       uid: new UntypedFormControl                ('',[]),// uuid идентификатор для создаваемого документа
+      invoiceout_time: new UntypedFormControl     ('',[Validators.required]),
     });
     this.formAboutDocument = new UntypedFormGroup({
       id: new UntypedFormControl                       ('',[]),
@@ -411,6 +414,7 @@ export class InvoiceoutDocComponent implements OnInit {
     this.getBaseData('companiesList');  
     this.getBaseData('myDepartmentsList');    
     this.getBaseData('accountingCurrency');  
+    this.getBaseData('timeFormat');
   }
   //чтобы не было ExpressionChangedAfterItHasBeenCheckedError
   ngAfterContentChecked() {
@@ -624,6 +628,7 @@ export class InvoiceoutDocComponent implements OnInit {
   }
   setDefaultDate(){
     this.formBaseInformation.get('invoiceout_date').setValue(moment());
+    this.formBaseInformation.get('invoiceout_time').setValue(moment().format("HH:mm"));
   }
   // проверки на различные случаи
   checkAnyCases(){
@@ -870,6 +875,7 @@ export class InvoiceoutDocComponent implements OnInit {
                   this.formBaseInformation.get('department_id').setValue(documentValues.department_id);
                   this.formBaseInformation.get('department').setValue(documentValues.department);
                   this.formBaseInformation.get('invoiceout_date').setValue(documentValues.invoiceout_date?moment(documentValues.invoiceout_date,'DD.MM.YYYY'):"");
+                  this.formBaseInformation.get('invoiceout_time').setValue(documentValues.invoiceout_time);
                   this.formBaseInformation.get('doc_number').setValue(documentValues.doc_number);
                   this.formBaseInformation.get('description').setValue(documentValues.description);
                   this.formBaseInformation.get('nds').setValue(documentValues.nds);
@@ -1042,6 +1048,7 @@ export class InvoiceoutDocComponent implements OnInit {
       this.formBaseInformation.get('cagent_id').setValue(this.is_addingNewCagent?null:this.formBaseInformation.get('cagent_id').value);
       this.getProductsTable();
       this.formBaseInformation.get('uid').setValue(uuidv4());
+      if(this.timeFormat=='12') this.formBaseInformation.get('invoiceout_time').setValue(moment(this.formBaseInformation.get('invoiceout_time').value, 'hh:mm A'). format('HH:mm'));
       this.http.post('/api/auth/insertInvoiceout', this.formBaseInformation.value)
         .subscribe(
         (data) => {
@@ -1153,6 +1160,7 @@ export class InvoiceoutDocComponent implements OnInit {
       if(this.settingsForm.get('statusIdOnComplete').value&&this.statusIdInList(this.settingsForm.get('statusIdOnComplete').value)){// если в настройках есть "Статус при завершении" - временно выставляем его
         this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
     }
+    if(this.timeFormat=='12') this.formBaseInformation.get('invoiceout_time').setValue(moment(this.formBaseInformation.get('invoiceout_time').value, 'hh:mm A'). format('HH:mm'));
     this.http.post('/api/auth/updateInvoiceout',  this.formBaseInformation.value)
       .subscribe(
           (data) => 
@@ -1451,7 +1459,8 @@ export class InvoiceoutDocComponent implements OnInit {
                     }
                     default:{// Документ успешно создался в БД 
                       this.openSnackBar(translate('docs.msg.doc_crtd_succ',{name:translate('docs.docs.'+this.commonUtilites.getDocNameByDocAlias(docname))}), translate('docs.msg.close'));
-                      this.getLinkedDocsScheme(true);//обновляем схему этого документа
+                      // this.getLinkedDocsScheme(true);//обновляем схему этого документа
+                      this._router.navigate(['/ui/'+docname.toLowerCase()+'doc', createdDocId]);
                     }
                   }
                 },

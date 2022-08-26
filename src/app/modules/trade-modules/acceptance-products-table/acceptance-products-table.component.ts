@@ -7,6 +7,7 @@ import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { ProductCategoriesSelectComponent } from 'src/app/modules/trade-modules/product-categories-select/product-categories-select.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatDialog } from '@angular/material/dialog';
+import { ValidationService } from './validation.service';
 import { HttpClient } from '@angular/common/http';
 import { ProductsDocComponent } from 'src/app/ui/pages/documents/products-doc/products-doc.component';
 import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component';
@@ -422,7 +423,7 @@ export class AcceptanceProductsTableComponent implements OnInit {
       total: new UntypedFormControl (+row.total,[]),
       nds_id: new UntypedFormControl (+row.nds_id,[]),
       product_sumprice: new UntypedFormControl ((+row.product_count*(+row.product_price)).toFixed(2),[]),
-      product_count:  new UntypedFormControl (row.product_count,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
+      product_count:  new UntypedFormControl (row.product_count,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$'), ValidationService.countMoreThanZero]),
       product_price:  new UntypedFormControl (this.numToPrice(row.product_price,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),
       // ValidationService.priceMoreThanZero  -- пока исключил ошибку "Цена=0", чтобы позволить сохранять с нулевой ценой, а также делать с ней связанные документы.
       ]),
@@ -461,7 +462,7 @@ export class AcceptanceProductsTableComponent implements OnInit {
       name:  new UntypedFormControl (this.searchProductCtrl.value,[]),
       edizm:  new UntypedFormControl (this.formSearch.get('edizm').value,[]),
       product_price: new UntypedFormControl (this.formSearch.get('product_price').value,[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),/*ValidationService.priceMoreThanZero*/]),
-      product_count:  new UntypedFormControl ((+this.formSearch.get('product_count').value>0?+this.formSearch.get('product_count').value:1),[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
+      product_count:  new UntypedFormControl ((+this.formSearch.get('product_count').value>0?+this.formSearch.get('product_count').value:1),[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$'), ValidationService.countMoreThanZero]),
       total: new UntypedFormControl (+this.formSearch.get('total').value,[]),
       nds_id: new UntypedFormControl (+this.formSearch.get('nds_id').value,[]),
       product_sumprice: new UntypedFormControl ((+this.formSearch.get('product_count').value*(+this.formSearch.get('product_price').value)).toFixed(2),[]),
@@ -846,7 +847,7 @@ openDialogCreateProduct() {
       name: new UntypedFormControl (row.name,[]),
       edizm: new UntypedFormControl (row.edizm,[]),
       total: new UntypedFormControl (+row.total,[]),
-      product_count:  new UntypedFormControl (1,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
+      product_count:  new UntypedFormControl (1,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$'), ValidationService.countMoreThanZero]),
       product_price:  new UntypedFormControl ((this.autoPrice?+row.lastPurchasePrice:0),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       product_sumprice: new UntypedFormControl (0,[]),
       nds_id: new UntypedFormControl (row.nds_id,[]),

@@ -1194,7 +1194,8 @@ deleteFile(id:number){
                     }
                     default:{// Документ успешно создался в БД 
                       this.openSnackBar(translate('docs.msg.doc_crtd_succ',{name:translate('docs.docs.'+this.commonUtilites.getDocNameByDocAlias(docname))}), translate('docs.msg.close'));
-                      this.getLinkedDocsScheme(true);//обновляем схему этого документа
+                      // this.getLinkedDocsScheme(true);//обновляем схему этого документа
+                      this._router.navigate(['/ui/'+docname.toLowerCase()+'doc', createdDocId]);
                     }
                   }
                 },
@@ -1315,6 +1316,10 @@ deleteFile(id:number){
       if(+i['product_id']==productId){retIndex=formIndex}
       formIndex++;
     });return retIndex;}
+  commaToDot(fieldName:string){
+      if(this.formBaseInformation.get(fieldName).value!=null && this.formBaseInformation.get(fieldName).value!='')
+        this.formBaseInformation.get(fieldName).setValue((this.formBaseInformation.get(fieldName).value).replace(",", "."));
+  }
     
   getBaseData(data) {    //+++ emit data to parent component
     this.baseData.emit(data);

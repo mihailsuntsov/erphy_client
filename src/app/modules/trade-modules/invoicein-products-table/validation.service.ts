@@ -5,8 +5,8 @@ export class ValidationService {
         'invalidCreditCard': 'Ошибочный номер карты',
         'invalidEmailAddress': 'Ошибочный e-mail',
         'invalidPassword': 'Пароль должен содержать хотя бы 6 символов, включая цифры.',
-        'countMoreThanZero': 'Кол-во = 0',
-        'priceMoreThanZero': 'Цена = 0',
+        'countMoreThanZero': 'modules.error.cnt_more_zero',
+        'priceMoreThanZero': 'modules.error.prc_more_zero',
         'minlength': `Минимальное кол-во символов - ${validatorValue.requiredLength}`
       };
   

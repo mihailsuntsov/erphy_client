@@ -1268,7 +1268,8 @@ deleteFile(id:number){
                     }
                     default:{// Документ успешно создался в БД 
                       this.openSnackBar(translate('docs.msg.doc_crtd_succ',{name:translate('docs.docs.'+this.commonUtilites.getDocNameByDocAlias(docname))}), translate('docs.msg.close'));
-                      this.getLinkedDocsScheme(true);//обновляем схему этого документа
+                      // this.getLinkedDocsScheme(true);//обновляем схему этого документа
+                      this._router.navigate(['/ui/'+docname.toLowerCase()+'doc', createdDocId]);
                     }
                   }
                 },
@@ -1390,6 +1391,10 @@ deleteFile(id:number){
   numberOnlyPlusDot(event): boolean {
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
     if (charCode > 31 && ((charCode < 48 || charCode > 57) && charCode!=46)) { return false; } return true;}
+  commaToDot(fieldName:string){
+      if(this.formBaseInformation.get(fieldName).value!=null && this.formBaseInformation.get(fieldName).value!='')
+        this.formBaseInformation.get(fieldName).setValue((this.formBaseInformation.get(fieldName).value).replace(",", "."));
+  }
   getFormIngexByProductId(productId:number):number{
     let retIndex:number;
     let formIndex:number=0;

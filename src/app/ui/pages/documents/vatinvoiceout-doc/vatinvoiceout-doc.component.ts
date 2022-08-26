@@ -123,7 +123,7 @@ export class VatinvoiceoutDocComponent implements OnInit {
 
   id: number = 0;// id документа
   createdDocId: number;//получение id созданного документа
-  receivedCompaniesList: IdAndName [];//массив для получения списка предприятий
+  receivedCompaniesList: IdAndName [] = [];//массив для получения списка предприятий
   receivedStatusesList: StatusInterface [] = []; // массив для получения статусов
   myCompanyId:number=0;
   myId:number=0;
@@ -912,7 +912,8 @@ deleteFile(id:number){
                     }
                     default:{// Документ успешно создался в БД 
                       this.openSnackBar(translate('docs.msg.doc_crtd_succ',{name:translate('docs.docs.'+this.commonUtilites.getDocNameByDocAlias(docname))}), translate('docs.msg.close'));
-                      this.getLinkedDocsScheme(true);//обновляем схему этого документа
+                      // this.getLinkedDocsScheme(true);//обновляем схему этого документа
+                      this._router.navigate(['/ui/'+docname.toLowerCase()+'doc', createdDocId]);
                     }
                   }
                 },

@@ -303,6 +303,7 @@ export class OrdersupProductsTableComponent implements OnInit {
     this.formSearch.get('indivisible').setValue(this.filteredProducts[0].indivisible);              // неделимость (необходимо для проверки правильности ввода кол-ва товара)
     if(this.autoPrice)                                                                              // если выбрана опция "Автоцена"
       this.setPrice(this.filteredProducts[0].lastPurchasePrice);                                    // установка цены из последней закупочной цены
+    else this.setPrice(0);    
     this.afterSelectProduct();
     this.filteredProducts=[];
   }
@@ -320,6 +321,7 @@ export class OrdersupProductsTableComponent implements OnInit {
     this.formSearch.get('indivisible').setValue(product.indivisible);              // неделимость (необходимо для проверки правильности ввода кол-ва товара)
     if(this.autoPrice)                                                             // если выбрана опция "Автоцена"
       this.setPrice(product.lastPurchasePrice);                                    // установка цены из последней закупочной цены
+    else this.setPrice(0); 
     this.canAutocompleteQuery=false;
     this.afterSelectProduct();
   }

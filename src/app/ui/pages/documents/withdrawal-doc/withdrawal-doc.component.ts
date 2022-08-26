@@ -788,7 +788,8 @@ export class WithdrawalDocComponent implements OnInit {
                     }
                     default:{// Документ успешно создался в БД 
                       this.openSnackBar(translate('docs.msg.doc_crtd_succ',{name:translate('docs.docs.'+this.cu.getDocNameByDocAlias(docname))}), translate('docs.msg.close'));
-                      this.getLinkedDocsScheme(true);//обновляем схему этого документа
+                      // this.getLinkedDocsScheme(true);//обновляем схему этого документа
+                      this._router.navigate(['/ui/'+docname.toLowerCase()+'doc', createdDocId]);
                     }
                   }
                 },

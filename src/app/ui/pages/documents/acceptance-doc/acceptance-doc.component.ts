@@ -20,7 +20,6 @@ import { graphviz }  from 'd3-graphviz';
 import { FilesComponent } from '../files/files.component';
 import { FilesDocComponent } from '../files-doc/files-doc.component';
 import { translate } from '@ngneat/transloco'; //+++
-import { NgxMaterialTimepickerTheme } from 'ngx-material-timepicker';
 import { MomentDefault } from 'src/app/services/moment-default';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
@@ -232,20 +231,7 @@ export class AcceptanceDocComponent implements OnInit {
   
   isDocNumberUnicalChecking = false;//идёт ли проверка на уникальность номера
   doc_number_isReadOnly=true;
-  darkTheme: NgxMaterialTimepickerTheme = {
-    container: {
-        bodyBackgroundColor: '#424242',
-        buttonColor: '#fff'
-    },
-    dial: {
-        dialBackgroundColor: '#555',
-    },
-    clockFace: {
-        clockFaceBackgroundColor: '#555',
-        clockHandColor: '#9fbd90',
-        clockFaceTimeInactiveColor: '#fff'
-    }
-};
+
   @ViewChild("doc_number", {static: false}) doc_number; //для редактирования номера документа
   @ViewChild("form", {static: false}) form; // связь с формой <form #form="ngForm" ...
   @ViewChild(AcceptanceProductsTableComponent, {static: false}) public acceptanceProductsTableComponent:AcceptanceProductsTableComponent;
@@ -1350,7 +1336,8 @@ deleteFile(id:number){ //+++
                     }
                     default:{// Документ успешно создался в БД 
                       this.openSnackBar(translate('docs.msg.doc_crtd_succ',{name:translate('docs.docs.'+this.commonUtilites.getDocNameByDocAlias(docname))}), translate('docs.msg.close'));
-                      this.getLinkedDocsScheme(true);//обновляем схему этого документа
+                      // this.getLinkedDocsScheme(true);//обновляем схему этого документа
+                      this._router.navigate(['/ui/'+docname.toLowerCase()+'doc', createdDocId]);
                     }
                   }
                 },

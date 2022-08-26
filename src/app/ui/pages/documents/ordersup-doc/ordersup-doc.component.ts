@@ -71,6 +71,7 @@ interface DocResponse {//интерфейс для получения ответ
   status_color: string;
   status_description: string;
   uid:string;
+  ordersup_time:string;
 }
 interface FilesInfo {
   id: string;
@@ -168,6 +169,7 @@ export class OrdersupDocComponent implements OnInit {
   spravTaxesSet: SpravTaxesSet[] = []; //массив имен и id для ндс 
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
   accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
+  timeFormat:string='24';   //12 or 24
 
   //для загрузки связанных документов
   linkedDocsReturn:LinkedDocs[]=[];
@@ -277,6 +279,7 @@ export class OrdersupDocComponent implements OnInit {
       name: new UntypedFormControl                     ('',[]),
       ordersupProductTable: new UntypedFormArray       ([]),
       uid: new UntypedFormControl                      ('',[]),// uuid идентификатор
+      ordersup_time: new UntypedFormControl              ('',[Validators.required]),
     });
     this.formAboutDocument = new UntypedFormGroup({
       id: new UntypedFormControl                       ('',[]),
@@ -378,6 +381,7 @@ export class OrdersupDocComponent implements OnInit {
     this.getBaseData('companiesList');  
     this.getBaseData('myDepartmentsList');
     this.getBaseData('accountingCurrency');  
+    this.getBaseData('timeFormat');
   }
   //чтобы не было ExpressionChangedAfterItHasBeenCheckedError
   ngAfterContentChecked() {
@@ -797,6 +801,7 @@ export class OrdersupDocComponent implements OnInit {
                   this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
                   this.formBaseInformation.get('is_completed').setValue(documentValues.is_completed);
                   this.formBaseInformation.get('uid').setValue(documentValues.uid);
+                  this.formBaseInformation.get('ordersup_time').setValue(documentValues.ordersup_time);
                   this.creatorId=+documentValues.creator_id;
                   this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
                   this.getPriceTypesList();
@@ -872,6 +877,7 @@ export class OrdersupDocComponent implements OnInit {
     this.createdDocId=null;
     this.getProductsTable();
     this.formBaseInformation.get('uid').setValue(uuidv4());
+    if(this.timeFormat=='12') this.formBaseInformation.get('ordersup_time').setValue(moment(this.formBaseInformation.get('ordersup_time').value, 'hh:mm A'). format('HH:mm'));
     this.http.post('/api/auth/insertOrdersup', this.formBaseInformation.value)
       .subscribe(
       (data) => {
@@ -980,6 +986,7 @@ export class OrdersupDocComponent implements OnInit {
       if(this.settingsForm.get('statusIdOnComplete').value&&this.statusIdInList(this.settingsForm.get('statusIdOnComplete').value)){// если в настройках есть "Статус при проведении" - временно выставляем его
         this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
     }
+    if(this.timeFormat=='12') this.formBaseInformation.get('ordersup_time').setValue(moment(this.formBaseInformation.get('ordersup_time').value, 'hh:mm A'). format('HH:mm'));
     this.http.post('/api/auth/updateOrdersup',  this.formBaseInformation.value)
       .subscribe(
           (data) => 
@@ -1137,6 +1144,7 @@ export class OrdersupDocComponent implements OnInit {
   }
   setDefaultDate(){
     this.formBaseInformation.get('ordersup_date').setValue(moment());
+    this.formBaseInformation.get('ordersup_time').setValue(moment().format("HH:mm"));
   }
   getCompanyNameById(id:number):string{
     let name:string;
@@ -1332,7 +1340,8 @@ deleteFile(id:number){
                     }
                     default:{// Документ успешно создался в БД 
                       this.openSnackBar(translate('docs.msg.doc_crtd_succ',{name:translate('docs.docs.'+this.commonUtilites.getDocNameByDocAlias(docname))}), translate('docs.msg.close'));
-                      this.getLinkedDocsScheme(true);//обновляем схему этого документа
+                      // this.getLinkedDocsScheme(true);//обновляем схему этого документа
+                      this._router.navigate(['/ui/'+docname.toLowerCase()+'doc', createdDocId]);
                     }
                   }
                 },

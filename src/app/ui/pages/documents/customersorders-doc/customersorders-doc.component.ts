@@ -161,6 +161,7 @@ interface docResponse {//интерфейс для получения ответ
   street: string;
   home: string;
   flat: string;
+  shipment_time:string;
 }
 
 interface filesInfo {
@@ -256,7 +257,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
   // Расценка (все настройки здесь - по умолчанию. После первого же сохранения настроек данные настройки будут заменяться в методе getSettings() )
   productPrice:number=0; //Цена найденного и выбранного в форме поиска товара.
   netCostPrice:number = 0; // себестоимость найденного и выбранного в форме поиска товара.
- priceUpDownFieldName:string = translate('modules.field.markup'); // Наименование поля с наценкой-скидкой
+  priceUpDownFieldName:string = translate('modules.field.markup'); // Наименование поля с наценкой-скидкой
   priceTypeId_temp:number; // id типа цены. Нужна для временного хранения типа цены на время сброса формы поиска товара
   companyId_temp:number; // id предприятия. Нужна для временного хранения предприятия на время сброса формы formBaseInformation
 
@@ -268,6 +269,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
   spravSysEdizmOfProductAll: idAndNameAndShorname[] = [];// массив, куда будут грузиться все единицы измерения товара
   receivedPriceTypesList: idNameDescription [] = [];//массив для получения списка типов цен
   accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
+  timeFormat:string='24';   //12 or 24
 
   //печать документов
   gettingTemplatesData: boolean = false; // идёт загрузка шаблонов
@@ -431,6 +433,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
       flat:  new UntypedFormControl              ('',[Validators.maxLength(8)]),
       discount_card:   new UntypedFormControl    ('',[Validators.maxLength(30)]),
       uid: new UntypedFormControl                ('',[]),// uuid идентификатор для создаваемой отгрузки
+      shipment_time: new UntypedFormControl     ('',[Validators.required]),
     });
     // Форма для отправки при создании связанных документов
     this.formLinkedDocs = new UntypedFormGroup({
@@ -548,6 +551,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
     this.getBaseData('companiesList');  
     this.getBaseData('myDepartmentsList');    
     this.getBaseData('accountingCurrency');  
+    this.getBaseData('timeFormat');
 
     //слушалки на изменение полей адреса
     this.filteredSpravSysCountries=this.formBaseInformation.get('country').valueChanges.pipe(startWith(''),map((value:string) => this.filter_country(value)));
@@ -903,6 +907,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
 
   setDefaultDate(){
     this.formBaseInformation.get('shipment_date').setValue(moment());
+    this.formBaseInformation.get('shipment_time').setValue(moment().format("HH:mm"));
     this.necessaryActionsBeforeAutoCreateNewDoc();
   }
   doFilterCompaniesList(){
@@ -1132,6 +1137,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
                   this.formBaseInformation.get('department_id').setValue(documentValues.department_id);
                   this.formBaseInformation.get('department').setValue(documentValues.department);
                   this.formBaseInformation.get('shipment_date').setValue(documentValues.shipment_date?moment(documentValues.shipment_date,'DD.MM.YYYY'):"");
+                  this.formBaseInformation.get('shipment_time').setValue(documentValues.shipment_time);
                   this.formBaseInformation.get('doc_number').setValue(documentValues.doc_number);
                   this.formBaseInformation.get('description').setValue(documentValues.description);
                   this.formBaseInformation.get('nds').setValue(documentValues.nds);
@@ -1338,6 +1344,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
     this.formBaseInformation.get('cagent_id').setValue(this.is_addingNewCagent?null:this.formBaseInformation.get('cagent_id').value);
     this.formBaseInformation.get('uid').setValue(uuidv4());
     this.getProductsTable();
+    if(this.timeFormat=='12') this.formBaseInformation.get('shipment_time').setValue(moment(this.formBaseInformation.get('shipment_time').value, 'hh:mm A'). format('HH:mm'));
     this.http.post('/api/auth/insertCustomersOrders', this.formBaseInformation.value)
     .subscribe(
       (data) =>   {
@@ -1456,6 +1463,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
       if(this.settingsForm.get('statusIdOnAutocreateOnCheque').value){// если в настройках есть "Статус при проведении" - временно выставляем его
         this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnAutocreateOnCheque').value);}
     }
+    if(this.timeFormat=='12') this.formBaseInformation.get('shipment_time').setValue(moment(this.formBaseInformation.get('shipment_time').value, 'hh:mm A'). format('HH:mm'));
     return this.http.post('/api/auth/updateCustomersOrders',  this.formBaseInformation.value)
       .subscribe(
           (data) => 
@@ -2042,7 +2050,8 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
                       }
                       default:{// Документ успешно создался в БД 
                         this.openSnackBar(translate('docs.msg.doc_crtd_succ',{name:translate('docs.docs.'+this.commonUtilites.getDocNameByDocAlias(docname))}), translate('docs.msg.close'));
-                        this.getLinkedDocsScheme(true);//обновляем схему этого документа
+                        // this.getLinkedDocsScheme(true);//обновляем схему этого документа
+                        this._router.navigate(['/ui/'+docname.toLowerCase()+'doc', createdDocId]);
                       }
                     }
                   },

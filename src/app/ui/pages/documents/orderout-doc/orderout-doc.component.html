@@ -471,6 +471,8 @@
                                                                             [readonly]="this.formBaseInformation.get('is_completed').value"
                                                                             maxlength="15"
                                                                             formControlName="summ"
+                                                                            (input)="commaToDot('summ');"
+                                                                            (change)="commaToDot('summ');"
                                                                             (keypress)="numberOnlyPlusDotAndComma($event)"/>
                                                                             <mat-hint  align="start" *ngIf="formBaseInformation.get('summ').touched && formBaseInformation.get('summ').invalid">
                                                                                 <i *ngIf="formBaseInformation.get('summ').errors.pattern" class="form-invalid">{{t('docs.error.price_format',{int:9,fract:2})}}</i>
@@ -485,6 +487,8 @@
                                                                             [readonly]="this.formBaseInformation.get('is_completed').value"
                                                                             maxlength="15"
                                                                             formControlName="nds"
+                                                                            (input)="commaToDot('nds');"
+                                                                            (change)="commaToDot('nds');"
                                                                             (keypress)="numberOnlyPlusDotAndComma($event)"/>
                                                                             <mat-hint  align="start" *ngIf="formBaseInformation.get('nds').touched && formBaseInformation.get('nds').invalid">
                                                                                 <i *ngIf="formBaseInformation.get('nds').errors.pattern" class="form-invalid">{{t('docs.error.price_format',{int:9,fract:2})}}</i>

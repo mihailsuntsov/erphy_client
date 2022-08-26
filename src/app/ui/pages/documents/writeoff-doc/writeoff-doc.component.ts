@@ -62,6 +62,7 @@ interface DocResponse {//интерфейс для получения ответ
   status_color: string;
   status_description: string;
   uid:string;
+  writeoff_time:string;
 }
 interface FilesInfo {
   id: string;
@@ -137,6 +138,7 @@ export class WriteoffDocComponent implements OnInit {
   panelWriteoffOpenState=false;
   panelPostingOpenState=false;
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
+  timeFormat:string='24';   //12 or 24
 
   //для загрузки связанных документов
   linkedDocsReturn:LinkedDocs[]=[];
@@ -228,6 +230,7 @@ export class WriteoffDocComponent implements OnInit {
       is_completed: new UntypedFormControl       (false,[]),
       writeoffProductTable: new UntypedFormArray([]),
       uid: new UntypedFormControl                (uuidv4(),[]),
+      writeoff_time: new UntypedFormControl     ('',[Validators.required]),
     });
     this.formAboutDocument = new UntypedFormGroup({
       id: new UntypedFormControl                       ('',[]),
@@ -276,6 +279,7 @@ export class WriteoffDocComponent implements OnInit {
     this.getBaseData('companiesList');  
     this.getBaseData('myDepartmentsList'); 
     this.getBaseData('accountingCurrency');  
+    this.getBaseData('timeFormat');
   }
   //чтобы не было ExpressionChangedAfterItHasBeenCheckedError
   ngAfterContentChecked() {
@@ -619,6 +623,7 @@ export class WriteoffDocComponent implements OnInit {
                   this.formBaseInformation.get('department_id').setValue(documentValues.department_id);
                   this.formBaseInformation.get('department').setValue(documentValues.department);
                   this.formBaseInformation.get('writeoff_date').setValue(documentValues.writeoff_date?moment(documentValues.writeoff_date,'DD.MM.YYYY'):"");
+                  this.formBaseInformation.get('writeoff_time').setValue(documentValues.writeoff_time);
                   this.formBaseInformation.get('doc_number').setValue(documentValues.doc_number);
                   this.formBaseInformation.get('description').setValue(documentValues.description);
                   this.formAboutDocument.get('master').setValue(documentValues.master);
@@ -708,6 +713,7 @@ export class WriteoffDocComponent implements OnInit {
     this.createdDocId=null;
     this.getProductsTable();
     this.formBaseInformation.get('uid').setValue(uuidv4());
+    if(this.timeFormat=='12') this.formBaseInformation.get('writeoff_time').setValue(moment(this.formBaseInformation.get('writeoff_time').value, 'hh:mm A'). format('HH:mm'));
     this.http.post('/api/auth/insertWriteoff', this.formBaseInformation.value)
       .subscribe(
       (data) => {
@@ -827,6 +833,7 @@ export class WriteoffDocComponent implements OnInit {
       if(this.settingsForm.get('statusOnFinishId').value&&this.statusIdInList(this.settingsForm.get('statusOnFinishId').value)){// если в настройках есть "Статус при проведении" и он от этого предприятия - временно выставляем его
         this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);}
     }
+    if(this.timeFormat=='12') this.formBaseInformation.get('writeoff_time').setValue(moment(this.formBaseInformation.get('writeoff_time').value, 'hh:mm A'). format('HH:mm'));
     this.http.post('/api/auth/updateWriteoff',  this.formBaseInformation.value)
       .subscribe(
           (data) => 
@@ -996,6 +1003,7 @@ export class WriteoffDocComponent implements OnInit {
   }
   setDefaultDate(){
     this.formBaseInformation.get('writeoff_date').setValue(moment());
+    this.formBaseInformation.get('writeoff_time').setValue(moment().format("HH:mm"));
   }
   getCompanyNameById(id:number):string{
     let name:string;

@@ -844,10 +844,19 @@ doFilterDepartmentsList(){
     this.selectionFilterOptions.toggle(row); 
     this.createFilterOptionsCheckedList();
   } 
-  createFilterOptionsCheckedList(){//this.sendingQueryForm.filterOptionsIds - массив c id выбранных чекбоксов вида "7,5,1,3,6,2,4", который заполняется при нажатии на чекбокс
-    this.sendingQueryForm.filterOptionsIds = [];//                                                     
-    this.selectionFilterOptions.selected.forEach(z=>{
-      this.sendingQueryForm.filterOptionsIds.push(+z.id);
+  // createFilterOptionsCheckedList(){//this.sendingQueryForm.filterOptionsIds - массив c id выбранных чекбоксов вида "7,5,1,3,6,2,4", который заполняется при нажатии на чекбокс
+  //   this.sendingQueryForm.filterOptionsIds = [];//                                                     
+  //   this.selectionFilterOptions.selected.forEach(z=>{
+  //     this.sendingQueryForm.filterOptionsIds.push(+z.id);
+  //   });
+  // }
+  createFilterOptionsCheckedList(){//checkedOptionsList - массив c id выбранных чекбоксов вида "7,5,1,3,6,2,4", который заполняется при загрузке страницы и при нажатии на чекбокс, а при 
+    this.checkedOptionsList = [];//                                                       отправке данных внедряется в поле формы 
+    // console.log("createCheckedList!!!");
+    this.optionsIds.forEach(z=>{
+      console.log("object z - "+z+", z.id - "+z.id+", z.name - "+z.name)
+      if(this.selectionFilterOptions.isSelected(z))
+        this.checkedOptionsList.push(+z.id);
     });
   }
   // sometimes in cookie "..._companyId" there value that not exists in list of companies. If it happens, company will be not selected and data not loaded until user select company manually

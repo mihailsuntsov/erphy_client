@@ -237,7 +237,10 @@
         "available":    "Available",
         "ne_rght_prod": "Insufficient rights to view the list of goods and services, and their categories. For the \"Products\" document, you must enable all or one of the following rights in your role:",
         "_rght_all_com":"View documents of all companies",
-        "_rght_my_com": "View your company documents"
+        "_rght_my_com": "View your company documents",
+        "cnt_more_zero":"Qty = 0",
+        "prc_more_zero":"Price = 0",
+        "min_cnt_chars":"Minimum number of characters - "
     },
     "msg":{
         "error":        "Error!",

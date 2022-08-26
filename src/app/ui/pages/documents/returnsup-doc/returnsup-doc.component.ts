@@ -69,6 +69,7 @@ interface DocResponse {//интерфейс для получения ответ
   nds: boolean;
   date_return: string;
   uid:string;
+  return_time:string;
 }
 interface FilesInfo {
   id: string;
@@ -164,6 +165,7 @@ export class ReturnsupDocComponent implements OnInit {
   spravTaxesSet: SpravTaxesSet[] = []; //массив имен и id для ндс 
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
   accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
+  timeFormat:string='24';   //12 or 24
 
   //для загрузки связанных документов
   LinkedDocsWriteoff:LinkedDocs[]=[];
@@ -273,6 +275,7 @@ export class ReturnsupDocComponent implements OnInit {
       date_return: new UntypedFormControl        ('',[]),
       returnsupProductTable: new UntypedFormArray([]),
       uid: new UntypedFormControl                ('',[]),// uuid идентификатор
+      return_time: new UntypedFormControl        ('',[Validators.required]),
     });
     this.formAboutDocument = new UntypedFormGroup({
       id: new UntypedFormControl                       ('',[]),
@@ -378,6 +381,7 @@ export class ReturnsupDocComponent implements OnInit {
     this.getBaseData('companiesList');  
     this.getBaseData('myDepartmentsList');  
     this.getBaseData('accountingCurrency');  
+    this.getBaseData('timeFormat');
   }
   //чтобы не было ExpressionChangedAfterItHasBeenCheckedError
   ngAfterContentChecked() {
@@ -775,6 +779,7 @@ export class ReturnsupDocComponent implements OnInit {
                   this.formBaseInformation.get('nds').setValue(documentValues.nds);
                   this.formBaseInformation.get('status_id').setValue(documentValues.status_id);
                   this.formBaseInformation.get('date_return').setValue(documentValues.date_return?moment(documentValues.date_return,'DD.MM.YYYY'):"");
+                  this.formBaseInformation.get('return_time').setValue(documentValues.return_time);
                   this.formBaseInformation.get('status_name').setValue(documentValues.status_name);
                   this.formBaseInformation.get('status_color').setValue(documentValues.status_color);
                   this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
@@ -854,6 +859,7 @@ export class ReturnsupDocComponent implements OnInit {
     this.createdDocId=null;
     this.getProductsTable();
     this.formBaseInformation.get('uid').setValue(uuidv4());
+    if(this.timeFormat=='12') this.formBaseInformation.get('return_time').setValue(moment(this.formBaseInformation.get('return_time').value, 'hh:mm A'). format('HH:mm'));
     this.http.post('/api/auth/insertReturnsup', this.formBaseInformation.value)
       .subscribe(
       (data) => {
@@ -972,6 +978,7 @@ export class ReturnsupDocComponent implements OnInit {
       if(this.settingsForm.get('statusOnFinishId').value&&this.statusIdInList(this.settingsForm.get('statusOnFinishId').value)){// если в настройках есть "Статус при проведении" - временно выставляем его
         this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);}
     }
+    if(this.timeFormat=='12') this.formBaseInformation.get('return_time').setValue(moment(this.formBaseInformation.get('return_time').value, 'hh:mm A'). format('HH:mm'));
     this.http.post('/api/auth/updateReturnsup',  this.formBaseInformation.value)
       .subscribe(
           (data) => 
@@ -1140,6 +1147,7 @@ export class ReturnsupDocComponent implements OnInit {
   }
   setDefaultDate(){
     this.formBaseInformation.get('date_return').setValue(moment());
+    this.formBaseInformation.get('return_time').setValue(moment().format("HH:mm"));
   }
   getCompanyNameById(id:number):string{
     let name:string;
@@ -1234,7 +1242,8 @@ export class ReturnsupDocComponent implements OnInit {
                     }
                     default:{// Документ успешно создался в БД 
                       this.openSnackBar(translate('docs.msg.doc_crtd_succ',{name:translate('docs.docs.'+this.commonUtilites.getDocNameByDocAlias(docname))}), translate('docs.msg.close'));
-                      this.getLinkedDocsScheme(true);//обновляем схему этого документа
+                      // this.getLinkedDocsScheme(true);//обновляем схему этого документа
+                      this._router.navigate(['/ui/'+docname.toLowerCase()+'doc', createdDocId]);
                     }
                   }
                 },

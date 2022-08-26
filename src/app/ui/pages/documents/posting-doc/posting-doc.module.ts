@@ -9,6 +9,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SettingsPostingDialogModule } from '../../../../modules/settings/settings-posting-dialog/settings-posting-dialog.module';
 import { PostingProductsTableModule } from 'src/app/modules/trade-modules/posting-products-table/posting-products-table.module';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import {NgxMaterialTimepickerModule} from 'ngx-material-timepicker';
 
 @NgModule({
   declarations: [PostingDocComponent],
@@ -21,7 +22,8 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
     MaterialModule,
     FormsModule,
     ReactiveFormsModule,
-    TranslocoModule
+    TranslocoModule,
+    NgxMaterialTimepickerModule
   ],
   providers:[{ provide: TRANSLOCO_SCOPE, useValue: ['docs','menu','modules']},]
 })

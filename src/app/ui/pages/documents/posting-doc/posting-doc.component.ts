@@ -60,6 +60,7 @@ interface DocResponse {//интерфейс для получения ответ
   status_color: string;
   status_description: string;
   uid:string;
+  posting_time:string;
 }
 interface FilesInfo {
   id: string;
@@ -135,6 +136,7 @@ export class PostingDocComponent implements OnInit {
   // panelPostingOpenState=false;
   // panelPostingOpenState=false;
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
+  timeFormat:string='24';   //12 or 24
 
   //для загрузки связанных документов
   linkedDocsReturn:LinkedDocs[]=[];
@@ -226,6 +228,7 @@ export class PostingDocComponent implements OnInit {
       is_completed: new UntypedFormControl       (false,[]),
       postingProductTable: new UntypedFormArray([]),
       uid: new UntypedFormControl                (uuidv4(),[]),
+      posting_time: new UntypedFormControl     ('',[Validators.required]),
     });
     this.formAboutDocument = new UntypedFormGroup({
       id: new UntypedFormControl                       ('',[]),
@@ -274,6 +277,7 @@ export class PostingDocComponent implements OnInit {
     this.getBaseData('companiesList');  
     this.getBaseData('myDepartmentsList');    
     this.getBaseData('accountingCurrency');  
+    this.getBaseData('timeFormat');
   }
   //чтобы не было ExpressionChangedAfterItHasBeenCheckedError
   ngAfterContentChecked() {
@@ -615,6 +619,7 @@ export class PostingDocComponent implements OnInit {
                   this.formBaseInformation.get('department_id').setValue(documentValues.department_id);
                   this.formBaseInformation.get('department').setValue(documentValues.department);
                   this.formBaseInformation.get('posting_date').setValue(documentValues.posting_date?moment(documentValues.posting_date,'DD.MM.YYYY'):"");
+                  this.formBaseInformation.get('posting_time').setValue(documentValues.posting_time);
                   this.formBaseInformation.get('doc_number').setValue(documentValues.doc_number);
                   this.formBaseInformation.get('description').setValue(documentValues.description);
                   this.formAboutDocument.get('master').setValue(documentValues.master);
@@ -699,6 +704,7 @@ export class PostingDocComponent implements OnInit {
   createNewDocument(){
     this.createdDocId=null;
     this.getProductsTable();
+    if(this.timeFormat=='12') this.formBaseInformation.get('posting_time').setValue(moment(this.formBaseInformation.get('posting_time').value, 'hh:mm A'). format('HH:mm'));
     this.http.post('/api/auth/insertPosting', this.formBaseInformation.value)
       .subscribe(
       (data) => {
@@ -818,6 +824,7 @@ export class PostingDocComponent implements OnInit {
       if(this.settingsForm.get('statusOnFinishId').value&&this.statusIdInList(this.settingsForm.get('statusOnFinishId').value)){// если в настройках есть "Статус при проведении" и он от этого предприятия - временно выставляем его
         this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);}
     }
+    if(this.timeFormat=='12') this.formBaseInformation.get('posting_time').setValue(moment(this.formBaseInformation.get('posting_time').value, 'hh:mm A'). format('HH:mm'));
     this.http.post('/api/auth/updatePosting',  this.formBaseInformation.value)
       .subscribe(
           (data) => 
@@ -976,6 +983,7 @@ export class PostingDocComponent implements OnInit {
   }
   setDefaultDate(){
     this.formBaseInformation.get('posting_date').setValue(moment());
+    this.formBaseInformation.get('posting_time').setValue(moment().format("HH:mm"));
   }
   getCompanyNameById(id:number):string{
     let name:string;

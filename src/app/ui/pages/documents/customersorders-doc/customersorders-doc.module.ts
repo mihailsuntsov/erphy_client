@@ -12,6 +12,7 @@ import { ProductSearchAndTableModule } from 'src/app/modules/trade-modules/produ
 import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.module';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 // import { KkmModule } from 'src/app/modules/trade-modules/kkm/kkm.module';
+import {NgxMaterialTimepickerModule} from 'ngx-material-timepicker';
 
 @NgModule({
   declarations: [CustomersordersDocComponent, ControlMessagesComponent],
@@ -27,7 +28,8 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
     MaterialModule,
     FormsModule,
     ReactiveFormsModule,
-    TranslocoModule
+    TranslocoModule,
+    NgxMaterialTimepickerModule
   ],
   providers: [{ provide: TRANSLOCO_SCOPE, useValue: ['docs','menu','modules']},ValidationService],
 })

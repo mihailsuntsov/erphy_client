@@ -10,6 +10,7 @@ import { SettingsInvoiceinDialogModule } from '../../../../modules/settings/sett
 import { InvoiceinProductsTableModule } from 'src/app/modules/trade-modules/invoicein-products-table/invoicein-products-table.module';
 import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.module';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import {NgxMaterialTimepickerModule} from 'ngx-material-timepicker';
 
 @NgModule({
   declarations: [InvoiceinDocComponent, /*ControlMessagesComponent*/],
@@ -24,7 +25,8 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
     MaterialModule,
     FormsModule,
     ReactiveFormsModule,
-    TranslocoModule
+    TranslocoModule,
+    NgxMaterialTimepickerModule
   ],
   providers: [{ provide: TRANSLOCO_SCOPE, useValue: ['docs','menu','modules']},ValidationService],
 })

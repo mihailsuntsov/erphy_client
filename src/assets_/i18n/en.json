@@ -87,7 +87,7 @@
 
                 "return":"Customers returns",
                 "customersorders":"Customers orders",
-                "shipment":"Sales",
+                "shipment":"Shipments",
                 "invoiceout":"Invoices to customers",
                 "vatinvoiceout":"Issued VAT invoices",
 

@@ -10,6 +10,7 @@ import { SettingsOrdersupDialogModule } from '../../../../modules/settings/setti
 import { OrdersupProductsTableModule } from 'src/app/modules/trade-modules/ordersup-products-table/ordersup-products-table.module';
 import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.module';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import {NgxMaterialTimepickerModule} from 'ngx-material-timepicker';
 
 @NgModule({
   declarations: [OrdersupDocComponent, /*ControlMessagesComponent*/],
@@ -27,7 +28,8 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
     MaterialModule,
     FormsModule,
     ReactiveFormsModule,
-    TranslocoModule
+    TranslocoModule,
+    NgxMaterialTimepickerModule
   ],
 })
 export class OrdersupDocModule { }

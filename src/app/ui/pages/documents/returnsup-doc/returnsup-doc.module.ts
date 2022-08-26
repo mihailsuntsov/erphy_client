@@ -11,6 +11,7 @@ import { ReturnsupProductsTableModule } from 'src/app/modules/trade-modules/retu
 import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.module';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 // import { KkmModule } from 'src/app/modules/trade-modules/kkm/kkm.module';
+import {NgxMaterialTimepickerModule} from 'ngx-material-timepicker';
 
 @NgModule({
   declarations: [ReturnsupDocComponent],
@@ -29,7 +30,8 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
     MaterialModule,
     FormsModule,
     ReactiveFormsModule,
-    TranslocoModule
+    TranslocoModule,
+    NgxMaterialTimepickerModule
   ],
 })
 export class ReturnsupDocModule { }
