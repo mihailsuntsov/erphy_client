@@ -80,7 +80,7 @@
             },
             "items":{
                 "returnsup":"Returns to suppliers",
-                "ordersup":"Orders to suppliers",
+                "ordersup":"Purchase orders",
                 "acceptance":"Acceptances",
                 "invoicein":"Suppliers invoices",
                 "vatinvoicein":"Received VAT invoices",

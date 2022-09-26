@@ -227,7 +227,9 @@
         "file_category":"File category",
         "shared_file":  "Shared file",
         "uploading":    "Uploading",
-        "time_format":  "Time format"
+        "time_format":  "Time format",
+        "slug":         "Slug",
+        "display":      "Display"
     },
     "error":{
         "field_miss":   "Required field is missing",
@@ -311,7 +313,12 @@
         "set_new":      "Assign new",
         "like_orig":    "Like original",
         "stay_empty":   "Stay empty",
-        "no_category":  "Uncategorized"
+        "no_category":  "Uncategorized",
+        "none":         "None",
+        "default":      "Default",
+        "products":     "Products",
+        "subcategories":"Subcategories",
+        "both":         "Both"
     },
     "kpi":{
         "hour":"Hour",

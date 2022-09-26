@@ -307,7 +307,13 @@ export class ReturnDocComponent implements OnInit {
         child_uid: new UntypedFormControl          (null,[]),// uid дочернего документа
         linked_doc_name: new UntypedFormControl    (null,[]),//имя (таблицы) связанного документа
         uid: new UntypedFormControl                ('',[]),
+        payment_account_id: new UntypedFormControl (null,[]),// id банковского счёта
+        boxoffice_id: new UntypedFormControl       (null,[]),// id кассы предприятия
+        nds: new UntypedFormControl                ('',[]),
+        summ:     new UntypedFormControl           ('',[]),
+        cagent_id: new UntypedFormControl          (null,[Validators.required]),
       });
+
     // Форма настроек
     this.settingsForm = new UntypedFormGroup({
       companyId: new UntypedFormControl                (null,[]),            // предприятие, для которого создаются настройки
@@ -1125,12 +1131,13 @@ export class ReturnDocComponent implements OnInit {
   }
 
 //*************************************************          СВЯЗАННЫЕ ДОКУМЕНТЫ          ******************************************************/
-  //создание Списания
-  createLinkedDoc(docname:string){// принимает аргументы: Writeoff
+  //создание связанных документов
+  createLinkedDoc(docname:string){// принимает аргументы: Writeoff, Paymentout, Orderout
     let uid = uuidv4();
     let canCreateLinkedDoc:CanCreateLinkedDoc=this.canCreateLinkedDoc(docname); //проверим на возможность создания связанного документа
     if(canCreateLinkedDoc.can){
       this.formWP.get('return_id').setValue(this.id);
+      this.formWP.get('cagent_id').setValue(this.formBaseInformation.get('cagent_id').value);
       this.formWP.get('company_id').setValue(this.formBaseInformation.get('company_id').value);
       this.formWP.get('department_id').setValue(this.formBaseInformation.get('department_id').value);
       this.formWP.get('description').setValue(translate('docs.msg.created_from')+translate('docs.docs.return')+' '+translate('docs.top.number')+this.formBaseInformation.get('doc_number').value);
@@ -1139,6 +1146,14 @@ export class ReturnDocComponent implements OnInit {
       this.formWP.get('child_uid').setValue(uid);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Возврат покупателя будет дочерней для него.
       this.formWP.get('linked_doc_name').setValue('return');//имя (таблицы) связанного документа
       this.formWP.get('uid').setValue(uid);// uid дочернего документа
+      // параметры для исходящих ордеров и платежей (Paymentout, Orderout)
+      if(docname=='Paymentout'||docname=='Orderout'){
+        this.formWP.get('payment_account_id').setValue(null);//id расчтёного счёта      
+        this.formWP.get('boxoffice_id').setValue(null);
+        this.formWP.get('summ').setValue(this.returnProductsTableComponent.totalProductSumm)
+        this.formWP.get('nds').setValue(this.returnProductsTableComponent.getTotalNds());
+      }
+
       this.getProductsTableWP(docname);//формируем таблицу товаров для создаваемого документа
       this.http.post('/api/auth/insert'+docname, this.formWP.value)
       .subscribe(

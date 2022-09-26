@@ -1103,6 +1103,79 @@
                                                 </mat-option>                                                 
                                             </mat-select>
                                         </mat-form-field>
+                                        <div class="flex">
+                                            <mat-form-field 
+                                                class="slideWidth100">
+                                                <mat-slide-toggle formControlName="is_store">{{t('docs.field.p_store')}}</mat-slide-toggle>
+                                                <input matInput hidden/>
+                                            </mat-form-field>
+                                        </div>
+                                    </mat-card-content>
+                                </mat-card>
+                            </div>
+                        </div>
+                    </div>
+                </mat-tab>
+
+                <mat-tab  *ngIf="+id>0 && formBaseInformation.get('is_store').value"  label="{{t('docs.field.p_store')}}">
+                    <div class="container-fluid">
+                        <div class="row" style="padding: 10px">
+                            <div class="col-xl-5 col-lg-9 col-md-12">
+                                <mat-card>
+                                    <mat-card-content class="input-form">
+                                        <mat-form-field>
+                                            <mat-label>{{t('docs.field.p_s_st_addr')}}</mat-label>
+                                            <input   matInput
+                                                    [readonly]=!editability
+                                                    (keypress)="numberOnly($event)"
+                                                    maxlength="120"
+                                                    formControlName="store_site_address"/>                                                    
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('store_site_address').value.length>100">{{formBaseInformation.get('store_site_address').value.length}} / 120</mat-hint>
+                                        </mat-form-field>
+                                        <mat-form-field>
+                                            <mat-label>{{t('docs.field.p_s_key')}}</mat-label>
+                                            <input   matInput
+                                                    [readonly]=!editability
+                                                    (keypress)="numberOnly($event)"
+                                                    maxlength="120"
+                                                    formControlName="store_key"/>                                                    
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('store_key').value.length>100">{{formBaseInformation.get('store_key').value.length}} / 120</mat-hint>
+                                        </mat-form-field>
+                                        <mat-form-field>
+                                            <mat-label>{{t('docs.field.p_s_secret')}}</mat-label>
+                                            <input   matInput
+                                                    [readonly]=!editability
+                                                    (keypress)="numberOnly($event)"
+                                                    maxlength="120"
+                                                    formControlName="store_secret"/>                                                    
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('store_secret').value.length>100">{{formBaseInformation.get('store_secret').value.length}} / 120</mat-hint>
+                                        </mat-form-field>
+                                        <mat-form-field>
+                                            <mat-label>{{t('docs.field.p_s_crm_key')}}</mat-label>
+                                            <input   matInput
+                                                    [readonly]=!editability
+                                                    (keypress)="numberOnly($event)"
+                                                    maxlength="36"
+                                                    formControlName="crm_secret_key"/>                                                    
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('crm_secret_key').value.length>30">{{formBaseInformation.get('crm_secret_key').value.length}} / 36</mat-hint>
+                                        </mat-form-field>
+                                        <mat-form-field>
+                                            <mat-label>{{t('docs.field.p_s_prc_reg')}}</mat-label>
+                                            <mat-select  formControlName="store_price_type_regular">                          
+                                            <mat-option  *ngFor="let rt of receivedPriceTypesList" [value]="rt.id">
+                                                            {{rt.name}}
+                                                    </mat-option> 
+                                            </mat-select>
+                                        </mat-form-field>
+                                        <mat-form-field>
+                                            <mat-label>{{t('docs.field.p_s_prc_sale')}}</mat-label>
+                                            <mat-select  formControlName="store_price_type_sale">                     
+                                            <mat-option  value="null"></mat-option>   
+                                            <mat-option  *ngFor="let rt of receivedPriceTypesList" [value]="rt.id">
+                                                            {{rt.name}}
+                                                    </mat-option> 
+                                            </mat-select>
+                                        </mat-form-field>
                                     </mat-card-content>
                                 </mat-card>
                             </div>

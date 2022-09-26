@@ -559,6 +559,7 @@ export class ProductsComponent implements OnInit {
         categoryName: this.sendingQueryForm.selectedNodeName , 
         categoryId: +this.sendingQueryForm.selectedNodeId,
         docName:translate('menu.dialogs.ctg_edit'), //+++
+        companyId:+this.sendingQueryForm.companyId
       },
     });
     dialogRef.afterClosed().subscribe(result => {

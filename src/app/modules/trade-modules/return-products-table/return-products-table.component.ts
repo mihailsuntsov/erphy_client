@@ -62,6 +62,8 @@ interface SpravTaxesSet{
   name_api_atol: string;
   is_active: string;
   calculated: string;
+  value:number;
+  multiplier:number;
 }
 @Component({
   selector: 'app-return-products-table',
@@ -80,6 +82,7 @@ export class ReturnProductsTableComponent implements OnInit {
   totalNetcost:number=0;//всего избыток/недостача
   indivisibleErrorOfSearchForm:boolean; // дробное кол-во товара при неделимом товаре в форме поиска
   indivisibleErrorOfProductTable:boolean;// дробное кол-во товара при неделимом товаре в таблице товаров
+  totalNds:number=0;//всего НДС
 
   //для Autocomplete по поиску товаров
   searchProductCtrl = new UntypedFormControl();//поле для поиска товаров
@@ -526,6 +529,41 @@ export class ReturnProductsTableComponent implements OnInit {
     let current_row_id:number=this.row_id;
     this.row_id++;
     return current_row_id;
+  }
+  getTotalNds() {//возвращает общую НДС
+    this.tableNdsRecount();
+    return (this.totalNds);
+  }
+  //пересчитывает НДС в таблице товаров
+  tableNdsRecount(){
+    if(this.formBaseInformation!=undefined){//метод может вызываться из ngOnChanges, а т.к. он стартует до ngOnInit, то formBaseInformation может еще не быть
+      //перерасчет НДС в таблице товаров
+      if(this.formBaseInformation.controls['returnProductTable'].value.length>0){
+        this.totalNds=0;
+        let switcherNDS:boolean = this.nds;
+        let switcherNDSincluded:boolean = true; // в Возврате покупателя НДС всегда включен в цену товаров 
+        let multiplifierNDS:number = 1;//множитель НДС. Рассчитывается для каждой строки таблицы. Например, для НДС 20% будет 1.2, для 0 или без НДС будет 1
+        this.formBaseInformation.value.returnProductTable.map(i =>{
+          multiplifierNDS = this.getTaxMultiplifierBySelectedId(+i['nds_id']);
+          i['product_sumprice']=this.numToPrice(+((+i['product_count'])*(+i['product_price'])).toFixed(2),2);//сумма - это просто произведение количества на цену
+          //если включён переключатель "Налог" - то Налог уже в цене, и нужно вычислить его из неё
+          if(switcherNDS){
+            this.totalNds += this.getTaxFromPrice(i['product_sumprice'], i['nds_id']);
+          }
+        })}}
+  }
+  getTaxMultiplifierBySelectedId(srchId:number):number {
+    //возвращает множитель по выбранному НДС. например, для 20% будет 1.2, 0% - 1 и т.д 
+        let value=0;
+        this.spravTaxesSet.forEach(a=>{
+          if(+a.id == srchId) {value=a.multiplier}
+        }); return value;}   
+
+  getTaxFromPrice(price:number, taxId:number):number {
+    // вычисляет налог из цены. Например, для цены 100, уже содержащей в себе налог, и налога 20% вернёт: 100 * 20 / 120 = 16.67
+    let value=0;
+    this.spravTaxesSet.forEach(a=>{if(+a.id == taxId) {value=a.value}});
+    return parseFloat((price*value/(100+value)).toFixed(2));
   }
 
   //отправляем родителю результат (для его дальнейшей переправки в кассовый модуль)

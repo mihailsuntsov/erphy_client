@@ -104,6 +104,17 @@ interface docResponse {//интерфейс для получения ответ
   st_prefix_barcode_pieced: number;// prefix of barcode for pieced product
   st_prefix_barcode_packed: number;// prefix of barcode for packed product
   st_netcost_policy: string;       // policy of netcost calculation by all company or by each department separately
+
+  // E-commerce integration
+  is_store: boolean;                // on off the store
+  store_site_address: string;       // e.g. http://localhost/DokioShop
+  store_key: string;                // consumer key
+  store_secret: string;             // consumer secret
+  store_type: string;               // e.g. woo
+  store_api_version: string;        // e.g. v3
+  crm_secret_key: string;           // like UUID generated
+  store_price_type_regular: number; // id of regular type price
+  store_price_type_sale: number;    // id of sale type price
 }
 
 interface IdAndName{
@@ -320,6 +331,16 @@ constructor(private activateRoute: ActivatedRoute,
       st_prefix_barcode_pieced: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{2}$')]), // prefix of barcode for pieced product
       st_prefix_barcode_packed: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{2}$')]), // prefix of barcode for packed product
       st_netcost_policy:        new UntypedFormControl      ('all',[]), // policy of netcost calculation by "all" company or by "each" department separately
+      // E-commerce integration
+      is_store:                 new UntypedFormControl      (false,[]),  // on off the store
+      store_site_address:       new UntypedFormControl      ('',[Validators.maxLength(128)]),  // e.g. http://localhost/DokioShop
+      store_key:                new UntypedFormControl      ('',[Validators.maxLength(128)]),  // consumer key
+      store_secret:             new UntypedFormControl      ('',[Validators.maxLength(128)]),  // consumer secret
+      store_type:               new UntypedFormControl      ('woo',[]),  // e.g. woo
+      store_api_version:        new UntypedFormControl      ('v3',[]),  // e.g. v3
+      crm_secret_key:           new UntypedFormControl      ('',[Validators.maxLength(36)]),  // like UUID generated
+      store_price_type_regular: new UntypedFormControl      ('',[]),  // id of regular type price
+      store_price_type_sale:    new UntypedFormControl      ('',[]),  // id of sale type price
     });
     this.formAboutDocument = new UntypedFormGroup({
       id: new UntypedFormControl      ('',[]),
@@ -535,6 +556,16 @@ constructor(private activateRoute: ActivatedRoute,
                   
                   this.formBaseInformation.get('type').setValue(documentValues.type);
                   this.formBaseInformation.get('legal_form').setValue(documentValues.legal_form);
+                  
+                  this.formBaseInformation.get('is_store').setValue(documentValues.is_store);
+                  this.formBaseInformation.get('store_site_address').setValue(documentValues.store_site_address);
+                  this.formBaseInformation.get('store_key').setValue(documentValues.store_key);
+                  this.formBaseInformation.get('store_secret').setValue(documentValues.store_secret);
+                  this.formBaseInformation.get('store_type').setValue(documentValues.store_type);
+                  this.formBaseInformation.get('store_api_version').setValue(documentValues.store_api_version);
+                  this.formBaseInformation.get('crm_secret_key').setValue(documentValues.crm_secret_key);
+                  this.formBaseInformation.get('store_price_type_regular').setValue(documentValues.store_price_type_regular);
+                  this.formBaseInformation.get('store_price_type_sale').setValue(documentValues.store_price_type_sale);
 
                   this.searchRegionCtrl.setValue(documentValues.region);
                   this.searchJrRegionCtrl.setValue(documentValues.jr_region);
@@ -546,6 +577,7 @@ constructor(private activateRoute: ActivatedRoute,
                   // this.getStatusesList();
                   this.getCompaniesPaymentAccounts();
                   this.loadFilesInfo();
+                  this.getPriceTypesList();
                   
                 } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();
@@ -572,6 +604,7 @@ constructor(private activateRoute: ActivatedRoute,
               this._router.navigate(['/ui/companiesdoc', this.id]);
               this.formBaseInformation.get('id').setValue(this.id);
               this.getBaseData('reloadCompaniesList');  
+              this.getPriceTypesList();
               this.rightsDefined=false; //!!!
               this.getData();
               this.openSnackBar(translate('docs.msg.doc_crtd_suc'),translate('docs.msg.close'));
@@ -605,10 +638,9 @@ constructor(private activateRoute: ActivatedRoute,
   }
   getPriceTypesList(){
     this.receivedPriceTypesList=null;
-    this.loadSpravService.getPriceTypesList(+this.formBaseInformation.get('company_id').value)
+    this.loadSpravService.getPriceTypesList(this.id)
       .subscribe(
           (data) => {this.receivedPriceTypesList=data as any [];
-            this.refreshPermissions();
           },
           error => console.log(error)
       );
@@ -728,6 +760,7 @@ constructor(private activateRoute: ActivatedRoute,
         this.formBaseInformation.get('jr_additional_address').setValue(this.formBaseInformation.get('additional_address').value);
       }});
   }
+
   //  -----------------------     ***** поиск по подстроке для Региона  ***    --------------------------
   // onRegionSearchValueChanges(){
   //   this.searchRegionCtrl.valueChanges

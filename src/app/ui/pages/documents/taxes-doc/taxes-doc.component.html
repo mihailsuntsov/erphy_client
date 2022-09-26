@@ -118,17 +118,17 @@
                                                             <mat-label>{{t('docs.field.tax_value')}} <span *ngIf="(formBaseInformation.get('value').value).toString()==''" class="star">*</span></mat-label>
                                                             <input  matInput
                                                                     [readonly]="((id==0 && !allowToCreate) || (id>0 && !allowToUpdate))"
-                                                                    (keypress)="numberOnly($event)"
+                                                                    (keypress)="numberOnlyPlusDot($event)"
                                                                     (keyup)="onTaxValueChange()"
                                                                     matTooltip="{{t('docs.tip.tax_value')}}"
-                                                                    maxlength="2"
+                                                                    maxlength="5"
                                                                     formControlName="value"/>
                                                                     <mat-hint  align="start" *ngIf="formBaseInformation.get('value').touched && formBaseInformation.get('value').invalid">
-                                                                        <i *ngIf="formBaseInformation.get('value').errors.pattern" class="form-invalid">{{t('docs.error.price_format1',{cnt:2})}}</i>
+                                                                        <i *ngIf="formBaseInformation.get('value').errors.pattern" class="form-invalid">{{t('modules.error.price_format',{int:2,fract:2})}}</i>
                                                                         <i *ngIf="formBaseInformation.get('value').value==''" class="form-invalid">{{t('docs.error.field_miss')}}</i>
                                                                     </mat-hint>
                                                         </mat-form-field>
-                                                        <mat-form-field class="mat-form-field-100" style="display: none">
+                                                        <mat-form-field class="mat-form-field-100" style="display: block">
                                                             <mat-label>{{t('docs.field.mplicator')}}<span *ngIf="+formBaseInformation.get('multiplier').value==0" class="star">*</span></mat-label>
                                                             <input  matInput
                                                                     [readonly]="true"

@@ -104,7 +104,7 @@ export class TaxesDocComponent implements OnInit {
       taxesIdsInOrderOfList:new UntypedFormControl      ([],[]),//массив для формирования необходимого порядка вывода налогов
       name: new UntypedFormControl      ('',[Validators.required,Validators.maxLength(30)]),
       description: new UntypedFormControl      ('',[]),
-      value: new UntypedFormControl      (0,[Validators.required,Validators.pattern('^[0-9]{1,2}?\r?$')]),
+      value: new UntypedFormControl      (0,[Validators.required,Validators.pattern('^[0-9]{1,2}(?:[.,][0-9]{0,2})?\r?$')]),
       multiplier: new UntypedFormControl      (1,[]),
       is_active: new UntypedFormControl      (true,[]),
       is_deleted: new UntypedFormControl      (false,[]),
@@ -373,7 +373,9 @@ getSetOfPermissions(){
   numberOnly(event): boolean {
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
     if (charCode > 31 && (charCode < 48 || charCode > 57)) { return false; } return true;}
-
+  numberOnlyPlusDot(event): boolean {
+    const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
+    if (charCode > 31 && ((charCode < 48 || charCode > 57) && charCode!=46)) { return false; } return true;}
   getBaseData(data) {    //+++ emit data to parent component
     this.baseData.emit(data);
   }
