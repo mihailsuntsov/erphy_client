@@ -313,6 +313,8 @@
         "del_file":     "Delete file",
         "open_file":    "Open file card",
         "add_file":     "Add files",
+        "add_img":      "Select image",
+        "del_img":      "Delete image",
         "crte_cmplte":  "Create and complete this document",
         "select":       "Select",
         "move":         "Move",

@@ -1,11 +1,12 @@
 /**
 * Dayana Jabif
-* djabif
-* Creating amazing stuff at https://ionicthemes.com and https://angular-templates.io
+* Frontend Developer with 10+ years of experience. #Javascript #Angular #Ionic
 * @ionicthemes @AngularTemplates
-* Uruguay dayana.jabif@gmail.com 
-* https://ionicthemes.com 
-* @dayujabif
+* Uruguay 
+* dayana.jabif@gmail.com 
+* https://www.linkedin.com/in/dayanajabif/
+* Twitter: @dayujabif
+* Github: djabif
 */
 import { Pipe, PipeTransform } from '@angular/core';
 

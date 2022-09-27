@@ -18,6 +18,7 @@ interface docResponse {//интерфейс для получения ответ
   description: string;
   original_name: string;
   extention: string;
+  alt: string;
   file_size:string;
   mime_type: string;
   anonyme_access: boolean;
@@ -147,15 +148,16 @@ constructor(private activateRoute: ActivatedRoute,
     this.formBaseInformation = new UntypedFormGroup({
       id: new UntypedFormControl                         (this.id,[]),
       original_name: new UntypedFormControl              ('',[Validators.required]),
-      description: new UntypedFormControl                ('',[]),
+      description: new UntypedFormControl                ('',[Validators.maxLength(1000)]),
       anonyme_access: new UntypedFormControl             ('',[]),
       // slideToggle: new FormControl             ('',[]),
       company_id: new UntypedFormControl                 ('',[Validators.required]),
       company: new UntypedFormControl                    ('',[]),
       selectedFileCategories:new UntypedFormControl      ([],[]),
       //для этих полей нет, но они нужны:
-      name: new UntypedFormControl                       ('',[]),
+      name: new UntypedFormControl                       ('',[Validators.maxLength(500)]),
       extention: new UntypedFormControl                  ('',[]),
+      alt: new UntypedFormControl                        ('',[Validators.maxLength(120)]),
       file_size: new UntypedFormControl                  ('',[]),
       mime_type: new UntypedFormControl                  ('',[]),
     });
@@ -174,7 +176,6 @@ constructor(private activateRoute: ActivatedRoute,
     });
     this.checkedList = [];
     this.getSetOfPermissions();
-    //+++ getting base data from parent component
     this.getBaseData('myId');    
     this.getBaseData('myCompanyId');  
     this.getBaseData('companiesList');   
@@ -309,6 +310,7 @@ constructor(private activateRoute: ActivatedRoute,
           this.formBaseInformation.get('anonyme_access').setValue(documentValues.anonyme_access);
           this.formBaseInformation.get('name').setValue(documentValues.name);
           this.formBaseInformation.get('extention').setValue(documentValues.extention);
+          this.formBaseInformation.get('alt').setValue(documentValues.alt);
           this.formBaseInformation.get('file_size').setValue(documentValues.file_size);
           this.formBaseInformation.get('mime_type').setValue(documentValues.mime_type);
           this.checkedList=documentValues.file_categories_id;
@@ -320,6 +322,14 @@ constructor(private activateRoute: ActivatedRoute,
     error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
 );
 }
+
+  get is_picture(){
+    if(
+      this.formBaseInformation.get('extention').value.toUpperCase() == '.PNG' || 
+      this.formBaseInformation.get('extention').value.toUpperCase() == '.JPG' || 
+      this.formBaseInformation.get('extention').value.toUpperCase() == '.JPEG')
+        return true; else return false;
+  }
 
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
@@ -467,9 +477,7 @@ constructor(private activateRoute: ActivatedRoute,
 //*****************************************************************************************************************************************/
 
 loadFileImage(){
-  if(this.formBaseInformation.get('extention').value.toUpperCase() == '.PNG' || 
-     this.formBaseInformation.get('extention').value.toUpperCase() == '.JPG' || 
-     this.formBaseInformation.get('extention').value.toUpperCase() == '.JPEG'){
+  if(this.is_picture){
       this.getImage('/api/auth/getFileImageThumb/'+this.formBaseInformation.get('name').value).subscribe(blob => {
         // console.log("WAY="+'/api/auth/getFileImageThumb/'+this.formBaseInformation.get('name').value);
         this.createImageFromBlob(blob);

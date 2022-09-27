@@ -364,7 +364,7 @@ export class ProductCategoriesDialogComponent implements OnInit {
           if(this.data.actionType=='create'){
             // alert(this.data.parentCategoryName);    
             // alert(this.data.parentCategoryId);          
-            this.formBaseInformation.get('parent_catgr').setValue(this.data.parentCategoryName);
+            this.formBaseInformation.get('parent_catgr').setValue(this.data.parentCategoryName?this.data.parentCategoryName:translate('modules.list.none'));
             this.formBaseInformation.get('parentCategoryId').setValue(this.data.parentCategoryId);
             this.productCategory.parentCategoryId=this.data.parentCategoryId;
           }              

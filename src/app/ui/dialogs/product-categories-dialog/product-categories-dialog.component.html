@@ -31,7 +31,6 @@
         </button>
     </mat-card-title>
     <mat-card-content > 
-        1--{{productCategory.parentCategoryId}}--1
         <div class="row">
             <div class="col-lg-8  col-md-12">
 
@@ -46,7 +45,7 @@
                                 formControlName="name"/>  
                                 <mat-hint align="start" *ngIf="formBaseInformation.get('name').touched">
                                     <i *ngIf="formBaseInformation.get('name').value==''" class="form-invalid">{{'docs.error.field_miss' | transloco}}</i>
-                                </mat-hint>                                                  
+                                </mat-hint>
                                 <mat-hint align="end" *ngIf="formBaseInformation.get('name').value.length>40">{{formBaseInformation.get('name').value.length}} / 50</mat-hint>
                     </mat-form-field>
                     
@@ -132,7 +131,7 @@
                         </mat-icon>
                     </div>
                     <div *ngIf="productCategory && productCategory.image == null" class="hand" (click)="addFileInField()" style="position: absolute;bottom: 12px;left: 43px;">
-                        <span>{{'docs.tip.add_file' | transloco}}</span>
+                        <span>{{'docs.tip.add_img' | transloco}}</span>
                     </div>
                     <div *ngIf="productCategory && productCategory.image != null" style="position: absolute;bottom: 5px;left: 15px;">
                         <mat-icon
@@ -142,7 +141,7 @@
                         </mat-icon> 
                     </div>
                     <div *ngIf="productCategory && productCategory.image != null" class="hand" (click)="deleteFileInField()" style="position: absolute;bottom: 12px;left: 43px;">
-                        <span>{{'docs.tip.del_file' | transloco}}</span>
+                        <span>{{'docs.tip.del_img' | transloco}}</span>
                     </div>
                 </mat-card>
             </div>
