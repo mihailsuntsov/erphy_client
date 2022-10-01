@@ -23,6 +23,7 @@ interface FoodNode {
   id: string;
   name: string;
   children?: FoodNode[];
+  is_store_category: boolean;
 }
 interface ExampleFlatNode {
   expandable: boolean;
@@ -129,6 +130,7 @@ export class ProductsComponent implements OnInit {
         name: node.name,
         id: node.id,
         level: level,
+        is_store_category: node.is_store_category
       };
   }
   treeControl = new FlatTreeControl<ExampleFlatNode>(node => node.level, node => node.expandable);
@@ -639,6 +641,11 @@ export class ProductsComponent implements OnInit {
   getBaseData(data) {    //+++ emit data to parent component
     this.baseData.emit(data);
   }
+
+  isStoreCategory(node:any){
+    console.log("node.is_store_category - "+node.id)
+    return node.is_store_category;
+  }
 //*****************************************************************************************************************************************/
 //*********************************************           T R E E           ***************************************************************/
 //*****************************************************************************************************************************************/
@@ -647,7 +654,7 @@ export class ProductsComponent implements OnInit {
     //console.log("loadTrees");
     this.loadSpravService.getProductCategoriesTrees(this.sendingQueryForm.companyId).subscribe(
       (data) => {
-        this.treeDataSource.data=data as any [];
+        this.treeDataSource.data=data as FoodNode [];
         this.recountNumRootCategories();//пересчитать кол-во корневых категорий (level=0)
         if(+this.sendingQueryForm.selectedNodeId>0){
           this.expandParents(this.getNodeById(+this.sendingQueryForm.selectedNodeId));
@@ -659,7 +666,7 @@ export class ProductsComponent implements OnInit {
     //console.log("loadTrees and open node");
     this.loadSpravService.getProductCategoriesTrees(this.sendingQueryForm.companyId).subscribe(
       (data) => {
-        this.treeDataSource.data=data as any [];
+        this.treeDataSource.data=data as FoodNode [];
         this.expandWayToNodeAndItsChildrensByIndex(this.getNodeIndexById(nodeId));
         this.recountNumRootCategories();//пересчитать кол-во корневых категорий (level=0)
       }, error => console.log(error)

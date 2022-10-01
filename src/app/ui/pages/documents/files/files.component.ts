@@ -223,9 +223,12 @@ viewMode:string = "grid"; // способ отображения файлов - 
       try{
       this.sendingQueryForm.trash=Cookie.get('files_trash')=="true"?true:false;
       // alert(Cookie.get('files_companyId'))
-      if(Cookie.get('files_companyId')=='undefined' || Cookie.get('files_companyId')==null)     
-        Cookie.set('files_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('files_companyId')=="0"?"0":+Cookie.get('files_companyId'));
-        // alert(this.sendingQueryForm.companyId)
+      if(this.mode=='standart'){ 
+        if((Cookie.get('files_companyId')=='undefined' || Cookie.get('files_companyId')==null))     
+          Cookie.set('files_companyId',this.sendingQueryForm.companyId); 
+        else 
+          this.sendingQueryForm.companyId=(Cookie.get('files_companyId')=="0"?"0":+Cookie.get('files_companyId'));
+      }
       if(Cookie.get('files_sortAsc')=='undefined' || Cookie.get('files_sortAsc')==null)       
         Cookie.set('files_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('files_sortAsc');
       if(Cookie.get('files_sortColumn')=='undefined' || Cookie.get('files_sortColumn')==null)    
@@ -690,7 +693,7 @@ viewMode:string = "grid"; // способ отображения файлов - 
     // }
 
     setDefaultCompany(){
-      if(Cookie.get('files_companyId')=='0'||!this.companyIdInList(Cookie.get('files_companyId'))){
+      if((this.mode=='standart') && Cookie.get('files_companyId')=='0'||!this.companyIdInList(Cookie.get('files_companyId'))){
         // alert((Cookie.get('files_companyId')=='0') + ' --- ' + (!this.companyIdInList(Cookie.get('files_companyId'))))
         this.sendingQueryForm.companyId=this.myCompanyId;
         Cookie.set('files_companyId',this.sendingQueryForm.companyId);

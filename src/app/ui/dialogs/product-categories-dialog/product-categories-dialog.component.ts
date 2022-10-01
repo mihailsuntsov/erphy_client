@@ -11,6 +11,7 @@ import { translate, TranslocoService } from '@ngneat/transloco'; //+++
 import { FilesComponent } from '../../pages/documents/files/files.component';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component';
+import { FilesDocComponent } from 'src/app/ui/pages/documents/files-doc/files-doc.component';
 import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
 import { FlatTreeControl } from '@angular/cdk/tree';
 import { ViewChild } from '@angular/core';
@@ -43,6 +44,7 @@ interface Image{
     slug: string;
     parentCategoryId: number;
     companyId: number;
+    isStoreCategory: boolean;
   }
 
   interface ProductCategoriesTreeNode {
@@ -80,7 +82,8 @@ export class ProductCategoriesDialogComponent implements OnInit {
     name: '',
     slug: '',
     companyId: null,
-    parentCategoryId: 0
+    parentCategoryId: 0,
+    isStoreCategory: false
   };
   noImageAddress: string="../../../../../../assets_/images/no_foto.jpg"; // заглушка для главной картинки товара
 
@@ -134,6 +137,7 @@ export class ProductCategoriesDialogComponent implements OnInit {
       description: new UntypedFormControl   ('',[Validators.maxLength(250)]),
       slug: new UntypedFormControl          ('',[Validators.maxLength(120)]),
       display: new UntypedFormControl       ('default',[]),
+      isStoreCategory:new UntypedFormControl(false,[]),
       parent_catgr: new UntypedFormControl  (translate('modules.list.none'),[]),
     });
     if(this.data.actionType=='changeOrder'){
@@ -167,6 +171,7 @@ export class ProductCategoriesDialogComponent implements OnInit {
                             this.formBaseInformation.get('slug').setValue(this.productCategory.slug);
                             this.formBaseInformation.get('name').setValue(this.productCategory.name);
                             this.formBaseInformation.get('parentCategoryId').setValue(this.productCategory.parentCategoryId);
+                            this.formBaseInformation.get('isStoreCategory').setValue(this.productCategory.isStoreCategory);
                             if(this.productCategory.image) 
                               this.loadFileImage();
                             this.getProductCategoriesTrees(this.data.companyId);
@@ -185,28 +190,51 @@ export class ProductCategoriesDialogComponent implements OnInit {
     this.productCategory.description = this.formBaseInformation.get('description').value;
     this.productCategory.slug = this.formBaseInformation.get('slug').value;
     this.productCategory.display = this.formBaseInformation.get('display').value;
+    this.productCategory.isStoreCategory = this.formBaseInformation.get('isStoreCategory').value;
     // this.productCategory.parentCategoryId = this.formBaseInformation.get('parentCategoryId').value;    
     this.productCategory.display = this.formBaseInformation.get('display').value;
-    return this.http.post('/api/auth/updateProductCategory', this.productCategory)
-            .subscribe(
-                (data) => {
-                          this.openSnackBar(translate('modules.msg.cat_saved'), translate('modules.button.close'));
-                          this.dialogRef.close();
-                        },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
-            );
+    return this.http.post('/api/auth/updateProductCategory', this.productCategory).subscribe(
+        (data) => {   
+          this.data.categoryId=data as number;
+          switch(this.data.categoryId){
+            case null:{// null возвращает если не удалось создать документ из-за ошибки
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.crte_doc_err',{name:''})}});
+              break;
+            }
+            case -1:{//недостаточно прав
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm_creat',{name:''})}});
+              break;
+            }
+            case -210:{//Неуникальное имя Категории товаров в пределах одного родителя
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.pc_cat_name_uq')}});
+              break;
+            }
+            case -212:{//Неуникальный url-псевдоним (slug) Категории товаров в пределах одного предприятия
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.pc_cat_slug_uq')}});
+              break;
+            }
+            default:{// Документ успешно создался в БД 
+              this.openSnackBar(translate('modules.msg.cat_saved'), translate('modules.button.close'));
+                    this.dialogRef.close();
+            }
+          }
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
+      );
   }
 
   createProductCategory(){
     this.productCategory.name = this.formBaseInformation.get('name').value;
     this.productCategory.description = this.formBaseInformation.get('description').value;
     this.productCategory.slug = this.formBaseInformation.get('slug').value;
+    this.productCategory.isStoreCategory = this.formBaseInformation.get('isStoreCategory').value;
     // this.productCategory.parentCategoryId = this.formBaseInformation.get('parentCategoryId').value;    
     this.productCategory.display = this.formBaseInformation.get('display').value;
     return this.http.post('/api/auth/insertProductCategory', this.productCategory)
     .subscribe(
         (data) => {   
                   this.data.categoryId=data as number;
+
                   switch(this.data.categoryId){
                     case null:{// null возвращает если не удалось создать документ из-за ошибки
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.crte_doc_err',{name:''})}});
@@ -214,6 +242,14 @@ export class ProductCategoriesDialogComponent implements OnInit {
                     }
                     case -1:{//недостаточно прав
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm_creat',{name:''})}});
+                      break;
+                    }
+                    case -210:{//Неуникальное имя Категории товаров в пределах одного родителя
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.pc_cat_name_uq')}});
+                      break;
+                    }
+                    case -212:{//Неуникальный url-псевдоним (slug) Категории товаров в пределах одного предприятия
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.pc_cat_slug_uq')}});
                       break;
                     }
                     default:{// Документ успешно создался в БД 
@@ -231,6 +267,14 @@ export class ProductCategoriesDialogComponent implements OnInit {
     this._snackBar.open(message, action, {
       duration: 3000,
     });
+  }
+
+  onChangeStoreCategory(){
+    // console.log(this.formBaseInformation.get('isStoreCategory').value)
+    if(this.formBaseInformation.get('isStoreCategory').value && this.formBaseInformation.get('slug').value == '')
+      this.slugify();
+    if (!this.formBaseInformation.get('isStoreCategory').value)
+      this.formBaseInformation.get('slug').setValue('');
   }
 
   slugify(){
@@ -303,7 +347,7 @@ export class ProductCategoriesDialogComponent implements OnInit {
       data:
       { 
         mode: 'select',
-        companyId: this.formBaseInformation.get('id').value
+        companyId: this.data.companyId
       },
     });
     dialogRef.afterClosed().subscribe(result => {
@@ -345,7 +389,22 @@ export class ProductCategoriesDialogComponent implements OnInit {
       },
     });
   }
-
+  openFileCard(docId:number) {
+    const dialogRef = this.dialogAddFiles.open(FilesDocComponent, {
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      height: '95%',
+      width: '95%',
+      data:
+      { 
+        mode: 'window',
+        docId: docId
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+        this.getProductCategory();          
+    });
+  }
   //*****************************************************************************************************************************************/
   //******************************************              T R E E             *************************************************************/
   //*****************************************************************************************************************************************/

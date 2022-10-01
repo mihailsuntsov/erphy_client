@@ -57,13 +57,7 @@
                                 <mat-hint align="end" *ngIf="formBaseInformation.get('description').value.length>200">{{formBaseInformation.get('description').value.length}} / 250</mat-hint>
                     </mat-form-field>
                     
-                    <mat-form-field style="width: 100%">
-                        <mat-label>{{'modules.field.slug' | transloco}}</mat-label>
-                        <input  matInput
-                                maxlength="120"
-                                formControlName="slug"/>  
-                                <mat-hint align="end" *ngIf="formBaseInformation.get('slug').value.length>100">{{formBaseInformation.get('slug').value.length}} / 120</mat-hint>
-                    </mat-form-field>
+                    
 
                     <mat-form-field style="width: 100%"> 
                         <mat-label>{{'modules.field.parent_catgr' | transloco}}</mat-label>
@@ -102,17 +96,36 @@
 
                         </mat-autocomplete>  
                     </mat-form-field>
-
-                    <mat-form-field style="width: 100%"> 
-                        <mat-label>{{'modules.field.display' | transloco}}</mat-label>
-                        <mat-select  formControlName="display">
-                            <mat-option value="default">{{'modules.list.default' | transloco}}</mat-option>
-                            <mat-option value="products">{{'modules.list.products' | transloco}}</mat-option>
-                            <mat-option value="subcategories">{{'modules.list.subcategories' | transloco}}</mat-option>
-                            <mat-option value="both">{{'modules.list.both' | transloco}}</mat-option>
-                        </mat-select>  
+                    <mat-form-field style="width: 100%; margin-top: -5px;">
+                        <mat-slide-toggle 
+                        formControlName="isStoreCategory"
+                        (change)="onChangeStoreCategory()"
+                        >{{'modules.field.store_ctg' | transloco}}</mat-slide-toggle>
+                        <input matInput hidden/>
                     </mat-form-field>
-                    
+
+                    <div class="row" *ngIf="formBaseInformation.get('isStoreCategory').value">
+                        <div class="col-lg-6  col-md-12"> 
+                            <mat-form-field style="width: 100%">
+                                <mat-label>{{'modules.field.slug' | transloco}}</mat-label>
+                                <input  matInput
+                                        maxlength="120"
+                                        formControlName="slug"/>  
+                                        <mat-hint align="end" *ngIf="formBaseInformation.get('slug').value.length>100">{{formBaseInformation.get('slug').value.length}} / 120</mat-hint>
+                            </mat-form-field>
+                        </div>
+                        <div class="col-lg-6  col-md-12"> 
+                            <mat-form-field style="width: 100%">
+                                    <mat-label>{{'modules.field.display' | transloco}}</mat-label>
+                                    <mat-select  formControlName="display">
+                                        <mat-option value="default">{{'modules.list.default' | transloco}}</mat-option>
+                                        <mat-option value="products">{{'modules.list.products' | transloco}}</mat-option>
+                                        <mat-option value="subcategories">{{'modules.list.subcategories' | transloco}}</mat-option>
+                                        <mat-option value="both">{{'modules.list.both' | transloco}}</mat-option>
+                                    </mat-select>  
+                            </mat-form-field>
+                        </div>
+                    </div>
                 </form>
             </div>
             <div class="col-lg-4  col-md-12">
@@ -142,6 +155,14 @@
                     </div>
                     <div *ngIf="productCategory && productCategory.image != null" class="hand" (click)="deleteFileInField()" style="position: absolute;bottom: 12px;left: 43px;">
                         <span>{{'docs.tip.del_img' | transloco}}</span>
+                    </div>
+                    <div *ngIf="productCategory && productCategory.image != null && !productCategory.image.anonyme_access" style="position: absolute;top: 5px;right: 5px;color:red">
+                        <mat-icon
+                            class="hand"
+                            matTooltip="{{'modules.tip.protected_file' | transloco}}"
+                            (click)="openFileCard(productCategory.image.id)">
+                            gpp_maybe
+                        </mat-icon> 
                     </div>
                 </mat-card>
             </div>

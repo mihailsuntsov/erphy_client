@@ -120,7 +120,8 @@
         "auto_prce_add":"Automatically substitute the price from the last purchase price",
         "shared_file":  "Shared file available via external link",
         "select_upl_fl":"Select files for upload",
-        "amnt_mov_prod":"Amount of products to move"
+        "amnt_mov_prod":"Amount of products to move",
+        "protected_file":"This file is not shared and can't be sent to online store. Click on this icon and in the opened file card switch on \"Shared file\""
     },
     "tab":{
     },
@@ -229,7 +230,8 @@
         "uploading":    "Uploading",
         "time_format":  "Time format",
         "slug":         "Slug",
-        "display":      "Display"
+        "display":      "Display",
+        "store_ctg":    "Online store category"
     },
     "error":{
         "field_miss":   "Required field is missing",

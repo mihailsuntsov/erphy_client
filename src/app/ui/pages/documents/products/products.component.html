@@ -87,6 +87,7 @@ class="spinner"
                 <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
                     <button mat-icon-button disabled></button>
                     <span class="node" [ngClass]="{selected_node:node.id==sendingQueryForm.selectedNodeId}" (click)="selectNode(node)">{{node.name}}</span>
+                    <span *ngIf="node.is_store_category"><mat-icon class="store-category-icon" fontIcon="shopping_cart" matTooltip="{{t('docs.tip.store_ctg')}}" ></mat-icon></span>
                     <!-- <button mat-icon-button (click)="addNewItem(node)"><mat-icon>add</mat-icon></button> -->
                 </mat-tree-node>
                 <mat-tree-node *matTreeNodeDef="let node;when: hasChild" matTreeNodePadding>
@@ -97,6 +98,7 @@ class="spinner"
                     </mat-icon>
                     </button>
                     <span class="node" [ngClass]="{selected_node:node.id==sendingQueryForm.selectedNodeId}" (click)="selectNode(node)">{{node.name}}</span>
+                    <span *ngIf="node.is_store_category"><mat-icon class="store-category-icon" fontIcon="shopping_cart" matTooltip="{{t('docs.tip.store_ctg')}}"></mat-icon></span>
                 </mat-tree-node>
             </mat-tree>
     </mat-drawer>
@@ -438,6 +440,7 @@ class="spinner"
                                 </div> 
                             </div>  
                         </div>
+                        <!-- <code><pre>{{this.treeDataSource.data | json}}</pre></code> -->
                     </mat-card-content>
         </mat-card>
     </div>

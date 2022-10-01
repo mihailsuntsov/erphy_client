@@ -368,7 +368,8 @@
         "download_file":"Download file",
         "clear_field":  "Clear the search field, and select a different value",
         "prefix_pieced":"The first 2 digits of the EAN-13 barcode. Designed to form the company's internal barcodes for piece goods. Value from 20 to 29",
-        "prefix_packed":"The first 2 digits of the EAN-13 barcode. Designed to form the company's internal barcodes for weighted goods with coding of their mass. Value from 20 to 29"
+        "prefix_packed":"The first 2 digits of the EAN-13 barcode. Designed to form the company's internal barcodes for weighted goods with coding of their mass. Value from 20 to 29",
+        "store_ctg":    "Online store category"
     },
     "msg":{
         "error":        "Error!",
@@ -411,6 +412,8 @@
         "cnt_crt_items":"Unable to create a document \"{{name}}\", because there is no product items",
         "err_load_lnkd":"Error loading related documents",        
         "no_perm":      "Not enough permissions",
+        "pc_cat_name_uq":"Category names of the same level must be unique",
+        "pc_cat_slug_uq":"Slug name is not unique",
         "deletet_succs":"Successfully deleted",
         "res_not_saved":"Some items did not have a reserve saved, because it exceeded the ordered or available quantity of products",
         "cant_crte_mor":"The document cannot be created. For one or more items, the quantity of products for sale exceeds the available quantity of products",
