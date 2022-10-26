@@ -83,8 +83,7 @@ export class LoginComponent implements OnInit {
       this.setLanguage('en');
     this.service.setActiveLang(Cookie.get('language'));
     // if(Cookie.get('language')=='undefined' || Cookie.get('language')==null || Cookie.get('language')=='null') this.setLanguage('en'); else {this.temp_language=Cookie.get('language')}
-
-    if (this.tokenStorage.getToken()) {
+    if (this.tokenStorage.getToken()&&Cookie.get('dokio_token')) {
       this.isLoggedIn = true;
       this.roles = this.tokenStorage.getAuthorities();
       this.roles.forEach(m=>{

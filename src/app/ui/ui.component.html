@@ -209,7 +209,7 @@
           </li>
         </ul>
       </li>
-      <li *ngIf="hasPermission(143)||hasPermission(108)||hasPermission(268)||hasPermission(117)||hasPermission(126)||hasPermission(497)||hasPermission(550)||hasPermission(635)||hasPermission(90)||hasPermission(644)||hasPermission(653)">
+      <li *ngIf="hasPermission(662)||hasPermission(143)||hasPermission(108)||hasPermission(268)||hasPermission(117)||hasPermission(126)||hasPermission(497)||hasPermission(550)||hasPermission(635)||hasPermission(90)||hasPermission(644)||hasPermission(653)">
         <div class="icon-link" (click)="arrowClick($event,1)">
           <a>
             <i class="material-icons unselectable" (click)="arrowClick($event,3)">menu_book</i>
@@ -265,6 +265,10 @@
           <li *ngIf="hasPermission(117)">
             <a routerLink="edizm">
               <span class="unselectable">{{t('sidebar.menu.items.edizm')}}</span></a>
+          </li>
+          <li *ngIf="hasPermission(662)">
+            <a routerLink="productattributes">  
+              <span class="unselectable">{{t('sidebar.menu.items.prodattr')}}</span></a>
           </li>
         </ul>
       </li>

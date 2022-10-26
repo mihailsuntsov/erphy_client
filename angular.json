@@ -23,14 +23,22 @@
             ],
             "assets": [
               "src/favicon.ico",
-              "src/assets_"
+              "src/assets_",
+              {
+                "glob": "**/*",
+                "input": "./node_modules/@kolkov/angular-editor/assets/",
+                "output": "./assets/fonts/"
+              }
             ],
             "styles": [
               "src/assets_/css/bootstrap-min-only-grid.css",
               "src/styles.css",
-              "src/assets_/css/sidebar.css"
+              "src/assets_/css/sidebar.css",
+              "./node_modules/quill/dist/quill.core.css",
+              "./node_modules/quill/dist/quill.bubble.css",
+              "./node_modules/quill/dist/quill.snow.css"
             ],
-            "scripts": [],
+            "scripts": ["./node_modules/quill/dist/quill.min.js"],
             "vendorChunk": true,
             "extractLicenses": false,
             "buildOptimizer": false,

@@ -82,7 +82,7 @@ export class UiComponent implements OnInit {
       this.getMyCompanyId();
       this.getCompaniesList();
     }     
-    else this._router.navigate(['/login']);
+    else {/*alert('To Login!');*/this._router.navigate(['/login']);}
   }
 
 

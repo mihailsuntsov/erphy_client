@@ -133,7 +133,9 @@
                 "departments":"Departments",
                 "users":"Users",
                 "usergroup":"Roles",
-                "accounts":"Bank accounts"
+                "accounts":"Bank accounts",
+
+                "prodattr":"Product attributes"
             }
         }
     }

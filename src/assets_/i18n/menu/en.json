@@ -352,7 +352,8 @@
         "v_invoicesin": "received VAT invoices",
         "counterpays":  "mutual payments with",
         "currencies":   "currencies",
-        "accounts":     "bank accounts"
+        "accounts":     "bank accounts",
+        "productattr":  "product attributes"
     },
     "indicators":{
         "revenue":      "Revenue",

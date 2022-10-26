@@ -414,6 +414,7 @@
         "no_perm":      "Not enough permissions",
         "pc_cat_name_uq":"Category names of the same level must be unique",
         "pc_cat_slug_uq":"Slug name is not unique",
+        "pc_name_uq":   "Name is not unique",
         "deletet_succs":"Successfully deleted",
         "res_not_saved":"Some items did not have a reserve saved, because it exceeded the ordered or available quantity of products",
         "cant_crte_mor":"The document cannot be created. For one or more items, the quantity of products for sale exceeds the available quantity of products",
@@ -618,6 +619,8 @@
         "paymentin_":   "Incoming payment (internal)",
         "set_templates":"Template settings",
         "currency":     "Currency",
-        "accounts":     "Bank account"
+        "accounts":     "Bank account",
+        "productattr":  "Product attribute"
+
     }
 }

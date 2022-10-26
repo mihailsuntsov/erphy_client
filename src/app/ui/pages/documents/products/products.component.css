@@ -129,5 +129,5 @@ flex: 1 1 auto;
     margin-left: -10px;
     font-size: 12px;
     line-height: 0.5;
-    color: gray;
+    color: rgba(0,0,0,.26);
 }

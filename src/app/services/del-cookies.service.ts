@@ -19,9 +19,15 @@ export class DelCookiesService{
         Cookie.delete('anotherCashierVatin');
 
         this.temp_language=Cookie.get('language');
-        Cookie.deleteAll();
-        Cookie.set('language', this.temp_language);
-
+        
+        try{
+          Cookie.deleteAll();
+        } catch (e){
+          console.log(e.message);
+        } finally {
+          Cookie.set('language', this.temp_language);
+        }
+        
     }
 
 

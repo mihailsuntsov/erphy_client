@@ -17,6 +17,7 @@ import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { HttpClient } from '@angular/common/http';
 import { UploadFileService } from './upload-file.service';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
+import { ProductCategoriesSelectComponent } from 'src/app/modules/trade-modules/product-categories-select/product-categories-select.component';
 import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component';
 import { FilesComponent } from '../files/files.component';
 import { CagentsComponent } from '../cagents/cagents.component';
@@ -27,10 +28,12 @@ import { map, startWith } from 'rxjs/operators';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { translate } from '@ngneat/transloco'; //+++
 import { Router } from '@angular/router';
-
+import Quill from 'quill';
 import { MomentDefault } from 'src/app/services/moment-default';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+import { AngularEditorConfig } from '@kolkov/angular-editor';
+
 const MY_FORMATS = MomentDefault.getMomentFormat();
 const moment = MomentDefault.getMomentDefault();
 
@@ -69,6 +72,35 @@ interface docResponse {//интерфейс для получения ответ
   not_buy: boolean;
   not_sell: boolean;
   indivisible: boolean;
+  type:String;
+  slug:String;
+  featured:Boolean;
+  short_description:String;
+  virtual:Boolean;
+  downloadable:Boolean;
+  download_limit:number;
+  download_expiry:number;
+  external_url:String;
+  button_text:String;
+  tax_status:String;
+  manage_stock:Boolean;
+  low_stock_threshold:String;
+  stock_status:String;
+  backorders:String;
+  sold_individually:Boolean;
+  height:String;
+  width:String;
+  length:String;
+  shipping_class:String;
+  reviews_allowed:Boolean;
+  parent_id:number;
+  purchase_note:String;
+  menu_order:number;
+  date_on_sale_to_gmt: string;
+  date_on_sale_from_gmt: string;
+  upsell_ids:IdAndName[];
+  crosssell_ids:IdAndName[];
+  grouped_ids:IdAndName[];
   }
   interface SpravTaxesSet{
     id: number;
@@ -85,6 +117,12 @@ interface docResponse {//интерфейс для получения ответ
     date_time_created: string;
     output_order: string;
     image:any;// поле для загрузки картинки по GET-запросу
+  }
+  interface DownloadableFilesInfo {
+    id: string;
+    name: string;
+    original_name: string;
+    output_order: string;
   }
   interface ProductCategoriesTreeNode {
     id: string;
@@ -107,7 +145,7 @@ interface docResponse {//интерфейс для получения ответ
     description: string;
     value: string;
   }
-  interface idAndName{ //универсалный интерфейс для выбора из справочников
+  interface IdAndName{ //универсалный интерфейс для выбора из справочников
     id: string;
     name: string;
   }
@@ -141,7 +179,9 @@ interface docResponse {//интерфейс для получения ответ
     price_type_id: number;
     price_name: number;
     price_value: number;
-    price_description: string;
+    price_description: string;    
+    is_store_price_type_regular: boolean;
+    is_store_price_type_sale: boolean;
   }
 @Component({
   selector: 'app-products-doc',
@@ -162,143 +202,222 @@ export class ProductsDocComponent implements OnInit {
   receivedPriceTypesList: ProductPricesTable [] = [];//массив для получения списка типов цен
   row_id:number=0;// уникальность строки в табл. товаров только id товара обеспечить не может, т.к. в таблице может быть > 1 одинакового товара (уникальность обеспечивается id товара и id склада)
 
-//Формы
-formBaseInformation:any;//форма для основной информации, содержащейся в документе
-formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
-selectedProductCategory:any;//форма, содержащая информацию о выбранной категории товара (id, name)
-productPricesTable: ProductPricesTable; //массив форм с ценами
+  //Формы
+  formBaseInformation:any;//форма для основной информации, содержащейся в документе
+  formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
+  selectedProductCategory:any;//форма, содержащая информацию о выбранной категории товара (id, name)
+  productPricesTable: ProductPricesTable; //массив форм с ценами
 
-//переменные для управления динамическим отображением элементов
-visBeforeCreatingBlocks = true; //блоки, отображаемые ДО создания документа (до получения id)
-visAfterCreatingBlocks = true; //блоки, отображаемые ПОСЛЕ создания документа (id >0)
-visBtnUpdate = false;
+  //переменные для управления динамическим отображением элементов
+  visBeforeCreatingBlocks = true; //блоки, отображаемые ДО создания документа (до получения id)
+  visAfterCreatingBlocks = true; //блоки, отображаемые ПОСЛЕ создания документа (id >0)
+  visBtnUpdate = false;
 
- //переменные прав
- permissionsSet: any[];//сет прав на документ
+  // WYSIWYG editor
+  name = 'Angular 6';
+  htmlContent = '';
 
- allowToViewAllCompanies:boolean = false;
- allowToViewMyCompany:boolean = false;
- allowToUpdateAllCompanies:boolean = false;
- allowToUpdateMyCompany:boolean = false;
- allowToCreateMyCompany:boolean = false;
- allowToCreateAllCompanies:boolean = false;
- allowToView:boolean = false;
- allowToUpdate:boolean = false;
- allowToCreate:boolean = false;
- rightsDefined:boolean; // определены ли права !!!
-
- // Отчет по товарам Изменения
-formProductHistory: ProductHistoryQuery=new ProductHistoryQuery();//форма, содержащая информацию для запроса отчета об истории изменения количества товара на складе
-donePagesList: boolean = false;
-receivedCompaniesListForHistoryReport: any [];//массив для получения списка предприятий
-receivedPagesList: string [];//массив для получения данных пагинации
-receivedMatTable: DocTable []=[] ;//массив для получения данных для материал таблицы
-dataSource = new MatTableDataSource<DocTable>(this.receivedMatTable); //источник данных для материал таблицы
-displayedColumns: string[]=[];//массив отображаемых столбцов таблицы с действиями с товаром
-pricesDisplayedColumns: string[]=[];//массив отображаемых столбцов таблицы с ценами на товар
-selection = new SelectionModel<idAndName>(true, []);//Class to be used to power selecting one or more options from a list.
-receivedDepartmentsList: idAndName [] = [];//массив для получения списка отделений
-receivedMyDepartmentsList: idAndName [] = [];//массив для получения списка СВОИХ отделений
-productHistoryTable: ProductHistoryTable[]=[];//массив для получения данных по отчету об истории изменений товара
-numRows: NumRow[] = [
-  {value: 10, viewValue: '10'},
-  {value: 25, viewValue: '25'},
-  {value: 50, viewValue: '50'},
-  {value: 100, viewValue: '100'},
-  // {value: '500', viewValue: '500'},
-  // {value: '1000', viewValue: '1000'}
-];
-documentsIds: idAndName [] = [];
-
-checkedChangesList:number[]=[]; //массив для накапливания id выбранных документов чекбоксов в отчете по истории товара, вида [2,5,27...], а так же для заполнения загруженными значениями чекбоксов
-
-gettingTableData:boolean=false;
-
-
-
-checkedList:any[]; //массив для накапливания id выбранных чекбоксов вида [2,5,27...], а так же для заполнения загруженными значениями чекбоксов
-searchProductGroupsCtrl = new UntypedFormControl();
-fieldsForm: UntypedFormGroup;
-dataFields: any;
-receivedSetsOfFields: any [] = [] ;//массив для получения сетов полей
-fieldIdEditNow:number=0;    //     id редактируемого кастомного поля в fieldsForm  
-fieldIndexEditNow:number=0; //  index редактируемого кастомного поля в fieldsForm  
-prefixes: any[];
-st_prefix_barcode_pieced:number=0;
-st_prefix_barcode_packed:number=0;
-filteredProductGroups: any;
-isLoading = false;
-isProductGroupLoading = false;
-canAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
-errorMsg: string;
-isWeightCodeGenerating = false;
-isProductCodeFreeUnicalChecking = false;
-product_code_free_isReadOnly = true ;
-mode: string = 'standart';  // режим работы документа: 
-// standart - обычный режим, 
-// createForAcceptance - оконный режим создания товара для приёмки, 
-// viewInWindow - открытие на просмотр в окне в другом документе
-@ViewChild("codeFreeValue", {static: false}) codeFreeValue;
-@Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
-// *****  переменные tree  ***** 
-private _transformer = (node: ProductCategoriesTreeNode, level: number) => {
-  return {
-    expandable: !!node.children && node.children.length > 0,
-    name: node.name,
-    id: node.id,
-    level: level,
+  config: AngularEditorConfig = {
+    editable: true,
+    spellcheck: true,
+    height: '15rem',
+    minHeight: '5rem',
+    placeholder: 'Enter text here...',
+    translate: 'no',
+    defaultParagraphSeparator: 'p',
+    defaultFontName: 'Arial',
+    toolbarHiddenButtons: [
+      ['bold']
+      ],
+    customClasses: [
+      {
+        name: "quote",
+        class: "quote",
+      },
+      {
+        name: 'redText',
+        class: 'redText'
+      },
+      {
+        name: "titleText",
+        class: "titleText",
+        tag: "h1",
+      },
+    ]
   };
-}
-treeControl = new FlatTreeControl<ProductCategoriesFlatNode>(node => node.level, node => node.expandable);
-treeFlattener = new MatTreeFlattener(this._transformer, node => node.level, node => node.expandable, node => node.children);
-treeDataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
-hasChild = (_: number, node: ProductCategoriesFlatNode) => node.expandable;
-numRootCategories: number=0;
-numChildsOfSelectedCategory: number=0;
-categoriesExpanded=false;//открыты или закрыты категории, в которых содержится товар или услуга
 
-// *****  переменные картинок  ***** 
-imagesInfo : ImagesInfo [] = []; //массив для получения информации по картинкам товара
-progress: { percentage: number } = { percentage: 0 };
-noImageAddress: string="../../../../../../assets_/images/no_foto.jpg"; // заглушка для главной картинки товара
-// ******  переменные поставщиков ******
-cagentsInfo : cagentsInfo [] = []; //массив для получения информации 
-// ******  переменные штрихкодов  ******
-barcodesInfo : barcodesInfo [] = []; //массив для получения информации 
-// ******  справочники  ******************
-spravSysPPRSet: any[]=[];//сет признаков предмета расчета 
-spravTaxesSet: SpravTaxesSet[]=[];//сет НДС 
-spravSysMarkableGroupSet: idAndName[] = [];//сет маркированных товаров
-filteredSpravSysMarkableGroupSet: Observable<idAndName[]>;//сет маркированных товаров
-spravSysEdizmOfProductAll: idAndName[] = [];// массив, куда будут грузиться все единицы измерения товара
-filteredSpravSysEdizmOfProductAll: Observable<idAndName[]>; //массив для отфильтрованных единиц измерения
-spravSysEdizmOfProductWeight: any[]=[];// весовые единицы измерения товара
-spravSysEdizmOfProductVolume: any[]=[];// объёмные единицы измерения товара
+  //переменные прав
+  permissionsSet: any[];//сет прав на документ
 
-constructor(private activateRoute: ActivatedRoute,
-  private http: HttpClient,
-  private loadSpravService:   LoadSpravService,
-  private httpService:   LoadSpravService,
-  private _snackBar: MatSnackBar,
-  private fb: UntypedFormBuilder,
-  public ConfirmDialog: MatDialog,
-  private _fb: UntypedFormBuilder, //чтобы билдить группу форм productPricesTable
-  public productHistoryService: ProductHistoryService,
-  public MessageDialog: MatDialog,
-  public dialogAddImages: MatDialog,
-  public dialogAddCagents: MatDialog,
-  public ShowImageDialog: MatDialog,
-  public ProductCagentsDialogComponent: MatDialog,
-  private _router:Router,
-  public ProductBarcodesDialogComponent: MatDialog,
-  public dialogRefProduct: MatDialogRef<ProductsDocComponent>,
-  private _adapter: DateAdapter<any>,
-  @Optional() @Inject(MAT_DIALOG_DATA) public data: any) { 
-    if(activateRoute.snapshot.params['id'])
-      this.id = +activateRoute.snapshot.params['id'];// +null returns 0
+  allowToViewAllCompanies:boolean = false;
+  allowToViewMyCompany:boolean = false;
+  allowToUpdateAllCompanies:boolean = false;
+  allowToUpdateMyCompany:boolean = false;
+  allowToCreateMyCompany:boolean = false;
+  allowToCreateAllCompanies:boolean = false;
+  allowToView:boolean = false;
+  allowToUpdate:boolean = false;
+  allowToCreate:boolean = false;
+  rightsDefined:boolean; // определены ли права !!!
+
+  // Отчет по товарам Изменения
+  formProductHistory: ProductHistoryQuery=new ProductHistoryQuery();//форма, содержащая информацию для запроса отчета об истории изменения количества товара на складе
+  donePagesList: boolean = false;
+  receivedCompaniesListForHistoryReport: any [];//массив для получения списка предприятий
+  receivedPagesList: string [];//массив для получения данных пагинации
+  receivedMatTable: DocTable []=[] ;//массив для получения данных для материал таблицы
+  dataSource = new MatTableDataSource<DocTable>(this.receivedMatTable); //источник данных для материал таблицы
+  displayedColumns: string[]=[];//массив отображаемых столбцов таблицы с действиями с товаром
+  pricesDisplayedColumns: string[]=[];//массив отображаемых столбцов таблицы с ценами на товар
+  selection = new SelectionModel<IdAndName>(true, []);//Class to be used to power selecting one or more options from a list.
+  receivedDepartmentsList: IdAndName [] = [];//массив для получения списка отделений
+  receivedMyDepartmentsList: IdAndName [] = [];//массив для получения списка СВОИХ отделений
+  productHistoryTable: ProductHistoryTable[]=[];//массив для получения данных по отчету об истории изменений товара
+  numRows: NumRow[] = [
+    {value: 10, viewValue: '10'},
+    {value: 25, viewValue: '25'},
+    {value: 50, viewValue: '50'},
+    {value: 100, viewValue: '100'},
+    // {value: '500', viewValue: '500'},
+    // {value: '1000', viewValue: '1000'}
+  ];
+  documentsIds: IdAndName [] = [];
+
+  checkedChangesList:number[]=[]; //массив для накапливания id выбранных документов чекбоксов в отчете по истории товара, вида [2,5,27...], а так же для заполнения загруженными значениями чекбоксов
+
+  gettingTableData:boolean=false;
+
+
+
+  checkedList:any[]; //массив для накапливания id выбранных чекбоксов вида [2,5,27...], а так же для заполнения загруженными значениями чекбоксов
+  searchProductGroupsCtrl = new UntypedFormControl();
+  fieldsForm: UntypedFormGroup;
+  dataFields: any;
+  receivedSetsOfFields: any [] = [] ;//массив для получения сетов полей
+  fieldIdEditNow:number=0;    //     id редактируемого кастомного поля в fieldsForm  
+  fieldIndexEditNow:number=0; //  index редактируемого кастомного поля в fieldsForm  
+  prefixes: any[];
+  st_prefix_barcode_pieced:number=0;
+  st_prefix_barcode_packed:number=0;
+  filteredProductGroups: any;
+  isLoading = false;
+  isProductGroupLoading = false;
+  canAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
+  errorMsg: string;
+  isWeightCodeGenerating = false;
+  isProductCodeFreeUnicalChecking = false;
+  product_code_free_isReadOnly = true ;
+  mode: string = 'standart';  // режим работы документа: 
+  // standart - обычный режим, 
+  // createForAcceptance - оконный режим создания товара для приёмки, 
+  // viewInWindow - открытие на просмотр в окне в другом документе
+  @ViewChild("codeFreeValue", {static: false}) codeFreeValue;
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
+  // *****  переменные tree  ***** 
+  private _transformer = (node: ProductCategoriesTreeNode, level: number) => {
+    return {
+      expandable: !!node.children && node.children.length > 0,
+      name: node.name,
+      id: node.id,
+      level: level,
+    };
   }
-  onNoClick(): void {this.dialogRefProduct.close();}
-  ngOnInit() {
+  treeControl = new FlatTreeControl<ProductCategoriesFlatNode>(node => node.level, node => node.expandable);
+  treeFlattener = new MatTreeFlattener(this._transformer, node => node.level, node => node.expandable, node => node.children);
+  treeDataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
+  hasChild = (_: number, node: ProductCategoriesFlatNode) => node.expandable;
+  numRootCategories: number=0;
+  numChildsOfSelectedCategory: number=0;
+  categoriesExpanded=false;//открыты или закрыты категории, в которых содержится товар или услуга
+
+  // *****  переменные картинок  ***** 
+  imagesInfo : ImagesInfo [] = []; //массив для получения информации по картинкам товара
+  progress: { percentage: number } = { percentage: 0 };
+  noImageAddress: string="../../../../../../assets_/images/no_foto.jpg"; // заглушка для главной картинки товара
+  //******* файлы для интернет-магазина */
+  downloadableFilesInfo: DownloadableFilesInfo[] = [];
+  // ******  переменные поставщиков ******
+  cagentsInfo : cagentsInfo [] = []; //массив для получения информации 
+  // ******  переменные штрихкодов  ******
+  barcodesInfo : barcodesInfo [] = []; //массив для получения информации 
+  // ******  справочники  ******************
+  spravSysPPRSet: any[]=[];//сет признаков предмета расчета 
+  spravTaxesSet: SpravTaxesSet[]=[];//сет НДС 
+  spravSysMarkableGroupSet: IdAndName[] = [];//сет маркированных товаров
+  filteredSpravSysMarkableGroupSet: Observable<IdAndName[]>;//сет маркированных товаров
+  spravSysEdizmOfProductAll: IdAndName[] = [];// массив, куда будут грузиться все единицы измерения товара
+  filteredSpravSysEdizmOfProductAll: Observable<IdAndName[]>; //массив для отфильтрованных единиц измерения
+  spravSysEdizmOfProductWeight: any[]=[];// весовые единицы измерения товара
+  spravSysEdizmOfProductVolume: any[]=[];// объёмные единицы измерения товара
+
+  prop_menu: string = 'general';
+
+
+  html = '';
+  tools = {
+    toolbar: [      
+      [{ header: [1, 2, false] }],
+      ['bold', 'italic', 'underline'],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+      [{ 'script': 'super' }, { 'script': 'sub' }],
+      [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+      ['link', 'video'],
+      [ 'clean', 'divider' ]
+    ]
+  };
+
+  // reg_price: any; // Regular price in Store
+  // sales_price: any; // Sales price in Store
+  reg_price_selected: boolean = false;  // Regular price in Store settings is selected
+  sales_price_selected: boolean = false; // Sales price in Store settings is selected
+  store_sku:string='';  
+  selectedUpsellProducts:     IdAndName[]=[]; // выбранные upsell товары
+  selectedCrosssellProducts:  IdAndName[]=[]; // выбранные cross-sell товары
+  selectedGroupedProducts:  IdAndName[]=[]; // выбранные cross-sell товары
+
+  // toolbar: [
+  //   ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+  //   ['blockquote', 'code-block'],
+
+  //   [{ 'header': 1 }, { 'header': 2 }],               // custom button values
+  //   [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+  //   [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
+  //   [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+  //   [{ 'direction': 'rtl' }],                         // text direction
+  //   [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+  //   [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+  //   [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+  //   [{ 'font': [] }],
+  //   // [{ 'align': [] }],
+  //   ['clean'],                                        // remove formatting button
+  //   ['link', 'image', 'video']                         // link and image, video
+  // ]
+  constructor(private activateRoute: ActivatedRoute,
+    private http: HttpClient,
+    private loadSpravService:   LoadSpravService,
+    private httpService:   LoadSpravService,
+    private _snackBar: MatSnackBar,
+    private fb: UntypedFormBuilder,
+    public ConfirmDialog: MatDialog,
+    private _fb: UntypedFormBuilder, //чтобы билдить группу форм productPricesTable
+    public productHistoryService: ProductHistoryService,
+    public MessageDialog: MatDialog,
+    public dialogAddImages: MatDialog,
+    public dialogAddCagents: MatDialog,
+    private productCategoriesSelectComponent: MatDialog,
+    public ShowImageDialog: MatDialog,
+    public ProductCagentsDialogComponent: MatDialog,
+    private _router:Router,
+    public ProductBarcodesDialogComponent: MatDialog,
+    public dialogRefProduct: MatDialogRef<ProductsDocComponent>,
+    private _adapter: DateAdapter<any>,
+    @Optional() @Inject(MAT_DIALOG_DATA) public data: any) { 
+      if(activateRoute.snapshot.params['id'])
+        this.id = +activateRoute.snapshot.params['id'];// +null returns 0
+    }
+    onNoClick(): void {this.dialogRefProduct.close();}
+    ngOnInit() {
     // дефолтные значения для отчета по истории изменения товара
       this.formProductHistory.companyId=0;
       this.formProductHistory.departmentId=0;
@@ -321,6 +440,7 @@ constructor(private activateRoute: ActivatedRoute,
       description: new UntypedFormControl      ('',[]),
       selectedProductCategories:new UntypedFormControl      ([],[]),
       imagesIdsInOrderOfList:new UntypedFormControl      ([],[]),
+      dfilesIdsInOrderOfList:new UntypedFormControl      ([],[]),
       cagentsIdsInOrderOfList:new UntypedFormControl      ([],[]),
       product_code: new UntypedFormControl      ('',[]),
       product_code_free: new UntypedFormControl      ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
@@ -341,6 +461,38 @@ constructor(private activateRoute: ActivatedRoute,
       not_sell: new UntypedFormControl      ('',[]),
       indivisible: new UntypedFormControl      ('',[]),
       productPricesTable: new UntypedFormArray([]),//массив с формами цен
+
+      short_description: new UntypedFormControl      ('',[]),
+      type: new UntypedFormControl      ('',[]),
+      slug: new UntypedFormControl      ('',[]),
+      featured: new UntypedFormControl      ('',[]),
+      virtual: new UntypedFormControl      ('',[]),
+      downloadable: new UntypedFormControl      ('',[]),
+      download_limit: new UntypedFormControl      ('',[]),
+      download_expiry: new UntypedFormControl      ('',[]),
+      external_url: new UntypedFormControl      ('',[Validators.maxLength(250)]),
+      button_text: new UntypedFormControl      ('',[Validators.maxLength(60)]),
+      tax_status: new UntypedFormControl      ('taxable',[]),
+      manage_stock: new UntypedFormControl      (false,[]),
+      low_stock_threshold: new UntypedFormControl      ('0',[Validators.pattern('^[0-9]{1,9}(?:[.,][0-9]{0,3})?\r?$')]),
+      stock_status: new UntypedFormControl      ('instock',[]),
+      backorders: new UntypedFormControl      ('',[]),
+      sold_individually: new UntypedFormControl      (false,[]),
+      reg_price: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      sale_price: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      height: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
+      width: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
+      length: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
+      shipping_class: new UntypedFormControl      ('',[]),
+      reviews_allowed: new UntypedFormControl      ('',[]),
+      parent_id: new UntypedFormControl      ('',[]),
+      purchase_note: new UntypedFormControl      ('',[]),
+      menu_order: new UntypedFormControl      ('',[]),
+      date_on_sale_to_gmt: new UntypedFormControl      ('',[]),
+      date_on_sale_from_gmt: new UntypedFormControl      ('',[]),
+      upsell_ids: new UntypedFormControl([],[]),
+      crosssell_ids: new UntypedFormControl([],[]),
+      grouped_ids: new UntypedFormControl([],[]),
     });
     this.formAboutDocument = new UntypedFormGroup({
       id: new UntypedFormControl      ('',[]),
@@ -391,6 +543,18 @@ constructor(private activateRoute: ActivatedRoute,
       if(this.mode=='viewInWindow'){this.id=this.data.docId; this.formBaseInformation.get('id').setValue(this.id);}
       if(this.mode=='createForAcceptance' || this.mode=='createForPosting'){this.formBaseInformation.get('company_id').setValue(this.data.companyId); }
     } 
+
+    // let Inline = Quill.import('blots/inline');
+    // class XVideoBlot extends Inline { }
+    // XVideoBlot.blotName = 'xvideo';
+    // XVideoBlot.tagName = 'x-video';    
+    // Quill.register(XVideoBlot);
+
+    // let BlockEmbed = Quill.import('blots/block/embed');
+    // class DividerBlot extends BlockEmbed { }
+    // DividerBlot.blotName = 'divider';
+    // DividerBlot.tagName = 'hr';
+
   }
 //---------------------------------------------------------------------------------------------------------------------------------------                            
 // ----------------------------------------------------- *** ПРАВА *** ------------------------------------------------------------------
@@ -443,6 +607,7 @@ refreshPermissions():boolean{
       this.getDocumentValuesById();
       this.getSets();
       this.loadImagesInfo();
+      this.loadDownloadableFilesInfo();
       this.loadCagentsInfo();
       this.loadBarcodesInfo();
     }
@@ -531,29 +696,60 @@ refreshPermissions():boolean{
                   this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
                   this.formBaseInformation.get('company_id').setValue(+documentValues.company_id);
                   this.formBaseInformation.get('company').setValue(documentValues.company);
-                  this.formBaseInformation.get('productgroup_id').setValue(+documentValues.productgroup_id);
+                  this.formBaseInformation.get('productgroup_id').setValue(documentValues.productgroup_id==null?null:+documentValues.productgroup_id);
                   this.formBaseInformation.get('name').setValue(documentValues.name);
                   this.formBaseInformation.get('description').setValue(documentValues.description);
                   this.formBaseInformation.get('article').setValue(documentValues.article);
+                  this.store_sku=this.formBaseInformation.get('article').value
                   this.formBaseInformation.get('product_code').setValue(documentValues.product_code?this.PrependZeros(documentValues.product_code,5,''):'');
                   this.formBaseInformation.get('product_code_free').setValue(documentValues.product_code_free?this.PrependZeros(documentValues.product_code_free,10,''):'');
-                  this.formBaseInformation.get('ppr_id').setValue(+documentValues.ppr_id);
+                  this.formBaseInformation.get('ppr_id').setValue(documentValues.ppr_id==null?null:+documentValues.ppr_id);
                   this.formBaseInformation.get('by_weight').setValue(documentValues.by_weight);
-                  this.formBaseInformation.get('edizm_id').setValue(+documentValues.edizm_id);
-                  this.formBaseInformation.get('nds_id').setValue(+documentValues.nds_id);
+                  this.formBaseInformation.get('edizm_id').setValue(documentValues.edizm_id==null?null:+documentValues.edizm_id);
+                  this.formBaseInformation.get('nds_id').setValue(documentValues.nds_id==null?null:+documentValues.nds_id);
                   this.formBaseInformation.get('weight').setValue(documentValues.weight);
                   this.formBaseInformation.get('volume').setValue(documentValues.volume);
-                  this.formBaseInformation.get('weight_edizm_id').setValue(+documentValues.weight_edizm_id);
-                  this.formBaseInformation.get('volume_edizm_id').setValue(+documentValues.volume_edizm_id);
+                  this.formBaseInformation.get('weight_edizm_id').setValue(documentValues.weight_edizm_id==null?null:+documentValues.weight_edizm_id);
+                  this.formBaseInformation.get('volume_edizm_id').setValue(documentValues.volume_edizm_id==null?null:+documentValues.volume_edizm_id);
                   this.formBaseInformation.get('markable').setValue(documentValues.markable);
-                  this.formBaseInformation.get('markable_group_id').setValue(+documentValues.markable_group_id);
+                  this.formBaseInformation.get('markable_group_id').setValue(documentValues.markable_group_id==null?null:+documentValues.markable_group_id);
                   this.formBaseInformation.get('excizable').setValue(documentValues.excizable);
                   this.formBaseInformation.get('not_buy').setValue(documentValues.not_buy);
                   this.formBaseInformation.get('not_sell').setValue(documentValues.not_sell);
                   this.formBaseInformation.get('indivisible').setValue(documentValues.indivisible);
+                  this.formBaseInformation.get('short_description').setValue(documentValues.short_description);                  
+                  this.formBaseInformation.get('type').setValue(documentValues.type);
+                  this.formBaseInformation.get('slug').setValue(documentValues.slug);
+                  this.formBaseInformation.get('featured').setValue(documentValues.featured);
+                  this.formBaseInformation.get('virtual').setValue(documentValues.virtual);
+                  this.formBaseInformation.get('downloadable').setValue(documentValues.downloadable);
+                  this.formBaseInformation.get('download_limit').setValue(documentValues.download_limit);
+                  this.formBaseInformation.get('download_expiry').setValue(documentValues.download_expiry);
+                  this.formBaseInformation.get('external_url').setValue(documentValues.external_url);
+                  this.formBaseInformation.get('button_text').setValue(documentValues.button_text);
+                  this.formBaseInformation.get('tax_status').setValue(documentValues.tax_status);
+                  this.formBaseInformation.get('manage_stock').setValue(documentValues.manage_stock);
+                  this.formBaseInformation.get('low_stock_threshold').setValue(documentValues.low_stock_threshold);
+                  this.formBaseInformation.get('stock_status').setValue(documentValues.stock_status);
+                  this.formBaseInformation.get('backorders').setValue(documentValues.backorders);
+                  this.formBaseInformation.get('sold_individually').setValue(documentValues.sold_individually);
+                  this.formBaseInformation.get('height').setValue(documentValues.height);
+                  this.formBaseInformation.get('width').setValue(documentValues.width);
+                  this.formBaseInformation.get('length').setValue(documentValues.length);
+                  this.formBaseInformation.get('shipping_class').setValue(documentValues.shipping_class);
+                  this.formBaseInformation.get('reviews_allowed').setValue(documentValues.reviews_allowed);
+                  this.formBaseInformation.get('parent_id').setValue(documentValues.parent_id);
+                  this.formBaseInformation.get('purchase_note').setValue(documentValues.purchase_note);
+                  this.formBaseInformation.get('menu_order').setValue(documentValues.menu_order);
+                  this.formBaseInformation.get('date_on_sale_from_gmt').setValue(documentValues.date_on_sale_from_gmt?moment(documentValues.date_on_sale_from_gmt,'DD.MM.YYYY'):"");
+                  this.formBaseInformation.get('date_on_sale_to_gmt').setValue(documentValues.date_on_sale_to_gmt?moment(documentValues.date_on_sale_to_gmt,'DD.MM.YYYY'):"");
                   this.searchProductGroupsCtrl.setValue(documentValues.productgroup);
                   this.checkedList=documentValues.product_categories_id;
                   this.formProductHistory.companyId=this.formBaseInformation.get('company_id').value;
+                  this.selectedUpsellProducts=documentValues.upsell_ids?documentValues.upsell_ids:[];
+                  this.selectedCrosssellProducts=documentValues.crosssell_ids?documentValues.crosssell_ids:[];
+                  this.selectedGroupedProducts=documentValues.grouped_ids?documentValues.grouped_ids:[];
+
                   this.getSpravSysMarkableGroup(); //загрузка справочника маркированных групп товаров
                   this.getSpravSysEdizm(); //загрузка единиц измерения
                   this.getProductBarcodesPrefixes(); //загрузка префиксов штрих-кодов
@@ -566,13 +762,18 @@ refreshPermissions():boolean{
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
         );
   }
+  quillRefresh(){
+    this.formBaseInformation.get('description').setValue((this.formBaseInformation.get('description').value));
+    this.formBaseInformation.get('short_description').setValue((this.formBaseInformation.get('short_description').value));
+    // this.formBaseInformation.get('short_description').setValue(this.formBaseInformation.get('short_description').value.trim());
+  }
   //фильтрация при каждом изменении в поле маркированных товаров, создание нового массива и его возврат
-  private _filter_markable_group(value: string): idAndName[] {
+  private _filter_markable_group(value: string): IdAndName[] {
     const filterValue = value.toLowerCase();
     return this.spravSysMarkableGroupSet.filter(option => option.name.toLowerCase().includes(filterValue));
   }
   //фильтрация при каждом изменении в поле наименования ед. измерения, создание нового массива и его возврат
-  private _filter(value: string): idAndName[] {
+  private _filter(value: string): IdAndName[] {
     const filterValue = value.toLowerCase();
     return this.spravSysEdizmOfProductAll.filter(option => option.name.toLowerCase().includes(filterValue));
   }
@@ -705,7 +906,7 @@ refreshPermissions():boolean{
   checkEmptyProductGroupField(){
     console.log("length - "+this.searchProductGroupsCtrl.value.length);
     if(this.searchProductGroupsCtrl.value.length==0){
-      this.formBaseInformation.get('productgroup_id').setValue(0);
+      this.formBaseInformation.get('productgroup_id').setValue(null);
     }
   };        
   clickBtnCreateNewDocument(){// Нажатие кнопки Записать
@@ -745,10 +946,26 @@ refreshPermissions():boolean{
     this.updateDocument();
     this.product_code_free_isReadOnly = true ;
   }
-   updateDocument(){ // сохраняется в 2 захода - 1й сам док и категории, 2й - настраиваемые поля (если есть)
+  updateDocument(){ // сохраняется в 2 захода - 1й сам док и категории, 2й - настраиваемые поля (если есть)
     this.formBaseInformation.get('selectedProductCategories').setValue(this.checkedList);
     this.formBaseInformation.get('imagesIdsInOrderOfList').setValue(this.getImagesIdsInOrderOfList());
     this.formBaseInformation.get('cagentsIdsInOrderOfList').setValue(this.getCagentsIdsInOrderOfList());
+    this.formBaseInformation.get('dfilesIdsInOrderOfList').setValue(this.getDfilesIdsInOrderOfList());
+    if(this.selectedUpsellProducts.length>0){
+      var ids:any[] = [];
+      this.selectedUpsellProducts.map(i =>{ids.push(i.id);});
+      this.formBaseInformation.get('upsell_ids').setValue(ids);
+    } else this.formBaseInformation.get('upsell_ids').setValue([]);
+    if(this.selectedCrosssellProducts.length>0){
+      var ids:any[] = [];
+      this.selectedCrosssellProducts.map(i =>{ids.push(i.id);});
+      this.formBaseInformation.get('crosssell_ids').setValue(ids);
+    } else this.formBaseInformation.get('crosssell_ids').setValue([]);
+    if(this.selectedGroupedProducts.length>0){
+      var ids:any[] = [];
+      this.selectedGroupedProducts.map(i =>{ids.push(i.id);});
+      this.formBaseInformation.get('grouped_ids').setValue(ids);
+    } else this.formBaseInformation.get('grouped_ids').setValue([]);
     return this.http.post('/api/auth/updateProducts', this.formBaseInformation.value)
     .subscribe(
       (data) => 
@@ -768,9 +985,15 @@ refreshPermissions():boolean{
   }
 
   getSpravSysPPR(){
-      return this.loadSpravService.getSpravSysPPR()
-          .subscribe((data) => {this.spravSysPPRSet=data as any[];},
-          error => console.log(error));}
+    return this.loadSpravService.getSpravSysPPR().subscribe({
+      next: (data) => {
+        this.spravSysPPRSet = data as any[];
+      },
+      error: (error) => {
+        console.log(error);
+      }
+    });
+  }
   getSpravTaxes(){
       this.loadSpravService.getSpravTaxes(this.formBaseInformation.get('company_id').value)
         .subscribe((data) => {
@@ -817,7 +1040,7 @@ refreshPermissions():boolean{
   //чтобы обнулить поле с id единицы измерения (оно невидимое) после стирания наименования ед. измерения
   checkEmptyProductEdizmField(){
     if( this.formBaseInformation.get('edizm_name').value.length==0){ 
-      this.formBaseInformation.get('edizm_id').setValue(0);
+      this.formBaseInformation.get('edizm_id').setValue(null);
     }
   }
   getProductBarcodesPrefixes(){
@@ -847,7 +1070,7 @@ refreshPermissions():boolean{
   }
   checkEmptyMarkableGroup(){
     if( this.formBaseInformation.get('markable_group_name').value.length==0){
-      this.formBaseInformation.get('markable_group_id').setValue(0);
+      this.formBaseInformation.get('markable_group_id').setValue(null);
     }
   }
   onCompanyChange(){
@@ -974,7 +1197,7 @@ refreshPermissions():boolean{
       },
     });
   }
-  openDialogAddImages() {
+  openDialogAddFiles(type:string) {
     const dialogRef = this.dialogAddImages.open(FilesComponent, {
       width:  '90%', 
       height: '90%',
@@ -986,16 +1209,27 @@ refreshPermissions():boolean{
     });
     dialogRef.afterClosed().subscribe(result => {
       console.log(`Dialog result: ${result}`);
-      if(result)this.addImagesToProduct(result);
+      if(result && type=='image')this.addImagesToProduct(result); else this.addDownloadableFilesToProduct(result);//product downloadable files
     });
   }
   addImagesToProduct(filesIds: number[]){
-    const body = {"id1":this.id, "setOfLongs1":filesIds};// передаем id товара и id файлов 
-            return this.http.post('/api/auth/addImagesToProduct', body) 
+    const body = {"id1":this.id, "setOfLongs1":filesIds, string1: 'product_files'};
+      return this.http.post('/api/auth/addFilesToProduct', body) 
               .subscribe(
                   (data) => {  
                     this.openSnackBar(translate('docs.msg.imgs_added'), translate('docs.msg.close'));
                     this.loadImagesInfo();
+                            },
+                  error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
+              );
+  }
+  addDownloadableFilesToProduct(filesIds: number[]){
+    const body = {"id1":this.id, "setOfLongs1":filesIds, string1: 'product_downloadable_files'};
+      return this.http.post('/api/auth/addFilesToProduct', body) 
+              .subscribe(
+                  (data) => {  
+                    this.openSnackBar(translate('docs.msg.dfiles_added'), translate('docs.msg.close'));
+                    this.loadDownloadableFilesInfo();
                             },
                   error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
               );
@@ -1007,9 +1241,16 @@ refreshPermissions():boolean{
     })
     return i;
   }
+  getDfilesIdsInOrderOfList(): number[] {
+    var i: number []=[];
+    this.downloadableFilesInfo.forEach(x => {
+      i.push(+x.id);
+    })
+    return i;
+  }
   loadImagesInfo(){//                                     загружает информацию по картинкам товара
       const body = {"id":this.id};//any_boolean: true - полные картинки, false - их thumbnails
-            return this.http.post('/api/auth/getListOfProductImages', body) 
+      return this.http.post('/api/auth/getListOfProductImages', body) 
               .subscribe(
                   (data) => {  
                               this.imagesInfo = data as ImagesInfo[]; 
@@ -1023,6 +1264,15 @@ refreshPermissions():boolean{
                   error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
               );
   }
+  loadDownloadableFilesInfo(){//                                     
+    return this.http.get('/api/auth/getProductDownloadableFiles?product_id='+this.id) 
+            .subscribe(
+                (data) => {  
+                            this.downloadableFilesInfo = data as DownloadableFilesInfo[]; 
+                          },
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
+            );
+}
   getImage(imageUrl: string): Observable<Blob> {
     return this.http.get(imageUrl, {responseType: 'blob'});
   }
@@ -1049,6 +1299,9 @@ refreshPermissions():boolean{
     moveItemInArray(this.imagesInfo, event.previousIndex, event.currentIndex);
     this.loadMainImage();
   }
+  dropDfile(event: CdkDragDrop<string[]>) {
+    moveItemInArray(this.downloadableFilesInfo, event.previousIndex, event.currentIndex);
+  }
   loadMainImage(){
     console.log("imagesInfo: "+this.imagesInfo.length);
     if(this.imagesInfo.length>0){
@@ -1059,7 +1312,20 @@ refreshPermissions():boolean{
     } 
     // else this.noImageAddress="../../../../../../assets_/images/no_foto.jpg";
   }
-
+  clickBtnDeleteDownloadableFile(id: number): void {
+    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+      width: '400px',
+      data:
+      { 
+        head:   translate('docs.msg.del_dfile'),
+        query:  translate('docs.msg.del_dfile_f_crd'),
+        warning:translate('docs.msg.file_will_stay'),
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){this.deleteFile(id, 'product_downloadable_files');}
+    });        
+  }
   clickBtnDeleteImage(id: number): void {
     const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
       width: '400px',
@@ -1071,17 +1337,24 @@ refreshPermissions():boolean{
       },
     });
     dialogRef.afterClosed().subscribe(result => {
-      if(result==1){this.deleteImage(id);}
+      if(result==1){this.deleteFile(id, 'product_files');}
     });        
   }
-  deleteImage(id:number){
-    const body = {id: id, any_id:this.id}; 
-    return this.http.post('/api/auth/deleteProductImage',body)
+  deleteFile(imgId:number, tableName:string){
+    const body = {id: imgId, id1:this.id, string1:tableName}; 
+    return this.http.post('/api/auth/deleteProductFile',body)
     .subscribe(
-        (data) => {   
-                    this.openSnackBar(translate('docs.msg.deletet_succs'), translate('docs.msg.close'));
-                    this.loadImagesInfo();
-                },
+        (data) => {  
+          let result = data as any; 
+          switch(result){
+            case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_msg')}});break;}
+            case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});break;}
+            default:{ 
+              this.openSnackBar(translate('docs.msg.deletet_succs'), translate('docs.msg.close'));
+              if(tableName=='product_files') this.loadImagesInfo(); else this.loadDownloadableFilesInfo();
+            }
+          }
+        },
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
     );  
   }
@@ -1373,10 +1646,12 @@ checkProductCodeFreeUnical() {
   numberOnlyPlusDotAndComma(event): boolean {
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
     if (charCode > 31 && ((charCode < 48 || charCode > 57) && charCode!=44 && charCode!=46)) { return false; } return true;}
-  
+  commaToDot(fieldName:string){
+    this.formBaseInformation.get(fieldName).setValue(this.formBaseInformation.get(fieldName).value.replace(",", "."))
+  }
   doFilterCompaniesList(){
     console.log('doFilterCompaniesList - allowToViewAllCompanies: '+this.allowToViewAllCompanies);
-      let myCompany:idAndName;
+      let myCompany:IdAndName;
       if(!this.allowToCreateAllCompanies){
         this.receivedCompaniesList.forEach(company=>{
         if(this.myCompanyId==company.id) myCompany={id:company.id, name:company.name}});
@@ -1508,14 +1783,14 @@ checkProductCodeFreeUnical() {
       (data) => {this.receivedPriceTypesList=data as ProductPricesTable [];
         //получили список цен товара с их значениями (или с 0 если такая цена для товара не установлена)
         //теперь нужно создать FormArray для редактирования цен:
+        let row_index=0;
         if(this.receivedPriceTypesList.length>0){
           this.receivedPriceTypesList.forEach(row=>{
-            control.push(this.formingProductPricesRow(row));
+            control.push(this.formingProductPricesRow(row));            
+            this.onChangeCRMPrice(row_index); // Setting store prices (regular and sale price)
+            row_index++;
           });
         }
-
-
-
       },
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
@@ -1528,7 +1803,9 @@ checkProductCodeFreeUnical() {
       price_type_id: new UntypedFormControl (row.price_type_id,[]),
       price_name: new UntypedFormControl (row.price_name,[]),
       price_value: new UntypedFormControl (row.price_value,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
-      price_description: new UntypedFormControl (row.price_description,[]),
+      price_description: new UntypedFormControl (row.price_description,[]),      
+      is_store_price_type_regular: new UntypedFormControl (row.is_store_price_type_regular,[]),      
+      is_store_price_type_sale: new UntypedFormControl (row.is_store_price_type_sale,[]),
     });
   }
 
@@ -1554,7 +1831,8 @@ checkProductCodeFreeUnical() {
      let row_index:number=0;
       this.formBaseInformation.value.productPricesTable.map(() => 
         {
-          control.controls[row_index].get('price_value').setValue(+price_value);
+          control.controls[row_index].get('price_value').setValue(+price_value);          
+          this.onChangeCRMPrice(row_index); // Setting store prices (regular and sale price)
           row_index++;
         });
   }
@@ -1566,5 +1844,77 @@ checkProductCodeFreeUnical() {
   }
   onSelectTab(a){
     if(a.index==1 && this.dataSource.data.length==0) this.getTable();
+    if(a.index==2) this.quillRefresh();
+  }
+  propertiesMenuClick(menu: string) :void {
+    this.prop_menu = menu;
+  }
+
+  onChangeStorePrice(fieldName:string){
+    let storePriceType = (fieldName=='reg_price'?'regular':'sale');
+    this.commaToDot(fieldName);
+    const control = this.getControlPriceTable();
+      let row_index:number=0;
+      this.formBaseInformation.value.productPricesTable.map(() => 
+        {
+          if(control.controls[row_index].get('is_store_price_type_'+storePriceType).value)
+            control.controls[row_index].get('price_value').setValue(this.formBaseInformation.get(fieldName).value);
+          row_index++;
+        });
+  }
+
+  onChangeCRMPrice(row_index:number){
+    // let storePriceType = (fieldName=='reg_price'?'regular':'sale');
+    const control = this.getControlPriceTable();
+    if(control.controls[row_index].get('is_store_price_type_regular').value){
+      this.formBaseInformation.get('reg_price').setValue(control.controls[row_index].get('price_value').value);
+      this.reg_price_selected=true;
+    }
+    if(control.controls[row_index].get('is_store_price_type_sale').value){
+      this.sales_price_selected=true;
+      this.formBaseInformation.get('sale_price').setValue(control.controls[row_index].get('price_value').value);
+    }
+  }
+
+  onChangeStoreSKU(){this.formBaseInformation.get('article').setValue(this.store_sku);}
+  onChangeCrmSKU(){this.store_sku=this.formBaseInformation.get('article').value}
+  
+  openDialogProductCategoriesSelect(sellsType:string){
+    const dialogSettings = this.productCategoriesSelectComponent.open(ProductCategoriesSelectComponent, {
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      width: '800px', 
+      minHeight: '650px',
+      data:
+      { //отправляем в диалог:
+        idTypes:    'products',
+        companyId:  this.formBaseInformation.get('company_id').value, //предприятие, по которому будут отображаться товары и категории
+      },
+    });
+    dialogSettings.afterClosed().subscribe(result => {
+      if(result){
+        result.map(i => {
+          if(sellsType=='cross')
+            this.selectedCrosssellProducts.push(i);
+          else if(sellsType=='up')
+            this.selectedUpsellProducts.push(i);
+          else //grouped
+            this.selectedGroupedProducts.push(i);
+        });
+      }
+    });
+  }
+  
+  remove(obj: IdAndName, sellsType:string): void {
+    if(sellsType=='cross'){
+      const index = this.selectedCrosssellProducts.indexOf(obj);
+      if (index >= 0) this.selectedCrosssellProducts.splice(index, 1);
+    } else if (sellsType=='up'){
+      const index = this.selectedUpsellProducts.indexOf(obj);
+      if (index >= 0) this.selectedUpsellProducts.splice(index, 1);
+    } else { //grouped
+      const index = this.selectedGroupedProducts.indexOf(obj);
+      if (index >= 0) this.selectedGroupedProducts.splice(index, 1);
+    }
   }
 }

@@ -95,6 +95,9 @@ const routes: Routes = [
       { path: 'currenciesdoc', loadChildren: () => import('./pages/documents/currencies-doc/currencies-doc.module').then(m => m.CurrenciesDocModule) },
       { path: 'accounts', loadChildren: () => import('./pages/documents/accounts/accounts.module').then(m => m.PaymentAccountModule) },
       { path: 'accountsdoc', loadChildren: () => import('./pages/documents/accounts-doc/accounts-doc.module').then(m => m.PaymentAccountDocModule) },
+      { path: 'productattributes', loadChildren: () => import('./pages/documents/productattributes/productattributes.module').then(m => m.ProductAttributeModule) },
+      { path: 'productattributesdoc', loadChildren: () => import('./pages/documents/productattributes-doc/productattributes-doc.module').then(m => m.ProductAttributeDocModule) },
+      
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
       { path: '**', redirectTo: 'dashboard',pathMatch: 'full' },
     ]  

@@ -352,7 +352,8 @@
         "v_invoicesin": "счета-фактуры полученные",
         "counterpays":  "взаиморасчёты с",
         "currencies":   "валюты",
-        "accounts":     "расчётные счета"
+        "accounts":     "расчётные счета",
+        "productattr":  "атрибуты товаров"
     },
     "indicators":{
         "revenue":      "Выручка",
