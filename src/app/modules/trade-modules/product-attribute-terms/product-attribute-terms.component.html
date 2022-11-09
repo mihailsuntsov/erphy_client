@@ -1,0 +1,79 @@
+<mat-card class="card" *transloco="let t">
+
+    <mat-card-title class="flex">
+        <div class="card-name">{{actionType=='create'?('modules.card.term_create' | transloco):('modules.card.term_edit' | transloco)}}</div>
+        <button 
+            mat-raised-button 
+            *ngIf="+formBaseInformation.get('id').value==0"
+            (click)="insertProductAttributeTerm()"
+            color="primary"
+            [disabled]="!formBaseInformation.valid" 
+            matTooltip="{{t('docs.tip.create')}}"
+            class="button">
+            <i class="material-icons">done</i>
+        </button>
+        <button 
+            mat-raised-button 
+            *ngIf="+formBaseInformation.get('id').value!=0"
+            (click)="updateProductAttributeTerm()"
+            color="primary"
+            [disabled]="!formBaseInformation.valid" 
+            matTooltip="{{t('docs.tip.save')}}"
+            class="button">
+            <i class="material-icons">save</i>
+        </button>
+        <button 
+            (click)="onNoClick()"
+            matTooltip="{{t('docs.tip.close')}}"
+            mat-raised-button 
+            color="accent"
+            class="button">
+            <i class="material-icons">close</i>
+        </button>
+    </mat-card-title>
+
+    <mat-card-content>
+        <form *ngIf="formBaseInformation" [formGroup]="formBaseInformation">   
+            <mat-form-field style="width: 100%">
+
+            <mat-label>{{'docs.field.name' | transloco}} <span *ngIf="formBaseInformation.get('name').value==''||formBaseInformation.get('name').value==null" class="star">*</span></mat-label>
+                <input  matInput
+                        maxlength="120"
+                        (input)="slugify()"
+                        (change)="slugify()"
+                        formControlName="name"/>  
+                        <mat-hint align="start" *ngIf="formBaseInformation.get('name').touched">
+                            <i *ngIf="formBaseInformation.get('name').value==''" class="form-invalid">{{'docs.error.field_miss' | transloco}}</i>
+                        </mat-hint>
+                        <mat-hint align="end" *ngIf="formBaseInformation.get('name').value.length>100">{{formBaseInformation.get('name').value.length}} / 120</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field style="width: 100%">
+                <mat-label>{{'modules.field.slug' | transloco}} <span *ngIf="formBaseInformation.get('slug').value==''||formBaseInformation.get('slug').value==null" class="star">*</span></mat-label>
+                <input  matInput
+                        maxlength="120"
+                        formControlName="slug"/>   
+                        <mat-hint align="start" *ngIf="formBaseInformation.get('slug').touched">
+                            <i *ngIf="formBaseInformation.get('slug').value==''" class="form-invalid">{{'docs.error.field_miss' | transloco}}</i>
+                        </mat-hint>
+                        <mat-hint align="end" *ngIf="formBaseInformation.get('slug').value.length>100">{{formBaseInformation.get('slug').value.length}} / 120</mat-hint>
+            </mat-form-field>
+            
+            <mat-form-field style="width: 100%">
+                <mat-label>{{'docs.field.description' | transloco}} </mat-label>
+                <input  matInput
+                        maxlength="1000"
+                        formControlName="description"/>  
+                        <mat-hint align="end" *ngIf="formBaseInformation.get('description').value.length>900">{{formBaseInformation.get('description').value.length}} / 1000</mat-hint>
+            </mat-form-field>
+
+
+        </form>
+
+
+
+    </mat-card-content>
+
+    <!-- <code><pre>{{formBaseInformation.value | json}}</pre></code> -->
+
+</mat-card>

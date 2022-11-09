@@ -152,7 +152,9 @@
         "cat_select":   "Category selection",
         "prods_select": "Products selection",
         "cat_selectd":  "Selected categories",
-        "prods_selectd":"Selected products"
+        "prods_selectd":"Selected products",
+        "term_create":  "Term creation",
+        "term_edit":    "Edit term"
     },
     "field":{ 
         "company":      "Company",

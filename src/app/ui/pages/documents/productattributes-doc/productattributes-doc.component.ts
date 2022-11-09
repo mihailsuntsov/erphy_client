@@ -1,13 +1,17 @@
 import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
-import { UntypedFormGroup, Validators, UntypedFormControl } from '@angular/forms';
+import { UntypedFormGroup, Validators, UntypedFormControl, UntypedFormArray } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { translate } from '@ngneat/transloco'; //+++
+import { SlugifyPipe } from 'src/app/services/slugify.pipe';
+import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+import { ProductAttributeTermsComponent } from 'src/app/modules/trade-modules/product-attribute-terms/product-attribute-terms.component';
 
 interface docResponse {//интерфейс для получения ответа в методе getProductAttributeTableById
   id: number;
@@ -28,6 +32,13 @@ interface docResponse {//интерфейс для получения ответ
   has_archives: boolean;
   is_deleted: boolean;
 }
+interface AttributeTerm{
+  id: number;
+  name: string;
+  description: string;
+  slug: string;
+  menu_order: number;
+} 
 interface IdAndName{ //универсалный интерфейс для выбора из справочников
   id: any;
   name: string;
@@ -36,7 +47,7 @@ interface IdAndName{ //универсалный интерфейс для выб
   selector: 'app-productattributes-doc',
   templateUrl: './productattributes-doc.component.html',
   styleUrls: ['./productattributes-doc.component.css'],
-  providers: [LoadSpravService,]
+  providers: [LoadSpravService,SlugifyPipe]
 })
 export class ProductAttributeDocComponent implements OnInit {
 
@@ -46,7 +57,7 @@ export class ProductAttributeDocComponent implements OnInit {
   myCompanyId:number=0;
   myId:number=0;
   creatorId:number=0;
-  
+  receivedTermsList: AttributeTerm[] = [];
   //Формы
   formBaseInformation:any;//форма для основной информации, содержащейся в документе
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
@@ -72,9 +83,12 @@ export class ProductAttributeDocComponent implements OnInit {
   constructor(
     private activateRoute: ActivatedRoute,
     private http: HttpClient,
+    private productAttributeTermsDialog: MatDialog,
     private MessageDialog: MatDialog,
     private loadSpravService:   LoadSpravService,
     private _router:Router,
+    public ConfirmDialog: MatDialog,
+    private slugifyPipe: SlugifyPipe,
     private _snackBar: MatSnackBar) { 
       if(activateRoute.snapshot.params['id'])
         this.id = +activateRoute.snapshot.params['id'];// +null returns 0
@@ -90,6 +104,7 @@ export class ProductAttributeDocComponent implements OnInit {
       order_by: new UntypedFormControl        ('menu_order',[]),
       has_archives: new UntypedFormControl    ('false',[]),
       is_deleted: new UntypedFormControl      ('false',[]),
+      terms:  new UntypedFormControl          ([],[]),//массив с названиями термсов атрибута
     });
     this.formAboutDocument = new UntypedFormGroup({
       id: new UntypedFormControl                     ('',[]),
@@ -235,7 +250,7 @@ export class ProductAttributeDocComponent implements OnInit {
                   this.formAboutDocument.get('company').setValue(documentValues.company);
                   this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
                   this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
-                  // this.getProductAttributeList();
+                  this.getProductAttributeTermsList();
                   
                 } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();
@@ -280,6 +295,7 @@ export class ProductAttributeDocComponent implements OnInit {
   }
 
   updateDocument(complete:boolean){ 
+    this.formBaseInformation.get('terms').setValue(this.receivedTermsList);
       return this.http.post('/api/auth/updateProductAttribute', this.formBaseInformation.value)
         .subscribe(
             (data) => 
@@ -347,4 +363,107 @@ export class ProductAttributeDocComponent implements OnInit {
   numberOnly(event): boolean {
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
     if (charCode > 31 && (charCode < 48 || charCode > 57)) { return false; } return true;}
+
+  slugify(){
+    this.formBaseInformation.get('slug').setValue(
+      this.slugifyPipe.transform(this.formBaseInformation.get('name').value)
+    );
+  }
+
+  getProductAttributeTermsList(){
+    this.http.get('/api/auth/getProductAttributeTermsList?attribute_id='+this.id)
+    .subscribe(
+      (data) => {
+        this.receivedTermsList=data as AttributeTerm [];
+      },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+    );
+  }
+
+  getMaxOrder(){
+    let mo:number = 0;
+    this.receivedTermsList.forEach(i => {
+      mo = i.menu_order;
+    });
+    return mo;
+  }
+
+  dropTerm(event: CdkDragDrop<string[]>) {
+    moveItemInArray(this.receivedTermsList, event.previousIndex, event.currentIndex);
+  }
+
+  clickBtnAddTerm(): void {
+    const dialogRef = this.productAttributeTermsDialog.open(ProductAttributeTermsComponent, {
+      width: '800px', 
+      data:
+      { 
+        actionType: "create",
+        attribute_id: this.id,
+        companyId: this.formBaseInformation.get('company_id').value,
+        menu_order: this.getMaxOrder(),
+        termName: '', 
+        termId:'',
+        termSlug:'',
+        termDescription:'',
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      console.log("createdTermId: "+result);
+      this.getProductAttributeTermsList();
+    });        
+  }
+
+  clickBtnEditTerm(termId:string,termName:string,termSlug:string,termDescription:string): void {
+    const dialogRef = this.productAttributeTermsDialog.open(ProductAttributeTermsComponent, {
+      width: '800px', 
+      data:
+      { 
+        actionType:"update",
+        attribute_id: this.id,
+        termName: termName, 
+        termId:termId,
+        termSlug:termSlug,
+        termDescription:termDescription,
+        companyId: this.formBaseInformation.get('company_id').value,
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      this.getProductAttributeTermsList();
+    });        
+  }
+
+
+  clickBtnDeleteTerm(id: number): void {
+    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+      width: '400px',
+      data:
+      { 
+        head:   translate('docs.msg.del_term'),
+        query:  translate('docs.msg.del_term_f_attr'),
+        warning:translate(''),
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){this.deleteTerm(id);}
+    });        
+  }
+  deleteTerm(termId:number){
+    return this.http.get('/api/auth/deleteProductAttributeTerm?id='+termId)
+    .subscribe(
+        (data) => {  
+          let result = data as any; 
+          switch(result){
+            case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_msg')}});break;}
+            case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});break;}
+            default:{ 
+              this.openSnackBar(translate('docs.msg.deletet_succs'), translate('docs.msg.close'));
+              this.getProductAttributeTermsList();
+            }
+          }
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
+    );  
+  }
+
+
 }

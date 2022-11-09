@@ -16,7 +16,7 @@ import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree'
 import { FlatTreeControl } from '@angular/cdk/tree';
 import { ViewChild } from '@angular/core';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
-import { SlugifyPipe } from './slugify.pipe';
+import { SlugifyPipe } from 'src/app/services/slugify.pipe';
 
 interface categoriesOrderResponse {//интерфейс для получения ответа в методе getFields (информации по полям)
   id: number;

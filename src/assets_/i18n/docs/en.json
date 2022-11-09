@@ -34,7 +34,8 @@
         "permissions":  "Permissions",
         "perm_n_access":"Access and permissions",
         "account":      "User accounts",
-        "lang_n_stand": "Languages and standards"
+        "lang_n_stand": "Languages and standards",
+        "terms":        "Terms"
     },
     "field":{ 
         "-- COMMON":"--",
@@ -369,7 +370,8 @@
         "clear_field":  "Clear the search field, and select a different value",
         "prefix_pieced":"The first 2 digits of the EAN-13 barcode. Designed to form the company's internal barcodes for piece goods. Value from 20 to 29",
         "prefix_packed":"The first 2 digits of the EAN-13 barcode. Designed to form the company's internal barcodes for weighted goods with coding of their mass. Value from 20 to 29",
-        "store_ctg":    "Online store category"
+        "store_ctg":    "Online store category",
+        "add_term":     "Add term"
     },
     "msg":{
         "error":        "Error!",
@@ -528,7 +530,9 @@
         "cr_cn_oin_wd": "Create a counter credit slip for this withdrawal",
         "code_not_unic":"This code is not unique",
         "usr_crte_attn":"This data is displayed here only when the user is created. After creation, the user can change them himself",
-        "no_prods":     "No products in the table"
+        "no_prods":     "No products in the table",
+        "del_term":     "Deleting term",
+        "del_term_f_attr":"Delete this term from the attribute?"
     },
     "button":{        
         "test_connct":  "Connection test",

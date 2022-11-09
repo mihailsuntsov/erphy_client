@@ -5,7 +5,7 @@
             <div class="card-name">
                 {{t('docs.docs.productattr')}} <span [ngClass]="{invisible: +id==0}"> "{{formBaseInformation.get('name').value}}"</span>
             </div>
-            <div class="separator"></div><!-- !!! -->
+            <div class="separator"></div>
             <button 
                 mat-button 
                 [matMenuTriggerFor]="addDocMenu"
@@ -115,6 +115,8 @@
                                                             <input  matInput
                                                                     [readonly]="!allowToUpdate"
                                                                     maxlength="120"
+                                                                    (input)="slugify()"
+                                                                    (change)="slugify()"
                                                                     #name
                                                                     formControlName="name"/> 
                                                             <mat-hint  align="start" *ngIf="formBaseInformation.get('name').touched && formBaseInformation.get('name').invalid">
@@ -156,10 +158,45 @@
                                     </mat-card-content>
                                 </mat-card>
                             </div>
+                            <div class="col-lg-6  col-xl-6 col-md-12">  
+
+                                <mat-card class="internal-card" *ngIf="+id>0" >
+                                    <mat-card-header>
+                                        <mat-card-title class="card-title">{{t('docs.card.terms')}}</mat-card-title>
+                                        <div class="separator"></div>
+                                    </mat-card-header>
+                                    <mat-card-content class="input-form">
+                                        <div class="box-list" cdkDropList (cdkDropListDropped)="dropTerm($event)" style="margin-left: 10px;">
+                                            <ng-container *ngFor="let term of receivedTermsList">
+
+                                                <div class="field-box-drag" cdkDrag style="cursor:move;">
+                                                    <div style="display: table; width: 100%">
+
+                                                        <div class="img-wrapper" style="cursor:move; ">
+                                                            <div class="vertical-center">{{term.name}}</div><p *cdkDragPreview></p>
+                                                        </div>
+                                                        <div style="min-width: 65px; margin-top: 10px; cursor:pointer">
+                                                            <mat-icon  matTooltip="{{t('docs.tip.p_edit')}}" (click)="clickBtnEditTerm(term.id,term.name,term.slug,term.description)" class="icon" style="margin-right:10px;">edit</mat-icon>
+                                                            <mat-icon matTooltip="{{t('docs.tip.delete')}}" class="icon" (click)="clickBtnDeleteTerm(term.id)">delete_forever</mat-icon>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </ng-container>
+                                        </div>
+                                        <div class="div-100" [style.display]="allowToUpdate?'block':'none'"> 
+                                            <div class="center" style="width:100%; height: 38px;">
+                                                <button matTooltip="{{t('docs.tip.add_term')}}" mat-mini-fab color="primary" (click)="clickBtnAddTerm()">
+                                                    <mat-icon>add</mat-icon>
+                                                </button>
+                                            </div>
+                                        </div> 
+                                    </mat-card-content>
+                                </mat-card>
+                            </div>
                         </div>  
                     </div>  
                 </mat-tab>
-                
+
                 <mat-tab  *ngIf="+id>0"  label="{{t('docs.tab.about')}}">
                     <form [formGroup]="formAboutDocument">
                         <mat-card class="internal-card">

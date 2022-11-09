@@ -101,6 +101,10 @@ tr.mat-footer-row {
     padding: 0px;
     color:rgb(100, 100, 100);
 }
+.icon{
+    color: rgba(0,0,0,.54); 
+    cursor: pointer;
+}
 .field-box-drag {
     /* border: 1px solid rgb(221, 221, 221); */
     width:100%; 
@@ -112,7 +116,7 @@ tr.mat-footer-row {
 }
 .img-wrapper{
     flex-grow: 1; 
-    max-width: 70%;
+    width: 100%;
     display: table-cell; 
     vertical-align: middle;
     height: 50px;border: 1px solid white;
