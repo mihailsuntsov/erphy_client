@@ -257,8 +257,9 @@
         "name_full":"Full name",
         "code_lit":"Letter code",
         "code_num":"Numeral code",
-        "acc_currency": "Accounting currency"
-
+        "acc_currency": "Accounting currency",
+        "has_archives":"Enable Archives?",
+        "order_by":"Default sort order"
     },
     "error":{ 
         "-- COMMON":"--",
@@ -371,7 +372,8 @@
         "prefix_pieced":"The first 2 digits of the EAN-13 barcode. Designed to form the company's internal barcodes for piece goods. Value from 20 to 29",
         "prefix_packed":"The first 2 digits of the EAN-13 barcode. Designed to form the company's internal barcodes for weighted goods with coding of their mass. Value from 20 to 29",
         "store_ctg":    "Online store category",
-        "add_term":     "Add term"
+        "add_term":     "Add term",
+        "sort_term":    "Determines the sort order of the terms on the frontend shop product pages. If using custom ordering, you can drag and drop the terms in this attribute."
     },
     "msg":{
         "error":        "Error!",
@@ -570,7 +572,11 @@
         "avg_p_price":  "Average purchase price",
         "manual":       "Manual",
         "entity":       "Entity",
-        "individual":   "Individual"
+        "individual":   "Individual",
+        "menu_order":   "Custom ordering",
+        "name":         "Name",
+        "name_num":     "Name (numeric)",
+        "id":           "Term ID"
     },
     "docs":{            
         "role":         "Role",
