@@ -149,6 +149,40 @@ interface docResponse {//интерфейс для получения ответ
     id: string;
     name: string;
   }
+  interface ProductAttribute{ // interface to getting product attributes
+    attribute_id: number;
+    name: string;
+    visible: boolean;
+    variation: boolean;
+    terms: ProductAttributeTerms[];  // contains: id, name, is_selected
+  }
+  interface ProductAttributeTerms{
+    id: number;
+    name: string;
+    is_selected: boolean;
+  }  
+  interface ProductAttributeForAttributesList{
+    id: number;
+    name: string;
+    terms: ProductAttributeTermsForAttributesList[]; 
+    terms_ids: number[]; //    List of selected term ids
+  }
+  interface ProductAttributeTermsForAttributesList{
+    id: number;
+    name: string;
+    description: string;
+    slug: string;
+  }
+  interface ProductAttributeForm{ // interface to sending product attributes
+    attribute_id;
+    terms_ids: number[]; //    List of selected term ids
+    position;            //	   Attribute position
+    visible;             //    Define if the attribute is visible on the "Additional information" tab in the product's page. Default is false.
+    variation;           //    Define if the attribute can be used as variation. Default is false.
+  }
+
+
+
   export interface DocTable {
     id: number;
   }
@@ -349,6 +383,18 @@ export class ProductsDocComponent implements OnInit {
   filteredSpravSysEdizmOfProductAll: Observable<IdAndName[]>; //массив для отфильтрованных единиц измерения
   spravSysEdizmOfProductWeight: any[]=[];// весовые единицы измерения товара
   spravSysEdizmOfProductVolume: any[]=[];// объёмные единицы измерения товара
+  // переменные атрибутов
+  productAttributes:ProductAttribute[];  
+  productAttributesList:ProductAttributeForAttributesList[];
+  ProductAttributesToSave:ProductAttributeForm[];
+  selectedAttribute: ProductAttributeForAttributesList={
+    id: null,
+    name: '',
+    terms: [], // list of all attribete's terms
+    terms_ids: [] // list of selected terms
+  };
+  allFruits: number[] = [1, 2, 3, 4, 5];
+
 
   prop_menu: string = 'general';
 
@@ -459,7 +505,7 @@ export class ProductsDocComponent implements OnInit {
       excizable: new UntypedFormControl      ('',[]),
       not_buy: new UntypedFormControl      ('',[]),
       not_sell: new UntypedFormControl      ('',[]),
-      indivisible: new UntypedFormControl      ('',[]),
+      indivisible: new UntypedFormControl      (true,[]),
       productPricesTable: new UntypedFormArray([]),//массив с формами цен
 
       short_description: new UntypedFormControl      ('',[]),
@@ -468,8 +514,8 @@ export class ProductsDocComponent implements OnInit {
       featured: new UntypedFormControl      ('',[]),
       virtual: new UntypedFormControl      ('',[]),
       downloadable: new UntypedFormControl      ('',[]),
-      download_limit: new UntypedFormControl      ('',[]),
-      download_expiry: new UntypedFormControl      ('',[]),
+      download_limit: new UntypedFormControl      ('',[Validators.maxLength(8),Validators.pattern('^[0-9]{1,10}$')]),
+      download_expiry: new UntypedFormControl      ('',[Validators.maxLength(8),Validators.pattern('^[0-9]{1,10}$')]),
       external_url: new UntypedFormControl      ('',[Validators.maxLength(250)]),
       button_text: new UntypedFormControl      ('',[Validators.maxLength(60)]),
       tax_status: new UntypedFormControl      ('taxable',[]),
@@ -484,15 +530,17 @@ export class ProductsDocComponent implements OnInit {
       width: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
       length: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
       shipping_class: new UntypedFormControl      ('',[]),
-      reviews_allowed: new UntypedFormControl      ('',[]),
+      reviews_allowed: new UntypedFormControl      (true,[]),
       parent_id: new UntypedFormControl      ('',[]),
       purchase_note: new UntypedFormControl      ('',[]),
-      menu_order: new UntypedFormControl      ('',[]),
+      menu_order: new UntypedFormControl      (1,[Validators.maxLength(8),Validators.pattern('^[0-9]{1,10}$')]),
       date_on_sale_to_gmt: new UntypedFormControl      ('',[]),
       date_on_sale_from_gmt: new UntypedFormControl      ('',[]),
       upsell_ids: new UntypedFormControl([],[]),
       crosssell_ids: new UntypedFormControl([],[]),
       grouped_ids: new UntypedFormControl([],[]),
+      productAttributes: new UntypedFormArray ([]) ,
+      // productAttributes: new UntypedFormControl([],[]),
     });
     this.formAboutDocument = new UntypedFormGroup({
       id: new UntypedFormControl      ('',[]),
@@ -723,8 +771,8 @@ refreshPermissions():boolean{
                   this.formBaseInformation.get('featured').setValue(documentValues.featured);
                   this.formBaseInformation.get('virtual').setValue(documentValues.virtual);
                   this.formBaseInformation.get('downloadable').setValue(documentValues.downloadable);
-                  this.formBaseInformation.get('download_limit').setValue(documentValues.download_limit);
-                  this.formBaseInformation.get('download_expiry').setValue(documentValues.download_expiry);
+                  this.formBaseInformation.get('download_limit').setValue(documentValues.download_limit==-1?null:documentValues.download_limit);
+                  this.formBaseInformation.get('download_expiry').setValue(documentValues.download_expiry==-1?null:documentValues.download_expiry);
                   this.formBaseInformation.get('external_url').setValue(documentValues.external_url);
                   this.formBaseInformation.get('button_text').setValue(documentValues.button_text);
                   this.formBaseInformation.get('tax_status').setValue(documentValues.tax_status);
@@ -755,6 +803,8 @@ refreshPermissions():boolean{
                   this.getProductBarcodesPrefixes(); //загрузка префиксов штрих-кодов
                   this.getProductPrices(); // загрузка типов цен
                   this.getSpravTaxes();//загрузка налогов
+                  this.getProductAttributes(); // product attributes that contain current product
+                  this.getProductAttributesList(); // product attributes list from company registry
                   //!!!
                 } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();
@@ -1917,4 +1967,165 @@ checkProductCodeFreeUnical() {
       if (index >= 0) this.selectedGroupedProducts.splice(index, 1);
     }
   }
+
+  // the list of product attributes that contain current product
+  getProductAttributes(){//                                     
+    return this.http.get('/api/auth/getProductAttributes?product_id='+this.id) 
+            .subscribe(
+                (data) => {  
+                            this.productAttributes = data as ProductAttribute[]; 
+                            this.fillProductAttributesArray(this.productAttributes);
+                          },
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
+            );
+  }
+
+  fillProductAttributesArray(arr: ProductAttribute[]){
+    const add = this.formBaseInformation.get('productAttributes') as UntypedFormArray;
+    add.clear();
+    arr.forEach(m =>{
+      add.push(this._fb.group({
+        attribute_id: m.attribute_id,
+        name: m.name,
+        visible: m.visible,
+        variation: m.variation,
+        terms: [this.formListOfAllAttributeTerms(m.terms)], // list of all attribute's terms
+        terms_ids: [this.formListOfSelectedTermsIds(m.terms)] // list of selected terms
+      }))
+    })
+  }
+  formListOfAllAttributeTerms(terms: ProductAttributeTerms[]): ProductAttributeTermsForAttributesList[]{
+    let returnList: ProductAttributeTermsForAttributesList[] = [];
+      terms.forEach (i =>{
+        returnList.push({
+          id: i.id,
+          name: i.name,
+          description: '',
+          slug: ''
+        })
+      });
+    return returnList;
+  }
+  formListOfSelectedTermsIds(terms: ProductAttributeTerms[]): number[]{
+    let returnList: number[] = [];
+      terms.forEach (i =>{if(i.is_selected) returnList.push(i.id)});
+    return returnList;
+  }
+  // formListOfSelectedTermsIdsWhenDrop(terms: ProductAttributeTerms[]): number[]{
+  //   let returnList: number[] = [];
+  //     terms.forEach (i =>{if (i.is_selected) returnList.push(i.id)});
+  //   return returnList;
+  // }
+  dropProductAttribute(event: CdkDragDrop<string[]>) {//отрабатывает при перетаскивании контакта
+    //в массиве типа FormArray нельзя поменять местами элементы через moveItemInArray.
+    //поэтому выгрузим их в отдельный массив, там поменяем местами а потом зальём обратно уже с нужным порядком
+    let resultContainer: any[] = [];
+    this.formBaseInformation.get('productAttributes').controls.forEach(m =>{
+                      resultContainer.push({
+                        attribute_id: m.get('attribute_id').value,
+                        name: m.get('name').value,
+                        visible: m.get('visible').value,
+                        variation: m.get('variation').value,
+                        terms: m.get('terms').value,
+                        terms_ids: m.get('terms_ids').value,
+                      })
+                    });
+    moveItemInArray(resultContainer, event.previousIndex, event.currentIndex);
+    this.fillProductAttributesArrayAfterDrop(resultContainer);
+  }
+  fillProductAttributesArrayAfterDrop(arr: any[]){
+    const add = this.formBaseInformation.get('productAttributes') as UntypedFormArray;
+    add.clear();
+    arr.forEach(m =>{
+      add.push(this._fb.group({
+        attribute_id: m.attribute_id,
+        name: m.name,
+        visible: m.visible,
+        variation: m.variation,
+        terms: [this.formListOfAllAttributeTerms(m.terms)], // list of all attribute's terms
+        terms_ids: [m.terms_ids] // list of selected terms
+      }))
+    })
+  }
+  addNewProductAttribute() {
+    // console.log("this.selectedAttribute.terms - "+this.selectedAttribute.terms);
+    const add = this.formBaseInformation.get('productAttributes') as UntypedFormArray;
+    add.push(this._fb.group({
+      attribute_id: this.selectedAttribute.id,
+      name: this.selectedAttribute.name,
+      visible: true,
+      variation: false,
+      terms: [this.selectedAttribute.terms], // list of all attribute's terms
+      terms_ids: [] // list of selected terms
+    }))
+  }
+
+  deleteProductAttribute(index: number) {
+    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+      width: '400px',
+      data:
+      { 
+        head: translate('docs.msg.del_cntct'),
+        query: translate('docs.msg.del_cntct_q'),
+        warning: '',
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){
+        const add = this.formBaseInformation.get('productAttributes') as UntypedFormArray;
+        add.removeAt(index);
+      }
+    });       
+  }
+  
+  // the list of product attributes (with all their terms) from company registry 
+  getProductAttributesList(){//                                     
+    return this.http.get('/api/auth/getProductAttributesList?company_id='+this.formBaseInformation.get('company_id').value) 
+            .subscribe(
+                (data) => {  
+                            this.productAttributesList = data as ProductAttributeForAttributesList[]; 
+                          },
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
+            );
+  }
+
+  addAttributeToProduct(){
+
+  }
+
+  getAttributeFieldValue(row_index:number, field_name:string):any[]{
+    const control = this.getControlTablefield();
+    return control.controls[row_index].get(field_name).value;
+  }
+
+  getControlTablefield(){
+    const control = <UntypedFormArray>this.formBaseInformation.get('productAttributes');
+    return control;
+  }
+
+  getTermNameById(row_index:number, term_id:number){
+    let resultName: string = "";
+    this.getAttributeFieldValue(row_index, 'terms').forEach(i =>{
+      // console.log("term_id = " + term_id+ ", i.id = " + i.id +", i.name = " + i.name);
+      if(i.id==term_id) resultName = i.name;
+    });
+    return resultName;
+  }
+
+  // getTermIndexById(row_index:number, term_id:number){
+  //   let result_index;
+  //   let current_index = 0;
+  //   this.getAttributeFieldValue(row_index, 'terms_ids').forEach(i =>{
+  //     console.log("term_id = " + term_id+ ", i.id = " + i.id +", i.name = " + i.name);
+  //     if(i==term_id) result_index = current_index;
+  //     current_index++;
+  //   });
+  //   return result_index;
+  // }
+  // removeChip(row_index:number, term_id:number){
+  //   const add = this.getAttributeFieldValue(row_index, 'terms_ids');
+  //   let rem_index = this.getTermIndexById(row_index,term_id);
+  //   if(rem_index) add.splice(rem_index, 1);
+  // }
+
 }

@@ -335,3 +335,7 @@ border: 0px solid black;
     margin-top: 100px;
     z-index: 100;
 }
+
+::ng-deep #product_properties .no-underline .mat-form-field-underline{
+    visibility: hidden;
+}

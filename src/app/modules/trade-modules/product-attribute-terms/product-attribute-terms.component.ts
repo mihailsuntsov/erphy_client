@@ -66,7 +66,7 @@ export class ProductAttributeTermsComponent implements OnInit {
                       break;
                     }
                     case -214:{//Неуникальное имя термина в пределах одного аттрибута
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.term_name_uq')}});
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.pc_name_uq')}});
                       break;
                     }
                     case -212:{//Неуникальный url-псевдоним (slug) термина в пределах одного предприятия
@@ -100,7 +100,7 @@ export class ProductAttributeTermsComponent implements OnInit {
                       break;
                     }
                     case -214:{//Неуникальное имя термина в пределах одного аттрибута
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.term_name_uq')}});
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.pc_name_uq')}});
                       break;
                     }
                     case -212:{//Неуникальный url-псевдоним (slug) термина в пределах одного предприятия

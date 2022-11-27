@@ -558,8 +558,8 @@
                                                                                 <ng-container matColumnDef="price_name" [formArrayName]="'productPricesTable'">
                                                                                     <th mat-header-cell *matHeaderCellDef>{{t('docs.field.price_type')}}</th>
                                                                                     <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> 
-                                                                                        <span *ngIf="row.is_store_price_type_regular" class="store-category"><mat-icon class="store-category-icon" fontIcon="shopping_basket" matTooltip="{{t('docs.tip.price_regular')}}" ></mat-icon></span>
-                                                                                        <span *ngIf="row.is_store_price_type_sale" class="store-category"><mat-icon class="store-category-icon" fontIcon="sell" matTooltip="{{t('docs.tip.price_sale')}}" ></mat-icon></span>
+                                                                                        <span *ngIf="row.is_store_price_type_regular" class="store-category"><mat-icon class="store-category-icon" fontIcon="shopping_basket" matTooltip="{{t('docs.field.reg_price')}}" ></mat-icon></span>
+                                                                                        <span *ngIf="row.is_store_price_type_sale" class="store-category"><mat-icon class="store-category-icon" fontIcon="sell" matTooltip="{{t('docs.field.sale_price')}}" ></mat-icon></span>
                                                                                         <span>{{row.price_name}}</span>
                                                                                     </td>
                                                                                     <td mat-footer-cell *matFooterCellDef></td>
@@ -999,7 +999,7 @@
                                     </mat-tab>
 
                                     <mat-tab  *ngIf="visAfterCreatingBlocks"  label="{{t('docs.tab.store')}}">
-                                        <mat-card style="margin:10px;">
+                                        <mat-card style="margin:10px;" id="product_properties">
                                             <mat-card-header>
                                                 <mat-card-title class="card-title">{{t('docs.card.prod_prprts')}}</mat-card-title>
                                             </mat-card-header>
@@ -1031,7 +1031,7 @@
                                                         <div class="flex">
                                                             <mat-form-field 
                                                                 class="slideWidth100">
-                                                                <mat-slide-toggle formControlName="virtual">{{t('docs.field.virtual')}}</mat-slide-toggle>
+                                                                <mat-slide-toggle formControlName="virtual" matTooltip="{{t('docs.tip.virtual')}}">{{t('docs.field.virtual')}}</mat-slide-toggle>
                                                                 <input matInput hidden/>
                                                             </mat-form-field>
                                                         </div>
@@ -1040,7 +1040,7 @@
                                                         <div class="flex">
                                                             <mat-form-field 
                                                                 class="slideWidth100">
-                                                                <mat-slide-toggle formControlName="downloadable">{{t('docs.field.downloadable')}}</mat-slide-toggle>
+                                                                <mat-slide-toggle formControlName="downloadable" matTooltip="{{t('docs.tip.downloadable')}}">{{t('docs.field.downloadable')}}</mat-slide-toggle>
                                                                 <input matInput hidden/>
                                                             </mat-form-field>
                                                         </div>
@@ -1054,37 +1054,37 @@
                                                             <mat-drawer class="mat-drawer" #drawer2 mode="side" opened>
                                                                 <div class="row mat-drawer-row"  *ngIf="formBaseInformation.get('type').value!='grouped'">
                                                                     <div class="col-12" (click)="propertiesMenuClick('general')" class="drawer-menu" [ngClass]="{'drawer-menu-selected':prop_menu=='general'}">
-                                                                       <span> General </span>
+                                                                       <span> {{t('docs.tab.general')}} </span>
                                                                     </div>
                                                                 </div>
                                                                 <div class="row mat-drawer-row">
                                                                     <div class="col-12" (click)="propertiesMenuClick('inventory')" class="drawer-menu" [ngClass]="{'drawer-menu-selected':prop_menu=='inventory'}">
-                                                                       <span> Inventory </span>
+                                                                       <span> {{t('docs.tab.inventory')}} </span>
                                                                     </div>
                                                                 </div>
                                                                 <div class="row mat-drawer-row" *ngIf="!formBaseInformation.get('virtual').value && (formBaseInformation.get('type').value=='variable' || formBaseInformation.get('type').value=='simple')">
                                                                     <div class="col-12" (click)="propertiesMenuClick('shipping')" class="drawer-menu" [ngClass]="{'drawer-menu-selected':prop_menu=='shipping'}">
-                                                                       <span> Shipping </span>
+                                                                       <span> {{t('docs.tab.shipping')}} </span>
                                                                     </div>
                                                                 </div>
                                                                 <div class="row mat-drawer-row">
                                                                     <div class="col-12" (click)="propertiesMenuClick('linked')" class="drawer-menu" [ngClass]="{'drawer-menu-selected':prop_menu=='linked'}">
-                                                                       <span> Linked products </span>
+                                                                       <span> {{t('docs.tab.lnkd_prdcts')}} </span>
                                                                     </div>
                                                                 </div>
                                                                 <div class="row mat-drawer-row">
                                                                     <div class="col-12" (click)="propertiesMenuClick('attributes')" class="drawer-menu" [ngClass]="{'drawer-menu-selected':prop_menu=='attributes'}">
-                                                                       <span> Attributes </span>
+                                                                       <span> {{t('docs.tab.attributes')}} </span>
                                                                     </div>
                                                                 </div>
                                                                 <div class="row mat-drawer-row"  *ngIf="formBaseInformation.get('type').value=='variable'">
                                                                     <div class="col-12" (click)="propertiesMenuClick('variations')" class="drawer-menu" [ngClass]="{'drawer-menu-selected':prop_menu=='variations'}">
-                                                                       <span> Variations </span>
+                                                                       <span> {{t('docs.tab.variations')}} </span>
                                                                     </div>
                                                                 </div>
                                                                 <div class="row mat-drawer-row">
                                                                     <div class="col-12" (click)="propertiesMenuClick('advanced')" class="drawer-menu" [ngClass]="{'drawer-menu-selected':prop_menu=='advanced'}">
-                                                                       <span> Advanced </span>
+                                                                       <span> {{t('docs.tab.advanced')}} </span>
                                                                     </div>
                                                                 </div>
                                                             </mat-drawer>  
@@ -1199,6 +1199,33 @@
                                                                                         </button>
                                                                                     </div>
                                                                                 </div>
+
+                                                                                
+                                                                                <mat-form-field class="slideWidth100">
+                                                                                    <mat-label>{{t('docs.field.download_limit')}}</mat-label>
+                                                                                    <input  matInput
+                                                                                            placeholder="{{t('docs.field.unlim')}}"
+                                                                                            maxlength="8"
+                                                                                            matTooltip="{{t('docs.tip.download_limit')}}"
+                                                                                            (keypress)="numberOnly($event)"
+                                                                                            formControlName="download_limit"/>
+                                                                                    <mat-hint  align="start" *ngIf="formBaseInformation.get('download_limit').touched && formBaseInformation.get('download_limit').invalid">
+                                                                                        <i *ngIf="formBaseInformation.get('download_limit').errors.pattern" class="form-invalid">{{t('docs.error.price_format',{int:8,fract:0})}}</i>
+                                                                                    </mat-hint>
+                                                                                </mat-form-field>
+                                                                                <mat-form-field class="slideWidth100">
+                                                                                    <mat-label>{{t('docs.field.download_expiry')}}</mat-label>
+                                                                                    <input  matInput
+                                                                                            placeholder="{{t('docs.field.never')}}"
+                                                                                            matTooltip="{{t('docs.tip.download_expiry')}}"
+                                                                                            maxlength="8"
+                                                                                            (keypress)="numberOnly($event)"
+                                                                                            formControlName="download_expiry"/>
+                                                                                    <mat-hint  align="start" *ngIf="formBaseInformation.get('download_expiry').touched && formBaseInformation.get('download_expiry').invalid">
+                                                                                        <i *ngIf="formBaseInformation.get('download_expiry').errors.pattern" class="form-invalid">{{t('docs.error.price_format',{int:8,fract:0})}}</i>
+                                                                                    </mat-hint>
+                                                                                </mat-form-field>
+
                                                                             </div>
                                                                             <mat-divider style="margin:10px 0"></mat-divider>
                                                                             <mat-form-field  class="mat-form-field-100" style="width:360px">
@@ -1359,11 +1386,135 @@
                                                                                 </div>
                                                                             </div>
                                                                         </div>
-                                                                        <div class="col-12" *ngIf="prop_menu=='attributes'">
-                                                                            
+                                                                        <div class="col-12" *ngIf="prop_menu=='attributes'"  style="width: 100% ;padding: 20px;">
+                                                                            <div style="width:100%; padding:10px; text-align: left;">
+                                                                                <mat-form-field style="width:35%; min-width:100px; margin-right: 10px;">
+                                                                                    <mat-label>{{t('docs.field.add_attr')}}</mat-label>
+                                                                                    <mat-select  
+                                                                                            [(ngModel)]="selectedAttribute"
+                                                                                            [ngModelOptions]="{standalone: true}">                          
+                                                                                        <mat-option  *ngFor="let rt of productAttributesList" [value]="rt">
+                                                                                                {{rt.name}}
+                                                                                        </mat-option> 
+                                                                                    </mat-select>
+                                                                                </mat-form-field>
+                                                                                <button mat-raised-button color="primary" (click)="addNewProductAttribute()" [disabled]="+selectedAttribute.id==0">
+                                                                                    <mat-icon>add</mat-icon> 
+                                                                                </button>
+                                                                            </div>
+
+
+
+<!-- 1111 -->
+                                                                            <div style="width:100%; padding:10px; text-align: left;">
+                                                                                <div cdkDropList (cdkDropListDropped)="dropProductAttribute($event)">
+                                                                                    <mat-card   *ngFor="let attribute of formBaseInformation.get('productAttributes').controls;let i = index" 
+                                                                                                [formGroup]="attribute"
+                                                                                                cdkDrag
+                                                                                                style="background-color: #f7f7f7; width: 100%">
+                                                                                            <div style = "width:100%">
+                                                                                                <div style="position:relative; top:-6px; left:0px; font-size: 20px; font-weight: 600;">
+                                                                                                    {{getAttributeFieldValue(i, 'name')}}
+                                                                                                </div>
+                                                                                                <div cdkDragHandle class="handler"  [style.display]="allowToUpdate?'block':'none'" style="position:absolute; top:10px; right: 35px">
+                                                                                                    <mat-icon   matTooltip="{{t('docs.tip.move')}}" 
+                                                                                                                class="nav-icon"
+                                                                                                                *ngIf="formBaseInformation.get('productAttributes').controls.length>1">
+                                                                                                                swap_vertical_circle
+                                                                                                    </mat-icon>
+                                                                                                </div>
+                                                                                                <div class="del-icon"  [style.display]="allowToUpdate?'block':'none'" style="position:absolute; top:10px; right: 10px">
+                                                                                                    <mat-icon   (click)="deleteProductAttribute(i)" 
+                                                                                                                matTooltip="{{t('docs.tip.delete')}}"    
+                                                                                                                class="nav-icon">cancel
+                                                                                                    </mat-icon>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            
+
+
+                                                                                        <mat-card-content class="input-form" >
+                                                                                            <div class="container-fluid">
+                                                                                                <div class="row">
+                                                                                                    
+                                                                                                    <div class="col-xl-4 col-lg-12">
+                                                                                                        <mat-form-field 
+                                                                                                            class="slideWidth100 no-underline">
+                                                                                                            <mat-slide-toggle 
+                                                                                                                formControlName="visible" 
+                                                                                                                matTooltip="{{t('docs.field.visible')}}">
+                                                                                                                {{t('docs.field.visible')}}
+                                                                                                            </mat-slide-toggle>
+                                                                                                            <input matInput hidden/>
+                                                                                                        </mat-form-field>
+
+                                                                                                        <mat-form-field style="display: none">
+                                                                                                            <input matInput placeholder="id" formControlName="attribute_id"/>
+                                                                                                        </mat-form-field>
+                                                                                                    </div>
+                                                                                                    <div class="col-xl-8  col-lg-12">
+                                                                                                        <mat-form-field class="slideWidth100">
+                                                                                                            
+                                                                                                            <mat-label>Terms</mat-label>
+                                                                                                            <mat-select formControlName="terms_ids" multiple>
+                                                                                                        
+                                                                                                            <mat-select-trigger>
+                                                                                                                <mat-chip-list>
+                                                                                                                <mat-chip *ngFor="let term_id of attribute.value.terms_ids"
+                                                                                                                    [removable]="false">
+                                                                                                                    {{ getTermNameById(i, term_id) }}   
+                                                                                                                </mat-chip>
+                                                                                                                </mat-chip-list>
+                                                                                                            </mat-select-trigger>
+                                                                                                        
+                                                                                                            <mat-option *ngFor="let term of getAttributeFieldValue(i, 'terms')" [value]="term.id">{{term.name}}</mat-option>
+                                                                                                        
+                                                                                                            </mat-select>
+                                                                                                        </mat-form-field>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                                        
+                                                                                                
+                                                                                            <p *cdkDragPreview></p>
+
+
+                                                                                        </mat-card-content>
+                                                                                    </mat-card>
+                                                                                </div>
+                                                                            </div>
+
+
                                                                         </div>
-                                                                        <div class="col-12" *ngIf="prop_menu=='advanced'">
-                                                                            
+                                                                        <div class="col-12 drawer-settings" *ngIf="prop_menu=='advanced'">
+                                                                            <mat-form-field class="slideWidth100">
+                                                                                <textarea  matInput
+                                                                                        placeholder="{{t('docs.field.purch_note')}}"
+                                                                                        maxlength="1000"
+                                                                                        matTooltip="{{t('docs.tip.purch_note')}}" 
+                                                                                        formControlName="purchase_note">
+                                                                                </textarea>
+                                                                                <mat-hint align="end" *ngIf="formBaseInformation.get('purchase_note').value.length>900">{{formBaseInformation.get('purchase_note').value.length}} / 1000</mat-hint>
+                                                                            </mat-form-field>
+                                                                            <mat-form-field class="slideWidth100">
+                                                                                <input  matInput
+                                                                                        placeholder="{{t('docs.field.menu_order')}}"
+                                                                                        maxlength="8"
+                                                                                        (keypress)="numberOnly($event)"
+                                                                                        formControlName="menu_order"/>
+                                                                                <mat-hint  align="start" *ngIf="formBaseInformation.get('menu_order').touched && formBaseInformation.get('menu_order').invalid">
+                                                                                    <i *ngIf="formBaseInformation.get('menu_order').errors.pattern" class="form-invalid">{{t('docs.error.price_format',{int:8,fract:0})}}</i>
+                                                                                </mat-hint>
+                                                                            </mat-form-field>
+                                                                            <mat-form-field 
+                                                                                class="slideWidth100">
+                                                                                <mat-slide-toggle 
+                                                                                formControlName="reviews_allowed"
+                                                                                >{{t('docs.field.revws_allwd')}}</mat-slide-toggle>
+                                                                                <input matInput hidden/>
+                                                                            </mat-form-field>
+
+
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -1460,5 +1611,6 @@
                 </mat-card-content> 
             </mat-card>
         </div>
+        <!-- <code><pre>{{formBaseInformation.value | json}}</pre></code> -->
     </mat-drawer-content>
 </mat-drawer-container>
