@@ -29,7 +29,9 @@ export class LoadSpravService{
             has_parent:has_parent,
             companyId: companyId  };
         return this.http.post('/api/auth/getDepartmentsListByCompanyId', body);}
-
+// returns list of non-deleted departments in format "ID, name"
+    getDepartmentsList(companyId: number) {
+        return this.http.get('/api/auth/getDepartmentsList?company_id='+companyId);}
     getUsersListByDepartmentId(depId: number){
         const body = {id:depId};
         return this.http.post('/api/auth/getUsersListByDepartmentId', body);}     

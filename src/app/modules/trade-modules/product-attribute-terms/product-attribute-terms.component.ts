@@ -74,7 +74,7 @@ export class ProductAttributeTermsComponent implements OnInit {
                       break;
                     }
                     default:{// Документ успешно создался в БД 
-                      this.openSnackBar(translate('docs.msg.doc_sved_suc'), translate('modules.button.close'));
+                      this.openSnackBar(translate('docs.msg.doc_crtd_suc'), translate('modules.button.close'));
                       this.productAttributeTermsDialog.close(this.data.categoryId);
                     }
                   }
@@ -108,7 +108,7 @@ export class ProductAttributeTermsComponent implements OnInit {
                       break;
                     }
                     default:{// Документ успешно создался в БД 
-                      this.openSnackBar(translate('docs.msg.doc_crtd_suc'), translate('modules.button.close'));
+                      this.openSnackBar(translate('docs.msg.doc_sved_suc'), translate('modules.button.close'));
                       this.productAttributeTermsDialog.close(this.data.categoryId);
                     }
                   }

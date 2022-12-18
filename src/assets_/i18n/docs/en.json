@@ -45,7 +45,9 @@
         "lang_n_stand": "Languages and standards",
         "terms":        "Terms",
         "prod_prprts":  "Product attributes",
-        "description":  "Description"
+        "description":  "Description",
+        "orders":       "Orders",
+        "inventory":    "Inventory"
     },
     "field":{ 
         "-- COMMON":"--",
@@ -234,7 +236,7 @@
         "p_ppr":"Subject of trade",
         "p_sku":"SKU",
         "p_unit":"Unit of measurement",
-        "p_del_from_sell":"Not in sale",
+        "p_del_from_sell":"Out of stock",
         "p_indivisible":"Indivisible",
         "p_prod_group":"Product group",
         "p_weight_prod":"Need to weigh",
@@ -302,7 +304,14 @@
         "download_expiry":"Download expiry",
         "unlim":"Unlimited",
         "never":"Never",
-        "slug": "Slug"
+        "slug": "Slug",
+        "def_creator": "Customer order's creator",
+        "if_cust_n_fnd": "If customer is not found",
+        "def_cparty": "Customer on default",
+        "days_esd": "Number of days to ESD",
+        "p_outofst_as": "Out of stock after sale",
+        "s_autorsrv":"Autoreserve",
+        "s_dprtmnts":"Store departments"
     },
     "error":{ 
         "-- COMMON":"--",
@@ -397,8 +406,10 @@
         "p_operat_date":"Date and time of the operation performed, in relation to your time zone",
         "p_operat_pric":"Price in the operation",
         "p_net_cost_op":"Cost of products as a result of the operation",
+        "p_outofst_as": "Auto set product as Out-of-stock after it has been sold",
         "p_av_net_cost":"The average cost of the products obtained from the available quantity in stock, current cost, cost and quantity as a result of the operation with the products",
         "file_upload":  "Upload file",
+        "s_autorsrv":   "Auto reserve products after getting internet store order",
         "trn_if_inside":"Enable if it is a transfer within the company",
         "tax_value":    "The value of the tax as a percentage is from 0 to 99. For example, for a 20% tax, you should enter 20",
         "sh_cat_p":     "Show all categories containing this document",
@@ -428,8 +439,10 @@
         "purch_note":   "Enter an optional note to send the customer after purchase.",
         "download_limit":"Leave blank for unlimited re-downloads.",
         "download_expiry":"Enter the number of days before a download link expires, or leave blank.",
-        "has_archives":"Enable this if you want this attribute to have product archives in your store."
-
+        "has_archives":"Enable this if you want this attribute to have product archives in your store.",
+        "def_creator": "Creator by default of created in online store Customers orders",
+        "ordrs_dprtmnt": "Main department in \"Customer's order\" document for online store orders",
+        "s_dprtmnts":"The availability of products in the online store will be determined based on the total number of unreserved products in these departments"
     },
     "msg":{
         "error":        "Error!",
@@ -645,7 +658,9 @@
         "alw_bo_y":     "Allow",
         "p_ss_instck":  "In stock",
         "p_ss_outfstck":"Out of stock",
-        "p_ss_onbckrdr":"On backorder"
+        "p_ss_onbckrdr":"On backorder",
+        "cust_create_new":"Create new customer",
+        "cust_use_default":"Use an existed customer as default"
     },
     "docs":{            
         "role":         "Role",

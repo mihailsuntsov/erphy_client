@@ -119,7 +119,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   formSearch:any;// форма для поиска товара, ввода необходимых данных и отправки всего этого в formBaseInformation в качестве элемента массива
   settingsForm: any; // форма с настройками (нужно для сохранения некоторых настроек при расценке)
   displayedColumns:string[] = [];//отображаемые колонки таблицы товаров
-  gettingTableData: boolean;//идет загрузка товарных позиций
+  gettingTableData: boolean = false;//идет загрузка товарных позиций
   // totalProductCount:number=0;//всего кол-во товаров
   totalProductSumm:number=0;//всего (итоговая цена)
   totalNds:number=0;//всего НДС
@@ -371,10 +371,10 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
 // --------------------------------------- *** КОНЕЦ ЧЕКБОКСОВ  *** -------------------------------------
 
   getProductsTable(){
+    this.gettingTableData=true;
     let ProductsTable: CustomersOrdersProductTable[]=[];
     //сбрасываем, иначе при сохранении будут прибавляться дубли и прочие глюки
-    const control = <UntypedFormArray>this.formBaseInformation.get('customersOrdersProductTable');
-    this.gettingTableData=true;
+    const control = <UntypedFormArray>this.formBaseInformation.get('customersOrdersProductTable');    
     control.clear();
     this.http.get('/api/auth/get'+this.parentDocName+'ProductTable?id='+this.parentDocId)
         .subscribe(
@@ -388,7 +388,8 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
                   this.finishRecount();// подсчёт итогов у таблицы
                 }
             },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+            error => {
+              this.gettingTableData=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
         );
   }
   formingProductRowFromApiResponse(row: CustomersOrdersProductTable) {

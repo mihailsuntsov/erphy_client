@@ -9,6 +9,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
+import { debounceTime, tap, switchMap } from 'rxjs/operators';
 // import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FilesComponent } from '../files/files.component';
@@ -115,6 +116,16 @@ interface docResponse {//интерфейс для получения ответ
   crm_secret_key: string;           // like UUID generated
   store_price_type_regular: number; // id of regular type price
   store_price_type_sale: number;    // id of sale type price
+  nds_included: boolean;                // used with nds_payer as default values for Customers orders fields "Tax" and "Tax included"
+  store_orders_department_id: number;   // department for creation Customer order from store
+  store_if_customer_not_found: string;  // "create_new" or "use_default"
+  store_default_customer_id: number;    // counterparty id if store_if_customer_not_found=use_default
+  cagent: string;                       // the name of store_default_customer
+  store_default_creator_id: number;     // ID of default user, that will be marked as a creator of store order. Default is master user
+  store_days_for_esd: number;           // number of days for ESD of created store order. Default is 0 
+  store_default_creator: string;        // name of default user that will be marked as a creator of store order.
+  store_auto_reserve: boolean;          // auto reserve product after getting internet store order
+  companyStoreDepartments: number[];    // internet store's departments
 }
 
 interface IdAndName{
@@ -124,6 +135,11 @@ interface IdAndName{
 interface IdAndName_ru{
   id: number;
   name_ru: string;
+}
+interface CompanyStoreDepartment{
+  id: number;
+  name: string;
+  menuOrder:number;
 }
 interface filesInfo {
   id: string;
@@ -173,7 +189,7 @@ interface idNameDescription{ //универсалный интерфейс дл�
 
 export class CompaniesDocComponent implements OnInit {
   id: number=0;// id документа
-  receivedd: any [];//массив для получения списка предприятий
+  receivedDepartmentsList: IdAndName [] = [];//массив для получения списка отделений
   myCompanyId:number=null;
   receivedSpravSysOPF: any [];//массив для получения данных справочника форм предприятий
   receivedCurrencyList: any [];// список валют
@@ -228,6 +244,16 @@ export class CompaniesDocComponent implements OnInit {
   formBaseInformation:any;//форма для основной информации, содержащейся в документе
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
 
+  //для поиска контрагента (поставщика) по подстроке
+  searchCagentCtrl = new UntypedFormControl();//поле для поиска дефолтного контрагента для созданных из интернет-магазина заказов
+  isCagentListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
+  canCagentAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
+  filteredCagents: any;
+  //для поиска создателя интернет-заказов по подстроке
+  searchDefaultCreatorCtrl = new UntypedFormControl();//поле для поиска пользователя, который будет назначен как создатель для созданных из интернет-магазина заказов 
+  isDefaultCreatorListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
+  canDefaultCreatorAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
+  filteredDefaultCreators: any;
   //переменные прав
   permissionsSet: any[];//сет прав на документ
   allowToViewAllCompanies:boolean = false;
@@ -341,6 +367,14 @@ constructor(private activateRoute: ActivatedRoute,
       crm_secret_key:           new UntypedFormControl      ('',[Validators.maxLength(36)]),  // like UUID generated
       store_price_type_regular: new UntypedFormControl      ('',[]),  // id of regular type price
       store_price_type_sale:    new UntypedFormControl      ('',[]),  // id of sale type price
+      nds_included:                new UntypedFormControl   (false,[]),                // used with nds_payer as default values for Customers orders fields "Tax" and "Tax included"
+      store_orders_department_id:  new UntypedFormControl   (null,[]),   // department for creation Customer order from store
+      store_if_customer_not_found: new UntypedFormControl   ('create_new',[]),  // "create_new" or "use_default"
+      store_default_customer_id:   new UntypedFormControl   (null,[]),    // counterparty id if store_if_customer_not_found=use_default
+      store_default_creator_id:    new UntypedFormControl   (null,[]),   // ID of default user, that will be marked as a creator of store order. Default is master user
+      store_days_for_esd:          new UntypedFormControl   (0,[Validators.maxLength(3),Validators.pattern('^[0-9]{1,3}$')]),// number of days for ESD of created store order. Default is 0 
+      companyStoreDepartments:     new UntypedFormControl   ([],[]),
+      store_auto_reserve:          new UntypedFormControl   (false,[]), // auto reserve product after getting internet store order
     });
     this.formAboutDocument = new UntypedFormGroup({
       id: new UntypedFormControl      ('',[]),
@@ -351,10 +385,11 @@ constructor(private activateRoute: ActivatedRoute,
       date_time_created: new UntypedFormControl      ('',[]),
       date_time_changed: new UntypedFormControl      ('',[]),
     });
-
     this.getSpravSysOPF();
     // this.getCurrencyList();
     this.getSpravSysCountries();
+    this.onCagentSearchValueChanges();//отслеживание изменений поля "Покупатель по умолчанию"
+    this.onDefaultCreatorSearchValueChanges();//отслеживание изменений поля "Создатель интернет-заказов"
     this.getSetOfPermissions();
     //+++ getting base data from parent component
     // this.getBaseData('myId');    
@@ -433,7 +468,71 @@ constructor(private activateRoute: ActivatedRoute,
   }
   
   // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
-
+//  -------------     ***** поиск по подстроке для контрагента ***    --------------------------
+onCagentSearchValueChanges(){
+  this.searchCagentCtrl.valueChanges
+  .pipe(
+    debounceTime(500),
+    tap(() => {
+      this.filteredCagents = [];}),       
+    switchMap(fieldObject =>  
+      this.getCagentsList()))
+  .subscribe(data => {
+    this.isCagentListLoading = false;
+    if (data == undefined) {
+      this.filteredCagents = [];
+    } else {
+      this.filteredCagents = data as any;
+  }});}
+  onSelectCagent(id:any,name:string){
+    this.formBaseInformation.get('store_default_customer_id').setValue(+id);}
+  checkEmptyCagentField(){
+    if(this.searchCagentCtrl.value.length==0){
+      this.formBaseInformation.get('store_default_customer_id').setValue(null);
+  }}
+  getCagentsList(){ //заполнение Autocomplete для поля Товар
+    try {
+      if(this.canCagentAutocompleteQuery && this.searchCagentCtrl.value.length>1){
+        const body = {
+          "searchString":this.searchCagentCtrl.value,
+          "companyId":this.formBaseInformation.get('id').value};
+        this.isCagentListLoading  = true;
+        return this.http.post('/api/auth/getCagentsList', body);
+      }else return [];
+    } catch (e) {
+    return [];}}
+//  -------------     ***** конец поиска по подстроке для контрагента ***    --------------------------
+//  -------------     ***** поиск по подстроке для создателя заказов ***    --------------------------
+onDefaultCreatorSearchValueChanges(){
+  this.searchDefaultCreatorCtrl.valueChanges
+  .pipe(
+    debounceTime(500),
+    tap(() => {
+      this.filteredDefaultCreators = [];}),       
+    switchMap(fieldObject =>  
+      this.getDefaultCreatorsList()))
+  .subscribe(data => {
+    this.isDefaultCreatorListLoading = false;
+    if (data == undefined) {
+      this.filteredDefaultCreators = [];
+    } else {
+      this.filteredDefaultCreators = data as any;
+  }});}
+  onSelectDefaultCreator(id:any,name:string){
+    this.formBaseInformation.get('store_default_creator_id').setValue(+id);}
+  checkEmptyDefaultCreatorField(){
+    if(this.searchDefaultCreatorCtrl.value.length==0){
+      this.formBaseInformation.get('store_default_creator_id').setValue(null);
+  }}
+  getDefaultCreatorsList(){ //заполнение Autocomplete для поля Товар
+    try {
+      if(this.canDefaultCreatorAutocompleteQuery && this.searchDefaultCreatorCtrl.value.length>1){
+        this.isDefaultCreatorListLoading  = true;
+        return this.http.get('/api/auth/getUsersList?company_id='+this.formBaseInformation.get('id').value+'&search_string='+this.searchDefaultCreatorCtrl.value);
+      }else return [];
+    } catch (e) {
+    return [];}}
+//  -------------     ***** конец поиска по подстроке для создателя заказов ***    --------------------------
   getData(){
       if(+this.id>0){
         this.getDocumentValuesById();
@@ -552,11 +651,9 @@ constructor(private activateRoute: ActivatedRoute,
                   this.formBaseInformation.get('glavbuh_signature_filename').setValue(this.formBaseInformation.get('glavbuh_signature_id').value?documentValues.glavbuh_signature_filename:translate('docs.msg.file_slctd_no'));
                   this.formBaseInformation.get('st_prefix_barcode_pieced').setValue(documentValues.st_prefix_barcode_pieced);
                   this.formBaseInformation.get('st_prefix_barcode_packed').setValue(documentValues.st_prefix_barcode_packed);
-                  this.formBaseInformation.get('st_netcost_policy').setValue(documentValues.st_netcost_policy);
-                  
+                  this.formBaseInformation.get('st_netcost_policy').setValue(documentValues.st_netcost_policy);                  
                   this.formBaseInformation.get('type').setValue(documentValues.type);
-                  this.formBaseInformation.get('legal_form').setValue(documentValues.legal_form);
-                  
+                  this.formBaseInformation.get('legal_form').setValue(documentValues.legal_form);                  
                   this.formBaseInformation.get('is_store').setValue(documentValues.is_store);
                   this.formBaseInformation.get('store_site_address').setValue(documentValues.store_site_address);
                   this.formBaseInformation.get('store_key').setValue(documentValues.store_key);
@@ -566,6 +663,16 @@ constructor(private activateRoute: ActivatedRoute,
                   this.formBaseInformation.get('crm_secret_key').setValue(documentValues.crm_secret_key);
                   this.formBaseInformation.get('store_price_type_regular').setValue(documentValues.store_price_type_regular);
                   this.formBaseInformation.get('store_price_type_sale').setValue(documentValues.store_price_type_sale);
+                  this.formBaseInformation.get('nds_included').setValue(documentValues.nds_included);
+                  this.formBaseInformation.get('store_orders_department_id').setValue(documentValues.store_orders_department_id);
+                  this.formBaseInformation.get('store_if_customer_not_found').setValue(documentValues.store_if_customer_not_found);
+                  this.formBaseInformation.get('store_default_creator_id').setValue(documentValues.store_default_creator_id);
+                  this.formBaseInformation.get('store_days_for_esd').setValue(documentValues.store_days_for_esd);         
+                  this.formBaseInformation.get('store_auto_reserve').setValue(documentValues.store_auto_reserve);    
+                  this.formBaseInformation.get('companyStoreDepartments').setValue(documentValues.companyStoreDepartments);        
+
+                  this.searchCagentCtrl.setValue(documentValues.cagent);       
+                  this.searchDefaultCreatorCtrl.setValue(documentValues.store_default_creator);
 
                   this.searchRegionCtrl.setValue(documentValues.region);
                   this.searchJrRegionCtrl.setValue(documentValues.jr_region);
@@ -578,7 +685,7 @@ constructor(private activateRoute: ActivatedRoute,
                   this.getCompaniesPaymentAccounts();
                   this.loadFilesInfo();
                   this.getPriceTypesList();
-                  
+                  this.getDepartmentsList();                  
                 } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();
             },
@@ -637,13 +744,19 @@ constructor(private activateRoute: ActivatedRoute,
       );
   }
   getPriceTypesList(){
-    this.receivedPriceTypesList=null;
+    this.receivedPriceTypesList=[];
     this.loadSpravService.getPriceTypesList(this.id)
       .subscribe(
           (data) => {this.receivedPriceTypesList=data as any [];
           },
-          error => console.log(error)
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});}
       );
+  }
+  getDepartmentsList(){
+    this.loadSpravService.getDepartmentsList(this.id).subscribe(
+        (data) => {this.receivedDepartmentsList=data as any []},
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});}
+    );
   }
   numberOnly(event): boolean {
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which

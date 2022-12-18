@@ -101,6 +101,7 @@ interface docResponse {//интерфейс для получения ответ
   upsell_ids:IdAndName[];
   crosssell_ids:IdAndName[];
   grouped_ids:IdAndName[];
+  outofstock_aftersale: boolean;        // auto set product as out-of-stock after it has been sold
   }
   interface SpravTaxesSet{
     id: number;
@@ -509,11 +510,11 @@ export class ProductsDocComponent implements OnInit {
       productPricesTable: new UntypedFormArray([]),//массив с формами цен
 
       short_description: new UntypedFormControl      ('',[]),
-      type: new UntypedFormControl      ('',[]),
+      type: new UntypedFormControl      ('simple',[]),
       slug: new UntypedFormControl      ('',[]),
       featured: new UntypedFormControl      ('',[]),
-      virtual: new UntypedFormControl      ('',[]),
-      downloadable: new UntypedFormControl      ('',[]),
+      virtual: new UntypedFormControl      (false,[]),
+      downloadable: new UntypedFormControl      (false,[]),
       download_limit: new UntypedFormControl      ('',[Validators.maxLength(8),Validators.pattern('^[0-9]{1,10}$')]),
       download_expiry: new UntypedFormControl      ('',[Validators.maxLength(8),Validators.pattern('^[0-9]{1,10}$')]),
       external_url: new UntypedFormControl      ('',[Validators.maxLength(250)]),
@@ -522,8 +523,8 @@ export class ProductsDocComponent implements OnInit {
       manage_stock: new UntypedFormControl      (false,[]),
       low_stock_threshold: new UntypedFormControl      ('0',[Validators.pattern('^[0-9]{1,9}(?:[.,][0-9]{0,3})?\r?$')]),
       stock_status: new UntypedFormControl      ('instock',[]),
-      backorders: new UntypedFormControl      ('',[]),
-      sold_individually: new UntypedFormControl      (false,[]),
+      backorders: new UntypedFormControl      ('no',[]),
+      sold_individually: new UntypedFormControl (false,[]),
       reg_price: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       sale_price: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       height: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
@@ -541,6 +542,7 @@ export class ProductsDocComponent implements OnInit {
       grouped_ids: new UntypedFormControl([],[]),
       productAttributes: new UntypedFormArray ([]) ,
       // productAttributes: new UntypedFormControl([],[]),
+      outofstock_aftersale:        new UntypedFormControl   (false,[]), // auto set product as out-of-stock after it has been sold
     });
     this.formAboutDocument = new UntypedFormGroup({
       id: new UntypedFormControl      ('',[]),
@@ -790,7 +792,8 @@ refreshPermissions():boolean{
                   this.formBaseInformation.get('purchase_note').setValue(documentValues.purchase_note);
                   this.formBaseInformation.get('menu_order').setValue(documentValues.menu_order);
                   this.formBaseInformation.get('date_on_sale_from_gmt').setValue(documentValues.date_on_sale_from_gmt?moment(documentValues.date_on_sale_from_gmt,'DD.MM.YYYY'):"");
-                  this.formBaseInformation.get('date_on_sale_to_gmt').setValue(documentValues.date_on_sale_to_gmt?moment(documentValues.date_on_sale_to_gmt,'DD.MM.YYYY'):"");
+                  this.formBaseInformation.get('date_on_sale_to_gmt').setValue(documentValues.date_on_sale_to_gmt?moment(documentValues.date_on_sale_to_gmt,'DD.MM.YYYY'):"");     
+                  this.formBaseInformation.get('outofstock_aftersale').setValue(documentValues.outofstock_aftersale); 
                   this.searchProductGroupsCtrl.setValue(documentValues.productgroup);
                   this.checkedList=documentValues.product_categories_id;
                   this.formProductHistory.companyId=this.formBaseInformation.get('company_id').value;
@@ -1929,6 +1932,13 @@ checkProductCodeFreeUnical() {
   onChangeStoreSKU(){this.formBaseInformation.get('article').setValue(this.store_sku);}
   onChangeCrmSKU(){this.store_sku=this.formBaseInformation.get('article').value}
   
+  onChangeStoreStockStatus(){this.formBaseInformation.get('not_sell').setValue(
+    (this.formBaseInformation.get('stock_status').value=='instock'||this.formBaseInformation.get('stock_status').value=='onbackorder')?
+    false:true)}
+  onChangeCrmStockStatus(){
+    this.formBaseInformation.get('stock_status').setValue(
+    this.formBaseInformation.get('not_sell').value?'outofstock':'instock')}
+
   openDialogProductCategoriesSelect(sellsType:string){
     const dialogSettings = this.productCategoriesSelectComponent.open(ProductCategoriesSelectComponent, {
       maxWidth: '95vw',

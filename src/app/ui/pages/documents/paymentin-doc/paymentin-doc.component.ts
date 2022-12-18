@@ -291,7 +291,7 @@ export class PaymentinDocComponent implements OnInit {
       if(this.mode=='window'){this.id=this.data.id; this.formBaseInformation.get('id').setValue(this.id);}
     } 
    
-    this.onCagentSearchValueChanges();//отслеживание изменений поля "Поставщик"
+    this.onCagentSearchValueChanges();//отслеживание изменений поля "Контрагент"
     this.getSetOfPermissions();
     //+++ getting base data from parent component
     this.getBaseData('myId');    

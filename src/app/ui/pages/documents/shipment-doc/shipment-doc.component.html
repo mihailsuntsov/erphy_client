@@ -131,7 +131,9 @@
                     matTooltip="{{t('docs.tip.save')}}"
                     *ngIf="+id>0 && allowToUpdate && canGetChilds && !is_completed"
                     (click)="updateDocument()"
-                    [disabled]="!childFormValid" 
+                    [disabled]="!childFormValid ||
+                    (productSearchAndTableComponent && productSearchAndTableComponent.gettingTableData)||
+                    oneClickSaveControl" 
                     (submit)="false"
                     color="primary"
                     type="button"
@@ -155,7 +157,9 @@
                     matTooltip="{{t('docs.tip.complete')}}"
                     mat-raised-button 
                     *ngIf=" +id>0 && allowToComplete && canGetChilds && !formBaseInformation.get('is_completed').value && productSearchAndTableComponent"
-                    [disabled]="!childFormValid||productSearchAndTableComponent.indivisibleErrorOfProductTable" 
+                    [disabled]="!childFormValid||productSearchAndTableComponent.indivisibleErrorOfProductTable ||
+                    (productSearchAndTableComponent && productSearchAndTableComponent.gettingTableData)||
+                    oneClickSaveControl" 
                     (click)="completeDocument()" 
                     type="button"
                     color="primary"

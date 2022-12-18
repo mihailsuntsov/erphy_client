@@ -101,7 +101,15 @@ flex: 1 1 auto;
 }
 .slideWidth100{/*для НДС - переключалки*/
     width:100%;
-    margin:-8.5px 0 0 0;
+    /* margin:-8.5px 0 0 0; */
+}
+.slideWidth50left{
+    width:50%; 
+    padding-right: 10px;
+}
+.slideWidth50right{
+    width:50%; 
+    padding-left: 10px;
 }
 /*------------------- ФАЙЛЫ -------------------------*/
 .filename-row {

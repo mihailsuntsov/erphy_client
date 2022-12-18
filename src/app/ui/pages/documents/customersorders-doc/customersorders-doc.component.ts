@@ -249,7 +249,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
   panelContactsOpenState = true;
   panelAddressOpenState = false;
   addressString: string = ''; // строка для свёрнутого блока Адрес
-  gettingTableData:boolean=false;//идет загрузка данных - нужно для спиннера
+  oneClickSaveControl:boolean=false;//блокировка кнопок Save и Complete для защиты от двойного клика
   canCreateNewDoc: boolean=false;// можно ли создавать новый документ (true если выполнились все необходимые для создания действия)
   canGetChilds: boolean=false; //можно ли грузить дочерние модули
   actionsBeforeCreateNewDoc:number=0;// количество выполненных действий, необходимых чтобы создать новый документ
@@ -1117,8 +1117,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
   getDocumentValuesById(){
     this.http.get('/api/auth/getCustomersOrdersValuesById?id='+ this.id)
         .subscribe(
-            data => { 
-              
+            data => {              
                 let documentValues: docResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
                 //!!!
                 if(data!=null&&documentValues.company_id!=null){
@@ -1152,8 +1151,6 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
                   this.formBaseInformation.get('telephone').setValue(documentValues.telephone);
                   this.formBaseInformation.get('zip_code').setValue(documentValues.zip_code);
                   this.formBaseInformation.get('country_id').setValue(documentValues.country_id);
-                  // this.formBaseInformation.get('region_id').setValue(documentValues.region_id);
-                  // this.formBaseInformation.get('city_id').setValue(documentValues.city_id);
                   this.formBaseInformation.get('street').setValue(documentValues.street);
                   this.formBaseInformation.get('home').setValue(documentValues.home);
                   this.formBaseInformation.get('flat').setValue(documentValues.flat);
@@ -1192,12 +1189,13 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
                   this.hideOrShowNdsColumn();//расчет прятать или показывать колонку НДС
                   this.getSettings(); // настройки документа Заказ покупателя
                   this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
-                  this.cheque_nds=documentValues.nds;//нужно ли передавать в кассу (в чек) данные об НДС
+                  this.cheque_nds=documentValues.nds;//нужно ли передавать в кассу (в чек) данные об НДС 
+                  this.oneClickSaveControl=false;
                   //!!!
                 } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();
             },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
+            error => {this.oneClickSaveControl=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
         );
   }
   
@@ -1456,6 +1454,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
       );
   }
   updateDocument(complete?:boolean){ 
+    this.oneClickSaveControl=true;
     this.getProductsTable();    
     let currentStatus:number=this.formBaseInformation.get('status_id').value;
     if(complete){
@@ -1467,7 +1466,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
     return this.http.post('/api/auth/updateCustomersOrders',  this.formBaseInformation.value)
       .subscribe(
           (data) => 
-          {   
+          { 
             if(complete){
               this.formBaseInformation.get('is_completed').setValue(false);//если сохранение с завершением - удаляем временную установку признака завершенности, 
               this.formBaseInformation.get('status_id').setValue(currentStatus);//и возвращаем предыдущий статус
@@ -1519,7 +1518,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
               }
             }
           },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
+          error => {this.oneClickSaveControl=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
       );
   } 
   //забирает таблицу товаров из дочернего компонента и помещает ее в основную форму

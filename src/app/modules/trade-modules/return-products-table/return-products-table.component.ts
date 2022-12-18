@@ -398,10 +398,10 @@ export class ReturnProductsTableComponent implements OnInit {
     return this.http.get(imageUrl, {responseType: 'blob'});
   }
   getProductsTable(){
+    this.gettingTableData=true;
     let productsTable: ReturnProductTable[]=[];
     //сбрасываем, иначе при сохранении будут прибавляться дубли и прочие глюки
     const control = <UntypedFormArray>this.formBaseInformation.get('returnProductTable');
-    this.gettingTableData=true;
     control.clear();
     this.row_id=0;
     this.http.get('/api/auth/get'+this.parentDocName+'ProductTable?id='+this.parentDocId)
@@ -417,7 +417,7 @@ export class ReturnProductsTableComponent implements OnInit {
                   this.changeProductsTableLength.emit();//событие изменения кол-ва товаров в таблице
                 }
             },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+            error => {this.gettingTableData=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
         );
   }
 

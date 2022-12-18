@@ -181,7 +181,8 @@ export class ShipmentDocComponent implements OnInit {
   receivedStatusesList: StatusInterface [] = []; // массив для получения статусов
   receivedMyDepartmentsList: SecondaryDepartment [] = [];//массив для получения списка отделений
   // receivedUsersList  : any [];//массив для получения списка пользователей
-  myCompanyId:number=0;
+  myCompanyId:number=0;   
+	oneClickSaveControl:boolean=false;//блокировка кнопок Save и Complete для защиты от двойного клика
   
   // allFields: any[][] = [];//[номер строки начиная с 0][объект - вся инфо о товаре (id,кол-во, цена... )] - массив товаров
   filesInfo : FilesInfo [] = []; //массив для получения информации по прикрепленным к документу файлам 
@@ -950,11 +951,12 @@ export class ShipmentDocComponent implements OnInit {
                     this.getSettings();
                   }                
                   this.cheque_nds=documentValues.nds;//нужно ли передавать в кассу (в чек) данные об НДС
+                  this.oneClickSaveControl=false;
                   //!!!
                 } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();
             },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
+            error => {this.oneClickSaveControl=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
         );
   }
 
@@ -1224,6 +1226,7 @@ export class ShipmentDocComponent implements OnInit {
       );
   }
   updateDocument(complete?:boolean){
+    this.oneClickSaveControl=true;
     this.getProductsTable();    
     let currentStatus:number=this.formBaseInformation.get('status_id').value;
     if(complete){
@@ -1295,9 +1298,10 @@ export class ShipmentDocComponent implements OnInit {
                 break;
               }
             }
+            this.oneClickSaveControl=false;
           },
           error => {
-            this.showQueryErrorMessage(error);
+            this.showQueryErrorMessage(error);this.oneClickSaveControl=false;
             },
       );
   } 

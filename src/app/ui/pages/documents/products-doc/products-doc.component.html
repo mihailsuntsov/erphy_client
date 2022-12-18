@@ -255,24 +255,58 @@
                                                                 </div>
 
                                                                 <div class="flex">
-                                                                    <mat-form-field style="width:50%; margin-right:5px;" 
+                                                                    <mat-form-field class="slideWidth100" style="width:50%; margin-right:5px;" 
                                                                         >
-                                                                        <mat-slide-toggle formControlName="not_sell">{{t('docs.field.p_del_from_sell')}}</mat-slide-toggle>
+                                                                        <mat-slide-toggle formControlName="not_sell" (change)="onChangeCrmStockStatus()">{{t('docs.field.p_del_from_sell')}}</mat-slide-toggle>
                                                                         <input matInput hidden/>
                                                                     </mat-form-field>
-                                                                
-                                                                    <mat-form-field  style="width:50%;"
-                                                                        >
+                                                                    <mat-form-field style="width:50%" 
+                                                                        class="slideWidth100">
+                                                                        <mat-slide-toggle formControlName="not_buy">{{t('docs.field.p_not_buying')}}</mat-slide-toggle>
+                                                                        <input matInput hidden/>
+                                                                    </mat-form-field>
+                                                                   
+                                                                </div>
+                                                                <div class="flex">
+                                                                    <mat-form-field class="slideWidth100" style="width:50%; margin-right:5px;">
                                                                         <mat-slide-toggle formControlName="indivisible">{{t('docs.field.p_indivisible')}}</mat-slide-toggle>
                                                                         <input matInput hidden/>
                                                                     </mat-form-field>
+                                                                    <mat-form-field style="width:50%" *ngIf="product_code_free_isReadOnly && +formBaseInformation.get('id').value>0 && (+formBaseInformation.get('company_id').value>0)" 
+                                                                        class="slideWidth100">
+                                                                        <input  matInput style="height: 24.5px;"
+                                                                                (click)="EditProductCodeFree()"
+                                                                                placeholder="{{t('docs.field.code')}}"
+                                                                                formControlName="product_code_free"
+                                                                                [readonly]=true/>
+                                                                    </mat-form-field>
+                                                                    <mat-form-field   class="slideWidth100" style="width:50%; margin-right:5px;"
+                                                                            *ngIf="!product_code_free_isReadOnly && +formBaseInformation.get('id').value>0 && (+formBaseInformation.get('company_id').value>0)">
+                                                                            <input  matInput
+                                                                                    #codeFreeValue 
+                                                                                    maxlength="10"
+                                                                                    placeholder="{{t('docs.field.code')}}"
+                                                                                    (keypress)="numberOnly($event)"
+                                                                                    (change)="checkProductCodeFreeUnical()"
+                                                                                    formControlName="product_code_free"/>
+                                                                            <mat-hint  align="start" *ngIf="formBaseInformation.get('product_code_free').touched && formBaseInformation.get('product_code_free').invalid">
+                                                                                <i *ngIf="formBaseInformation.get('product_code_free').errors.pattern" class="form-invalid">{{t('docs.error.num_only')}}</i>
+                                                                            </mat-hint>
+                                                                            <mat-hint align="end">{{codeFreeValue.value.length}} / 10</mat-hint>
+                                                                            <mat-progress-bar *ngIf="isProductCodeFreeUnicalChecking" mode="indeterminate"></mat-progress-bar>
+                                                                        </mat-form-field>
                                                                 </div>
 
-
-
-                                                                <div  [ngClass]="{invisible: visBeforeCreatingBlocks || (+formBaseInformation.get('ppr_id').value>2)}">
-                                                                    <div class="flex"  *ngIf="formBaseInformation.get('company_id').value">
-                                                                        <mat-form-field style="width:65%; margin-right:5px;">
+                                                                <div class="flex">
+                                                                    <mat-form-field 
+                                                                        matTooltip="{{t('docs.tip.p_outofst_as')}}"
+                                                                        class="slideWidth100">
+                                                                        <mat-slide-toggle formControlName="outofstock_aftersale">{{t('docs.field.p_outofst_as')}}</mat-slide-toggle>
+                                                                        <input matInput hidden/>
+                                                                    </mat-form-field>
+                                                                </div>
+                                                                
+                                                                        <!-- <mat-form-field style="width:65%; margin-right:5px;">
                                                                             <input matInput 
                                                                             placeholder="{{t('docs.field.p_prod_group')}}" 
                                                                             aria-label="State" 
@@ -289,34 +323,17 @@
                                                                                 </mat-option>
                                                                             </ng-container>
                                                                             </mat-autocomplete>
-                                                                        </mat-form-field>
-                                                                        <mat-form-field 
-                                                                            *ngIf="product_code_free_isReadOnly && (+formBaseInformation.get('company_id').value>0)" 
-                                                                            style="width:35%">
-                                                                            <input  matInput
-                                                                                    (click)="EditProductCodeFree()"
-                                                                                    placeholder="{{t('docs.field.code')}}"
-                                                                                    formControlName="product_code_free"
-                                                                                    [readonly]=true/>
-                                                                        </mat-form-field>
-                                                                        <mat-form-field  
-                                                                            *ngIf="!product_code_free_isReadOnly && (+formBaseInformation.get('company_id').value>0)"  
-                                                                            style="width:50%">
-                                                                            <input  matInput
-                                                                                    #codeFreeValue 
-                                                                                    maxlength="10"
-                                                                                    placeholder="{{t('docs.field.code')}}"
-                                                                                    (keypress)="numberOnly($event)"
-                                                                                    (change)="checkProductCodeFreeUnical()"
-                                                                                    formControlName="product_code_free"/>
-                                                                            <mat-hint  align="start" *ngIf="formBaseInformation.get('product_code_free').touched && formBaseInformation.get('product_code_free').invalid">
-                                                                                <i *ngIf="formBaseInformation.get('product_code_free').errors.pattern" class="form-invalid">{{t('docs.error.num_only')}}</i>
-                                                                            </mat-hint>
-                                                                            <mat-hint align="end">{{codeFreeValue.value.length}} / 10</mat-hint>
-                                                                            <mat-progress-bar *ngIf="isProductCodeFreeUnicalChecking" mode="indeterminate"></mat-progress-bar>
-                                                                        </mat-form-field>
+                                                                        </mat-form-field> -->
+
+
+                                                                
+
+                                                                <div  [ngClass]="{invisible: visBeforeCreatingBlocks || (+formBaseInformation.get('ppr_id').value>2)}">
+                                                                    <div class="flex"  *ngIf="formBaseInformation.get('company_id').value">
+
+                                                                        
                                                                     </div>
-                                                                    <mat-form-field  style="display: none;" >
+                                                                    <!-- <mat-form-field  style="display: none;" >
                                                                         <input   matInput
                                                                                 placeholder="Products group ID"
                                                                                 formControlName="productgroup_id"/>
@@ -327,15 +344,15 @@
                                                                         <input   matInput
                                                                                 placeholder="Products group ID"
                                                                                 formControlName="productgroup_id"/>
-                                                                    </mat-form-field>
-                                                                    <div class="flex">
+                                                                    </mat-form-field> -->
+                                                                    <div class="flex" style="display: none;">
                                                                         <mat-form-field 
                                                                         [ngClass]="{slideWidth100: !formBaseInformation.get('by_weight').value,
                                                                                     slideWidth50margin8: formBaseInformation.get('by_weight').value}">
                                                                             <mat-slide-toggle formControlName="by_weight">{{t('docs.field.p_weight_prod')}}</mat-slide-toggle>
                                                                             <input matInput hidden/>
                                                                         </mat-form-field>
-                                                                        <mat-form-field style="width:50%" 
+                                                                        <mat-form-field class="slideWidth100" style="width:50%" 
                                                                         [ngClass]="{invisible: !formBaseInformation.get('by_weight').value}">
                                                                             <input   matInput
                                                                                     placeholder="{{t('docs.field.p_w_code')}}"
@@ -385,13 +402,6 @@
                                                                                     formControlName="markable_group_id"/>
                                                                         </mat-form-field> 
                                                                     </div-->
-                                                                    <div class="flex">
-                                                                        <mat-form-field 
-                                                                            class="slideWidth100">
-                                                                            <mat-slide-toggle formControlName="not_buy">{{t('docs.field.p_not_buying')}}</mat-slide-toggle>
-                                                                            <input matInput hidden/>
-                                                                        </mat-form-field>
-                                                                    </div>
                                                                     <mat-form-field  style="display: none;" >
                                                                         <input   matInput
                                                                                 placeholder="{{t('docs.field.p_unit')}}"
@@ -448,7 +458,7 @@
                                                         </mat-card>
                                                     </div>
                                                     <div class="col-lg-4 col-md-12" [ngClass]="{invisible: visBeforeCreatingBlocks}">
-                                                        <mat-card class="card-block"  [ngClass]="{invisible: (+formBaseInformation.get('ppr_id').value>2) || !(receivedSetsOfFields.length>0)
+                                                        <!-- <mat-card class="card-block"  [ngClass]="{invisible: (+formBaseInformation.get('ppr_id').value>2) || !(receivedSetsOfFields.length>0)
                                                             }">
                                                             <mat-card-header>
                                                                 <mat-card-title class="card-title">{{t('docs.card.p_fields')}}</mat-card-title>
@@ -502,7 +512,7 @@
                                                                     </mat-accordion>
                                                                 </div>
                                                             </mat-card-content>
-                                                        </mat-card>
+                                                        </mat-card> -->
 
 
 
@@ -1259,6 +1269,7 @@
                                                                                 *ngIf="!formBaseInformation.get('manage_stock').value && formBaseInformation.get('type').value=='simple'">
                                                                                 <mat-label>{{t('docs.field.stock_status')}}</mat-label>
                                                                                 <mat-select formControlName="stock_status" 
+                                                                                (selectionChange)="onChangeStoreStockStatus()"
                                                                                 matTooltip="{{t('docs.tip.stock_status')}}">
                                                                                     <option value="" selected></option>
                                                                                     <mat-option value="instock">{{t('docs.list.p_ss_instck')}}</mat-option>

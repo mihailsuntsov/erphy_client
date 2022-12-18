@@ -146,15 +146,30 @@
                                             </div>
                                         </div>
 
-                                        <!-- НДС -->
-                                        <mat-form-field class="slideWidth100">
-                                            <mat-slide-toggle 
-                                            formControlName="nds_payer"
-                                            [disabled]="!editability"
-                                            matTooltip="{{t('docs.tip.vat_payer')}}"
-                                            >{{t('docs.field.vat_payer')}}</mat-slide-toggle>
-                                            <input matInput hidden/>
-                                        </mat-form-field>
+                                        <!-- VAT -->
+                                        <div class="col-12" style="padding-right: 0px;padding-left: 0px;">
+                                            <div class="flex" style="margin-top:-11px;">
+                                                <mat-form-field 
+                                                [ngClass]="{slideWidth100: !formBaseInformation.get('nds_payer').value,
+                                                            slideWidth50left: formBaseInformation.get('nds_payer').value}">
+                                                    <mat-slide-toggle 
+                                                    formControlName="nds_payer"
+                                                    [disabled]="!editability"
+                                                    matTooltip="{{t('docs.tip.vat_payer')}}"
+                                                    >{{t('docs.field.vat_payer')}}</mat-slide-toggle>
+                                                    <input matInput hidden/>
+                                                </mat-form-field>
+                                                <!-- VAT included into the price -->
+                                                <mat-form-field class="slideWidth50right" [ngClass]="{invisible: !formBaseInformation.get('nds_payer').value}">
+                                                    <mat-slide-toggle 
+                                                    formControlName="nds_included"
+                                                    [disabled]="!editability"
+                                                    matTooltip="{{t('docs.tip.tax_included')}}"
+                                                    >{{t('docs.field.tax_included')}}</mat-slide-toggle>
+                                                    <input matInput hidden/>
+                                                </mat-form-field>
+                                            </div>
+                                        </div>
                                         <!-- Статус -->
                                         <!-- <div *ngIf="id>0" class = "circle-in-selected" [style.background-color]="status_color"></div>
                                         <mat-form-field *ngIf="id>0" class="mat-form-field-100" style="margin-top: -25px;">
@@ -1117,13 +1132,18 @@
                     </div>
                 </mat-tab>
 
+<!-- ***** ONLINE STORE ****** -->
+
                 <mat-tab  *ngIf="+id>0 && formBaseInformation.get('is_store').value"  label="{{t('docs.field.p_store')}}">
                     <div class="container-fluid">
                         <div class="row" style="padding: 10px">
-                            <div class="col-xl-5 col-lg-9 col-md-12">
+                            <div class="col-xl-6 col-md-12">
                                 <mat-card>
+                                    <mat-card-header>
+                                        <mat-card-title class="card-title">{{t('docs.card.connection')}}</mat-card-title>
+                                    </mat-card-header>
                                     <mat-card-content class="input-form">
-                                        <mat-form-field>
+                                        <!-- <mat-form-field>
                                             <mat-label>{{t('docs.field.p_s_st_addr')}}</mat-label>
                                             <input   matInput
                                                     [readonly]=!editability
@@ -1149,7 +1169,7 @@
                                                     maxlength="120"
                                                     formControlName="store_secret"/>                                                    
                                                     <mat-hint align="end" *ngIf="formBaseInformation.get('store_secret').value.length>100">{{formBaseInformation.get('store_secret').value.length}} / 120</mat-hint>
-                                        </mat-form-field>
+                                        </mat-form-field> -->
                                         <mat-form-field>
                                             <mat-label>{{t('docs.field.p_s_crm_key')}}</mat-label>
                                             <input   matInput
@@ -1159,6 +1179,17 @@
                                                     formControlName="crm_secret_key"/>                                                    
                                                     <mat-hint align="end" *ngIf="formBaseInformation.get('crm_secret_key').value.length>30">{{formBaseInformation.get('crm_secret_key').value.length}} / 36</mat-hint>
                                         </mat-form-field>
+                                    </mat-card-content>
+                                </mat-card>
+
+
+
+
+                                <mat-card>
+                                    <mat-card-header>
+                                        <mat-card-title class="card-title">{{t('docs.card.orders')}}</mat-card-title>
+                                    </mat-card-header>
+                                    <mat-card-content class="input-form">
                                         <mat-form-field>
                                             <mat-label>{{t('docs.field.p_s_prc_reg')}}</mat-label>
                                             <mat-select  formControlName="store_price_type_regular">                          
@@ -1176,8 +1207,130 @@
                                                     </mat-option> 
                                             </mat-select>
                                         </mat-form-field>
+                                        <mat-form-field 
+                                        matTooltip="{{t('docs.tip.ordrs_dprtmnt')}}">
+                                            <mat-label>{{t('docs.field.department')}} </mat-label>
+                                            <mat-select formControlName="store_orders_department_id">
+                                                <mat-option *ngFor="let department of receivedDepartmentsList" 
+                                                            [value]="department.id">
+                                                            {{department.name}}
+                                                </mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                        <mat-form-field style="display: none">
+                                            <input  matInput
+                                                    placeholder="store_default_creator_id"
+                                                    formControlName="store_default_creator_id"/>
+                                        </mat-form-field>
+                                        <mat-form-field  class="mat-form-field-100">
+                                            <mat-label>{{t('docs.field.def_creator')}}</mat-label>
+                                            <input  matInput 
+                                            [matAutocomplete]="auto1" 
+                                            matTooltip="{{t('docs.tip.def_creator')}}"
+                                            [formControl]="searchDefaultCreatorCtrl"
+                                            (input)="canDefaultCreatorAutocompleteQuery=true; checkEmptyDefaultCreatorField();"
+                                            (change)="canDefaultCreatorAutocompleteQuery=false; checkEmptyDefaultCreatorField();">
+                                            <mat-autocomplete #auto1="matAutocomplete">
+                                                <ng-container *ngIf="!isDefaultCreatorListLoading" style="width:320px;">
+                                                    <mat-option style="padding:0px" *ngFor="let value of filteredDefaultCreators" [value]="value.name">
+                                                    <div (click)="onSelectDefaultCreator(value.id,value.name)">
+                                                        <span style="margin:10px;"><b>{{value.name}}</b></span>
+                                                    </div>
+                                                    </mat-option>
+                                                </ng-container>
+                                            </mat-autocomplete>
+                                        </mat-form-field>
+                                        <mat-progress-bar *ngIf="isDefaultCreatorListLoading" mode="indeterminate"></mat-progress-bar>
+                                        <mat-form-field  class="mat-form-field-100">
+                                            <mat-label>{{t('docs.field.if_cust_n_fnd')}}</mat-label>
+                                            <mat-select  
+                                                formControlName="store_if_customer_not_found"
+                                                [disabled]=!editability
+                                            >                          
+                                                <mat-option 
+                                                    value="create_new" 
+                                                >
+                                                        {{t('docs.list.cust_create_new')}}
+                                                </mat-option>                     
+                                                <mat-option 
+                                                    value="use_default"
+                                                >
+                                                        {{t('docs.list.cust_use_default')}}
+                                                </mat-option>                                                 
+                                            </mat-select>
+                                        </mat-form-field>
+                                        <mat-form-field style="display: none">
+                                            <input  matInput
+                                                    placeholder="store_default_customer_id"
+                                                    formControlName="store_default_customer_id"/>
+                                        </mat-form-field>
+                                        <mat-form-field  class="mat-form-field-100" *ngIf="formBaseInformation.get('store_if_customer_not_found').value=='use_default'">
+                                            <mat-label>{{t('docs.field.def_cparty')}}</mat-label>
+                                            <input  matInput 
+                                            [matAutocomplete]="auto4" 
+                                            [formControl]="searchCagentCtrl"
+                                            (input)="canCagentAutocompleteQuery=true; checkEmptyCagentField();"
+                                            (change)="canCagentAutocompleteQuery=false; checkEmptyCagentField();">
+                                            <mat-autocomplete #auto4="matAutocomplete">
+                                                <ng-container *ngIf="!isCagentListLoading" style="width:320px;">
+                                                    <mat-option style="padding:0px" *ngFor="let value of filteredCagents" [value]="value.name">
+                                                    <div (click)="onSelectCagent(value.id,value.name)">
+                                                        <span style="margin:10px;"><b>{{value.name}}</b></span>
+                                                    </div>
+                                                    </mat-option>
+                                                </ng-container>
+                                            </mat-autocomplete>
+                                        </mat-form-field>
+                                        <mat-progress-bar *ngIf="isCagentListLoading" mode="indeterminate"></mat-progress-bar>
+                                        <!-- ОГРН(ИП) / Registration number -->
+                                        <mat-form-field>
+                                            <mat-label>{{t('docs.field.days_esd')}}</mat-label>
+                                            <input  matInput
+                                                    maxlength="3"
+                                                    [readonly]=!editability
+                                                    (keypress)="numberOnly($event)"
+                                                    formControlName="store_days_for_esd"/>
+                                        </mat-form-field>
                                     </mat-card-content>
                                 </mat-card>
+                            </div>
+                            <div class="col-xl-6 col-md-12">
+
+
+
+
+                                <mat-card>
+                                    <mat-card-header>
+                                        <mat-card-title class="card-title">{{t('docs.card.inventory')}}</mat-card-title>
+                                    </mat-card-header>
+                                    <mat-card-content class="input-form">
+
+                                        <div class="flex">
+                                            <mat-form-field 
+                                                matTooltip="{{t('docs.tip.s_autorsrv')}}"
+                                                class="slideWidth100">
+                                                <mat-slide-toggle formControlName="store_auto_reserve">{{t('docs.field.s_autorsrv')}}</mat-slide-toggle>
+                                                <input matInput hidden/>
+                                            </mat-form-field>
+                                        </div>
+
+
+                                        <mat-form-field>
+                                            <mat-label>{{t('docs.field.s_dprtmnts')}}</mat-label>
+                                            <mat-select formControlName="companyStoreDepartments" 
+                                            matTooltip="{{t('docs.tip.s_dprtmnts')}}" multiple>
+                                                <mat-option *ngFor="let department of receivedDepartmentsList" 
+                                                            [value]="department.id">
+                                                            {{department.name}}
+                                                </mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+
+                                    </mat-card-content>
+                                </mat-card>
+
+
+
                             </div>
                         </div>
                     </div>
