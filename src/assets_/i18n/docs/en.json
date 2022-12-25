@@ -442,7 +442,8 @@
         "has_archives":"Enable this if you want this attribute to have product archives in your store.",
         "def_creator": "Creator by default of created in online store Customers orders",
         "ordrs_dprtmnt": "Main department in \"Customer's order\" document for online store orders",
-        "s_dprtmnts":"The availability of products in the online store will be determined based on the total number of unreserved products in these departments"
+        "s_dprtmnts":"The availability of products in the online store will be determined based on the total number of unreserved products in these departments",
+        "p_gen_new_skey":"Generate new key"
     },
     "msg":{
         "error":        "Error!",
@@ -603,7 +604,9 @@
         "usr_crte_attn":"This data is displayed here only when the user is created. After creation, the user can change them himself",
         "no_prods":     "No products in the table",
         "del_term":     "Deleting term",
-        "del_term_f_attr":"Delete this term from the attribute?"
+        "del_term_f_attr":"Delete this term from the attribute?",
+        "gen_new_skey":"Generate new secret key?",
+        "gen_new_skey_":"If you generate a new secret key, you should change \"DokioCRM Secret key\" field in the DokioStore plugin to the same value"
     },
     "button":{        
         "test_connct":  "Connection test",

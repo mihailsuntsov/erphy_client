@@ -16,7 +16,7 @@ import { FilesComponent } from '../files/files.component';
 import { FilesDocComponent } from '../files-doc/files-doc.component';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { translate } from '@ngneat/transloco'; //+++
-
+import { v4 as uuidv4 } from 'uuid';
 import { MomentDefault } from 'src/app/services/moment-default';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
@@ -743,6 +743,7 @@ onDefaultCreatorSearchValueChanges(){
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
       );
   }
+
   getPriceTypesList(){
     this.receivedPriceTypesList=[];
     this.loadSpravService.getPriceTypesList(this.id)
@@ -752,16 +753,32 @@ onDefaultCreatorSearchValueChanges(){
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});}
       );
   }
+
   getDepartmentsList(){
     this.loadSpravService.getDepartmentsList(this.id).subscribe(
         (data) => {this.receivedDepartmentsList=data as any []},
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});}
     );
   }
+
   numberOnly(event): boolean {
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
     if (charCode > 31 && (charCode < 48 || charCode > 57)) { return false; } return true;}
 
+  generateCrmSecretKey(){
+      const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+        width: '400px',
+        data:
+        { 
+          head:translate('docs.msg.attention'),
+          query: translate('docs.msg.gen_new_skey'),
+          warning: translate('docs.msg.gen_new_skey_'),
+        },
+      });
+      dialogRef.afterClosed().subscribe(result => {
+        if(result==1) this.formBaseInformation.get('crm_secret_key').setValue(uuidv4());
+      });
+  }
 //*****************************************************************************************************************************************/
 //*******************************           В Ы Б О Р  С Т Р А Н Ы,  Р А Й О Н А, Г О Р О Д А       ***************************************/
 //*****************************************************************************************************************************************/

@@ -1176,7 +1176,15 @@
                                                     [readonly]=!editability
                                                     (keypress)="numberOnly($event)"
                                                     maxlength="36"
-                                                    formControlName="crm_secret_key"/>                                                    
+                                                    formControlName="crm_secret_key"/>
+                                                    <button 
+                                                        mat-button
+                                                        matSuffix 
+                                                        mat-icon-button 
+                                                        matTooltip="{{t('docs.tip.p_gen_new_skey')}}" color="primary"
+                                                        (click)="generateCrmSecretKey()">
+                                                            <mat-icon>offline_bolt</mat-icon>                                                            
+                                                        </button>                                                
                                                     <mat-hint align="end" *ngIf="formBaseInformation.get('crm_secret_key').value.length>30">{{formBaseInformation.get('crm_secret_key').value.length}} / 36</mat-hint>
                                         </mat-form-field>
                                     </mat-card-content>
@@ -1320,8 +1328,8 @@
                                             <mat-select formControlName="companyStoreDepartments" 
                                             matTooltip="{{t('docs.tip.s_dprtmnts')}}" multiple>
                                                 <mat-option *ngFor="let department of receivedDepartmentsList" 
-                                                            [value]="department.id">
-                                                            {{department.name}}
+                                                    [value]="department.id">
+                                                    {{department.name}}
                                                 </mat-option>
                                             </mat-select>
                                         </mat-form-field>

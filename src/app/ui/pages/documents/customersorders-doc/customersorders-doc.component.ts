@@ -1516,6 +1516,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
                   break;
                 }
               }
+              this.oneClickSaveControl=false;
             }
           },
           error => {this.oneClickSaveControl=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
