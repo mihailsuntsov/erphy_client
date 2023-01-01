@@ -41,7 +41,10 @@ interface InvoiceinProductTable { //интерфейс для товаров, (�
   nds_id: number;                 // id ставки НДС
   product_sumprice: number;       // сумма как product_count * product_price (высчитываем сумму и пихем ее в БД, чтобы потом на бэкэнде в SQL запросах ее не высчитывать)
 }
-
+interface CompanySettings{
+  vat: boolean;
+  vat_included:boolean;
+}
 interface DocResponse {//интерфейс для получения ответа в методе getInvoiceinValuesById
   id: number;
   company: string;
@@ -172,6 +175,7 @@ export class InvoiceinDocComponent implements OnInit {
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра
   accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
   timeFormat:string='24';   //12 or 24
+  companySettings:CompanySettings={vat:false,vat_included:true};
 
   //для загрузки связанных документов
   linkedDocsReturn:LinkedDocs[]=[];
@@ -524,6 +528,18 @@ export class InvoiceinDocComponent implements OnInit {
         );
     else this.doFilterCompaniesList();
   }
+  getCompanySettings(){
+    let result:CompanySettings;
+    this.http.get('/api/auth/getCompanySettings?id='+this.formBaseInformation.get('company_id').value)
+      .subscribe(
+        data => { 
+          result=data as CompanySettings;
+          this.formBaseInformation.get('nds').setValue(result.vat);
+          this.formBaseInformation.get('nds_included').setValue(result.vat_included);
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+    );
+  }
   getMyId(){ //+++
     if(+this.myId==0)
       this.loadSpravService.getMyId()
@@ -566,6 +582,7 @@ export class InvoiceinDocComponent implements OnInit {
     this.getPriceTypesList();
     this.getStatusesList();
     this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
+    this.getCompanySettings();
   }
 
   onDepartmentChange(){
@@ -721,6 +738,7 @@ export class InvoiceinDocComponent implements OnInit {
     this.getDepartmentsList(); 
     this.getPriceTypesList();
     this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
+    if(+this.id==0) this.getCompanySettings(); // because at this time companySettings loads only the info that needs on creation document stage (when document id=0)
   }
   //определяет, есть ли предприятие в загруженном списке предприятий
   isCompanyInList(companyId:number):boolean{

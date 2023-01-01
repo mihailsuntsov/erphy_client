@@ -99,13 +99,14 @@
                             <i class="material-icons">done</i>
                         </button>
                         <button  
-                                mat-raised-button 
-                                matTooltip="{{t('docs.tip.select')}}"
-                                [mat-dialog-close]="formBaseInformation.get('product_code_free').value" 
-                                *ngIf="(mode=='createForAcceptance' || mode=='createForPosting') && (+id>0)"
-                                color="primary">
-                                <i class="material-icons">star</i>
-                            <span> {{t('docs.tip.select')}}</span>
+                            mat-raised-button 
+                            matTooltip="{{t('docs.tip.select')}}"
+                            [mat-dialog-close]="formBaseInformation.get('product_code_free').value" 
+                            *ngIf="(mode=='createFromAnotherDoc') && (+id>0)"
+                            color="primary"
+                            type="button"
+                            class="button small-button">
+                            <i class="material-icons">star</i>
                         </button>
                         <a routerLink="../../products">
                             <button 
@@ -1024,7 +1025,7 @@
                                                                 <mat-option value="simple">
                                                                     {{t('docs.list.simple')}}
                                                                 </mat-option>
-                                                                <mat-option value="grouped">
+                                                                <!-- <mat-option value="grouped">
                                                                     {{t('docs.list.grouped')}}
                                                                 </mat-option>
                                                                 <mat-option value="external">
@@ -1032,12 +1033,12 @@
                                                                 </mat-option>
                                                                 <mat-option value="variable">
                                                                     {{t('docs.list.variable')}}
-                                                                </mat-option>
+                                                                </mat-option> -->
                                                             </mat-select>
                                                         </mat-form-field>
 
                                                     </div>
-                                                    <div class="col-lg-4  col-md-12"  *ngIf="formBaseInformation.get('type').value=='simple'">
+                                                    <!-- <div class="col-lg-4  col-md-12"  *ngIf="formBaseInformation.get('type').value=='simple'">
                                                         <div class="flex">
                                                             <mat-form-field 
                                                                 class="slideWidth100">
@@ -1054,7 +1055,7 @@
                                                                 <input matInput hidden/>
                                                             </mat-form-field>
                                                         </div>
-                                                    </div>
+                                                    </div> -->
                                                 </div>
 
 

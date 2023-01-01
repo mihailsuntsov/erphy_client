@@ -39,6 +39,14 @@
                                             ></mat-datepicker-toggle>
                                     <mat-datepicker #dpTo></mat-datepicker>
                                 </mat-form-field>
+                                <button mat-button  
+                                    class="filter-button"
+                                    matTooltip="{{t('docs.button.refresh')}}"
+                                    (click)="clickApplyFilters()"  
+                                    type="submit"
+                                    matSuffix mat-icon-button>
+                                    <mat-icon>refresh</mat-icon>
+                                </button>
                         <span  class="emptyspace"></span>
                         <!-- <button mat-button
                             *ngIf="displaySelectOptions"

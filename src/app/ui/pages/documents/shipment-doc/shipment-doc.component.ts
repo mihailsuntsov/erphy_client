@@ -163,6 +163,10 @@ interface TemplatesList{
     is_show: boolean;             // показывать шаблон в выпадающем списке на печать
     output_order: number;         // порядок вывода наименований шаблонов в списке на печать
 }
+interface CompanySettings{
+  vat: boolean;
+  vat_included:boolean;
+}
 @Component({
   selector: 'app-shipment-doc',
   templateUrl: './shipment-doc.component.html',
@@ -183,7 +187,7 @@ export class ShipmentDocComponent implements OnInit {
   // receivedUsersList  : any [];//массив для получения списка пользователей
   myCompanyId:number=0;   
 	oneClickSaveControl:boolean=false;//блокировка кнопок Save и Complete для защиты от двойного клика
-  
+  companySettings:CompanySettings={vat:false,vat_included:true};
   // allFields: any[][] = [];//[номер строки начиная с 0][объект - вся инфо о товаре (id,кол-во, цена... )] - массив товаров
   filesInfo : FilesInfo [] = []; //массив для получения информации по прикрепленным к документу файлам 
   myId:number=0;
@@ -353,6 +357,7 @@ export class ShipmentDocComponent implements OnInit {
       retail_sales_id: new UntypedFormControl    (null,[]),
       date_return: new UntypedFormControl        ('',[]),
       nds: new UntypedFormControl                ('',[]),
+      nds_included: new UntypedFormControl       ('',[]),
       parent_tablename: new UntypedFormControl   ('',[]), //для счёта фактуры выданного
       shipment_id: new UntypedFormControl        ('',[]), //для счёта фактуры выданного
       cagent_id: new UntypedFormControl          (null,[Validators.required]),
@@ -621,6 +626,18 @@ export class ShipmentDocComponent implements OnInit {
     }
   }
 
+  getCompanySettings(){
+    let result:CompanySettings;
+    this.http.get('/api/auth/getCompanySettings?id='+this.formBaseInformation.get('company_id').value)
+      .subscribe(
+        data => { 
+          result=data as CompanySettings;
+          this.formBaseInformation.get('nds').setValue(result.vat);
+          this.formBaseInformation.get('nds_included').setValue(result.vat_included);
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+    );
+  }
   onCompanyChange(){
     this.formBaseInformation.get('department_id').setValue(null);
     this.formBaseInformation.get('cagent_id').setValue(null);
@@ -634,6 +651,7 @@ export class ShipmentDocComponent implements OnInit {
     this.getPriceTypesList();
     this.getStatusesList();
     this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
+    this.getCompanySettings();
   }
 
   onDepartmentChange(){
@@ -818,7 +836,7 @@ export class ShipmentDocComponent implements OnInit {
             this.settingsForm.get('priorityTypePriceSide').setValue(result.priorityTypePriceSide?result.priorityTypePriceSide:'defprice');
             // this.settingsForm.get('autocreateOnStart').setValue(result.autocreateOnStart);
             this.settingsForm.get('autocreate').setValue(result.autocreate);
-            this.settingsForm.get('statusIdOnComplete').setValue(result.statusOnFinishId);
+            this.settingsForm.get('statusIdOnComplete').setValue(result.statusIdOnComplete);
             this.settingsForm.get('showKkm').setValue(result.showKkm);
             this.settingsForm.get('autoAdd').setValue(result.autoAdd);
 
@@ -843,6 +861,7 @@ export class ShipmentDocComponent implements OnInit {
     this.getDepartmentsList(); 
     this.getPriceTypesList();
     this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
+    if(+this.id==0) this.getCompanySettings(); // because at this time companySettings loads only the info that needs on creation document stage (when document id=0)
   }
 
   //определяет, есть ли предприятие в загруженном списке предприятий
@@ -1518,6 +1537,7 @@ export class ShipmentDocComponent implements OnInit {
       if(docname=='Invoiceout'){// Счёт покупателю для Отгрузки является родительским, но может быть создан из Отгрузки (Счёт покупателю будет выше по иерархии в диаграмме связей)
         this.formLinkedDocs.get('parent_uid').setValue(uid);// uid исходящего (родительского) документа
         this.formLinkedDocs.get('child_uid').setValue(this.formBaseInformation.get('uid').value);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
+        this.formLinkedDocs.get('nds_included').setValue(this.formBaseInformation.get('nds_included').value);
       } else {
         this.formLinkedDocs.get('parent_uid').setValue(this.formBaseInformation.get('uid').value);// uid исходящего (родительского) документа
         this.formLinkedDocs.get('child_uid').setValue(uid);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.

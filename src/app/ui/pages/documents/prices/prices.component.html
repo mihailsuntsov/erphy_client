@@ -151,9 +151,17 @@ class="spinner"
                                                 </button>
                                             </mat-form-field>
                                         </div>
-                                        
+                                        <button mat-button  
+                                            class="filter-button"
+                                            matTooltip="{{t('docs.button.refresh')}}"
+                                            (click)="getTable()"  
+                                            type="submit"
+                                            matSuffix mat-icon-button>
+                                            <mat-icon>refresh</mat-icon>
+                                        </button>
+                                        <span  class="emptyspace"></span>                                        
                                         <button mat-button
-                                            style="margin-left: 10px" 
+                                            class="filter-button"
                                             [matMenuTriggerFor]="oper"
                                             type="button"
                                             matTooltip="{{t('menu.tip.select_opt')}}"
@@ -180,7 +188,6 @@ class="spinner"
                                                 </div>
                                             </div> 
                                         </mat-menu>
-                                        <span  class="emptyspace"></span>
                                         <div class="flex">
                                             <mat-form-field class="emptyspace">
                                                     <input matInput 

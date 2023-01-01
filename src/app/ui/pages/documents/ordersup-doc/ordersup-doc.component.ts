@@ -41,7 +41,10 @@ interface OrdersupProductTable { //интерфейс для товаров, (т
   nds_id: number;                 // id ставки НДС
   product_sumprice: number;       // сумма как product_count * product_price (высчитываем сумму и пихем ее в БД, чтобы потом на бэкэнде в SQL запросах ее не высчитывать)
 }
-
+interface CompanySettings{
+  vat: boolean;
+  vat_included:boolean;
+}
 interface DocResponse {//интерфейс для получения ответа в методе getOrdersupValuesById
   id: number;
   company: string;
@@ -152,6 +155,7 @@ export class OrdersupDocComponent implements OnInit {
   receivedDepartmentsList: IdAndName [] = [];//массив для получения списка отделений
   receivedStatusesList: StatusInterface [] = []; // массив для получения статусов
   receivedMyDepartmentsList: IdAndName [] = [];//массив для получения списка отделений
+  companySettings:CompanySettings={vat:false,vat_included:true};
   myCompanyId:number=0;
   myId:number=0;
   // allFields: any[][] = [];//[номер строки начиная с 0][объект - вся инфо о товаре (id,кол-во, цена... )] - массив товаров
@@ -577,7 +581,18 @@ export class OrdersupDocComponent implements OnInit {
       this.setDefaultDate();
     }
   }
-
+  getCompanySettings(){
+    let result:CompanySettings;
+    this.http.get('/api/auth/getCompanySettings?id='+this.formBaseInformation.get('company_id').value)
+      .subscribe(
+        data => { 
+          result=data as CompanySettings;
+          this.formBaseInformation.get('nds').setValue(result.vat);
+          this.formBaseInformation.get('nds_included').setValue(result.vat_included);
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+    );
+  }
   onCompanyChange(){
     this.formBaseInformation.get('department_id').setValue(null);
     this.formBaseInformation.get('status_id').setValue(null);
@@ -588,6 +603,7 @@ export class OrdersupDocComponent implements OnInit {
     this.getPriceTypesList();
     this.getStatusesList();
     this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
+    this.getCompanySettings();
   }
 
   onDepartmentChange(){
@@ -743,6 +759,7 @@ export class OrdersupDocComponent implements OnInit {
     this.getDepartmentsList(); 
     this.getPriceTypesList();
     this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
+    if(+this.id==0) this.getCompanySettings(); // because at this time companySettings loads only the info that needs on creation document stage (when document id=0)
   }
   //определяет, есть ли предприятие в загруженном списке предприятий
   isCompanyInList(companyId:number):boolean{

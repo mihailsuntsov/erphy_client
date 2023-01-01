@@ -57,6 +57,10 @@ interface InvoiceoutProductTable { //интерфейс для формы, ма�
   ppr_name_api_atol: string; //Признак предмета расчета в системе Атол. Невидимое поле. Нужно для передачи в таблицу товаров в качестве тега для чека на ккм Атол
   is_material: boolean; //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)            
 }
+interface CompanySettings{
+  vat: boolean;
+  vat_included:boolean;
+}
 interface SpravTaxesSet{
   id: number;
   name: string;
@@ -186,6 +190,7 @@ export class InvoiceoutDocComponent implements OnInit {
   filesInfo : FilesInfo [] = []; //массив для получения информации по прикрепленным к документу файлам 
   myId:number=0;
   creatorId:number=0;
+  companySettings:CompanySettings={vat:false,vat_included:true};
   startProcess: boolean=true; // идеут стартовые запросы. после того как все запросы пройдут - будет false.
   is_addingNewCagent: boolean = false; // при создании документа создаём нового получателя (false) или ищем уже имеющегося (true)
   // panelContactsOpenState = true;
@@ -523,6 +528,18 @@ export class InvoiceoutDocComponent implements OnInit {
         }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
     else this.getMyDepartmentsList();
   }
+  getCompanySettings(){
+    let result:CompanySettings;
+    this.http.get('/api/auth/getCompanySettings?id='+this.formBaseInformation.get('company_id').value)
+      .subscribe(
+        data => { 
+          result=data as CompanySettings;
+          this.formBaseInformation.get('nds').setValue(result.vat);
+          this.formBaseInformation.get('nds_included').setValue(result.vat_included);
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+    );
+  }
   getMyDepartmentsList(){ //+++
     if(this.receivedMyDepartmentsList.length==0)
     this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
@@ -586,6 +603,7 @@ export class InvoiceoutDocComponent implements OnInit {
     this.getPriceTypesList();
     this.getStatusesList();
     this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
+    this.getCompanySettings();
   }
 
   onDepartmentChange(){
@@ -798,7 +816,7 @@ export class InvoiceoutDocComponent implements OnInit {
     this.getDepartmentsList(); 
     this.getPriceTypesList();
     this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
-    
+    if(+this.id==0) this.getCompanySettings(); // because at this time companySettings loads only the info that needs on creation document stage (when document id=0)
   }
   //определяет, есть ли предприятие в загруженном списке предприятий
   isCompanyInList(companyId:number):boolean{

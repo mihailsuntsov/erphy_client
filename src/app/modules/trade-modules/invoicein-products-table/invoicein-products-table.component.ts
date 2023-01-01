@@ -282,7 +282,7 @@ export class InvoiceinProductsTableComponent implements OnInit {
       {
         this.isProductListLoading  = true;
         return this.http.get(
-          '/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.company_id+'&departmentId='+this.department_id+'&document_id=0&priceTypeId=0'
+          '/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.company_id+'&departmentId='+this.department_id+'&document_id=0&priceTypeId=0&showRemovedFromSale=true'
           );
       }else return [];
     } catch (e) {
@@ -733,7 +733,7 @@ openDialogCreateProduct() {
     width: '95%',
     data:
     { 
-      mode: 'createForInvoicein',
+      mode: 'createFromAnotherDoc',
       companyId: this.company_id,
     },
   });

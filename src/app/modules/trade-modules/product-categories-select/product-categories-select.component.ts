@@ -108,7 +108,7 @@ export class ProductCategoriesSelectComponent implements OnInit {
 
 
       this.sendingQueryForm.sortAsc="desc";
-      this.sendingQueryForm.sortColumn="p.name";
+      this.sendingQueryForm.sortColumn="date_time_created_sort";
       this.sendingQueryForm.offset=0;
       this.sendingQueryForm.result="5";//кол-во строк товара в таблице
       this.sendingQueryForm.companyId=this.companyId;

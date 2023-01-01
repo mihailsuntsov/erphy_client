@@ -157,7 +157,7 @@ export class PricesComponent implements OnInit {
     }
       
   ngOnInit() {
-    this.sendingQueryForm.sortAsc="desc";
+    this.sendingQueryForm.sortAsc="asc";
     this.sendingQueryForm.sortColumn="p.name";
     this.sendingQueryForm.offset=0;
     this.sendingQueryForm.result="10";

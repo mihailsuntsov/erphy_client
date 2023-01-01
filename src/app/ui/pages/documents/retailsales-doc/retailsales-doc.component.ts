@@ -51,6 +51,10 @@ interface RetailSalesProductTable { //интерфейс для формы, ма
   ppr_name_api_atol: string; //Признак предмета расчета в системе Атол. Невидимое поле. Нужно для передачи в таблицу товаров в качестве тега для чека на ккм Атол
   is_material: boolean; //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)            
 }
+interface CompanySettings{
+  vat: boolean;
+  vat_included:boolean;
+}
 interface SpravTaxesSet{
   id: number;
   name: string;
@@ -157,6 +161,7 @@ export class RetailsalesDocComponent implements OnInit {
   receivedMyDepartmentsList: SecondaryDepartment [] = [];//массив для получения списка отделений
   // receivedUsersList  : any [];//массив для получения списка пользователей
   myCompanyId:number=0;
+  companySettings:CompanySettings={vat:false,vat_included:true};
   
   // allFields: any[][] = [];//[номер строки начиная с 0][объект - вся инфо о товаре (id,кол-во, цена... )] - массив товаров
   filesInfo : FilesInfo [] = []; //массив для получения информации по прикрепленным к документу файлам 
@@ -492,6 +497,18 @@ export class RetailsalesDocComponent implements OnInit {
         );
     else this.doFilterCompaniesList();
   }
+  getCompanySettings(){
+    let result:CompanySettings;
+    this.http.get('/api/auth/getCompanySettings?id='+this.formBaseInformation.get('company_id').value)
+      .subscribe(
+        data => { 
+          result=data as CompanySettings;
+          this.formBaseInformation.get('nds').setValue(result.vat);
+          this.formBaseInformation.get('nds_included').setValue(result.vat_included);
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+    );
+  }
   getMyId(){ //+++
     if(+this.myId==0)
       this.loadSpravService.getMyId()
@@ -571,6 +588,7 @@ export class RetailsalesDocComponent implements OnInit {
     this.getSpravTaxes();//загрузка налогов
     this.getStatusesList();
     this.getSpravSysEdizm();
+    this.getCompanySettings();
   }
 
   onDepartmentChange(){
@@ -779,6 +797,7 @@ export class RetailsalesDocComponent implements OnInit {
     this.getDepartmentsList(); 
     this.getPriceTypesList();
     this.getSpravTaxes();//загрузка налогов
+    if(+this.id==0) this.getCompanySettings(); // because at this time companySettings loads only the info that needs on creation document stage (when document id=0)
   }
 
   //определяет, есть ли предприятие в загруженном списке предприятий

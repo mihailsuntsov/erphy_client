@@ -250,6 +250,15 @@ class="spinner"
                                                 </mat-option>
                                             </mat-select>
                                         </mat-form-field>
+                                        <button mat-button  
+                                            class="filter-button"
+                                            matTooltip="{{t('docs.button.refresh')}}"
+                                            (click)="getTable()"  
+                                            type="submit"
+                                            matSuffix mat-icon-button>
+                                            <mat-icon>refresh</mat-icon>
+                                        </button>
+                                        <span  class="emptyspace"></span>
 
                                         <div class="flex" *ngIf="sendingQueryForm.selectedNodeName" style="margin-left: 10px; max-width: 250px;">
                                             <mat-form-field  style="margin-left: 10px; width: 100%;">

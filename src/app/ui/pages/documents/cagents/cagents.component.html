@@ -184,6 +184,14 @@ class="spinner"
                                                 </button>
                                             </mat-form-field>
                                         </div>
+                                        <button mat-button  
+                                            class="filter-button"
+                                            matTooltip="{{t('docs.button.refresh')}}"
+                                            (click)="getTable()"  
+                                            type="submit"
+                                            matSuffix mat-icon-button>
+                                            <mat-icon>refresh</mat-icon>
+                                        </button>
                                         <span  class="card-name"></span>
                                         <button mat-button
                                             *ngIf="displaySelectOptions"

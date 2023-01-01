@@ -303,7 +303,7 @@ export class MovingProductsTableComponent implements OnInit {
           {
             this.isProductListLoading  = true;
             return this.http.get(
-              '/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.company_id+'&departmentId='+this.department_from_id+'&document_id=0&priceTypeId='+(+this.priceTypeId)
+              '/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.company_id+'&departmentId='+this.department_from_id+'&document_id=0&priceTypeId='+(+this.priceTypeId)+'&showRemovedFromSale=true'
               );
           } else {
             this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:'Отделения не должны совпадать'}})
@@ -761,7 +761,7 @@ openDialogCreateProduct() {
     width: '95%',
     data:
     { 
-      mode: 'createForMoving',
+      mode: 'createFromAnotherDoc',
       companyId: this.company_id,
     },
   });

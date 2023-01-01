@@ -19,21 +19,21 @@
             <a class="link-name">
               <span class="unselectable">{{t('sidebar.menu.headers.purchases')}}</span></a>
           </li>
-          <li *ngIf="hasPermission(360)">
-            <a routerLink="returnsup">
-              <span class="unselectable">{{t('sidebar.menu.items.returnsup')}}</span></a>
-          </li>
           <li *ngIf="hasPermission(424)">
             <a routerLink="ordersup">
               <span class="unselectable">{{t('sidebar.menu.items.ordersup')}}</span></a>
+          </li>
+          <li *ngIf="hasPermission(444)">
+            <a routerLink="invoicein">
+              <span class="unselectable">{{t('sidebar.menu.items.invoicein')}}</span></a>
           </li>
           <li *ngIf="hasPermission(183)">
             <a routerLink="acceptance">
               <span class="unselectable">{{t('sidebar.menu.items.acceptance')}}</span></a>
           </li>
-          <li *ngIf="hasPermission(444)">
-            <a routerLink="invoicein">
-              <span class="unselectable">{{t('sidebar.menu.items.invoicein')}}</span></a>
+          <li *ngIf="hasPermission(360)">
+            <a routerLink="returnsup">
+              <span class="unselectable">{{t('sidebar.menu.items.returnsup')}}</span></a>
           </li>
           <li *ngIf="hasPermission(528)">
             <a routerLink="vatinvoicein">
@@ -54,21 +54,21 @@
             <a class="link-name">
               <span class="unselectable">{{t('sidebar.menu.headers.sales')}}</span></a>
           </li>
-          <li *ngIf="hasPermission(344)">
-            <a routerLink="return">
-              <span class="unselectable">{{t('sidebar.menu.items.return')}}</span></a>
-          </li>
           <li *ngIf="hasPermission(279)">
             <a routerLink="customersorders">
               <span class="unselectable">{{t('sidebar.menu.items.customersorders')}}</span></a>
+          </li>
+          <li *ngIf="hasPermission(404)">
+            <a routerLink="invoiceout">
+              <span class="unselectable">{{t('sidebar.menu.items.invoiceout')}}</span></a>
           </li>
           <li *ngIf="hasPermission(252)">
             <a routerLink="shipment">
               <span class="unselectable">{{t('sidebar.menu.items.shipment')}}</span></a>
           </li>
-          <li *ngIf="hasPermission(404)">
-            <a routerLink="invoiceout">
-              <span class="unselectable">{{t('sidebar.menu.items.invoiceout')}}</span></a>
+          <li *ngIf="hasPermission(344)">
+            <a routerLink="return">
+              <span class="unselectable">{{t('sidebar.menu.items.return')}}</span></a>
           </li>
           <li *ngIf="hasPermission(486)">
             <a routerLink="vatinvoiceout">
@@ -148,13 +148,13 @@
             <a routerLink="inventory">
               <span class="unselectable">{{t('sidebar.menu.items.inventory')}}</span></a>
           </li>
-          <li *ngIf="hasPermission(215)">
-            <a routerLink="writeoff">
-              <span class="unselectable">{{t('sidebar.menu.items.writeoff')}}</span></a>
-          </li>
           <li *ngIf="hasPermission(199)">
             <a routerLink="posting">
               <span class="unselectable">{{t('sidebar.menu.items.posting')}}</span></a>
+          </li>
+          <li *ngIf="hasPermission(215)">
+            <a routerLink="writeoff">
+              <span class="unselectable">{{t('sidebar.menu.items.writeoff')}}</span></a>
           </li>
           <li *ngIf="hasPermission(376)">
             <a routerLink="moving">
@@ -176,7 +176,7 @@
               <span class="unselectable">{{t('sidebar.menu.headers.money')}}</span></a>
           </li>
           <li *ngIf="hasPermission(464)">
-            <a routerLink="paymentin">
+            <a routerLink="paymentin">  
               <span class="unselectable">{{t('sidebar.menu.items.paymentin')}}</span></a>
           </li>
           <li *ngIf="hasPermission(506)">

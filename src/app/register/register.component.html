@@ -12,6 +12,13 @@
 
 <!-- <ng-template #signupForm> -->
 <mat-card *ngIf="!isSignedUp;" class="reg-mat-card">
+  <mat-spinner 
+strokeWidth="3" 
+class="spinner"
+[diameter]="50"
+*ngIf="isSendingForm"
+></mat-spinner>
+
   <div class="lang-select"
       [matMenuTriggerFor]="addDocMenu">
       <span>{{language}}</span><div class="arrow-wrap"><i class="material-icons" style="font-size: 18px;">arrow_drop_down</i></div>
@@ -133,7 +140,12 @@
         </mat-hint>
       </mat-form-field>
 
-      <button mat-button mat-raised-button color="primary" style="margin-top: 20px;" (click)="onSubmit()" [disabled]="regform.invalid">{{'user.btn.registration' | transloco}}</button>
+      <button mat-button 
+      mat-raised-button 
+      color="primary" 
+      style="margin-top: 20px;" 
+      (click)="onSubmit()" 
+      [disabled]="regform.invalid || isSendingForm">{{'user.btn.registration' | transloco}}</button>
       <div *ngIf="isSignUpFailed" class="form-invalid">
         {{'user.error.reg_not_compl' | transloco}}: {{errorMessage}}
       </div>

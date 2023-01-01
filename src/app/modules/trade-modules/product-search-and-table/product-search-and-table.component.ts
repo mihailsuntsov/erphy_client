@@ -689,7 +689,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
         {
           this.isProductListLoading  = true;
           return this.http.get(
-            '/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.company_id+'&departmentId='+this.formSearch.get('secondaryDepartmentId').value+'&document_id='+this.parentDocId+'&priceTypeId='+(+this.formSearch.get('price_type_id').value)
+            '/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.company_id+'&departmentId='+this.formSearch.get('secondaryDepartmentId').value+'&document_id='+this.parentDocId+'&priceTypeId='+(+this.formSearch.get('price_type_id').value)+'&showRemovedFromSale=false'
             );
         }else return [];
       } catch (e) {

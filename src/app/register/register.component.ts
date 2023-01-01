@@ -16,6 +16,7 @@ export class RegisterComponent implements OnInit {
   signupInfo: SignUpInfo;
   isSignedUp = false;
   isSignUpFailed = false;
+  isSendingForm = false;
   errorMessage = '';
   emptyName=false;
   emptyLogin=false;
@@ -57,18 +58,24 @@ export class RegisterComponent implements OnInit {
     if( (this.regform.get("name").value!="") && 
         (this.regform.get("username").value!="") && 
         (this.regform.get("email").value!="") && 
-        (this.regform.get("password").value!="")&& (!this.regform.invalid))
+        (this.regform.get("password").value!="")&& 
+        (!this.regform.invalid) && 
+        !this.isSendingForm
+        )
     {
       console.log(this.regform);
+      this.isSendingForm=true;
       this.regform.get("language").setValue(Cookie.get('language'));// отправим выбранный при регистрации язык, чтобы сразу прописать его в настройках пользователя при его создании
       this.authService.signUp(this.regform.value).subscribe(
         data => {
           console.log(data);
           this.isSignedUp = true;
           this.isSignUpFailed = false;
+          this.isSendingForm=false;
         },
         error => {
           console.log(error.error.message);
+          this.isSendingForm=false;
           switch(error.error.message){
             case 'login_registered':{
               this.errorMessage=translate('user.error.login_registered');

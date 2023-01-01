@@ -286,7 +286,7 @@ export class WriteoffProductsTableComponent implements OnInit {
         if(this.department_id){
           this.isProductListLoading  = true;
           return this.http.get(
-          '/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.company_id+'&departmentId='+this.department_id+'&document_id=0&priceTypeId='+(+this.priceTypeId)
+          '/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.company_id+'&departmentId='+this.department_id+'&document_id=0&priceTypeId='+(+this.priceTypeId)+'&showRemovedFromSale=true'
           );
         } else {
           this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:'Сначала необходимо выбрать отделение'}})
@@ -692,7 +692,7 @@ openDialogCreateProduct() {
     width: '95%',
     data:
     { 
-      mode: 'createForWriteoff',
+      mode: 'createFromAnotherDoc',
       companyId: this.company_id,
     },
   });

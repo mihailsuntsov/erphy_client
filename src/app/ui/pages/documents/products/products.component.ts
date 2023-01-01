@@ -164,7 +164,7 @@ export class ProductsComponent implements OnInit {
       
     ngOnInit() {
       this.sendingQueryForm.sortAsc="desc";
-      this.sendingQueryForm.sortColumn="p.name";
+      this.sendingQueryForm.sortColumn="date_time_created_sort";
       this.sendingQueryForm.offset=0;
       this.sendingQueryForm.result="10";
       this.sendingQueryForm.companyId="0";

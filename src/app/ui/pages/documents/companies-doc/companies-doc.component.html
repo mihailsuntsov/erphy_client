@@ -2,7 +2,7 @@
     <mat-card-title class="top-bar container-fluid"> 
         <div class="row" id="topBlock">
             <div class="card-name">{{t('docs.docs.company')}}</div>
-            <button 
+            <!-- <button 
                 mat-raised-button 
                 (click)="getCompanyCard(formBaseInformation.get('card_template_filename').value)"
                 color="primary"
@@ -10,7 +10,7 @@
                 *ngIf="allowToView&&formBaseInformation.get('card_template_filename').value != '' && +id>0"
                 class="button small-button">
                 <i class="material-icons">cloud_download</i> 
-            </button>
+            </button> -->
             <button 
                 mat-raised-button 
                 [style.display]="allowToUpdate"

@@ -236,7 +236,7 @@
         "p_ppr":"Subject of trade",
         "p_sku":"SKU",
         "p_unit":"Unit of measurement",
-        "p_del_from_sell":"Out of stock",
+        "p_del_from_sell":"Removed from sale",
         "p_indivisible":"Indivisible",
         "p_prod_group":"Product group",
         "p_weight_prod":"Need to weigh",
@@ -309,7 +309,7 @@
         "if_cust_n_fnd": "If customer is not found",
         "def_cparty": "Customer on default",
         "days_esd": "Number of days to ESD",
-        "p_outofst_as": "Out of stock after sale",
+        "p_outofst_as": "Remove from sale after sale",
         "s_autorsrv":"Autoreserve",
         "s_dprtmnts":"Store departments"
     },
@@ -406,7 +406,7 @@
         "p_operat_date":"Date and time of the operation performed, in relation to your time zone",
         "p_operat_pric":"Price in the operation",
         "p_net_cost_op":"Cost of products as a result of the operation",
-        "p_outofst_as": "Auto set product as Out-of-stock after it has been sold",
+        "p_outofst_as": "Auto set product as \"Removed from sale\" and \"Out of stock\" in the internet-store after this product has been sold",
         "p_av_net_cost":"The average cost of the products obtained from the available quantity in stock, current cost, cost and quantity as a result of the operation with the products",
         "file_upload":  "Upload file",
         "s_autorsrv":   "Auto reserve products after getting internet store order",
@@ -614,7 +614,8 @@
         "crt_fld":      "Add a field",
         "chnge_ordr":   "Change the order",
         "save_ordr":    "Save the order",
-        "cancel":       "Cancel"  
+        "cancel":       "Cancel",
+        "refresh":      "Refresh table"
     },
     "list":{
         "object":       "Object",

@@ -344,7 +344,7 @@ export class ProductsDocComponent implements OnInit {
   product_code_free_isReadOnly = true ;
   mode: string = 'standart';  // режим работы документа: 
   // standart - обычный режим, 
-  // createForAcceptance - оконный режим создания товара для приёмки, 
+  // createFromAnotherDoc - оконный режим создания товара из другого документа, 
   // viewInWindow - открытие на просмотр в окне в другом документе
   @ViewChild("codeFreeValue", {static: false}) codeFreeValue;
   @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
@@ -591,7 +591,7 @@ export class ProductsDocComponent implements OnInit {
     {
       this.mode=this.data.mode;
       if(this.mode=='viewInWindow'){this.id=this.data.docId; this.formBaseInformation.get('id').setValue(this.id);}
-      if(this.mode=='createForAcceptance' || this.mode=='createForPosting'){this.formBaseInformation.get('company_id').setValue(this.data.companyId); }
+      if(this.mode=='createFromAnotherDoc'){this.formBaseInformation.get('company_id').setValue(this.data.companyId); }
     } 
 
     // let Inline = Quill.import('blots/inline');
@@ -979,7 +979,8 @@ refreshPermissions():boolean{
             case -120:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.out_of_plan')}});break;}
             default:{  
                         this.id=result;
-                        this._router.navigate(['/ui/productsdoc', this.id]);
+                        if(this.mode=='standart') 
+                          this._router.navigate(['/ui/productsdoc', this.id]);
                         this.formBaseInformation.get('id').setValue(this.id);
                         this.rightsDefined=false; //!!!
                         this.getData();

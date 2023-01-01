@@ -93,8 +93,8 @@ export class RemainsComponent implements OnInit {
     }
       
   ngOnInit() {
-    this.sendingQueryForm.sortAsc="desc";
-    this.sendingQueryForm.sortColumn="p.name";
+    this.sendingQueryForm.sortAsc="asc";
+    this.sendingQueryForm.sortColumn="estimate_quantity";
     this.sendingQueryForm.offset=0;
     this.sendingQueryForm.result="5";
     this.sendingQueryForm.companyId="0";

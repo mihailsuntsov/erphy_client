@@ -111,6 +111,10 @@ interface LinkedDocs {//интерфейс для загрузки связан�
   description:string;
   is_completed:boolean;
 }
+interface CompanySettings{
+  vat: boolean;
+  vat_included:boolean;
+}
 interface TemplatesList{
     id: number;                   // id из таблицы template_docs
     company_id: number;           // id предприятия, для которого эти настройки
@@ -155,6 +159,7 @@ export class ReturnDocComponent implements OnInit {
   receivedMyDepartmentsList: IdAndName [] = [];//массив для получения списка отделений
   myCompanyId:number=0;
   myId:number=0;  
+  companySettings:CompanySettings={vat:false,vat_included:true};
 	oneClickSaveControl:boolean=false;//блокировка кнопок Save и Complete для защиты от двойного клика
   // allFields: any[][] = [];//[номер строки начиная с 0][объект - вся инфо о товаре (id,кол-во, цена... )] - массив товаров
   filesInfo : FilesInfo [] = []; //массив для получения информации по прикрепленным к документу файлам 
@@ -446,8 +451,17 @@ export class ReturnDocComponent implements OnInit {
       this.startProcess=false;// все стартовые запросы прошли
     }
   }
-  
-  
+  getCompanySettings(){
+    let result:CompanySettings;
+    this.http.get('/api/auth/getCompanySettings?id='+this.formBaseInformation.get('company_id').value)
+      .subscribe(
+        data => { 
+          result=data as CompanySettings;
+          this.formBaseInformation.get('nds').setValue(result.vat);
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+    );
+  } 
   getCompaniesList(){ //+++
     if(this.receivedCompaniesList.length==0)
       this.loadSpravService.getCompaniesList()
@@ -546,6 +560,7 @@ export class ReturnDocComponent implements OnInit {
     this.getPriceTypesList();
     this.getStatusesList();
     this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
+    this.getCompanySettings();
   }
 
   onDepartmentChange(){
@@ -698,6 +713,7 @@ export class ReturnDocComponent implements OnInit {
     this.getDepartmentsList(); 
     this.getPriceTypesList();
     this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
+    if(+this.id==0) this.getCompanySettings(); // because at this time companySettings loads only the info that needs on creation document stage (when document id=0)
   }
   //если новый документ
   setDefaultInfoOnStart(){

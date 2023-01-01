@@ -120,6 +120,10 @@ body {
 .separator{
   flex-grow: 1;
 }
+.filter-button{
+  margin: 5px 15px 0 !important;
+  color:rgba(0,0,0,.87);
+}
 .balance{/*Вывод баланса (Контрагента, кассы, р. счёта)*/
   position: absolute !important;
   border-radius: 8px 8px 8px 8px !important;

@@ -71,6 +71,10 @@ interface DocResponse {//интерфейс для получения ответ
   uid:string;
   return_time:string;
 }
+interface CompanySettings{
+  vat: boolean;
+  vat_included:boolean;
+}
 interface FilesInfo {
   id: string;
   name: string;
@@ -150,6 +154,7 @@ export class ReturnsupDocComponent implements OnInit {
   receivedMyDepartmentsList: IdAndName [] = [];//массив для получения списка отделений
   myCompanyId:number=0;
   myId:number=0;
+  companySettings:CompanySettings={vat:false,vat_included:true};
   // allFields: any[][] = [];//[номер строки начиная с 0][объект - вся инфо о товаре (id,кол-во, цена... )] - массив товаров
   filesInfo : FilesInfo [] = []; //массив для получения информации по прикрепленным к документу файлам 
   creatorId:number=0;
@@ -543,6 +548,17 @@ export class ReturnsupDocComponent implements OnInit {
         );
     else this.doFilterCompaniesList();
   }
+  getCompanySettings(){
+    let result:CompanySettings;
+    this.http.get('/api/auth/getCompanySettings?id='+this.formBaseInformation.get('company_id').value)
+      .subscribe(
+        data => { 
+          result=data as CompanySettings;
+          this.formBaseInformation.get('nds').setValue(result.vat);
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+    );
+  }
   getMyId(){ //+++
     if(+this.myId==0)
       this.loadSpravService.getMyId()
@@ -581,6 +597,7 @@ export class ReturnsupDocComponent implements OnInit {
     this.getPriceTypesList();
     this.getStatusesList();
     this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
+    this.getCompanySettings();
   }
 
   onDepartmentChange(){
@@ -736,6 +753,7 @@ export class ReturnsupDocComponent implements OnInit {
     this.getDepartmentsList(); 
     this.getPriceTypesList();
     this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
+    if(+this.id==0) this.getCompanySettings(); // because at this time companySettings loads only the info that needs on creation document stage (when document id=0)
   }
   //если новый документ
   setDefaultInfoOnStart(){

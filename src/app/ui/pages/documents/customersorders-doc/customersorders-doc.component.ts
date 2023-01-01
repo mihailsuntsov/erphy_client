@@ -214,6 +214,10 @@ interface TemplatesList{
     is_show: boolean;             // показывать шаблон в выпадающем списке на печать
     output_order: number;         // порядок вывода наименований шаблонов в списке на печать
 }
+interface CompanySettings{
+  vat: boolean;
+  vat_included:boolean;
+}
 
 @Component({
   selector: 'app-customersorders-doc',
@@ -240,7 +244,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
   receivedMyDepartmentsList: SecondaryDepartment [] = [];//массив для получения списка отделений
   receivedUsersList  : any [];//массив для получения списка пользователей
   myCompanyId:number=0;
-  
+  companySettings:CompanySettings={vat:false,vat_included:true};  
   allFields: any[][] = [];//[номер строки начиная с 0][объект - вся инфо о товаре (id,кол-во, цена... )] - массив товаров
   filesInfo : filesInfo [] = []; //массив для получения информации по прикрепленным к документу файлам 
   myId:number=0;
@@ -678,7 +682,18 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
       this.accordion.openAll();
       this.getSpravSysCountries();
     }
-
+  }
+  getCompanySettings(){
+    let result:CompanySettings;
+    this.http.get('/api/auth/getCompanySettings?id='+this.formBaseInformation.get('company_id').value)
+      .subscribe(
+        data => { 
+          result=data as CompanySettings;
+          this.formBaseInformation.get('nds').setValue(result.vat);
+          this.formBaseInformation.get('nds_included').setValue(result.vat_included);
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+    );
   }
   // т.к. всё грузится и обрабатывается асинхронно, до авто-создания документа необходимо чтобы выполнились все нужные для этого действия
   necessaryActionsBeforeAutoCreateNewDoc(){
@@ -790,6 +805,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
     this.getPriceTypesList();
     this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
     this.formExpansionPanelsString();
+    this.getCompanySettings();
   }
 
   onDepartmentChange(){
@@ -1037,6 +1053,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
             this.settingsForm.get('name').setValue(result.name?result.name:'');
             this.settingsForm.get('priorityTypePriceSide').setValue(result.priorityTypePriceSide?result.priorityTypePriceSide:'defprice');
             this.settingsForm.get('autocreateOnStart').setValue(result.autocreateOnStart);
+            this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.statusIdOnAutocreateOnCheque);
             
             this.necessaryActionsBeforeGetChilds();
             // для нового документа
@@ -1066,6 +1083,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
     this.getDepartmentsList(); 
     this.getPriceTypesList();
     this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
+    if(+this.id==0) this.getCompanySettings(); // because at this time companySettings loads only the info that needs on creation document stage (when document id=0)
   }
   //если новый документ - вставляем Отделение и Покупателя (но только если они принадлежат выбранному предприятию, т.е. предприятие в Основной информации и предприятие, для которого были сохранены настройки совпадают)
   setDefaultInfoOnStart(departmentId:number, customerId:number, customer:string, name:string){

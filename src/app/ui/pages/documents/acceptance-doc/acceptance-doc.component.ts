@@ -40,7 +40,10 @@ interface AcceptanceProductTable { //интерфейс для товаров, (
   nds_id: number;                 // id ставки НДС
   product_sumprice: number;       // сумма как product_count * product_price (высчитываем сумму и пихем ее в БД, чтобы потом на бэкэнде в SQL запросах ее не высчитывать)
 }
-
+interface CompanySettings{
+  vat: boolean;
+  vat_included:boolean;
+}
 interface DocResponse {//интерфейс для получения ответа в методе getAcceptanceValuesById
   id: number;
   company: string;
@@ -152,6 +155,7 @@ export class AcceptanceDocComponent implements OnInit {
   receivedDepartmentsList: IdAndName [] = [];//массив для получения списка отделений
   receivedStatusesList: StatusInterface [] = []; // массив для получения статусов
   receivedMyDepartmentsList: IdAndName [] = [];//массив для получения списка отделений
+  companySettings:CompanySettings={vat:false,vat_included:true};
   myCompanyId:number=0;
   myId:number=0;
   // allFields: any[][] = [];//[номер строки начиная с 0][объект - вся инфо о товаре (id,кол-во, цена... )] - массив товаров
@@ -483,6 +487,18 @@ export class AcceptanceDocComponent implements OnInit {
         );
     else this.doFilterCompaniesList();
   }
+  getCompanySettings(){
+    let result:CompanySettings;
+    this.http.get('/api/auth/getCompanySettings?id='+this.formBaseInformation.get('company_id').value)
+      .subscribe(
+        data => { 
+          result=data as CompanySettings;
+          this.formBaseInformation.get('nds').setValue(result.vat);
+          this.formBaseInformation.get('nds_included').setValue(result.vat_included);
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+    );
+  }
   getMyId(){ //+++
     if(+this.myId==0)
       this.loadSpravService.getMyId()
@@ -563,6 +579,7 @@ export class AcceptanceDocComponent implements OnInit {
     this.getDepartmentsList();
     this.getPriceTypesList();
     this.getStatusesList();
+    this.getCompanySettings();
   }
 
   onDepartmentChange(){
@@ -712,6 +729,7 @@ export class AcceptanceDocComponent implements OnInit {
     this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
     this.getDepartmentsList(); 
     this.getPriceTypesList();
+    if(+this.id==0) this.getCompanySettings(); // because at this time companySettings loads only the info that needs on creation document stage (when document id=0)
   }
 
   //если новый документ
