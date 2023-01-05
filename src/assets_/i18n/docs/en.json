@@ -311,7 +311,8 @@
         "days_esd": "Number of days to ESD",
         "p_outofst_as": "Remove from sale after sale",
         "s_autorsrv":"Autoreserve",
-        "s_dprtmnts":"Store departments"
+        "s_dprtmnts":"Store departments",
+        "lbl_dscrp":"Description for the label"
     },
     "error":{ 
         "-- COMMON":"--",
@@ -715,7 +716,7 @@
         "products":     "Products and Services",
         "orderin_":     "Credit slip (internal)",
         "paymentin_":   "Incoming payment (internal)",
-        "set_templates":"Template settings",
+        "set_templates":"Setting the Print menu",
         "currency":     "Currency",
         "accounts":     "Bank account",
         "productattr":  "Product attribute"

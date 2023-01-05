@@ -8,6 +8,8 @@ import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, } from '@angular/forms';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+// import { TemplatesDialogModule } from '../../../../modules/settings/templates-dialog/templates-dialog.module';
+import { LabelsPrintDialogModule } from '../../../../modules/settings/labelprint-dialog/labelprint-dialog.module';
 
 @NgModule({
   declarations: [ProductsComponent],
@@ -18,7 +20,8 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
     CommonModule,
     ProductsRoutingModule,
     ProductCategoriesSelectModule,
-
+    // TemplatesDialogModule,
+    LabelsPrintDialogModule,
     MaterialModule,
     FormsModule,
     DragDropModule,

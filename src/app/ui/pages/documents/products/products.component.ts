@@ -18,6 +18,8 @@ import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
 import { translate, TranslocoService } from '@ngneat/transloco'; //+++
+import { LabelsPrintDialogComponent } from 'src/app/modules/settings/labelprint-dialog/labelprint-dialog.component';
+import { TemplatesDialogComponent } from 'src/app/modules/settings/templates-dialog/templates-dialog.component';
 
 interface FoodNode {
   id: string;
@@ -32,6 +34,7 @@ interface ExampleFlatNode {
 }
 export interface DocTable {
   id: number;
+  name: string;
 }
 export interface NumRow {//интерфейс для списка количества строк
   value: string;
@@ -41,7 +44,21 @@ interface IdAndName {
   id: number;
   name:string;
 }
-
+interface TemplatesList{
+  id: number;                   // id из таблицы template_docs
+  company_id: number;           // id предприятия, для которого эти настройки
+  template_type_name: string;   // наименование шаблона. Например, Товарный чек
+  template_type: string;        // обозначение типа шаблона. Например, для товарного чека это product_receipt
+  template_type_id: number;     // id типа шаблона
+  file_id: number;              // id из таблицы files
+  file_name: string;            // наименование файла как он хранится на диске
+  file_original_name: string;   // оригинальное наименование файла
+  document_id: number;          // id документа, в котором будет возможность печати данного шаблона (соответствует id в таблице documents)
+  is_show: boolean;             // показывать шаблон в выпадающем списке на печать
+  output_order: number;         // порядок вывода наименований шаблонов в списке на печать
+  type: string;                 // the type of template/ It can be: "document", "label"
+  num_labels_in_row:number;     // quantity of labels in the each row
+}
 @Component({
   selector: 'app-products',
   templateUrl: './products.component.html',
@@ -99,6 +116,10 @@ export class ProductsComponent implements OnInit {
   showOpenDocIcon:boolean=false;
   gettingTableData:boolean=true;
 
+  //печать документов
+  gettingTemplatesData: boolean = false; // идёт загрузка шаблонов
+  templatesList:TemplatesList[]=[]; // список загруженных шаблонов
+  productsToPrint: IdAndName[]=[];
 
   numRows: NumRow[] = [
     {value: '5', viewValue: '5'},
@@ -154,6 +175,8 @@ export class ProductsComponent implements OnInit {
     public MessageDialog: MatDialog,
     private productCategoriesSelectComponent: MatDialog,
     public ConfirmDialog: MatDialog,
+    private labelsPrintDialogComponent: MatDialog,
+    private templatesDialogComponent: MatDialog, 
     public ProductDuplicateDialog: MatDialog,
     private http: HttpClient,
     public deleteDialog: MatDialog,
@@ -349,10 +372,12 @@ export class ProductsComponent implements OnInit {
 
   createCheckedList(){
     this.checkedList = [];
-
+    this.productsToPrint =[];
     for (var i = 0; i < this.receivedMatTable.length; i++) {
-      if(this.selection.isSelected(this.receivedMatTable[i]))
+      if(this.selection.isSelected(this.receivedMatTable[i])){
         this.checkedList.push(this.receivedMatTable[i].id);
+        this.productsToPrint.push({id:this.receivedMatTable[i].id, name:this.receivedMatTable[i].name})
+      }
     }
     if(this.checkedList.length>0){
         this.hideAllBtns();
@@ -850,5 +875,72 @@ export class ProductsComponent implements OnInit {
   }
   // sometimes in cookie "..._companyId" there value that not exists in list of companies. If it happens, company will be not selected and data not loaded until user select company manually
   companyIdInList(id:any):boolean{let r=false;this.receivedCompaniesList.forEach(c=>{if(+id==c.id) r=true});return r}
+//**************************** ПЕЧАТЬ ДОКУМЕНТОВ  ******************************/
+  // открывает диалог печати
+  openDialogTemplates() { 
+    const dialogTemplates = this.templatesDialogComponent.open(TemplatesDialogComponent, {
+      maxWidth: '1000px',
+      maxHeight: '95vh',
+      // height: '680px',
+      width: '95vw', 
+      minHeight: '95vh',
+      data:
+      { //отправляем в диалог:
+        company_id: +this.sendingQueryForm.companyId, //предприятие
+        document_id: 14, // id документа из таблицы documents
+      },
+    });
+    dialogTemplates.afterClosed().subscribe(result => {
+      if(result){
+        
+      }
+    });
+  }
+  // при нажатии на кнопку печати - нужно подгрузить список шаблонов для этого типа документа
+  printDocs(){
+    this.gettingTemplatesData=true;
+    this.templatesList=[];
+    this.http.get('/api/auth/getTemplatesList?company_id='+this.sendingQueryForm.companyId+"&document_id="+14+"&is_show="+true).subscribe
+    (data =>{ 
+        this.gettingTemplatesData=false;
+        this.templatesList=data as TemplatesList[];
+      },error => {console.log(error);this.gettingTemplatesData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},);
+  }
 
+  onClickPrintTemplate(template:TemplatesList){
+    switch(template.type){
+      case 'document':{;break;}
+      case 'label':{this.openPrintLabelsDialog(template);break;}
+    }
+  }
+
+  openPrintLabelsDialog(template:TemplatesList){
+    const dialogTemplates = this.labelsPrintDialogComponent.open(LabelsPrintDialogComponent, {
+      maxWidth: '1000px',
+      maxHeight: '95vh',
+      // height: '680px',
+      width: '95vw', 
+      minHeight: '95vh',
+      data:
+      { //отправляем в диалог:
+        company_id: +this.sendingQueryForm.companyId, //предприятие
+        num_labels_in_row:template.num_labels_in_row , // id документа из таблицы documents
+        file_name: template.file_name, 
+        // products:[
+        //   {id: this.id, name: this.formBaseInformation.get('name').value},
+        // ]
+        products:this.productsToPrint
+      },
+    });
+    dialogTemplates.afterClosed().subscribe(result => {
+      if(result){}
+    });
+  }
+
+  getProductsToPrint():IdAndName[]{
+    let ret: IdAndName[] = [];
+
+
+    return ret;
+  }
 }

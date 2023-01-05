@@ -25,6 +25,5 @@ export class LoadSpravService{
             companyId: companyId  };
     return this.http.post('/api/auth/getMyDepartmentsListByCompanyId', body);}
     getPriceTypesList(companyId: number){
-        const body = {companyId: companyId};
-        return this.http.post('/api/auth/getPriceTypesList', body);}
+                return this.http.get('/api/auth/getPriceTypesList?companyId='+companyId);}
 }

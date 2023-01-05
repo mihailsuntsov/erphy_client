@@ -78,6 +78,42 @@
                         <div class="separator"></div><!-- !!! -->
                         <button 
                             mat-raised-button 
+                            [matMenuTriggerFor]="templatesMenu"
+                            *ngIf="+id>0"
+                            matTooltip="{{t('docs.tip.print')}}"
+                            color="primary"                
+                            (click)="printDocs()"
+                            type="button"
+                            (submit)="false"
+                            class="button small-button">
+                            <i class="material-icons">print</i>
+                        </button>
+                        <mat-menu #templatesMenu="matMenu" yPosition="below" xPosition="before">
+                            <div *ngIf="gettingTemplatesData" style="width:240px; height: 125px;">
+                                <mat-spinner 
+                                strokeWidth="3" 
+                                class="spinner"
+                                style="position: relative;"
+                                [diameter]="50"
+                                *ngIf="gettingTemplatesData"
+                            ></mat-spinner>
+                            </div>                
+                            <button mat-menu-item *ngFor="let template of templatesList">
+                                <div style="width:100%; height: 100%;" (click)="onClickPrintTemplate(template)">
+                                    <span>{{template.name}}</span>                    
+                                </div>
+                            </button>
+                            <mat-divider></mat-divider>
+                            <button mat-menu-item (click)="openDialogTemplates()" >
+                                <span>{{t('docs.tip.set_prnt_menu')}}</span>
+                            </button>
+                            <!-- <mat-divider></mat-divider>  -->
+                            <!-- <button mat-menu-item (click)="printLabels(null)" >
+                                <span>{{t('docs.tip.set_prnt_menu')}}</span>
+                            </button> -->
+                        </mat-menu>
+                        <button 
+                            mat-raised-button 
                             *ngIf="+id>0 && allowToUpdate"
                             matTooltip="{{t('docs.tip.save')}}"
                             (click)="updateDocument()"
@@ -254,6 +290,17 @@
                                                                         </mat-hint>
                                                                     </mat-form-field>
                                                                 </div>
+
+                                                                <mat-form-field>
+                                                                    <mat-label>{{t('docs.field.lbl_dscrp')}}</mat-label>
+                                                                    <textarea  matInput
+                                                                        maxlength="2000"
+                                                                        formControlName="label_description"
+                                                                        [rows]="2"
+                                                                        #label_description>
+                                                                    </textarea>
+                                                                    <mat-hint align="end" *ngIf="label_description.value.length>1800">{{name.value.length}} / 2000</mat-hint>
+                                                                </mat-form-field>
 
                                                                 <div class="flex">
                                                                     <mat-form-field class="slideWidth100" style="width:50%; margin-right:5px;" 

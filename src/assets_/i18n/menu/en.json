@@ -104,6 +104,7 @@
         "shift_closed": "The shift is closed",
         "show_receipts":"Show receipts of this shift",
         "open_doc_rece":"Open the document from which the receipt was created",
+        "set_prnt_menu":"Configure printing menu",
         "oi_not_compl": "Credit slip is not completed"
     },
     "table":{

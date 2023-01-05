@@ -28,11 +28,14 @@ import { map, startWith } from 'rxjs/operators';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { translate } from '@ngneat/transloco'; //+++
 import { Router } from '@angular/router';
-import Quill from 'quill';
+// import Quill from 'quill';
 import { MomentDefault } from 'src/app/services/moment-default';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { AngularEditorConfig } from '@kolkov/angular-editor';
+import { TemplatesDialogComponent } from 'src/app/modules/settings/templates-dialog/templates-dialog.component';
+import { LabelsPrintDialogComponent } from 'src/app/modules/settings/labelprint-dialog/labelprint-dialog.component';
+
 
 const MY_FORMATS = MomentDefault.getMomentFormat();
 const moment = MomentDefault.getMomentDefault();
@@ -102,6 +105,7 @@ interface docResponse {//интерфейс для получения ответ
   crosssell_ids:IdAndName[];
   grouped_ids:IdAndName[];
   outofstock_aftersale: boolean;        // auto set product as out-of-stock after it has been sold
+  label_description: string;
   }
   interface SpravTaxesSet{
     id: number;
@@ -181,8 +185,21 @@ interface docResponse {//интерфейс для получения ответ
     visible;             //    Define if the attribute is visible on the "Additional information" tab in the product's page. Default is false.
     variation;           //    Define if the attribute can be used as variation. Default is false.
   }
-
-
+  interface TemplatesList{
+    id: number;                   // id из таблицы template_docs
+    company_id: number;           // id предприятия, для которого эти настройки
+    template_type_name: string;   // наименование шаблона. Например, Товарный чек
+    template_type: string;        // обозначение типа шаблона. Например, для товарного чека это product_receipt
+    template_type_id: number;     // id типа шаблона
+    file_id: number;              // id из таблицы files
+    file_name: string;            // наименование файла как он хранится на диске
+    file_original_name: string;   // оригинальное наименование файла
+    document_id: number;          // id документа, в котором будет возможность печати данного шаблона (соответствует id в таблице documents)
+    is_show: boolean;             // показывать шаблон в выпадающем списке на печать
+    output_order: number;         // порядок вывода наименований шаблонов в списке на печать
+    type: string;                 // the type of template/ It can be: "document", "label"
+    num_labels_in_row:number;     // quantity of labels in the each row
+}
 
   export interface DocTable {
     id: number;
@@ -294,6 +311,10 @@ export class ProductsDocComponent implements OnInit {
   allowToUpdate:boolean = false;
   allowToCreate:boolean = false;
   rightsDefined:boolean; // определены ли права !!!
+
+  //печать документов
+  gettingTemplatesData: boolean = false; // идёт загрузка шаблонов
+  templatesList:TemplatesList[]=[]; // список загруженных шаблонов
 
   // Отчет по товарам Изменения
   formProductHistory: ProductHistoryQuery=new ProductHistoryQuery();//форма, содержащая информацию для запроса отчета об истории изменения количества товара на складе
@@ -457,6 +478,8 @@ export class ProductsDocComponent implements OnInit {
     public ProductCagentsDialogComponent: MatDialog,
     private _router:Router,
     public ProductBarcodesDialogComponent: MatDialog,
+    private templatesDialogComponent: MatDialog,
+    private labelsPrintDialogComponent: MatDialog,
     public dialogRefProduct: MatDialogRef<ProductsDocComponent>,
     private _adapter: DateAdapter<any>,
     @Optional() @Inject(MAT_DIALOG_DATA) public data: any) { 
@@ -543,6 +566,7 @@ export class ProductsDocComponent implements OnInit {
       productAttributes: new UntypedFormArray ([]) ,
       // productAttributes: new UntypedFormControl([],[]),
       outofstock_aftersale:        new UntypedFormControl   (false,[]), // auto set product as out-of-stock after it has been sold
+      label_description:  new UntypedFormControl      ('',[Validators.maxLength(2000)]),
     });
     this.formAboutDocument = new UntypedFormGroup({
       id: new UntypedFormControl      ('',[]),
@@ -794,6 +818,7 @@ refreshPermissions():boolean{
                   this.formBaseInformation.get('date_on_sale_from_gmt').setValue(documentValues.date_on_sale_from_gmt?moment(documentValues.date_on_sale_from_gmt,'DD.MM.YYYY'):"");
                   this.formBaseInformation.get('date_on_sale_to_gmt').setValue(documentValues.date_on_sale_to_gmt?moment(documentValues.date_on_sale_to_gmt,'DD.MM.YYYY'):"");     
                   this.formBaseInformation.get('outofstock_aftersale').setValue(documentValues.outofstock_aftersale); 
+                  this.formBaseInformation.get('label_description').setValue(documentValues.label_description); 
                   this.searchProductGroupsCtrl.setValue(documentValues.productgroup);
                   this.checkedList=documentValues.product_categories_id;
                   this.formProductHistory.companyId=this.formBaseInformation.get('company_id').value;
@@ -2122,6 +2147,110 @@ checkProductCodeFreeUnical() {
     });
     return resultName;
   }
+//**************************** ПЕЧАТЬ ДОКУМЕНТОВ  ******************************/
+// открывает диалог печати
+openDialogTemplates() { 
+  const dialogTemplates = this.templatesDialogComponent.open(TemplatesDialogComponent, {
+    maxWidth: '1000px',
+    maxHeight: '95vh',
+    // height: '680px',
+    width: '95vw', 
+    minHeight: '95vh',
+    data:
+    { //отправляем в диалог:
+      company_id: +this.formBaseInformation.get('company_id').value, //предприятие
+      document_id: 14, // id документа из таблицы documents
+    },
+  });
+  dialogTemplates.afterClosed().subscribe(result => {
+    if(result){
+      
+    }
+  });
+}
+// при нажатии на кнопку печати - нужно подгрузить список шаблонов для этого типа документа
+printDocs(){
+  this.gettingTemplatesData=true;
+  this.templatesList=[];
+  this.http.get('/api/auth/getTemplatesList?company_id='+this.formBaseInformation.get('company_id').value+"&document_id="+14+"&is_show="+true).subscribe
+  (data =>{ 
+      this.gettingTemplatesData=false;
+      this.templatesList=data as TemplatesList[];
+    },error => {console.log(error);this.gettingTemplatesData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},);
+}
+
+onClickPrintTemplate(template:TemplatesList){
+  switch(template.type){
+    case 'document':{;break;}
+    case 'label':{this.openPrintLabelsDialog(template);break;}
+  }
+}
+
+openPrintLabelsDialog(template:TemplatesList){
+  const dialogTemplates = this.labelsPrintDialogComponent.open(LabelsPrintDialogComponent, {
+    maxWidth: '1000px',
+    maxHeight: '95vh',
+    // height: '680px',
+    width: '95vw', 
+    minHeight: '95vh',
+    data:
+    { //отправляем в диалог:
+      company_id: +this.formBaseInformation.get('company_id').value, //предприятие
+      num_labels_in_row:template.num_labels_in_row , // id документа из таблицы documents
+      file_name: template.file_name, 
+      products:[
+        {id: this.id, name: this.formBaseInformation.get('name').value},
+      ]
+    },
+  });
+  dialogTemplates.afterClosed().subscribe(result => {
+    if(result){}
+  });
+}
+
+// clickOnTemplate(template:TemplatesList){
+//   const baseUrl = '/api/auth/productPrint/';
+//   this.http.get(baseUrl+ 
+//                 "?file_name="+template.file_name+
+//                 "&doc_id="+this.id+
+//                 "&tt_id="+template.template_type_id,
+//                 { responseType: 'blob' as 'json', withCredentials: false}).subscribe(
+//     (response: any) =>{
+//         let dataType = response.type;
+//         let binaryData = [];
+//         binaryData.push(response);
+//         let downloadLink = document.createElement('a');
+//         downloadLink.href = window.URL.createObjectURL(new Blob(binaryData, {type: dataType}));
+//         downloadLink.setAttribute('download', template.file_original_name);
+//         document.body.appendChild(downloadLink);
+//         downloadLink.click();
+//     }, 
+//     error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
+//   );  
+// }
+// printLabels(template:TemplatesList){
+//   const baseUrl = '/api/auth/labelsPrint/';
+//   this.http.get(baseUrl+ 
+//                 // "?file_name="+template.file_name+
+//                 "?file_name=94ca2b16-dc1-2023-01-02-12-51-33-559.xls"+
+//                 "&doc_id="+this.id,
+//                 // "&tt_id="+template.template_type_id,
+//                 { responseType: 'blob' as 'json', withCredentials: false}).subscribe(
+//     (response: any) =>{
+//         let dataType = response.type;
+//         let binaryData = [];
+//         binaryData.push(response);
+//         let downloadLink = document.createElement('a');
+//         downloadLink.href = window.URL.createObjectURL(new Blob(binaryData, {type: dataType}));
+//         // downloadLink.setAttribute('download', template.file_original_name);
+        
+//         downloadLink.setAttribute('download', "94ca2b16-dc1-2023-01-02-12-51-33-559.xls");
+//         document.body.appendChild(downloadLink);
+//         downloadLink.click();
+//     }, 
+//     error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
+//   );  
+// }
 
   // getTermIndexById(row_index:number, term_id:number){
   //   let result_index;

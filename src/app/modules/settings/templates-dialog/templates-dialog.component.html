@@ -108,7 +108,32 @@
                                             <input matInput hidden/>
                                         </mat-form-field>
                                     </div>
-                                    <div class="col-12 col-sm-6"> 
+                                    <div class="col-12 col-sm-4" style="display: flex;"> 
+                                        <mat-form-field class="mat-form-field-100">
+                                            <mat-label>{{t('modules.field.templ_type')}} </mat-label>
+                                            <mat-select formControlName="type"                                            >
+                                                <mat-option value="document">{{'modules.list.t_doc' | transloco}}</mat-option>
+                                                <mat-option value="label">{{'modules.list.t_label' | transloco}}</mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                        <mat-form-field matTooltip="{{t('modules.tip.num_labels')}}" style = "width: 50px; margin-left: 5px;" *ngIf="getControlTablefield().controls[i].get('type').value=='label'" >
+                                            <mat-label>{{t('modules.field.num_labels')}} <span *ngIf="+getControlTablefield().controls[i].get('num_labels_in_row').value==0" class="star">*</span></mat-label>
+                                            <mat-select formControlName="num_labels_in_row">
+                                                <mat-option value="1">1</mat-option>
+                                                <mat-option value="2">2</mat-option>                                        
+                                                <mat-option value="3">3</mat-option>
+                                                <mat-option value="4">4</mat-option>                                        
+                                                <mat-option value="5">5</mat-option>
+                                                <mat-option value="6">6</mat-option>                                       
+                                                <mat-option value="7">7</mat-option>
+                                                <mat-option value="8">8</mat-option>                                        
+                                                <mat-option value="9">9</mat-option>
+                                                <mat-option value="10">10</mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+
+                                    </div>
+                                    <div class="col-12 col-sm-4"> 
                                         <mat-form-field class="mat-form-field-100">
                                             <mat-label>{{t('modules.field.templ_name')}} <span *ngIf="getControlTablefield().controls[i].get('name').value==''" class="star">*</span></mat-label>
                                             <input  matInput
@@ -120,7 +145,7 @@
                                             </mat-hint>
                                         </mat-form-field>
                                     </div>
-                                    <div class="col-12 col-sm-5"> 
+                                    <div class="col-12 col-sm-3"> 
                                         <mat-form-field class="mat-form-field-100">
                                             <mat-label>{{t('modules.field.templ_file')}} <span *ngIf="getControlTablefield().controls[i].get('file_original_name').value==''" class="star">*</span></mat-label>
                                             <div *ngIf="editability && +file_id.value==0" class="add-file">

@@ -108,6 +108,42 @@ class="spinner"
                     <div *ngIf="!displayingDeletedDocs" class="emptyspace">{{cu.cap(t('menu.docs.products'))}}</div>
                     <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">{{t('menu.top.deleted')}}</span> {{t('menu.docs.products')}}</div>
 
+                    <button 
+                        mat-raised-button 
+                        [matMenuTriggerFor]="templatesMenu"
+                        *ngIf="selection.selected.length>0"
+                        matTooltip="{{t('docs.tip.print')}}"
+                        color="primary"                
+                        (click)="printDocs()"
+                        type="button"
+                        (submit)="false"
+                        class="button small-button">
+                        <i class="material-icons">print</i>
+                    </button>
+                    <mat-menu #templatesMenu="matMenu" yPosition="below" xPosition="before">
+                        <div *ngIf="gettingTemplatesData" style="width:240px; height: 125px;">
+                            <mat-spinner 
+                            strokeWidth="3" 
+                            class="spinner"
+                            style="position: relative;"
+                            [diameter]="50"
+                            *ngIf="gettingTemplatesData"
+                        ></mat-spinner>
+                        </div>                
+                        <button mat-menu-item *ngFor="let template of templatesList">
+                            <div style="width:100%; height: 100%;" (click)="onClickPrintTemplate(template)">
+                                <span>{{template.name}}</span>                    
+                            </div>
+                        </button>
+                        <mat-divider></mat-divider>
+                        <button mat-menu-item (click)="openDialogTemplates()" >
+                            <span>{{t('docs.tip.set_prnt_menu')}}</span>
+                        </button>
+                        <!-- <mat-divider></mat-divider>  -->
+                        <!-- <button mat-menu-item (click)="printLabels(null)" >
+                            <span>{{t('docs.tip.set_prnt_menu')}}</span>
+                        </button> -->
+                    </mat-menu>
                         <button 
                         mat-button 
                         [matMenuTriggerFor]="addDocMenu"

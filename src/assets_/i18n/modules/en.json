@@ -121,7 +121,8 @@
         "shared_file":  "Shared file available via external link",
         "select_upl_fl":"Select files for upload",
         "amnt_mov_prod":"Amount of products to move",
-        "protected_file":"This file is not shared and can't be sent to online store. Click on this icon and in the opened file card switch on \"Shared file\""
+        "protected_file":"This file is not shared and can't be sent to online store. Click on this icon and in the opened file card switch on \"Shared file\"",
+        "num_labels":   "Quantity of labels in one row"
     },
     "tab":{
     },
@@ -154,7 +155,8 @@
         "cat_selectd":  "Selected categories",
         "prods_selectd":"Selected products",
         "term_create":  "Term creation",
-        "term_edit":    "Edit term"
+        "term_edit":    "Edit term",
+        "lab_print":    "Label print settings"
     },
     "field":{ 
         "company":      "Company",
@@ -233,7 +235,9 @@
         "time_format":  "Time format",
         "slug":         "Slug",
         "display":      "Display",
-        "store_ctg":    "Online store category"
+        "store_ctg":    "Online store category",
+        "templ_type":   "Template type",
+        "num_labels":   "In row"
     },
     "error":{
         "field_miss":   "Required field is missing",
@@ -322,7 +326,9 @@
         "default":      "Default",
         "products":     "Products",
         "subcategories":"Subcategories",
-        "both":         "Both"
+        "both":         "Both",
+        "t_doc":        "Document",
+        "t_label":      "Label"
     },
     "kpi":{
         "hour":"Hour",

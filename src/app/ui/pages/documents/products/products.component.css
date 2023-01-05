@@ -92,6 +92,9 @@ justify-content: center;
 padding: 0px;
 min-width:150px;
 }
+.button{
+    margin-left: 10px;
+}
 .category-toolbar-icon {
     padding: 0 0;
 

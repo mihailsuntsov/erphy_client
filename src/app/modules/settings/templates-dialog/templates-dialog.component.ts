@@ -22,6 +22,8 @@ interface TemplatesList{
     document_id: number;          // id документа, в котором будет возможность печати данного шаблона (соответствует id в таблице documents)
     is_show: boolean;             // показывать шаблон в выпадающем списке на печать
     output_order: number;         // порядок вывода наименований шаблонов в списке на печать
+    type: string;                 // the type of template/ Can be: "document", "label"
+    num_labels_in_row: string;    // quantity of labels in the each row
 }
 interface filesInfo {
   id: string;
@@ -104,7 +106,9 @@ export class TemplatesDialogComponent implements OnInit {
       file_original_name:   new UntypedFormControl (m.file_original_name,[Validators.required]),
       is_show:              new UntypedFormControl (m.is_show,[Validators.required]),
       name:                 new UntypedFormControl (m.name,[Validators.required]),
-      output_order:         this.getTemplatesOutputOrder()
+      output_order:         this.getTemplatesOutputOrder(),
+      type:                 new UntypedFormControl (m.type,[Validators.required]),
+      num_labels_in_row:    new UntypedFormControl (m.num_labels_in_row.toString(),[Validators.required]),
       }))
     })
   }
@@ -128,6 +132,8 @@ export class TemplatesDialogComponent implements OnInit {
                         is_show:            m.get('is_show').value,
                         name:               m.get('name').value,
                         output_order:       m.get('output_order').value,
+                        type:               m.get('type').value,
+                        num_labels_in_row:  m.get('num_labels_in_row').value
                       })
                     });
     moveItemInArray(resultContainer, event.previousIndex, event.currentIndex);
@@ -146,7 +152,7 @@ export class TemplatesDialogComponent implements OnInit {
   addNewTemplate() {
     const add = this.formBaseInformation.get('templatesList') as UntypedFormArray;
     add.push(this.fb.group({
-      id:                   new UntypedFormControl ('',[]),
+      id:                   new UntypedFormControl (null,[]),
       company_id:           new UntypedFormControl (this.company_id,[Validators.required]),
       document_id:          new UntypedFormControl (this.document_id,[Validators.required]),
       file_id:              new UntypedFormControl ('',[Validators.required]),
@@ -154,7 +160,9 @@ export class TemplatesDialogComponent implements OnInit {
       file_original_name:   new UntypedFormControl ('',[Validators.required]),
       is_show:              new UntypedFormControl (true,[Validators.required]),
       name:                 new UntypedFormControl ('',[Validators.required]),
-      output_order:         this.getTemplatesOutputOrder()
+      output_order:         this.getTemplatesOutputOrder(),
+      type:                 new UntypedFormControl ('document',[Validators.required]),
+      num_labels_in_row:    new UntypedFormControl ('1',[Validators.required]),
     }))
   }
 

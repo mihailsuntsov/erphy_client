@@ -50,8 +50,7 @@ export class LoadSpravService{
 
     //загрузка типов цен
     getPriceTypesList(companyId: number){
-        const body = {companyId: companyId};
-        return this.http.post('/api/auth/getPriceTypesList', body);}
+                return this.http.get('/api/auth/getPriceTypesList?companyId='+companyId);}
         
     //формирование списка документов с id и названием (и то и другое - в таблице documents)
     getDocumentsList(){

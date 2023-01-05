@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
 import { ProductsDocRoutingModule } from './products-doc-routing.module';
 import { ProductsDocComponent } from './products-doc.component';
 // import { HttpClientModule} from '@angular/common/http';
@@ -10,7 +9,10 @@ import { FormsModule, ReactiveFormsModule/*, FormArray, FormControl, FormGroup, 
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 import { ProductCategoriesSelectModule } from 'src/app/modules/trade-modules/product-categories-select/product-categories-select.module';
-import { QuillModule } from 'ngx-quill'
+import { QuillModule } from 'ngx-quill';
+// import { TemplatesDialogModule } from '../../../../modules/settings/templates-dialog/templates-dialog.module';
+import { LabelsPrintDialogModule } from '../../../../modules/settings/labelprint-dialog/labelprint-dialog.module';
+
 
 @NgModule({
   declarations: [ProductsDocComponent],
@@ -18,6 +20,8 @@ import { QuillModule } from 'ngx-quill'
     CommonModule,
     ProductsDocRoutingModule,
     MaterialModule,
+    // TemplatesDialogModule,
+    LabelsPrintDialogModule,
     FormsModule,
     ReactiveFormsModule,
     DragDropModule,
