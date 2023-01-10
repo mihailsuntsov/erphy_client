@@ -191,7 +191,7 @@
         "currency":     "Currency",
         "cost_politic": "Average cost calculation policy",
         "exp_type":     "Expenditure type",
-        "shared_file":  "Shared file",
+        "shared_file":  "External access",
         "show_name_as": "Display name",
         "date_of_birth":"Date of birth",
         "sex":          "Sex",
@@ -665,7 +665,9 @@
         "p_ss_outfstck":"Out of stock",
         "p_ss_onbckrdr":"On backorder",
         "cust_create_new":"Create new customer",
-        "cust_use_default":"Use an existed customer as default"
+        "cust_use_default":"Use an existed customer as default",
+        "editor":"WYSIWYG editor",
+        "delete":"Delete"
     },
     "docs":{            
         "role":         "Role",

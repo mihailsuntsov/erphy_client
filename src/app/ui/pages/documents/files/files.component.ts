@@ -17,6 +17,7 @@ import { FilesUploadDialogComponent } from 'src/app/ui/dialogs/files-upload-dial
 import { Observable } from 'rxjs';
 import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
 import { translate, TranslocoService } from '@ngneat/transloco'; //+++
+import { FileCategoriesSelectComponent } from 'src/app/modules/trade-modules/file-categories-select/file-categories-select.component';
 
 interface TreeNode {
   id: string;
@@ -59,7 +60,7 @@ export interface NumRow {//интерфейс для списка количес
   selector: 'app-files',
   templateUrl: './files.component.html',
   styleUrls: ['./files.component.css'],
-  providers: [QueryFormService,LoadSpravService,Cookie,CommonUtilitesService //+++
+  providers: [QueryFormService,LoadSpravService,Cookie,CommonUtilitesService,FileCategoriesSelectComponent //+++
   ]
 })
 export class FilesComponent implements OnInit {
@@ -78,7 +79,7 @@ export class FilesComponent implements OnInit {
   gettingTableData:boolean=true;//!!!
   
   files: File[] = [];//массив данных для таблицы, картинок-миниатюр и чекбоксов (чекбоксы берут из него id, таблица -всё)
-
+  selectedObjects: number[]=[]; // выбранные во всплывающем окне выбора категорий объекты (категории), для массового присвоения файлам
 
 
   //переменные прав
@@ -175,6 +176,7 @@ viewMode:string = "grid"; // способ отображения файлов - 
     private http: HttpClient,
     public deleteDialog: MatDialog,
     private Cookie: Cookie,
+    private fileCategoriesSelectComponent: MatDialog,
     public dialogRef1: MatDialogRef<FilesComponent>,
     public cu: CommonUtilitesService, //+++
     private service: TranslocoService,
@@ -793,6 +795,68 @@ viewMode:string = "grid"; // способ отображения файлов - 
       }
     }
 
+    openDialogFileCategoriesSelect(){
+      const dialogSettings = this.fileCategoriesSelectComponent.open(FileCategoriesSelectComponent, {
+        maxWidth: '95vw',
+        maxHeight: '95vh',
+        width: '800px', 
+        minHeight: '650px',
+        data:
+        { //отправляем в диалог:
+          idTypes:    'categories', // 
+          companyId:  +this.sendingQueryForm.companyId, //предприятие, по которому будут отображаться товары и категории
+        },
+      });
+      dialogSettings.afterClosed().subscribe(result => {
+        if(result){
+          this.selectedObjects=[];
+          result.map(i => {
+            this.selectedObjects.push(i.id);
+          });
+          this.setCategoriesToFiles();
+        }
+      });
+    }
+    setCategoriesToFiles(){
+      const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+        width: '400px',
+        data:
+        { 
+          head: translate('menu.dialogs.cat_adding'), //+++
+          query: translate('menu.dialogs.q_save_p_cat'),
+          warning: translate('menu.dialogs.save_p_cat_ad'),
+        },
+      });
+      dialogRef.afterClosed().subscribe(result => {
+        const body = {"setOfLongs1":  this.checkedList,
+                      "setOfLongs2":  this.selectedObjects,
+                      "yesNo":        result==1?true:false
+        };
+        this.clearCheckboxSelection();
+        return this.http.post('/api/auth/setCategoriesToFiles', body) 
+          .subscribe(
+              (data) => {   
+                this.openSnackBar(translate('menu.msg.sep_prod_cat'), translate('menu.msg.close')); //+++
+                this.getTable();
+              },
+              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+          );
+      });      
+    }
+    setFilesExternalAccess(access:boolean){
+        const body = {"setOfLongs1":  this.checkedList,
+                      "yesNo":        access
+        };
+        this.clearCheckboxSelection();
+        return this.http.post('/api/auth/setFilesExternalAccess', body) 
+          .subscribe(
+              (data) => {   
+                this.openSnackBar(translate('menu.msg.ext_acc_succ'), translate('menu.msg.close')); //+++
+                this.getTable();
+              },
+              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+          );
+    }
 //*****************************************************************************************************************************************/
 //*********************************************           T R E E           ***************************************************************/
 //*****************************************************************************************************************************************/

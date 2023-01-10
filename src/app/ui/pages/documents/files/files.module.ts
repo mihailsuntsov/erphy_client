@@ -7,6 +7,7 @@ import { MaterialModule } from '../../../../modules/material.module';
 import { SharedModule } from '../../../../modules/shared.module';
 import { UploadsModule } from '../../../../modules/uploads.module';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import { FileCategoriesSelectModule } from 'src/app/modules/trade-modules/file-categories-select/file-categories-select.module';
 @NgModule({
   declarations: [FilesComponent],
   providers: [
@@ -19,7 +20,8 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
     FormsModule,
     SharedModule,
     UploadsModule,
-    TranslocoModule
+    TranslocoModule,
+    FileCategoriesSelectModule
   ]
 })
 export class FilesModule { }

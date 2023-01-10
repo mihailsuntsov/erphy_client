@@ -149,7 +149,7 @@ constructor(private activateRoute: ActivatedRoute,
       id: new UntypedFormControl                         (this.id,[]),
       original_name: new UntypedFormControl              ('',[Validators.required]),
       description: new UntypedFormControl                ('',[Validators.maxLength(1000)]),
-      anonyme_access: new UntypedFormControl             ('',[]),
+      anonyme_access: new UntypedFormControl             (false,[]),
       // slideToggle: new FormControl             ('',[]),
       company_id: new UntypedFormControl                 ('',[Validators.required]),
       company: new UntypedFormControl                    ('',[]),
@@ -185,7 +185,6 @@ constructor(private activateRoute: ActivatedRoute,
       this.mode=this.data.mode;
       if(this.mode=='window'){this.id=this.data.docId; this.formBaseInformation.get('id').setValue(this.id);}
     } 
-
   }
 
   //---------------------------------------------------------------------------------------------------------------------------------------                            
@@ -375,6 +374,7 @@ constructor(private activateRoute: ActivatedRoute,
   getBaseData(data) {    //+++ emit data to parent component
     this.baseData.emit(data);
   }
+
 //*****************************************************************************************************************************************/
 //*********************************************           T R E E           ***************************************************************/
 //*****************************************************************************************************************************************/

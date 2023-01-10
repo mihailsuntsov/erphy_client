@@ -7,18 +7,17 @@ import { MatDialog } from '@angular/material/dialog';
 import { UploadFileService } from './upload-file.service';
 import { HttpClient, HttpResponse, HttpEventType } from '@angular/common/http';
 import { translate } from '@ngneat/transloco'; //+++
+import { Cookie } from 'ng2-cookies/ng2-cookies';
 
 @Component({
   selector: 'app-files-upload-dialog',
   templateUrl: './files-upload-dialog.component.html',
   styleUrls: ['./files-upload-dialog.component.css'],
-  providers: [UploadFileService]
+  providers: [UploadFileService,Cookie]
 })
 export class FilesUploadDialogComponent implements OnInit {
   formBaseInformation:any;//форма для основной информации, содержащейся в документе
   url: string; 
-  checked: boolean = false;
-
   // *****  переменные файлов   ***** 
 // imagesInfo : imagesInfo []; //массив для получения информации по картинкам товара
 // selectedFiles: FileList;
@@ -36,6 +35,7 @@ maxFileSize:number = 10 * 1024 * 1024; // = 10 Mb; Также нужно мен�
   constructor(
     public dialogRef: MatDialogRef<FilesUploadDialogComponent>,
     private MessageDialog: MatDialog,
+    private Cookie: Cookie,
     private _snackBar: MatSnackBar,
     private http: HttpClient,
     private uploadService: UploadFileService,
@@ -51,15 +51,23 @@ maxFileSize:number = 10 * 1024 * 1024; // = 10 Mb; Также нужно мен�
     // console.log("data.categoryName:"+this.data.categoryName);
     this.formBaseInformation = new UntypedFormGroup({
       categoryId:     new UntypedFormControl (+this.data.categoryId,[]),//id категории для файлов (ПУСТО - КОРНЕВАЯ БУДЕТ)
-      anonyme_access: new UntypedFormControl (false,[]),
+      // anonyme_access: new UntypedFormControl (false,[]),
       companyId:      new UntypedFormControl (+this.data.companyId,[]),//id выбранного предприятия
-      sharedFile:     new UntypedFormControl (this.checked,[]),
+      sharedFile:     new UntypedFormControl (false,[]),
       description:    new UntypedFormControl ('',[]),
     });
     
     // auto-open file selection window
     document.getElementById('fileToUpload').click();
+    try{
+      if(Cookie.get('files_anonyme_access')=='undefined' || Cookie.get('files_anonyme_access')==null)       
+        Cookie.set('files_anonyme_access',this.formBaseInformation.get('sharedFile').value); else this.formBaseInformation.get('sharedFile').setValue(this.setSharedFileOnCookie());
+    } catch(e) {
+      console.log(e);
+    }
   }
+
+
 
   clickBtnOpenFile(){
     // console.log("sharedFile - "+this.formBaseInformation.get('sharedFile').value);
@@ -168,6 +176,19 @@ maxFileSize:number = 10 * 1024 * 1024; // = 10 Mb; Также нужно мен�
     dialogRef.afterClosed().subscribe(result => {
       this.nextFileSwitcher();
     });  
+  }  
+  
+  onAnonymeAccessChange(){
+    Cookie.set('files_anonyme_access',this.formBaseInformation.get('sharedFile').value);
   }
+
+  // as a cookie contains text information, but sharedFile needs to get boolean
+  setSharedFileOnCookie():boolean{
+    switch (Cookie.get('files_anonyme_access')) {
+      case 'true'||true: return true;
+      case 'false'||false: return false;    
+    }
+  }
+
 
 }

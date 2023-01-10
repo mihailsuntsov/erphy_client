@@ -105,8 +105,7 @@ class="spinner"
                 <div class="row" id="topBlock">
                     <div class="emptyspace flex"><span>{{cu.cap(t('menu.docs.files'))}}</span>
                         <span [style.display]="sendingQueryForm.trash?'block':'none'">&nbsp;{{t('menu.top.in_bin')}}</span>
-                    </div>
-                    
+                    </div>                    
                     <div class="separator"></div><!-- !!! -->
                     <button 
                         mat-raised-button 
@@ -117,7 +116,36 @@ class="spinner"
                         class="button small-button">
                         <i class="material-icons">cloud_upload</i>
                     </button>
-
+                    <button 
+                        mat-button 
+                        [matMenuTriggerFor]="addDocMenu"
+                        mat-raised-button 
+                        matTooltip="{{t('menu.tip.prod_actions')}}"                        
+                        *ngIf="selection.selected.length>0 && !sendingQueryForm.trash"
+                        color="primary"
+                        (submit)="false"
+                        type="button"
+                        class="button"
+                        style="width: 142px;height: 36px;min-width: 38px;">
+                        <i class="material-icons">add_task</i>&nbsp;&nbsp;{{t('menu.top.btn_actions')}}<i class="material-icons">arrow_drop_down</i>
+                    </button>
+                    <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
+                        <button mat-menu-item *ngIf="allowToUpdate && selection.selected.length>0 && !sendingQueryForm.trash" (click)="openDialogFileCategoriesSelect()" matTooltip="{{t('menu.tip.ch_cat_prod')}}" matTooltipPosition="left"><mat-icon>rule</mat-icon><span>{{t('menu.menu.categories')}}</span></button>
+                        <button mat-menu-item [matMenuTriggerFor]="shareExMenu" *ngIf="allowToUpdate && selection.selected.length>0 && !sendingQueryForm.trash"><mat-icon>share</mat-icon><span>{{t('menu.menu.share_ex')}}</span></button>
+                        <button 
+                            matTooltip="{{t('menu.tip.delete_to_bin')}}"
+                            matTooltipPosition="left"
+                            [style.display]="(sendingQueryForm.trash || mode!='standart')?'none':'block'"
+                            (click)="clickBtnDelete()" 
+                            *ngIf="allowToDelete && selection.selected.length>0"
+                            mat-menu-item>
+                            <mat-icon>delete_forever</mat-icon><span>{{t('menu.top.btn_delete')}}</span>
+                        </button>
+                    </mat-menu>
+                    <mat-menu #shareExMenu="matMenu" yPosition="below" xPosition="before">
+                        <button mat-menu-item (click)="setFilesExternalAccess(true)"><span>{{t('menu.menu.share_ex_y')}}</span></button>
+                        <button mat-menu-item (click)="setFilesExternalAccess(false)"><span>{{t('menu.menu.share_ex_n')}}</span></button>
+                    </mat-menu>
                     <!-- <div [style.display]="visBtnAdd==true?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
                         <button mat-raised-button (click)="clickBtnFileUplioad()" matTooltip="Загрузить файлы на сервер" color="primary"><i class="material-icons">cloud_upload</i> Загрузить</button>
                     </div> -->
@@ -125,6 +153,7 @@ class="spinner"
                     <button 
                         mat-raised-button 
                         matTooltip="{{t('menu.tip.restore_f_bin')}}"
+                        matTooltipPosition="left"
                         [style.display]="(visBtnRecover==true && selection.selected.length)?'block':'none'"
                         (click)="clickBtnRecover()" 
                         color="accent"
@@ -152,16 +181,7 @@ class="spinner"
                         </button>
                     </div> -->
                     
-                    <button 
-                        mat-raised-button 
-                        matTooltip="{{t('menu.tip.delete_to_bin')}}"
-                        [style.display]="(sendingQueryForm.trash || mode!='standart')?'none':'block'"
-                        (click)="clickBtnDelete()" 
-                        *ngIf="allowToDelete && selection.selected.length>0"
-                        color="warn"
-                        class="button small-button">
-                        <i class="material-icons">delete_forever</i>
-                    </button>
+                    
                     <!-- <div *ngIf="allowToDelete && selection.selected.length>0" [style.display]="(sendingQueryForm.trash || mode!='standart')?'none':'block'" style="margin:0px 0px 10px 10px">
                         <button  mat-raised-button (click)="clickBtnDelete()" color="warn"><i class="material-icons">delete_forever</i>
                             <span> Удалить</span>
@@ -250,15 +270,6 @@ class="spinner"
                                                 </mat-option>
                                             </mat-select>
                                         </mat-form-field>
-                                        <button mat-button  
-                                            class="filter-button"
-                                            matTooltip="{{t('docs.button.refresh')}}"
-                                            (click)="getTable()"  
-                                            type="submit"
-                                            matSuffix mat-icon-button>
-                                            <mat-icon>refresh</mat-icon>
-                                        </button>
-                                        <span  class="emptyspace"></span>
 
                                         <div class="flex" *ngIf="sendingQueryForm.selectedNodeName" style="margin-left: 10px; max-width: 250px;">
                                             <mat-form-field  style="margin-left: 10px; width: 100%;">
@@ -276,6 +287,14 @@ class="spinner"
                                                 </button>
                                             </mat-form-field>
                                         </div>
+                                        <button mat-button  
+                                            class="filter-button"
+                                            matTooltip="{{t('docs.button.refresh')}}"
+                                            (click)="getTable()"  
+                                            type="submit"
+                                            matSuffix mat-icon-button>
+                                            <mat-icon>refresh</mat-icon>
+                                        </button>
                                         <div  class="emptyspace flex evenly"  style="text-align: center; width: 70%; overflow: hidden;">
                                             <span [ngClass]="{selected_mode_button: viewMode=='table',deselected_mode_button: viewMode=='grid'}"  (click)="setViewMode('table')" matTooltip="{{t('menu.tip.as_table')}}"><i class="material-icons">view_list</i></span>
                                             <span [ngClass]="{selected_mode_button: viewMode=='grid', deselected_mode_button: viewMode=='table'}"  (click)="setViewMode('grid')" matTooltip="{{t('menu.tip.as_icons')}}"><i class="material-icons">view_module</i></span>
@@ -391,7 +410,22 @@ class="spinner"
                                                         <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='anonyme_access'" class="material-icons sortarrow">arrow_upward</i>
                                                         <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='anonyme_access'" class="material-icons sortarrow">arrow_downward</i>
                                                     </span>
-                                                    <td mat-cell *matCellDef="let row"> {{row.anonyme_access==true?t('menu.dialogs.yes'):t('menu.dialogs.no')}} </td>
+                                                    <!-- <td mat-cell *matCellDef="let row"> {{row.anonyme_access==true?t('menu.dialogs.yes'):t('menu.dialogs.no')}} </td> -->
+                                                    <td mat-cell *matCellDef="let row"> 
+                                                        <mat-chip-list>
+                                                            <mat-chip 
+                                                            *ngIf="row.anonyme_access==true" 
+                                                            style="color:green">
+                                                            {{t('menu.dialogs.yes')}}
+                                                            </mat-chip>
+                                                            <mat-chip 
+                                                            *ngIf="row.anonyme_access==false"
+                                                            style="color:red"
+                                                            >
+                                                            {{t('menu.dialogs.no')}}
+                                                            </mat-chip>
+                                                        </mat-chip-list>
+                                                    </td>
                                                 </ng-container>
 
                                                 <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

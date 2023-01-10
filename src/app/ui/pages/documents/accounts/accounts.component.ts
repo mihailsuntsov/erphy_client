@@ -470,7 +470,7 @@ export class PaymentAccountComponent implements OnInit {
     return this.http.post('/api/auth/setMainPaymentAccount', {"id": this.sendingQueryForm.companyId, "id3":id}).subscribe(
     (data) => { let result=data as any;
       switch(result){
-        case 1:{this.getData();this.openSnackBar(translate('menu.msg.main_paym_acc_set',{name: name}), translate('menu.msg.close'));break;}  //+++
+        case 1:{this.getData();this.openSnackBar(translate('menu.msg.changed_succ',{name: name}), translate('menu.msg.close'));break;}  //+++
         case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
         case -1:{this.getData();this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
       }

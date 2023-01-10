@@ -31,7 +31,6 @@ export class LoadSpravService{
     
     //загружает деревья категорий продуктов
     getFileCategoriesTrees(companyId: number){
-        const body = {companyId: companyId};
-        return this.http.post('/api/auth/getFileCategoriesTrees', body);}
+        return this.http.get('/api/auth/getFileCategoriesTrees?company_id='+companyId);}
     
 }

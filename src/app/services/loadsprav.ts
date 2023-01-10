@@ -145,8 +145,7 @@ export class LoadSpravService{
     getProductPrices(productId:number){return this.http.get('/api/auth/getProductPrices?productId='+productId);}
     //загружает деревья категорий для файлов
     getFileCategoriesTrees(companyId: number){
-        const body = {companyId: companyId};
-        return this.http.post('/api/auth/getFileCategoriesTrees', body);}
+        return this.http.get('/api/auth/getFileCategoriesTrees?company_id='+companyId);}
     // загружает картинку
     getImage(imageUrl: string): Observable<Blob> {return this.http.get(imageUrl, { responseType: 'blob' });
       }

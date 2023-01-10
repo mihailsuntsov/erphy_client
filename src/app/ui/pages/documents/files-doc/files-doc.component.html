@@ -214,7 +214,9 @@
                                                                             <mat-hint align="end" *ngIf="formBaseInformation.get('description').value.length>900">{{formBaseInformation.get('description').value.length}} / 1000</mat-hint>
                                                                 </mat-form-field>
                                                                 <mat-form-field style="margin-top: -8px;">
-                                                                            <mat-slide-toggle formControlName="anonyme_access">{{t('docs.field.shared_file')}}</mat-slide-toggle>
+                                                                            <mat-slide-toggle 
+                                                                            formControlName="anonyme_access"
+                                                                            >{{t('docs.field.shared_file')}}</mat-slide-toggle>
                                                                             <button mat-button 
                                                                             matSuffix 
                                                                             *ngIf="formBaseInformation.get('anonyme_access').value"

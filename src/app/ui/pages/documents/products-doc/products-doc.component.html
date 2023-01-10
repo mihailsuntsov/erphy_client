@@ -459,7 +459,7 @@
 
                                                                     
         
-                                                                    <!-- <div class="flex">
+                                                                    <div class="flex">
                                                                         <div class="flex" style="width:50%; margin-right:5px;">
                                                                             <mat-form-field style="width:70%;">
                                                                                 <input  matInput
@@ -498,7 +498,7 @@
                                                                                 </mat-select>
                                                                             </mat-form-field>
                                                                         </div>
-                                                                    </div> -->
+                                                                    </div> 
         
                                                                     
                                                                 </div>    
@@ -1452,14 +1452,17 @@
                                                                                     <mat-select  
                                                                                             [(ngModel)]="selectedAttribute"
                                                                                             [ngModelOptions]="{standalone: true}">                          
-                                                                                        <mat-option  *ngFor="let rt of productAttributesList" [value]="rt">
+                                                                                        <mat-option  
+                                                                                        *ngFor="let rt of productAttributesList" 
+                                                                                        (click)="addNewProductAttribute()"
+                                                                                        [value]="rt">
                                                                                                 {{rt.name}}
                                                                                         </mat-option> 
                                                                                     </mat-select>
                                                                                 </mat-form-field>
-                                                                                <button mat-raised-button color="primary" (click)="addNewProductAttribute()" [disabled]="+selectedAttribute.id==0">
+                                                                                <!-- <button mat-raised-button color="primary" (click)="addNewProductAttribute()" [disabled]="+selectedAttribute.id==0">
                                                                                     <mat-icon>add</mat-icon> 
-                                                                                </button>
+                                                                                </button> -->
                                                                             </div>
 
 
@@ -1595,30 +1598,74 @@
                                                 <mat-card-title class="card-title">{{t('docs.card.description')}}</mat-card-title>
                                             </mat-card-header>
                                             <mat-card-content class="input-form">
-                                                <span class="sortheader" style="line-height: 25px;font-weight: 600;">{{t('docs.field.description')}}</span>
+                                                <div style="display:flex">
+                                                    <div>
+                                                        <span class="sortheader" style="line-height: 25px;font-weight: 600;">{{t('docs.field.description')}}</span>
+                                                    </div>
+                                                    <div>
+                                                        <mat-select formControlName="description_type" style="margin: 4px 0px 0px 20px;">
+                                                            <option value="" selected></option>
+                                                            <mat-option value="editor">{{t('docs.list.editor')}}</mat-option>
+                                                            <mat-option value="custom">HTML</mat-option>
+                                                        </mat-select>    
+                                                    </div>
+                                                </div> 
+                                                
+                                                <mat-form-field *ngIf="formBaseInformation.get('description_type').value=='custom'" style="border: 1px solid #ccc;">
+                                                    <textarea  matInput
+                                                        maxlength="16000"
+                                                        formControlName="description_html"
+                                                        [rows]="15"
+                                                        #description_html>
+                                                    </textarea>
+                                                    <mat-hint align="end" *ngIf="description_html.value.length>10000">{{description_html.value.length}} / 16000</mat-hint>
+                                                </mat-form-field>
+                                                
                                                 <quill-editor 
+                                                    *ngIf="formBaseInformation.get('description_type').value=='editor'"
                                                     id="quill2"
                                                     style="margin-bottom: 20px;"
                                                     formControlName="description"
                                                     [modules]="tools" 
                                                     [format]="'html'" 
-                                                    [styles]="{height: '200px'}"
+                                                    [styles]="{height: '400px'}"
                                                     placeholder= "Insert text here ..."
-                                                    maxnLength=10000
+                                                    maxnLength=16000
                                                     ng-invalid 
                                                     >
                                                 </quill-editor>
                                                 <!-- <div class="html">
                                                     {{ formBaseInformation.get('description').value }}
                                                 </div> -->
-                                                <span class="sortheader" style="line-height: 25px;font-weight: 600;">{{t('docs.field.short_description')}}</span>
+                                                <div style="display:flex; margin-top: 20px;">
+                                                    <div>
+                                                        <span class="sortheader" style="line-height: 25px;font-weight: 600;">{{t('docs.field.short_description')}}</span>
+                                                    </div>
+                                                    <div>
+                                                        <mat-select formControlName="short_description_type" style="margin: 4px 0px 0px 20px;">
+                                                            <option value="" selected></option>
+                                                            <mat-option value="editor">{{t('docs.list.editor')}}</mat-option>
+                                                            <mat-option value="custom">HTML</mat-option>
+                                                        </mat-select>    
+                                                    </div>
+                                                </div>
+                                                <mat-form-field  *ngIf="formBaseInformation.get('short_description_type').value=='custom'" style="border: 1px solid #ccc;">
+                                                    <textarea  matInput
+                                                        maxlength="3000"
+                                                        formControlName="short_description_html"
+                                                        [rows]="10"
+                                                        #short_description_html>
+                                                    </textarea>
+                                                    <mat-hint align="end" *ngIf="short_description_html.value.length>2000">{{short_description_html.value.length}} / 3000</mat-hint>
+                                                </mat-form-field>
                                                 <quill-editor 
+                                                    *ngIf="formBaseInformation.get('short_description_type').value=='editor'"
                                                     id="quill1"
                                                     style="margin-bottom: 20px;"
                                                     formControlName="short_description"
                                                     [modules]="tools" 
                                                     [format]="'html'" 
-                                                    [styles]="{height: '100px'}"
+                                                    [styles]="{height: '200px'}"
                                                     placeholder= "Insert text here ..."
                                                     maxnLength=2000
                                                     ng-invalid 

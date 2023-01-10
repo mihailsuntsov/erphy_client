@@ -171,8 +171,8 @@ export class TemplatesDialogComponent implements OnInit {
       width: '400px',
       data:
       { 
-        head: translate('docs.msg.del_acc'),
-        query: translate('docs.msg.del_acc_q'),
+        head: translate('docs.msg.del_acc_t'),
+        query: translate('docs.msg.del_acc_t_q'),
         warning: '',
       },
     });

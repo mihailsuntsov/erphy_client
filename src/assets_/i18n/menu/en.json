@@ -51,7 +51,7 @@
         "in_bin":       "Display files in a bin",
         "out_of_bin":   "Exit the bin",
         "dspl_all_file":"Display all files",
-        "anonyme":      "Display files with unauthorized anonymous access",
+        "anonyme":      "Display files with external access",
         "to_root":      "Go back to the root directory",
         "new_categ":    "Create a new category",
         "edit_categ":   "Edit a category",
@@ -117,7 +117,7 @@
         "type":         "Type",
         "description":  "Description",
         "size":         "Size",
-        "shared":       "Shared",
+        "shared":       "Ext. access",
         "default":      "Default",
         "company":      "Company",
         "order":        "Order",
@@ -221,7 +221,9 @@
         "reg_load_err": "Error loading list of cash registers",
         "cas_load_err": "Error loading list of cashiers",
         "vii_can_creat":"\"Issued VAT invoices\" can be created only from next documents: \"Credit slip\", \"Incoming payment\", \"Shipment\"",
-        "vio_can_creat":"\"Received VAT invoices\" can be created only from next documents: \"Debit slip\", \"Outgoing payment\", \"Acceptance\""
+        "vio_can_creat":"\"Received VAT invoices\" can be created only from next documents: \"Debit slip\", \"Outgoing payment\", \"Acceptance\"",
+        "ext_acc_succ": "External access to selected files changed successfully",
+        "changed_succ": "Changed successfully"
     },
     "dialogs":{
         "restore":      "Restore",
@@ -264,7 +266,10 @@
         "to_duplicate": "Duplicate",
         "categories":   "Categories",
         "delete":       "Delete",
-        "restore":      "Restore"
+        "restore":      "Restore",
+        "share_ex":     "External access",
+        "share_ex_y":   "Allow external access",
+        "share_ex_n":   "Deny external access"
     },
     "docs":{
         "roles":        "roles",

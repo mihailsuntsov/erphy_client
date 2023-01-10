@@ -23,6 +23,7 @@ export interface CheckBox {
   company_id: number;
   department_id: number;
   creator_id: number;
+  is_default: boolean;
 }
 export interface idAndName {
   id: number;
@@ -203,6 +204,7 @@ export class EdizmComponent implements OnInit {
     if(this.showOpenDocIcon) this.displayedColumns.push('opendoc');
     this.displayedColumns.push('name');
     this.displayedColumns.push('short_name');
+    this.displayedColumns.push('is_default');
     this.displayedColumns.push('company');
     this.displayedColumns.push('creator');
     this.displayedColumns.push('date_time_created');
@@ -423,6 +425,19 @@ export class EdizmComponent implements OnInit {
     }
   }
 
+  onClickRadioBtn(edizm_id:number){
+    this.clearCheckboxSelection();
+    return this.http.get('/api/auth/setDefaultEdizm?edizm_id='+edizm_id+'&company_id='+this.sendingQueryForm.companyId) 
+    .subscribe(
+    (data) => {  
+      let result=data as any;
+      switch(result){
+        case 1:{this.getData();this.openSnackBar(translate('menu.msg.changed_succ',{name: name}), translate('menu.msg.close'));break;}  //+++
+        case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+        case -1:{this.getData();this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+      }
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
+  }
     //   //*************************************************************   НАСТРОЙКИ   ************************************************************/    
     // // открывает диалог настроек
     // openDialogSettings() { 

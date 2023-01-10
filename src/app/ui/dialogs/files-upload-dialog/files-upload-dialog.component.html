@@ -32,14 +32,15 @@
                         formControlName="description"/>
             </mat-form-field>
             <mat-form-field style="width: 100%">
-                <mat-slide-toggle matInput 
-                    formControlName="sharedFile"
+                <mat-slide-toggle formControlName="sharedFile" (change)="onAnonymeAccessChange()">{{'modules.field.shared_file' | transloco}}</mat-slide-toggle>
+                <!-- <mat-slide-toggle matInput 
+                    formControlName="sharedFile"  
                     class="example-margin"
-                    matTooltip="{{'modules.tip.shared_file' | transloco}}"
-                    [checked]="checked">
+                    (change) = "onAnonymeAccessChange()"
+                    matTooltip="{{'modules.tip.shared_file' | transloco}}">
                     {{'modules.field.shared_file' | transloco}}
-                </mat-slide-toggle>
-                <textarea matInput hidden></textarea>
+                </mat-slide-toggle>1--{{formBaseInformation.get('sharedFile').value}}--1 -->
+                <input matInput hidden/>
             </mat-form-field>
             <div class="div-100"> 
                 <div *ngIf="currentFileUpload" class="progress">

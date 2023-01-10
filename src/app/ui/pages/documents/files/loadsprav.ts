@@ -18,8 +18,7 @@ export class LoadSpravService{
     
     //загружает деревья категорий
     getFileCategoriesTrees(companyId: number){
-        const body = {companyId: companyId};
-        return this.http.post('/api/auth/getFileCategoriesTrees', body);}
+        return this.http.get('/api/auth/getFileCategoriesTrees?company_id='+companyId);}
     
 
     getImage(imageUrl: string): Observable<Blob> {

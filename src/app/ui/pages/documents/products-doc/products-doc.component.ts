@@ -32,7 +32,7 @@ import { Router } from '@angular/router';
 import { MomentDefault } from 'src/app/services/moment-default';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
-import { AngularEditorConfig } from '@kolkov/angular-editor';
+// import { AngularEditorConfig } from '@kolkov/angular-editor';
 import { TemplatesDialogComponent } from 'src/app/modules/settings/templates-dialog/templates-dialog.component';
 import { LabelsPrintDialogComponent } from 'src/app/modules/settings/labelprint-dialog/labelprint-dialog.component';
 
@@ -63,7 +63,7 @@ interface docResponse {//интерфейс для получения ответ
   product_code_free: string; // свободно редактируемый код товара или услуги
   ppr_id: string;
   by_weight: boolean;
-  edizm_id: string;
+  edizm_id: number;
   nds_id: string;
   weight: string;
   volume: string;
@@ -106,6 +106,10 @@ interface docResponse {//интерфейс для получения ответ
   grouped_ids:IdAndName[];
   outofstock_aftersale: boolean;        // auto set product as out-of-stock after it has been sold
   label_description: string;
+  description_html: string;       // custom HTML full description
+  short_description_html: string; // custom HTML short description
+  description_type: string;       // "editor" or "custom"
+  short_description_type: string; // "editor" or "custom"
   }
   interface SpravTaxesSet{
     id: number;
@@ -269,34 +273,34 @@ export class ProductsDocComponent implements OnInit {
   name = 'Angular 6';
   htmlContent = '';
 
-  config: AngularEditorConfig = {
-    editable: true,
-    spellcheck: true,
-    height: '15rem',
-    minHeight: '5rem',
-    placeholder: 'Enter text here...',
-    translate: 'no',
-    defaultParagraphSeparator: 'p',
-    defaultFontName: 'Arial',
-    toolbarHiddenButtons: [
-      ['bold']
-      ],
-    customClasses: [
-      {
-        name: "quote",
-        class: "quote",
-      },
-      {
-        name: 'redText',
-        class: 'redText'
-      },
-      {
-        name: "titleText",
-        class: "titleText",
-        tag: "h1",
-      },
-    ]
-  };
+  // config: AngularEditorConfig = {
+  //   editable: true,
+  //   spellcheck: true,
+  //   height: '15rem',
+  //   minHeight: '5rem',
+  //   placeholder: 'Enter text here...',
+  //   translate: 'no',
+  //   defaultParagraphSeparator: 'p',
+  //   defaultFontName: 'Arial',
+  //   toolbarHiddenButtons: [
+  //     ['bold']
+  //     ],
+  //   customClasses: [
+  //     {
+  //       name: "quote",
+  //       class: "quote",
+  //     },
+  //     {
+  //       name: 'redText',
+  //       class: 'redText'
+  //     },
+  //     {
+  //       name: "titleText",
+  //       class: "titleText",
+  //       tag: "h1",
+  //     },
+  //   ]
+  // };
 
   //переменные прав
   permissionsSet: any[];//сет прав на документ
@@ -401,7 +405,7 @@ export class ProductsDocComponent implements OnInit {
   spravTaxesSet: SpravTaxesSet[]=[];//сет НДС 
   spravSysMarkableGroupSet: IdAndName[] = [];//сет маркированных товаров
   filteredSpravSysMarkableGroupSet: Observable<IdAndName[]>;//сет маркированных товаров
-  spravSysEdizmOfProductAll: IdAndName[] = [];// массив, куда будут грузиться все единицы измерения товара
+  spravSysEdizmOfProductAll: any[] = [];// массив, куда будут грузиться все единицы измерения товара
   filteredSpravSysEdizmOfProductAll: Observable<IdAndName[]>; //массив для отфильтрованных единиц измерения
   spravSysEdizmOfProductWeight: any[]=[];// весовые единицы измерения товара
   spravSysEdizmOfProductVolume: any[]=[];// объёмные единицы измерения товара
@@ -424,11 +428,11 @@ export class ProductsDocComponent implements OnInit {
   html = '';
   tools = {
     toolbar: [      
-      [{ header: [1, 2, false] }],
-      ['bold', 'italic', 'underline'],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      // [{ header: [1, 2, false] }],
       [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
-      [{ 'script': 'super' }, { 'script': 'sub' }],
+      ['bold', 'italic', 'underline'],
+      // [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      // [{ 'script': 'super' }, { 'script': 'sub' }],
       [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
       ['link', 'video'],
       [ 'clean', 'divider' ]
@@ -517,7 +521,7 @@ export class ProductsDocComponent implements OnInit {
       ppr_id: new UntypedFormControl      (1,[]),
       by_weight: new UntypedFormControl      ('',[]),
       edizm_name: new UntypedFormControl      ('',[Validators.required]),
-      edizm_id: new UntypedFormControl      ('',[Validators.required]),
+      edizm_id: new UntypedFormControl      (null,[Validators.required]),
       nds_id: new UntypedFormControl      (null,[]),
       weight: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{1,12}(?:[.,][0-9]{0,3})?\r?$')]),
       volume: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{1,12}(?:[.,][0-9]{0,3})?\r?$')]),
@@ -567,6 +571,10 @@ export class ProductsDocComponent implements OnInit {
       // productAttributes: new UntypedFormControl([],[]),
       outofstock_aftersale:        new UntypedFormControl   (false,[]), // auto set product as out-of-stock after it has been sold
       label_description:  new UntypedFormControl      ('',[Validators.maxLength(2000)]),
+      description_html: new UntypedFormControl      ('',[Validators.maxLength(16000)]),       // custom HTML full description
+      short_description_html: new UntypedFormControl      ('',[Validators.maxLength(3000)]), // custom HTML short description
+      description_type: new UntypedFormControl      ('editor',[]),       // "editor" or "custom"
+      short_description_type: new UntypedFormControl      ('editor',[]), // "editor" or "custom"
     });
     this.formAboutDocument = new UntypedFormGroup({
       id: new UntypedFormControl      ('',[]),
@@ -819,6 +827,10 @@ refreshPermissions():boolean{
                   this.formBaseInformation.get('date_on_sale_to_gmt').setValue(documentValues.date_on_sale_to_gmt?moment(documentValues.date_on_sale_to_gmt,'DD.MM.YYYY'):"");     
                   this.formBaseInformation.get('outofstock_aftersale').setValue(documentValues.outofstock_aftersale); 
                   this.formBaseInformation.get('label_description').setValue(documentValues.label_description); 
+                  this.formBaseInformation.get('description_html').setValue(documentValues.description_html);        // custom HTML full description
+                  this.formBaseInformation.get('short_description_html').setValue(documentValues.short_description_html);  // custom HTML short description
+                  this.formBaseInformation.get('description_type').setValue(documentValues.description_type);        // "editor" or "custom"
+                  this.formBaseInformation.get('short_description_type').setValue(documentValues.short_description_type);  // "editor" or "custom"
                   this.searchProductGroupsCtrl.setValue(documentValues.productgroup);
                   this.checkedList=documentValues.product_categories_id;
                   this.formProductHistory.companyId=this.formBaseInformation.get('company_id').value;
@@ -1092,7 +1104,7 @@ refreshPermissions():boolean{
           let companyId=this.formBaseInformation.get('company_id').value;
           this.http.post('/api/auth/getSpravSysEdizm', {id1: companyId, string1:"(1,2,3,4,5)"})  // все типы ед. измерения
           .subscribe((data) => {this.spravSysEdizmOfProductAll = data as any[];
-          this.updateValuesSpravSysEdizmOfProductAll();          },
+          this.updateValuesSpravSysEdizmOfProductAll();this.setDefaultEdizm()},
           error => console.log(error));
           this.http.post('/api/auth/getSpravSysEdizm', {id1: companyId, string1:"(2)"}) // все ед. измерения по типу: масса
           .subscribe((data) => {this.spravSysEdizmOfProductWeight = data as any[];},
@@ -1100,6 +1112,19 @@ refreshPermissions():boolean{
           this.http.post('/api/auth/getSpravSysEdizm', {id1: companyId, string1:"(5)"})  // все ед. измерения по типу: объём
           .subscribe((data) => {this.spravSysEdizmOfProductVolume = data as any[];},
           error => console.log(error));}
+
+  setDefaultEdizm(){
+    
+    if(+this.id==0 && this.spravSysEdizmOfProductAll.length>0)
+    {
+      this.spravSysEdizmOfProductAll.forEach(a=>{
+          if(a.is_default){
+            this.formBaseInformation.get('edizm_id').setValue(a.id);
+            this.updateValuesSpravSysEdizmOfProductAll();
+          }
+      });
+    }
+  }
 
   updateValuesSpravSysEdizmOfProductAll(){                 // при загрузке загружается справочник и значение id единицы измерения.
     if(+this.formBaseInformation.get('edizm_id').value!=0) //надо заполнить поле названия единицы измерения из справочника по загруженному id
