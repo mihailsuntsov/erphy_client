@@ -441,6 +441,7 @@ export class ProductsDocComponent implements OnInit {
 
   // reg_price: any; // Regular price in Store
   // sales_price: any; // Sales price in Store
+  is_store: boolean = false;
   reg_price_selected: boolean = false;  // Regular price in Store settings is selected
   sales_price_selected: boolean = false; // Sales price in Store settings is selected
   store_sku:string='';  
@@ -845,6 +846,7 @@ refreshPermissions():boolean{
                   this.getSpravTaxes();//загрузка налогов
                   this.getProductAttributes(); // product attributes that contain current product
                   this.getProductAttributesList(); // product attributes list from company registry
+                  this.getCompanySettings();
                   //!!!
                 } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();
@@ -1184,6 +1186,17 @@ refreshPermissions():boolean{
     this.formBaseInformation.get('product_code_free').setValue('');
     this.product_code_free_isReadOnly=true
   }
+  getCompanySettings(){
+    let result:any;
+    this.http.get('/api/auth/getCompanySettings?id='+this.formBaseInformation.get('company_id').value)
+      .subscribe(
+        data => { 
+          result=data as any;
+          this.is_store = result.is_store;
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+    );
+  }
 //*****************************************************************************************************************************************/
 //*********************************************           T R E E           ***************************************************************/
 //*****************************************************************************************************************************************/
@@ -1317,7 +1330,8 @@ refreshPermissions():boolean{
     });
   }
   addImagesToProduct(filesIds: number[]){
-    const body = {"id1":this.id, "setOfLongs1":filesIds, string1: 'product_files'};
+    if(filesIds && filesIds.length>0){
+      const body = {"id1":this.id, "setOfLongs1":filesIds, string1: 'product_files'};
       return this.http.post('/api/auth/addFilesToProduct', body) 
               .subscribe(
                   (data) => {  
@@ -1326,9 +1340,11 @@ refreshPermissions():boolean{
                             },
                   error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
               );
+    }
   }
   addDownloadableFilesToProduct(filesIds: number[]){
-    const body = {"id1":this.id, "setOfLongs1":filesIds, string1: 'product_downloadable_files'};
+    if(filesIds && filesIds.length>0){
+      const body = {"id1":this.id, "setOfLongs1":filesIds, string1: 'product_downloadable_files'};
       return this.http.post('/api/auth/addFilesToProduct', body) 
               .subscribe(
                   (data) => {  
@@ -1337,6 +1353,7 @@ refreshPermissions():boolean{
                             },
                   error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
               );
+    }
   }
   getImagesIdsInOrderOfList(): number[] {
     var i: number []=[];

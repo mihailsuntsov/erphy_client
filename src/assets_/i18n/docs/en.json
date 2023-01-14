@@ -312,7 +312,8 @@
         "p_outofst_as": "Remove from sale after sale",
         "s_autorsrv":"Autoreserve",
         "s_dprtmnts":"Store departments",
-        "lbl_dscrp":"Description for the label"
+        "lbl_dscrp":"Description for the label",
+        "store_ip":"IP address of the online store"
     },
     "error":{ 
         "-- COMMON":"--",
@@ -421,7 +422,7 @@
         "vat_payer":    "Enable if this company is a payer of sales taxes (like VAT)",
         "cost_all":     "The average cost of goods is the same for all departments",
         "cost_each":    "The average cost of goods is calculated separately for each department",
-        "copy_file_addr":"Copy file link",
+        "copy_file_addr":"Сopy to clipboard",
         "download_file":"Download file",
         "clear_field":  "Clear the search field, and select a different value",
         "prefix_pieced":"The first 2 digits of the EAN-13 barcode. Designed to form the company's internal barcodes for piece goods. Value from 20 to 29",

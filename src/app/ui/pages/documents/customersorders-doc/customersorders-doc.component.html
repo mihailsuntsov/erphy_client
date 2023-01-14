@@ -824,6 +824,61 @@
                             </div>
                         </div>
                     </mat-tab>
+                    <mat-tab *ngIf="+id>0">
+                        <ng-template mat-tab-label>
+                            <p>
+                                <span [matBadge]="filesInfo.length" matBadgeOverlap="false">{{t('docs.tab.files')}}</span>
+                            </p>
+                        </ng-template>
+                        <div class="col-xl-5 col-lg-5 col-md-8 col-sm-12">
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <mat-card  style="margin:10px 0 10px;width:100%;">
+                                        <mat-card-header>
+                                            <mat-card-title class="card-title">{{t('docs.card.files')}}</mat-card-title>
+                                        </mat-card-header>
+                                        <mat-card-content class="input-form">
+                                            <div class="box-list">
+                                                <ng-container *ngFor="let i of filesInfo">
+                                                    <div class="filename-row">
+                                                        <div class="file-wrapper">
+                                                            <span> {{ i.original_name }}</span>
+                                                        </div>
+                                                        <div style="min-width:70px;">
+                                                            <button mat-button 
+                                                            class="min-heigth"
+                                                                    type="button"
+                                                                    (click)="openFileCard(i.id)"
+                                                                    matTooltip="{{t('docs.tip.open_file')}}"
+                                                                    matSuffix>
+                                                                <mat-icon>launch</mat-icon>
+                                                            </button>
+                                                            <button mat-button 
+                                                                    *ngIf="!formBaseInformation.get('is_completed').value"
+                                                                    class="min-heigth"
+                                                                    type="button"
+                                                                    (click)="clickBtnDeleteFile(i.id)"
+                                                                    matTooltip="{{t('docs.tip.del_file')}}"
+                                                                    matSuffix>
+                                                                <mat-icon>delete_forever</mat-icon>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </ng-container>
+                                            </div>
+                                            <div class="div-100" [style.display]="(allowToUpdate==true) ?'block':'none'"> 
+                                                <div class="center hand" style="width:100%; height: 38px;">
+                                                    <button matTooltip="{{t('docs.tip.add_file')}}" mat-mini-fab color="primary" (click)="openDialogAddFiles()">
+                                                        <mat-icon>add</mat-icon>
+                                                    </button>
+                                                </div>
+                                            </div> 
+                                        </mat-card-content>
+                                    </mat-card> 
+                                </div>
+                            </div>
+                        </div>
+                    </mat-tab>
                     <mat-tab  *ngIf="visAfterCreatingBlocks"  label="{{t('docs.tab.about')}}">
                         <form [formGroup]="formAboutDocument">
                             <mat-card class="internal-card">

@@ -321,7 +321,6 @@
                                                             maxlength="12"
                                                             placeholder="{{t('docs.field.'+tinName)}}"
                                                             [readonly]=!editability
-                                                            (keypress)="numberOnly($event)"
                                                             formControlName="jr_inn"/>
                                                 </mat-form-field>
                                                 <!-- КПП -->
@@ -339,7 +338,6 @@
                                                             maxlength="13"
                                                             [readonly]=!editability
                                                             placeholder="{{t('docs.field.'+regNumberName)}}"
-                                                            (keypress)="numberOnly($event)"
                                                             formControlName="jr_jur_ogrn"/>
                                                 </mat-form-field>
                                                 <!-- ОКПО -->

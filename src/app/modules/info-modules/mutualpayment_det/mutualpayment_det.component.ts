@@ -9,12 +9,13 @@ import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { UntypedFormGroup, UntypedFormControl } from '@angular/forms';
 import { translate } from '@ngneat/transloco'; //+++
-
+import { CommonUtilitesService } from '../../../services/common_utilites.serviсe'; //+++
 import { MomentDefault } from 'src/app/services/moment-default';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 const MY_FORMATS = MomentDefault.getMomentFormat();
 const moment = MomentDefault.getMomentDefault();
+import { LOCALE_ID } from '@angular/core';
 
 export interface CheckBox {
   id: number;
@@ -39,7 +40,7 @@ export interface NumRow {//интерфейс для списка количес
   providers: [
     {provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]}, //+++
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
-    LoadSpravService,Cookie]
+    LoadSpravService,CommonUtilitesService,Cookie]
 })
 export class MutualpaymentDetComponent implements OnInit {
   queryForm:any;//форма для отправки запроса 
@@ -82,10 +83,12 @@ export class MutualpaymentDetComponent implements OnInit {
     private MessageDialog: MatDialog,
     public confirmDialog: MatDialog,
     private http: HttpClient,
+    public cu: CommonUtilitesService,
+    @Inject(LOCALE_ID) public locale: string,
     public deleteDialog: MatDialog,
     public mutualpaymentDetDialog: MatDialogRef<MutualpaymentDetComponent>,
     @Optional() @Inject(MAT_DIALOG_DATA) public data: any,
-    public _adapter: DateAdapter<any>) {_adapter.setLocale(this.data.locale) }
+    public _adapter: DateAdapter<any>) {_adapter.setLocale(this.data.locale?this.data.locale:locale) }
 
     ngOnInit() {
       this.queryForm = new UntypedFormGroup({ //форма для отправки запроса 

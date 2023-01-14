@@ -29,7 +29,7 @@ class="spinner"
                 <span style="flex-grow: 1;"></span>
             </div>
             
-            <div class="category-toolbar-icons flex" *ngIf="mode=='standart'">
+            <div class="category-toolbar-icons flex">
                 <span style="flex-grow: 1;"></span>
                     <div>
                             <button 
@@ -453,6 +453,7 @@ class="spinner"
                                         <div class="card-blocks"  *ngIf="viewMode=='grid'">
                                             <div *ngFor="let block of files; let i = index"  class="card-block">
                                                 <mat-card class="grid-card">
+                                                    <div *ngIf="block.anonyme_access" matTooltip="{{t('menu.tip.ext_access')}}" class="grid-card-info"><mat-icon>share</mat-icon></div>
                                                     <div class="iconArea" *ngIf="block.extention.toUpperCase() != '.PNG' && block.extention.toUpperCase() != '.JPG' && block.extention.toUpperCase() != '.JPEG'; else other_content">
                                                         <a *ngIf="mode!='select'" [routerLink]="['../../filesdoc', block.id ]">
                                                             <img class="file_icon" src="../../../../../../assets_/images/ext_icons/{{getIcon(block.extention)}}.png" width=120>

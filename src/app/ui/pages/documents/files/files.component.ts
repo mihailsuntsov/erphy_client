@@ -837,6 +837,8 @@ viewMode:string = "grid"; // способ отображения файлов - 
           .subscribe(
               (data) => {   
                 this.openSnackBar(translate('menu.msg.sep_prod_cat'), translate('menu.msg.close')); //+++
+                this.showOnlyVisBtnAdd();
+                this.getPagesList();
                 this.getTable();
               },
               error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
@@ -852,6 +854,8 @@ viewMode:string = "grid"; // способ отображения файлов - 
           .subscribe(
               (data) => {   
                 this.openSnackBar(translate('menu.msg.ext_acc_succ'), translate('menu.msg.close')); //+++
+                this.showOnlyVisBtnAdd();
+                this.getPagesList();
                 this.getTable();
               },
               error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++

@@ -126,6 +126,7 @@ interface docResponse {//интерфейс для получения ответ
   store_default_creator: string;        // name of default user that will be marked as a creator of store order.
   store_auto_reserve: boolean;          // auto reserve product after getting internet store order
   companyStoreDepartments: number[];    // internet store's departments
+  store_ip: string;                     // store server ip address
 }
 
 interface IdAndName{
@@ -328,7 +329,7 @@ constructor(private activateRoute: ActivatedRoute,
       //Юридические реквизиты new FormControl      ('',[]),
       jr_jur_full_name:  new UntypedFormControl      ('',[Validators.maxLength(500)]),
       jr_jur_kpp:  new UntypedFormControl      ('',[Validators.pattern('^[0-9]{9}$')]),
-      jr_jur_ogrn:  new UntypedFormControl      ('',[Validators.pattern('^[0-9]{13}$')]),
+      jr_jur_ogrn:  new UntypedFormControl      ('',[/*Validators.pattern('^[0-9]{13}$')*/]),
       //юридический адрес (для юрлиц) /адрес регистрации (для ип и физлиц)
       jr_zip_code:  new UntypedFormControl      ('',[Validators.maxLength(40)]),
       jr_country_id:  new UntypedFormControl      (null,[]),
@@ -340,12 +341,12 @@ constructor(private activateRoute: ActivatedRoute,
       jr_home:  new UntypedFormControl      ('',[Validators.maxLength(16)]),
       jr_flat:  new UntypedFormControl      ('',[Validators.maxLength(8)]),
       jr_additional_address:  new UntypedFormControl      ('',[Validators.maxLength(240)]),
-      jr_inn:  new UntypedFormControl      ('',[Validators.pattern('^([0-9]{10}|[0-9]{12})$')]),
+      jr_inn:  new UntypedFormControl      ('',[/*Validators.pattern('^([0-9]{10}|[0-9]{12})$')*/]),
       jr_okpo:  new UntypedFormControl      ('',[Validators.pattern('^([0-9]{8}|[0-9]{10})$')]),
       jr_fio_family:  new UntypedFormControl      ('',[Validators.maxLength(120)]),
       jr_fio_name:  new UntypedFormControl      ('',[Validators.maxLength(120)]),
       jr_fio_otchestvo:  new UntypedFormControl      ('',[Validators.maxLength(120)]),
-      jr_ip_ogrnip:  new UntypedFormControl      ('',[Validators.pattern('^[0-9]{15}$')]),
+      jr_ip_ogrnip:  new UntypedFormControl      ('',[/*Validators.pattern('^[0-9]{15}$')*/]),
       jr_ip_svid_num:  new UntypedFormControl      ('',[Validators.maxLength(30)]),
       jr_ip_reg_date:  new UntypedFormControl      ('',[]),//на дату валидаторы не вешаются, у нее свой валидатор
       companiesPaymentAccountsTable: new UntypedFormArray ([]) ,
@@ -375,6 +376,7 @@ constructor(private activateRoute: ActivatedRoute,
       store_days_for_esd:          new UntypedFormControl   (0,[Validators.maxLength(3),Validators.pattern('^[0-9]{1,3}$')]),// number of days for ESD of created store order. Default is 0 
       companyStoreDepartments:     new UntypedFormControl   ([],[]),
       store_auto_reserve:          new UntypedFormControl   (false,[]), // auto reserve product after getting internet store order
+      store_ip:                    new UntypedFormControl   (null,[Validators.maxLength(21)]),  // internet-store ip address
     });
     this.formAboutDocument = new UntypedFormGroup({
       id: new UntypedFormControl      ('',[]),
@@ -669,8 +671,9 @@ onDefaultCreatorSearchValueChanges(){
                   this.formBaseInformation.get('store_default_creator_id').setValue(documentValues.store_default_creator_id);
                   this.formBaseInformation.get('store_days_for_esd').setValue(documentValues.store_days_for_esd);         
                   this.formBaseInformation.get('store_auto_reserve').setValue(documentValues.store_auto_reserve);    
-                  this.formBaseInformation.get('companyStoreDepartments').setValue(documentValues.companyStoreDepartments);        
-
+                  this.formBaseInformation.get('companyStoreDepartments').setValue(documentValues.companyStoreDepartments);    
+                  this.formBaseInformation.get('store_ip').setValue(documentValues.store_ip);       
+                  
                   this.searchCagentCtrl.setValue(documentValues.cagent);       
                   this.searchDefaultCreatorCtrl.setValue(documentValues.store_default_creator);
 
@@ -737,8 +740,23 @@ onDefaultCreatorSearchValueChanges(){
       .subscribe(
           (data) => 
           {   
-                  this.getData();
-                  this.openSnackBar(translate('docs.msg.doc_sved_suc'),translate('docs.msg.close'));
+            let result:number=data as number;
+            switch(result){
+              case null:{// null возвращает если не удалось создать документ из-за ошибки
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_of') + (translate('docs.msg._of_save')) + translate('docs.msg._of_doc',{name:translate('docs.docs.company')})}});
+                break;
+              }
+              case -1:{//недостаточно прав
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});
+                break;
+              }
+              case -121:{// online-stores are not accepted by tariiff plan
+                {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('docs.msg.out_of_plan')+" ("+translate('docs.field.p_store')+")"}});break;}}
+              default:{// Успешно
+                this.getData();
+                this.openSnackBar(translate('docs.msg.doc_sved_suc'),translate('docs.msg.close'));
+              }
+            }                  
           },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
       );
@@ -764,7 +782,9 @@ onDefaultCreatorSearchValueChanges(){
   numberOnly(event): boolean {
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
     if (charCode > 31 && (charCode < 48 || charCode > 57)) { return false; } return true;}
-
+  numberOnlyPlusDotAndColon(event): boolean {
+    const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
+    if (charCode > 31 && ((charCode < 48 || charCode > 57) && charCode!=46 && charCode!=58)) { return false; } return true;}
   generateCrmSecretKey(){
       const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
         width: '400px',
@@ -778,6 +798,14 @@ onDefaultCreatorSearchValueChanges(){
       dialogRef.afterClosed().subscribe(result => {
         if(result==1) this.formBaseInformation.get('crm_secret_key').setValue(uuidv4());
       });
+  }
+  // getDomain(): string{
+  //   return(location.protocol+'//'+location.hostname+(location.port ? ':'+location.port: ''));
+  // }
+  copyKeyToClipboard(){
+    // let domain=this.getDomain();
+    // navigator.clipboard.writeText(this.getDomain()+'/api/public/getFile/'+this.formBaseInformation.get('name').value);
+    navigator.clipboard.writeText(this.formBaseInformation.get('crm_secret_key').value);
   }
 //*****************************************************************************************************************************************/
 //*******************************           В Ы Б О Р  С Т Р А Н Ы,  Р А Й О Н А, Г О Р О Д А       ***************************************/

@@ -26,6 +26,8 @@ import { Router, NavigationExtras  } from '@angular/router';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { Input } from '@angular/core';
 import { translate } from '@ngneat/transloco'; //+++
+import { FilesComponent } from '../files/files.component';
+import { FilesDocComponent } from '../files-doc/files-doc.component';
 
 import { MomentDefault } from 'src/app/services/moment-default';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
@@ -1207,6 +1209,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
                   this.hideOrShowNdsColumn();//расчет прятать или показывать колонку НДС
                   this.getSettings(); // настройки документа Заказ покупателя
                   this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
+                  this.loadFilesInfo();
                   this.cheque_nds=documentValues.nds;//нужно ли передавать в кассу (в чек) данные об НДС 
                   this.oneClickSaveControl=false;
                   //!!!
@@ -1977,6 +1980,87 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
     this.formBaseInformation.get('status_description').setValue('');
     this.receivedStatusesList = [];
   }
+  //*****************************************************************************************************************************************/
+/***********************************************************         ФАЙЛЫ          *******************************************************/
+//*****************************************************************************************************************************************/
+openDialogAddFiles() {
+  const dialogRef = this.dialogAddFiles.open(FilesComponent, {
+    maxWidth: '95vw',
+    maxHeight: '95vh',
+    height: '95%',
+    width: '95%',
+    data:
+    { 
+      mode: 'select',
+      companyId: this.formBaseInformation.get('company_id').value
+    },
+  });
+  dialogRef.afterClosed().subscribe(result => {
+    console.log(`Dialog result: ${result}`);
+    if(result)this.addFilesToCustomersOrders(result);
+  });
+}
+openFileCard(docId:number) {
+  const dialogRef = this.dialogAddFiles.open(FilesDocComponent, {
+    maxWidth: '95vw',
+    maxHeight: '95vh',
+    height: '95%',
+    width: '95%',
+    data:
+    { 
+      mode: 'window',
+      docId: docId
+    },
+  });
+}
+loadFilesInfo(){ //+++                                     загружает информацию по прикрепленным файлам
+  const body = {"id":this.id};
+    return this.http.post('/api/auth/getListOfCustomersOrdersFiles', body) 
+          .subscribe(
+              (data) => {  
+                          this.filesInfo = data as any[]; 
+                        },
+              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
+          );
+}
+addFilesToCustomersOrders(filesIds: number[]){ //+++
+  const body = {"id1":this.id, "setOfLongs1":filesIds};// передаем id товара и id файлов 
+    return this.http.post('/api/auth/addFilesToCustomersOrders', body) 
+            .subscribe(
+                (data) => {  
+                  this.loadFilesInfo();
+                  this.openSnackBar(translate('docs.msg.files_added'), translate('docs.msg.close'));
+                          },
+                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
+            );
+}
+
+clickBtnDeleteFile(id: number): void { //+++
+  const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+    width: '400px',
+    data:
+    { 
+      head: translate('docs.msg.file_del_head'),
+      query: translate('docs.msg.file_del_qury'),
+      warning: translate('docs.msg.file_del_warn'),
+    },
+  });
+  dialogRef.afterClosed().subscribe(result => {
+    if(result==1){this.deleteFile(id);}
+  });        
+}
+
+deleteFile(id:number){ //+++
+  const body = {id: id, any_id:this.id}; 
+  return this.http.post('/api/auth/deleteCustomersOrdersFile',body)
+  .subscribe(
+      (data) => {   
+                  this.loadFilesInfo();
+                  this.openSnackBar(translate('docs.msg.deletet_succs'), translate('docs.msg.close'));
+              },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
+  );  
+}
 //**********************************************************************************************************************************************/  
 //*************************************************          СВЯЗАННЫЕ ДОКУМЕНТЫ          ******************************************************/
 //**********************************************************************************************************************************************/  

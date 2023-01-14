@@ -4,6 +4,7 @@ import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { CommonUtilitesService } from 'src/app/services/common_utilites.serviсe';
 import { translate } from '@ngneat/transloco'; //+++
+import { MutualpaymentDetComponent } from 'src/app/modules/info-modules/mutualpayment_det/mutualpayment_det.component';
 
 @Component({
   selector: 'app-balance-cagent',
@@ -20,11 +21,13 @@ export class BalanceCagentComponent implements OnInit, OnChanges {
   @Input() company_id:    number;
   @Input() cagent_id:     number;
   @Input() currency:      string;
+  @Input() cagent:        string;
   @Output() successfullGetCagentBalance = new EventEmitter<any>(); //событие успешного получения баланса
 
   constructor(
     private http: HttpClient,
     public MessageDialog: MatDialog,
+    public mutualpaymentDetDialog: MatDialog,
     public commonUtilites: CommonUtilitesService,) { }
 
   ngOnInit(): void {
@@ -64,6 +67,24 @@ export class BalanceCagentComponent implements OnInit, OnChanges {
     setTimeout(() => {this.showModule=true; }, 1000);
   }
 
+  openDetailsWindow() {
+    this.mutualpaymentDetDialog.open(MutualpaymentDetComponent, {
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      height: '95%',
+      width: '95%',
+      data:
+      { 
+        mode: 'viewInWindow',
+        cagentId: this.cagent_id,
+        companyId: this.company_id,
+        dateFrom:null,
+        dateTo:null,
+        cagent:this.cagent,
+        locale:null,
+      },
+    });
+  } 
 
 
 }

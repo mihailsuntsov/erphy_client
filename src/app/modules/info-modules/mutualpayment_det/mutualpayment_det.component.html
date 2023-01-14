@@ -6,7 +6,7 @@ class="spinner"
 ></mat-spinner>
 <mat-card class="card" *transloco="let t">
     <mat-card-title class="flex" style="height: 30px;">
-        <div *ngIf="!displayingDeletedDocs" class="emptyspace">{{t('menu.docs.counterpays')}} {{data.cagent}}</div>
+        <div *ngIf="!displayingDeletedDocs" class="emptyspace">{{cu.cap(t('menu.docs.counterpays'))}} <span *ngIf="data.cagent">{{t('menu.docs.with')}} </span>{{data.cagent}}</div>
         <!-- <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> входящие платежи</div> -->
         <!-- <button 
             mat-raised-button 

@@ -20,7 +20,7 @@ class="spinner"
                                     name="search_input" 
                                     style="width:100%"  
                                 />
-                                <button mat-button matSuffix mat-icon-button aria-label="search"  type="submit" (click)="searchCategory()">
+                                <button mat-button matSuffix mat-icon-button aria-label="search" (click)="searchCategory()">
                                     <mat-icon>search</mat-icon>
                                 </button>
                             </mat-form-field>
@@ -152,8 +152,7 @@ class="spinner"
                                         <button mat-button  
                                             class="filter-button"
                                             matTooltip="{{t('docs.button.refresh')}}"
-                                            (click)="getTable()"  
-                                            type="submit"
+                                            (click)="getTable()"
                                             matSuffix mat-icon-button>
                                             <mat-icon>refresh</mat-icon>
                                         </button>

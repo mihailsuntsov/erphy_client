@@ -276,8 +276,7 @@
                                             <input  matInput
                                                     maxlength="12"
                                                     placeholder="{{t('docs.field.'+tinName)}}"
-                                                    [readonly]=!editability
-                                                    (keypress)="numberOnly($event)"
+                                                    [readonly]=!editability                                                    
                                                     formControlName="jr_inn"/>
                                         </mat-form-field>
                                         <!-- КПП -->
@@ -294,8 +293,7 @@
                                             <input  matInput
                                                     maxlength="13"
                                                     [readonly]=!editability
-                                                    placeholder="{{t('docs.field.'+regNumberName)}}"
-                                                    (keypress)="numberOnly($event)"
+                                                    placeholder="{{t('docs.field.'+regNumberName)}}"                                                    
                                                     formControlName="jr_jur_ogrn"/>
                                         </mat-form-field>
                                         <!-- ОКПО -->
@@ -1176,16 +1174,35 @@
                                                     [readonly]=!editability
                                                     (keypress)="numberOnly($event)"
                                                     maxlength="36"
+                                                    type="password"
                                                     formControlName="crm_secret_key"/>
+                                                    <button mat-button 
+                                                        matSuffix 
+                                                        *ngIf="formBaseInformation.get('crm_secret_key').value"
+                                                        mat-icon-button 
+                                                        matTooltip="{{t('docs.tip.copy_file_addr')}}"
+                                                        style="font-size: 150%;color: gray;" 
+                                                        (click)="copyKeyToClipboard()">
+                                                            <mat-icon>content_copy</mat-icon>
+                                                    </button>
                                                     <button 
                                                         mat-button
                                                         matSuffix 
                                                         mat-icon-button 
-                                                        matTooltip="{{t('docs.tip.p_gen_new_skey')}}" color="primary"
+                                                        matTooltip="{{t('docs.tip.p_gen_new_skey')}}"
+                                                        style="font-size: 150%;color: gray;" 
                                                         (click)="generateCrmSecretKey()">
                                                             <mat-icon>offline_bolt</mat-icon>                                                            
-                                                        </button>                                                
+                                                    </button>                                                
                                                     <mat-hint align="end" *ngIf="formBaseInformation.get('crm_secret_key').value.length>30">{{formBaseInformation.get('crm_secret_key').value.length}} / 36</mat-hint>
+                                        </mat-form-field>
+                                        <mat-form-field>
+                                            <mat-label>{{t('docs.field.store_ip')}}</mat-label>
+                                            <input  matInput
+                                                    [readonly]=!editability
+                                                    (keypress)="numberOnlyPlusDotAndColon($event)"
+                                                    maxlength="21"
+                                                    formControlName="store_ip"/>
                                         </mat-form-field>
                                     </mat-card-content>
                                 </mat-card>

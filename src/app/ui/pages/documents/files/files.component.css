@@ -142,6 +142,15 @@ flex: 1 1 auto;
   float:left;
   margin:9px;} 
 
+  .grid-card-info{
+    position: absolute;
+    top: 0px;
+    right: 0px;
+  }
+  .grid-card-info mat-icon{
+    color: rgba(0,0,0,0.5);
+    font-size: 21px;
+  }
   .iconArea{
     width: 100%;
     height: 130px;
@@ -169,7 +178,10 @@ flex: 1 1 auto;
   .evenly{
     justify-content: center;
   }  
- 
+  ::ng-deep .mat-dialog-container app-files{
+    height: 100%;
+  }
+
 /*Данные не найдены*/
 .spinner{
   position: absolute;

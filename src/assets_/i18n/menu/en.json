@@ -105,7 +105,8 @@
         "show_receipts":"Show receipts of this shift",
         "open_doc_rece":"Open the document from which the receipt was created",
         "set_prnt_menu":"Configure printing menu",
-        "oi_not_compl": "Credit slip is not completed"
+        "oi_not_compl": "Credit slip is not completed",
+        "ext_access":   "Open for external access"
     },
     "table":{
         "name":         "Name",
@@ -356,7 +357,8 @@
         "invoicesin":   "suppliers' invoices",
         "v_invoicein":  "received VAT invoice",  
         "v_invoicesin": "received VAT invoices",
-        "counterpays":  "mutual payments with",
+        "counterpays":  "mutual payments",        
+        "with":         "with",
         "currencies":   "currencies",
         "accounts":     "bank accounts",
         "productattr":  "product attributes"
