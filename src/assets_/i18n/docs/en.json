@@ -44,7 +44,7 @@
         "account":      "User accounts",
         "lang_n_stand": "Languages and standards",
         "terms":        "Terms",
-        "prod_prprts":  "Product attributes",
+        "prod_prprts":  "Product properties",
         "description":  "Description",
         "orders":       "Orders",
         "inventory":    "Inventory"
@@ -275,7 +275,7 @@
         "visible":"Visible on the product page",
         "add_attr":"Available attributes",
         "short_description": "Short description",
-        "product_type":"Product data",
+        "product_type":"Product type",
         "virtual": "Virtual",
         "downloadable": "Downloadable",
         "reg_price":"Regular price",

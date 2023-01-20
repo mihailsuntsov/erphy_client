@@ -402,7 +402,18 @@ export class ProductCategoriesDialogComponent implements OnInit {
       },
     });
     dialogRef.afterClosed().subscribe(result => {
-        this.getProductCategory();          
+      console.log(`Dialog result: ${result}`);
+    //   if(result){
+        return this.http.get('/api/auth/getImageFileInfo?id='+docId)
+        .subscribe(
+          (data) => {   
+            this.productCategory.image = data as Image;
+            if(this.productCategory.image) this.loadFileImage();
+          },
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+        );
+    //   };
+    //     // this.getProductCategory();          
     });
   }
   //*****************************************************************************************************************************************/
