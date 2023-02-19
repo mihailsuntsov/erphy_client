@@ -193,7 +193,8 @@
         "name_full":    "Полное наименование",
         "code_lit":     "Буквенный код",
         "code_num":     "Цифровой код",
-        "acc_currency": "Валюта учета"
+        "acc_currency": "Валюта учета",
+        "lang_code":    "Язык"
     },
     "bottom":{
         "founded":      "Найдено",
@@ -361,7 +362,8 @@
         "with":         "с",
         "currencies":   "валюты",
         "accounts":     "расчётные счета",
-        "productattr":  "атрибуты товаров"
+        "productattr":  "атрибуты товаров",
+        "stores":       "интернет-магазины"
     },
     "indicators":{
         "revenue":      "Выручка",

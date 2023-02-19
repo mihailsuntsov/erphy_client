@@ -10,7 +10,6 @@ import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
-// import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FilesComponent } from '../files/files.component';
 import { FilesDocComponent } from '../files-doc/files-doc.component';
@@ -106,7 +105,10 @@ interface docResponse {//интерфейс для получения ответ
   st_prefix_barcode_packed: number;// prefix of barcode for packed product
   st_netcost_policy: string;       // policy of netcost calculation by all company or by each department separately
 
+  nds_included: boolean;                // used with nds_payer as default values for Customers orders fields "Tax" and "Tax included"
+
   // E-commerce integration
+  /*
   is_store: boolean;                // on off the store
   store_site_address: string;       // e.g. http://localhost/DokioShop
   store_key: string;                // consumer key
@@ -116,7 +118,6 @@ interface docResponse {//интерфейс для получения ответ
   crm_secret_key: string;           // like UUID generated
   store_price_type_regular: number; // id of regular type price
   store_price_type_sale: number;    // id of sale type price
-  nds_included: boolean;                // used with nds_payer as default values for Customers orders fields "Tax" and "Tax included"
   store_orders_department_id: number;   // department for creation Customer order from store
   store_if_customer_not_found: string;  // "create_new" or "use_default"
   store_default_customer_id: number;    // counterparty id if store_if_customer_not_found=use_default
@@ -127,6 +128,8 @@ interface docResponse {//интерфейс для получения ответ
   store_auto_reserve: boolean;          // auto reserve product after getting internet store order
   companyStoreDepartments: number[];    // internet store's departments
   store_ip: string;                     // store server ip address
+  */
+  store_default_lang_code: string;      // internet-store basic language, e.g. EN, RU, UA, ...
 }
 
 interface IdAndName{
@@ -299,6 +302,7 @@ constructor(private activateRoute: ActivatedRoute,
       email:  new UntypedFormControl      ('',[Validators.maxLength(254)]),
 
       nds_payer: new UntypedFormControl      (false,[]),
+      nds_included:                new UntypedFormControl   (false,[]),                // used with nds_payer as default values for Customers orders fields "Tax" and "Tax included"
       fio_director: new UntypedFormControl      ('',[Validators.maxLength(120)]),
       director_position: new UntypedFormControl      ('',[Validators.maxLength(120)]),
       fio_glavbuh: new UntypedFormControl      ('',[Validators.maxLength(120)]),
@@ -358,7 +362,9 @@ constructor(private activateRoute: ActivatedRoute,
       st_prefix_barcode_pieced: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{2}$')]), // prefix of barcode for pieced product
       st_prefix_barcode_packed: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{2}$')]), // prefix of barcode for packed product
       st_netcost_policy:        new UntypedFormControl      ('all',[]), // policy of netcost calculation by "all" company or by "each" department separately
+      
       // E-commerce integration
+      /*
       is_store:                 new UntypedFormControl      (false,[]),  // on off the store
       store_site_address:       new UntypedFormControl      ('',[Validators.maxLength(128)]),  // e.g. http://localhost/DokioShop
       store_key:                new UntypedFormControl      ('',[Validators.maxLength(128)]),  // consumer key
@@ -368,7 +374,6 @@ constructor(private activateRoute: ActivatedRoute,
       crm_secret_key:           new UntypedFormControl      ('',[Validators.maxLength(36)]),  // like UUID generated
       store_price_type_regular: new UntypedFormControl      ('',[]),  // id of regular type price
       store_price_type_sale:    new UntypedFormControl      ('',[]),  // id of sale type price
-      nds_included:                new UntypedFormControl   (false,[]),                // used with nds_payer as default values for Customers orders fields "Tax" and "Tax included"
       store_orders_department_id:  new UntypedFormControl   (null,[]),   // department for creation Customer order from store
       store_if_customer_not_found: new UntypedFormControl   ('create_new',[]),  // "create_new" or "use_default"
       store_default_customer_id:   new UntypedFormControl   (null,[]),    // counterparty id if store_if_customer_not_found=use_default
@@ -377,6 +382,8 @@ constructor(private activateRoute: ActivatedRoute,
       companyStoreDepartments:     new UntypedFormControl   ([],[]),
       store_auto_reserve:          new UntypedFormControl   (false,[]), // auto reserve product after getting internet store order
       store_ip:                    new UntypedFormControl   (null,[Validators.maxLength(21)]),  // internet-store ip address
+      */
+      store_default_lang_code:     new UntypedFormControl   ('EN',[Validators.required, Validators.minLength(2),Validators.maxLength(2)]),
     });
     this.formAboutDocument = new UntypedFormGroup({
       id: new UntypedFormControl      ('',[]),
@@ -655,7 +662,9 @@ onDefaultCreatorSearchValueChanges(){
                   this.formBaseInformation.get('st_prefix_barcode_packed').setValue(documentValues.st_prefix_barcode_packed);
                   this.formBaseInformation.get('st_netcost_policy').setValue(documentValues.st_netcost_policy);                  
                   this.formBaseInformation.get('type').setValue(documentValues.type);
-                  this.formBaseInformation.get('legal_form').setValue(documentValues.legal_form);                  
+                  this.formBaseInformation.get('legal_form').setValue(documentValues.legal_form);                   
+                  this.formBaseInformation.get('nds_included').setValue(documentValues.nds_included);
+                  /*                 
                   this.formBaseInformation.get('is_store').setValue(documentValues.is_store);
                   this.formBaseInformation.get('store_site_address').setValue(documentValues.store_site_address);
                   this.formBaseInformation.get('store_key').setValue(documentValues.store_key);
@@ -665,7 +674,6 @@ onDefaultCreatorSearchValueChanges(){
                   this.formBaseInformation.get('crm_secret_key').setValue(documentValues.crm_secret_key);
                   this.formBaseInformation.get('store_price_type_regular').setValue(documentValues.store_price_type_regular);
                   this.formBaseInformation.get('store_price_type_sale').setValue(documentValues.store_price_type_sale);
-                  this.formBaseInformation.get('nds_included').setValue(documentValues.nds_included);
                   this.formBaseInformation.get('store_orders_department_id').setValue(documentValues.store_orders_department_id);
                   this.formBaseInformation.get('store_if_customer_not_found').setValue(documentValues.store_if_customer_not_found);
                   this.formBaseInformation.get('store_default_creator_id').setValue(documentValues.store_default_creator_id);
@@ -673,9 +681,12 @@ onDefaultCreatorSearchValueChanges(){
                   this.formBaseInformation.get('store_auto_reserve').setValue(documentValues.store_auto_reserve);    
                   this.formBaseInformation.get('companyStoreDepartments').setValue(documentValues.companyStoreDepartments);    
                   this.formBaseInformation.get('store_ip').setValue(documentValues.store_ip);       
-                  
                   this.searchCagentCtrl.setValue(documentValues.cagent);       
                   this.searchDefaultCreatorCtrl.setValue(documentValues.store_default_creator);
+                  */
+                  this.formBaseInformation.get('store_default_lang_code').setValue(documentValues.store_default_lang_code); 
+
+                  
 
                   this.searchRegionCtrl.setValue(documentValues.region);
                   this.searchJrRegionCtrl.setValue(documentValues.jr_region);
@@ -785,6 +796,11 @@ onDefaultCreatorSearchValueChanges(){
   numberOnlyPlusDotAndColon(event): boolean {
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
     if (charCode > 31 && ((charCode < 48 || charCode > 57) && charCode!=46 && charCode!=58)) { return false; } return true;}
+  lettersOnly(event): boolean {
+    const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
+    console.log('charCode = ' + charCode);
+    if ((charCode >= 65 && charCode <= 90)||(charCode >= 97 && charCode <= 122)) { return true; } return false;}
+  
   generateCrmSecretKey(){
       const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
         width: '400px',

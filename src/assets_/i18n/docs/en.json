@@ -209,7 +209,10 @@
         "type":         "Type",
         "sku_supplier": "Supplier's SKU",
         "legal_form":   "Legal form",
-        
+        "lang_code":    "Language",
+        "default_lang": "Default language of online store",
+        "stores":       "Online store",
+
         "-- SELL REGICTERS ":"--",
 
         "k_taxation":     "Taxation",
@@ -337,6 +340,8 @@
         "pwd_must_contain": "The password must consist of latin letters and numbers, and begin with the letters",
         "email":            "Incorrect format of e-mail",      
         "num_digits":       "Must be {{num}} digits",
+        "num_letters":      "Must be {{num}} letter(s)",
+        "prces_not_diff":   "Regular price and sale price should be different",
         
         "-- RETURNS TO SUPPLIERS":"--",
 
@@ -445,7 +450,9 @@
         "def_creator": "Creator by default of created in online store Customers orders",
         "ordrs_dprtmnt": "Main department in \"Customer's order\" document for online store orders",
         "s_dprtmnts":"The availability of products in the online store will be determined based on the total number of unreserved products in these departments",
-        "p_gen_new_skey":"Generate new key"
+        "p_gen_new_skey":"Generate new key",
+        "transl_mode":"Translation mode",
+        "ctg_stores":"Online stores to which this category and its products belong"
     },
     "msg":{
         "error":        "Error!",
@@ -722,7 +729,8 @@
         "set_templates":"Setting the Print menu",
         "currency":     "Currency",
         "accounts":     "Bank account",
-        "productattr":  "Product attribute"
+        "productattr":  "Product attribute",
+        "store":        "Online store"  
 
     }
 }

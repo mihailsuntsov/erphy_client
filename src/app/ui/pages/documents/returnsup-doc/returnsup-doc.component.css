@@ -113,7 +113,9 @@ tr.mat-footer-row {
     overflow: hidden;
 }
 
-
+.col-lg-4 mat-card div{
+    display: block;
+}
 
 
 

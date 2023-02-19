@@ -264,12 +264,12 @@
                                                         </mat-option>
                                                     </mat-select>
                                                 </mat-form-field>
-                                                <mat-form-field>
+                                                <mat-form-field>1
                                                     <mat-label>{{t('docs.field.roles')}}</mat-label>
                                                     <mat-select formControlName="userGroupList" multiple>
-                                                        <mat-option *ngFor="let permissions of receivedUserGroupList" 
-                                                                    [value]="permissions.id">
-                                                                    {{permissions.name}}
+                                                        <mat-option *ngFor="let group of receivedUserGroupList" 
+                                                                    [value]="group.id">
+                                                                    {{group.name}}
                                                         </mat-option>
                                                     </mat-select>
                                                 </mat-form-field>

@@ -1,4 +1,4 @@
-<mat-card *ngIf="data.actionType=='create' || data.actionType=='update'" class="card">
+<mat-card *ngIf="data.actionType=='create' || data.actionType=='update'" class="card" style="min-height: 443px;">
     <mat-card-title class="flex">
         <div class="card-name">{{data.docName}}</div>
         <button 
@@ -10,6 +10,15 @@
             color="primary"
             class="button small-button">
             <i class="material-icons">done</i>
+        </button>
+        <button 
+            *ngIf="formBaseInformation.get('isStoreCategory').value && formBaseInformation.get('storeCategoryTranslations').value.length>0"
+            (click)="changeTranslationMode()"
+            mat-raised-button 
+            matTooltip="{{'docs.tip.transl_mode' | transloco}}"
+            [color]="storeTranslationModeOn?'accent':'primary'"
+            class="button small-button">
+            <i class="material-icons">translate</i>
         </button>
         <button 
             mat-raised-button 
@@ -31,142 +40,206 @@
         </button>
     </mat-card-title>
     <mat-card-content > 
-        <div class="row">
-            <div class="col-lg-8  col-md-12">
-
-                <form [formGroup]="formBaseInformation">   
-                    <mat-form-field style="width: 100%">
-
-                    <mat-label>{{'docs.field.name' | transloco}} <span *ngIf="formBaseInformation.get('name').value==''||formBaseInformation.get('name').value==null" class="star">*</span></mat-label>
-                        <input  matInput
-                                maxlength="50"
-                                (input)="slugify()"
-                                (change)="slugify()"
-                                formControlName="name"/>  
-                                <mat-hint align="start" *ngIf="formBaseInformation.get('name').touched">
-                                    <i *ngIf="formBaseInformation.get('name').value==''" class="form-invalid">{{'docs.error.field_miss' | transloco}}</i>
-                                </mat-hint>
-                                <mat-hint align="end" *ngIf="formBaseInformation.get('name').value.length>40">{{formBaseInformation.get('name').value.length}} / 50</mat-hint>
-                    </mat-form-field>
-                    
-                    <mat-form-field style="width: 100%">
-                        <mat-label>{{'docs.field.description' | transloco}} </mat-label>
-                        <input  matInput
-                                maxlength="250"
-                                formControlName="description"/>  
-                                <mat-hint align="end" *ngIf="formBaseInformation.get('description').value.length>200">{{formBaseInformation.get('description').value.length}} / 250</mat-hint>
-                    </mat-form-field>
-                    
-                    
-
-                    <mat-form-field style="width: 100%"> 
-                        <mat-label>{{'modules.field.parent_catgr' | transloco}}</mat-label>
-                        <input type="text"
-                            [value]="getSelectedItems()"
-                            class="hand"
-                            #autoCompleteInput
-                            formControlName="parent_catgr"
-                            [readonly]="true"
-                            (click)="autoComplete.openPanel()"
-                            matInput
-                            [matAutocomplete]="auto">
-                        <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">    
-                            <mat-option [value] = '' (click)="selectNone()" style="background: white;">{{'modules.list.none' | transloco}}</mat-option>
-                            <!-- <mat-option [value]="data.parentCategoryId" *ngIf="+data.parentCategoryId>0">{{data.parentCategoryName}}</mat-option> -->
-                            <!-- <mat-option [value]="rt.id">{{rt.name}}</mat-option> -->
-
-
-                            <mat-tree [dataSource]="treeDataSource" [treeControl]="treeControl">
-                                <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
-                                    <button mat-icon-button disabled></button>
-                                    <span class="node" [ngClass]="{selected_node:node.id==productCategory.parentCategoryId}" (click)="selectNode(node)">{{node.name}}</span>
-                                    <!-- <button mat-icon-button (click)="addNewItem(node)"><mat-icon>add</mat-icon></button> -->
-                                </mat-tree-node>
-                                <mat-tree-node *matTreeNodeDef="let node;when: hasChild" matTreeNodePadding>
-                                    <button mat-icon-button matTreeNodeToggle
-                                            [attr.aria-label]="'toggle ' + node.name">
-                                    <mat-icon class="mat-icon-rtl-mirror">
-                                        {{treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
-                                    </mat-icon>
-                                    </button>
-                                    <span class="node" [ngClass]="{selected_node:node.id==productCategory.parentCategoryId}" (click)="selectNode(node)">{{node.name}}</span>
-                                </mat-tree-node>
-                            </mat-tree>
-
-
-                        </mat-autocomplete>  
-                    </mat-form-field>
-                    <mat-form-field style="width: 100%; margin-top: -5px;">
-                        <mat-slide-toggle 
-                        formControlName="isStoreCategory"
-                        (change)="onChangeStoreCategory()"
-                        >{{'modules.field.store_ctg' | transloco}}</mat-slide-toggle>
-                        <input matInput hidden/>
-                    </mat-form-field>
-
-                    <div class="row" *ngIf="formBaseInformation.get('isStoreCategory').value">
-                        <div class="col-lg-6  col-md-12"> 
-                            <mat-form-field style="width: 100%">
-                                <mat-label>{{'modules.field.slug' | transloco}}</mat-label>
-                                <input  matInput
-                                        maxlength="120"
-                                        formControlName="slug"/>  
-                                        <mat-hint align="end" *ngIf="formBaseInformation.get('slug').value.length>100">{{formBaseInformation.get('slug').value.length}} / 120</mat-hint>
-                            </mat-form-field>
-                        </div>
-                        <div class="col-lg-6  col-md-12"> 
-                            <mat-form-field style="width: 100%">
-                                    <mat-label>{{'modules.field.display' | transloco}}</mat-label>
-                                    <mat-select  formControlName="display">
-                                        <mat-option value="default">{{'modules.list.default' | transloco}}</mat-option>
-                                        <mat-option value="products">{{'modules.list.products' | transloco}}</mat-option>
-                                        <mat-option value="subcategories">{{'modules.list.subcategories' | transloco}}</mat-option>
-                                        <mat-option value="both">{{'modules.list.both' | transloco}}</mat-option>
-                                    </mat-select>  
-                            </mat-form-field>
+        
+        
+        <mat-tab-group *ngIf = "storeTranslationModeOn" style="margin-top: -14px;">
+        <!-- <mat-tab-group> -->
+            <mat-tab *ngFor="let translation of formBaseInformation.get('storeCategoryTranslations').controls; let i = index" [formGroup]="translation" [label]="translation.get('langCode').value">
+                <div class="container-fluid">        
+                    <div class="row">
+                        <div class="col-12">
+                            <mat-card>
+                                <mat-card-content class="input-form">
+                                    <mat-form-field>
+                                        <input  matInput
+                                                placeholder="{{'docs.field.name' | transloco}}"
+                                                #name
+                                                maxlength="500"
+                                                formControlName="name"/>
+                                        <mat-hint align="end" *ngIf="name.value.length>450">{{name.value.length}} / 500</mat-hint>
+                                    </mat-form-field>
+                                    <mat-form-field>
+                                        <input  matInput
+                                                placeholder="{{'docs.field.slug' | transloco}}"
+                                                #slug
+                                                maxlength="120"
+                                                formControlName="slug"/>
+                                        <mat-hint align="end" *ngIf="slug.value.length>100">{{slug.value.length}} / 120</mat-hint>
+                                    </mat-form-field>
+                                    <mat-form-field>
+                                        <input  matInput
+                                                placeholder="{{'docs.field.description' | transloco}}"
+                                                #description
+                                                maxlength="250"
+                                                formControlName="description"/>
+                                        <mat-hint align="end" *ngIf="description.value.length>220">{{description.value.length}} / 250</mat-hint>
+                                    </mat-form-field>
+                                </mat-card-content>
+                            </mat-card>
                         </div>
                     </div>
-                </form>
-            </div>
-            <div class="col-lg-4  col-md-12">
-                <mat-card class="grid-card">
-                    <div class="iconArea">
-                        <!-- <a *ngIf="mode!='select'" [routerLink]="['../../filesdoc', block.id ]"> -->
-                            <img *ngIf="productCategory && productCategory.image" (click)="showImage()" class="file_icon" [src]="imageToShow" width=100%>
-                            <img *ngIf="productCategory && productCategory.image == null" class="file_icon" src="{{noImageAddress}}" height=100%>
-                        <!-- </a> -->
-                    </div>
-                    <div *ngIf="productCategory && productCategory.image == null" style="position: absolute;bottom: 5px;left: 15px;">
-                        <mat-icon   
-                            class="hand add_circle"
-                            (click)="addFileInField()">
-                            add_circle
-                        </mat-icon>
-                    </div>
-                    <div *ngIf="productCategory && productCategory.image == null" class="hand" (click)="addFileInField()" style="position: absolute;bottom: 12px;left: 43px;">
-                        <span>{{'docs.tip.add_img' | transloco}}</span>
-                    </div>
-                    <div *ngIf="productCategory && productCategory.image != null" style="position: absolute;bottom: 5px;left: 15px;">
-                        <mat-icon
-                            class="hand del-file"
-                            (click)="deleteFileInField()">
-                            delete_forever
-                        </mat-icon> 
-                    </div>
-                    <div *ngIf="productCategory && productCategory.image != null" class="hand" (click)="deleteFileInField()" style="position: absolute;bottom: 12px;left: 43px;">
-                        <span>{{'docs.tip.del_img' | transloco}}</span>
-                    </div>
-                    <div *ngIf="productCategory && productCategory.image != null && !productCategory.image.anonyme_access" style="position: absolute;top: 5px;right: 5px;color:red">
-                        <mat-icon
-                            class="hand"
-                            matTooltip="{{'modules.tip.protected_file' | transloco}}"
-                            (click)="openFileCard(productCategory.image.id)">
-                            gpp_maybe
-                        </mat-icon> 
-                    </div>
-                </mat-card>
+                </div>
+            </mat-tab>
+        </mat-tab-group>
+
+
+
+
+
+        <div class="container-fluid" *ngIf = "!storeTranslationModeOn">        
+            <div class="row">
+                <div class="col-lg-8  col-md-12">
+                    <form [formGroup]="formBaseInformation">   
+                        <mat-form-field style="width: 100%">
+
+                        <mat-label>{{'docs.field.name' | transloco}} <span *ngIf="formBaseInformation.get('name').value==''||formBaseInformation.get('name').value==null" class="star">*</span></mat-label>
+                            <input  matInput
+                                    maxlength="50"
+                                    (input)="slugify()"
+                                    (change)="slugify()"
+                                    formControlName="name"/>  
+                                    <mat-hint align="start" *ngIf="formBaseInformation.get('name').touched">
+                                        <i *ngIf="formBaseInformation.get('name').value==''" class="form-invalid">{{'docs.error.field_miss' | transloco}}</i>
+                                    </mat-hint>
+                                    <mat-hint align="end" *ngIf="formBaseInformation.get('name').value.length>40">{{formBaseInformation.get('name').value.length}} / 50</mat-hint>
+                        </mat-form-field>
+                        
+                        <mat-form-field style="width: 100%">
+                            <mat-label>{{'docs.field.description' | transloco}} </mat-label>
+                            <input  matInput
+                                    maxlength="250"
+                                    formControlName="description"/>  
+                                    <mat-hint align="end" *ngIf="formBaseInformation.get('description').value.length>200">{{formBaseInformation.get('description').value.length}} / 250</mat-hint>
+                        </mat-form-field>
+                        
+                        
+
+                        <mat-form-field style="width: 100%"> 
+                            <mat-label>{{'modules.field.parent_catgr' | transloco}}</mat-label>
+                            <input type="text"
+                                [value]="getSelectedItems()"
+                                class="hand"
+                                #autoCompleteInput
+                                formControlName="parent_catgr"
+                                [readonly]="true"
+                                (click)="autoComplete.openPanel()"
+                                matInput
+                                [matAutocomplete]="auto">
+                            <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">    
+                                <mat-option [value] = '' (click)="selectNone()" style="background: white;">{{'modules.list.none' | transloco}}</mat-option>
+                                <!-- <mat-option [value]="data.parentCategoryId" *ngIf="+data.parentCategoryId>0">{{data.parentCategoryName}}</mat-option> -->
+                                <!-- <mat-option [value]="rt.id">{{rt.name}}</mat-option> -->
+
+
+                                <mat-tree [dataSource]="treeDataSource" [treeControl]="treeControl">
+                                    <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+                                        <button mat-icon-button disabled></button>
+                                        <span class="node" [ngClass]="{selected_node:node.id==productCategory.parentCategoryId}" (click)="selectNode(node)">{{node.name}}</span>
+                                        <!-- <button mat-icon-button (click)="addNewItem(node)"><mat-icon>add</mat-icon></button> -->
+                                    </mat-tree-node>
+                                    <mat-tree-node *matTreeNodeDef="let node;when: hasChild" matTreeNodePadding>
+                                        <button mat-icon-button matTreeNodeToggle
+                                                [attr.aria-label]="'toggle ' + node.name">
+                                        <mat-icon class="mat-icon-rtl-mirror">
+                                            {{treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
+                                        </mat-icon>
+                                        </button>
+                                        <span class="node" [ngClass]="{selected_node:node.id==productCategory.parentCategoryId}" (click)="selectNode(node)">{{node.name}}</span>
+                                    </mat-tree-node>
+                                </mat-tree>
+
+
+                            </mat-autocomplete>  
+                        </mat-form-field>
+                        <mat-form-field style="width: 100%; margin-top: -5px;">
+                            <mat-slide-toggle 
+                            formControlName="isStoreCategory"
+                            (change)="onChangeStoreCategory()"
+                            >{{'modules.field.store_ctg' | transloco}}</mat-slide-toggle>
+                            <input matInput hidden/>
+                        </mat-form-field>
+
+                        <mat-form-field  style="width: 100%;"
+                            *ngIf="formBaseInformation.get('isStoreCategory').value"
+                            matTooltip="{{'docs.tip.ctg_stores' | transloco}}">
+                            <mat-label>{{'docs.field.stores' | transloco}}</mat-label>
+                            <mat-select formControlName="storesIds" multiple>
+                                <mat-option *ngFor="let store of receivedStoresList" 
+                                    [value]="store.id">
+                                    {{store.name}}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <div class="row" *ngIf="formBaseInformation.get('isStoreCategory').value">
+                            <div class="col-lg-6  col-md-12"> 
+                                <mat-form-field style="width: 100%">
+                                    <mat-label>{{'modules.field.slug' | transloco}}</mat-label>
+                                    <input  matInput
+                                            maxlength="120"
+                                            formControlName="slug"/>  
+                                            <mat-hint align="end" *ngIf="formBaseInformation.get('slug').value.length>100">{{formBaseInformation.get('slug').value.length}} / 120</mat-hint>
+                                </mat-form-field>
+                            </div>
+                            <div class="col-lg-6  col-md-12"> 
+                                <mat-form-field style="width: 100%">
+                                        <mat-label>{{'modules.field.display' | transloco}}</mat-label>
+                                        <mat-select  formControlName="display">
+                                            <mat-option value="default">{{'modules.list.default' | transloco}}</mat-option>
+                                            <mat-option value="products">{{'modules.list.products' | transloco}}</mat-option>
+                                            <mat-option value="subcategories">{{'modules.list.subcategories' | transloco}}</mat-option>
+                                            <mat-option value="both">{{'modules.list.both' | transloco}}</mat-option>
+                                        </mat-select>  
+                                </mat-form-field>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-lg-4  col-md-12">
+                    <mat-card class="grid-card">
+                        <div class="iconArea">
+                            <!-- <a *ngIf="mode!='select'" [routerLink]="['../../filesdoc', block.id ]"> -->
+                                <img *ngIf="productCategory && productCategory.image" (click)="showImage()" class="file_icon" [src]="imageToShow" width=100%>
+                                <img *ngIf="productCategory && productCategory.image == null" class="file_icon" src="{{noImageAddress}}" height=100%>
+                            <!-- </a> -->
+                        </div>
+                        <div *ngIf="productCategory && productCategory.image == null" style="position: absolute;bottom: 5px;left: 15px;">
+                            <mat-icon   
+                                class="hand add_circle"
+                                (click)="addFileInField()">
+                                add_circle
+                            </mat-icon>
+                        </div>
+                        <div *ngIf="productCategory && productCategory.image == null" class="hand" (click)="addFileInField()" style="position: absolute;bottom: 12px;left: 43px;">
+                            <span>{{'docs.tip.add_img' | transloco}}</span>
+                        </div>
+                        <div *ngIf="productCategory && productCategory.image != null" style="position: absolute;bottom: 5px;left: 15px;">
+                            <mat-icon
+                                class="hand del-file"
+                                (click)="deleteFileInField()">
+                                delete_forever
+                            </mat-icon> 
+                        </div>
+                        <div *ngIf="productCategory && productCategory.image != null" class="hand" (click)="deleteFileInField()" style="position: absolute;bottom: 12px;left: 43px;">
+                            <span>{{'docs.tip.del_img' | transloco}}</span>
+                        </div>
+                        <div *ngIf="productCategory && productCategory.image != null && !productCategory.image.anonyme_access" style="position: absolute;top: 5px;right: 5px;color:red">
+                            <mat-icon
+                                class="hand"
+                                matTooltip="{{'modules.tip.protected_file' | transloco}}"
+                                (click)="openFileCard(productCategory.image.id)">
+                                gpp_maybe
+                            </mat-icon> 
+                        </div>
+                    </mat-card>
+                </div>
             </div>
         </div>
+
+
+
+
+        <!-- <code><pre>{{formBaseInformation.value | json}}</pre></code> -->
     </mat-card-content> 
 </mat-card>
 
@@ -214,7 +287,6 @@
                 </div>
             </div>
      </div>
-
     </mat-card-content> 
 </mat-card>
     

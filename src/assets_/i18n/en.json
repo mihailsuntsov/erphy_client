@@ -135,7 +135,8 @@
                 "usergroup":"Roles",
                 "accounts":"Bank accounts",
 
-                "prodattr":"Product attributes"
+                "prodattr":"Product attributes",
+                "stores":"Online-stores"
             }
         }
     }

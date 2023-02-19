@@ -193,7 +193,8 @@
         "name_full":    "Full name",
         "code_lit":     "Letter code",
         "code_num":     "Numeral code",
-        "acc_currency": "Accounting currency"
+        "acc_currency": "Accounting currency",
+        "lang_code":    "Language"
     },
     "bottom":{
         "founded":      "Founded",
@@ -361,7 +362,8 @@
         "with":         "with",
         "currencies":   "currencies",
         "accounts":     "bank accounts",
-        "productattr":  "product attributes"
+        "productattr":  "product attributes",
+        "stores":       "online-stores"
     },
     "indicators":{
         "revenue":      "Revenue",

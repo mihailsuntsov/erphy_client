@@ -1,6 +1,6 @@
 import { Component, OnInit , Inject} from '@angular/core';
 import {MatDialogRef, MAT_DIALOG_DATA} from '@angular/material/dialog';
-import { Validators, UntypedFormGroup, UntypedFormControl} from '@angular/forms';
+import { Validators, UntypedFormGroup, UntypedFormControl, UntypedFormArray, UntypedFormBuilder} from '@angular/forms';
 import { HttpClient} from '@angular/common/http';
 import { MatSnackBar} from '@angular/material/snack-bar';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
@@ -45,6 +45,7 @@ interface Image{
     parentCategoryId: number;
     companyId: number;
     isStoreCategory: boolean;
+    storesIds: number[]
   }
 
   interface ProductCategoriesTreeNode {
@@ -58,7 +59,17 @@ interface Image{
     name: string;
     level: number;
   }
-
+  
+  interface StoreCategoryTranslation{
+    description: string;
+    name: string;
+    slug: string;
+    langCode: string ;
+  }
+  interface IdAndName {
+    id: number;
+    name:string;
+  }
 @Component({
   selector: 'app-product-categories-dialog',
   templateUrl: './product-categories-dialog.component.html',
@@ -83,7 +94,8 @@ export class ProductCategoriesDialogComponent implements OnInit {
     slug: '',
     companyId: null,
     parentCategoryId: 0,
-    isStoreCategory: false
+    isStoreCategory: false,
+    storesIds: []
   };
   noImageAddress: string="../../../../../../assets_/images/no_foto.jpg"; // заглушка для главной картинки товара
 
@@ -103,12 +115,20 @@ export class ProductCategoriesDialogComponent implements OnInit {
   numRootCategories: number=0;
   numChildsOfSelectedCategory: number=0;
 
+  // Store Translations variables
+  storeDefaultLanguage: string = ''; // default language from Company settings ( like EN )
+  storeLanguagesList: string[] = [];  // the array of languages from all stores like ["EN","RU", ...]
+  storeCategoryTranslations: StoreCategoryTranslation[]=[]; // the list of translated categories data
+  storeTranslationModeOn = false; // translation mode ON
+  // Category-Stores variables
+  receivedStoresList:IdAndName[]=[];//an array to get a list of online stores
 
   constructor(
     public dialogRef: MatDialogRef<ProductCategoriesDialogComponent>,
     private _snackBar: MatSnackBar,
     public MessageDialog: MatDialog,
     public ConfirmDialog: MatDialog,
+    private _fb: UntypedFormBuilder,
     public dialogAddFiles: MatDialog,
     public service:TranslocoService,
     private http: HttpClient,
@@ -139,6 +159,8 @@ export class ProductCategoriesDialogComponent implements OnInit {
       display: new UntypedFormControl       ('default',[]),
       isStoreCategory:new UntypedFormControl(false,[]),
       parent_catgr: new UntypedFormControl  (translate('modules.list.none'),[]),
+      storeCategoryTranslations: new UntypedFormArray ([]) ,
+      storesIds: new UntypedFormControl     ([],[]),
     });
     if(this.data.actionType=='changeOrder'){
       if(this.data.parentCategoryId==0)
@@ -158,6 +180,8 @@ export class ProductCategoriesDialogComponent implements OnInit {
     if(this.data.categoryId !== undefined) this.getProductCategory(); // in a case of category edition 
     if(this.data.actionType=='create') {
       this.getProductCategoriesTrees(this.data.companyId);
+      this.getStoresLanguagesList();
+      this.getStoresList();
     }
   }
   
@@ -172,13 +196,88 @@ export class ProductCategoriesDialogComponent implements OnInit {
                             this.formBaseInformation.get('name').setValue(this.productCategory.name);
                             this.formBaseInformation.get('parentCategoryId').setValue(this.productCategory.parentCategoryId);
                             this.formBaseInformation.get('isStoreCategory').setValue(this.productCategory.isStoreCategory);
+                            this.formBaseInformation.get('storesIds').setValue(this.productCategory.storesIds);
                             if(this.productCategory.image) 
                               this.loadFileImage();
                             this.getProductCategoriesTrees(this.data.companyId);
+                            this.getStoresLanguagesList();
+                            this.getStoresList();
                         },
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
             );
   }
+
+
+  // ----------------------+----------------------  Store Translations start ----------------------+----------------------  
+  getStoresLanguagesList(){
+    this.http.get('/api/auth/getStoresLanguagesList?company_id='+this.data.companyId).subscribe(
+        (data) => {   
+                    this.storeLanguagesList = data as any[];
+                    this.getStoreDefaultLanguageOfCompany();
+                  },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+    );
+  }
+
+  getStoreDefaultLanguageOfCompany(){
+    this.http.get('/api/auth/getStoreDefaultLanguageOfCompany?company_id='+this.data.companyId).subscribe(
+        (data) => {   
+                    this.storeDefaultLanguage = data as string;
+                    if(+this.data.categoryId>0) this.getStoreCategoryTranslationsList(); else this.fillStoreCategoryTranslationsArray();
+                  },  
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+    );
+  }
+
+  getStoreCategoryTranslationsList(){
+    this.http.get('/api/auth/getStoreCategoryTranslationsList?category_id='+this.data.categoryId).subscribe(
+        (data) => {   
+                    this.storeCategoryTranslations = data as StoreCategoryTranslation[];
+                    this.fillStoreCategoryTranslationsArray();
+                  },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+    );
+  }
+
+  fillStoreCategoryTranslationsArray(){
+    const add = this.formBaseInformation.get('storeCategoryTranslations') as UntypedFormArray;
+    add.clear();
+    this.storeLanguagesList.forEach(langCode =>{
+      if(langCode!=this.storeDefaultLanguage)
+        add.push(this._fb.group(this.getCategoryTranslation(langCode)));
+    });
+    // alert(this.formBaseInformation.get('storeCategoryTranslations').value.length)
+  }
+
+  getCategoryTranslation(currLangCode:string):StoreCategoryTranslation {
+    let result:StoreCategoryTranslation = {
+      description:  '', 
+      name:         '', 
+      slug:         '',
+      langCode:     currLangCode
+    }
+    this.storeCategoryTranslations.forEach(translation =>{
+      if(currLangCode==translation.langCode)
+        result = {
+          description: translation.description, 
+          name: translation.name, 
+          slug: translation.slug, 
+          langCode: currLangCode
+        }
+    });
+    return result;
+  }
+
+  changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationModeOn=false; else this.storeTranslationModeOn=true;}
+// ----------------------+----------------------  Store Translations end ----------------------+---------------------- 
+// ----------------------+----------------------  Category-Stores start -----------------------+---------------------- 
+getStoresList(){
+  this.http.get('/api/auth/getStoresList?company_id='+this.data.companyId).subscribe(
+      (data) => {this.receivedStoresList = data as IdAndName[];},
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+  );
+}
+// ----------------------+----------------------  Category-Stores end -------------------------+---------------------- 
 
 
   clickBtnCreateProductCategory(){// Нажатие кнопки Создать
@@ -186,23 +285,16 @@ export class ProductCategoriesDialogComponent implements OnInit {
   }
 
   updateProductCategory(){
-    this.productCategory.name = this.formBaseInformation.get('name').value;
-    this.productCategory.description = this.formBaseInformation.get('description').value;
-    this.productCategory.slug = this.formBaseInformation.get('slug').value;
-    this.productCategory.display = this.formBaseInformation.get('display').value;
-    this.productCategory.isStoreCategory = this.formBaseInformation.get('isStoreCategory').value;
-    // this.productCategory.parentCategoryId = this.formBaseInformation.get('parentCategoryId').value;    
-    this.productCategory.display = this.formBaseInformation.get('display').value;
-    return this.http.post('/api/auth/updateProductCategory', this.productCategory).subscribe(
+    return this.http.post('/api/auth/updateProductCategory', this.formBaseInformation.value).subscribe(
         (data) => {   
           this.data.categoryId=data as number;
           switch(this.data.categoryId){
             case null:{// null возвращает если не удалось создать документ из-за ошибки
-              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.crte_doc_err',{name:''})}});
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.error_msg')}});
               break;
             }
             case -1:{//недостаточно прав
-              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm_creat',{name:''})}});
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});
               break;
             }
             case -210:{//Неуникальное имя Категории товаров в пределах одного родителя
@@ -224,13 +316,7 @@ export class ProductCategoriesDialogComponent implements OnInit {
   }
 
   createProductCategory(){
-    this.productCategory.name = this.formBaseInformation.get('name').value;
-    this.productCategory.description = this.formBaseInformation.get('description').value;
-    this.productCategory.slug = this.formBaseInformation.get('slug').value;
-    this.productCategory.isStoreCategory = this.formBaseInformation.get('isStoreCategory').value;
-    // this.productCategory.parentCategoryId = this.formBaseInformation.get('parentCategoryId').value;    
-    this.productCategory.display = this.formBaseInformation.get('display').value;
-    return this.http.post('/api/auth/insertProductCategory', this.productCategory)
+    return this.http.post('/api/auth/insertProductCategory', this.formBaseInformation.value)
     .subscribe(
         (data) => {   
                   this.data.categoryId=data as number;
