@@ -106,7 +106,10 @@
         "open_doc_rece":"Open the document from which the receipt was created",
         "set_prnt_menu":"Configure printing menu",
         "oi_not_compl": "Credit slip is not completed",
-        "ext_access":   "Open for external access"
+        "ext_access":   "Open for external access",
+        "group_do_ctgs":"Actions with category groups",
+        "ch_cat_stores":"Сhange online stores for selected categories",
+        "del_ctgrs":    "Delete selected categories with all their child categories"
     },
     "table":{
         "name":         "Name",
@@ -363,7 +366,9 @@
         "currencies":   "currencies",
         "accounts":     "bank accounts",
         "productattr":  "product attributes",
-        "stores":       "online-stores"
+        "stores":       "online-stores",
+        "ch_cat_stores":"Сhange online stores",
+        "del_ctgrs":    "Delete categories"
     },
     "indicators":{
         "revenue":      "Revenue",

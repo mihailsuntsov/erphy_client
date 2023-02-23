@@ -151,6 +151,7 @@ body {
 .mat-tooltip {
   /* background-color: darkblue !important; */
   font-size: 14px !important;
+  white-space: pre-line !important;
 }
 /* маленькие квадратные кнопки в документах (без надписи, только иконка) */
 .small-button{
@@ -193,3 +194,4 @@ body {
   background-color: #673ab7 !important;
   color: #fff;
 }
+/*linebreaks in mattooltip*/

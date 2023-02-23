@@ -15,18 +15,7 @@ table {width: 100%;}
     /* margin-top: 10px; */
 }
 
-/******* опции *******/
-.emptyspace{ flex-grow: 1;}
-li {list-style: none;}
-.div-100{
-    width:100%;
-    text-align: center;
-}
 .card-name{ flex-grow: 1; }
-.options-button{
- margin: 5px 15px 0
-}
-/**********************/
 .emptyspace{ flex-grow: 1;}
 .searchcategory{
     width:170px;
@@ -35,7 +24,9 @@ li {list-style: none;}
 .num-of-rows{flex-grow: 0;}
 .company-select{flex-grow: 1;}
 .depatrment-select{flex-grow: 1;}
-
+.button{
+    margin-left: 10px;
+}
 .pagination {
     display: flex;
     padding-left: 10px;
@@ -75,12 +66,13 @@ li {list-style: none;}
     cursor: default;
 }
 .doc-container {
-    position: absolute;
+    /* position: absolute;
     left: 0;
-    top: 0;
+    top: 0; */
     height: 100%;
     width:100%;
     border: 0px solid black;
+    min-height: 650px;
   }
   
 .categories-sidenav-content {
@@ -91,9 +83,6 @@ justify-content: center;
 .categories-sidenav {
 padding: 0px;
 min-width:150px;
-}
-.button{
-    margin-left: 10px;
 }
 .category-toolbar-icon {
     padding: 0 0;
@@ -119,6 +108,10 @@ min-width:150px;
 flex: 1 1 auto;
 
 }
+
+.chip-list {
+    width: 100%;
+}
 .spinner{
     position: absolute;
     top: 7%;
@@ -126,10 +119,4 @@ flex: 1 1 auto;
     margin-left: -25px;
     margin-top: 100px;
     z-index: 100;
-}
-.store-category-icon{
-    margin-left: -10px;
-    font-size: 12px;
-    line-height: 0.5;
-    color: rgba(0,0,0,.26);
 }

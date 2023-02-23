@@ -7,6 +7,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpClient } from '@angular/common/http';
 import { ProductCategoriesSelectComponent } from 'src/app/modules/trade-modules/product-categories-select/product-categories-select.component';
+import { StoresSelectComponent } from 'src/app/modules/trade-modules/stores-select/stores-select.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { LoadSpravService } from './loadsprav';
@@ -20,18 +21,28 @@ import { CommonUtilitesService } from '../../../../services/common_utilites.serv
 import { translate, TranslocoService } from '@ngneat/transloco'; //+++
 import { LabelsPrintDialogComponent } from 'src/app/modules/settings/labelprint-dialog/labelprint-dialog.component';
 import { TemplatesDialogComponent } from 'src/app/modules/settings/templates-dialog/templates-dialog.component';
+// import { FormControl } from '@angular/forms';
 
-interface FoodNode {
+// Tree interfaces and classess >>>>>>>>>>
+export class TodoItemNode {
   id: string;
+  children?: TodoItemNode[];
   name: string;
-  children?: FoodNode[];
   is_store_category: boolean;
 }
-interface ExampleFlatNode {
+// interface TreeNode {
+//   id: string;
+//   name: string;
+//   children?: TreeNode[];
+//   is_store_category: boolean;
+// }
+interface TodoItemFlatNode {
+  id: string;
   expandable: boolean;
   name: string;
-  level: number;
-}
+  level: number;}
+// Tree interfaces and classess <<<<<<<<<<<
+
 export interface DocTable {
   id: number;
   name: string;
@@ -63,7 +74,7 @@ interface TemplatesList{
   selector: 'app-products',
   templateUrl: './products.component.html',
   styleUrls: ['./products.component.css'],
-  providers: [QueryFormService,LoadSpravService,Cookie,ProductCategoriesSelectComponent,CommonUtilitesService] //+++
+  providers: [QueryFormService,LoadSpravService,Cookie,ProductCategoriesSelectComponent,StoresSelectComponent,CommonUtilitesService] //+++
 })
 export class ProductsComponent implements OnInit {
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
@@ -74,10 +85,11 @@ export class ProductsComponent implements OnInit {
   selection = new SelectionModel<DocTable>(true, []);//Class to be used to power selecting one or more options from a list.
   receivedCompaniesList: any [] = [];//массив для получения списка предприятий
   myCompanyId:number=0;//
-  TREE_DATA: FoodNode[]=[];
+  TREE_DATA: TodoItemNode[]=[];
   numRootCategories: number=0;
   numChildsOfSelectedCategory: number=0;
   selectedObjects: number[]=[]; // выбранные во всплывающем окне выбора категорий объекты (категории), для массового присвоения товарам
+  categoryStoresLoading=false;
 
   //переменные прав
   permissionsSet: any[];//сет прав на документ
@@ -142,10 +154,9 @@ export class ProductsComponent implements OnInit {
 
   //Управление чекбоксами
   checkedList:number[]=[]; //строка для накапливания id вида [2,5,27...]
-
-  //tree
-  private _transformer = (node: FoodNode, level: number) => {
-    
+  checkedCategoriesList:number[]=[]; //строка для накапливания id категорий вида [2,5,27...]
+  // Tree interfaces and classess >>>>>>>>>>
+  private _transformer = (node: TodoItemNode, level: number) => {
       return {
         expandable: !!node.children && node.children.length > 0,
         name: node.name,
@@ -154,10 +165,17 @@ export class ProductsComponent implements OnInit {
         is_store_category: node.is_store_category
       };
   }
-  treeControl = new FlatTreeControl<ExampleFlatNode>(node => node.level, node => node.expandable);
+  treeControl: FlatTreeControl<TodoItemFlatNode>;
   treeFlattener = new MatTreeFlattener(this._transformer, node => node.level, node => node.expandable, node => node.children);
-  treeDataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
-  hasChild = (_: number, node: ExampleFlatNode) => node.expandable;
+  treeDataSource: MatTreeFlatDataSource<TodoItemNode, TodoItemFlatNode>;
+  hasChild = (_: number, node: TodoItemFlatNode) => node.expandable; //_nodeData
+  categoryStoresList: IdAndName[]=[];
+  getLevel = (node: TodoItemFlatNode) => node.level;
+  isExpandable = (node: TodoItemFlatNode) => node.expandable;
+  getChildren = (node: TodoItemNode): TodoItemNode[] => node.children;
+  hasNoContent = (_: number, _nodeData: TodoItemFlatNode) => _nodeData.name === '';
+  checklistSelection = new SelectionModel<TodoItemFlatNode>(true /* multiple */);  /** The selection for checklist */
+  
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
   selectionFilterOptions = new SelectionModel<IdAndName>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние
   optionsIds: IdAndName [];
@@ -174,6 +192,7 @@ export class ProductsComponent implements OnInit {
     // private Cookie: Cookie,
     public MessageDialog: MatDialog,
     private productCategoriesSelectComponent: MatDialog,
+    private storesSelectComponent: MatDialog,
     public ConfirmDialog: MatDialog,
     private labelsPrintDialogComponent: MatDialog,
     private templatesDialogComponent: MatDialog, 
@@ -183,8 +202,10 @@ export class ProductsComponent implements OnInit {
     public cu: CommonUtilitesService, //+++
     private service: TranslocoService,) {//+++ 
       //this.treeDataSource.data = TREE_DATA;
+      this.treeControl = new FlatTreeControl<TodoItemFlatNode>(this.getLevel, this.isExpandable);
+      this.treeDataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
     }
-      
+
     ngOnInit() {
       this.sendingQueryForm.sortAsc="desc";
       this.sendingQueryForm.sortColumn="date_time_created_sort";
@@ -629,9 +650,8 @@ export class ProductsComponent implements OnInit {
       return this.http.post('/api/auth/searchProductCategory',body)
       .subscribe(
         (data) => {
-          this.treeDataSource.data=data as any [];
-          // this.recountNumRootCategories();//пересчитать кол-во корневых категорий (level=0)
-    
+          this.clearTreeCheckboxSelection();
+          this.treeDataSource.data=data as any [];          
         }, error => console.log(error)
         );
       } else this.getData();
@@ -668,7 +688,7 @@ export class ProductsComponent implements OnInit {
   }
 
   isStoreCategory(node:any){
-    console.log("node.is_store_category - "+node.id)
+    // console.log("node.is_store_category - "+node.id)
     return node.is_store_category;
   }
 //*****************************************************************************************************************************************/
@@ -679,7 +699,7 @@ export class ProductsComponent implements OnInit {
     //console.log("loadTrees");
     this.loadSpravService.getProductCategoriesTrees(this.sendingQueryForm.companyId).subscribe(
       (data) => {
-        this.treeDataSource.data=data as FoodNode [];
+        this.treeDataSource.data=data as TodoItemNode [];
         this.recountNumRootCategories();//пересчитать кол-во корневых категорий (level=0)
         if(+this.sendingQueryForm.selectedNodeId>0){
           this.expandParents(this.getNodeById(+this.sendingQueryForm.selectedNodeId));
@@ -691,13 +711,12 @@ export class ProductsComponent implements OnInit {
     //console.log("loadTrees and open node");
     this.loadSpravService.getProductCategoriesTrees(this.sendingQueryForm.companyId).subscribe(
       (data) => {
-        this.treeDataSource.data=data as FoodNode [];
+        this.treeDataSource.data=data as TodoItemNode [];
         this.expandWayToNodeAndItsChildrensByIndex(this.getNodeIndexById(nodeId));
         this.recountNumRootCategories();//пересчитать кол-во корневых категорий (level=0)
       }, error => console.log(error)
     );
   }
-
   expandParents(node: any) {
     //console.log("expanding Carrots:"+node.name);
     const parent = this.getParent(node);
@@ -786,6 +805,105 @@ export class ProductsComponent implements OnInit {
     //console.log("this.numChildsOfSelectedCategory: "+this.numChildsOfSelectedCategory);
   }
 
+  openDialogStoresSelect(){
+    const dialogSettings = this.storesSelectComponent.open(StoresSelectComponent, {
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      width: '800px', 
+      minHeight: '650px',
+      data:
+      { //отправляем в диалог:
+        companyId:  +this.sendingQueryForm.companyId, //предприятие, по которому будут запрашиваться список магазинов
+      },
+    });
+    dialogSettings.afterClosed().subscribe(result => {
+      if(result){
+        this.selectedObjects=[];
+        result.map(i => {
+          this.selectedObjects.push(i.id);
+        });
+        let checkedCategoriesIds:number[]=[];
+        this.checklistSelection.selected.forEach(m =>{
+          checkedCategoriesIds.push(+m.id)
+        })
+        this.setStoresToCategory(checkedCategoriesIds);
+      }
+    });
+  }
+  setStoresToCategory(checkedCategoriesIds:number[]){
+    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+      width: '400px',
+      data:
+      { 
+        head: translate('menu.dialogs.cat_adding'), //+++
+        query: translate('menu.dialogs.q_save_p_cat'),
+        warning: translate('menu.dialogs.save_p_cat_ad'),
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      const body = {"setOfLongs2":  checkedCategoriesIds,     // categories ids
+                    "setOfLongs1":  this.selectedObjects, // stores ids
+                    "yesNo":        result==1?true:false,
+                    "id":           this.sendingQueryForm.companyId
+      };
+      
+      return this.http.post('/api/auth/setStoresToCategories', body).subscribe(
+          (data) => {   
+            this.openSnackBar(translate('menu.msg.sep_prod_cat'), translate('menu.msg.close')); //+++
+            this.clearTreeCheckboxSelection();
+            this.loadTrees();
+          },
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+      );
+    });      
+  }
+  clickDeleteProductCategories(): void {
+    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+      width: '400px',
+      data:
+      { 
+        head: translate('menu.dialogs.deleting_ctgs'), //+++
+        query: translate('menu.dialogs.q_del_ctgs',{name: this.sendingQueryForm.selectedNodeName}),
+        warning: translate('menu.dialogs.del_ctg_f_wrn',{name:this.cu.cap(translate('menu.docs.products'))}),
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){
+        let checkedCategoriesIds:number[]=[];
+        this.checklistSelection.selected.forEach(m =>{
+          checkedCategoriesIds.push(+m.id)
+        });
+        this.deleteProductCategories(checkedCategoriesIds);
+      }
+    });        
+  }
+
+  deleteProductCategories(checkedCategoriesIds:number[]){
+    const body = {setOfLongs1: checkedCategoriesIds}; 
+    return this.http.post('/api/auth/deleteProductCategories',body).subscribe(
+      (data) => {   
+        let result=data as any;
+        switch(result){
+          case 1:{
+          this.openSnackBar(translate('docs.msg.deletet_succs'), translate('menu.msg.close'));
+          this.clearTreeCheckboxSelection();
+          this.loadTrees();
+          this.resetSelectedCategory(true);
+          break;}
+          case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+          case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+        }
+                  
+                },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
+    );  
+  }
+
+  clearTreeCheckboxSelection(){
+    this.checklistSelection.deselect;
+    this.checklistSelection.clear();
+  }
+
   openDialogProductCategoriesSelect(){
     const dialogSettings = this.productCategoriesSelectComponent.open(ProductCategoriesSelectComponent, {
       maxWidth: '95vw',
@@ -834,6 +952,101 @@ export class ProductsComponent implements OnInit {
         );
     });      
   }
+
+  getCategoryStoresList(categoryId: number){
+      this.categoryStoresList=[];
+      this.categoryStoresLoading=true;
+      this.http.get('/api/auth/getCategoryStoresList?category_id='+categoryId).subscribe(
+        (data) => {
+          this.categoryStoresLoading=false;
+          this.categoryStoresList = data as IdAndName[];
+        },
+        error => {this.categoryStoresLoading=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+      );
+  }
+
+  /** Whether all the descendants of the node are selected. */
+  descendantsAllSelected(node: TodoItemFlatNode): boolean {
+    try{
+      const descendants = this.treeControl.getDescendants(node);
+      const descAllSelected =
+        descendants.length > 0 &&
+        descendants.every(child => {
+          return this.checklistSelection.isSelected(child);
+        });
+      return descAllSelected;
+    } catch(e) {return false;}
+  }
+
+  /** Whether part of the descendants are selected */
+  descendantsPartiallySelected(node: TodoItemFlatNode): boolean {
+    try{
+        const descendants = this.treeControl.getDescendants(node);
+        const result = descendants.some(child => this.checklistSelection.isSelected(child));
+        return result && !this.descendantsAllSelected(node);
+    } catch(e) {return false;}
+  }
+
+  /** Toggle the to-do item selection. Select/deselect all the descendants node */
+  todoItemSelectionToggle(node: TodoItemFlatNode): void {
+    this.checklistSelection.toggle(node);
+    const descendants = this.treeControl.getDescendants(node);
+    this.checklistSelection.isSelected(node)
+      ? this.checklistSelection.select(...descendants)
+      : this.checklistSelection.deselect(...descendants);
+
+    // Force update for the parent
+    descendants.forEach(child => this.checklistSelection.isSelected(child));
+    this.checkAllParentsSelection(node);
+  }
+
+  /** Toggle a leaf to-do item selection. Check all the parents to see if they changed */
+  todoLeafItemSelectionToggle(node: TodoItemFlatNode): void {
+    this.checklistSelection.toggle(node);
+    this.checkAllParentsSelection(node);
+  }
+
+  /* Checks all the parents when a leaf node is selected/unselected */
+  checkAllParentsSelection(node: TodoItemFlatNode): void {
+    let parent: TodoItemFlatNode | null = this.getParentNode(node);
+    while (parent) {
+      this.checkRootNodeSelection(parent);
+      parent = this.getParentNode(parent);
+    }
+  }
+
+  /** Check root node checked state and change it accordingly */
+  checkRootNodeSelection(node: TodoItemFlatNode): void {
+    const nodeSelected = this.checklistSelection.isSelected(node);
+    const descendants = this.treeControl.getDescendants(node);
+    const descAllSelected =
+      descendants.length > 0 &&
+      descendants.every(child => {
+        return this.checklistSelection.isSelected(child);
+      });
+    if (nodeSelected && !descAllSelected) {
+      this.checklistSelection.deselect(node);
+    } else if (!nodeSelected && descAllSelected) {
+      this.checklistSelection.select(node);
+    }
+  }
+
+  /* Get the parent node of a node */
+  getParentNode(node: TodoItemFlatNode): TodoItemFlatNode | null {
+    const currentLevel = this.getLevel(node);
+    if (currentLevel < 1) {
+      return null;
+    }
+    const startIndex = this.treeControl.dataNodes.indexOf(node) - 1;
+    for (let i = startIndex; i >= 0; i--) {
+      const currentNode = this.treeControl.dataNodes[i];
+      if (this.getLevel(currentNode) < currentLevel) {
+        return currentNode;
+      }
+    }
+    return null;
+  }
+
 //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
   resetOptions(){
     this.displayingDeletedDocs=false;
