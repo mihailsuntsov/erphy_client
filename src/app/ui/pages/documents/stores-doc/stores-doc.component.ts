@@ -359,10 +359,22 @@ onDefaultCreatorSearchValueChanges(){
       if(this.myCompanyId==company.id) myCompany={id:company.id, name:company.name}});
       this.receivedCompaniesList=[];
       this.receivedCompaniesList.push(myCompany);
-    }
+    } 
     this.setDefaultCompany();
   }
-
+  onCompanyChange(){
+    this.searchDefaultCustomerCtrl.reset();
+    this.searchDefaultCreatorCtrl.reset();
+    this.formBaseInformation.get('store_price_type_regular').setValue('');
+    this.formBaseInformation.get('store_price_type_sale').setValue('');
+    this.formBaseInformation.get('store_orders_department_id').setValue(null);
+    this.formBaseInformation.get('store_default_creator_id').setValue(null);
+    this.formBaseInformation.get('store_default_customer_id').setValue(null);   
+    this.formBaseInformation.get('storeDepartments').setValue([]);    
+    this.getPriceTypesList();
+    this.getDepartmentsList();   
+    this.refreshPermissions();
+  }
   getDocumentValuesById(){
     this.http.get('/api/auth/getStoresValuesById?id='+this.id)
         .subscribe(

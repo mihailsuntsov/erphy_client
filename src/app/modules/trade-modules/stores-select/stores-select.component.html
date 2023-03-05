@@ -1,7 +1,7 @@
 <mat-card class="card" *transloco="let t">
 
     <mat-card-title class="flex">
-        <div class="card-name">{{('modules.card.cat_select' | transloco)}}</div>
+        <div class="card-name">{{('modules.card.str_select' | transloco)}}</div>
         <button 
             mat-raised-button 
             (click)="applySelect()"
@@ -51,7 +51,7 @@
         </div>
         <mat-card class="card" *ngIf="selectedObjects.length>0">
             <mat-card-title class="flex">
-                <div class="card-name" style="font-size: 20px;">{{('modules.card.cat_selectd' | transloco)}}</div>
+                <div class="card-name" style="font-size: 20px;">{{('modules.card.str_selectd' | transloco)}}</div>
             </mat-card-title>
             <mat-card-content>
                 <mat-form-field class="chip-list" appearance="fill">

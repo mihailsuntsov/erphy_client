@@ -98,7 +98,7 @@ export class ProductCategoriesDialogComponent implements OnInit {
     storesIds: []
   };
   noImageAddress: string="../../../../../../assets_/images/no_foto.jpg"; // заглушка для главной картинки товара
-
+  parentAndChildsIds: number[]=[];
   //Categories tree   
   private _transformer = (node: ProductCategoriesTreeNode, level: number) => {
     return {
@@ -301,8 +301,16 @@ getStoresList(){
               this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.pc_cat_name_uq')}});
               break;
             }
-            case -212:{//Неуникальный url-псевдоним (slug) Категории товаров в пределах одного предприятия
+            case -207:{//Неуникальный url-псевдоним (slug) Категории товаров в пределах одного родителя
               this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.pc_cat_slug_uq')}});
+              break;
+            }
+            case -209:{//Неуникальное имя Категории товаров в пределах одного родителя в одном из переводов
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.pc_cat_tr_name_uq')}});
+              break;
+            }
+            case -208:{//Неуникальный url-псевдоним Категории товаров в пределах одного родителя в одном из переводов
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.pc_cat_tr_slug_uq')}});
               break;
             }
             default:{// Документ успешно создался в БД 
@@ -334,16 +342,23 @@ getStoresList(){
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.pc_cat_name_uq')}});
                       break;
                     }
-                    case -212:{//Неуникальный url-псевдоним (slug) Категории товаров в пределах одного предприятия
+                    case -207:{//Неуникальный url-псевдоним (slug) Категории товаров в пределах одного родителя
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.pc_cat_slug_uq')}});
+                      break;
+                    }
+                    case -209:{//Неуникальное имя Категории товаров в пределах одного родителя в одном из переводов
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.pc_cat_tr_name_uq')}});
+                      break;
+                    }
+                    case -208:{//Неуникальный url-псевдоним Категории товаров в пределах одного родителя в одном из переводов
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.pc_cat_tr_slug_uq')}});
                       break;
                     }
                     default:{// Документ успешно создался в БД 
                       this.openSnackBar(translate('modules.msg.cat_created'), translate('modules.button.close'));
                       this.dialogRef.close(this.data.categoryId);
                     }
-                  }
-                 
+                  }                 
                 },
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'), message:error.error}});},
     );
@@ -357,12 +372,14 @@ getStoresList(){
 
   onChangeStoreCategory(){
     // console.log(this.formBaseInformation.get('isStoreCategory').value)
-    if(this.formBaseInformation.get('isStoreCategory').value && this.formBaseInformation.get('slug').value == '')
-      this.slugify();
+    // if(this.formBaseInformation.get('isStoreCategory').value && this.formBaseInformation.get('slug').value == '')
+    //   this.slugify();
     if (!this.formBaseInformation.get('isStoreCategory').value)
       this.formBaseInformation.get('slug').setValue('');
   }
 
+  // !!! now the auto-slugify is off, because is there isn't in WooCommerce !!!
+  // WooCommerce has autoslug, if slug field is empty. Also, if DokioCRMm user wants to cpecify the slug, he can do it manually
   slugify(){
     this.formBaseInformation.get('slug').setValue(
       this.slugifyPipe.transform(this.formBaseInformation.get('name').value)
@@ -527,8 +544,8 @@ getStoresList(){
           // }
             // now need to delete the selected category and all its children categories to exclude the possibility of choose it
             // as a new parent category and the loop exceptions
-          if(this.productCategory.id) this.deleteNodesById(this.productCategory.id);
-            this.deleteNodeById(this.productCategory.id);
+          if(this.productCategory.id) this.deleteNodesByParentId(this.productCategory.id);
+            // this.deleteNodeById(this.productCategory.id);
         },
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
     );
@@ -536,18 +553,22 @@ getStoresList(){
 
   selectNode(node: any){
     this.productCategory.parentCategoryId=node.id;
-    this.autoComplete.closePanel();
+    this.autoComplete.closePanel();    
+    this.formBaseInformation.get('parent_catgr').setValue(this.getNodeNameById(node.id));
+    this.formBaseInformation.get('parentCategoryId').setValue(node.id);
   }
 
   selectNone(){
     this.productCategory.parentCategoryId=0;
     this.autoComplete.closePanel();
     this.formBaseInformation.get('parent_catgr').setValue(translate('modules.list.none'));
+    this.formBaseInformation.get('parentCategoryId').setValue(0);
   }
 
   getSelectedItems(): string {
-    if (!this.productCategory || !this.treeControl.dataNodes || this.productCategory.parentCategoryId == 0) return translate('modules.list.none');
-      return this.getNodeNameById(this.productCategory.parentCategoryId);
+    if (!this.productCategory || !this.treeControl.dataNodes || this.productCategory.parentCategoryId == 0) 
+      return translate('modules.list.none');
+    return this.getNodeNameById(this.productCategory.parentCategoryId);
   }
 
   getNodeId(node: any):number{
@@ -576,26 +597,48 @@ getStoresList(){
   }
 
 
-  deleteNodesById(id:number) {
+  doNodeHide(nodeId:number){
+    // console.log("this.parentAndChildsIds - "+this.parentAndChildsIds.toString());
+    // console.log("nodeId - "+nodeId+", doNodeShow - " + this.parentAndChildsIds.includes(nodeId));
+    return this.parentAndChildsIds.includes(nodeId);
+  }
+
+  deleteNodesByParentId(id:number) {
     this.http.get("/api/auth/getProductCategoryChildIds?id="+id)
     .subscribe(
       (data) => {   
         console.log("receivedProductCategoryChildIds: " + (data as number[]).toString());
-        var childIds =  data as number []; //get all childs
-        childIds.push(id); // adding parent
-        console.log("Before length: " + this.treeControl.dataNodes.length);
-        childIds.forEach(i => {
+        this.parentAndChildsIds =  data as number []; //get all childs
+        this.parentAndChildsIds.push(id); // adding parent
+        console.log("Before length: " + this.treeDataSource.data.length);
+        // childIds.forEach(i => {
           // console.log(i);
-          this.deleteNodeById(i);
-        });
+          // this.deleteNodeById(i);
+        // });
         
-        console.log("After length: " + this.treeControl.dataNodes.length);
+        console.log("After length: " + this.treeDataSource.data.length);
       },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
     );
-    
   }
-  
+
+  // removeItem(node: ProductCategoriesFlatNode) {
+  //   let parentNode = this.flatNodeMap.get(node);
+  //   let flatNode = this.dataSource.data[0].children;
+  //   for (let i = flatNode.length - 1; i >= 0; i--) {
+  //     if (flatNode[i].item === node.item) {
+
+  //       if (parentNode.children) {
+  //         //if you want to warn user
+  //       }
+
+  //       this.dataChange.value[0].children.splice(i, 1);
+  //       this.flatNodeMap.delete(node);
+  //       this.dataChange.next(this.data);
+  //     }
+  //   }
+  // }
+
   getProductCategoryChildIds(parentId:number){
     this.http.get("/api/auth/getProductCategoryChildIds?id="+parentId)
             .subscribe(

@@ -362,6 +362,7 @@ export class ProductsComponent implements OnInit {
   onCompanySelection(){
     Cookie.set('products_companyId',this.sendingQueryForm.companyId);
     this.resetSelectedCategory(false);
+    this.clearTreeCheckboxSelection();
     this.getData();
   }
   isAllSelected() {

@@ -89,7 +89,8 @@
                                             </mat-form-field>
                                             <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: +id>0}">
                                                 <mat-label>{{t('docs.field.company')}}</mat-label>
-                                                <mat-select  formControlName="company_id">                          
+                                                <mat-select  formControlName="company_id"
+                                                    (selectionChange)="onCompanyChange()">                          
                                                     <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
                                                             {{rt.name}}
                                                     </mat-option> 

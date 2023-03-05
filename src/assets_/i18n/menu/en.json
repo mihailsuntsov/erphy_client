@@ -274,7 +274,9 @@
         "restore":      "Restore",
         "share_ex":     "External access",
         "share_ex_y":   "Allow external access",
-        "share_ex_n":   "Deny external access"
+        "share_ex_n":   "Deny external access",
+        "ch_cat_stores":"Edit Online stores",
+        "del_ctgrs":    "Delete categories"
     },
     "docs":{
         "roles":        "roles",

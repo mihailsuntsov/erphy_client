@@ -2,6 +2,15 @@
     <mat-card-title class="flex">
         <div class="card-name">{{data.docName}}</div>
         <button 
+            *ngIf="formBaseInformation.get('isStoreCategory').value && formBaseInformation.get('storeCategoryTranslations').value.length>0"
+            (click)="changeTranslationMode()"
+            mat-raised-button 
+            matTooltip="{{'docs.tip.transl_mode' | transloco}}"
+            [color]="storeTranslationModeOn?'accent':'primary'"
+            class="button small-button">
+            <i class="material-icons">translate</i>
+        </button>
+        <button 
             mat-raised-button 
             [style.display]="data.actionType=='create'?'block':'none'"
             (click)="clickBtnCreateProductCategory()" 
@@ -10,15 +19,6 @@
             color="primary"
             class="button small-button">
             <i class="material-icons">done</i>
-        </button>
-        <button 
-            *ngIf="formBaseInformation.get('isStoreCategory').value && formBaseInformation.get('storeCategoryTranslations').value.length>0"
-            (click)="changeTranslationMode()"
-            mat-raised-button 
-            matTooltip="{{'docs.tip.transl_mode' | transloco}}"
-            [color]="storeTranslationModeOn?'accent':'primary'"
-            class="button small-button">
-            <i class="material-icons">translate</i>
         </button>
         <button 
             mat-raised-button 
@@ -95,8 +95,6 @@
                         <mat-label>{{'docs.field.name' | transloco}} <span *ngIf="formBaseInformation.get('name').value==''||formBaseInformation.get('name').value==null" class="star">*</span></mat-label>
                             <input  matInput
                                     maxlength="50"
-                                    (input)="slugify()"
-                                    (change)="slugify()"
                                     formControlName="name"/>  
                                     <mat-hint align="start" *ngIf="formBaseInformation.get('name').touched">
                                         <i *ngIf="formBaseInformation.get('name').value==''" class="form-invalid">{{'docs.error.field_miss' | transloco}}</i>
@@ -132,19 +130,19 @@
 
 
                                 <mat-tree [dataSource]="treeDataSource" [treeControl]="treeControl">
-                                    <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
-                                        <button mat-icon-button disabled></button>
-                                        <span class="node" [ngClass]="{selected_node:node.id==productCategory.parentCategoryId}" (click)="selectNode(node)">{{node.name}}</span>
+                                    <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding [ngStyle]="(doNodeHide(node.id))?{'display': 'none'}:{}">
+                                        <button mat-icon-button disabled *ngIf="!doNodeHide(node.id)"></button>
+                                        <span  *ngIf="!doNodeHide(node.id)"class="node" [ngClass]="{selected_node:node.id==productCategory.parentCategoryId}" (click)="selectNode(node)">{{node.name}}</span>
                                         <!-- <button mat-icon-button (click)="addNewItem(node)"><mat-icon>add</mat-icon></button> -->
                                     </mat-tree-node>
-                                    <mat-tree-node *matTreeNodeDef="let node;when: hasChild" matTreeNodePadding>
-                                        <button mat-icon-button matTreeNodeToggle
+                                    <mat-tree-node *matTreeNodeDef="let node;when: hasChild" matTreeNodePadding [ngStyle]="(doNodeHide(node.id))?{'display': 'none'}:{}">
+                                        <button  *ngIf="!doNodeHide(node.id)" mat-icon-button matTreeNodeToggle
                                                 [attr.aria-label]="'toggle ' + node.name">
-                                        <mat-icon class="mat-icon-rtl-mirror">
+                                            <mat-icon class="mat-icon-rtl-mirror">
                                             {{treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
                                         </mat-icon>
                                         </button>
-                                        <span class="node" [ngClass]="{selected_node:node.id==productCategory.parentCategoryId}" (click)="selectNode(node)">{{node.name}}</span>
+                                        <span  *ngIf="!doNodeHide(node.id)" class="node" [ngClass]="{selected_node:node.id==productCategory.parentCategoryId}" (click)="selectNode(node)">{{node.name}}</span>
                                     </mat-tree-node>
                                 </mat-tree>
 

@@ -1,7 +1,7 @@
 import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
-import { UntypedFormGroup, Validators, UntypedFormControl, UntypedFormArray } from '@angular/forms';
+import { UntypedFormGroup, Validators, UntypedFormControl, UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
@@ -13,6 +13,12 @@ import { SlugifyPipe } from 'src/app/services/slugify.pipe';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ProductAttributeTermsComponent } from 'src/app/modules/trade-modules/product-attribute-terms/product-attribute-terms.component';
 
+interface StoreAttributeTranslation{
+  // description: string;
+  name: string;
+  slug: string;
+  langCode: string ;
+}
 interface docResponse {//интерфейс для получения ответа в методе getProductAttributeTableById
   id: number;
   company: string;
@@ -31,6 +37,8 @@ interface docResponse {//интерфейс для получения ответ
   order_by: string;
   has_archives: boolean;
   is_deleted: boolean;
+  storeAttributeTranslations: StoreAttributeTranslation[];
+  storesIds: number[];
 }
 interface AttributeTerm{
   id: number;
@@ -77,7 +85,14 @@ export class ProductAttributeDocComponent implements OnInit {
 
   statusColor: string;
   // productattributesList : productattributesList [] = []; //массив для получения всех статусов текущего документа
-  
+
+  // Store Translations variables
+  storeDefaultLanguage: string = ''; // default language from Company settings ( like EN )
+  storeLanguagesList: string[] = [];  // the array of languages from all stores like ["EN","RU", ...]
+  storeAttributeTranslations: StoreAttributeTranslation[]=[]; // the list of translated categories data
+  storeTranslationModeOn = false; // translation mode ON
+  // Attribute-Stores variables
+  receivedStoresList:IdAndName[]=[];//an array to get a list of online stores
   @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
 
   constructor(
@@ -87,6 +102,7 @@ export class ProductAttributeDocComponent implements OnInit {
     private MessageDialog: MatDialog,
     private loadSpravService:   LoadSpravService,
     private _router:Router,
+    private _fb: UntypedFormBuilder,
     public ConfirmDialog: MatDialog,
     private slugifyPipe: SlugifyPipe,
     private _snackBar: MatSnackBar) { 
@@ -105,6 +121,8 @@ export class ProductAttributeDocComponent implements OnInit {
       has_archives: new UntypedFormControl    ('false',[]),
       is_deleted: new UntypedFormControl      ('false',[]),
       terms:  new UntypedFormControl          ([],[]),//массив с названиями термсов атрибута
+      storeAttributeTranslations: new UntypedFormArray ([]) ,
+      storesIds: new UntypedFormControl       ([],[]),
     });
     this.formAboutDocument = new UntypedFormGroup({
       id: new UntypedFormControl                     ('',[]),
@@ -200,6 +218,80 @@ export class ProductAttributeDocComponent implements OnInit {
     console.log("allowToCreate - "+this.allowToCreate);
   }
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
+
+// ----------------------+----------------------  Store Translations start ----------------------+----------------------  
+getStoresLanguagesList(){
+  this.http.get('/api/auth/getStoresLanguagesList?company_id='+this.formBaseInformation.get('company_id').value).subscribe(
+      (data) => {   
+                  this.storeLanguagesList = data as any[];
+                  this.getStoreDefaultLanguageOfCompany();
+                },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+  );
+}
+
+getStoreDefaultLanguageOfCompany(){
+  this.http.get('/api/auth/getStoreDefaultLanguageOfCompany?company_id='+this.formBaseInformation.get('company_id').value).subscribe(
+      (data) => {   
+                  this.storeDefaultLanguage = data as string;
+                  // if(+this.id>0) 
+                  //   this.getStoreAttributeTranslationsList(); 
+                  // else 
+                    this.fillStoreAttributeTranslationsArray();
+                },  
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+  );
+}
+
+// getStoreAttributeTranslationsList(){
+//   this.http.get('/api/auth/getStoreAttributeTranslationsList?attribute_id='+this.id).subscribe(
+//       (data) => {   
+//                   this.storeAttributeTranslations = data as StoreAttributeTranslation[];
+//                   this.fillStoreAttributeTranslationsArray();
+//                 },
+//       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+//   );
+// }
+
+fillStoreAttributeTranslationsArray(){
+  const add = this.formBaseInformation.get('storeAttributeTranslations') as UntypedFormArray;
+  add.clear();
+  this.storeLanguagesList.forEach(langCode =>{
+    if(langCode!=this.storeDefaultLanguage)
+      add.push(this._fb.group(this.getAttributeTranslation(langCode)));
+  });
+  //  alert(this.formBaseInformation.get('storeAttributeTranslations').value.length);
+}
+
+getAttributeTranslation(currLangCode:string):StoreAttributeTranslation {
+  let result:StoreAttributeTranslation = {
+    // description:  '', 
+    name:         '', 
+    slug:         '',
+    langCode:     currLangCode
+  }
+  this.storeAttributeTranslations.forEach(translation =>{
+    if(currLangCode==translation.langCode)
+      result = {
+        // description: translation.description, 
+        name: translation.name, 
+        slug: translation.slug, 
+        langCode: currLangCode
+      }
+  });
+  return result;
+}
+
+changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationModeOn=false; else this.storeTranslationModeOn=true;}
+// ----------------------+----------------------  Store Translations end ----------------------+---------------------- 
+// ----------------------+----------------------  Attribute-Stores start -----------------------+---------------------- 
+getStoresList(){
+this.http.get('/api/auth/getStoresList?company_id='+this.formBaseInformation.get('company_id').value).subscribe(
+    (data) => {this.receivedStoresList = data as IdAndName[];},
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+);
+}
+// ----------------------+----------------------  Attribute-Stores end -------------------------+---------------------- 
   getData(){
     if(+this.id>0){
       this.getDocumentValuesById();
@@ -223,10 +315,19 @@ export class ProductAttributeDocComponent implements OnInit {
   setDefaultCompany(){
     if(this.id==0){
       this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+      this.getStoresLanguagesList();
+      this.getStoresList();
     }
     this.refreshPermissions();
   }
-
+  //при изменении предприятия необходимо загрузить все зависимые от него справочники, удалив выбранные по старому предприятию параметры 
+  //when changing an company, it is necessary to load all directories dependent on it, deleting the parameters selected for the old company
+  onCompanyChange(){
+    this.formBaseInformation.get('storesIds').setValue([]);
+    this.formBaseInformation.get('storeAttributeTranslations').clear();  
+    this.getStoresLanguagesList(); 
+    this.getStoresList();
+  }
   getDocumentValuesById(){
     this.http.get('/api/auth/getProductAttributeValuesById?id='+this.id)
         .subscribe(
@@ -250,7 +351,11 @@ export class ProductAttributeDocComponent implements OnInit {
                   this.formAboutDocument.get('company').setValue(documentValues.company);
                   this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
                   this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
+                  this.storeAttributeTranslations=documentValues.storeAttributeTranslations;
+                  this.formBaseInformation.get('storesIds').setValue(documentValues.storesIds);
                   this.getProductAttributeTermsList();
+                  this.getStoresLanguagesList();
+                  this.getStoresList();
                   
                 } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();
@@ -273,12 +378,20 @@ export class ProductAttributeDocComponent implements OnInit {
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm_creat',{name:translate('docs.docs.edizm')})}});
                       break;
                     }
-                    case -212:{//Неуникальный url-псевдоним (slug)
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.pc_cat_slug_uq')}});
+                    // case -211:{//-211 Неуникальное имя атрибута - (product_attributes_name_uq)
+                    //   this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.pc_name_uq')}});
+                    //   break;
+                    // }
+                    case -213:{//-213 Неуникальный url-псевдоним атрибута (slug) - (product_attributes_slug_uq)
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.attr_slug_uq')}});
                       break;
                     }
-                    case -214:{//Неуникальное имя
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.pc_name_uq')}});
+                    // case -212:{//Неуникальное имя атрибута в одном из переводов - (store_translate_attributes_name_uq)
+                    //   this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.pc_tr_name_uq')}});
+                    //   break;
+                    // }
+                    case -214:{// Неуникальный url-псевдоним атрибута (slug) в одном из переводов - (store_translate_attributes_slug_uq)
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.attr_tr_slug_uq')}});
                       break;
                     }
                     default:{// Документ успешно создался в БД 
@@ -309,12 +422,20 @@ export class ProductAttributeDocComponent implements OnInit {
                   this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}});
                   break;
                 }
-                case -212:{//Неуникальный url-псевдоним (slug)
-                  this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.pc_cat_slug_uq')}});
+                // case -211:{//-211 Неуникальное имя атрибута - (product_attributes_name_uq)
+                //   this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.pc_name_uq')}});
+                //   break;
+                // }
+                case -213:{//-213 Неуникальный url-псевдоним атрибута (slug) - (product_attributes_slug_uq)
+                  this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.attr_slug_uq')}});
                   break;
                 }
-                case -214:{//Неуникальное имя
-                  this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.pc_name_uq')}});
+                // case -212:{//Неуникальное имя атрибута в одном из переводов - (store_translate_attributes_name_uq)
+                //   this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.pc_tr_name_uq')}});
+                //   break;
+                // }
+                case -214:{// Неуникальный url-псевдоним атрибута (slug) в одном из переводов - (store_translate_attributes_slug_uq)
+                  this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.attr_tr_slug_uq')}});
                   break;
                 }
                 default:{// Документ успешно создался в БД 

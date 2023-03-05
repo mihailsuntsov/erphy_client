@@ -47,7 +47,8 @@
         "prod_prprts":  "Product properties",
         "description":  "Description",
         "orders":       "Orders",
-        "inventory":    "Inventory"
+        "inventory":    "Inventory",
+        "transl":       "Translations"
     },
     "field":{ 
         "-- COMMON":"--",
@@ -496,7 +497,11 @@
         "err_load_lnkd":"Error loading related documents",        
         "no_perm":      "Not enough permissions",
         "pc_cat_name_uq":"Category names of the same level must be unique",
-        "pc_cat_slug_uq":"Slug name is not unique",
+        "pc_cat_slug_uq":"Category Slug name is not unique",
+        "attr_slug_uq":"Attribute Slug name is not unique",
+        "attr_tr_slug_uq":"Translated attribute Slug name is not unique",
+        "pc_cat_tr_name_uq":"Translated category names of the same level must be unique ",
+        "pc_cat_tr_slug_uq":"Translated category Slug name is not unique",
         "pc_name_uq":   "Name is not unique",
         "deletet_succs":"Successfully deleted",
         "res_not_saved":"Some items did not have a reserve saved, because it exceeded the ordered or available quantity of products",
@@ -615,7 +620,8 @@
         "del_term":     "Deleting term",
         "del_term_f_attr":"Delete this term from the attribute?",
         "gen_new_skey":"Generate new secret key?",
-        "gen_new_skey_":"If you generate a new secret key, you should change \"DokioCRM Secret key\" field in the DokioStore plugin to the same value"
+        "gen_new_skey_":"If you generate a new secret key, you should change \"DokioCRM Secret key\" field in the DokioStore plugin to the same value",
+        "no_ctg_stores":"This category is not associated with any online store"
     },
     "button":{        
         "test_connct":  "Connection test",
