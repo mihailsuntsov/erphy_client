@@ -89,7 +89,7 @@ export class ProductAttributeDocComponent implements OnInit {
   // Store Translations variables
   storeDefaultLanguage: string = ''; // default language from Company settings ( like EN )
   storeLanguagesList: string[] = [];  // the array of languages from all stores like ["EN","RU", ...]
-  storeAttributeTranslations: StoreAttributeTranslation[]=[]; // the list of translated categories data
+  storeAttributeTranslations: StoreAttributeTranslation[]=[]; // the list of translated attributes data
   storeTranslationModeOn = false; // translation mode ON
   // Attribute-Stores variables
   receivedStoresList:IdAndName[]=[];//an array to get a list of online stores
@@ -526,6 +526,9 @@ this.http.get('/api/auth/getStoresList?company_id='+this.formBaseInformation.get
         termId:'',
         termSlug:'',
         termDescription:'',
+        storeDefaultLanguage: this.storeDefaultLanguage,
+        storeLanguagesList: this.storeLanguagesList,
+        storeTermTranslations: [],
       },
     });
     dialogRef.afterClosed().subscribe(result => {
@@ -534,17 +537,20 @@ this.http.get('/api/auth/getStoresList?company_id='+this.formBaseInformation.get
     });        
   }
 
-  clickBtnEditTerm(termId:string,termName:string,termSlug:string,termDescription:string): void {
+  clickBtnEditTerm(term: any): void {
     const dialogRef = this.productAttributeTermsDialog.open(ProductAttributeTermsComponent, {
       width: '800px', 
       data:
       { 
         actionType:"update",
         attribute_id: this.id,
-        termName: termName, 
-        termId:termId,
-        termSlug:termSlug,
-        termDescription:termDescription,
+        termName: term.name, 
+        termId:term.id,
+        termSlug:term.slug,
+        termDescription:term.description,
+        storeTermTranslations: term.storeTermTranslations,
+        storeDefaultLanguage: this.storeDefaultLanguage,
+        storeLanguagesList: this.storeLanguagesList,
         companyId: this.formBaseInformation.get('company_id').value,
       },
     });

@@ -125,8 +125,6 @@
                                                             <input  matInput
                                                                     [readonly]="!allowToUpdate"
                                                                     maxlength="120"
-                                                                    (input)="slugify()"
-                                                                    (change)="slugify()"
                                                                     #name
                                                                     formControlName="name"/> 
                                                             <mat-hint  align="start" *ngIf="formBaseInformation.get('name').touched && formBaseInformation.get('name').invalid">
@@ -135,7 +133,7 @@
                                                             <mat-hint align="end" *ngIf="name.value.length>100 && allowToUpdate">{{name.value.length}} / 120</mat-hint>
                                                         </mat-form-field>
                                                         <mat-form-field class="mat-form-field-100">
-                                                            <mat-label>{{t('docs.field.slug')}} <span *ngIf="formBaseInformation.get('slug').value==''" class="star">*</span></mat-label>
+                                                            <mat-label>{{t('docs.field.slug')}} <!--span *ngIf="formBaseInformation.get('slug').value==''" class="star">*</span--></mat-label>
                                                             <input  matInput
                                                                     [readonly]="!allowToUpdate"
                                                                     maxlength="120"
@@ -241,7 +239,7 @@
                                                             <div class="vertical-center">{{term.name}}</div><p *cdkDragPreview></p>
                                                         </div>
                                                         <div style="min-width: 65px; margin-top: 10px; cursor:pointer">
-                                                            <mat-icon  matTooltip="{{t('docs.tip.p_edit')}}" (click)="clickBtnEditTerm(term.id,term.name,term.slug,term.description)" class="icon" style="margin-right:10px;">edit</mat-icon>
+                                                            <mat-icon  matTooltip="{{t('docs.tip.p_edit')}}" (click)="clickBtnEditTerm(term)" class="icon" style="margin-right:10px;">edit</mat-icon>
                                                             <mat-icon matTooltip="{{t('docs.tip.delete')}}" class="icon" (click)="clickBtnDeleteTerm(term.id)">delete_forever</mat-icon>
                                                         </div>
                                                     </div>
