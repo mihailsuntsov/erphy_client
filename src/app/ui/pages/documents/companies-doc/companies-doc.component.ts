@@ -761,8 +761,6 @@ onDefaultCreatorSearchValueChanges(){
                 this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});
                 break;
               }
-              case -121:{// online-stores are not accepted by tariiff plan
-                {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('docs.msg.out_of_plan')+" ("+translate('docs.field.p_store')+")"}});break;}}
               default:{// Успешно
                 this.getData();
                 this.openSnackBar(translate('docs.msg.doc_sved_suc'),translate('docs.msg.close'));

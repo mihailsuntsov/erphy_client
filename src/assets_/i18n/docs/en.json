@@ -500,6 +500,8 @@
         "pc_cat_slug_uq":"Category Slug name is not unique",
         "attr_slug_uq":"Attribute Slug name is not unique",
         "attr_tr_slug_uq":"Translated attribute Slug name is not unique",
+        "term_tr_name_uq":"Translated term name is not unique",
+        "term_tr_slug_uq":"Translated term Slug name is not unique",
         "pc_cat_tr_name_uq":"Translated category names of the same level must be unique ",
         "pc_cat_tr_slug_uq":"Translated category Slug name is not unique",
         "pc_name_uq":   "Name is not unique",

@@ -110,6 +110,7 @@ interface docResponse {//интерфейс для получения ответ
   short_description_html: string; // custom HTML short description
   description_type: string;       // "editor" or "custom"
   short_description_type: string; // "editor" or "custom"
+  storeProductTranslations: StoreProductTranslation[];
   }
   interface SpravTaxesSet{
     id: number;
@@ -203,7 +204,7 @@ interface docResponse {//интерфейс для получения ответ
     output_order: number;         // порядок вывода наименований шаблонов в списке на печать
     type: string;                 // the type of template/ It can be: "document", "label"
     num_labels_in_row:number;     // quantity of labels in the each row
-}
+  }
 
   export interface DocTable {
     id: number;
@@ -238,6 +239,15 @@ interface docResponse {//интерфейс для получения ответ
     price_description: string;    
     is_store_price_type_regular: boolean;
     is_store_price_type_sale: boolean;
+  }
+  interface StoreProductTranslation{
+    name: string;
+    slug: string;
+    description: string;
+    descriptionHtml: string;
+    shortDescription: string;
+    shortDescriptionHtml: string;
+    langCode: string ;
   }
 @Component({
   selector: 'app-products-doc',
@@ -449,6 +459,12 @@ export class ProductsDocComponent implements OnInit {
   selectedCrosssellProducts:  IdAndName[]=[]; // выбранные cross-sell товары
   selectedGroupedProducts:  IdAndName[]=[]; // выбранные cross-sell товары
 
+  // Store Translations variables
+  storeDefaultLanguage: string = ''; // default language from Company settings ( like EN )
+  storeLanguagesList: string[] = [];  // the array of languages from all stores like ["EN","RU", ...]
+  storeProductTranslations: StoreProductTranslation[]=[]; // the list of translated product's data
+  storeTranslationModeOn = false; // translation mode ON
+
   // toolbar: [
   //   ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
   //   ['blockquote', 'code-block'],
@@ -512,7 +528,7 @@ export class ProductsDocComponent implements OnInit {
       productgroup: new UntypedFormControl      ('',[]),
       article: new UntypedFormControl      ('',[]),
       name: new UntypedFormControl      ('',[Validators.required]),
-      description: new UntypedFormControl      ('',[]),
+      description: new UntypedFormControl      ('',[Validators.maxLength(100000)]),
       selectedProductCategories:new UntypedFormControl      ([],[]),
       imagesIdsInOrderOfList:new UntypedFormControl      ([],[]),
       dfilesIdsInOrderOfList:new UntypedFormControl      ([],[]),
@@ -537,7 +553,7 @@ export class ProductsDocComponent implements OnInit {
       indivisible: new UntypedFormControl      (true,[]),
       productPricesTable: new UntypedFormArray([]),//массив с формами цен
 
-      short_description: new UntypedFormControl      ('',[]),
+      short_description: new UntypedFormControl      ('',[Validators.maxLength(100000)]),
       type: new UntypedFormControl      ('simple',[]),
       slug: new UntypedFormControl      ('',[]),
       featured: new UntypedFormControl      ('',[]),
@@ -572,10 +588,11 @@ export class ProductsDocComponent implements OnInit {
       // productAttributes: new UntypedFormControl([],[]),
       outofstock_aftersale:        new UntypedFormControl   (false,[]), // auto set product as out-of-stock after it has been sold
       label_description:  new UntypedFormControl      ('',[Validators.maxLength(2000)]),
-      description_html: new UntypedFormControl      ('',[Validators.maxLength(16000)]),       // custom HTML full description
-      short_description_html: new UntypedFormControl      ('',[Validators.maxLength(3000)]), // custom HTML short description
+      description_html: new UntypedFormControl      ('',[Validators.maxLength(100000)]),       // custom HTML full description
+      short_description_html: new UntypedFormControl      ('',[Validators.maxLength(100000)]), // custom HTML short description
       description_type: new UntypedFormControl      ('editor',[]),       // "editor" or "custom"
       short_description_type: new UntypedFormControl      ('editor',[]), // "editor" or "custom"
+      storeProductTranslations: new UntypedFormArray ([]) ,
     });
     this.formAboutDocument = new UntypedFormGroup({
       id: new UntypedFormControl      ('',[]),
@@ -738,6 +755,7 @@ refreshPermissions():boolean{
     }else{//если еще не создан - устанавливаем дефолтное предприятие для документа
       this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
       this.getSpravTaxes();//загрузка налогов
+      this.getStoresLanguagesList();
       this.getSpravSysEdizm();
       this.refreshPermissions();
     }
@@ -761,6 +779,64 @@ refreshPermissions():boolean{
     }
     this.setDefaultDates();
   }
+  // ----------------------+----------------------  Store Translations start ----------------------+----------------------  
+getStoresLanguagesList(){
+  this.http.get('/api/auth/getStoresLanguagesList?company_id='+this.formBaseInformation.get('company_id').value).subscribe(
+      (data) => {   
+                  this.storeLanguagesList = data as any[];
+                  this.getStoreDefaultLanguageOfCompany();
+                },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+  );
+}
+
+getStoreDefaultLanguageOfCompany(){
+  this.http.get('/api/auth/getStoreDefaultLanguageOfCompany?company_id='+this.formBaseInformation.get('company_id').value).subscribe(
+      (data) => {   
+                  this.storeDefaultLanguage = data as string;
+                  this.fillStoreProductTranslationsArray();
+                },  
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+  );
+}
+
+fillStoreProductTranslationsArray(){
+  const add = this.formBaseInformation.get('storeProductTranslations') as UntypedFormArray;
+  add.clear();
+  this.storeLanguagesList.forEach(langCode =>{
+    if(langCode!=this.storeDefaultLanguage)
+      add.push(this._fb.group(this.getProductTranslation(langCode)));
+  });
+  //  alert(this.formBaseInformation.get('storeProductTranslations').value.length);
+}
+
+getProductTranslation(currLangCode:string):StoreProductTranslation {
+  let result:StoreProductTranslation = {
+    name:         '', 
+    slug:         '',
+    langCode:     currLangCode,
+    description: '',
+    descriptionHtml: '',
+    shortDescription: '',
+    shortDescriptionHtml: ''
+  }
+  this.storeProductTranslations.forEach(translation =>{
+    if(currLangCode==translation.langCode)
+      result = {
+        name: translation.name, 
+        slug: translation.slug, 
+        langCode: currLangCode,
+        description: translation.description,
+        descriptionHtml: translation.descriptionHtml,
+        shortDescription: translation.shortDescription,
+        shortDescriptionHtml: translation.shortDescriptionHtml
+      }
+  });
+  return result;
+}
+
+changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationModeOn=false; else this.storeTranslationModeOn=true;}
+// ----------------------+----------------------  Store Translations end ----------------------+---------------------- 
   getDocumentValuesById(){
     const docId = {"id": this.id};
     this.http.post('/api/auth/getProductValues', docId)
@@ -832,6 +908,7 @@ refreshPermissions():boolean{
                   this.formBaseInformation.get('short_description_html').setValue(documentValues.short_description_html);  // custom HTML short description
                   this.formBaseInformation.get('description_type').setValue(documentValues.description_type);        // "editor" or "custom"
                   this.formBaseInformation.get('short_description_type').setValue(documentValues.short_description_type);  // "editor" or "custom"
+                  this.storeProductTranslations=documentValues.storeProductTranslations;
                   this.searchProductGroupsCtrl.setValue(documentValues.productgroup);
                   this.checkedList=documentValues.product_categories_id;
                   this.formProductHistory.companyId=this.formBaseInformation.get('company_id').value;
@@ -847,6 +924,7 @@ refreshPermissions():boolean{
                   this.getProductAttributes(); // product attributes that contain current product
                   this.getProductAttributesList(); // product attributes list from company registry
                   this.getCompanySettings();
+                  this.getStoresLanguagesList();
                   //!!!
                 } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();
@@ -1183,6 +1261,7 @@ refreshPermissions():boolean{
     this.loadTrees();
     this.getSpravTaxes(); 
     this.getSpravSysEdizm();
+    this.getStoresLanguagesList();
     this.formBaseInformation.get('product_code_free').setValue('');
     this.product_code_free_isReadOnly=true
   }

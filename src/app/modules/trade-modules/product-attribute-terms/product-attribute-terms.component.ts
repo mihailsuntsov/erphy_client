@@ -132,12 +132,20 @@ export class ProductAttributeTermsComponent implements OnInit {
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm_creat',{name:''})}});
                       break;
                     }
-                    case -214:{//Неуникальное имя термина в пределах одного аттрибута
+                    case -215:{//Неуникальное имя терма в пределах одного аттрибута
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.pc_name_uq')}});
                       break;
                     }
-                    case -212:{//Неуникальный url-псевдоним (slug) термина в пределах одного предприятия
+                    case -217:{//Неуникальный url-псевдоним (slug) терма в пределах одного атрибута
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.pc_cat_slug_uq')}});
+                      break;
+                    }
+                    case -216:{//Неуникальное имя терма в пределах одного аттрибута в одном из переводов
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.term_tr_name_uq')}});
+                      break;
+                    }
+                    case -218:{//Неуникальный url-псевдоним (slug) терма в пределах одного аттрибута в одном из переводов
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.term_tr_slug_uq')}});
                       break;
                     }
                     default:{// Документ успешно создался в БД 
@@ -166,12 +174,20 @@ export class ProductAttributeTermsComponent implements OnInit {
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm_creat',{name:''})}});
                       break;
                     }
-                    case -214:{//Неуникальное имя термина в пределах одного аттрибута
+                    case -215:{//Неуникальное имя терма в пределах одного аттрибута
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.pc_name_uq')}});
                       break;
                     }
-                    case -212:{//Неуникальный url-псевдоним (slug) термина в пределах одного предприятия
+                    case -217:{//Неуникальный url-псевдоним (slug) терма в пределах одного аттрибута
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.pc_cat_slug_uq')}});
+                      break;
+                    }
+                    case -216:{//Неуникальное имя терма в пределах одного аттрибута в одном из переводов
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.term_tr_name_uq')}});
+                      break;
+                    }
+                    case -218:{//Неуникальный url-псевдоним (slug) терма в пределах одного аттрибута в одном из переводов
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.term_tr_slug_uq')}});
                       break;
                     }
                     default:{// Документ успешно создался в БД 

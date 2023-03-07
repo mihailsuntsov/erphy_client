@@ -210,9 +210,7 @@ export class ProductAttributeDocComponent implements OnInit {
     this.allowToUpdate=((this.allowToUpdateAllCompanies)||(this.allowToUpdateMyCompany&&documentOfMyCompany))?true:false;
     this.allowToCreate=(this.allowToCreateAllCompanies || this.allowToCreateMyCompany)?true:false;
     
-    this.rightsDefined=true;//!!!
-    // console.log("myCompanyId - "+this.myCompanyId);
-    // console.log("documentOfMyCompany - "+documentOfMyCompany);
+    this.rightsDefined=true;
     console.log("allowToView - "+this.allowToView);
     console.log("allowToUpdate - "+this.allowToUpdate);
     console.log("allowToCreate - "+this.allowToCreate);
@@ -234,24 +232,11 @@ getStoreDefaultLanguageOfCompany(){
   this.http.get('/api/auth/getStoreDefaultLanguageOfCompany?company_id='+this.formBaseInformation.get('company_id').value).subscribe(
       (data) => {   
                   this.storeDefaultLanguage = data as string;
-                  // if(+this.id>0) 
-                  //   this.getStoreAttributeTranslationsList(); 
-                  // else 
-                    this.fillStoreAttributeTranslationsArray();
+                  this.fillStoreAttributeTranslationsArray();
                 },  
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
   );
 }
-
-// getStoreAttributeTranslationsList(){
-//   this.http.get('/api/auth/getStoreAttributeTranslationsList?attribute_id='+this.id).subscribe(
-//       (data) => {   
-//                   this.storeAttributeTranslations = data as StoreAttributeTranslation[];
-//                   this.fillStoreAttributeTranslationsArray();
-//                 },
-//       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
-//   );
-// }
 
 fillStoreAttributeTranslationsArray(){
   const add = this.formBaseInformation.get('storeAttributeTranslations') as UntypedFormArray;
@@ -260,12 +245,10 @@ fillStoreAttributeTranslationsArray(){
     if(langCode!=this.storeDefaultLanguage)
       add.push(this._fb.group(this.getAttributeTranslation(langCode)));
   });
-  //  alert(this.formBaseInformation.get('storeAttributeTranslations').value.length);
 }
 
 getAttributeTranslation(currLangCode:string):StoreAttributeTranslation {
   let result:StoreAttributeTranslation = {
-    // description:  '', 
     name:         '', 
     slug:         '',
     langCode:     currLangCode
@@ -273,7 +256,6 @@ getAttributeTranslation(currLangCode:string):StoreAttributeTranslation {
   this.storeAttributeTranslations.forEach(translation =>{
     if(currLangCode==translation.langCode)
       result = {
-        // description: translation.description, 
         name: translation.name, 
         slug: translation.slug, 
         langCode: currLangCode

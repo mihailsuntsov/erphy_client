@@ -362,16 +362,17 @@ export class StoresComponent implements OnInit {
   undeleteDocs(){
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
-    return this.http.post('/api/auth/undeleteStores', body) 
-    .subscribe(
-      (data) => {   
+    return this.http.post('/api/auth/undeleteStores', body).subscribe((data) => {   
         let result:number=data as number;
         switch(result){
           case 1:{this.getData();this.openSnackBar(translate('menu.msg.rec_success'), translate('menu.msg.close'));break;}  //+++
+          case -121:{// the quatity of online-stores is over of tariff plan, or online-stores are not accepted by tariiff plan
+            {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('docs.msg.out_of_plan')+" ("+translate('docs.field.p_store')+")"}});
+            break;}}
           case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
           case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
         }
-      },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
   }  
 
   deleteDocs(){

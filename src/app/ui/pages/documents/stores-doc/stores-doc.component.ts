@@ -422,12 +422,29 @@ onDefaultCreatorSearchValueChanges(){
     this.http.post('/api/auth/insertStores', this.formBaseInformation.value)
             .subscribe(
                 (data) =>   {
-                                this.createdDocId=data as string [];
+                  let result:number=data as number;
+                  switch(result){
+                    case null:{// null возвращает если не удалось сохранить документ из-за ошибки
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_of') + (translate('docs.msg._of_save')) + translate('docs.msg._of_doc',{name:translate('docs.docs.company')})}});
+                      break;
+                    }
+                    case -1:{//недостаточно прав
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});
+                      break;
+                    }
+                    case -121:{// the quatity of online-stores is over of tariff plan, or online-stores are not accepted by tariiff plan
+                      {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('docs.msg.out_of_plan')+" ("+translate('docs.field.p_store')+")"}});
+                      break;}
+                    }
+                    default:{// Успешно
+                      this.createdDocId=data as string [];
                                 this.id=+this.createdDocId[0];
                                 this.formBaseInformation.get('id').setValue(this.id);
                                 this.afterCreateDoc();
                                 this.openSnackBar(translate('docs.msg.doc_crtd_suc'),translate('docs.msg.close'));
-                            },
+                    }
+                  }
+                },
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
             );
   }
