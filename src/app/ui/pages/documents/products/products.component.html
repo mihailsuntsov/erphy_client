@@ -106,7 +106,6 @@ class="spinner"
                     </mat-checkbox>
                     <span class="node" [ngClass]="{selected_node:node.id==sendingQueryForm.selectedNodeId}" (click)="selectNode(node)">{{node.name}}</span>
                     <span *ngIf="node.is_store_category"><mat-icon class="store-category-icon" [matMenuTriggerFor]="basket" #tooltip="matTooltip" (mouseover)="getCategoryStoresList(node.id);" fontIcon="shopping_basket" matTooltip="{{t('docs.tip.store_ctg')}}"></mat-icon></span>
-                    <!-- <button mat-icon-button (click)="addNewItem(node)"><mat-icon>add</mat-icon></button> -->
                 </mat-tree-node>
                 <mat-tree-node *matTreeNodeDef="let node;when: hasChild" matTreeNodePadding>
                     <button mat-icon-button matTreeNodeToggle
@@ -115,9 +114,10 @@ class="spinner"
                         {{treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
                     </mat-icon>
                     </button>
-                    <mat-checkbox *ngIf="(allowCategoryDelete||allowCategoryUpdate)" [checked]="descendantsAllSelected(node)" style="margin-right: 10px;"
+                    <!--mat-checkbox *ngIf="(allowCategoryDelete||allowCategoryUpdate)" [checked]="descendantsAllSelected(node)" style="margin-right: 10px;"
                         [indeterminate]="descendantsPartiallySelected(node)"
-                        (change)="todoItemSelectionToggle(node)">
+                        (change)="todoItemSelectionToggle(node)"-->
+                        <mat-checkbox *ngIf="(allowCategoryDelete||allowCategoryUpdate)" [checked]="isNodeSelected(node)" style="margin-right: 10px;" (change)="todoItemSelectionToggle(node)">
                     </mat-checkbox>
                     <span class="node" [ngClass]="{selected_node:node.id==sendingQueryForm.selectedNodeId}" (click)="selectNode(node)">{{node.name}}</span>
                     <span *ngIf="node.is_store_category"><mat-icon class="store-category-icon" [matMenuTriggerFor]="basket" #tooltip="matTooltip" (mouseover)="getCategoryStoresList(node.id);" fontIcon="shopping_basket" matTooltip="{{t('docs.tip.store_ctg')}}"></mat-icon></span>

@@ -626,8 +626,8 @@
                                                                             <ng-container matColumnDef="price_name" [formArrayName]="'productPricesTable'">
                                                                                 <th mat-header-cell *matHeaderCellDef>{{t('docs.field.price_type')}}</th>
                                                                                 <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> 
-                                                                                    <span *ngIf="row.is_store_price_type_regular" class="store-category"><mat-icon class="store-category-icon" fontIcon="shopping_basket" matTooltip="{{t('docs.field.reg_price')}}" ></mat-icon></span>
-                                                                                    <span *ngIf="row.is_store_price_type_sale" class="store-category"><mat-icon class="store-category-icon" fontIcon="sell" matTooltip="{{t('docs.field.sale_price')}}" ></mat-icon></span>
+                                                                                    <!-- <span *ngIf="row.is_store_price_type_regular" class="store-category"><mat-icon class="store-category-icon" fontIcon="shopping_basket" matTooltip="{{t('docs.field.reg_price')}}" ></mat-icon></span> -->
+                                                                                    <!-- <span *ngIf="row.is_store_price_type_sale" class="store-category"><mat-icon class="store-category-icon" fontIcon="sell" matTooltip="{{t('docs.field.sale_price')}}" ></mat-icon></span> -->
                                                                                     <span>{{row.price_name}}</span>
                                                                                 </td>
                                                                                 <td mat-footer-cell *matFooterCellDef></td>
@@ -1179,7 +1179,7 @@
                                                                             <mat-hint align="end" *ngIf="formBaseInformation.get('button_text').value.length.length>50">{{formBaseInformation.get('button_text').value.length}} / 60</mat-hint>
                                                                         </mat-form-field>
                                                                         
-                                                                        <mat-form-field class="mat-form-field-100" *ngIf="formBaseInformation.get('type').value!='variable'">
+                                                                        <!--mat-form-field class="mat-form-field-100" *ngIf="formBaseInformation.get('type').value!='variable'">
                                                                             <mat-label>{{t('docs.field.reg_price')}}</mat-label>
                                                                             <input  matInput
                                                                                     formControlName="reg_price"
@@ -1218,7 +1218,7 @@
                                                                                         warning
                                                                                     </mat-icon> 
                                                                                 </div>
-                                                                        </mat-form-field>
+                                                                        </mat-form-field-->
                                                                         
                                                                         <mat-form-field  class="mat-form-field-100" *ngIf="formBaseInformation.get('type').value!='variable'">
                                                                             <input  matInput 

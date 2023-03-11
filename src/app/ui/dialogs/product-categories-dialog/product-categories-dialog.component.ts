@@ -315,7 +315,7 @@ getStoresList(){
             }
             default:{// Документ успешно создался в БД 
               this.openSnackBar(translate('modules.msg.cat_saved'), translate('modules.button.close'));
-                    this.dialogRef.close();
+                    this.dialogRef.close(1);
             }
           }
         },

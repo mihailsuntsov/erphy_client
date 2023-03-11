@@ -293,6 +293,7 @@ export class CustomersordersComponent implements OnInit {
     // this.displayedColumns.push('description');
     this.displayedColumns.push('company');
     this.displayedColumns.push('department');    
+    this.displayedColumns.push('store');    
     this.displayedColumns.push('creator');    
     this.displayedColumns.push('date_time_created');
   }

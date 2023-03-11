@@ -612,8 +612,9 @@ export class ProductsComponent implements OnInit {
       },
     });
     dialogRef.afterClosed().subscribe(result => {
-      this.loadTreesAndOpenNode(+this.sendingQueryForm.selectedNodeId);
-      this.resetSelectedCategory(true);
+      if(result==1)
+      this.loadTreesAndOpenNode(+this.sendingQueryForm.selectedNodeId); 
+      // this.resetSelectedCategory(true);
     });        
   }
 
@@ -967,6 +968,7 @@ export class ProductsComponent implements OnInit {
   }
 
   /** Whether all the descendants of the node are selected. */
+  /** Выбраны ли все потомки узла */
   descendantsAllSelected(node: TodoItemFlatNode): boolean {
     try{
       const descendants = this.treeControl.getDescendants(node);
@@ -980,6 +982,7 @@ export class ProductsComponent implements OnInit {
   }
 
   /** Whether part of the descendants are selected */
+  /** Выбрана ли часть потомков */
   descendantsPartiallySelected(node: TodoItemFlatNode): boolean {
     try{
         const descendants = this.treeControl.getDescendants(node);
@@ -991,20 +994,26 @@ export class ProductsComponent implements OnInit {
   /** Toggle the to-do item selection. Select/deselect all the descendants node */
   todoItemSelectionToggle(node: TodoItemFlatNode): void {
     this.checklistSelection.toggle(node);
+
     const descendants = this.treeControl.getDescendants(node);
+
+    // if(this.checklistSelection.isSelected(node)) 
+      // this.checklistSelection.select(...descendants);
+
+
     this.checklistSelection.isSelected(node)
       ? this.checklistSelection.select(...descendants)
       : this.checklistSelection.deselect(...descendants);
 
     // Force update for the parent
-    descendants.forEach(child => this.checklistSelection.isSelected(child));
-    this.checkAllParentsSelection(node);
+     descendants.forEach(child => this.checklistSelection.isSelected(child));
+     //this.checkAllParentsSelection(node);
   }
 
   /** Toggle a leaf to-do item selection. Check all the parents to see if they changed */
   todoLeafItemSelectionToggle(node: TodoItemFlatNode): void {
     this.checklistSelection.toggle(node);
-    this.checkAllParentsSelection(node);
+    //this.checkAllParentsSelection(node);
   }
 
   /* Checks all the parents when a leaf node is selected/unselected */
@@ -1047,7 +1056,9 @@ export class ProductsComponent implements OnInit {
     }
     return null;
   }
-
+  isNodeSelected(node: TodoItemFlatNode): boolean {
+    return this.checklistSelection.isSelected(node);
+  }
 //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
   resetOptions(){
     this.displayingDeletedDocs=false;

@@ -197,7 +197,8 @@
         "code_lit":     "Letter code",
         "code_num":     "Numeral code",
         "acc_currency": "Accounting currency",
-        "lang_code":    "Language"
+        "lang_code":    "Language",
+        "store":        "Online store"
     },
     "bottom":{
         "founded":      "Founded",

@@ -197,7 +197,8 @@
         "code_lit":     "Буквенный код",
         "code_num":     "Цифровой код",
         "acc_currency": "Валюта учета",
-        "lang_code":    "Язык"
+        "lang_code":    "Язык",
+        "store":        "Интернет-магазин"
     },
     "bottom":{
         "founded":      "Найдено",

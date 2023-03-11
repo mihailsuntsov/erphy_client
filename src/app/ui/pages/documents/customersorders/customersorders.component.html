@@ -267,6 +267,14 @@ class="spinner"
                             </span>
                             <td mat-cell *matCellDef="let row"> {{row.shipment_date}} </td>
                         </ng-container>
+                        <ng-container matColumnDef="store">
+                            <th mat-header-cell *matHeaderCellDef>
+                            <span (click)="setSort('store')" class="sortheader"> {{t('menu.table.store')}} 
+                                <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='store'" class="material-icons sortarrow">arrow_upward</i>
+                                <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='store'" class="material-icons sortarrow">arrow_downward</i>
+                            </span>
+                            <td mat-cell *matCellDef="let row"> {{row.store}} </td>
+                        </ng-container>
                         <ng-container matColumnDef="date_time_created">
                             <th mat-header-cell *matHeaderCellDef>
                             <span (click)="setSort('date_time_created_sort')" class="sortheader"> {{t('menu.table.created')}} 

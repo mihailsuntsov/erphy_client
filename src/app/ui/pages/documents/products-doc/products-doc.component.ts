@@ -569,8 +569,8 @@ export class ProductsDocComponent implements OnInit {
       stock_status: new UntypedFormControl      ('instock',[]),
       backorders: new UntypedFormControl      ('no',[]),
       sold_individually: new UntypedFormControl (false,[]),
-      reg_price: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
-      sale_price: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      // reg_price: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      // sale_price: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       height: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
       width: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
       length: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
@@ -2004,8 +2004,8 @@ checkProductCodeFreeUnical() {
       price_name: new UntypedFormControl (row.price_name,[]),
       price_value: new UntypedFormControl (row.price_value,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       price_description: new UntypedFormControl (row.price_description,[]),      
-      is_store_price_type_regular: new UntypedFormControl (row.is_store_price_type_regular,[]),      
-      is_store_price_type_sale: new UntypedFormControl (row.is_store_price_type_sale,[]),
+      // is_store_price_type_regular: new UntypedFormControl (row.is_store_price_type_regular,[]),      
+      // is_store_price_type_sale: new UntypedFormControl (row.is_store_price_type_sale,[]),
     });
   }
 
@@ -2050,22 +2050,22 @@ checkProductCodeFreeUnical() {
     this.prop_menu = menu;
   }
 
-  onChangeStorePrice(fieldName:string){
-    let storePriceType = (fieldName=='reg_price'?'regular':'sale');
-    this.commaToDot(fieldName);
-    const control = this.getControlPriceTable();
-      let row_index:number=0;
-      this.formBaseInformation.value.productPricesTable.map(() => 
-        {
-          if(control.controls[row_index].get('is_store_price_type_'+storePriceType).value)
-            control.controls[row_index].get('price_value').setValue(this.formBaseInformation.get(fieldName).value);
-          row_index++;
-        });
-  }
+  // onChangeStorePrice(fieldName:string){
+  //   let storePriceType = (fieldName=='reg_price'?'regular':'sale');
+  //   this.commaToDot(fieldName);
+  //   const control = this.getControlPriceTable();
+  //     let row_index:number=0;
+  //     this.formBaseInformation.value.productPricesTable.map(() => 
+  //       {
+  //         if(control.controls[row_index].get('is_store_price_type_'+storePriceType).value)
+  //           control.controls[row_index].get('price_value').setValue(this.formBaseInformation.get(fieldName).value);
+  //         row_index++;
+  //       });
+  // }
 
   onChangeCRMPrice(row_index:number){
     // let storePriceType = (fieldName=='reg_price'?'regular':'sale');
-    const control = this.getControlPriceTable();
+   /* const control = this.getControlPriceTable();
     if(control.controls[row_index].get('is_store_price_type_regular').value){
       this.formBaseInformation.get('reg_price').setValue(control.controls[row_index].get('price_value').value);
       this.reg_price_selected=true;
@@ -2073,7 +2073,7 @@ checkProductCodeFreeUnical() {
     if(control.controls[row_index].get('is_store_price_type_sale').value){
       this.sales_price_selected=true;
       this.formBaseInformation.get('sale_price').setValue(control.controls[row_index].get('price_value').value);
-    }
+    }*/
   }
 
   onChangeStoreSKU(){this.formBaseInformation.get('article').setValue(this.store_sku);}
