@@ -5,7 +5,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { SelectionModel } from '@angular/cdk/collections';
 import { ActivatedRoute } from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
-import { Validators, UntypedFormGroup, UntypedFormControl, UntypedFormArray, UntypedFormBuilder} from '@angular/forms';
+import { Validators, UntypedFormGroup, UntypedFormControl, UntypedFormArray, UntypedFormBuilder, FormControl} from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog,  MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
@@ -377,10 +377,11 @@ export class ProductsDocComponent implements OnInit {
   isWeightCodeGenerating = false;
   isProductCodeFreeUnicalChecking = false;
   product_code_free_isReadOnly = true ;
-  mode: string = 'standart';  // режим работы документа: 
+  mode: string = 'standart';  // режим работы документа:
   // standart - обычный режим, 
   // createFromAnotherDoc - оконный режим создания товара из другого документа, 
   // viewInWindow - открытие на просмотр в окне в другом документе
+  selectedTab = new FormControl(0); // the index of selected tab
   @ViewChild("codeFreeValue", {static: false}) codeFreeValue;
   @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
   // *****  переменные tree  ***** 
@@ -2043,6 +2044,7 @@ checkProductCodeFreeUnical() {
     this.baseData.emit(data);
   }
   onSelectTab(a){
+    this.selectedTab.setValue(a.index);// if not store selected tab index, after returning from a trnslate mode user will be always in the first tab
     if(a.index==1 && this.dataSource.data.length==0) this.getTable();
     if(a.index==2) this.quillRefresh();
   }

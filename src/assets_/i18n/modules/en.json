@@ -122,7 +122,9 @@
         "select_upl_fl":"Select files for upload",
         "amnt_mov_prod":"Amount of products to move",
         "protected_file":"This file is not shared and can't be sent to online store. Click on this icon and in the opened file card switch on \"Shared file\"",
-        "num_labels":   "Quantity of labels in one row"
+        "num_labels":   "Quantity of labels in one row",
+        "def_supplr":   "Default supplier",
+        "def_cagent":   "Default counterparty"
     },
     "tab":{
     },
@@ -164,6 +166,9 @@
         "company":      "Company",
         "department":   "Department",
         "supplier":     "Supplier",
+        "supplier_srch":"Supplier search",
+        "counterparty": "Counterparty",
+        "counterparty_srch": "Counterparty search",
         "description":  "Description",
         "additional":   "Additional",
         "tax":          "Tax",

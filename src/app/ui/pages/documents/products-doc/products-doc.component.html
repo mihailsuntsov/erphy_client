@@ -202,8 +202,7 @@
                     </form>
 
                     <form [formGroup]="formBaseInformation">   
-
-                        <mat-tab-group  (selectedTabChange)="onSelectTab($event)" *ngIf="!storeTranslationModeOn">
+                        <mat-tab-group [selectedIndex]="selectedTab.value" (selectedTabChange)="onSelectTab($event)" *ngIf="!storeTranslationModeOn">
 
                                 <mat-tab label="{{t('docs.tab.info')}}">
                                         <div class="container-fluid">

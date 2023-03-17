@@ -59,11 +59,13 @@
                                         formControlName="cagentId"/>
                             </mat-form-field>
                             <mat-form-field class="mat-form-field-100"> 
+                                <!-- 1-{{settingsForm.get('cagentId').value}}-1<br>
+                                2-{{settingsForm.get('cagentId').value==null}}-2<br> -->
                                 <input  matInput 
-                                placeholder="{{settingsForm.get('cagentId').value==''?'Поиск поставщика':'Поставщик'}}"
+                                placeholder="{{settingsForm.get('cagentId').value==null?t('modules.field.supplier_srch'):t('modules.field.supplier')}}"
                                 [matAutocomplete]="auto4" 
                                 [formControl]="searchCagentCtrl"
-                                matTooltip="Поставщик по умолчанию"
+                                matTooltip="{{t('modules.tip.def_supplr')}}"
                                 (input)="canCagentAutocompleteQuery=true; checkEmptyCagentField();"
                                 (change)="canCagentAutocompleteQuery=false; checkEmptyCagentField();">
                                 <mat-autocomplete #auto4="matAutocomplete">
@@ -94,7 +96,7 @@
                             <mat-checkbox formControlName="autoAdd"  matTooltip="{{t('modules.tip.auto_add')}}">{{t('modules.field.auto_add')}}</mat-checkbox>
                         </div>
                         <div class="col-6">
-                            <mat-checkbox formControlName="autoPrice"  matTooltip="Автоматически подставлять цену из последней закупочной цены">Автоцена</mat-checkbox>
+                            <mat-checkbox formControlName="autoPrice"  matTooltip="{{t('modules.tip.auto_prce_add')}}">{{t('modules.field.auto_price')}}</mat-checkbox>
                         </div>
                     </div>
                     <!-- <div class="row">
