@@ -278,6 +278,7 @@ export class OrdersupComponent implements OnInit {
 
   getTable(){
     this.gettingTableData=true;
+    this.getPagesList();
     this.queryFormService.getTable(this.sendingQueryForm)
     .subscribe(
         (data) => {

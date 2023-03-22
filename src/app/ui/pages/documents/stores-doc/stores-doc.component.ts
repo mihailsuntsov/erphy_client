@@ -14,7 +14,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { translate } from '@ngneat/transloco'; //+++import { Observable } from 'rxjs';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
 
-interface docResponse {//интерфейс для получения ответа в методе getStatusDocsTableById
+interface docResponse {//интерфейс для получения ответа в методе getStoresDocsTableById
   id: number;
   company: string;
   company_id: number;

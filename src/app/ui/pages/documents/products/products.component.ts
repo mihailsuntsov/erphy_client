@@ -837,26 +837,29 @@ export class ProductsComponent implements OnInit {
       width: '400px',
       data:
       { 
-        head: translate('menu.dialogs.cat_adding'), //+++
-        query: translate('menu.dialogs.q_save_p_cat'),
-        warning: translate('menu.dialogs.save_p_cat_ad'),
+        head: translate('modules.card.str_select'), //+++
+        query: translate('menu.dialogs.q_save_cat_st'),
+        warning: translate('menu.dialogs.save_p_cat_st'),
       },
     });
     dialogRef.afterClosed().subscribe(result => {
-      const body = {"setOfLongs2":  checkedCategoriesIds,     // categories ids
+      if(result !== undefined){
+        const body = {"setOfLongs2":  checkedCategoriesIds,     // categories ids
                     "setOfLongs1":  this.selectedObjects, // stores ids
                     "yesNo":        result==1?true:false,
                     "id":           this.sendingQueryForm.companyId
-      };
+        };
+        
+        return this.http.post('/api/auth/setStoresToCategories', body).subscribe(
+            (data) => {   
+              this.openSnackBar(translate('menu.msg.sep_prod_cat'), translate('menu.msg.close')); //+++
+              this.clearTreeCheckboxSelection();
+              this.loadTrees();
+            },
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+        );
+      }
       
-      return this.http.post('/api/auth/setStoresToCategories', body).subscribe(
-          (data) => {   
-            this.openSnackBar(translate('menu.msg.sep_prod_cat'), translate('menu.msg.close')); //+++
-            this.clearTreeCheckboxSelection();
-            this.loadTrees();
-          },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
-      );
     });      
   }
   clickDeleteProductCategories(): void {
@@ -940,18 +943,20 @@ export class ProductsComponent implements OnInit {
       },
     });
     dialogRef.afterClosed().subscribe(result => {
-      const body = {"setOfLongs1":  this.checkedList,
-                    "setOfLongs2":  this.selectedObjects,
-                    "yesNo":        result==1?true:false
-      };
-      this.clearCheckboxSelection();
-      return this.http.post('/api/auth/setCategoriesToProducts', body) 
-        .subscribe(
-            (data) => {   
-              this.openSnackBar(translate('menu.msg.sep_prod_cat'), translate('menu.msg.close')); //+++
-            },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+      if(result !== undefined){
+        const body = {"setOfLongs1":  this.checkedList,
+                      "setOfLongs2":  this.selectedObjects,
+                      "yesNo":        result==1?true:false
+        };
+        this.clearCheckboxSelection();
+        return this.http.post('/api/auth/setCategoriesToProducts', body) 
+          .subscribe(
+              (data) => {   
+                this.openSnackBar(translate('menu.msg.sep_prod_cat'), translate('menu.msg.close')); //+++
+              },
+              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
         );
+      }
     });      
   }
 

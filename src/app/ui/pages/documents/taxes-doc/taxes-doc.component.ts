@@ -11,7 +11,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { translate } from '@ngneat/transloco'; //+++
 
-interface docResponse {//интерфейс для получения ответа в методе getStatusDocsTableById
+interface docResponse {//интерфейс для получения ответа в методе getTaxesDocsTableById
   id: number;
   company: string;
   company_id: number;

@@ -187,8 +187,8 @@ class="spinner"
                                         <button mat-button  
                                             class="filter-button"
                                             matTooltip="{{t('docs.button.refresh')}}"
-                                            (click)="getTable()"  
-                                            type="submit"
+                                            (click)="getTable();getPagesList();"  
+                                            type="button"
                                             matSuffix mat-icon-button>
                                             <mat-icon>refresh</mat-icon>
                                         </button>

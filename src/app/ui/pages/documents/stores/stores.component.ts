@@ -111,16 +111,16 @@ export class StoresComponent implements OnInit {
       this.sendingQueryForm.searchCategoryString="";
       this.sendingQueryForm.filterOptionsIds = [];
 
-      if(Cookie.get('satusdoc_companyId')=='undefined' || Cookie.get('satusdoc_companyId')==null)     
-        Cookie.set('satusdoc_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('satusdoc_companyId')=="0"?"0":+Cookie.get('satusdoc_companyId'));
-      if(Cookie.get('satusdoc_sortAsc')=='undefined' || Cookie.get('satusdoc_sortAsc')==null)       
-        Cookie.set('satusdoc_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('satusdoc_sortAsc');
-      if(Cookie.get('satusdoc_sortColumn')=='undefined' || Cookie.get('satusdoc_sortColumn')==null)    
-        Cookie.set('satusdoc_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('satusdoc_sortColumn');
-      if(Cookie.get('satusdoc_offset')=='undefined' || Cookie.get('satusdoc_offset')==null)        
-        Cookie.set('satusdoc_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('satusdoc_offset');
-      if(Cookie.get('satusdoc_result')=='undefined' || Cookie.get('satusdoc_result')==null)        
-        Cookie.set('satusdoc_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('satusdoc_result');
+      if(Cookie.get('storesdoc_companyId')=='undefined' || Cookie.get('storesdoc_companyId')==null)     
+        Cookie.set('storesdoc_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('storesdoc_companyId')=="0"?"0":+Cookie.get('storesdoc_companyId'));
+      if(Cookie.get('storesdoc_sortAsc')=='undefined' || Cookie.get('storesdoc_sortAsc')==null)       
+        Cookie.set('storesdoc_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('storesdoc_sortAsc');
+      if(Cookie.get('storesdoc_sortColumn')=='undefined' || Cookie.get('storesdoc_sortColumn')==null)    
+        Cookie.set('storesdoc_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('storesdoc_sortColumn');
+      if(Cookie.get('storesdoc_offset')=='undefined' || Cookie.get('storesdoc_offset')==null)        
+        Cookie.set('storesdoc_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('storesdoc_offset');
+      if(Cookie.get('storesdoc_result')=='undefined' || Cookie.get('storesdoc_result')==null)        
+        Cookie.set('storesdoc_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('storesdoc_result');
 
       //+++ getting base data from parent component
       this.getBaseData('myId');    
@@ -290,7 +290,7 @@ export class StoresComponent implements OnInit {
     this.clearCheckboxSelection();
     this.createCheckedList();
     this.sendingQueryForm.offset=0;
-    Cookie.set('satusdoc_result',this.sendingQueryForm.result);
+    Cookie.set('storesdoc_result',this.sendingQueryForm.result);
     this.getData();
   }
 
@@ -298,7 +298,7 @@ export class StoresComponent implements OnInit {
   {
     this.clearCheckboxSelection();
     this.sendingQueryForm.offset=value;
-    Cookie.set('satusdoc_offset',value);
+    Cookie.set('storesdoc_offset',value);
     this.getData();
   }
 
@@ -317,17 +317,17 @@ export class StoresComponent implements OnInit {
           } else {  
               this.sendingQueryForm.sortAsc="asc"
           }
-      Cookie.set('satusdoc_sortAsc',this.sendingQueryForm.sortAsc);
+      Cookie.set('storesdoc_sortAsc',this.sendingQueryForm.sortAsc);
       } else {
           this.sendingQueryForm.sortColumn=valueSortColumn;
           this.sendingQueryForm.sortAsc="asc";
-          Cookie.set('satusdoc_sortAsc',"asc");
-          Cookie.set('satusdoc_sortColumn',valueSortColumn);
+          Cookie.set('storesdoc_sortAsc',"asc");
+          Cookie.set('storesdoc_sortColumn',valueSortColumn);
       }
       this.getData();
   }
   onCompanySelection(){
-    Cookie.set('satusdoc_companyId',this.sendingQueryForm.companyId);
+    Cookie.set('storesdoc_companyId',this.sendingQueryForm.companyId);
     this.resetOptions();
     this.getCRUD_rights();
   }
@@ -429,9 +429,9 @@ export class StoresComponent implements OnInit {
   } 
 
   setDefaultCompany(){
-    if(Cookie.get('satusdoc_companyId')=='0'||!this.companyIdInList(Cookie.get('satusdoc_companyId'))){
+    if(Cookie.get('storesdoc_companyId')=='0'||!this.companyIdInList(Cookie.get('storesdoc_companyId'))){
       this.sendingQueryForm.companyId=this.myCompanyId;
-      Cookie.set('satusdoc_companyId',this.sendingQueryForm.companyId);
+      Cookie.set('storesdoc_companyId',this.sendingQueryForm.companyId);
     }
     this.getCRUD_rights();
   }

@@ -1,6 +1,6 @@
 {
   "name": "dokio",
-  "version": "1.2.0",
+  "version": "1.2.0-1",
   "date": "13-03-2023",
   "scripts": {
     "ng": "ng",

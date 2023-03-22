@@ -238,8 +238,10 @@
         "bin_clearing": "Cleaning the bin",
         "q_delete":     "Delete selected documents?",
         "deleting_ctg": "Deleting a category",
+        "deleting_ctgs": "Deleting categories",
         "deleting_bin": "Deleting from the bin",
         "q_del_ctg":    "Delete a category {{name}}?",
+        "q_del_ctgs":    "Delete selected categories?",
         "ctg_creation": "Creating a category",
         "files_upload": "Files upload",
         "ctg_edit":     "Editing a category",
@@ -262,7 +264,9 @@
         "sel_categ":    "Selecting categories",
         "cat_adding":   "Assigning categories to products",
         "q_save_p_cat": "Save the categories that the products already have?",
+        "q_save_cat_st":"Save the stores that the categories already have?",
         "save_p_cat_ad":"You can save the categories that the products already have, and add the selected ones to them",
+        "save_p_cat_st":"You can save the stores that the categories already have, and add the selected ones to them",
         "min_remains":  "Setting a minimum in-stock balance"
     },
     "menu":{

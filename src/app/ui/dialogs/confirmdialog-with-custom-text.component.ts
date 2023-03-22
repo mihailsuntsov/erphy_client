@@ -12,7 +12,7 @@ import { Component , Inject} from '@angular/core';
     </div>
     <div mat-dialog-actions>
       <button mat-raised-button color="warn" [mat-dialog-close]="1" style="flex-grow: 1;" cdkFocusInitial>{{t('menu.dialogs.yes')}}</button>
-      <button mat-raised-button color="primary" (click)="onNoClick()" style="flex-grow: 1;">{{t('menu.dialogs.no')}}</button>
+      <button mat-raised-button color="primary" [mat-dialog-close]="0" style="flex-grow: 1;">{{t('menu.dialogs.no')}}</button>
     </div>
     </div>`,
   })
