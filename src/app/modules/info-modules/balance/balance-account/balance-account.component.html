@@ -1,6 +1,7 @@
 <button mat-stroked-button
     [color]="balance>0?'primary':''"         
     class="balance"
+    (click)="openDetailsWindow()"
     matTooltip="{{'modules.tip.acc_money' | transloco}}"
     *ngIf="showModule && balance!=null && +account_id>0"
     >{{'modules.field.acc_money' | transloco}}{{balance}} {{currency}}

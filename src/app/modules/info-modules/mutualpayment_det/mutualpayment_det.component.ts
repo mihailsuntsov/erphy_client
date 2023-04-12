@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, Optional} from '@angular/core';
+import { Component, Inject, Input, OnInit, Optional} from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -15,7 +15,7 @@ import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/mat
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 const MY_FORMATS = MomentDefault.getMomentFormat();
 const moment = MomentDefault.getMomentDefault();
-import { LOCALE_ID } from '@angular/core';
+// import { LOCALE_ID } from '@angular/core';
 
 export interface CheckBox {
   id: number;
@@ -50,6 +50,7 @@ export class MutualpaymentDetComponent implements OnInit {
   receivedCompaniesList: idAndName [] = [];//массив для получения списка предприятий
   myCompanyId:number=0;//
   myId:number=0;
+  mode='viewInWindow'; // opening in window
 
   //переменные прав
   permissionsSet: any[];//сет прав на документ
@@ -57,6 +58,11 @@ export class MutualpaymentDetComponent implements OnInit {
   allowToViewMyCompany:boolean = false;
   allowToView:boolean = false;
   gettingTableData:boolean=true;
+
+  bal_on_begin: number = 0;
+  bal_on_end: number = 0;
+  income: number = 0;
+  expendtr: number = 0;
 
   numRows: NumRow[] = [
     {value: 5, viewValue: '5'},
@@ -73,9 +79,16 @@ export class MutualpaymentDetComponent implements OnInit {
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
   selectionFilterOptions = new SelectionModel<idAndName>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние
   optionsIds: idAndName [];
-  displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
+  // displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
   //***********************************************************************************************************************/
+  
+  // if it calls from the tab oа Counterparty document - mode will be 'viewInTab'
+  @Input() companyId:number;
+  @Input() cagentId:number;
+  @Input() cagent:string;
+  // @Input() locale:string;
+  
   constructor(
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
@@ -84,18 +97,22 @@ export class MutualpaymentDetComponent implements OnInit {
     public confirmDialog: MatDialog,
     private http: HttpClient,
     public cu: CommonUtilitesService,
-    @Inject(LOCALE_ID) public locale: string,
+    // @Inject(LOCALE_ID) public locale: string,
     public deleteDialog: MatDialog,
     public mutualpaymentDetDialog: MatDialogRef<MutualpaymentDetComponent>,
     @Optional() @Inject(MAT_DIALOG_DATA) public data: any,
-    public _adapter: DateAdapter<any>) {_adapter.setLocale(this.data.locale?this.data.locale:locale) }
-
+    // 
+    public _adapter: DateAdapter<any>) { }
+    // public _adapter: DateAdapter<any>) {_adapter.setLocale('en-us') }
     ngOnInit() {
+      // alert('--'+this.data.dateFrom+'--');
+      this._adapter.setLocale(this.data?this.data.locale:'en-gb')
+      if(this.cagent && this.cagent!='') this.mode='viewInTab'; else this.mode='viewInWindow';
       this.queryForm = new UntypedFormGroup({ //форма для отправки запроса 
-        companyId: new UntypedFormControl(this.data.companyId,[]), // предприятие, по которому идет запрос данных (передаётся из вызывающего окна)
-        cagentId: new UntypedFormControl(this.data.cagentId,[]), // контрагент, по которому идет запрос данных (передаётся из вызывающего окна)
-        dateFrom: new UntypedFormControl(this.data.dateFrom?moment(this.data.dateFrom,'DD.MM.YYYY'):moment().startOf('year'),[]),   // дата С
-        dateTo: new UntypedFormControl(this.data.dateTo?moment(this.data.dateTo,'DD.MM.YYYY'):moment(),[]),     // дата По
+        companyId: new UntypedFormControl(this.mode=='viewInWindow'?this.data.companyId:this.companyId,[]), // предприятие, по которому идет запрос данных (передаётся из вызывающего окна)
+        cagentId: new UntypedFormControl(this.mode=='viewInWindow'?this.data.cagentId:this.cagentId,[]), // контрагент, по которому идет запрос данных (передаётся из вызывающего окна)
+        dateFrom: new UntypedFormControl((this.data && this.data.dateFrom!=null)?moment(this.data.dateFrom,'DD.MM.YYYY'):moment('01.01.2000','DD.MM.YYYY'),[]),   // дата С
+        dateTo: new UntypedFormControl((this.data && this.data.dateTo!=null)?moment(this.data.dateTo,'DD.MM.YYYY'):moment(),[]),     // дата По
         sortColumn: new UntypedFormControl('date_time_created_sort',[]), //
         sortAsc: new UntypedFormControl('desc',[]), //
         offset: new UntypedFormControl(0,[]), //
@@ -118,9 +135,21 @@ export class MutualpaymentDetComponent implements OnInit {
       this.fillOptionsList();//заполняем список опций фильтра
     
       this.getCompaniesList();// 
-
+      // alert(this.data.locale)
+      if(!this.data || this.data.locale==null) this.getSettings();
     }
-
+// settings loading
+getSettings(){
+  let result:any;
+  this.http.get('/api/auth/getMySettings')
+    .subscribe(
+        data => { 
+          result=data as any;
+          this._adapter.setLocale(result.locale?result.locale:'en-gb')        // setting locale in moment.js
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+    );
+}
     // -------------------------------------- *** ПРАВА *** ------------------------------------
    getSetOfPermissions(){
     return this.http.get('/api/auth/getMyPermissions?id=47')// права на приосмотр регулируются документом Взаиморасчёты
@@ -186,7 +215,12 @@ export class MutualpaymentDetComponent implements OnInit {
     this.http.post('/api/auth/getMutualpaymentDetailedTable', this.queryForm.getRawValue())
             .subscribe(
                 (data) => {
-                  this.dataSource.data = data as any []; 
+                  let retObj = data as any; 
+                  this.dataSource.data = retObj.table;
+                  this.bal_on_begin = retObj.summ_on_start;
+                  this.bal_on_end = retObj.summ_on_end;
+                  this.income = retObj.summ_in;
+                  this.expendtr = retObj.summ_out;
                   if(this.dataSource.data && this.dataSource.data.length==0 && +this.queryForm.get('offset').value>0) this.setPage(0);
                   this.gettingTableData=false;
                 },
@@ -283,7 +317,7 @@ export class MutualpaymentDetComponent implements OnInit {
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
 
   resetOptions(){
-    this.displayingDeletedDocs=false;
+    // this.displayingDeletedDocs=false;
     this.fillOptionsList();//перезаполняем список опций
     this.selectionFilterOptions.clear();
     this.queryForm.get('filterOptionsIds').setValue([]);
@@ -296,7 +330,7 @@ export class MutualpaymentDetComponent implements OnInit {
     this.selectionFilterOptions.selected.forEach(z=>{
       if(z.id==1){showOnlyDeletedCheckboxIsOn=true;}
     })
-    this.displayingDeletedDocs=showOnlyDeletedCheckboxIsOn;
+    // this.displayingDeletedDocs=showOnlyDeletedCheckboxIsOn;
     this.queryForm.get('offset').setValue(0);//сброс пагинации
     this.getData();
   }

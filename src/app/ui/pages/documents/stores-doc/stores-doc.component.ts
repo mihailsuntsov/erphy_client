@@ -346,7 +346,7 @@ onDefaultCreatorSearchValueChanges(){
   }
 
   setDefaultCompany(){
-    this.formBaseInformation.get('company_id').setValue(Cookie.get('satusdoc_companyId')=="0"?this.myCompanyId:+Cookie.get('satusdoc_companyId'));
+    this.formBaseInformation.get('company_id').setValue(Cookie.get('storesdoc_companyId')=="0"?this.myCompanyId:+Cookie.get('storesdoc_companyId'));
     this.getPriceTypesList();
     this.getDepartmentsList();   
     this.refreshPermissions();
@@ -507,9 +507,16 @@ onDefaultCreatorSearchValueChanges(){
   goToNewDocument(){
     this._router.navigate(['ui/storesdoc',0]);
     this.id=0;
-    this.formBaseInformation.get('id').setValue(0);
+    this.formBaseInformation.reset();
+    this.formBaseInformation.get('id').setValue(null);
     this.formBaseInformation.get('name').setValue('');
-    this.formBaseInformation.get('is_deleted').setValue(false);
+    this.formBaseInformation.get('lang_code').setValue('EN');
+    this.formBaseInformation.get('crm_secret_key').setValue('');
+    this.searchDefaultCustomerCtrl.reset();
+    this.searchDefaultCreatorCtrl.reset();
+
+
+    // this.formBaseInformation.get('is_deleted').setValue(false);
     this.storesList=[];
     this.getData();
   }

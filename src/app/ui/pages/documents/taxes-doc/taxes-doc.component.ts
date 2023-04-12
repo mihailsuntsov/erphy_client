@@ -219,7 +219,7 @@ getSetOfPermissions(){
   }
 
   setDefaultCompany(){
-    this.formBaseInformation.get('company_id').setValue(Cookie.get('satusdoc_companyId')=="0"?this.myCompanyId:+Cookie.get('satusdoc_companyId'));
+    this.formBaseInformation.get('company_id').setValue(Cookie.get('taxesdoc_companyId')=="0"?this.myCompanyId:+Cookie.get('taxesdoc_companyId'));
     this.refreshPermissions();
   }
   

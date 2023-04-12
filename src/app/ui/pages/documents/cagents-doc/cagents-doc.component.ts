@@ -1,4 +1,4 @@
-import { Component, OnInit , Inject, Optional, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit , Inject, Optional, Output, LOCALE_ID, EventEmitter } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { Validators, UntypedFormGroup, UntypedFormArray, UntypedFormControl, UntypedFormBuilder } from '@angular/forms';
@@ -11,14 +11,16 @@ import { FlatTreeControl } from '@angular/cdk/tree';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
-import { debounceTime, tap, switchMap } from 'rxjs/operators';
+// import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
+import { MutualpaymentDetComponent } from 'src/app/modules/info-modules/mutualpayment_det/mutualpayment_det.component';
 import { translate } from '@ngneat/transloco'; //+++
 
 import { MomentDefault } from 'src/app/services/moment-default';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+import { CommonUtilitesService } from 'src/app/services/common_utilites.serviсe';
 const MY_FORMATS = MomentDefault.getMomentFormat();
 const moment = MomentDefault.getMomentDefault();
 
@@ -165,7 +167,7 @@ interface ContactsForm { //интерфейс для формы contactsForm, к
   selector: 'app-cagents-doc',
   templateUrl: './cagents-doc.component.html',
   styleUrls: ['./cagents-doc.component.css'],
-  providers: [LoadSpravService,
+  providers: [LoadSpravService,CommonUtilitesService,
     { provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]}, //+++
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
   ]
@@ -258,16 +260,22 @@ export class CagentsDocComponent implements OnInit {
   numChildsOfSelectedCategory: number=0;
   categoriesExpanded=false;//открыты или закрыты категории
 
+  dateFrom = moment().startOf('year');   // дата С
+  dateTo = moment();     // дата По
+
   @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
   
 constructor(private activateRoute: ActivatedRoute,
   private http: HttpClient,
   public MessageDialog: MatDialog,
   private _router:Router,
+  private mutualpaymentDetDialog: MatDialog,
+  public cu: CommonUtilitesService,
   private loadSpravService:   LoadSpravService,
   private _snackBar: MatSnackBar,
   private _fb: UntypedFormBuilder, //чтобы билдить группу форм myForm: FormBuilder, //для билдинга групп форм по контактным лицам и банковским реквизитам
   @Optional() @Inject(MAT_DIALOG_DATA) public data: any,
+  @Inject(LOCALE_ID) public locale: string,
   public ConfirmDialog: MatDialog,
   private _adapter: DateAdapter<any>) { 
     // console.log(this.activateRoute);
@@ -374,9 +382,11 @@ constructor(private activateRoute: ActivatedRoute,
       if(this.formBaseInformation.get('type').value=='entity') return 'ogrn'; else return 'ogrnip';
     else return 'reg_number';
   }
-  get tinName(){ // TIN, Tax ID, ИНН, VAT e.t.c
-    if([47,212].includes(+this.formBaseInformation.get('jr_country_id').value)) // if not USA or US virgin lands
+  get tinName(){ // TIN, Tax ID, ИНН, PIB e.t.c
+    if([47,212].includes(+this.formBaseInformation.get('jr_country_id').value)) // if USA or US virgin lands
       return 'tax_id'; 
+    if([17].includes(+this.formBaseInformation.get('jr_country_id').value)) // if Montenegro
+      return 'pib';
     else return 'tin';
   }
 //---------------------------------------------------------------------------------------------------------------------------------------                            
@@ -644,6 +654,26 @@ constructor(private activateRoute: ActivatedRoute,
   numberOnly(event): boolean {
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
     if (charCode > 31 && (charCode < 48 || charCode > 57)) { return false; } return true;}
+
+    
+  openDetailsWindow() {
+    this.mutualpaymentDetDialog.open(MutualpaymentDetComponent, {
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      height: '95%',
+      width: '95%',
+      data:
+      { 
+        mode: 'viewInWindow',
+        cagentId: this.id,
+        companyId: this.formBaseInformation.get('company_id').value,
+        dateFrom:this.dateFrom,
+        dateTo:this.dateTo,
+        cagent:this.formBaseInformation.get('name').value,
+        locale:this.locale,
+      },
+    });
+  } 
 
   // setJurElementsVisible(){
   //   let opf=+this.formBaseInformation.get('opf_id').value;

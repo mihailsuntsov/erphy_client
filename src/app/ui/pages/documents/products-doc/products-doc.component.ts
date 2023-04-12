@@ -641,10 +641,16 @@ export class ProductsDocComponent implements OnInit {
     if(this.data)//если документ вызывается в окне из другого документа
     {
       this.mode=this.data.mode;
-      if(this.mode=='viewInWindow'){this.id=this.data.docId; this.formBaseInformation.get('id').setValue(this.id);}
-      if(this.mode=='createFromAnotherDoc'){this.formBaseInformation.get('company_id').setValue(this.data.companyId); }
-    } 
-
+      if(this.mode=='viewInWindow'){
+        this.id=this.data.docId; 
+        this.formBaseInformation.get('id').setValue(this.id);
+        this.getSettings(); //to set locale
+      }
+      if(this.mode=='createFromAnotherDoc'){
+        this.formBaseInformation.get('company_id').setValue(this.data.companyId); 
+        this.getSettings(); //to set locale}
+      } 
+    }
     // let Inline = Quill.import('blots/inline');
     // class XVideoBlot extends Inline { }
     // XVideoBlot.blotName = 'xvideo';
@@ -777,7 +783,7 @@ refreshPermissions():boolean{
       // console.log('установка отделения по умолчанию - '+this.receivedMyDepartmentsList[0].id);
       this.formProductHistory.departmentId=+this.receivedMyDepartmentsList[0].id;
       // Cookie.set('acceptance_departmentId',this.formProductHistory.departmentId);
-    }
+    } else this.formProductHistory.departmentId="0";
     this.setDefaultDates();
   }
   // ----------------------+----------------------  Store Translations start ----------------------+----------------------  
@@ -933,10 +939,46 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
         );
   }
+
+  //this is Quill's error: on tab change it lost the string breaks.
   quillRefresh(){
     this.formBaseInformation.get('description').setValue((this.formBaseInformation.get('description').value));
     this.formBaseInformation.get('short_description').setValue((this.formBaseInformation.get('short_description').value));
-    // this.formBaseInformation.get('short_description').setValue(this.formBaseInformation.get('short_description').value.trim());
+  }
+  //this is Quill's error: on tab change it lost the string breaks.
+  quillTranslateRefresh(){
+    this.formBaseInformation.get('storeProductTranslations').controls.forEach(translation=>{
+      translation.get('description').setValue(translation.get('description').value);
+      translation.get('shortDescription').setValue(translation.get('shortDescription').value);
+    })
+  }
+    //создание нового документа
+  goToNewDocument(){
+    this._router.navigate(['ui/productsdoc',0]);
+    this.id=0;
+    this.formBaseInformation.reset();
+    this.formBaseInformation.get('id').setValue(null);
+    this.formBaseInformation.get('name').setValue('');
+    this.is_store=false;
+    this.checkedList=[];
+    this.formBaseInformation.get('edizm_id').setValue('');
+    this.formBaseInformation.get('edizm_name').setValue('');
+    this.formBaseInformation.get('indivisible').setValue(true);
+    this.formBaseInformation.get('ppr_id').setValue(1);
+    
+    this.formBaseInformation.get('tax_status').setValue('taxable');
+    this.formBaseInformation.get('type').setValue('simple');
+    this.formBaseInformation.get('stock_status').setValue('instock');
+    this.formBaseInformation.get('backorders').setValue('no');
+    this.formBaseInformation.get('sold_individually').setValue(false);
+    this.formBaseInformation.get('reviews_allowed').setValue('true');
+    this.formBaseInformation.get('menu_order').setValue(1);
+    this.formBaseInformation.get('outofstock_aftersale').setValue(false);
+    this.formBaseInformation.get('description_type').setValue('editor');
+    this.formBaseInformation.get('short_description_type').setValue('editor');
+
+
+    this.getData();
   }
   //фильтрация при каждом изменении в поле маркированных товаров, создание нового массива и его возврат
   private _filter_markable_group(value: string): IdAndName[] {
@@ -945,7 +987,7 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
   }
   //фильтрация при каждом изменении в поле наименования ед. измерения, создание нового массива и его возврат
   private _filter(value: string): IdAndName[] {
-    const filterValue = value.toLowerCase();
+    const filterValue = !value||value==null?'':value.toLowerCase();
     return this.spravSysEdizmOfProductAll.filter(option => option.name.toLowerCase().includes(filterValue));
   }
   //Загрузка групп (сетов) полей
@@ -1095,6 +1137,7 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
             case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_msg')}});break;}
             case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});break;}
             case -120:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.out_of_plan')}});break;}
+            case -250:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.sku_exists')}});break;}
             default:{  
                         this.id=result;
                         if(this.mode=='standart') 
@@ -1138,19 +1181,43 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
       this.selectedGroupedProducts.map(i =>{ids.push(i.id);});
       this.formBaseInformation.get('grouped_ids').setValue(ids);
     } else this.formBaseInformation.get('grouped_ids').setValue([]);
-    return this.http.post('/api/auth/updateProducts', this.formBaseInformation.value)
-    .subscribe(
+    this.http.post('/api/auth/updateProducts', this.formBaseInformation.value).subscribe(
       (data) => 
-      {   
-        return this.http.post('/api/auth/updateProductCustomFields', this.fieldsForm.get('fields').value)
-        .subscribe(
-            (data2) => 
-            {
-              this.getData();
-              this.openSnackBar(translate('docs.msg.doc_sved_succ',{name:translate('docs.docs.products')}), translate('docs.msg.close'));
-            },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
-        );
+      {
+        let result:number=data as number;
+        switch(result){
+          case null:{// null возвращает если не удалось сохранить документ из-за ошибки
+            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_of') + (translate('docs.msg._of_save')) + translate('docs.msg._of_doc',{name:translate('docs.docs.products')})}});
+            break;
+          }
+          case -1:{//недостаточно прав
+            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});
+            break;
+          }
+          case -230:{
+            // Subject of trade was changeg (from Servie to Commodity or from Commodity to Service)
+            // If this product (or service) is already has the history of operations - Reject this update
+            // because it will produce discrepancy of product quantity in warehouse / negative quantity / fraud opportunities
+            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.tr_subj_cngd')}});
+            break;
+          }
+          case -250:{ // non-unique sku check
+            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.sku_exists')}});
+            break;
+          }
+          default:{// Успешно
+            this.http.post('/api/auth/updateProductCustomFields', this.fieldsForm.get('fields').value).subscribe(
+                (data2) => 
+                {
+                  this.getData();
+                  this.openSnackBar(translate('docs.msg.doc_sved_succ',{name:translate('docs.docs.products')}), translate('docs.msg.close'));
+                },
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
+            );
+          }
+        }
+        
+        
       },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
     );
@@ -2270,6 +2337,18 @@ checkProductCodeFreeUnical() {
     });
     return resultName;
   }
+  // settings loading
+getSettings(){
+  let result:any;
+  this.http.get('/api/auth/getMySettings')
+    .subscribe(
+        data => { 
+          result=data as any;
+          this._adapter.setLocale(result.locale?result.locale:'en-gb')        // setting locale in moment.js
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+    );
+}
 //**************************** ПЕЧАТЬ ДОКУМЕНТОВ  ******************************/
 // открывает диалог печати
 openDialogTemplates() { 

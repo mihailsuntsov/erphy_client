@@ -19,6 +19,7 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
     MaterialModule,
     TranslocoModule
   ],
+  exports: [MutualpaymentDetComponent],
   providers:[{ provide: TRANSLOCO_SCOPE, useValue: ['docs','menu']},]
 })
 export class MutualpaymentDetModule { }

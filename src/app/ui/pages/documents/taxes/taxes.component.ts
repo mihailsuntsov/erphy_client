@@ -111,16 +111,16 @@ export class TaxesComponent implements OnInit {
       this.sendingQueryForm.searchCategoryString="";
       this.sendingQueryForm.filterOptionsIds = [];
 
-      if(Cookie.get('satusdoc_companyId')=='undefined' || Cookie.get('satusdoc_companyId')==null)     
-        Cookie.set('satusdoc_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('satusdoc_companyId')=="0"?"0":+Cookie.get('satusdoc_companyId'));
-      if(Cookie.get('satusdoc_sortAsc')=='undefined' || Cookie.get('satusdoc_sortAsc')==null)       
-        Cookie.set('satusdoc_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('satusdoc_sortAsc');
-      if(Cookie.get('satusdoc_sortColumn')=='undefined' || Cookie.get('satusdoc_sortColumn')==null)    
-        Cookie.set('satusdoc_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('satusdoc_sortColumn');
-      if(Cookie.get('satusdoc_offset')=='undefined' || Cookie.get('satusdoc_offset')==null)        
-        Cookie.set('satusdoc_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('satusdoc_offset');
-      if(Cookie.get('satusdoc_result')=='undefined' || Cookie.get('satusdoc_result')==null)        
-        Cookie.set('satusdoc_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('satusdoc_result');
+      if(Cookie.get('taxesdoc_companyId')=='undefined' || Cookie.get('taxesdoc_companyId')==null)     
+        Cookie.set('taxesdoc_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('taxesdoc_companyId')=="0"?"0":+Cookie.get('taxesdoc_companyId'));
+      if(Cookie.get('taxesdoc_sortAsc')=='undefined' || Cookie.get('taxesdoc_sortAsc')==null)       
+        Cookie.set('taxesdoc_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('taxesdoc_sortAsc');
+      if(Cookie.get('taxesdoc_sortColumn')=='undefined' || Cookie.get('taxesdoc_sortColumn')==null)    
+        Cookie.set('taxesdoc_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('taxesdoc_sortColumn');
+      if(Cookie.get('taxesdoc_offset')=='undefined' || Cookie.get('taxesdoc_offset')==null)        
+        Cookie.set('taxesdoc_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('taxesdoc_offset');
+      if(Cookie.get('taxesdoc_result')=='undefined' || Cookie.get('taxesdoc_result')==null)        
+        Cookie.set('taxesdoc_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('taxesdoc_result');
 
       //+++ getting base data from parent component
       this.getBaseData('myId');    
@@ -291,7 +291,7 @@ export class TaxesComponent implements OnInit {
     this.clearCheckboxSelection();
     this.createCheckedList();
     this.sendingQueryForm.offset=0;
-    Cookie.set('satusdoc_result',this.sendingQueryForm.result);
+    Cookie.set('taxesdoc_result',this.sendingQueryForm.result);
     this.getData();
   }
 
@@ -299,7 +299,7 @@ export class TaxesComponent implements OnInit {
   {
     this.clearCheckboxSelection();
     this.sendingQueryForm.offset=value;
-    Cookie.set('satusdoc_offset',value);
+    Cookie.set('taxesdoc_offset',value);
     this.getData();
   }
 
@@ -318,17 +318,17 @@ export class TaxesComponent implements OnInit {
           } else {  
               this.sendingQueryForm.sortAsc="asc"
           }
-      Cookie.set('satusdoc_sortAsc',this.sendingQueryForm.sortAsc);
+      Cookie.set('taxesdoc_sortAsc',this.sendingQueryForm.sortAsc);
       } else {
           this.sendingQueryForm.sortColumn=valueSortColumn;
           this.sendingQueryForm.sortAsc="asc";
-          Cookie.set('satusdoc_sortAsc',"asc");
-          Cookie.set('satusdoc_sortColumn',valueSortColumn);
+          Cookie.set('taxesdoc_sortAsc',"asc");
+          Cookie.set('taxesdoc_sortColumn',valueSortColumn);
       }
       this.getData();
   }
   onCompanySelection(){
-    Cookie.set('satusdoc_companyId',this.sendingQueryForm.companyId);
+    Cookie.set('taxesdoc_companyId',this.sendingQueryForm.companyId);
     this.resetOptions();
     this.getCRUD_rights();
   }
@@ -429,9 +429,9 @@ export class TaxesComponent implements OnInit {
   } 
 
   setDefaultCompany(){
-    if(Cookie.get('satusdoc_companyId')=='0'||!this.companyIdInList(Cookie.get('satusdoc_companyId'))){
+    if(Cookie.get('taxesdoc_companyId')=='0'||!this.companyIdInList(Cookie.get('taxesdoc_companyId'))){
       this.sendingQueryForm.companyId=this.myCompanyId;
-      Cookie.set('satusdoc_companyId',this.sendingQueryForm.companyId);
+      Cookie.set('taxesdoc_companyId',this.sendingQueryForm.companyId);
     }
     this.getCRUD_rights();
   }

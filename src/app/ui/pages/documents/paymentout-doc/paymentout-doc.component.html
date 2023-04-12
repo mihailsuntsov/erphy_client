@@ -248,28 +248,27 @@
                                                                 </mat-form-field>
                                                             </div>
                                                             <div class="col-12">    
+                                                                <app-balance-account *ngIf="!formBaseInformation.get('is_completed').value"
+                                                                    class="informer"
+                                                                    [company_id]="formBaseInformation.get('company_id').value"
+                                                                    [account_id]="formBaseInformation.get('payment_account_id').value"
+                                                                    [currency]="accountingCurrency">
+                                                                </app-balance-account>
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="!formBaseInformation.get('is_completed').value">
                                                                     <mat-label>{{t('docs.field.from_bnk_acc')}} <span *ngIf="+formBaseInformation.get('payment_account_id').value==0" class="star">*</span></mat-label>
-                                                                    <mat-select formControlName="payment_account_id" 
-                                                                                >                          
+                                                                    <mat-select formControlName="payment_account_id"
+                                                                            (selectionChange)="getPaymentAccountNameById(formBaseInformation.get('payment_account_id').value)">                          
                                                                         <mat-option  *ngFor="let rt of paymentAccounts" [value]="rt.id" 
                                                                         matTooltip='{{rt.payment_account}} ({{rt.name}})'>
                                                                                 {{rt.payment_account}} ({{rt.name}})
                                                                         </mat-option> 
                                                                     </mat-select>
-                                                                    <app-balance-account 
-                                                                        [company_id]="formBaseInformation.get('company_id').value"
-                                                                        [account_id]="formBaseInformation.get('payment_account_id').value"
-                                                                        [currency]="accountingCurrency">
-                                                                    </app-balance-account>
-                                                                </mat-form-field>
-                                                                
+                                                                </mat-form-field>                                                                
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="formBaseInformation.get('is_completed').value">
                                                                     <mat-label>{{t('docs.field.from_bnk_acc')}}</mat-label>
                                                                     <input  matInput [readonly]="true" 
                                                                     matTooltip="{{formBaseInformation.get('payment_account').value}}"
-                                                                            [ngModel]="formBaseInformation.get('payment_account').value" [ngModelOptions]="{standalone: true}"/>
-                                                                            
+                                                                            [ngModel]="getPaymentAccountNameById(formBaseInformation.get('payment_account_id').value)" [ngModelOptions]="{standalone: true}"/>                                                                            
                                                                     <app-balance-account 
                                                                         [company_id]="formBaseInformation.get('company_id').value"
                                                                         [account_id]="formBaseInformation.get('payment_account_id').value"
@@ -282,8 +281,7 @@
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="!formBaseInformation.get('is_completed').value">
                                                                     <mat-label>{{t('docs.field.eq_expendtr')}} <span *ngIf="+formBaseInformation.get('expenditure_id').value==0" class="star">*</span></mat-label>
                                                                     <mat-select formControlName="expenditure_id" 
-                                                                                (selectionChange)="onExpenditureChange()"
-                                                                                >                          
+                                                                                (selectionChange)="onExpenditureChange()">                          
                                                                         <mat-option  *ngFor="let rt of expenditureItems" [value]="rt.id" 
                                                                         matTooltip='{{rt.name}}'>
                                                                                 {{rt.name}}
@@ -302,18 +300,19 @@
                                                                             placeholder="cagent_id"
                                                                             formControlName="cagent_id"/>
                                                                 </mat-form-field>
-                                                                <mat-form-field  class="mat-form-field-100" *ngIf="this.expenditureType!='' && this.expenditureType!='moving' && !formBaseInformation.get('is_completed').value"> 
-                                                                    <mat-label>{{t('docs.field.cparty')}} <span *ngIf="+formBaseInformation.get('cagent_id').value==0" class="star">*</span></mat-label>
-                                                                    <input  matInput 
-                                                                    [matAutocomplete]="auto4" 
-                                                                    [formControl]="searchCagentCtrl"
-                                                                    (input)="canCagentAutocompleteQuery=true; checkEmptyCagentField();"
-                                                                    (change)="canCagentAutocompleteQuery=false; checkEmptyCagentField();">
-                                                                    <app-balance-cagent 
+                                                                <app-balance-cagent *ngIf="this.expenditureType!='' && this.expenditureType!='moving' && !formBaseInformation.get('is_completed').value"
+                                                                    class="informer" 
                                                                     [company_id]="formBaseInformation.get('company_id').value"
                                                                     [cagent_id]="formBaseInformation.get('cagent_id').value"
                                                                     [currency]="accountingCurrency">
-                                                                    </app-balance-cagent>
+                                                                </app-balance-cagent>
+                                                                <mat-form-field  class="mat-form-field-100" *ngIf="this.expenditureType!='' && this.expenditureType!='moving' && !formBaseInformation.get('is_completed').value"> 
+                                                                    <mat-label>{{t('docs.field.cparty')}} <span *ngIf="+formBaseInformation.get('cagent_id').value==0" class="star">*</span></mat-label>
+                                                                    <input  matInput 
+                                                                        [matAutocomplete]="auto4" 
+                                                                        [formControl]="searchCagentCtrl"
+                                                                        (input)="canCagentAutocompleteQuery=true; checkEmptyCagentField();"
+                                                                        (change)="canCagentAutocompleteQuery=false; checkEmptyCagentField();">
                                                                     <mat-autocomplete #auto4="matAutocomplete">
                                                                     <ng-container *ngIf="!isCagentListLoading" style="width:320px;">
                                                                         <mat-option style="padding:0px" *ngFor="let value of filteredCagents" [value]="value.name">
@@ -333,9 +332,9 @@
                                                                             placeholder="{{t('docs.field.cparty')}}"
                                                                             formControlName="cagent" [readonly]=true/>
                                                                     <app-balance-cagent 
-                                                                    [company_id]="formBaseInformation.get('company_id').value"
-                                                                    [cagent_id]="formBaseInformation.get('cagent_id').value"
-                                                                    [currency]="accountingCurrency">
+                                                                        [company_id]="formBaseInformation.get('company_id').value"
+                                                                        [cagent_id]="formBaseInformation.get('cagent_id').value"
+                                                                        [currency]="accountingCurrency">
                                                                     </app-balance-cagent>
                                                                 </mat-form-field>
                                                             </div>
@@ -358,6 +357,12 @@
                                                                 </mat-form-field>
                                                             </div>
                                                             <div class="col-12"  *ngIf="expenditureType=='moving' && formBaseInformation.get('moving_type').value=='boxoffice'">    
+                                                                <app-balance-boxoffice *ngIf="!formBaseInformation.get('is_completed').value"
+                                                                    class="informer"
+                                                                    [company_id]="formBaseInformation.get('company_id').value"
+                                                                    [boxoffice_id]="formBaseInformation.get('boxoffice_id').value"
+                                                                    [currency]="accountingCurrency">
+                                                                </app-balance-boxoffice>
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="!formBaseInformation.get('is_completed').value">
                                                                     <mat-label>{{t('docs.field.to_cash_rom')}} <span *ngIf="+formBaseInformation.get('boxoffice_id').value==0" class="star">*</span></mat-label>
                                                                     <mat-select formControlName="boxoffice_id" 
@@ -366,11 +371,6 @@
                                                                                 {{rt.name}}
                                                                         </mat-option> 
                                                                     </mat-select>
-                                                                    <app-balance-boxoffice 
-                                                                        [company_id]="formBaseInformation.get('company_id').value"
-                                                                        [boxoffice_id]="formBaseInformation.get('boxoffice_id').value"
-                                                                        [currency]="accountingCurrency">
-                                                                    </app-balance-boxoffice>
                                                                 </mat-form-field>
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="formBaseInformation.get('is_completed').value">
                                                                     <mat-label>{{t('docs.field.to_sell_reg')}}</mat-label>
@@ -384,21 +384,21 @@
                                                                             </app-balance-boxoffice>
                                                                 </mat-form-field>
                                                             </div>
-                                                            <div class="col-12"  *ngIf="expenditureType=='moving' && formBaseInformation.get('moving_type').value=='account'">    
+                                                            <div class="col-12"  *ngIf="expenditureType=='moving' && formBaseInformation.get('moving_type').value=='account'">
+                                                                <app-balance-account *ngIf="!formBaseInformation.get('is_completed').value"
+                                                                    class="informer"
+                                                                    [company_id]="formBaseInformation.get('company_id').value"
+                                                                    [account_id]="formBaseInformation.get('payment_account_to_id').value"
+                                                                    [currency]="accountingCurrency">
+                                                                </app-balance-account> 
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="!formBaseInformation.get('is_completed').value">
                                                                     <mat-label>{{t('docs.field.to_bnk_acc')}} <span *ngIf="+formBaseInformation.get('payment_account_to_id').value==0" class="star">*</span></mat-label>
-                                                                    <mat-select formControlName="payment_account_to_id" 
-                                                                                >                          
-                                                                                <mat-option  *ngFor="let rt of paymentAccounts" [value]="rt.id" 
-                                                                                matTooltip='{{rt.payment_account}} ({{rt.name}})'>
-                                                                                        {{rt.payment_account}} ({{rt.name}})
-                                                                                </mat-option>  
+                                                                    <mat-select formControlName="payment_account_to_id">                          
+                                                                        <mat-option  *ngFor="let rt of paymentAccounts" [value]="rt.id" 
+                                                                            matTooltip='{{rt.payment_account}} ({{rt.name}})'>
+                                                                            {{rt.payment_account}} ({{rt.name}})
+                                                                        </mat-option>  
                                                                     </mat-select>
-                                                                    <app-balance-account 
-                                                                        [company_id]="formBaseInformation.get('company_id').value"
-                                                                        [account_id]="formBaseInformation.get('payment_account_to_id').value"
-                                                                        [currency]="accountingCurrency">
-                                                                    </app-balance-account>
                                                                 </mat-form-field>
                                                                 <mat-form-field class="mat-form-field-100" *ngIf="formBaseInformation.get('is_completed').value">
                                                                     <mat-label>{{t('docs.field.to_bnk_acc')}}</mat-label>

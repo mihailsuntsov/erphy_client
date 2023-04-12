@@ -101,7 +101,9 @@ export class MoneyflowComponent implements OnInit {
   pagenum: any;  // - Страница, которая сейчас выбрана в пагинаторе
   maxpage: any;  // - Последняя страница в пагинаторe (т.е. maxpage=8 при пагинаторе [345678])
   listsize: any; // - Последняя страница в пагинации (но не в пагинаторе. т.е. в пагинаторе может быть [12345] а listsize =10)
-  dateFormat:string = 'DD/MM/YYYY'; // user's format of the date
+  dateFormat:string = 'DD/MM/YYYY'; // user's format of the date  
+  paymentAccounts:any[]=[];// список расчётных счетов предприятия
+  boxofficesAccounts:any[]=[];// список касс предприятия
 
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
   selectionFilterOptions = new SelectionModel<number>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние
@@ -141,7 +143,9 @@ export class MoneyflowComponent implements OnInit {
         offset: new UntypedFormControl(0,[]), //
         result: new UntypedFormControl('10',[]), //
         filterOptionsIds: new UntypedFormControl([],[]), //
-        searchString: new UntypedFormControl('',[]), //
+        searchString: new UntypedFormControl('',[]), //        
+        accountsIds: new UntypedFormControl     ([],[]),   
+        boxofficesIds: new UntypedFormControl     ([],[]),
       });
       if(this.company==0){
         if(Cookie.get('moneyflow_companyId')=='undefined' || Cookie.get('moneyflow_companyId')==null)     
@@ -362,8 +366,38 @@ export class MoneyflowComponent implements OnInit {
       this.queryForm.get('companyId').setValue(this.myCompanyId);
       Cookie.set('moneyflow_companyId',this.queryForm.get('companyId').value);
     }
-    this.getCRUD_rights(this.permissionsSet);
+    this.getCompaniesPaymentAccounts();
   }
+  
+  getCompaniesPaymentAccounts(){
+    return this.http.get('/api/auth/getCompaniesPaymentAccounts?id='+this.queryForm.get('companyId').value).subscribe(
+        (data) => { 
+          this.paymentAccounts=data as any [];
+          this.getBoxofficesList();
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+    );
+  }
+
+  getBoxofficesList(){
+      this.http.get('/api/auth/getBoxofficesList?id='+this.queryForm.get('companyId').value).subscribe(
+          (data) => { 
+            this.boxofficesAccounts=data as any [];
+            this.pushAllFiels();
+            this.getCRUD_rights(this.permissionsSet);
+          },
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+      );
+  }
+  pushAllFiels(){
+    let ids: number[]=[];
+    this.paymentAccounts.map(i=>{ids.push(i.id);});
+    this.queryForm.get('accountsIds').setValue(ids);
+    ids=[];
+    this.boxofficesAccounts.map(i=>{ids.push(i.id);});
+    this.queryForm.get('boxofficesIds').setValue(ids);
+  }
+
 
   doFilterCompaniesList(){
     let myCompany:idAndName;
@@ -389,7 +423,9 @@ export class MoneyflowComponent implements OnInit {
         myId:this.myId,
         myCompanyId:this.myCompanyId,
         companiesList:this.receivedCompaniesList,
-        dateFormat:this.dateFormat
+        dateFormat:this.dateFormat,
+        accountsIds: this.queryForm.get('accountsIds').value,
+        boxofficesIds: this.queryForm.get('boxofficesIds').value,
         // dateFrom:this.queryForm.get('dateFrom').value,
         // dateTo:this.queryForm.get('dateTo').value,
         // cagent:cagent,
@@ -444,5 +480,5 @@ export class MoneyflowComponent implements OnInit {
   } 
   // sometimes in cookie "..._companyId" there value that not exists in list of companies. If it happens, company will be not selected and data not loaded until user select company manually
   companyIdInList(id:any):boolean{let r=false;this.receivedCompaniesList.forEach(c=>{if(+id==c.id) r=true});return r}
-
+    
 }

@@ -683,7 +683,9 @@ export class InventoryDocComponent implements OnInit {
       name: new UntypedFormControl (row.name,[]),
       estimated_balance: new UntypedFormControl (row.estimated_balance,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
       actual_balance: new UntypedFormControl (row.actual_balance,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
-      product_price:  new UntypedFormControl (this.numToPrice(row.product_price,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),ValidationService.priceMoreThanZero]),
+      // product_price:  new UntypedFormControl (this.numToPrice(row.product_price,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),ValidationService.priceMoreThanZero]),
+      product_price:  new UntypedFormControl (this.numToPrice(row.product_price,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+
     });
   }
 
@@ -741,11 +743,15 @@ export class InventoryDocComponent implements OnInit {
                   switch(this.createdDocId){
                     case null:{// null возвращает если не удалось создать документ из-за ошибки
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.crte_doc_err',{name:translate('docs.docs.inventory')})}});
-                      console.log("3-"+!this.formBaseInformation.valid);
+                      // console.log("3-"+!this.formBaseInformation.valid);
                       break;
                     }
                     case -1:{//недостаточно прав
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm_creat',{name:translate('docs.docs.inventory')})}});
+                      break;
+                    }
+                    case -240:{//Есть услуги
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.there_services')}});
                       break;
                     }
                     default:{// Инвентаризация успешно создалась в БД 
@@ -843,7 +849,7 @@ export class InventoryDocComponent implements OnInit {
         this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);
       this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением
     }
-    return this.http.post('/api/auth/updateInventory',  this.formBaseInformation.value)
+    this.http.post('/api/auth/updateInventory',  this.formBaseInformation.value)
       .subscribe(
           (data) => 
           {   
@@ -863,6 +869,10 @@ export class InventoryDocComponent implements OnInit {
               }
               case -50:{//Документ уже проведён
                 this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.already_cmplt')}});
+                break;
+              }
+              case -240:{//Есть услуги
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.there_services')}});
                 break;
               }
               default:{// Успешно

@@ -430,6 +430,8 @@ constructor(private activateRoute: ActivatedRoute,
   get tinName(){ // TIN, Tax ID, ИНН, VAT e.t.c
     if([47,212].includes(+this.formBaseInformation.get('jr_country_id').value)) // if not USA or US virgin lands
       return 'tax_id'; 
+    if([17].includes(+this.formBaseInformation.get('jr_country_id').value)) // if Montenegro
+        return 'pib';
     else return 'tin';
   }
 

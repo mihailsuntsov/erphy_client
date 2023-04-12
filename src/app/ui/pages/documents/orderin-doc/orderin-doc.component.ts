@@ -839,6 +839,7 @@ export class OrderinDocComponent implements OnInit {
                 this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                 if(complete) {
                   this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - окончательно устанавливаем признак проведённости = true
+                  this.formBaseInformation.get('cagent').setValue(this.searchCagentCtrl.value); // иначе после проведения пропадёт наименование контрагента
                   setTimeout(() => { this.balanceBoxofficeComponent.getBalance();},10);//пересчитаем баланс кассы предприятия
                   if(this.settingsForm.get('statusIdOnComplete').value&&this.statusIdInList(this.settingsForm.get('statusIdOnComplete').value)){// если в настройках есть "Статус при проведении" - выставим его
                     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
@@ -1139,6 +1140,12 @@ export class OrderinDocComponent implements OnInit {
         this.getOrderoutListByBoxofficeId();
       }
     }
+    this.formBaseInformation.get('boxoffice').setValue(this.getBoxofficeNameById(this.formBaseInformation.get('boxoffice_id').value));
+  }
+  getBoxofficeNameById(id:number):string{
+    let name:string='';
+    if(this.boxoffices)this.boxoffices.map(i=>{if(i.id==id)name=i.name;});
+    return name;
   }
   getPaymentoutListByAccountId(){
     if(+this.formBaseInformation.get('payment_account_from_id').value>0 && !this.formBaseInformation.get('is_completed').value){

@@ -11,7 +11,6 @@
                 [matMenuTriggerFor]="addDocMenu"
                 mat-raised-button 
                 matTooltip="{{t('docs.tip.create_docs')}}"
-                [disabled]="!formValid" 
                 *ngIf="+id>0"
                 color="primary"
                 (submit)="false"
@@ -43,7 +42,7 @@
             </button>
             <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
                 <button mat-menu-item (click)="goToNewDocument()">
-                    <span>{{t('docs.docs.tax')}}</span>
+                    <span>{{t('docs.docs.store')}}</span>
                 </button>
             </mat-menu>
             <a routerLink="../../stores">
@@ -306,7 +305,7 @@
 
 
                                             <mat-form-field>
-                                                <mat-label>{{t('docs.field.s_dprtmnts')}} <span *ngIf="formBaseInformation.get('storeDepartments').value.length==0" class="star">*</span></mat-label>
+                                                <mat-label>{{t('docs.field.s_dprtmnts')}} <span *ngIf="!formBaseInformation.get('storeDepartments').value || formBaseInformation.get('storeDepartments').value.length==0" class="star">*</span></mat-label>
                                                 <mat-select formControlName="storeDepartments" 
                                                 matTooltip="{{t('docs.tip.s_dprtmnts')}}" multiple>
                                                     <mat-option *ngFor="let department of receivedDepartmentsList" 

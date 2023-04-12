@@ -5,8 +5,8 @@ class="spinner"
 *ngIf="gettingTableData"
 ></mat-spinner>
 <mat-card class="card" *transloco="let t">
-    <mat-card-title class="flex" style="height: 30px;">
-        <div *ngIf="!displayingDeletedDocs" class="emptyspace">{{cu.cap(t('menu.docs.counterpays'))}} <span *ngIf="data.cagent">{{t('menu.docs.with')}} </span>{{data.cagent}}</div>
+    <mat-card-title class="flex" style="height: 30px;" *ngIf="mode=='viewInWindow'">
+        <div class="emptyspace">{{cu.cap(t('menu.docs.counterpays'))}} <span *ngIf="cagent!=undefined||data.cagent">{{t('menu.docs.with')}} </span>{{cagent==undefined?data.cagent:cagent}}</div>
         <!-- <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> входящие платежи</div> -->
         <!-- <button 
             mat-raised-button 
@@ -81,7 +81,7 @@ class="spinner"
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
-                        <mat-form-field class="company-select" style="margin-left: 10px; max-width: 250px;">
+                        <!--mat-form-field class="company-select" style="margin-left: 10px; max-width: 250px;">
                             <mat-label>{{t('docs.field.company')}}</mat-label>
                             <mat-select formControlName="companyId"
                             (selectionChange)="onCompanySelection()">                          
@@ -89,7 +89,7 @@ class="spinner"
                                         {{rt.name}}
                                 </mat-option>
                             </mat-select>
-                        </mat-form-field>
+                        </mat-form-field-->
 
 
 
@@ -123,7 +123,14 @@ class="spinner"
                                 </mat-form-field>
 
 
-
+                                <button mat-button  
+                                    class="filter-button"
+                                    matTooltip="{{t('docs.button.refresh')}}"
+                                    (click)="getData()"  
+                                    type="submit"
+                                    matSuffix mat-icon-button>
+                                    <mat-icon>refresh</mat-icon>
+                                </button>
 
 
 
@@ -180,81 +187,98 @@ class="spinner"
                     </div>
                 </form>
                 <div id="result_form">
-                    <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
-                        <ng-container matColumnDef="opendoc">
-                            <th mat-header-cell *matHeaderCellDef></th>
-                            <td mat-cell *matCellDef="let row" class="table-launch-icon"> 
-                                <a class="inactive"  target="_blank" href="ui/{{row.doc_page_name}}doc/{{row.doc_id}}">
-                                    <mat-icon>launch</mat-icon>
-                                </a>    
-                            </td>   
-                        </ng-container>
-                        <ng-container matColumnDef="doc_name" >
-                            <th mat-header-cell *matHeaderCellDef style="width:15%">
-                            <span (click)="setSort('doc_name')" class="sortheader"> {{t('menu.table.doc')}} 
-                                <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='doc_name'" class="material-icons sortarrow">arrow_upward</i>
-                                <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='doc_name'" class="material-icons sortarrow">arrow_downward</i>
-                            </span>
-                            <td mat-cell *matCellDef="let row"> {{row.doc_name}} </td>
-                        </ng-container>
-                        <ng-container matColumnDef="doc_number" >
-                            <th mat-header-cell *matHeaderCellDef style="width:15%">
-                            <span (click)="setSort('doc_number')" class="sortheader"> {{t('menu.table.number')}} 
-                                <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='doc_number'" class="material-icons sortarrow">arrow_upward</i>
-                                <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='doc_number'" class="material-icons sortarrow">arrow_downward</i>
-                            </span>
-                            <td mat-cell *matCellDef="let row"> {{row.doc_number}} </td>
-                        </ng-container>
-                        <ng-container matColumnDef="date_time_created">
-                            <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('date_time_created_sort')" class="sortheader"> {{t('menu.table.date_complete')}} 
-                                <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='date_time_created_sort'" class="material-icons sortarrow">arrow_upward</i>
-                                <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='date_time_created_sort'" class="material-icons sortarrow">arrow_downward</i>
-                            </span>
-                            <td mat-cell *matCellDef="let row"> {{row.date_time_created}} </td>
-                        </ng-container>
-                        <ng-container matColumnDef="summ_in">
-                            <th mat-header-cell *matHeaderCellDef style="width:15%">
-                            <span (click)="setSort('summ_in')" class="sortheader"> {{t('menu.table.income')}}  
-                                <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='summ_in'" class="material-icons sortarrow">arrow_upward</i>
-                                <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='summ_in'" class="material-icons sortarrow">arrow_downward</i>
-                            </span>
-                            <td mat-cell *matCellDef="let row"> {{row.summ_in}} </td>
-                        </ng-container>
-                        <ng-container matColumnDef="summ_out">
-                            <th mat-header-cell *matHeaderCellDef style="width:15%">
-                            <span (click)="setSort('summ_out')" class="sortheader"> {{t('menu.table.expendtr')}} 
-                                <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='summ_out'" class="material-icons sortarrow">arrow_upward</i>
-                                <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='summ_out'" class="material-icons sortarrow">arrow_downward</i>
-                            </span>
-                            <td mat-cell *matCellDef="let row"><p style="margin: 5px">{{row.summ_out}}</p></td>
-                        </ng-container>
-                        <ng-container matColumnDef="status">
-                            <th mat-header-cell *matHeaderCellDef style="width:15%">
-                            <span (click)="setSort('status')" class="sortheader"> {{t('menu.table.status')}}   
-                                <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='status'" class="material-icons sortarrow">arrow_upward</i>
-                                <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='status'" class="material-icons sortarrow">arrow_downward</i>
-                            </span>
-                            <td mat-cell *matCellDef="let row"><p style="margin: 5px">{{row.status}}</p></td>
-                        </ng-container>
-                        
-                        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-                        <!-- Part "Data not founded" --> <!--+++-->
-                        <ng-container matColumnDef="data_not_found">
-                            <td mat-footer-cell *matFooterCellDef colspan="13" class="text-center">
-                                {{t('menu.msg.dt_not_fnd')}}
-                            </td>
-                        </ng-container>
-                        <ng-container matColumnDef="nocolumn">
-                            <td mat-footer-cell *matFooterCellDef colspan="13" style="display: none;"></td>
-                        </ng-container>
-                        <tr mat-footer-row 
-                        *matFooterRowDef="[dataSource.data.length==0?'data_not_found':'nocolumn']" 
-                        [ngStyle]="(dataSource.data.length==0 && !gettingTableData)?{}:{'display': 'none'}"></tr>
-                        <!-- End of Part "Data not founded" -->        
-                    </table>
-              
+                    <div class="container-fluid">
+                        <div class="row" style="margin: 15px 0; background-color:oldlace; line-height: 2em; font-size:1.4em;">
+                            <div class="col-3">
+                                {{t('menu.table.bal_on_begin')}}: <strong>{{bal_on_begin}}</strong>
+                            </div>
+                            <div class="col-3">
+                                {{t('menu.table.income')}}: <strong>{{income}}</strong>
+                            </div>
+                            <div class="col-3">
+                                {{t('menu.table.expendtr')}}: <strong>{{expendtr}}</strong>
+                            </div>
+                            <div class="col-3">
+                                {{t('menu.table.bal_on_end')}}: <strong>{{bal_on_end}}</strong>
+                            </div>
+                        </div>
+                        <div class="row" style="margin: 15px 0;">
+                            <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+                                <ng-container matColumnDef="opendoc">
+                                    <th mat-header-cell *matHeaderCellDef></th>
+                                    <td mat-cell *matCellDef="let row" class="table-launch-icon"> 
+                                        <a class="inactive"  target="_blank" href="ui/{{row.doc_page_name}}doc/{{row.doc_id}}">
+                                            <mat-icon>launch</mat-icon>
+                                        </a>    
+                                    </td>   
+                                </ng-container>
+                                <ng-container matColumnDef="doc_name" >
+                                    <th mat-header-cell *matHeaderCellDef style="width:15%">
+                                    <span (click)="setSort('doc_name')" class="sortheader"> {{t('menu.table.doc')}} 
+                                        <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='doc_name'" class="material-icons sortarrow">arrow_upward</i>
+                                        <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='doc_name'" class="material-icons sortarrow">arrow_downward</i>
+                                    </span>
+                                    <td mat-cell *matCellDef="let row"> {{row.doc_name}} </td>
+                                </ng-container>
+                                <ng-container matColumnDef="doc_number" >
+                                    <th mat-header-cell *matHeaderCellDef style="width:15%">
+                                    <span (click)="setSort('doc_number')" class="sortheader"> {{t('menu.table.number')}} 
+                                        <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='doc_number'" class="material-icons sortarrow">arrow_upward</i>
+                                        <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='doc_number'" class="material-icons sortarrow">arrow_downward</i>
+                                    </span>
+                                    <td mat-cell *matCellDef="let row"> {{row.doc_number}} </td>
+                                </ng-container>
+                                <ng-container matColumnDef="date_time_created">
+                                    <th mat-header-cell *matHeaderCellDef>
+                                    <span (click)="setSort('date_time_created_sort')" class="sortheader"> {{t('menu.table.date_complete')}} 
+                                        <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='date_time_created_sort'" class="material-icons sortarrow">arrow_upward</i>
+                                        <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='date_time_created_sort'" class="material-icons sortarrow">arrow_downward</i>
+                                    </span>
+                                    <td mat-cell *matCellDef="let row"> {{row.date_time_created}} </td>
+                                </ng-container>
+                                <ng-container matColumnDef="summ_in">
+                                    <th mat-header-cell *matHeaderCellDef style="width:15%">
+                                    <span (click)="setSort('summ_in')" class="sortheader"> {{t('menu.table.income')}}  
+                                        <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='summ_in'" class="material-icons sortarrow">arrow_upward</i>
+                                        <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='summ_in'" class="material-icons sortarrow">arrow_downward</i>
+                                    </span>
+                                    <td mat-cell *matCellDef="let row"> {{row.summ_in}} </td>
+                                </ng-container>
+                                <ng-container matColumnDef="summ_out">
+                                    <th mat-header-cell *matHeaderCellDef style="width:15%">
+                                    <span (click)="setSort('summ_out')" class="sortheader"> {{t('menu.table.expendtr')}} 
+                                        <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='summ_out'" class="material-icons sortarrow">arrow_upward</i>
+                                        <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='summ_out'" class="material-icons sortarrow">arrow_downward</i>
+                                    </span>
+                                    <td mat-cell *matCellDef="let row"><p style="margin: 5px">{{row.summ_out}}</p></td>
+                                </ng-container>
+                                <ng-container matColumnDef="status">
+                                    <th mat-header-cell *matHeaderCellDef style="width:15%">
+                                    <span (click)="setSort('status')" class="sortheader"> {{t('menu.table.status')}}   
+                                        <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='status'" class="material-icons sortarrow">arrow_upward</i>
+                                        <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='status'" class="material-icons sortarrow">arrow_downward</i>
+                                    </span>
+                                    <td mat-cell *matCellDef="let row"><p style="margin: 5px">{{row.status}}</p></td>
+                                </ng-container>
+                                
+                                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                                <!-- Part "Data not founded" --> <!--+++-->
+                                <ng-container matColumnDef="data_not_found">
+                                    <td mat-footer-cell *matFooterCellDef colspan="13" class="text-center">
+                                        {{t('menu.msg.dt_not_fnd')}}
+                                    </td>
+                                </ng-container>
+                                <ng-container matColumnDef="nocolumn">
+                                    <td mat-footer-cell *matFooterCellDef colspan="13" style="display: none;"></td>
+                                </ng-container>
+                                <tr mat-footer-row 
+                                *matFooterRowDef="[dataSource.data.length==0?'data_not_found':'nocolumn']" 
+                                [ngStyle]="(dataSource.data.length==0 && !gettingTableData)?{}:{'display': 'none'}"></tr>
+                                <!-- End of Part "Data not founded" -->        
+                            </table>
+                        </div>
+                    </div>
                     <div class="flex">
                         <div class="col-sm">
                             <p> {{t('menu.bottom.founded')}}: {{size}}, {{t('menu.bottom.page')}} {{pagenum}}  {{t('menu.bottom.of')}} {{listsize}}</p> <!--+++-->

@@ -727,6 +727,10 @@ export class WriteoffDocComponent implements OnInit {
                       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm_creat',{name:translate('docs.docs.writeoff')})}});
                       break;
                     }
+                    case -240:{//Есть услуги
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.there_services')}});
+                      break;
+                    }
                     default:{// Списание успешно создалась в БД 
                       this.openSnackBar(translate('docs.msg.doc_crtd_suc'),translate('docs.msg.close'));
                       this.afterCreateWriteoff();
@@ -866,6 +870,10 @@ export class WriteoffDocComponent implements OnInit {
               }
               case -80:{//Отрицательное кол-во товара на складе
                 this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.cnc_com_err2')}});
+                break;
+              }
+              case -240:{//Есть услуги
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.there_services')}});
                 break;
               }
               case 1:{// Успешно

@@ -110,7 +110,8 @@ export class MutualpaymentComponent implements OnInit {
     ngOnInit() {        
         this.queryForm = new UntypedFormGroup({ //форма для отправки запроса 
         companyId: new UntypedFormControl(this.company,[]), // предприятие, по которому идет запрос данных
-        dateFrom: new UntypedFormControl(moment().startOf('year'),[]),   // дата С
+        // dateFrom: new UntypedFormControl(moment().startOf('year'),[]),   // дата С
+        dateFrom: new UntypedFormControl(moment('01.01.2000','DD.MM.YYYY'),[]),   // дата С
         dateTo: new UntypedFormControl(moment(),[]),     // дата По
         sortColumn: new UntypedFormControl(+this.option>0?'summ_on_end':'cagent',[]), //
         sortAsc: new UntypedFormControl(+this.option==2?'asc':'desc',[]), //

@@ -101,3 +101,30 @@ li {list-style: none;}
     margin-top: 100px;
     z-index: 100;
 }
+/*********доп. строки в таблице***********/
+.padded{
+    padding: 5px;
+}
+.bg-account{
+    background-color: aliceblue;
+}
+.bg-kassa{
+    background-color:azure;;
+}
+.bg-all{
+    background-color:honeydew;
+}
+.balance-bar{
+    font-size: 14px !important;
+    color:black !important;
+    font-weight: bold;
+}
+.balance-bar-bottom{
+    text-align: left;
+}
+tr.mat-header-row, tr.mat-footer-row {
+    height: 30px    ;
+}
+.top-bar{
+    text-align: center;
+}

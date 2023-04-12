@@ -991,11 +991,17 @@ export class OrderoutDocComponent implements OnInit {
       this.formBaseInformation.get('boxoffice_to_id').setValue(null);
       this.formBaseInformation.get('payment_account_to_id').setValue(null);
     }
+    this.formBaseInformation.get('expenditure').setValue(this.getExpenditureNameById(this.formBaseInformation.get('expenditure_id').value));
   }
   getExpenditureTypeById(id:number):string{
     let type:string='';
     if(this.expenditureItems)this.expenditureItems.map(i=>{if(i.id==id)type=i.type;});
     return type;
+  }
+  getExpenditureNameById(id:number):string{
+    let name:string='';
+    if(this.expenditureItems)this.expenditureItems.map(i=>{if(i.id==id)name=i.name;});
+    return name;
   }
   onMovingChange(){
     if(this.formBaseInformation.get('moving_type').value=='account'){        // moving_type = 'account'

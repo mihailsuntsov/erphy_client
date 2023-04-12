@@ -281,7 +281,7 @@ export class OrdersupProductsTableComponent implements OnInit {
       {
         this.isProductListLoading  = true;
         return this.http.get(
-          '/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.company_id+'&departmentId='+this.department_id+'&document_id=0&priceTypeId=0&showRemovedFromSale=true'
+          '/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.company_id+'&departmentId='+this.department_id+'&document_id=0&priceTypeId=0&showRemovedFromSale=true&showNotPurchased=false&showServices=true'
           );
       }else return [];
     } catch (e) {

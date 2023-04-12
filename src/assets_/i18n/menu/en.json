@@ -198,7 +198,10 @@
         "code_num":     "Numeral code",
         "acc_currency": "Accounting currency",
         "lang_code":    "Language",
-        "store":        "Online store"
+        "store":        "Online store",
+        "ppr":          "Subject of trade",
+        "product":      "Commodity",
+        "service":      "Service"
     },
     "bottom":{
         "founded":      "Founded",

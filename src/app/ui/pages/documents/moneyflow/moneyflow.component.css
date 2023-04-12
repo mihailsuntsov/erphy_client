@@ -128,3 +128,18 @@ li {list-style: none;}
     margin-top: 100px;
     z-index: 100;
 }
+
+::ng-deep th .mat-form-field-label-wrapper, th .mat-form-field-underline, th .mat-form-field-label {
+    display: none !important;
+}
+::ng-deep th .mat-form-field-underline {
+    height: 0px !important;
+    background-color: rgba(0,0,0,0) !important;
+    width: 0px !important;
+}
+::ng-deep th .mat-select-arrow {
+    display: none !important;
+}
+::ng-deep th .mat-select-value {
+    display: none !important;
+}

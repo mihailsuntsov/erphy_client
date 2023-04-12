@@ -324,7 +324,7 @@ export class ProductsComponent implements OnInit {
     this.displayedColumns.push('name');
     this.displayedColumns.push('description');
     this.displayedColumns.push('article');
-    this.displayedColumns.push('productgroup');
+    this.displayedColumns.push('ppr_id'); // 1 = product, 4 = service
     /*this.checkedOptionsList.some(function(e){return(e==3)})?null:*/this.displayedColumns.push('not_buy');
     /*this.checkedOptionsList.some(function(e){return(e==4)})?null:*/this.displayedColumns.push('not_sell');
     this.displayedColumns.push('creator');
@@ -613,7 +613,7 @@ export class ProductsComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe(result => {
       if(result==1)
-      this.loadTreesAndOpenNode(+this.sendingQueryForm.selectedNodeId); 
+        this.loadTreesAndOpenNode(+this.sendingQueryForm.selectedNodeId); 
       // this.resetSelectedCategory(true);
     });        
   }
@@ -710,7 +710,7 @@ export class ProductsComponent implements OnInit {
       );
   }
   loadTreesAndOpenNode(nodeId:number){
-    //console.log("loadTrees and open node");
+    this.checklistSelection.clear();
     this.loadSpravService.getProductCategoriesTrees(this.sendingQueryForm.companyId).subscribe(
       (data) => {
         this.treeDataSource.data=data as TodoItemNode [];
@@ -800,7 +800,7 @@ export class ProductsComponent implements OnInit {
     for (let i = 0; i < this.treeControl.dataNodes.length; i++) {
       parentOfCurrentNode=this.getParent(this.treeControl.dataNodes[i]);
       if(parentOfCurrentNode){
-        console.log("parentOfCurrentNode: "+parentOfCurrentNode.id);
+        // console.log("parentOfCurrentNode: "+parentOfCurrentNode.id);
         if(parentOfCurrentNode.id==parentNode.id){
           this.numChildsOfSelectedCategory++;
     }}}
@@ -949,7 +949,8 @@ export class ProductsComponent implements OnInit {
                       "yesNo":        result==1?true:false
         };
         this.clearCheckboxSelection();
-        return this.http.post('/api/auth/setCategoriesToProducts', body) 
+        this.refreshPermissions(); // to show create button
+        this.http.post('/api/auth/setCategoriesToProducts', body) 
           .subscribe(
               (data) => {   
                 this.openSnackBar(translate('menu.msg.sep_prod_cat'), translate('menu.msg.close')); //+++

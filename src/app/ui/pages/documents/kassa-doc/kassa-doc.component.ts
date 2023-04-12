@@ -315,7 +315,7 @@ onServiceSearchValueChanges(){
     try {
       if(this.canServiceAutocompleteQuery && this.searchServiceCtrl.value.length>1){
         this.isServiceListLoading  = true;
-        return this.http.get('/api/auth/getProductsList?searchString='+this.searchServiceCtrl.value+'&companyId='+this.formBaseInformation.get('company_id').value+'&departmentId=0&document_id=0&priceTypeId=0&showRemovedFromSale=true');
+        return this.http.get('/api/auth/getProductsList?searchString='+this.searchServiceCtrl.value+'&companyId='+this.formBaseInformation.get('company_id').value+'&departmentId=0&document_id=0&priceTypeId=0&showRemovedFromSale=true&showNotPurchased=true&showServices=true');
       }else return [];
     } catch (e) {
       this.isServiceListLoading  = false;

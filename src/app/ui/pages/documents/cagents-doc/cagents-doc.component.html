@@ -847,6 +847,31 @@
                                 </div>
                             </div>   
                         </mat-tab>
+
+
+                        <mat-tab label="{{cu.cap(t('menu.docs.counterpays'))}}">
+                            <div class="container-fluid">
+                                <div class="row" style="padding: 10px">
+                                    <div class="col-12">
+
+                                        <app-mutualpayment_det
+                                        *ngIf="+id>0 && locale && locale!='' && +formBaseInformation.get('company_id').value>0 && formBaseInformation.get('name').value!=''"
+                                        [companyId]="formBaseInformation.get('company_id').value" 
+                                        [cagentId]="id"
+                                        [cagent]="formBaseInformation.get('name').value"
+                                        
+                                        ></app-mutualpayment_det>
+
+
+                                    </div>
+                                </div>
+                            </div>   
+                        </mat-tab>
+
+
+
+
+
                         <mat-tab label="{{t('docs.tab.bank_data')}}">
                             <div class="container-fluid">
                                 <div class="row" style="padding: 10px">

@@ -23,6 +23,20 @@ export interface CheckBox {
   department_id: number;
   creator_id: number;
 }
+interface DocResponse {
+  summ_before_pa: number;
+  summ_before_bx: number;
+  summ_before_all: number;
+  summ_result_pa: number;
+  summ_result_bx: number;
+  summ_result_all: number;
+  total_summ_in_pa: number;
+  total_summ_out_pa: number;
+  total_summ_in_bx: number;
+  total_summ_out_bx: number;
+  total_summ_in_all: number;
+  total_summ_out_all: number;
+}
 export interface idAndName {
   id: number;
   name:string;
@@ -49,6 +63,8 @@ export class MoneyflowDetComponent implements OnInit {
   receivedCompaniesList: idAndName [] = [];//массив для получения списка предприятий
   myCompanyId:number=0;//
   myId:number=0;
+  paymentAccounts:any[]=[];// список расчётных счетов предприятия
+  boxofficesAccounts:any[]=[];// список касс предприятия
 
   //переменные прав
   permissionsSet: any[];//сет прав на документ
@@ -69,6 +85,20 @@ export class MoneyflowDetComponent implements OnInit {
   maxpage: any;  // - Последняя страница в пагинаторe (т.е. maxpage=8 при пагинаторе [345678])
   listsize: any; // - Последняя страница в пагинации (но не в пагинаторе. т.е. в пагинаторе может быть [12345] а listsize =10)
 
+  //переменные для начальных и конечных балансов
+  summ_before_pa: number=0;
+  summ_before_bx: number=0;
+  summ_before_all: number=0;
+  summ_result_pa: number=0;
+  summ_result_bx: number=0;
+  summ_result_all: number=0;
+  total_summ_in_pa: number=0;
+  total_summ_out_pa: number=0;
+  total_summ_in_bx: number=0;
+  total_summ_out_bx: number=0;
+  total_summ_in_all: number=0;
+  total_summ_out_all: number=0;
+  
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
   selectionFilterOptions = new SelectionModel<idAndName>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние
   optionsIds: idAndName [];
@@ -101,6 +131,8 @@ export class MoneyflowDetComponent implements OnInit {
         result: new UntypedFormControl(10,[]), //
         filterOptionsIds: new UntypedFormControl([],[]), //
         searchString: new UntypedFormControl('',[]), //
+        accountsIds: new UntypedFormControl     (this.data.accountsIds,[]),   
+        boxofficesIds: new UntypedFormControl     (this.data.boxofficesIds,[]),
       });
 
       // if(Cookie.get('moneyflow_det_companyId')=='undefined' || Cookie.get('moneyflow_det_companyId')==null)     
@@ -120,7 +152,21 @@ export class MoneyflowDetComponent implements OnInit {
       this.myCompanyId = this.data.myCompanyId;
       this.receivedCompaniesList=this.data.companiesList;
 
+      if(this.data.locale==null) 
+        this.getSettings();
+      
       this.getCompaniesList();// 
+    }
+    getSettings(){
+      let result:any;
+      this.http.get('/api/auth/getMySettings')
+        .subscribe(
+            data => { 
+              result=data as any;
+              this._adapter.setLocale(result.locale?result.locale:'en-gb')        // setting locale in moment.js
+            },
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+        );
     }
 
     // -------------------------------------- *** ПРАВА *** ------------------------------------
@@ -135,9 +181,9 @@ export class MoneyflowDetComponent implements OnInit {
             );
   }
 
-  getCRUD_rights(permissionsSet:any[]){
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==587)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==588)});
+  getCRUD_rights(){
+    this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==587)});
+    this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==588)});
     this.getData();
   }
 
@@ -157,6 +203,7 @@ export class MoneyflowDetComponent implements OnInit {
       this.getTableHeaderTitles();
       this.getPagesList();
       this.getTable();
+      this.getMoneyflowBalances();
     } else {this.gettingTableData=false;;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:"Нет прав на просмотр"}})}
   }
 
@@ -169,6 +216,7 @@ export class MoneyflowDetComponent implements OnInit {
     this.displayedColumns.push('obj_name');
     this.displayedColumns.push('summ_in');
     this.displayedColumns.push('summ_out');
+    this.displayedColumns.push('cagent');
     this.displayedColumns.push('status');
   }
  
@@ -198,6 +246,30 @@ export class MoneyflowDetComponent implements OnInit {
                 },
                 error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} 
             );
+  }
+  
+  getMoneyflowBalances(){
+    this.http.post('/api/auth/getMoneyflowBalances', this.queryForm.getRawValue())
+            .subscribe(
+                data => { 
+                  
+                    let documentValues=data as DocResponse;// <- засовываем данные в интерфейс для принятия данных
+                    this.summ_before_pa=    documentValues.summ_before_pa;
+                    this.summ_before_bx=    documentValues.summ_before_bx;
+                    this.summ_before_all=   documentValues.summ_before_all;
+                    this.summ_result_pa=    documentValues.summ_result_pa;
+                    this.summ_result_bx=    documentValues.summ_result_bx;
+                    this.summ_result_all=   documentValues.summ_result_all;
+                    this.total_summ_in_pa=documentValues.total_summ_in_pa;
+                    this.total_summ_out_pa=documentValues.total_summ_out_pa;
+                    this.total_summ_in_bx=documentValues.total_summ_in_bx;
+                    this.total_summ_out_bx=documentValues.total_summ_out_bx;
+                    this.total_summ_in_all=documentValues.total_summ_in_all;
+                    this.total_summ_out_all=documentValues.total_summ_out_all;
+                  
+                },
+                error =>{console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})} 
+        );
   }
 
   setNumOfPages(){
@@ -277,7 +349,28 @@ export class MoneyflowDetComponent implements OnInit {
   setDefaultCompany(){
     if(+this.queryForm.get('companyId').value==0)
       this.queryForm.get('companyId').setValue(this.myCompanyId);
-    this.getCRUD_rights(this.permissionsSet);
+    this.getCompaniesPaymentAccounts();
+  }
+  
+  getCompaniesPaymentAccounts(){
+    return this.http.get('/api/auth/getCompaniesPaymentAccounts?id='+this.queryForm.get('companyId').value).subscribe(
+        (data) => { 
+          this.paymentAccounts=data as any [];
+          this.getBoxofficesList();
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+    );
+  }
+
+  getBoxofficesList(){
+      this.http.get('/api/auth/getBoxofficesList?id='+this.queryForm.get('companyId').value).subscribe(
+          (data) => { 
+            this.boxofficesAccounts=data as any [];
+            // this.pushAllFiels();
+            this.getCRUD_rights();
+          },
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+      );
   }
 
   doFilterCompaniesList(){

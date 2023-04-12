@@ -4,6 +4,7 @@ import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { CommonUtilitesService } from 'src/app/services/common_utilites.serviсe';
 import { translate } from '@ngneat/transloco'; //+++
+import { MoneyflowDetComponent } from 'src/app/modules/info-modules/moneyflow_det/moneyflow_det.component';
 
 @Component({
   selector: 'app-balance-account',
@@ -25,6 +26,7 @@ export class BalanceAccountComponent implements OnInit, OnChanges {
   constructor(
     private http: HttpClient,
     public MessageDialog: MatDialog,
+    public moneyflowDetDialog: MatDialog,
     public commonUtilites: CommonUtilitesService,) { }
 
   ngOnInit(): void {
@@ -58,6 +60,31 @@ export class BalanceAccountComponent implements OnInit, OnChanges {
     } else this.balance=null;
   }
     
+  openDetailsWindow() {
+    this.moneyflowDetDialog.open(MoneyflowDetComponent, {
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      height: '95%',
+      width: '95%',
+      data:
+      { 
+        mode: 'viewInWindow',
+        date: null,
+        companyId: this.company_id,
+        locale:null,
+        myId:0,
+        myCompanyId:0,
+        companiesList:[],
+        dateFormat:null,
+        accountsIds: [this.account_id],
+        boxofficesIds: [],
+        // dateFrom:this.queryForm.get('dateFrom').value,
+        // dateTo:this.queryForm.get('dateTo').value,
+        // cagent:cagent,
+      },
+    });
+   }
+
   refresh(){
     this.showModule=false;
     // alert(this.showModule)

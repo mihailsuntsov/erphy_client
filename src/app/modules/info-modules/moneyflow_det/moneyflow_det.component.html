@@ -43,224 +43,246 @@ class="spinner"
         <div class="card  w-100">
             <div class="card-body">
                 <form  class="form-horizontal" [formGroup]="queryForm" style="margin-bottom: 0px;">
-                    <div id="hidden" style="display: none;" class="row">
-                        <div class="form-group">
-                            <label class="control-label col-sm-2" for="offset">offset</label>
-                            <input  type="text" 
-                                    matInput formControlName="offset" 
-                                    class="form-control" 
-                                    name="offSet"
-                                    id="offset">
-                        </div>
-                        <div class="form-group">
-                            <label class="control-label col-sm-2" for="SortColumn">SortColumn</label>
-                            <input  type="text" 
-                                    matInput 
-                                    formControlName="sortColumn" 
-                                    class="form-control" 
-                                    name="sortColumn"
-                                    id="sortColumn" >
-                        </div>
-                        <div class="form-group">
-                            <label class="control-label col-sm-2" for="SortAsc">SortAsc</label>
-                            <input  type="text" 
-                                    matInput 
-                                    formControlName="sortAsc" 
-                                    class="form-control" 
-                                    name="sortAsc"
-                                    id="sortAsc" >
-                        </div>
-                    </div>
-                    <div class="flex">
-                        <mat-form-field style="width:50px;" class="num-of-rows">
-                            <mat-label>{{t('menu.top.rows')}}</mat-label>
-                            <mat-select formControlName="result" (selectionChange)="setNumOfPages()" class="form-control" id="selectRowsPerPage">                           
-                                <mat-option  *ngFor="let num of numRows" [value]="num.value">
-                                        {{num.viewValue}}
-                                </mat-option>
-                            </mat-select>
-                        </mat-form-field>
-                        <mat-form-field class="company-select" style="margin-left: 10px; max-width: 250px;">
-                            <mat-label>{{t('docs.field.company')}}</mat-label>
-                            <mat-select formControlName="companyId"
-                            (selectionChange)="onCompanySelection()">                          
-                                <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
-                                        {{rt.name}}
-                                </mat-option>
-                            </mat-select>
-                        </mat-form-field>
-
-
-
-
-
-
-
-
-
-                                <mat-form-field style="width: 100px; margin: 0 10px;">
-                                    <input  matInput 
-                                            formControlName="dateFrom"
-                                            placeholder="{{t('menu.top.date_from')}}"
-                                            [matDatepicker]="dpFrom"
-                                            (dateChange)="getData()"
-                                            />
-                                            <mat-datepicker-toggle matSuffix [for]="dpFrom"></mat-datepicker-toggle>
-                                    <mat-datepicker #dpFrom></mat-datepicker>
-                                </mat-form-field>
-                                <mat-form-field style="width: 100px; margin: 0 10px;">
-                                    <input  matInput 
-                                            formControlName="dateTo"
-                                            placeholder="{{t('menu.top.date_to')}}"
-                                            [matDatepicker]="dpTo"
-                                            (dateChange)="getData()"
-                                            />
-                                            <mat-datepicker-toggle 
-                                            matSuffix [for]="dpTo" 
-                                            ></mat-datepicker-toggle>
-                                    <mat-datepicker #dpTo></mat-datepicker>
-                                </mat-form-field>
-
-
-
-
-
-
-
-
-                        <span  class="emptyspace"></span>
-                        <!-- <button mat-button
-                            *ngIf="displaySelectOptions"
-                            class="options-button"
-                            [matMenuTriggerFor]="oper"
-                            type="button"
-                            matTooltip='Выбрать опции для фильтра'
-                            matSuffix mat-icon-button>
-                            <mat-icon>list_alt</mat-icon>
-                        </button> -->
-                        <mat-menu #oper="matMenu" xPosition="before">
-                            <div style="width: 300px;">
-                                <ul>
-                                    <li *ngFor="let row of optionsIds">
-                                        <mat-checkbox
-                                        (click)="$event.stopPropagation()"
-                                        (change)="$event ? clickFilterOptionsCheckbox(row) : null"
-                                        [checked]="selectionFilterOptions.isSelected(row)"
-                                        >{{row.name}}</mat-checkbox>
-                                    </li>
-                                </ul>
+                    <div style="width: 100%; display:flex">
+                        <div id="hidden" style="display: none;" class="row">
+                            <div class="form-group">
+                                <label class="control-label col-sm-2" for="offset">offset</label>
+                                <input  type="text" 
+                                        matInput formControlName="offset" 
+                                        class="form-control" 
+                                        name="offSet"
+                                        id="offset">
                             </div>
-                            <div class="div-100"> 
-                                <div style="width:100%; height: 38px; padding-bottom: 15px;">
-                                    <button matTooltip="{{t('menu.tip.apply_filters')}}" 
-                                            mat-mini-fab 
-                                            color="primary" 
-                                            (click)="clickApplyFilters()">
-                                        <mat-icon>done</mat-icon>
-                                    </button>
-                                </div>
-                            </div> 
-                        </mat-menu>
-                        <span  class="emptyspace" style="display: none"></span>
-                        <div class="flex">     
-                            <mat-form-field class="emptyspace">
+                            <div class="form-group">
+                                <label class="control-label col-sm-2" for="SortColumn">SortColumn</label>
+                                <input  type="text" 
+                                        matInput 
+                                        formControlName="sortColumn" 
+                                        class="form-control" 
+                                        name="sortColumn"
+                                        id="sortColumn" >
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-sm-2" for="SortAsc">SortAsc</label>
+                                <input  type="text" 
+                                        matInput 
+                                        formControlName="sortAsc" 
+                                        class="form-control" 
+                                        name="sortAsc"
+                                        id="sortAsc" >
+                            </div>
+                        </div>
+                        <div style="width: 90%;">
+                            <mat-form-field style="width:50px;" class="num-of-rows">
+                                <mat-label>{{t('menu.top.rows')}}</mat-label>
+                                <mat-select formControlName="result" (selectionChange)="setNumOfPages()" class="form-control" id="selectRowsPerPage">                           
+                                    <mat-option  *ngFor="let num of numRows" [value]="num.value">
+                                            {{num.viewValue}}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                            <mat-form-field class="company-select" style="margin-left: 10px; max-width: 250px;">
+                                <mat-label>{{t('docs.field.company')}}</mat-label>
+                                <mat-select formControlName="companyId"
+                                (selectionChange)="onCompanySelection()">                          
+                                    <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
+                                            {{rt.name}}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                            <mat-form-field style="width: 100px; margin: 0 10px;">
+                                <input  matInput 
+                                        formControlName="dateFrom"
+                                        placeholder="{{t('menu.top.date_from')}}"
+                                        [matDatepicker]="dpFrom"
+                                        (dateChange)="getData()"
+                                        />
+                                        <mat-datepicker-toggle matSuffix [for]="dpFrom"></mat-datepicker-toggle>
+                                <mat-datepicker #dpFrom></mat-datepicker>
+                            </mat-form-field>
+                            <mat-form-field style="width: 100px; margin: 0 10px;">
+                                <input  matInput 
+                                        formControlName="dateTo"
+                                        placeholder="{{t('menu.top.date_to')}}"
+                                        [matDatepicker]="dpTo"
+                                        (dateChange)="getData()"
+                                        />
+                                        <mat-datepicker-toggle 
+                                        matSuffix [for]="dpTo" 
+                                        ></mat-datepicker-toggle>
+                                <mat-datepicker #dpTo></mat-datepicker>
+                            </mat-form-field>                      
+                            <mat-form-field style="width: 200px; margin: 0 10px;"
+                                matTooltip="{{t('menu.table.bank_accnts')}}">
+                                <mat-label>{{t('menu.table.bank_accnts')}}</mat-label>
+                                <mat-select formControlName="accountsIds" multiple>
+                                    <mat-option *ngFor="let obj of paymentAccounts" 
+                                        [value]="obj.id">
+                                        {{obj.name}}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>   
+                            <mat-form-field style="width: 200px; margin: 0 10px;"
+                                matTooltip="{{t('menu.table.cash_rooms')}}">
+                                <mat-label>{{t('menu.table.cash_rooms')}}</mat-label>
+                                <mat-select formControlName="boxofficesIds" multiple>
+                                    <mat-option *ngFor="let obj of boxofficesAccounts" 
+                                        [value]="obj.id">
+                                        {{obj.name}}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>                         
+                            <button mat-button  
+                                class="filter-button"
+                                matTooltip="{{t('docs.button.refresh')}}"
+                                (click)="getData()"  
+                                type="submit"
+                                matSuffix mat-icon-button>
+                                <mat-icon>refresh</mat-icon>
+                            </button>
+                            <!-- <span  class="emptyspace"></span> -->
+                        </div>
+                        <div style="min-width:100px">       
+                            <mat-form-field style="width:100%">
                                     <input matInput 
                                     placeholder="{{t('menu.top.search')}}" 
                                     formControlName="searchString"
                                     type="text"  
                                     id="search_input" 
                                     name="search_input" 
-                                    style="width:150px"/>
+                                    style="width:100%; min-width: 50px;"/>
                                     <button mat-button matSuffix mat-icon-button aria-label="search"  type="submit" (click)="getData()">
                                         <mat-icon>search</mat-icon>
                                     </button>
                             </mat-form-field>
+                            
                         </div>
                     </div>
                 </form>
                 <div id="result_form">
-                    <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
-                        <ng-container matColumnDef="opendoc">
-                            <th mat-header-cell *matHeaderCellDef style="width:45px"></th>
-                            <td mat-cell *matCellDef="let row" class="table-launch-icon"> 
-                                <a class="inactive"  target="_blank" href="ui/{{row.doc_page_name}}doc/{{row.doc_id}}">
-                                    <mat-icon>launch</mat-icon>
-                                </a>    
-                            </td>   
-                        </ng-container>
-                        <ng-container matColumnDef="doc_name" >
-                            <th mat-header-cell *matHeaderCellDef style="width:15%">
-                            <span (click)="setSort('doc_name')" class="sortheader"> {{t('menu.table.doc')}} 
-                                <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='doc_name'" class="material-icons sortarrow">arrow_upward</i>
-                                <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='doc_name'" class="material-icons sortarrow">arrow_downward</i>
-                            </span>
-                            <td mat-cell *matCellDef="let row"> {{row.doc_name}} </td>
-                        </ng-container>
-                        <ng-container matColumnDef="doc_number" >
-                            <th mat-header-cell *matHeaderCellDef style="width:80px">
-                            <span (click)="setSort('doc_number')" class="sortheader"> {{t('menu.table.number')}} 
-                                <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='doc_number'" class="material-icons sortarrow">arrow_upward</i>
-                                <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='doc_number'" class="material-icons sortarrow">arrow_downward</i>
-                            </span>
-                            <td mat-cell *matCellDef="let row"> {{row.doc_number}} </td>
-                        </ng-container>
-                        <ng-container matColumnDef="date_time_created">
-                            <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('date_time_created_sort')" class="sortheader"> {{t('menu.table.date_complete')}} 
-                                <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='date_time_created_sort'" class="material-icons sortarrow">arrow_upward</i>
-                                <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='date_time_created_sort'" class="material-icons sortarrow">arrow_downward</i>
-                            </span>
-                            <td mat-cell *matCellDef="let row"> {{row.date_time_created}} </td>
-                        </ng-container>
-                        <ng-container matColumnDef="obj_name">
-                            <th mat-header-cell *matHeaderCellDef>
-                            <span (click)="setSort('obj_name')" class="sortheader"> {{t('menu.table.name')}} 
-                                <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='obj_name'" class="material-icons sortarrow">arrow_upward</i>
-                                <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='obj_name'" class="material-icons sortarrow">arrow_downward</i>
-                            </span>
-                            <td mat-cell *matCellDef="let row"> {{row.obj_name}} </td>
-                        </ng-container>
-                        <ng-container matColumnDef="summ_in">
-                            <th mat-header-cell *matHeaderCellDef style="width:10%">
-                            <span (click)="setSort('summ_in')" class="sortheader"> {{t('menu.table.income')}} 
-                                <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='summ_in'" class="material-icons sortarrow">arrow_upward</i>
-                                <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='summ_in'" class="material-icons sortarrow">arrow_downward</i>
-                            </span>
-                            <td mat-cell *matCellDef="let row"> {{row.summ_in}} </td>
-                        </ng-container>
-                        <ng-container matColumnDef="summ_out">
-                            <th mat-header-cell *matHeaderCellDef style="width:10%">
-                            <span (click)="setSort('summ_out')" class="sortheader"> {{t('menu.table.expendtr')}} 
-                                <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='summ_out'" class="material-icons sortarrow">arrow_upward</i>
-                                <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='summ_out'" class="material-icons sortarrow">arrow_downward</i>
-                            </span>
-                            <td mat-cell *matCellDef="let row"><p style="margin: 5px">{{row.summ_out}}</p></td>
-                        </ng-container>
-                        <ng-container matColumnDef="status">
-                            <th mat-header-cell *matHeaderCellDef style="width:15%">
-                            <span (click)="setSort('status')" class="sortheader"> {{t('menu.table.status')}}  
-                                <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='status'" class="material-icons sortarrow">arrow_upward</i>
-                                <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='status'" class="material-icons sortarrow">arrow_downward</i>
-                            </span>
-                            <td mat-cell *matCellDef="let row"><p style="margin: 5px">{{row.status}}</p></td>
-                        </ng-container>
-                        
-                        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-                        <!-- Part "Data not founded" --> <!--+++-->
-                        <ng-container matColumnDef="data_not_found">
-                            <td mat-footer-cell *matFooterCellDef colspan="13" class="text-center">
-                                {{t('modules.msg.dt_not_fnd')}}
-                            </td>
-                        </ng-container>
-                        <ng-container matColumnDef="nocolumn">
-                            <td mat-footer-cell *matFooterCellDef colspan="13" style="display: none;"></td>
-                        </ng-container>
-                        <tr mat-footer-row 
-                        *matFooterRowDef="[dataSource.data.length==0?'data_not_found':'nocolumn']" 
-                        [ngStyle]="(dataSource.data.length==0 && !gettingTableData)?{}:{'display': 'none'}"></tr>
-                        <!-- End of Part "Data not founded" -->        
-                    </table>
+                    <div class="container-fluid">
+                        <div class="row" style="margin: 15px 0; background-color:oldlace; line-height: 2em; font-size:1.4em;">
+                            <div class="col-3">
+                                {{t('menu.table.opng_balance')}}: <strong>{{summ_before_all}}</strong>
+                            </div>
+                            <div class="col-3"> 
+                                {{t('menu.table.income')}}: <strong>{{total_summ_in_all}}</strong>
+                            </div>
+                            <div class="col-3">
+                                {{t('menu.table.expendtr')}}: <strong>{{total_summ_out_all}}</strong>
+                            </div>
+                            <div class="col-3">
+                                {{t('menu.table.clsng_balance')}}: <strong>{{summ_result_all}}</strong>
+                            </div>
+                        </div>
+                        <div class="row" style="margin: 15px 0;">
+                            <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+                                <ng-container matColumnDef="opendoc">
+                                    <th mat-header-cell *matHeaderCellDef style="width:45px"></th>
+                                    <td mat-cell *matCellDef="let row" class="table-launch-icon"> 
+                                        <a class="inactive"  target="_blank" href="ui/{{row.doc_page_name}}doc/{{row.doc_id}}">
+                                            <mat-icon>launch</mat-icon>
+                                        </a>    
+                                    </td>   
+                                </ng-container>
+                                <ng-container matColumnDef="doc_name" >
+                                    <th mat-header-cell *matHeaderCellDef style="width:15%">
+                                    <span (click)="setSort('doc_name')" class="sortheader"> {{t('menu.table.doc')}} 
+                                        <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='doc_name'" class="material-icons sortarrow">arrow_upward</i>
+                                        <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='doc_name'" class="material-icons sortarrow">arrow_downward</i>
+                                    </span>
+                                    <td mat-cell *matCellDef="let row"> {{row.doc_name}} </td>
+                                </ng-container>
+                                <ng-container matColumnDef="doc_number" >
+                                    <th mat-header-cell *matHeaderCellDef style="width:80px">
+                                    <span (click)="setSort('doc_number')" class="sortheader"> {{t('menu.table.number')}} 
+                                        <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='doc_number'" class="material-icons sortarrow">arrow_upward</i>
+                                        <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='doc_number'" class="material-icons sortarrow">arrow_downward</i>
+                                    </span>
+                                    <td mat-cell *matCellDef="let row"> {{row.doc_number}} </td>
+                                </ng-container>
+                                <ng-container matColumnDef="date_time_created">
+                                    <th mat-header-cell *matHeaderCellDef>
+                                    <span (click)="setSort('date_time_created_sort')" class="sortheader"> {{t('menu.table.date_complete')}} 
+                                        <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='date_time_created_sort'" class="material-icons sortarrow">arrow_upward</i>
+                                        <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='date_time_created_sort'" class="material-icons sortarrow">arrow_downward</i>
+                                    </span>
+                                    <td mat-cell *matCellDef="let row"> {{row.date_time_created}} </td>
+                                </ng-container>
+                                <ng-container matColumnDef="obj_name">
+                                    <th mat-header-cell *matHeaderCellDef>
+                                    <span (click)="setSort('obj_name')" class="sortheader"> {{t('menu.table.name')}} 
+                                        <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='obj_name'" class="material-icons sortarrow">arrow_upward</i>
+                                        <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='obj_name'" class="material-icons sortarrow">arrow_downward</i>
+                                    </span>
+                                    <td mat-cell *matCellDef="let row"> {{row.obj_name}} </td>
+                                </ng-container>
+                                <ng-container matColumnDef="summ_in">
+                                    <th mat-header-cell *matHeaderCellDef style="width:10%">
+                                    <span (click)="setSort('summ_in')" class="sortheader"> {{t('menu.table.income')}} 
+                                        <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='summ_in'" class="material-icons sortarrow">arrow_upward</i>
+                                        <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='summ_in'" class="material-icons sortarrow">arrow_downward</i>
+                                    </span>
+                                    <td mat-cell *matCellDef="let row"> {{row.summ_in}} </td>
+                                </ng-container>
+                                <ng-container matColumnDef="summ_out">
+                                    <th mat-header-cell *matHeaderCellDef style="width:10%">
+                                    <span (click)="setSort('summ_out')" class="sortheader"> {{t('menu.table.expendtr')}} 
+                                        <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='summ_out'" class="material-icons sortarrow">arrow_upward</i>
+                                        <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='summ_out'" class="material-icons sortarrow">arrow_downward</i>
+                                    </span>
+                                    <td mat-cell *matCellDef="let row"><p style="margin: 5px">{{row.summ_out}}</p></td>
+                                </ng-container>
+                                <ng-container matColumnDef="cagent">
+                                    <th mat-header-cell *matHeaderCellDef style="width:10%">
+                                    <span (click)="setSort('cagent')" class="sortheader"> {{t('menu.table.cparty')}} 
+                                        <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='cagent'" class="material-icons sortarrow">arrow_upward</i>
+                                        <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='cagent'" class="material-icons sortarrow">arrow_downward</i>
+                                    </span>
+                                    <td mat-cell *matCellDef="let row"><p style="margin: 5px">{{row.cagent}}</p></td>
+                                </ng-container>
+                                <ng-container matColumnDef="status">
+                                    <th mat-header-cell *matHeaderCellDef style="width:15%">
+                                    <span (click)="setSort('status')" class="sortheader"> {{t('menu.table.status')}}  
+                                        <i *ngIf="this.queryForm.get('sortAsc').value=='asc' && this.queryForm.get('sortColumn').value=='status'" class="material-icons sortarrow">arrow_upward</i>
+                                        <i *ngIf="this.queryForm.get('sortAsc').value=='desc' && this.queryForm.get('sortColumn').value=='status'" class="material-icons sortarrow">arrow_downward</i>
+                                    </span>
+                                    <td mat-cell *matCellDef="let row"><p style="margin: 5px">{{row.status}}</p></td>
+                                </ng-container>
+                                <!-- totals -->
+                                <ng-container matColumnDef="totals_name">
+                                    <th colspan="5" style="padding-left:25px" class="padded balance-bar balance-bar-bottom" mat-footer-cell *matFooterCellDef>{{t('menu.table.sum_period')}}</th>
+                                </ng-container>
+                                <ng-container matColumnDef="total_summ_in_all">
+                                    <th class="padded balance-bar balance-bar-bottom" mat-footer-cell *matFooterCellDef>{{total_summ_in_all}}</th>
+                                </ng-container>
+                                <ng-container matColumnDef="total_summ_out_all">
+                                    <th class="padded balance-bar balance-bar-bottom" mat-footer-cell *matFooterCellDef>{{total_summ_out_all}}</th>
+                                </ng-container>
+                                <ng-container matColumnDef="totals_empty_end">
+                                    <th  colspan="2" class="padded balance-bar balance-bar-bottom" mat-footer-cell *matFooterCellDef></th>
+                                </ng-container>
+
+                                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                                <tr mat-footer-row *matFooterRowDef="['totals_name','total_summ_in_all','total_summ_out_all','totals_empty_end']" [hidden]="!(dataSource.data && dataSource.data.length>0)" style="background-color: lightgrey;"></tr>
+                                <!-- Part "Data not founded" --> <!--+++-->
+                                <ng-container matColumnDef="data_not_found">
+                                    <td mat-footer-cell *matFooterCellDef colspan="13" class="text-center">
+                                        {{t('modules.msg.dt_not_fnd')}}
+                                    </td>
+                                </ng-container>
+                                <ng-container matColumnDef="nocolumn">
+                                    <td mat-footer-cell *matFooterCellDef colspan="13" style="display: none;"></td>
+                                </ng-container>
+                                <tr mat-footer-row 
+                                *matFooterRowDef="[dataSource.data.length==0?'data_not_found':'nocolumn']" 
+                                [ngStyle]="(dataSource.data.length==0 && !gettingTableData)?{}:{'display': 'none'}"></tr>
+                                <!-- End of Part "Data not founded" -->        
+                            </table>
+                        </div>
+                    </div>
+
               
                     <div class="flex">
                         <div class="col-sm">
