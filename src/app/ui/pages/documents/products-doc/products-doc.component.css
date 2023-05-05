@@ -202,7 +202,7 @@ height:30px;
 .cdk-drag-preview {
     box-shadow: 0 3px 3px -3px #0084ff;
 }
-.box-handler{
+/* .box-handler{
 	border: 2px solid #1E90FF;
 	padding: 3px;
     margin: 5px;
@@ -213,19 +213,50 @@ height:30px;
 .drag-box-with-handler{
     border: 2px solid rgb(255, 0, 0);
     padding: 3px;
-    /* width:600px; 
-    height:200px; */
     }
 
 .field-box-drag {
-    /* border: 1px solid rgb(221, 221, 221); */
     width:100%; 
     margin-bottom: 10px;
     height:50px;
-    /* background-color: #cfc; */
     display: flex;
     justify-content: space-between;
+} */
+
+/*---------- DRAG n DROP -------------*/
+
+.handler {
+    cursor: move;
+    position: absolute;
+    top: 6px;
+    right: 40px;
+    width: 20px;
+    height: 20px;
+    color: #585858;
+    z-index: 1000;
+  }
+  .del-icon {
+    cursor: default;
+    position: absolute;
+    top: 6px;
+    right: 10px;
+    width: 20px;
+    height: 20px;
+    color: #585858;
+    z-index: 1000;
 }
+.cdk-drag-placeholder {
+    background: white;
+    transition: transform 500ms ease;
+    padding: 20px;
+    border: 3px solid rgb(43, 43, 43);
+    z-index: 999;
+  }
+
+.cdk-drag-animating {
+transition: transform 500ms cubic-bezier(0, 0, 0.2, 1);
+}
+
 .thumb_image{
     height: 100%;
     max-width: 100%;

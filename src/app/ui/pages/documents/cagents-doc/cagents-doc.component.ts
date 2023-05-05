@@ -81,6 +81,7 @@ interface docResponse {//интерфейс для получения ответ
   jr_flat: string;//квартира
   jr_additional_address: string;//дополнение к адресу
   jr_inn: string;//ИНН
+  jr_vat: string;//VAT 
   jr_okpo: string;//ОКПО
   jr_fio_family: string;//Фамилия (для ИП или физлица)
   jr_fio_name: string;//Имя (для ИП или физлица)
@@ -326,6 +327,7 @@ constructor(private activateRoute: ActivatedRoute,
       jr_flat:  new UntypedFormControl      ('',[Validators.maxLength(8)]),
       jr_additional_address:  new UntypedFormControl      ('',[Validators.maxLength(240)]),
       jr_inn:  new UntypedFormControl      ('',[/*Validators.pattern('^([0-9]{10}|[0-9]{12})$')*/]),
+      jr_vat:  new UntypedFormControl      ('',[Validators.maxLength(100)]),
       jr_okpo:  new UntypedFormControl      ('',[Validators.pattern('^([0-9]{8}|[0-9]{10})$')]),
       jr_fio_family:  new UntypedFormControl      ('',[Validators.maxLength(120)]),
       jr_fio_name:  new UntypedFormControl      ('',[Validators.maxLength(120)]),
@@ -382,12 +384,20 @@ constructor(private activateRoute: ActivatedRoute,
       if(this.formBaseInformation.get('type').value=='entity') return 'ogrn'; else return 'ogrnip';
     else return 'reg_number';
   }
-  get tinName(){ // TIN, Tax ID, ИНН, PIB e.t.c
-    if([47,212].includes(+this.formBaseInformation.get('jr_country_id').value)) // if USA or US virgin lands
-      return 'tax_id'; 
-    if([17].includes(+this.formBaseInformation.get('jr_country_id').value)) // if Montenegro
+  get tinName(){ // TIN, ИНН, PIB e.t.c
+    // if([47,212].includes(+this.formBaseInformation.get('jr_country_id').value)) // if USA or US virgin lands
+    //   return 'tin'; 
+    if([17,185].includes(+this.formBaseInformation.get('jr_country_id').value)) // if Montenegro, Serbia
       return 'pib';
     else return 'tin';
+  }
+
+  get vatName(){  // VAT, Tax ID, PDV e.t.c
+    if([47,212].includes(+this.formBaseInformation.get('jr_country_id').value)) // if USA or US virgin lands
+      return 'tax_id'; 
+    if([17,185].includes(+this.formBaseInformation.get('jr_country_id').value)) // if Montenegro, Serbia
+      return 'pdv';
+    else return 'vat';
   }
 //---------------------------------------------------------------------------------------------------------------------------------------                            
 // ----------------------------------------------------- *** ПРАВА *** ------------------------------------------------------------------
@@ -557,6 +567,7 @@ constructor(private activateRoute: ActivatedRoute,
                   this.formBaseInformation.get('jr_flat').setValue(documentValues.jr_flat);
                   this.formBaseInformation.get('jr_additional_address').setValue(documentValues.jr_additional_address);
                   this.formBaseInformation.get('jr_inn').setValue(documentValues.jr_inn);
+                  this.formBaseInformation.get('jr_vat').setValue(documentValues.jr_vat);
                   this.formBaseInformation.get('jr_okpo').setValue(documentValues.jr_okpo);
                   this.formBaseInformation.get('jr_fio_family').setValue(documentValues.jr_fio_family);
                   this.formBaseInformation.get('jr_fio_name').setValue(documentValues.jr_fio_name);
@@ -731,6 +742,14 @@ constructor(private activateRoute: ActivatedRoute,
     this.selectedCagentCategory.selectedNodeName=node.name;
     //this.recountNumChildsOfSelectedCategory();
   }
+  
+  selectCheckboxesOfAllParents(node: any) {
+    const parent = this.getParent(node);
+    if (parent) {
+      this.addCheckbox(this.getNodeId(parent)); //включает чекбокс у этого parent
+      this.selectCheckboxesOfAllParents(parent);
+    }
+  }
 
   getNodeId(node: any):number{
     return(node.id);
@@ -808,6 +827,10 @@ constructor(private activateRoute: ActivatedRoute,
       return true;
     else return false; 
   }
+
+  addCheckbox(id:number){ // добавляет включенный чекбокс в дерево. Если он уже включен - не выключает его
+    if(!this.checkedList.includes(id)) this.checkedList.push(id);
+  } 
 
   clickTableCheckbox(id:number){
     if(this.checkedList.includes(id)){

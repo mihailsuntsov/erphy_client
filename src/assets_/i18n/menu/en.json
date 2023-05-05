@@ -201,7 +201,14 @@
         "store":        "Online store",
         "ppr":          "Subject of trade",
         "product":      "Commodity",
-        "service":      "Service"
+        "service":      "Service",
+        "contacts":     "Contacts",
+        "copy_to_buff": "Copy to buffer",
+        "limitation":   "Limits",
+        "in_use":       "In use",
+        "files_mb":     "Files, Mb",
+        "connections":  "connections",
+        "in_rent":      "in rent"
     },
     "bottom":{
         "founded":      "Founded",
@@ -378,6 +385,7 @@
         "productattr":  "product attributes",
         "stores":       "online-stores",
         "ch_cat_stores":"Сhange online stores",
+        "subscription": "subscription",
         "del_ctgrs":    "Delete categories"
     },
     "indicators":{

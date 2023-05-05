@@ -259,6 +259,8 @@ export class CagentsComponent implements OnInit {
     if(this.showOpenDocIcon && this.mode=='standart') this.displayedColumns.push('opendoc');
     this.displayedColumns.push('name');
     this.displayedColumns.push('description');
+    this.displayedColumns.push('contacts');
+    this.displayedColumns.push('status');
     this.displayedColumns.push('creator');
     this.displayedColumns.push('date_time_created');
   }
@@ -756,4 +758,9 @@ recountNumChildsOfSelectedCategory(){//считает количество по�
   }
   // sometimes in cookie "..._companyId" there value that not exists in list of companies. If it happens, company will be not selected and data not loaded until user select company manually
   companyIdInList(id:any):boolean{let r=false;this.receivedCompaniesList.forEach(c=>{if(+id==c.id) r=true});return r}
+
+  copyToClipboard(text: string){
+    navigator.clipboard.writeText(text);
+  }
+
 }

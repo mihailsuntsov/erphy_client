@@ -46,7 +46,11 @@ li {list-style: none;}
     list-style: none;
     border-radius: .25rem;
 }
-
+.status-name{
+    margin: 5px;
+    color: black;
+    max-width: 210px;
+}
 .active{
     color:rgb(27, 27, 27);
 }
@@ -60,7 +64,13 @@ li {list-style: none;}
     margin: 0px 15px 0px 0px;
     cursor: default;
 }
-
+.truncate-text {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+  }
 .showchilds{
     font-size: 18px;
     cursor: default;

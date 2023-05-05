@@ -11,6 +11,15 @@
                             matTooltip="{{t('docs.tip.collaps_cat')}}" color="primary">
                                 <mat-icon>visibility_off</mat-icon>
                         </button>
+                        <button mat-icon-button 
+                            [disabled]="!(+selectedCagentCategory.selectedNodeId>0)"
+                            (click)="
+                            addCheckbox(selectedCagentCategory.selectedNodeId);
+                            selectCheckboxesOfAllParents(getNodeById(selectedCagentCategory.selectedNodeId)); 
+                            categoriesExpanded=false;" 
+                            matTooltip="{{t('docs.tip.p_selct_all_c')}}" color="primary">
+                                <mat-icon>publish</mat-icon>
+                        </button>
                 </div>
             <span style="flex-grow: 1;"></span>
         </div>
@@ -322,6 +331,14 @@
                                                             placeholder="{{t('docs.field.'+tinName)}}"
                                                             [readonly]=!editability
                                                             formControlName="jr_inn"/>
+                                                </mat-form-field>
+                                                <!-- VAT -->
+                                                <mat-form-field>
+                                                    <input  matInput
+                                                            maxlength="100"
+                                                            placeholder="{{t('docs.field.'+vatName)}}"
+                                                            [readonly]=!editability
+                                                            formControlName="jr_vat"/>
                                                 </mat-form-field>
                                                 <!-- КПП -->
                                                 <mat-form-field *ngIf="formBaseInformation.get('type').value=='entity' && +formBaseInformation.get('jr_country_id').value==1">
@@ -849,7 +866,7 @@
                         </mat-tab>
 
 
-                        <mat-tab label="{{cu.cap(t('menu.docs.counterpays'))}}">
+                        <mat-tab label="{{cu.cap(t('menu.docs.counterpays'))}}" *ngIf="+id>0">
                             <div class="container-fluid">
                                 <div class="row" style="padding: 10px">
                                     <div class="col-12">

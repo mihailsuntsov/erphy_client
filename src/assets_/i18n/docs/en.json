@@ -48,7 +48,10 @@
         "description":  "Description",
         "orders":       "Orders",
         "inventory":    "Inventory",
-        "transl":       "Translations"
+        "transl":       "Translations",
+        "action":"Action",
+        "def_value":"Default values",
+        "variations":"Variations"
     },
     "field":{ 
         "-- COMMON":"--",
@@ -168,7 +171,8 @@
         "middle_name":  "Middle name","Using in Russia ":"",
         "tin":          "TIN","Using in Russia":"",
         "tax_id":       "Tax ID","Using in USA":"",
-        "pib":          "PIB","Using in Montenegro":"",
+        "pib":          "PIB","TIN name Using in Montenegro, Serbia":"",
+        "pdv":          "PDV","VAT name Using in Montenegro, Serbia":"",
         "vat":          "VAT","VAT is the tax id of the company in EU":"You can check it here: https://ec.europa.eu/taxation_customs/vies/vatResponse.html",
         "eori":         "EORI","Economic Operators Registration and Identification (in EU)":"",
         "ogrn":         "PSRN","Using in Russia  ":"",
@@ -278,6 +282,7 @@
         "has_archives":"Enable Archives?",
         "order_by":"Default sort order",
         "visible":"Visible on the product page",
+        "variation":"Used for variations",
         "add_attr":"Available attributes",
         "short_description": "Short description",
         "product_type":"Product type",
@@ -454,7 +459,8 @@
         "s_dprtmnts":"The availability of products in the online store will be determined based on the total number of unreserved products in these departments",
         "p_gen_new_skey":"Generate new key",
         "transl_mode":"Translation mode",
-        "ctg_stores":"Online stores to which this category and its products belong"
+        "ctg_stores":"Online stores to which this category and its products belong",        
+        "variation":"Define if the attribute can be used as variation"
     },
     "msg":{
         "error":        "Error!",
@@ -605,6 +611,12 @@
         "del_cntct_q":  "Do you really want to delete Contact Person card?",
         "del_acc":      "Deleting bank details",
         "del_acc_q":    "Do you really want to delete bank details card?",
+        "del_attr":    "Deleting an Attribute",
+        "del_attr_q":  "Do you really want to remove this attribute from the product card?",
+        "del_var":    "Deleting a Variation",
+        "del_var_q":  "Do you really want to remove this variation from the product card?",
+        "gen_var":    "Generate Variations",
+        "gen_var_q":  "Do you really want to generate all possible variations? Warning: All existing variarions will be removed!",
         "file_slctd":   "The file is selected!",
         "file_slctd_no":"File not added",
         "comp_card":    "Company info",
@@ -636,7 +648,8 @@
         "chnge_ordr":   "Change the order",
         "save_ordr":    "Save the order",
         "cancel":       "Cancel",
-        "refresh":      "Refresh table"
+        "refresh":      "Refresh table",
+        "sel_prod":     "Select product"
     },
     "list":{
         "object":       "Object",
@@ -687,7 +700,9 @@
         "cust_create_new":"Create new customer",
         "cust_use_default":"Use an existed customer as default",
         "editor":"WYSIWYG editor",
-        "delete":"Delete"
+        "delete":"Delete",
+        "variation":"Variation",
+        "any":"Any"
     },
     "docs":{            
         "role":         "Role",

@@ -146,7 +146,7 @@ class="spinner"
     </mat-drawer>
     <div class="categories-sidenav-content">
         <mat-card class="card">
-            {{checklistSelection.selected}}
+            <!-- {{checklistSelection.selected}} -->
             <mat-card-title class="flex" style="height: 30px;">
                 <div *ngIf="!displayingDeletedDocs" class="emptyspace">{{cu.cap(t('menu.docs.products'))}}</div>
                 <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">{{t('menu.top.deleted')}}</span> {{t('menu.docs.products')}}</div>

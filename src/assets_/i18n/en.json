@@ -134,6 +134,7 @@
                 "users":"Users",
                 "usergroup":"Roles",
                 "accounts":"Bank accounts",
+                "subscription":"Subscription",
 
                 "prodattr":"Product attributes",
                 "stores":"Online-stores"

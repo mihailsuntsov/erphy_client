@@ -5,7 +5,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { SelectionModel } from '@angular/cdk/collections';
 import { ActivatedRoute } from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
-import { Validators, UntypedFormGroup, UntypedFormControl, UntypedFormArray, UntypedFormBuilder, FormControl} from '@angular/forms';
+import { Validators, UntypedFormGroup, UntypedFormControl, UntypedFormArray, UntypedFormBuilder, FormArray,FormGroup, FormControl} from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog,  MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
@@ -111,6 +111,7 @@ interface docResponse {//интерфейс для получения ответ
   description_type: string;       // "editor" or "custom"
   short_description_type: string; // "editor" or "custom"
   storeProductTranslations: StoreProductTranslation[];
+  defaultAttributes:DefaultAttribute[];
   }
   interface SpravTaxesSet{
     id: number;
@@ -189,6 +190,26 @@ interface docResponse {//интерфейс для получения ответ
     position;            //	   Attribute position
     visible;             //    Define if the attribute is visible on the "Additional information" tab in the product's page. Default is false.
     variation;           //    Define if the attribute can be used as variation. Default is false.
+  }
+  interface DefaultAttribute { // default value of attribute that will be selected if user opens the card of variable product
+    attribute_id: number;   // Attribute ID 
+    term_id: number;        // Selected attribute term id
+    name: string;           // Attribute name
+    term: string;           // Selected attribute term name
+  }
+  interface ProductVariation{
+    id: number;   // variation ID
+    product_id: number;   // Variable (parent) product ID 
+    variation_product_id:number  // variation (child) product ID.
+    variation_product_name:string  // variation (child) product name.
+    menu_order: number;
+    productVariationsRowItems:ProductVariationsRowItems[]
+  }
+  interface ProductVariationsRowItems{
+    variation_id:number  //,
+    attribute_id:number  //,
+    term_id:number  //,
+    terms:any[] //used only in frontend to generate droplist of terms
   }
   interface TemplatesList{
     id: number;                   // id из таблицы template_docs
@@ -273,6 +294,8 @@ export class ProductsDocComponent implements OnInit {
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
   selectedProductCategory:any;//форма, содержащая информацию о выбранной категории товара (id, name)
   productPricesTable: ProductPricesTable; //массив форм с ценами
+  defaultAttribute: DefaultAttribute; //массив форм с дефолтными атрибутами
+  // defaultAttribute: any; //массив форм с дефолтными атрибутами
 
   //переменные для управления динамическим отображением элементов
   visBeforeCreatingBlocks = true; //блоки, отображаемые ДО создания документа (до получения id)
@@ -430,7 +453,16 @@ export class ProductsDocComponent implements OnInit {
     terms: [], // list of all attribete's terms
     terms_ids: [] // list of selected terms
   };
-  allFruits: number[] = [1, 2, 3, 4, 5];
+
+  // selectedVariationAction:string;
+
+  // defaultAttribute: DefaultAttribute = {attribute_id:null, term_id:null};
+    // {
+    //   attribute_id:null,
+    //   term_id:null
+    // }
+  // ]
+  // allFruits: number[] = [1, 2, 3, 4, 5];
 
 
   prop_menu: string = 'general';
@@ -490,7 +522,7 @@ export class ProductsDocComponent implements OnInit {
     private _snackBar: MatSnackBar,
     private fb: UntypedFormBuilder,
     public ConfirmDialog: MatDialog,
-    private _fb: UntypedFormBuilder, //чтобы билдить группу форм productPricesTable
+    private _fb: UntypedFormBuilder, //чтобы билдить группу форм productPricesTable и другие
     public productHistoryService: ProductHistoryService,
     public MessageDialog: MatDialog,
     public dialogAddImages: MatDialog,
@@ -553,6 +585,9 @@ export class ProductsDocComponent implements OnInit {
       not_sell: new UntypedFormControl      ('',[]),
       indivisible: new UntypedFormControl      (true,[]),
       productPricesTable: new UntypedFormArray([]),//массив с формами цен
+      defaultAttributes: new UntypedFormArray([],[]),//массив с формами дефолтных атрибутов
+
+      productVariations: new UntypedFormArray([]),//массив с формами вариаций
 
       short_description: new UntypedFormControl      ('',[Validators.maxLength(100000)]),
       type: new UntypedFormControl      ('simple',[]),
@@ -585,7 +620,7 @@ export class ProductsDocComponent implements OnInit {
       upsell_ids: new UntypedFormControl([],[]),
       crosssell_ids: new UntypedFormControl([],[]),
       grouped_ids: new UntypedFormControl([],[]),
-      productAttributes: new UntypedFormArray ([]) ,
+      productAttributes: new UntypedFormArray ([],[]) ,
       // productAttributes: new UntypedFormControl([],[]),
       outofstock_aftersale:        new UntypedFormControl   (false,[]), // auto set product as out-of-stock after it has been sold
       label_description:  new UntypedFormControl      ('',[Validators.maxLength(2000)]),
@@ -915,6 +950,7 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
                   this.formBaseInformation.get('short_description_html').setValue(documentValues.short_description_html);  // custom HTML short description
                   this.formBaseInformation.get('description_type').setValue(documentValues.description_type);        // "editor" or "custom"
                   this.formBaseInformation.get('short_description_type').setValue(documentValues.short_description_type);  // "editor" or "custom"
+                  this.formBaseInformation.get('defaultAttributes').setValue(documentValues.defaultAttributes);
                   this.storeProductTranslations=documentValues.storeProductTranslations;
                   this.searchProductGroupsCtrl.setValue(documentValues.productgroup);
                   this.checkedList=documentValues.product_categories_id;
@@ -2077,8 +2113,8 @@ checkProductCodeFreeUnical() {
     });
   }
 
-  getControlPriceTable(){
-    const control = <UntypedFormArray>this.formBaseInformation.get('productPricesTable');
+  getControl(formControlName){
+    const control = <UntypedFormArray>this.formBaseInformation.get(formControlName);
     return control;
   }
 
@@ -2095,7 +2131,7 @@ checkProductCodeFreeUnical() {
   trackByIndex(i) { return i; }
 
   copyPrice(price_value:number){
-    const control = this.getControlPriceTable();
+    const control = this.getControl('productPricesTable');
      let row_index:number=0;
       this.formBaseInformation.value.productPricesTable.map(() => 
         {
@@ -2122,7 +2158,7 @@ checkProductCodeFreeUnical() {
   // onChangeStorePrice(fieldName:string){
   //   let storePriceType = (fieldName=='reg_price'?'regular':'sale');
   //   this.commaToDot(fieldName);
-  //   const control = this.getControlPriceTable();
+  //   const control = this.getControl();
   //     let row_index:number=0;
   //     this.formBaseInformation.value.productPricesTable.map(() => 
   //       {
@@ -2134,7 +2170,7 @@ checkProductCodeFreeUnical() {
 
   onChangeCRMPrice(row_index:number){
     // let storePriceType = (fieldName=='reg_price'?'regular':'sale');
-   /* const control = this.getControlPriceTable();
+   /* const control = this.getControl();
     if(control.controls[row_index].get('is_store_price_type_regular').value){
       this.formBaseInformation.get('reg_price').setValue(control.controls[row_index].get('price_value').value);
       this.reg_price_selected=true;
@@ -2155,7 +2191,7 @@ checkProductCodeFreeUnical() {
     this.formBaseInformation.get('stock_status').setValue(
     this.formBaseInformation.get('not_sell').value?'outofstock':'instock')}
 
-  openDialogProductCategoriesSelect(sellsType:string){
+  openDialogProductCategoriesSelect(queryType:string, variationIndex?:number){
     const dialogSettings = this.productCategoriesSelectComponent.open(ProductCategoriesSelectComponent, {
       maxWidth: '95vw',
       maxHeight: '95vh',
@@ -2165,15 +2201,18 @@ checkProductCodeFreeUnical() {
       { //отправляем в диалог:
         idTypes:    'products',
         companyId:  this.formBaseInformation.get('company_id').value, //предприятие, по которому будут отображаться товары и категории
+        variations: variationIndex!=null
       },
     });
     dialogSettings.afterClosed().subscribe(result => {
       if(result){
         result.map(i => {
-          if(sellsType=='cross')
+          if(queryType=='cross') // crossells
             this.selectedCrosssellProducts.push(i);
-          else if(sellsType=='up')
+          else if(queryType=='up') // upsells
             this.selectedUpsellProducts.push(i);
+          else if(queryType=='variation') // select 1 product for variation
+            this.actionProductOfVariation(i,variationIndex,'add');  
           else //grouped
             this.selectedGroupedProducts.push(i);
         });
@@ -2200,16 +2239,18 @@ checkProductCodeFreeUnical() {
             .subscribe(
                 (data) => {  
                             this.productAttributes = data as ProductAttribute[]; 
-                            this.fillProductAttributesArray(this.productAttributes);
+                            this.fillProductAttributesArray();
+                            this.fillDefaultProductAttributesArray();
                           },
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
             );
   }
 
-  fillProductAttributesArray(arr: ProductAttribute[]){
+  // fillProductAttributesArray(arr: ProductAttribute[]){
+  fillProductAttributesArray(){
     const add = this.formBaseInformation.get('productAttributes') as UntypedFormArray;
     add.clear();
-    arr.forEach(m =>{
+    this.productAttributes.forEach(m =>{
       add.push(this._fb.group({
         attribute_id: m.attribute_id,
         name: m.name,
@@ -2237,12 +2278,304 @@ checkProductCodeFreeUnical() {
       terms.forEach (i =>{if(i.is_selected) returnList.push(i.id)});
     return returnList;
   }
+
+  //the list of terms and list of selected terms
+  // formListOfSelectedAttributeTerms(terms: ProductAttributeTerms[], selected_terms_ids:number[]): ProductAttributeTermsForAttributesList[]{
+  formListOfSelectedAttributeTerms(attributeId:number): ProductAttributeTermsForAttributesList[]{
+    const allAttributes = this.formBaseInformation.get('productAttributes') as UntypedFormArray;;
+    let terms: ProductAttributeTerms[]=[];
+    let selected_terms_ids:number[]=[];
+    let returnList: ProductAttributeTermsForAttributesList[] = [];
+    allAttributes.value.forEach(m=>{
+      if(m.attribute_id==attributeId){
+        terms=m.terms;
+        selected_terms_ids = m.terms_ids;
+      }
+    });
+    if(selected_terms_ids && selected_terms_ids.length>0)
+      terms.forEach (i =>{
+        if(selected_terms_ids.includes(i.id))
+          returnList.push({
+            id: i.id,
+            name: i.name,
+            description: '',
+            slug: ''
+          })
+      });
+    // console.log('For attribute_id = '+attributeId+' returnList is: ');
+    // returnList.forEach(i=>{
+      // console.log('id = '+i.id+', name is: '+i.name);
+    // })
+    return returnList;
+  }
+
+  fillDefaultProductAttributesArray(){
+    // In this method I fill the default attributes list that used in a Variations part
+    // I have list of all attributes:
+    const allAttributes = this.formBaseInformation.get('productAttributes') as UntypedFormArray;
+    const previouslySavedAttributes = this.formBaseInformation.get('defaultAttributes').value;
+    // Now I need to fill new array, based on allAttributes, where will be only attributes with "variation": true
+    const defaultAttributes = this.formBaseInformation.get('defaultAttributes') as UntypedFormArray;
+    defaultAttributes.clear();
+    let attributesIds:number[] = [];
+    // alert(allAttributes.length)
+    allAttributes.value.forEach(m =>{
+      if(m.variation){
+        defaultAttributes.push(this._fb.group({
+          name:m.name,
+          attribute_id: m.attribute_id,
+          term_id: this.getDefaultTermId(m.attribute_id,previouslySavedAttributes, m.terms_ids),
+          terms: [this.formListOfSelectedAttributeTerms(m.attribute_id)], // list of selected attribute's terms (sending the list of terms and list of selected terms)
+        }));
+        attributesIds.push(m.attribute_id);
+      }
+    });
+    if(this.formBaseInformation.get('productVariations').value.length>0)
+      this.synchronizeVariations(attributesIds);
+  }
+
+//                                    Variations Вариации
+  addVariation(termIds?:number[]){    
+    
+    const productVariations = this.formBaseInformation.get('productVariations') as UntypedFormArray;
+    productVariations.push(this._fb.group({
+      id: null,
+      product_id: this.id,   // Variable (parent) product ID 
+      menu_order: this.formBaseInformation.get('productVariations').value.length+1,
+      variation_product_id:null,     // still not selected
+      variation_product_name:'',     // still not selected
+      productVariationsRowItems: new FormArray(this.getNewProductVariationsRowItems_FormGroup(termIds))
+    }));
+
+  }
+  getNewProductVariationsRowItems_FormGroup(termIds?:number[]):FormGroup[]{
+    let returnList:FormGroup[]=[];
+    let i:number = 0; // index
+    const allAttributes = this.formBaseInformation.get('productAttributes').value;
+    // alert(allAttributes.length)
+    allAttributes.forEach(m =>{
+      if(m.variation){
+        console.log('termIds: ',JSON.stringify(termIds));
+        returnList.push(this._fb.group({
+          variation_id:null,            // variation still not created
+          attribute_id:m.attribute_id,  // current attribute
+          term_id:((termIds != undefined && termIds.length>0)?termIds[i]:0),                 // still not selected
+          terms: [this.formListOfSelectedAttributeTerms(m.attribute_id)], // list of selected attribute's terms (sending the list of terms and list of selected terms)
+        }));
+        i++;
+      }
+    });
+    return returnList;
+  }
+
+  getVariationsControlTablefield(indx:number){
+    return this.formBaseInformation.get('productVariations').at(indx).get('productVariationsRowItems') as FormArray
+  }
+
+  actionProductOfVariation(product: IdAndName, variationIndex: number, action: string){
+    const allVariations = this.formBaseInformation.get('productVariations').controls;
+    let rowIndx: number = 0;
+    allVariations.forEach(m =>{
+      if(rowIndx == variationIndex){
+        m.get('variation_product_id').setValue(action=='add'?product.id:null);
+        m.get('variation_product_name').setValue(action=='add'?product.name:null);
+      }
+      rowIndx++;
+    });
+  }
+
+  onClickGenerateAllVariationsBtn(){
+    if(this.formBaseInformation.get('productVariations').value.length>0){
+      const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+          width: '400px',
+          data:
+          { 
+            head: translate('docs.msg.gen_var'),
+            query: translate('docs.msg.gen_var_q'),
+            warning: '',
+          },
+      });
+      dialogRef.afterClosed().subscribe(result => {
+        if(result==1){
+          this.generateAllVariations();
+        }
+      });       
+    } else this.generateAllVariations();
+  }
+
+  generateAllVariations(){
+    const allAttributes = this.formBaseInformation.get('defaultAttributes').value;
+    const productVariations = this.formBaseInformation.get('productVariations') as UntypedFormArray;
+    productVariations.clear();
+    let allAttributesTerms:any[]=[];
+    let currentAttributesTerms:number[];
+    allAttributes.forEach(m =>{
+      if(m.terms.length>0){
+        currentAttributesTerms=[];
+        m.terms.forEach(t =>{
+          currentAttributesTerms.push(t.id)
+        });
+        allAttributesTerms.push(currentAttributesTerms);
+      }
+    });
+    var allVariations:any[] = this.cartesianProduct(allAttributesTerms);
+    // console.log(JSON.stringify(allVariations));
+    allVariations.forEach(v => {
+      this.addVariation(v);
+    });
+  }
+
+  synchronizeVariations(existingAttributesIds:number[]){
+    const allVariations = this.formBaseInformation.get('productVariations').controls ;
+    let rowItemIndx: number = 0;
+    let rowItemAttributeIds: number[]=[];
+    let indexToRemove: number[] = [];
+    allVariations.forEach((currentVariation,variationRowIndx) =>{
+      const productVariationsRowItems = currentVariation.get('productVariationsRowItems') as FormArray;
+      productVariationsRowItems.controls.forEach((rowItem,index) =>{
+        // Removing an extra columns...
+        if(!existingAttributesIds.includes(rowItem.value.attribute_id)){
+          indexToRemove.push(index);
+        } else {
+          // ...at the same time refreshing terms list (if in Attributes tab an attribute's terms was changed)
+          rowItem.get('terms').setValue(this.formListOfSelectedAttributeTerms(rowItem.value.attribute_id));
+        }
+        rowItemAttributeIds.push(rowItem.value.attribute_id)
+      });
+      indexToRemove.reverse().forEach((index) => {
+        productVariationsRowItems.removeAt(index);
+      });
+      // Add missing columns
+        existingAttributesIds.forEach((existingAttributeId, indx) => {
+          if(!rowItemAttributeIds.includes(existingAttributeId)){
+            console.log('Not included id = ' +existingAttributeId);
+            productVariationsRowItems.push(
+              this._fb.group({
+              variation_id:currentVariation.value.id,
+              attribute_id:existingAttributeId,   // current attribute
+              term_id:0,                       // still not selected
+              terms: [this.formListOfSelectedAttributeTerms(existingAttributeId)], // list of selected attribute's terms (sending the list of terms and list of selected terms)
+            }))
+          }
+        }); 
+
+      indexToRemove=[];
+      rowItemAttributeIds=[];
+      rowItemIndx=0;
+    });
+    this.removeEmptyVariations();
+  }
+
+  removeEmptyVariations(){
+    console.log('Remove Empty Variations!');
+    const allVariations = this.formBaseInformation.get('productVariations');
+    let indexToRemove: number[] = [];
+    allVariations.controls.forEach((currentVariation, index) => {
+      const productVariationsRowItems = currentVariation.get('productVariationsRowItems') as FormArray;
+      if(productVariationsRowItems && productVariationsRowItems.value.length==0){
+        indexToRemove.push(index);
+      }
+    });
+    indexToRemove.reverse().forEach((index) => {
+      allVariations.removeAt(index);
+    });
+  }
+
+  //декартово произведение
+  cartesianProduct(arr) {
+    return arr.reduce(function(a,b){
+        return a.map(function(x){
+            return b.map(function(y){
+                return x.concat([y]);
+            })
+        }).reduce(function(a,b){ return a.concat(b) },[])
+    }, [[]])
+  }
+
+  
+
+  get productVariations(): FormArray {
+    return this.formBaseInformation.get('productVariations') as FormArray;
+  }
+  dropVariation(event: CdkDragDrop<string[]>) {//отрабатывает при перетаскивании вариации 
+    //в массиве типа FormArray нельзя поменять местами элементы через moveItemInArray.
+    //поэтому меняем через кастомный метод moveItemInFormArray
+    this.moveItemInFormArray(
+      this.productVariations,
+      event.previousIndex,
+      event.currentIndex
+    );
+  }
+
+  deleteVariation(index: number) {
+    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+      width: '400px',
+      data:
+      { 
+        head: translate('docs.msg.del_var'),
+        query: translate('docs.msg.del_var_q'),
+        warning: '',
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){
+        const add = this.formBaseInformation.get('productVariations') as UntypedFormArray;
+        add.removeAt(index);
+      }
+    });       
+  }
+
+  deleteAllVariations(){
+    if(this.formBaseInformation.get('productVariations').value.length>0){
+      const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+          width: '400px',
+          data:
+          { 
+            head: translate('docs.msg.del_all_var'),
+            query: translate('docs.msg.del_all_var_q'),
+            warning: '',
+          },
+      });
+      dialogRef.afterClosed().subscribe(result => {
+        if(result==1){
+          const productVariations = this.formBaseInformation.get('productVariations') as UntypedFormArray;
+          productVariations.clear();
+        }
+      });       
+    }
+  }
+
+  moveItemInFormArray(
+    formArray: FormArray,
+    fromIndex: number,
+    toIndex: number
+  ): void {
+    const dir = toIndex > fromIndex ? 1 : -1;
+  
+    const item = formArray.at(fromIndex);
+    for (let i = fromIndex; i * dir < toIndex * dir; i = i + dir) {
+      const current = formArray.at(i + dir);
+      formArray.setControl(i, current);
+    }
+    formArray.setControl(toIndex, item);
+  }
+
+  getDefaultTermId(attribute_id:number,previouslySavedAttributes:any[], attributeSelectedTermsIds:number[]):number{
+    let returnTermId:number = 0;
+    previouslySavedAttributes.forEach(i=>{
+      if(i.attribute_id == attribute_id && attributeSelectedTermsIds.includes(i.term_id))
+        returnTermId = i.term_id;
+    });
+    return returnTermId;
+  }
+
+
   // formListOfSelectedTermsIdsWhenDrop(terms: ProductAttributeTerms[]): number[]{
   //   let returnList: number[] = [];
   //     terms.forEach (i =>{if (i.is_selected) returnList.push(i.id)});
   //   return returnList;
   // }
-  dropProductAttribute(event: CdkDragDrop<string[]>) {//отрабатывает при перетаскивании контакта
+  dropProductAttribute(event: CdkDragDrop<string[]>) {//отрабатывает при перетаскивании атрибута 
     //в массиве типа FormArray нельзя поменять местами элементы через moveItemInArray.
     //поэтому выгрузим их в отдельный массив, там поменяем местами а потом зальём обратно уже с нужным порядком
     let resultContainer: any[] = [];
@@ -2286,13 +2619,37 @@ checkProductCodeFreeUnical() {
     }))
   }
 
+  selectDefaultAttributeTerm(attributeId:number, termId:number){
+    console.log('attributeId',attributeId);
+    console.log('termId',termId);
+    const add = this.formBaseInformation.get('defaultAttributes') as UntypedFormArray;
+    add.push(this._fb.group({
+      attribute_id: attributeId,
+      term_id: termId
+    }));
+    // let ids:number[] = this.formBaseInformation.get('defaultAttributes').value;
+    // ids.push(termId);
+    // this.formBaseInformation.get('defaultAttributes').setValue(ids);
+  }
+  // getDefaultTermId(attributeId:number):number {
+    // return 39
+    // let termId = null;
+    // const add = this.formBaseInformation.get('defaultAttributes').value;
+    // add.map(i=>{
+    //   if (i.attribute_id==attributeId)
+    //     termId = i.term_id;
+    // })
+    // console.log('getDefaultTermId attributeId = '+attributeId+', termId = '+termId);
+    // return termId;
+  // }
+
   deleteProductAttribute(index: number) {
     const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
       width: '400px',
       data:
       { 
-        head: translate('docs.msg.del_cntct'),
-        query: translate('docs.msg.del_cntct_q'),
+        head: translate('docs.msg.del_attr'),
+        query: translate('docs.msg.del_attr_q'),
         warning: '',
       },
     });
@@ -2323,7 +2680,15 @@ checkProductCodeFreeUnical() {
     const control = this.getControlTablefield();
     return control.controls[row_index].get(field_name).value;
   }
+  getAttributeVariationFieldValue(attributeId:number):string{
 
+    let returnValue = ''; 
+    this.formBaseInformation.get('productAttributes').value.forEach(m =>{
+      if(attributeId==m.attribute_id)
+      returnValue=m.name;
+     });
+    return returnValue;
+  }
   getControlTablefield(){
     const control = <UntypedFormArray>this.formBaseInformation.get('productAttributes');
     return control;

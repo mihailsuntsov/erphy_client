@@ -279,6 +279,14 @@
                                                     [readonly]=!editability                                                    
                                                     formControlName="jr_inn"/>
                                         </mat-form-field>
+                                        <!-- VAT -->
+                                        <mat-form-field>
+                                            <input  matInput
+                                                    maxlength="100"
+                                                    placeholder="{{t('docs.field.'+vatName)}}"
+                                                    [readonly]=!editability
+                                                    formControlName="jr_vat"/>
+                                        </mat-form-field>
                                         <!-- КПП -->
                                         <mat-form-field *ngIf="formBaseInformation.get('type').value=='entity' && +formBaseInformation.get('jr_country_id').value==1">
                                             <input  matInput

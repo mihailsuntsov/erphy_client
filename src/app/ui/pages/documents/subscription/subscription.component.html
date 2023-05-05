@@ -1,0 +1,165 @@
+
+<mat-card class="card" *transloco="let t">
+    <mat-card-title class="flex" style="height: 30px;">
+        <div *ngIf="!displayingDeletedDocs" class="emptyspace">{{cu.cap(t('menu.docs.subscription'))}} - "{{subscription.plan_name}} v.{{subscription.plan_version}}"</div>
+    </mat-card-title>
+    <mat-card-content>
+        <div class="card  w-100">
+            <div class="card-body">
+                <form  class="form-horizontal" [formGroup]="queryForm" style="margin-bottom: 0px;">
+                    <div class="flex">
+                        <!-- <mat-form-field class="company-select" style="margin-left: 10px; max-width: 250px;">
+                            <mat-label>{{t('menu.top.company')}}</mat-label>
+                            <mat-select formControlName="companyId"
+                            (selectionChange)="onCompanySelection()">                          
+                                <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
+                                        {{rt.name}}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field> -->
+                        <!-- <button mat-button  
+                            class="filter-button"
+                            matTooltip="{{t('docs.button.refresh')}}"
+                            (click)="getMasterAccountInfo()"  
+                            type="submit"
+                            matSuffix mat-icon-button>
+                            <mat-icon>refresh</mat-icon>
+                        </button> -->
+                        <span  class="emptyspace"></span>
+                        <span  class="emptyspace" style="display: none"></span>
+                    </div>
+                </form>
+                
+                <div  class="container-fluid" id="result_form">
+                    <div class="row">
+                        <div class="col-xl-6 col-sm-12">
+                            <mat-spinner 
+                            strokeWidth="3" 
+                            class="spinner"
+                            *ngIf="gettingTableData"
+                            [diameter]="50"
+                            ></mat-spinner> 
+                            <table mat-table [dataSource]="dataSource" class="mat-elevation-z8" *ngIf="subscription">
+                                
+
+                                <!-- header -->
+                                <ng-container matColumnDef="name" >
+                                    <th class="padded balance-bar bold" mat-header-cell *matHeaderCellDef> {{t('menu.table.name')}}  </th>
+                                </ng-container>
+                                <ng-container matColumnDef="limitation">
+                                    <th class="padded balance-bar bold right" mat-header-cell *matHeaderCellDef><p style="margin: 5px">{{t('menu.table.limitation')}} </p></th>
+                                </ng-container>
+                                <ng-container matColumnDef="in_use" >
+                                    <th class="padded balance-bar bold right" mat-header-cell *matHeaderCellDef> {{t('menu.table.in_use')}}  </th>
+                                </ng-container>
+
+
+                                <!-- Companies -->
+                                <ng-container matColumnDef="companies_name" >
+                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('sidebar.menu.items.companies')}} </th>
+                                </ng-container>
+                                <ng-container matColumnDef="companies_value">
+                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p style="margin: 5px">{{subscription.n_companies}}</p></th>
+                                </ng-container>
+                                <ng-container matColumnDef="companies_in_use" >
+                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef> {{subscription.n_companies_fact}} </th>
+                                </ng-container>
+
+                                <!-- departments -->
+                                <ng-container matColumnDef="departments_name" >
+                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('sidebar.menu.items.departments')}} </th>
+                                </ng-container>
+                                <ng-container matColumnDef="departments_value">
+                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p style="margin: 5px">{{subscription.n_departments}}</p></th>
+                                </ng-container>
+                                <ng-container matColumnDef="departments_in_use" >
+                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef> {{subscription.n_departments_fact}} </th>
+                                </ng-container>
+                                
+                                <!-- users -->
+                                <ng-container matColumnDef="users_name" >
+                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('sidebar.menu.items.users')}} </th>
+                                </ng-container>
+                                <ng-container matColumnDef="users_value">
+                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p style="margin: 5px">{{subscription.n_users}}</p></th>
+                                </ng-container>
+                                <ng-container matColumnDef="users_in_use" >
+                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef> {{subscription.n_users_fact}} </th>
+                                </ng-container>
+                                
+                                <!-- products -->
+                                <ng-container matColumnDef="products_name" >
+                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('sidebar.menu.items.products')}} </th>
+                                </ng-container>
+                                <ng-container matColumnDef="products_value">
+                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p style="margin: 5px">{{subscription.n_products}}</p></th>
+                                </ng-container>
+                                <ng-container matColumnDef="products_in_use" >
+                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef> {{subscription.n_products_fact}} </th>
+                                </ng-container>
+                                
+                                <!-- counterparties -->
+                                <ng-container matColumnDef="counterparties_name" >
+                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('sidebar.menu.items.cagents')}} </th>
+                                </ng-container>
+                                <ng-container matColumnDef="counterparties_value">
+                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p style="margin: 5px">{{subscription.n_counterparties}}</p></th>
+                                </ng-container>
+                                <ng-container matColumnDef="counterparties_in_use" >
+                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef> {{subscription.n_counterparties_fact}} </th>
+                                </ng-container>
+                                
+                                <!-- megabytes -->
+                                <ng-container matColumnDef="megabytes_name" >
+                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('menu.table.files_mb')}} </th>
+                                </ng-container>
+                                <ng-container matColumnDef="megabytes_value">
+                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p style="margin: 5px">{{subscription.n_megabytes}}</p></th>
+                                </ng-container>
+                                <ng-container matColumnDef="megabytes_in_use" >
+                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef> {{subscription.n_megabytes_fact}} </th>
+                                </ng-container>
+                                
+                                <!-- stores -->
+                                <ng-container matColumnDef="stores_name" >
+                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('sidebar.menu.items.stores')}} ({{t('menu.table.connections')}})</th>
+                                </ng-container>
+                                <ng-container matColumnDef="stores_value">
+                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p style="margin: 5px">{{subscription.n_stores}}</p></th>
+                                </ng-container>
+                                <ng-container matColumnDef="stores_in_use" >
+                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef> {{subscription.n_stores_fact}} </th>
+                                </ng-container>
+                                
+                                <!-- stores_woo -->
+                                <ng-container matColumnDef="stores_woo_name" >
+                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('sidebar.menu.items.stores')}} ({{t('menu.table.in_rent')}}) </th>
+                                </ng-container>
+                                <ng-container matColumnDef="stores_woo_value">
+                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p style="margin: 5px">{{subscription.n_stores_woo}}</p></th>
+                                </ng-container>
+                                <ng-container matColumnDef="stores_woo_in_use" >
+                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef> {{subscription.n_stores_woo_fact}} </th>
+                                </ng-container>
+
+                                <tr mat-header-row *matHeaderRowDef="displayedColumns" style="height: 48px;"></tr>
+                                <tr mat-header-row *matHeaderRowDef="['companies_name','companies_value','companies_in_use']"></tr>
+                                <tr mat-header-row *matHeaderRowDef="['departments_name','departments_value','departments_in_use']"></tr>
+                                <tr mat-header-row *matHeaderRowDef="['users_name','users_value','users_in_use']"></tr>
+                                <tr mat-header-row *matHeaderRowDef="['products_name','products_value','products_in_use']"></tr>
+                                <tr mat-header-row *matHeaderRowDef="['counterparties_name','counterparties_value','counterparties_in_use']"></tr>
+                                <tr mat-header-row *matHeaderRowDef="['megabytes_name','megabytes_value','megabytes_in_use']"></tr>
+                                <tr mat-header-row *matHeaderRowDef="['stores_name','stores_value','stores_in_use']"></tr>
+                                <tr mat-header-row *matHeaderRowDef="['stores_woo_name','stores_woo_value','stores_woo_in_use']"></tr>
+
+
+                                
+
+                            </table>
+                        </div>
+                    </div>
+                </div> 
+            </div>  
+        </div>
+    </mat-card-content>
+</mat-card>

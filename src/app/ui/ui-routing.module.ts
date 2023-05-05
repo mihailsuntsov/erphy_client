@@ -99,6 +99,7 @@ const routes: Routes = [
       { path: 'productattributesdoc', loadChildren: () => import('./pages/documents/productattributes-doc/productattributes-doc.module').then(m => m.ProductAttributeDocModule) },
       { path: 'stores', loadChildren: () => import('./pages/documents/stores/stores.module').then(m => m.StoresModule) },
       { path: 'storesdoc', loadChildren: () => import('./pages/documents/stores-doc/stores-doc.module').then(m => m.StoresDocModule) },
+      { path: 'subscription', loadChildren: () => import('./pages/documents/subscription/subscription.module').then(m => m.SubscriptionModule) },
 
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
       { path: '**', redirectTo: 'dashboard',pathMatch: 'full' },

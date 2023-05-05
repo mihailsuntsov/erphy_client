@@ -200,4 +200,10 @@ body {
   top: 10px;
   z-index: 1000;
 }
-/*linebreaks in mattooltip*/
+.v-center{ /* You sould set parent div's position: relative */
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+}

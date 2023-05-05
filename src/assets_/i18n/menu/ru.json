@@ -201,7 +201,16 @@
         "store":        "Интернет-магазин",
         "ppr":          "Признак предмета расчёта",
         "product":      "Товар",
-        "service":      "Услуга"
+        "service":      "Услуга",
+        "contacts":     "Контакты",
+        "copy_to_buff": "Копировать в буфер",
+        "limitation":   "Лимит",
+        "in_use":       "Используется",
+        "files_mb":     "Файлы, Мб",
+        "connections":  "подключения",
+        "in_rent":      "в аренде"
+
+
     },
     "bottom":{
         "founded":      "Найдено",
@@ -376,6 +385,7 @@
         "currencies":   "валюты",
         "accounts":     "расчётные счета",
         "productattr":  "атрибуты товаров",
+        "subscription": "подписка",
         "stores":       "интернет-магазины"
     },
     "indicators":{

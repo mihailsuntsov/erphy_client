@@ -89,6 +89,7 @@ interface docResponse {//интерфейс для получения ответ
   jr_flat: string;//квартира
   jr_additional_address: string;//дополнение к адресу
   jr_inn: string;//ИНН
+  jr_vat: string;//VAT 
   jr_okpo: string;//ОКПО
   jr_fio_family: string;//Фамилия (для ИП или физлица)
   jr_fio_name: string;//Имя (для ИП или физлица)
@@ -346,6 +347,7 @@ constructor(private activateRoute: ActivatedRoute,
       jr_flat:  new UntypedFormControl      ('',[Validators.maxLength(8)]),
       jr_additional_address:  new UntypedFormControl      ('',[Validators.maxLength(240)]),
       jr_inn:  new UntypedFormControl      ('',[/*Validators.pattern('^([0-9]{10}|[0-9]{12})$')*/]),
+      jr_vat:  new UntypedFormControl      ('',[Validators.maxLength(100)]),
       jr_okpo:  new UntypedFormControl      ('',[Validators.pattern('^([0-9]{8}|[0-9]{10})$')]),
       jr_fio_family:  new UntypedFormControl      ('',[Validators.maxLength(120)]),
       jr_fio_name:  new UntypedFormControl      ('',[Validators.maxLength(120)]),
@@ -427,14 +429,22 @@ constructor(private activateRoute: ActivatedRoute,
       if(this.formBaseInformation.get('type').value=='entity') return 'ogrn'; else return 'ogrnip';
     else return 'reg_number';
   }
+
   get tinName(){ // TIN, Tax ID, ИНН, VAT e.t.c
-    if([47,212].includes(+this.formBaseInformation.get('jr_country_id').value)) // if not USA or US virgin lands
-      return 'tax_id'; 
-    if([17].includes(+this.formBaseInformation.get('jr_country_id').value)) // if Montenegro
+    // if([47,212].includes(+this.formBaseInformation.get('jr_country_id').value)) // if not USA or US virgin lands
+    //   return 'tax_id'; 
+    if([17,185].includes(+this.formBaseInformation.get('jr_country_id').value)) // if Montenegro
         return 'pib';
     else return 'tin';
   }
 
+  get vatName(){
+    if([47,212].includes(+this.formBaseInformation.get('jr_country_id').value)) // if USA or US virgin lands
+      return 'tax_id'; 
+    if([17,185].includes(+this.formBaseInformation.get('jr_country_id').value)) // if Montenegro, Serbia
+      return 'pdv';
+    else return 'vat';
+  }
 //---------------------------------------------------------------------------------------------------------------------------------------                            
 // ----------------------------------------------------- *** ПРАВА *** ------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------------------------------------------
@@ -639,6 +649,7 @@ onDefaultCreatorSearchValueChanges(){
                   this.formBaseInformation.get('jr_flat').setValue(documentValues.jr_flat);
                   this.formBaseInformation.get('jr_additional_address').setValue(documentValues.jr_additional_address);
                   this.formBaseInformation.get('jr_inn').setValue(documentValues.jr_inn);
+                  this.formBaseInformation.get('jr_vat').setValue(documentValues.jr_vat);
                   this.formBaseInformation.get('jr_okpo').setValue(documentValues.jr_okpo);
                   this.formBaseInformation.get('jr_fio_family').setValue(documentValues.jr_fio_family);
                   this.formBaseInformation.get('jr_fio_name').setValue(documentValues.jr_fio_name);
