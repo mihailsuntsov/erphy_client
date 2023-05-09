@@ -639,7 +639,11 @@
         "gen_new_skey":"Generate new secret key?",
         "gen_new_skey_":"If you generate a new secret key, you should change \"DokioCRM Secret key\" field in the DokioStore plugin to the same value",
         "no_ctg_stores":"This category is not associated with any online store",
-        "sku_exists":"A product or service with this SKU already exists"
+        "sku_exists":"A product or service with this SKU already exists",
+        "one_prod_in_var":"Cannot use one product in several variations",
+        "no_vars_have_prod":"Not all variations contain selected products",
+        "vrbl_cant_var":"Variative (parent) product cannot be selected as a variation",
+        "var_cant_vrbl":"A variation product cannot be a Variative (parent)"
     },
     "button":{        
         "test_connct":  "Connection test",

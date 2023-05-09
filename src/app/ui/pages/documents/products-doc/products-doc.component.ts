@@ -112,6 +112,8 @@ interface docResponse {//интерфейс для получения ответ
   short_description_type: string; // "editor" or "custom"
   storeProductTranslations: StoreProductTranslation[];
   defaultAttributes:DefaultAttribute[];
+  productVariations:ProductVariation[];
+  variation: boolean;
   }
   interface SpravTaxesSet{
     id: number;
@@ -294,8 +296,8 @@ export class ProductsDocComponent implements OnInit {
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
   selectedProductCategory:any;//форма, содержащая информацию о выбранной категории товара (id, name)
   productPricesTable: ProductPricesTable; //массив форм с ценами
-  defaultAttribute: DefaultAttribute; //массив форм с дефолтными атрибутами
-  // defaultAttribute: any; //массив форм с дефолтными атрибутами
+  // defaultAttributeSaved: DefaultAttribute[] = []; //массив форм с дефолтными атрибутами
+
 
   //переменные для управления динамическим отображением элементов
   visBeforeCreatingBlocks = true; //блоки, отображаемые ДО создания документа (до получения id)
@@ -454,6 +456,8 @@ export class ProductsDocComponent implements OnInit {
     terms_ids: [] // list of selected terms
   };
 
+  loadedProductVariations:ProductVariation[];
+
   // selectedVariationAction:string;
 
   // defaultAttribute: DefaultAttribute = {attribute_id:null, term_id:null};
@@ -465,7 +469,7 @@ export class ProductsDocComponent implements OnInit {
   // allFruits: number[] = [1, 2, 3, 4, 5];
 
 
-  prop_menu: string = 'general';
+  prop_menu: string = 'inventory';
 
 
   html = '';
@@ -491,6 +495,7 @@ export class ProductsDocComponent implements OnInit {
   selectedUpsellProducts:     IdAndName[]=[]; // выбранные upsell товары
   selectedCrosssellProducts:  IdAndName[]=[]; // выбранные cross-sell товары
   selectedGroupedProducts:  IdAndName[]=[]; // выбранные cross-sell товары
+  isVariation: boolean = false;
 
   // Store Translations variables
   storeDefaultLanguage: string = ''; // default language from Company settings ( like EN )
@@ -585,7 +590,7 @@ export class ProductsDocComponent implements OnInit {
       not_sell: new UntypedFormControl      ('',[]),
       indivisible: new UntypedFormControl      (true,[]),
       productPricesTable: new UntypedFormArray([]),//массив с формами цен
-      defaultAttributes: new UntypedFormArray([],[]),//массив с формами дефолтных атрибутов
+      defaultAttributes: new UntypedFormArray([]),//массив с формами дефолтных атрибутов
 
       productVariations: new UntypedFormArray([]),//массив с формами вариаций
 
@@ -950,7 +955,19 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
                   this.formBaseInformation.get('short_description_html').setValue(documentValues.short_description_html);  // custom HTML short description
                   this.formBaseInformation.get('description_type').setValue(documentValues.description_type);        // "editor" or "custom"
                   this.formBaseInformation.get('short_description_type').setValue(documentValues.short_description_type);  // "editor" or "custom"
-                  this.formBaseInformation.get('defaultAttributes').setValue(documentValues.defaultAttributes);
+                  // this.formBaseInformation.get('defaultAttributes').setValue(documentValues.defaultAttributes);
+                  this.loadedProductVariations=documentValues.productVariations;  
+
+                  const defaultAttributes = this.formBaseInformation.get('defaultAttributes') as UntypedFormArray;
+                  defaultAttributes.clear();
+                  documentValues.defaultAttributes.forEach(m =>{
+                      defaultAttributes.push(this._fb.group({
+                        name:m.name,
+                        attribute_id: m.attribute_id,
+                        term_id: m.term_id,
+                      }));
+                  });
+
                   this.storeProductTranslations=documentValues.storeProductTranslations;
                   this.searchProductGroupsCtrl.setValue(documentValues.productgroup);
                   this.checkedList=documentValues.product_categories_id;
@@ -958,6 +975,9 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
                   this.selectedUpsellProducts=documentValues.upsell_ids?documentValues.upsell_ids:[];
                   this.selectedCrosssellProducts=documentValues.crosssell_ids?documentValues.crosssell_ids:[];
                   this.selectedGroupedProducts=documentValues.grouped_ids?documentValues.grouped_ids:[];
+                  this.isVariation=documentValues.variation;
+                  if(this.formBaseInformation.get('type').value!='grouped' && this.formBaseInformation.get('type').value!='variable') this.prop_menu='general'
+                  // this.defaultAttributeSaved = documentValues.defaultAttributes;
 
                   this.getSpravSysMarkableGroup(); //загрузка справочника маркированных групп товаров
                   this.getSpravSysEdizm(); //загрузка единиц измерения
@@ -976,6 +996,39 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
         );
   }
 
+  fillVariationsOnLoadProductData(){
+    const productVariations = this.formBaseInformation.get('productVariations') as UntypedFormArray;    
+    while (productVariations.length !== 0) {productVariations.removeAt(0)};// clear FormArray
+      this.loadedProductVariations.forEach(m =>{
+        productVariations.push(this._fb.group({
+          id: m.id,
+          product_id: m.product_id,   // Variable (parent) product ID 
+          menu_order: m.menu_order,
+          variation_product_id:m.variation_product_id,     // still not selected
+          variation_product_name:m.variation_product_name,     // still not selected
+          productVariationsRowItems: new FormArray(this.getLoadedVariationsRowItems_FormGroup(m.productVariationsRowItems))
+        }));
+      });
+      this.synchronizeVariations(); // setting variation items in an order like attributes and default attributes
+  }
+
+  getLoadedVariationsRowItems_FormGroup(rowItems:ProductVariationsRowItems[]):FormGroup[]{
+    let returnList:FormGroup[]=[];
+    let i:number = 0; // index
+    // const allAttributes = this.formBaseInformation.get('productAttributes').value;
+    // alert(allAttributes.length)
+    rowItems.forEach(m =>{
+        // console.log('termIds: ',JSON.stringify(termIds));
+        returnList.push(this._fb.group({
+          variation_id:m.variation_id,            
+          attribute_id:m.attribute_id,            
+          term_id:m.term_id,
+          terms: [this.formListOfSelectedAttributeTerms(m.attribute_id)],
+        }));
+        i++;
+    });
+    return returnList;
+  }
   //this is Quill's error: on tab change it lost the string breaks.
   quillRefresh(){
     this.formBaseInformation.get('description').setValue((this.formBaseInformation.get('description').value));
@@ -1194,8 +1247,24 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
     });
   }
   clickBtnUpdate(){// Нажатие кнопки Сохранить
-    this.updateDocument();
-    this.product_code_free_isReadOnly = true ;
+    const allVariations = this.formBaseInformation.get('productVariations').controls;
+    let allVariationsSelected=true;
+    // let parentIsSelectedAsVariation=false;
+    allVariations.forEach(m =>{
+      if(m.get('variation_product_id').value == null){allVariationsSelected=false}
+      // if(+m.get('variation_product_id').value == +this.id){parentIsSelectedAsVariation=true}
+    });
+    // console.log('parentIsSelectedAsVariation - ',parentIsSelectedAsVariation);
+    if(allVariationsSelected/* && !parentIsSelectedAsVariation*/){
+      this.updateDocument();
+      this.product_code_free_isReadOnly = true ;
+    }      
+    else {
+      if(!allVariationsSelected)
+        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.no_vars_have_prod')}});
+      // if(parentIsSelectedAsVariation)
+        // this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.vrbl_cant_var')}});
+    }
   }
   updateDocument(){ // сохраняется в 2 захода - 1й сам док и категории, 2й - настраиваемые поля (если есть)
     this.formBaseInformation.get('selectedProductCategories').setValue(this.checkedList);
@@ -1217,6 +1286,14 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
       this.selectedGroupedProducts.map(i =>{ids.push(i.id);});
       this.formBaseInformation.get('grouped_ids').setValue(ids);
     } else this.formBaseInformation.get('grouped_ids').setValue([]);
+    // if product switched Type from "variable" to different, then I should clean variations and default attribute values
+    if(this.formBaseInformation.get('type').value!='variable' && this.formBaseInformation.get('productVariations').controls.length>0){
+      const productVariations = this.formBaseInformation.get('productVariations') as UntypedFormArray;
+      const defaultAttributes = this.formBaseInformation.get('defaultAttributes') as UntypedFormArray;
+      while (productVariations.length !== 0) {productVariations.removeAt(0)};
+      while (defaultAttributes.length !== 0) {defaultAttributes.removeAt(0)};
+    }
+
     this.http.post('/api/auth/updateProducts', this.formBaseInformation.value).subscribe(
       (data) => 
       {
@@ -1239,6 +1316,21 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
           }
           case -250:{ // non-unique sku check
             this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.sku_exists')}});
+            break;
+          }
+          case -260:{ // нельзя использовать один товар в нескольких вариациях (ProductAlreadyUsedAsVariation)
+                      //You can not use one product in several variations
+            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.vartn_alrd_used_as_vartn')}});
+            break;
+          }
+          case -270:{ // Вариативный товар нельзя использовать в качестве вариации (Возникает если вариативный товар выбрали в качестве вариации у другого товара)
+                      // Variable product can't be use as a variation (throws if a variable product is selected as a variation of another product)
+            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.vartve_prod_try_use_as_vartn')}});
+            break;
+          }
+          case -280:{ // Вариация не может быть вариативным товаром!
+                      // Product selected as a variable, but already used as a variation in another variable product (VariationCantBeVariableProduct)
+            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.prod_alrd_used_as_vartn')}});
             break;
           }
           default:{// Успешно
@@ -2241,6 +2333,7 @@ checkProductCodeFreeUnical() {
                             this.productAttributes = data as ProductAttribute[]; 
                             this.fillProductAttributesArray();
                             this.fillDefaultProductAttributesArray();
+                            this.fillVariationsOnLoadProductData();
                           },
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
             );
@@ -2336,7 +2429,6 @@ checkProductCodeFreeUnical() {
 
 //                                    Variations Вариации
   addVariation(termIds?:number[]){    
-    
     const productVariations = this.formBaseInformation.get('productVariations') as UntypedFormArray;
     productVariations.push(this._fb.group({
       id: null,
@@ -2346,16 +2438,29 @@ checkProductCodeFreeUnical() {
       variation_product_name:'',     // still not selected
       productVariationsRowItems: new FormArray(this.getNewProductVariationsRowItems_FormGroup(termIds))
     }));
-
   }
+
   getNewProductVariationsRowItems_FormGroup(termIds?:number[]):FormGroup[]{
     let returnList:FormGroup[]=[];
     let i:number = 0; // index
-    const allAttributes = this.formBaseInformation.get('productAttributes').value;
-    // alert(allAttributes.length)
+
+    // const allAttributes = this.formBaseInformation.get('productAttributes').value;
+    // allAttributes.forEach(m =>{
+    //   if(m.variation){
+    //     console.log('termIds: ',JSON.stringify(termIds));
+    //     returnList.push(this._fb.group({
+    //       variation_id:null,            // variation still not created
+    //       attribute_id:m.attribute_id,  // current attribute
+    //       term_id:((termIds != undefined && termIds.length>0)?termIds[i]:0),                 // still not selected
+    //       terms: [this.formListOfSelectedAttributeTerms(m.attribute_id)], // list of selected attribute's terms (sending the list of terms and list of selected terms)
+    //     }));
+    //     i++;
+    //   }
+    // });
+
+    const allAttributes = this.formBaseInformation.get('defaultAttributes').value;
     allAttributes.forEach(m =>{
-      if(m.variation){
-        console.log('termIds: ',JSON.stringify(termIds));
+        // console.log('termIds: ',JSON.stringify(termIds));
         returnList.push(this._fb.group({
           variation_id:null,            // variation still not created
           attribute_id:m.attribute_id,  // current attribute
@@ -2363,7 +2468,6 @@ checkProductCodeFreeUnical() {
           terms: [this.formListOfSelectedAttributeTerms(m.attribute_id)], // list of selected attribute's terms (sending the list of terms and list of selected terms)
         }));
         i++;
-      }
     });
     return returnList;
   }
@@ -2375,13 +2479,31 @@ checkProductCodeFreeUnical() {
   actionProductOfVariation(product: IdAndName, variationIndex: number, action: string){
     const allVariations = this.formBaseInformation.get('productVariations').controls;
     let rowIndx: number = 0;
-    allVariations.forEach(m =>{
-      if(rowIndx == variationIndex){
-        m.get('variation_product_id').setValue(action=='add'?product.id:null);
-        m.get('variation_product_name').setValue(action=='add'?product.name:null);
-      }
-      rowIndx++;
-    });
+    let productIdExists=false;
+    let parentIsSelectedAsVariation=false;
+    if(action=='add'){
+      allVariations.forEach(m =>{
+        if(+m.get('variation_product_id').value == +product.id){productIdExists=true};
+        if(+product.id == this.id){parentIsSelectedAsVariation=true}
+      });
+      
+    }
+      
+    if((action=='add' && !productIdExists && !parentIsSelectedAsVariation) || action=='delete')//Product isn't using in variations at this moment
+      allVariations.forEach(m =>{
+        if(rowIndx == variationIndex){
+          m.get('variation_product_id').setValue(action=='add'?product.id:null);
+          m.get('variation_product_name').setValue(action=='add'?product.name:null);
+        }
+        rowIndx++;
+      });
+      //Cannot use one product in several variations
+    else {
+      if(productIdExists)
+        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.one_prod_in_var')}});
+      if(parentIsSelectedAsVariation)
+        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.vrbl_cant_var')}});
+    }
   }
 
   onClickGenerateAllVariationsBtn(){
@@ -2425,46 +2547,94 @@ checkProductCodeFreeUnical() {
     });
   }
 
-  synchronizeVariations(existingAttributesIds:number[]){
-    const allVariations = this.formBaseInformation.get('productVariations').controls ;
-    let rowItemIndx: number = 0;
-    let rowItemAttributeIds: number[]=[];
-    let indexToRemove: number[] = [];
-    allVariations.forEach((currentVariation,variationRowIndx) =>{
-      const productVariationsRowItems = currentVariation.get('productVariationsRowItems') as FormArray;
-      productVariationsRowItems.controls.forEach((rowItem,index) =>{
-        // Removing an extra columns...
-        if(!existingAttributesIds.includes(rowItem.value.attribute_id)){
-          indexToRemove.push(index);
-        } else {
-          // ...at the same time refreshing terms list (if in Attributes tab an attribute's terms was changed)
-          rowItem.get('terms').setValue(this.formListOfSelectedAttributeTerms(rowItem.value.attribute_id));
-        }
-        rowItemAttributeIds.push(rowItem.value.attribute_id)
-      });
-      indexToRemove.reverse().forEach((index) => {
-        productVariationsRowItems.removeAt(index);
-      });
-      // Add missing columns
-        existingAttributesIds.forEach((existingAttributeId, indx) => {
-          if(!rowItemAttributeIds.includes(existingAttributeId)){
-            console.log('Not included id = ' +existingAttributeId);
-            productVariationsRowItems.push(
-              this._fb.group({
-              variation_id:currentVariation.value.id,
-              attribute_id:existingAttributeId,   // current attribute
-              term_id:0,                       // still not selected
-              terms: [this.formListOfSelectedAttributeTerms(existingAttributeId)], // list of selected attribute's terms (sending the list of terms and list of selected terms)
-            }))
-          }
-        }); 
 
-      indexToRemove=[];
-      rowItemAttributeIds=[];
-      rowItemIndx=0;
+  synchronizeVariations(existingAttributesIds?:number[]){
+    const allVariations = this.formBaseInformation.get('productVariations').controls ;
+    let selectedTermsIds: number[] = [];
+    let defaultAttributesIds: number[] = [];
+    let term_id: number=0;
+    let attributeIndex: number = 0;
+    let actualTermsListsIds: any[] = [];
+    let actualTermsListIds: any[] = [];
+    // collect all actual attributes ids
+    const allAttributes = this.formBaseInformation.get('defaultAttributes').value;
+    allAttributes.forEach(m =>{
+      defaultAttributesIds.push(m.attribute_id);
+      m.terms.forEach(term =>{actualTermsListIds.push(term.id)});
+      actualTermsListsIds.push(actualTermsListIds);   // array of arrays like [[1,2],[3,4]] 
+    });
+    // run on all existing variations
+    allVariations.forEach((currentVariation) =>{
+      const productVariationsRowItems = currentVariation.get('productVariationsRowItems') as FormArray;
+      defaultAttributesIds.forEach(attribute_id=>{
+        term_id=0;
+        productVariationsRowItems.controls.forEach(rowItem=>{
+          console.log("attribute_id - "+ attribute_id+", rowItem.get('attribute_id').value = "+rowItem.get('attribute_id').value)
+          if(attribute_id==rowItem.get('attribute_id').value){
+            term_id=(actualTermsListsIds[attributeIndex].includes(rowItem.get('term_id').value))?rowItem.get('term_id').value:0; // 0 = "- Any -" in select list
+          } 
+        });
+        selectedTermsIds.push(term_id);
+        attributeIndex++;
+      });
+      attributeIndex = 0;
+      console.log('selectedTermsIds = ',JSON.stringify(selectedTermsIds))
+       while (productVariationsRowItems.length !== 0) {productVariationsRowItems.removeAt(0)};// clear FormArray
+      // productVariationsRowItems.clear;
+      // alert(JSON.stringify(selectedTermsIds))
+      let a = new FormArray(this.getNewProductVariationsRowItems_FormGroup(selectedTermsIds)); // set new items
+      a.controls.forEach(element => {productVariationsRowItems.push(element);});
+      selectedTermsIds=[];
     });
     this.removeEmptyVariations();
   }
+
+
+
+
+
+  // synchronizeVariations(existingAttributesIds:number[]){
+  //   const allVariations = this.formBaseInformation.get('productVariations').controls ;
+  //   let rowItemIndx: number = 0;
+  //   let rowItemAttributeIds: number[]=[];
+  //   let indexToRemove: number[] = [];
+  //   allVariations.forEach((currentVariation,variationRowIndx) =>{
+  //     const productVariationsRowItems = currentVariation.get('productVariationsRowItems') as FormArray;
+      
+      
+  //     productVariationsRowItems.controls.forEach((rowItem,index) =>{
+  //       // Removing an extra columns...
+  //       if(!existingAttributesIds.includes(rowItem.value.attribute_id)){
+  //         indexToRemove.push(index);
+  //       } else {
+  //         // ...at the same time refreshing terms list (if in Attributes tab an attribute's terms was changed)
+  //         rowItem.get('terms').setValue(this.formListOfSelectedAttributeTerms(rowItem.value.attribute_id));
+  //       }
+  //       rowItemAttributeIds.push(rowItem.value.attribute_id)
+  //     });
+  //     indexToRemove.reverse().forEach((index) => {
+  //       productVariationsRowItems.removeAt(index);
+  //     });
+  //     // Add missing columns
+  //       existingAttributesIds.forEach((existingAttributeId, indx) => {
+  //         if(!rowItemAttributeIds.includes(existingAttributeId)){
+  //           // console.log('Not included id = ' +existingAttributeId);
+  //           productVariationsRowItems.push(
+  //             this._fb.group({
+  //             variation_id:currentVariation.value.id,
+  //             attribute_id:existingAttributeId,   // current attribute
+  //             term_id:0,                       // still not selected
+  //             terms: [this.formListOfSelectedAttributeTerms(existingAttributeId)], // list of selected attribute's terms (sending the list of terms and list of selected terms)
+  //           }))
+  //         }
+  //       }); 
+
+  //     indexToRemove=[];
+  //     rowItemAttributeIds=[];
+  //     rowItemIndx=0;
+  //   });
+  //   this.removeEmptyVariations();
+  // }
 
   removeEmptyVariations(){
     console.log('Remove Empty Variations!');
@@ -2591,6 +2761,8 @@ checkProductCodeFreeUnical() {
                     });
     moveItemInArray(resultContainer, event.previousIndex, event.currentIndex);
     this.fillProductAttributesArrayAfterDrop(resultContainer);
+    
+    this.fillDefaultProductAttributesArray();
   }
   fillProductAttributesArrayAfterDrop(arr: any[]){
     const add = this.formBaseInformation.get('productAttributes') as UntypedFormArray;

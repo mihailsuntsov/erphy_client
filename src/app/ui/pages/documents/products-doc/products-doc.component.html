@@ -142,7 +142,7 @@
                             mat-raised-button 
                             *ngIf="+id>0 && allowToUpdate"
                             matTooltip="{{t('docs.tip.save')}}"
-                            (click)="updateDocument()"
+                            (click)="clickBtnUpdate()"
                             [disabled]="!formBaseInformation.valid" 
                             color="primary"
                             type="button"
@@ -943,7 +943,10 @@
 
                                                     <mat-form-field  class="mat-form-field-100">
                                                         <mat-label>{{t('docs.field.product_type')}}</mat-label>
-                                                        <mat-select formControlName="type" #type>
+                                                        <input  *ngIf="isVariation" matInput disabled  
+                                                            value="{{t('docs.list.variation')}}"
+                                                            />
+                                                        <mat-select *ngIf="!isVariation" formControlName="type" #type>
                                                             <mat-option value="simple">
                                                                 {{t('docs.list.simple')}}
                                                             </mat-option>
@@ -956,9 +959,9 @@
                                                             <mat-option value="variable">
                                                                 {{t('docs.list.variable')}}
                                                             </mat-option>
-                                                            <mat-option value="variation">
+                                                            <!-- <mat-option value="variation">
                                                                 {{t('docs.list.variation')}}
-                                                            </mat-option>  
+                                                            </mat-option>   -->
                                                         </mat-select>
                                                     </mat-form-field>
 
@@ -987,8 +990,8 @@
                                             <div class="row" style="padding: 10px">
                                                 <div class="col-12" >
                                                     <mat-drawer-container class="drawer-container">
-                                                        <mat-drawer class="mat-drawer" #drawer2 mode="side" opened>
-                                                            <div class="row mat-drawer-row"  *ngIf="formBaseInformation.get('type').value!='grouped'">
+                                                        <mat-drawer class="mat-drawer" #drawer2 mode="side" opened style="width:145px;">
+                                                            <div class="row mat-drawer-row"  *ngIf="formBaseInformation.get('type').value!='grouped' && formBaseInformation.get('type').value!='variable'">
                                                                 <div class="col-12" (click)="propertiesMenuClick('general')" class="drawer-menu" [ngClass]="{'drawer-menu-selected':prop_menu=='general'}">
                                                                     <span> {{t('docs.tab.general')}} </span>
                                                                 </div>
@@ -1003,12 +1006,12 @@
                                                                     <span> {{t('docs.tab.shipping')}} </span>
                                                                 </div>
                                                             </div>
-                                                            <div class="row mat-drawer-row">
+                                                            <div class="row mat-drawer-row" *ngIf="!isVariation">
                                                                 <div class="col-12" (click)="propertiesMenuClick('linked')" class="drawer-menu" [ngClass]="{'drawer-menu-selected':prop_menu=='linked'}">
                                                                     <span> {{t('docs.tab.lnkd_prdcts')}} </span>
                                                                 </div>
                                                             </div>
-                                                            <div class="row mat-drawer-row">
+                                                            <div class="row mat-drawer-row" *ngIf="!isVariation">
                                                                 <div class="col-12" (click)="propertiesMenuClick('attributes')" class="drawer-menu" [ngClass]="{'drawer-menu-selected':prop_menu=='attributes'}">
                                                                     <span> {{t('docs.tab.attributes')}} </span>
                                                                 </div>
@@ -1018,13 +1021,13 @@
                                                                     <span> {{t('docs.tab.variations')}} </span>
                                                                 </div>
                                                             </div>
-                                                            <div class="row mat-drawer-row">
+                                                            <div class="row mat-drawer-row" *ngIf="!isVariation">
                                                                 <div class="col-12" (click)="propertiesMenuClick('advanced')" class="drawer-menu" [ngClass]="{'drawer-menu-selected':prop_menu=='advanced'}">
                                                                     <span> {{t('docs.tab.advanced')}} </span>
                                                                 </div>
                                                             </div>
                                                         </mat-drawer>  
-                                                        <mat-drawer-content style="margin-left: 200px;">
+                                                        <mat-drawer-content style="margin-left: 150px;">
                                                             <div class="container-fluid">
                                                                 <div class="row">
                                                                     <div class="col-12" *ngIf="prop_menu=='general'" class="drawer-settings">
@@ -1163,8 +1166,11 @@
                                                                             </mat-form-field>
 
                                                                         </div>
-                                                                        <mat-divider style="margin:10px 0"></mat-divider>
-                                                                        <mat-form-field  class="mat-form-field-100" style="width:360px">
+                                                                        <!-- <mat-divider style="margin:10px 0"></mat-divider> -->
+
+                                                                        <!-- *** I don't know why, but at the present time i can't find this settings (tax_status) in a WooCommerce product card ***  -->
+                                                                        
+                                                                        <!-- <mat-form-field  class="mat-form-field-100" style="width:360px">
                                                                             <mat-label>{{t('docs.field.tax_status')}}</mat-label>
                                                                             <mat-select formControlName="tax_status">
                                                                                 <option value="" selected></option>
@@ -1172,7 +1178,7 @@
                                                                                 <mat-option value="shippng">{{t('docs.list.ts_shippng')}}</mat-option>
                                                                                 <mat-option value="none">{{t('docs.list.ts_none')}}</mat-option>    
                                                                             </mat-select>                                              
-                                                                        </mat-form-field>
+                                                                        </mat-form-field> -->
                                                                     </div>
                                                                     <div class="col-12" *ngIf="prop_menu=='inventory'" class="drawer-settings">
                                                                         <mat-form-field  class="mat-form-field-100">
