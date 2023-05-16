@@ -1255,7 +1255,7 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
       // if(+m.get('variation_product_id').value == +this.id){parentIsSelectedAsVariation=true}
     });
     // console.log('parentIsSelectedAsVariation - ',parentIsSelectedAsVariation);
-    if(allVariationsSelected/* && !parentIsSelectedAsVariation*/){
+    if(allVariationsSelected || this.formBaseInformation.get('type').value!='variable')/* && !parentIsSelectedAsVariation*/{
       this.updateDocument();
       this.product_code_free_isReadOnly = true ;
     }      
@@ -1318,7 +1318,7 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
             this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.sku_exists')}});
             break;
           }
-          case -260:{ // нельзя использовать один товар в нескольких вариациях (ProductAlreadyUsedAsVariation)
+          case -260:{ // Нельзя использовать один товар в нескольких вариациях (ProductAlreadyUsedAsVariation)
                       //You can not use one product in several variations
             this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.vartn_alrd_used_as_vartn')}});
             break;

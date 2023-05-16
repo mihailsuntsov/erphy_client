@@ -137,23 +137,21 @@
                                 </ng-container>
                                 <!-- Операционная прибыль -->
                                 <ng-container matColumnDef="operating_profit_name">
-                                    <th class="bottom-bar-left padded balance-bar top-bar bold" mat-footer-cell *matFooterCellDef>{{t('menu.indicators.op_profit')}}</th>
+                                    <th class="bottom-bar-left padded balance-bar bold" style="padding-left: 24px; text-align: left;" mat-footer-cell *matFooterCellDef>{{t('menu.indicators.op_profit')}}</th>
                                 </ng-container>
                                 <ng-container matColumnDef="operating_profit_value">
                                     <th class="bottom-bar-right balance-bar balance-bar-bottom bold right" mat-footer-cell *matFooterCellDef>{{cu.numToPrice(operating_profit,2,true)}}</th>
                                 </ng-container>
                                 <!-- Налоги и сборы -->
                                 <ng-container matColumnDef="taxes_and_fees_name">
-                                    <th class="bottom-bar-left padded balance-bar top-bar normal" mat-footer-cell *matFooterCellDef>{{t('menu.indicators.taxes_n_fees')}}</th>
+                                    <th class="bottom-bar-left padded balance-bar normal" style="padding-left: 24px; text-align: left;" mat-footer-cell *matFooterCellDef>{{t('menu.indicators.taxes_n_fees')}}</th>
                                 </ng-container>
                                 <ng-container matColumnDef="taxes_and_fees_value">
                                     <th class="bottom-bar-right balance-bar balance-bar-bottom normal right" mat-footer-cell *matFooterCellDef>{{cu.numToPrice(taxes_and_fees,2,true)}}</th>
                                 </ng-container>
-
-
                                 <!-- Чистая прибыль -->
                                 <ng-container matColumnDef="net_profit_name">
-                                    <th class="bottom-bar-left padded balance-bar top-bar bold" mat-footer-cell *matFooterCellDef>{{t('menu.indicators.net_profit')}}</th>
+                                    <th class="bottom-bar-left padded balance-bar bold" style="padding-left: 24px; text-align: left;" mat-footer-cell *matFooterCellDef>{{t('menu.indicators.net_profit')}}</th>
                                 </ng-container>
                                 <ng-container matColumnDef="net_profit_value">
                                     <th class="bottom-bar-right balance-bar balance-bar-bottom bold right" mat-footer-cell *matFooterCellDef>{{cu.numToPrice(net_profit,2,true)}}</th>

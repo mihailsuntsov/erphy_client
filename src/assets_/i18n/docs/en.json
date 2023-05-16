@@ -642,8 +642,11 @@
         "sku_exists":"A product or service with this SKU already exists",
         "one_prod_in_var":"Cannot use one product in several variations",
         "no_vars_have_prod":"Not all variations contain selected products",
-        "vrbl_cant_var":"Variative (parent) product cannot be selected as a variation",
-        "var_cant_vrbl":"A variation product cannot be a Variative (parent)"
+        "vrbl_cant_var":"Variable (parent) product cannot be selected as a variation",
+        "var_cant_vrbl":"A variation product cannot be a Variable (parent)",
+        "vartn_alrd_used_as_vartn":"This product is already used as a variation in another product",
+        "vartve_prod_try_use_as_vartn":"One or more of selected products are variable. Variable product can't be use as a variation",
+        "prod_alrd_used_as_vartn":"The current product selected as a variable, but is already in use as a variation of another variable product"
     },
     "button":{        
         "test_connct":  "Connection test",

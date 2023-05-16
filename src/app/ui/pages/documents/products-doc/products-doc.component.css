@@ -214,14 +214,14 @@ height:30px;
     border: 2px solid rgb(255, 0, 0);
     padding: 3px;
     }
-
+*/
 .field-box-drag {
     width:100%; 
     margin-bottom: 10px;
     height:50px;
     display: flex;
     justify-content: space-between;
-} */
+} 
 
 /*---------- DRAG n DROP -------------*/
 
