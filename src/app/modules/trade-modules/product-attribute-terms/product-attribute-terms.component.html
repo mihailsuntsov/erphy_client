@@ -54,16 +54,28 @@
                                             <input  matInput
                                                     placeholder="{{'docs.field.name' | transloco}}"
                                                     #name
-                                                    maxlength="500"
+                                                    maxlength="120"
                                                     formControlName="name"/>
-                                            <mat-hint align="end" *ngIf="name.value.length>450">{{name.value.length}} / 500</mat-hint>
+                                            <mat-hint align="end" *ngIf="name.value.length>100">{{name.value.length}} / 120</mat-hint>
                                         </mat-form-field>
                                         <mat-form-field style="width: 100%">
                                             <input  matInput
                                                     placeholder="{{'docs.field.slug' | transloco}}"
                                                     #slug
+                                                    (keypress)="slugSymbolsOnly($event);"
                                                     maxlength="120"
-                                                    formControlName="slug"/>
+                                                    formControlName="slug"/>                                                                      
+                                            <button 
+                                                    *ngIf="name.value!=''"
+                                                    type="button"
+                                                    mat-button
+                                                    matSuffix 
+                                                    mat-icon-button 
+                                                    matTooltip="{{t('docs.tip.generate')}}"
+                                                    style="font-size: 150%;color: gray;" 
+                                                    (click)="slugifyTranslated(i)">
+                                                    <mat-icon>offline_bolt</mat-icon>                                                            
+                                            </button>         
                                             <mat-hint align="end" *ngIf="slug.value.length>100">{{slug.value.length}} / 120</mat-hint>
                                         </mat-form-field>
                                         <mat-form-field style="width: 100%">
@@ -89,22 +101,36 @@
                     <mat-label>{{'docs.field.name' | transloco}} <span *ngIf="formBaseInformation.get('name').value==''||formBaseInformation.get('name').value==null" class="star">*</span></mat-label>
                     <input  matInput
                             maxlength="120"
+                            #name
                             formControlName="name"/>  
-                            <mat-hint align="start" *ngIf="formBaseInformation.get('name').touched">
-                                <i *ngIf="formBaseInformation.get('name').value==''" class="form-invalid">{{'docs.error.field_miss' | transloco}}</i>
+                            <mat-hint  align="start" *ngIf="formBaseInformation.get('name').touched && formBaseInformation.get('name').invalid">
+                                <i class="form-invalid">{{t('modules.error.field_miss')}}</i>
                             </mat-hint>
-                            <mat-hint align="end" *ngIf="formBaseInformation.get('name').value.length>100">{{formBaseInformation.get('name').value.length}} / 120</mat-hint>
+                            <mat-hint align="end" *ngIf="name.value.length>100">{{name.value.length}} / 120</mat-hint>
                 </mat-form-field>
 
                 <mat-form-field style="width: 100%">
-                    <mat-label>{{'modules.field.slug' | transloco}} </mat-label>
+                    <mat-label>{{'modules.field.slug' | transloco}} <span *ngIf="formBaseInformation.get('slug').value==''||formBaseInformation.get('slug').value==null" class="star">*</span></mat-label>
                     <input  matInput
                             maxlength="120"
-                            formControlName="slug"/>   
-                            <mat-hint align="start" *ngIf="formBaseInformation.get('slug').touched">
-                                <i *ngIf="formBaseInformation.get('slug').value==''" class="form-invalid">{{'docs.error.field_miss' | transloco}}</i>
+                            (keypress)="slugSymbolsOnly($event);"
+                            #slug
+                            formControlName="slug"/>                                                                      
+                            <button 
+                                *ngIf="formBaseInformation.get('name').value!=''"
+                                type="button"
+                                mat-button
+                                matSuffix 
+                                mat-icon-button 
+                                matTooltip="{{t('docs.tip.generate')}}"
+                                style="font-size: 150%;color: gray;" 
+                                (click)="slugify()">
+                                    <mat-icon>offline_bolt</mat-icon>                                                            
+                            </button>         
+                            <mat-hint  align="start" *ngIf="formBaseInformation.get('slug').touched && formBaseInformation.get('slug').invalid">
+                                <i class="form-invalid">{{t('modules.error.field_miss')}}</i>
                             </mat-hint>
-                            <mat-hint align="end" *ngIf="formBaseInformation.get('slug').value.length>100">{{formBaseInformation.get('slug').value.length}} / 120</mat-hint>
+                            <mat-hint align="end" *ngIf="slug.value.length>100">{{slug.value.length}} / 120</mat-hint>
                 </mat-form-field>
                 
                 <mat-form-field style="width: 100%">

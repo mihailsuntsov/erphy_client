@@ -98,7 +98,6 @@
                     [matMenuTriggerFor]="addDocMenu"
                     mat-raised-button 
                     matTooltip="{{t('docs.tip.create_docs')}}"
-                    [disabled]="!childFormValid||!formBaseInformation.valid||productSearchAndTableComponent.indivisibleErrorOfProductTable" 
                     *ngIf="+id>0 && productSearchAndTableComponent"
                     color="primary"
                     (submit)="false"

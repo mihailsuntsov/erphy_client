@@ -457,7 +457,7 @@ export class ProductsDocComponent implements OnInit {
   };
 
   loadedProductVariations:ProductVariation[];
-
+  thereIsAttributesUsedForVariationsWithSelectedTerms=false; // read its name
   // selectedVariationAction:string;
 
   // defaultAttribute: DefaultAttribute = {attribute_id:null, term_id:null};
@@ -1331,6 +1331,11 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
           case -280:{ // Вариация не может быть вариативным товаром!
                       // Product selected as a variable, but already used as a variation in another variable product (VariationCantBeVariableProduct)
             this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.prod_alrd_used_as_vartn')}});
+            break;
+          }
+          case -290:{ // Нельзя изменить тип товара, у которого уже есть история складских операций, на «Вариативный».
+                      // You cannot change a product type that already has a warehouse history to "variable".
+            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.prod_w_hist_cant_be_vartv')}});
             break;
           }
           default:{// Успешно
@@ -2423,21 +2428,24 @@ checkProductCodeFreeUnical() {
         attributesIds.push(m.attribute_id);
       }
     });
-    if(this.formBaseInformation.get('productVariations').value.length>0)
+    // if(this.formBaseInformation.get('productVariations').value.length>0)
       this.synchronizeVariations(attributesIds);
   }
 
 //                                    Variations Вариации
   addVariation(termIds?:number[]){    
-    const productVariations = this.formBaseInformation.get('productVariations') as UntypedFormArray;
-    productVariations.push(this._fb.group({
-      id: null,
-      product_id: this.id,   // Variable (parent) product ID 
-      menu_order: this.formBaseInformation.get('productVariations').value.length+1,
-      variation_product_id:null,     // still not selected
-      variation_product_name:'',     // still not selected
-      productVariationsRowItems: new FormArray(this.getNewProductVariationsRowItems_FormGroup(termIds))
-    }));
+    if(this.thereIsAttributesUsedForVariationsWithSelectedTerms){
+      const productVariations = this.formBaseInformation.get('productVariations') as UntypedFormArray;
+      productVariations.push(this._fb.group({
+        id: null,
+        product_id: this.id,   // Variable (parent) product ID 
+        menu_order: this.formBaseInformation.get('productVariations').value.length+1,
+        variation_product_id:null,     // still not selected
+        variation_product_name:'',     // still not selected
+        productVariationsRowItems: new FormArray(this.getNewProductVariationsRowItems_FormGroup(termIds))
+      }));
+    }
+    
   }
 
   getNewProductVariationsRowItems_FormGroup(termIds?:number[]):FormGroup[]{
@@ -2554,13 +2562,17 @@ checkProductCodeFreeUnical() {
     let defaultAttributesIds: number[] = [];
     let term_id: number=0;
     let attributeIndex: number = 0;
-    let actualTermsListsIds: any[] = [];
+    let actualTermsListsIds = [];
     let actualTermsListIds: any[] = [];
+    this.thereIsAttributesUsedForVariationsWithSelectedTerms=false;
     // collect all actual attributes ids
     const allAttributes = this.formBaseInformation.get('defaultAttributes').value;
     allAttributes.forEach(m =>{
       defaultAttributesIds.push(m.attribute_id);
-      m.terms.forEach(term =>{actualTermsListIds.push(term.id)});
+      m.terms.forEach(term =>{
+        actualTermsListIds.push(term.id);
+        this.thereIsAttributesUsedForVariationsWithSelectedTerms=true;
+      });
       actualTermsListsIds.push(actualTermsListIds);   // array of arrays like [[1,2],[3,4]] 
     });
     // run on all existing variations
@@ -2586,55 +2598,9 @@ checkProductCodeFreeUnical() {
       a.controls.forEach(element => {productVariationsRowItems.push(element);});
       selectedTermsIds=[];
     });
+    // alert(this.actualTermsListsIds.length);
     this.removeEmptyVariations();
   }
-
-
-
-
-
-  // synchronizeVariations(existingAttributesIds:number[]){
-  //   const allVariations = this.formBaseInformation.get('productVariations').controls ;
-  //   let rowItemIndx: number = 0;
-  //   let rowItemAttributeIds: number[]=[];
-  //   let indexToRemove: number[] = [];
-  //   allVariations.forEach((currentVariation,variationRowIndx) =>{
-  //     const productVariationsRowItems = currentVariation.get('productVariationsRowItems') as FormArray;
-      
-      
-  //     productVariationsRowItems.controls.forEach((rowItem,index) =>{
-  //       // Removing an extra columns...
-  //       if(!existingAttributesIds.includes(rowItem.value.attribute_id)){
-  //         indexToRemove.push(index);
-  //       } else {
-  //         // ...at the same time refreshing terms list (if in Attributes tab an attribute's terms was changed)
-  //         rowItem.get('terms').setValue(this.formListOfSelectedAttributeTerms(rowItem.value.attribute_id));
-  //       }
-  //       rowItemAttributeIds.push(rowItem.value.attribute_id)
-  //     });
-  //     indexToRemove.reverse().forEach((index) => {
-  //       productVariationsRowItems.removeAt(index);
-  //     });
-  //     // Add missing columns
-  //       existingAttributesIds.forEach((existingAttributeId, indx) => {
-  //         if(!rowItemAttributeIds.includes(existingAttributeId)){
-  //           // console.log('Not included id = ' +existingAttributeId);
-  //           productVariationsRowItems.push(
-  //             this._fb.group({
-  //             variation_id:currentVariation.value.id,
-  //             attribute_id:existingAttributeId,   // current attribute
-  //             term_id:0,                       // still not selected
-  //             terms: [this.formListOfSelectedAttributeTerms(existingAttributeId)], // list of selected attribute's terms (sending the list of terms and list of selected terms)
-  //           }))
-  //         }
-  //       }); 
-
-  //     indexToRemove=[];
-  //     rowItemAttributeIds=[];
-  //     rowItemIndx=0;
-  //   });
-  //   this.removeEmptyVariations();
-  // }
 
   removeEmptyVariations(){
     console.log('Remove Empty Variations!');
@@ -2660,9 +2626,7 @@ checkProductCodeFreeUnical() {
             })
         }).reduce(function(a,b){ return a.concat(b) },[])
     }, [[]])
-  }
-
-  
+  } 
 
   get productVariations(): FormArray {
     return this.formBaseInformation.get('productVariations') as FormArray;
@@ -2829,6 +2793,7 @@ checkProductCodeFreeUnical() {
       if(result==1){
         const add = this.formBaseInformation.get('productAttributes') as UntypedFormArray;
         add.removeAt(index);
+        this.fillDefaultProductAttributesArray();
       }
     });       
   }

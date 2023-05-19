@@ -51,7 +51,8 @@
         "transl":       "Translations",
         "action":"Action",
         "def_value":"Default values",
-        "variations":"Variations"
+        "variations":"Variations",
+        "add_attr_w_var":"To create variations: 1. In the \"Attributes\" tab, add the attribute(s); 2. Turn on \"Used for Variations\"; 3. Select attribute terms"
     },
     "field":{ 
         "-- COMMON":"--",
@@ -323,7 +324,8 @@
         "s_autorsrv":"Autoreserve",
         "s_dprtmnts":"Store departments",
         "lbl_dscrp":"Description for the label",
-        "store_ip":"IP address of the online store"
+        "store_ip":"IP address of the online store",
+        "select_action":"Select action"
     },
     "error":{ 
         "-- COMMON":"--",
@@ -458,6 +460,7 @@
         "ordrs_dprtmnt": "Main department in \"Customer's order\" document for online store orders",
         "s_dprtmnts":"The availability of products in the online store will be determined based on the total number of unreserved products in these departments",
         "p_gen_new_skey":"Generate new key",
+        "generate":"Generate",
         "transl_mode":"Translation mode",
         "ctg_stores":"Online stores to which this category and its products belong",        
         "variation":"Define if the attribute can be used as variation"
@@ -646,7 +649,10 @@
         "var_cant_vrbl":"A variation product cannot be a Variable (parent)",
         "vartn_alrd_used_as_vartn":"This product is already used as a variation in another product",
         "vartve_prod_try_use_as_vartn":"One or more of selected products are variable. Variable product can't be use as a variation",
-        "prod_alrd_used_as_vartn":"The current product selected as a variable, but is already in use as a variation of another variable product"
+        "prod_alrd_used_as_vartn":"The current product selected as a variable, but is already in use as a variation of another variable product",
+        "prod_w_hist_cant_be_vartv":"You cannot change a product type that already has a warehouse history to \"Variable\"",
+        "del_all_var":"Deleting variations",
+        "del_all_var_q":"Do you really want to delete all variations?"
     },
     "button":{        
         "test_connct":  "Connection test",
@@ -709,7 +715,10 @@
         "editor":"WYSIWYG editor",
         "delete":"Delete",
         "variation":"Variation",
-        "any":"Any"
+        "any":"Any",
+        "add_variation":"Add variation",
+        "gen_variation":"Generate all possible variations",
+        "del_variation":"Delete all variations"
     },
     "docs":{            
         "role":         "Role",

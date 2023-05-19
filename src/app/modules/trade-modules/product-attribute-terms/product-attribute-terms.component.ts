@@ -66,7 +66,7 @@ export class ProductAttributeTermsComponent implements OnInit {
     this.formBaseInformation = new UntypedFormGroup({
       id:           new UntypedFormControl(+this.data.termId,[]),
       name:         new UntypedFormControl(this.data.termName,[Validators.required,Validators.maxLength(120)]),
-      slug:         new UntypedFormControl(this.data.termSlug,[Validators.maxLength(120)]),
+      slug:         new UntypedFormControl(this.data.termSlug,[Validators.required,Validators.maxLength(120)]),
       description:  new UntypedFormControl(this.data.termDescription,[Validators.maxLength(1000)]),
       companyId:    new UntypedFormControl(+this.data.companyId,[]),
       attribute_id: new UntypedFormControl(+this.data.attribute_id,[]),
@@ -217,5 +217,12 @@ export class ProductAttributeTermsComponent implements OnInit {
       this.slugifyPipe.transform(this.formBaseInformation.get('name').value)
     );
   }
-
+  slugifyTranslated(index:number){
+    const add = this.formBaseInformation.get('storeTermTranslations').controls;
+    add[index].get('slug').setValue(this.slugifyPipe.transform(add[index].get('name').value));
+  }  
+  slugSymbolsOnly(event): boolean {
+    const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
+    console.log('charCode = ' + charCode);
+    if ((charCode == 95)||(charCode == 45)||(charCode >= 97 && charCode <= 122)) { return true; } return false;}
 } 

@@ -1,7 +1,14 @@
 
-<mat-card class="card" *transloco="let t">
+<mat-spinner 
+strokeWidth="3" 
+class="spinner"
+[diameter]="50"
+*ngIf="gettingTableData"
+></mat-spinner>
+<mat-card class="card" *transloco="let t" style="min-height: 434px;">
     <mat-card-title class="flex" style="height: 30px;">
-        <div *ngIf="!displayingDeletedDocs" class="emptyspace">{{cu.cap(t('menu.docs.subscription'))}} - "{{subscription.plan_name}} v.{{subscription.plan_version}}"</div>
+        {{cu.cap(t('menu.docs.subscription'))}}
+        <div class="emptyspace">&nbsp;- "{{subscription.plan_name}} v.{{subscription.plan_version}}"</div>
     </mat-card-title>
     <mat-card-content>
         <div class="card  w-100">

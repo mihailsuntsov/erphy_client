@@ -403,7 +403,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
       product_count: new UntypedFormControl (row.product_count,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$'), ValidationService.countMoreThanZero]),
       edizm: new UntypedFormControl (row.edizm,[]),
       edizm_id:  new UntypedFormControl (row.edizm_id,[]), 
-      product_price:  new UntypedFormControl (this.numToPrice(row.product_price,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),ValidationService.priceMoreThanZero]),
+      product_price:  new UntypedFormControl (this.numToPrice(row.product_price,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')/*,ValidationService.priceMoreThanZero*/]),
       product_price_of_type_price: new UntypedFormControl (row.product_price,[]),
       product_sumprice: new UntypedFormControl (this.numToPrice(+(row.product_count*row.product_price*(this.nds&&!this.nds_included?multiplifierNDS:1)).toFixed(2),2),[]),
       available:  new UntypedFormControl ((row.total)-(row.reserved),[]),
@@ -465,7 +465,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
       product_count:  new UntypedFormControl (+this.formSearch.get('product_count').value,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$'), ValidationService.countMoreThanZero]),
       edizm:  new UntypedFormControl (this.edizmName,[]),
       edizm_id:  new UntypedFormControl (+this.formSearch.get('edizm_id').value,[]),
-      product_price: new UntypedFormControl (this.formSearch.get('product_price').value,[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),ValidationService.priceMoreThanZero]),
+      product_price: new UntypedFormControl (this.formSearch.get('product_price').value,[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')/*,ValidationService.priceMoreThanZero*/]),
       product_price_of_type_price:  new UntypedFormControl (+this.formSearch.get('product_price').value,[]),
       product_sumprice:  new UntypedFormControl (this.formSearch.get('product_sumprice').value,[]),
       available:  new UntypedFormControl (+this.formSearch.get('available').value,[]),
@@ -695,7 +695,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
       } catch (e) {
         return [];
       }
-    }
+    } else return [];
   }
   onAutoselectProduct(){
     this.canAutocompleteQuery=false;

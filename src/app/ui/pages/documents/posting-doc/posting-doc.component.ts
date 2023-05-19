@@ -851,6 +851,10 @@ export class PostingDocComponent implements OnInit {
                 this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.already_cmplt')}});
                 break;
               }
+              case -70:{// Получена отрицательная себестоимость в истории товара CalculateNetcostNegativeSumException
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.cnc_com_err2')}});
+                break;
+              }
               case -240:{//Есть услуги
                 this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.there_services')}});
                 break;
@@ -892,7 +896,7 @@ export class PostingDocComponent implements OnInit {
     });
   }
   showQueryErrorMessage(error:any){
-    console.log(error);
+    alert(111)
       let errMsg = (error.message) ? error.message : error.status ? `${error.status} - ${error.statusText}` : 'Server error';
       this.MessageDialog.open(MessageDialog,
       {

@@ -120,7 +120,6 @@ export class SubscriptionComponent implements OnInit {
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
   selectionFilterOptions = new SelectionModel<idAndName>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние
   optionsIds: idAndName [];
-  displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
   //***********************************************************************************************************************/
   @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)

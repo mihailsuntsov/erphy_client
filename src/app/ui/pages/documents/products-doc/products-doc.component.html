@@ -260,7 +260,7 @@
                                                                 <mat-hint align="end" *ngIf="name.value.length>400">{{name.value.length}} / 500</mat-hint>
                                                             </mat-form-field>
 
-                                                            <div class="flex">
+                                                            <div class="flex" *ngIf="formBaseInformation.get('type').value != 'variable'">
                                                                 <mat-form-field style="width:65%; margin-right:5px;">
                                                                     <mat-label>{{t('docs.field.p_ppr')}}</mat-label>
                                                                     <mat-select  formControlName="ppr_id">                          
@@ -310,7 +310,7 @@
                                                                 </mat-form-field>
                                                             </div>
 
-                                                            <mat-form-field>
+                                                            <mat-form-field *ngIf="formBaseInformation.get('type').value != 'variable'">
                                                                 <mat-label>{{t('docs.field.lbl_dscrp')}}</mat-label>
                                                                 <textarea  matInput
                                                                     maxlength="2000"
@@ -321,7 +321,7 @@
                                                                 <mat-hint align="end" *ngIf="label_description.value.length>1800">{{name.value.length}} / 2000</mat-hint>
                                                             </mat-form-field>
 
-                                                            <div class="flex">
+                                                            <div class="flex" *ngIf="formBaseInformation.get('type').value != 'variable'">
                                                                 <mat-form-field class="slideWidth100" style="width:50%; margin-right:5px;" 
                                                                     >
                                                                     <mat-slide-toggle formControlName="not_sell" (change)="onChangeCrmStockStatus()">{{t('docs.field.p_del_from_sell')}}</mat-slide-toggle>
@@ -334,7 +334,7 @@
                                                                 </mat-form-field>
                                                                 
                                                             </div>
-                                                            <div class="flex">
+                                                            <div class="flex" *ngIf="formBaseInformation.get('type').value != 'variable'">
                                                                 <mat-form-field class="slideWidth100" style="width:50%; margin-right:5px;">
                                                                     <mat-slide-toggle formControlName="indivisible">{{t('docs.field.p_indivisible')}}</mat-slide-toggle>
                                                                     <input matInput hidden/>
@@ -364,7 +364,7 @@
                                                                     </mat-form-field>
                                                             </div>
 
-                                                            <div class="flex">
+                                                            <div class="flex" *ngIf="formBaseInformation.get('type').value != 'variable'">
                                                                 <mat-form-field 
                                                                     matTooltip="{{t('docs.tip.p_outofst_as')}}"
                                                                     class="slideWidth100">
@@ -372,9 +372,9 @@
                                                                     <input matInput hidden/>
                                                                 </mat-form-field>
                                                             </div>
-                                                       
 
-                                                            <div  [ngClass]="{invisible: visBeforeCreatingBlocks || (+formBaseInformation.get('ppr_id').value>2)}">
+                                                            <div  *ngIf="formBaseInformation.get('type').value != 'variable'"
+                                                                 [ngClass]="{invisible: visBeforeCreatingBlocks || (+formBaseInformation.get('ppr_id').value>2)}">
                                                                 <div class="flex"  *ngIf="formBaseInformation.get('company_id').value">
 
                                                                     
@@ -465,7 +465,7 @@
                                                 <div class="col-lg-4 col-md-12" [ngClass]="{invisible: visBeforeCreatingBlocks}">
                                                     
 
-                                                    <mat-card class="card-block">
+                                                    <mat-card class="card-block" *ngIf="formBaseInformation.get('type').value != 'variable'">
                                                         <mat-card-header>
                                                             <mat-card-title class="card-title">{{t('docs.card.p_prices')}}</mat-card-title>
                                                         </mat-card-header>
@@ -625,7 +625,7 @@
                                                             </div>
                                                         </div> 
                                                     </mat-card>
-                                                    <mat-card class="card-block"> 
+                                                    <mat-card class="card-block" *ngIf="formBaseInformation.get('type').value != 'variable'"> 
                                                         <mat-card-header>
                                                             <mat-card-title class="card-title">{{t('docs.card.p_barcodes')}}</mat-card-title>
                                                         </mat-card-header>
@@ -701,7 +701,7 @@
                                         </div>   
                                 </mat-tab>
 
-                                <mat-tab  *ngIf="visAfterCreatingBlocks"  label="{{t('docs.tab.operations')}}">
+                                <mat-tab  *ngIf="visAfterCreatingBlocks && formBaseInformation.get('type').value != 'variable'"  label="{{t('docs.tab.operations')}}">
                                     <mat-spinner 
                                         strokeWidth="3" 
                                         class="spinner"
@@ -1446,9 +1446,11 @@
 
 
                                                                             
+                                                                        <mat-card  style="background-color: #ff9898; width: 100%;margin-bottom: 5px;" *ngIf="!thereIsAttributesUsedForVariationsWithSelectedTerms">
+                                                                            {{t('docs.card.add_attr_w_var')}}
+                                                                        </mat-card>
 
-
-                                                                        <mat-card  style="background-color: #f7f7f7; width: 100%;margin-bottom: 5px;">
+                                                                        <mat-card  style="background-color: #f7f7f7; width: 100%;margin-bottom: 5px;" *ngIf="thereIsAttributesUsedForVariationsWithSelectedTerms || formBaseInformation.get('productVariations').value.length>0">
                                                                             <div style = "width:100%">
                                                                                 <div style="position:relative; top:-6px; left:0px; font-size: 20px; font-weight: 600;">
                                                                                     {{t('docs.card.action')}}
@@ -1456,13 +1458,13 @@
                                                                                 <mat-form-field style="width:35%; min-width:100px; margin-right: 10px;">
                                                                                     <mat-label>{{t('docs.field.select_action')}}</mat-label>
                                                                                     <mat-select>                          
-                                                                                        <mat-option (click)="addVariation()" value="">
+                                                                                        <mat-option (click)="addVariation()" value="" [disabled]="!thereIsAttributesUsedForVariationsWithSelectedTerms">
                                                                                             {{t('docs.list.add_variation')}}
                                                                                         </mat-option> 
-                                                                                        <mat-option (click)="onClickGenerateAllVariationsBtn()" value="">
+                                                                                        <mat-option (click)="onClickGenerateAllVariationsBtn()" value="" [disabled]="!thereIsAttributesUsedForVariationsWithSelectedTerms">
                                                                                             {{t('docs.list.gen_variation')}}
                                                                                         </mat-option> 
-                                                                                        <mat-option (click)="deleteAllVariations()" value="">
+                                                                                        <mat-option (click)="deleteAllVariations()" value="" [disabled]="formBaseInformation.get('productVariations').value.length==0">
                                                                                             {{t('docs.list.del_variation')}}
                                                                                         </mat-option> 
                                                                                     </mat-select>
@@ -1479,7 +1481,7 @@
 
 
 
-                                                                        <mat-card  style="background-color: #f7f7f7; width: 100%;margin-bottom: 5px;">
+                                                                        <mat-card  style="background-color: #f7f7f7; width: 100%;margin-bottom: 5px;" *ngIf="thereIsAttributesUsedForVariationsWithSelectedTerms">
                                                                             <div style = "width:100%">
                                                                                 <div style="position:relative; top:-6px; left:0px; font-size: 20px; font-weight: 600;">
                                                                                     {{t('docs.card.def_value')}}

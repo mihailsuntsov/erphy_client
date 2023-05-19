@@ -208,7 +208,8 @@
         "in_use":       "In use",
         "files_mb":     "Files, Mb",
         "connections":  "connections",
-        "in_rent":      "in rent"
+        "in_rent":      "in rent",
+        "variable":     "variable"
     },
     "bottom":{
         "founded":      "Founded",

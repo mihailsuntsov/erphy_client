@@ -463,16 +463,20 @@ this.http.get('/api/auth/getStoresList?company_id='+this.formBaseInformation.get
     this.baseData.emit(data);
   }
   
-  numberOnly(event): boolean {
+  slugSymbolsOnly(event): boolean {
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
-    if (charCode > 31 && (charCode < 48 || charCode > 57)) { return false; } return true;}
-
+    console.log('charCode = ' + charCode);
+    if ((charCode == 95)||(charCode == 45)||(charCode >= 97 && charCode <= 122)) { return true; } return false;}
+    
   slugify(){
     this.formBaseInformation.get('slug').setValue(
       this.slugifyPipe.transform(this.formBaseInformation.get('name').value)
     );
   }
-
+  slugifyTranslated(index:number){
+    const add = this.formBaseInformation.get('storeAttributeTranslations').controls;
+    add[index].get('slug').setValue(this.slugifyPipe.transform(add[index].get('name').value));
+  } 
   getProductAttributeTermsList(){
     this.http.get('/api/auth/getProductAttributeTermsList?attribute_id='+this.id)
     .subscribe(

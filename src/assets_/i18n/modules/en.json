@@ -74,6 +74,7 @@
         "no_prod_nowhr":"The product is not available in any of the departments available to you",
         "no_prod_but":  "The product is not available in the selected department, but it is available in other departments available to you",
         "qtt_more_avlb":"The quantity of the product is more than the available quantity",
+        "zero_price":   "Zero price",
         "qtt_rsrv_avlb":"The amount of reserve is greater than the available amount",
         "pricing_else": "Rate the product differently",
         "close_window": "Close this window",
