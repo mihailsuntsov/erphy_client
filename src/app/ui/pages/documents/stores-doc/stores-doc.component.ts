@@ -142,7 +142,6 @@ export class StoresDocComponent implements OnInit {
     this.formBaseInformation = new UntypedFormGroup({
       id: new UntypedFormControl      (this.id,[]),
       company_id: new UntypedFormControl      ('',[Validators.required]),
-      // storesIdsInOrderOfList:new UntypedFormControl      ([],[]),//
       name: new UntypedFormControl      ('',[Validators.required,Validators.maxLength(250)]),
       lang_code:                new UntypedFormControl      ('EN',[Validators.required, Validators.minLength(2),Validators.maxLength(2)]),  
       store_type:               new UntypedFormControl      ('woo',[]),  // e.g. woo

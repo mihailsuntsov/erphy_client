@@ -52,7 +52,8 @@
         "action":"Action",
         "def_value":"Default values",
         "variations":"Variations",
-        "add_attr_w_var":"To create variations: 1. In the \"Attributes\" tab, add the attribute(s); 2. Turn on \"Used for Variations\"; 3. Select attribute terms"
+        "add_attr_w_var":"To create variations: 1. In the \"Attributes\" tab, add the attribute(s); 2. Turn on \"Used for Variations\"; 3. Select attribute terms",
+        "res_mngmnt":"Management"
     },
     "field":{ 
         "-- COMMON":"--",
@@ -219,6 +220,11 @@
         "lang_code":    "Language",
         "default_lang": "Default language of online store",
         "stores":       "Online store",
+        "balance":      "Balance",
+        "writeoff_day": "Write-off per day",
+        "writeoff_month":"Мonthly expenses",
+        "days_left":    "Days left",
+        "trial_days_left":"Remaining trial period",
 
         "-- SELL REGICTERS ":"--",
 
@@ -463,7 +469,8 @@
         "generate":"Generate",
         "transl_mode":"Translation mode",
         "ctg_stores":"Online stores to which this category and its products belong",        
-        "variation":"Define if the attribute can be used as variation"
+        "variation":"Define if the attribute can be used as variation",
+        "stop_trial":"Stop trial period"
     },
     "msg":{
         "error":        "Error!",
@@ -652,7 +659,9 @@
         "prod_alrd_used_as_vartn":"The current product selected as a variable, but is already in use as a variation of another variable product",
         "prod_w_hist_cant_be_vartv":"You cannot change a product type that already has a warehouse history to \"Variable\"",
         "del_all_var":"Deleting variations",
-        "del_all_var_q":"Do you really want to delete all variations?"
+        "del_all_var_q":"Do you really want to delete all variations?",
+        "del_trial":"Deleting trial period",
+        "del_trial_q":"Do you really want to delete trial period?"
     },
     "button":{        
         "test_connct":  "Connection test",

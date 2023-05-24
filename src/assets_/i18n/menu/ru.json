@@ -204,12 +204,15 @@
         "service":      "Услуга",
         "contacts":     "Контакты",
         "copy_to_buff": "Копировать в буфер",
-        "limitation":   "Лимит",
+        "limitation":   "Суммарный лимит",
         "in_use":       "Используется",
         "files_mb":     "Файлы, Мб",
         "connections":  "подключения",
         "in_rent":      "в аренде",
-        "variable":     "вариативный"
+        "variable":     "вариативный",
+        "plan":         "Тариф",
+        "add_option":   "Дополнительно",
+        "plan_limit":   "Лимит"
     },
     "bottom":{
         "founded":      "Найдено",

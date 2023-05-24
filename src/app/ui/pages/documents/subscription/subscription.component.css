@@ -22,7 +22,39 @@ table {width: 100%;}
 .card-name{ flex-grow: 1; }
 
 .depatrment-select{flex-grow: 1;}
-
+.plusMinusEnable{
+    color: #673ab7;
+    cursor: pointer;
+    margin: 10px;
+}
+.plusMinusDisable{
+    color: lightgray;
+    cursor: pointer;
+    margin: 10px;
+}
+.material-icons {
+    line-height:0 !important;
+    vertical-align: middle;
+}
+.add-option{
+    display:flex;
+}
+.table-info{
+    margin: 5px;
+    font-size: 20px;
+}
+.table-info-right{
+    margin: 5px 0 5px 5px;
+    font-size: 20px;
+}
+.plus-minus-wrapper{
+    width:10px;
+    padding: 2px 0 0;
+}
+.add-opt-wrapper{
+    width: 80%;
+    padding: inherit;
+}
 /*********доп. строки в таблице***********/
 .padded{
     padding: 5px;

@@ -204,12 +204,15 @@
         "service":      "Service",
         "contacts":     "Contacts",
         "copy_to_buff": "Copy to buffer",
-        "limitation":   "Limits",
+        "limitation":   "Summ limits",
         "in_use":       "In use",
         "files_mb":     "Files, Mb",
         "connections":  "connections",
         "in_rent":      "in rent",
-        "variable":     "variable"
+        "variable":     "variable",
+        "plan":         "Plan",
+        "add_option":   "Additional",
+        "plan_limit":   "Limit"
     },
     "bottom":{
         "founded":      "Founded",
