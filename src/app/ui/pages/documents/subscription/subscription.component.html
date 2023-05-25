@@ -16,7 +16,7 @@ class="spinner"
                 
             <button 
                 mat-raised-button 
-                *ngIf="allowToUpdate"
+                *ngIf="allowToUpdate && subscription.is_saas"
                 matTooltip="{{t('docs.tip.save')}}"
                 (click)="updateDocument()"
                 [disabled]="!formValid" 
@@ -115,11 +115,11 @@ class="spinner"
                                             <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right"> {{subscription==undefined?'':subscription.free_trial_days}}</p> </th>
                                         </ng-container>
                                         <tr mat-header-row *matHeaderRowDef="['plan_name','plan_value']"></tr>
-                                        <tr mat-header-row *matHeaderRowDef="['balance_name','balance_value']"></tr>
-                                        <tr mat-header-row *matHeaderRowDef="['writeoff_day_name','writeoff_day_value']"></tr>
-                                        <tr mat-header-row *matHeaderRowDef="['writeoff_month_name','writeoff_month_value']"></tr>
-                                            <tr mat-header-row [hidden]="subscription.free_trial_days>0" *matHeaderRowDef="['daysleft_name','daysleft_value']"></tr>
-                                            <tr mat-header-row [hidden]="subscription.free_trial_days==0" *matHeaderRowDef="['daystrial_name','daystrial_value']"></tr>
+                                        <tr mat-header-row [hidden]="!subscription.is_saas" *matHeaderRowDef="['balance_name','balance_value']"></tr>
+                                        <tr mat-header-row [hidden]="plan_free || subscription.free_trial_days>0 || !subscription.is_saas" *matHeaderRowDef="['writeoff_day_name','writeoff_day_value']"></tr>
+                                        <tr mat-header-row [hidden]="plan_free || subscription.free_trial_days>0 || !subscription.is_saas" *matHeaderRowDef="['writeoff_month_name','writeoff_month_value']"></tr>
+                                            <tr mat-header-row [hidden]="subscription.free_trial_days>0 || plan_free || !subscription.is_saas" *matHeaderRowDef="['daysleft_name','daysleft_value']"></tr>
+                                            <tr mat-header-row [hidden]="subscription.free_trial_days==0 || !subscription.is_saas" *matHeaderRowDef="['daystrial_name','daystrial_value']"></tr>
                                     </table>
                                 </mat-card-content>
                             </mat-card>
@@ -141,7 +141,7 @@ class="spinner"
                                             <mat-form-field style="width:100%" *ngIf="subscription">
                                                 <mat-label>{{t('menu.table.plan')}}</mat-label>
                                                 <mat-select  
-                                                [disabled]="!userCanChangePlan"
+                                                [disabled]="!subscription.is_saas"
                                                 (selectionChange)="onPlanSelection()"
                                                 [(value)]="subscription.plan_id">
                                                     <mat-option  

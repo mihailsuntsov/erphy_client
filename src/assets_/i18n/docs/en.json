@@ -661,7 +661,8 @@
         "del_all_var":"Deleting variations",
         "del_all_var_q":"Do you really want to delete all variations?",
         "del_trial":"Deleting trial period",
-        "del_trial_q":"Do you really want to delete trial period?"
+        "del_trial_q":"Do you really want to delete trial period?",
+        "no_money":"You can not change the plan to a paid one with a zero or negative balance"
     },
     "button":{        
         "test_connct":  "Connection test",

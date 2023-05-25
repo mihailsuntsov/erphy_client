@@ -46,6 +46,7 @@ interface DocResponse {
   plan_version: number;        // the version of tariff plan
   plan_price: number;          // how much writeoff per day for tariff plan
   plan_no_limits: boolean;     // tariff plan has no limits
+  is_saas:boolean;             // DokioCRM works as a SaaS
   plan_free: boolean;          // for free plans the billing is not applied, also users that use it can't use an additional options
   companies_ppu: number;       // writeoff per day for 1 additional company
   departments_ppu: number;     // writeoff per day for 1 additional department
@@ -235,16 +236,24 @@ export class SubscriptionComponent implements OnInit {
   }
 
   get daysLeft(){
-    return Math.trunc(this.subscription.money/this.writeoffDay);
+    return Math.ceil(this.subscription.money/this.writeoffDay);
   }
   get formValid() {
     if(this.formBaseInformation!=undefined)
       return (this.formBaseInformation.valid);
     else return true;
   }
-  get userCanChangePlan(){
-    return true;
-  }
+  // get userCanChangePlan(){
+  //   return this.subscription.is_saas;
+  // }
+  // get isPlanFree(){
+  //   let is = false;
+  //   if(this.plansList)
+  //   this.plansList.forEach(plan=>{
+  //     if(plan.is_free) return true;
+  //   });
+  //   return is;
+  // }
     // -------------------------------------- *** ПРАВА *** ------------------------------------
    getSetOfPermissions(){
     return this.http.get('/api/auth/getMyPermissions?id=55')
@@ -474,8 +483,14 @@ export class SubscriptionComponent implements OnInit {
                 this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_of') + (translate('docs.msg._of_save')) + translate('docs.msg._of_doc',{name:translate('docs.docs.company')})}});
                 break;
               }
-              case -1:{//недостаточно прав
+              case -1:{// недостаточно прав
+                       // not enought permissions
                 this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});
+                break;
+              }
+              case -300:{//Нельзя изменить тариф на платный при нулевом или отрицательном балансе
+                         //You can not change the plan to a paid one with a zero or negative balance
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.no_money')}});
                 break;
               }
               default:{// Успешно
