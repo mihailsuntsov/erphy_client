@@ -1,10 +1,3 @@
-
-<mat-spinner 
-strokeWidth="3" 
-class="spinner"
-[diameter]="50"
-*ngIf="gettingTableData"
-></mat-spinner>
 <mat-card class="card for-sticky-header" *transloco="let t" style="min-height: 434px;">
     <mat-card-title class="top-bar container-fluid" style="height: 30px;">
         
@@ -16,7 +9,7 @@ class="spinner"
                 
             <button 
                 mat-raised-button 
-                *ngIf="allowToUpdate && subscription.is_saas"
+                *ngIf="allowToUpdate && subscription && subscription.is_saas"
                 matTooltip="{{t('docs.tip.save')}}"
                 (click)="updateDocument()"
                 [disabled]="!formValid" 
@@ -54,428 +47,622 @@ class="spinner"
                         <span  class="emptyspace" style="display: none"></span>
                     </div>
                 </form>
-                
-                <div  class="container-fluid" id="result_form">
-                    <div class="row">
-                        <div class="col-xl-4 col-lg-12 col-sm-12">
-                            <mat-card style="margin-bottom:15px;">
-                                <mat-card-header style="margin: 0 0 0 -13px;">
-                                    <mat-card-title class="card-title">{{t('docs.card.base_info')}}</mat-card-title>
-                                </mat-card-header>
-                                <mat-card-content class="input-form">
-                                    <table mat-table class="mat-elevation-z8" *ngIf="subscription">
-                                        <ng-container matColumnDef="plan_name">
-                                            <th class="padded balance-bar" mat-header-cell *matHeaderCellDef><p  class="table-info">{{t('menu.table.plan')}}</p></th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="plan_value" >
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right"> {{subscription==undefined?'':subscription.plan_name}} {{subscription==undefined?'':'v.'+subscription.plan_version}}</p> </th>
-                                        </ng-container>
+                <mat-spinner 
+strokeWidth="3" 
+class="spinner"
+[diameter]="50"
+*ngIf="gettingTableData || gettingPaymentsTableData"
+></mat-spinner>
+                <mat-tab-group>
+                    
+                    <mat-tab label="{{t('docs.tab.info')}}">
+                        <div  class="container-fluid" id="result_form"  style="margin-top:20px">
+                            <div class="row">
+                                <div class="col-xl-4 col-lg-12 col-sm-12">
+                                    <mat-card style="margin-bottom:15px;">
+                                        <mat-card-header style="margin: 0 0 0 -13px;">
+                                            <mat-card-title class="card-title">{{t('docs.card.base_info')}}</mat-card-title>
+                                        </mat-card-header>
+                                        <mat-card-content class="input-form">
+                                            <table mat-table class="mat-elevation-z8" *ngIf="subscription">
+                                                <ng-container matColumnDef="plan_name">
+                                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef><p  class="table-info">{{t('menu.table.plan')}}</p></th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="plan_value" >
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right"> {{subscription==undefined?'':subscription.plan_name}} {{subscription==undefined?'':'v.'+subscription.plan_version}}</p> </th>
+                                                </ng-container>
 
-                                        <ng-container matColumnDef="balance_name">
-                                            <th class="padded balance-bar" mat-header-cell *matHeaderCellDef><p  class="table-info">{{t('docs.field.balance')}}</p></th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="balance_value" >
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right"> {{subscription==undefined?'':subscription.money}}</p> </th>
-                                        </ng-container>
+                                                <ng-container matColumnDef="balance_name">
+                                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef><p  class="table-info">{{t('docs.field.balance')}}</p></th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="balance_value" >
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right"> {{subscription==undefined?'':subscription.money}}</p> </th>
+                                                </ng-container>
 
-                                        <ng-container matColumnDef="writeoff_day_name">
-                                            <th class="padded balance-bar" mat-header-cell *matHeaderCellDef><p  class="table-info">{{t('docs.field.writeoff_day')}}</p></th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="writeoff_day_value" >
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right"> {{subscription==undefined?'':writeoffDay.toFixed(2)}}</p> </th>
-                                        </ng-container>
-                                        
-                                        <ng-container matColumnDef="writeoff_month_name">
-                                            <th class="padded balance-bar" mat-header-cell *matHeaderCellDef><p  class="table-info">{{t('docs.field.writeoff_month')}}</p></th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="writeoff_month_value" >
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right"> {{subscription==undefined?'':(writeoffDay*30).toFixed(0)}}</p> </th>
-                                        </ng-container>
-                                        
-                                        <ng-container matColumnDef="daysleft_name">
-                                            <th class="padded balance-bar" mat-header-cell *matHeaderCellDef><p  class="table-info">{{t('docs.field.days_left')}}</p></th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="daysleft_value" >
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right"> {{subscription==undefined?'':daysLeft}}</p> </th>
-                                        </ng-container>
+                                                <ng-container matColumnDef="writeoff_day_name">
+                                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef><p  class="table-info">{{t('docs.field.writeoff_day')}}</p></th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="writeoff_day_value" >
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right"> {{subscription==undefined?'':writeoffDay.toFixed(2)}}</p> </th>
+                                                </ng-container>
+                                                
+                                                <ng-container matColumnDef="writeoff_month_name">
+                                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef><p  class="table-info">{{t('docs.field.writeoff_month')}}</p></th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="writeoff_month_value" >
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right"> {{subscription==undefined?'':(writeoffDay*30).toFixed(0)}}</p> </th>
+                                                </ng-container>
+                                                
+                                                <ng-container matColumnDef="daysleft_name">
+                                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef><p  class="table-info">{{t('docs.field.days_left')}}</p></th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="daysleft_value" >
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right"> {{subscription==undefined?'':daysLeft}}</p> </th>
+                                                </ng-container>
 
-                                        <ng-container matColumnDef="daystrial_name">
-                                            <th class="padded balance-bar" mat-header-cell *matHeaderCellDef>
-                                                <div style="position: relative;">
-                                                    <mat-icon 
-                                                    class="mat-icon" 
-                                                    style="position:absolute; top:11px; left:-20px; color:red" 
-                                                    (click)="stopTrialPeriod()"
-                                                    matTooltip="{{t('docs.tip.stop_trial')}}">close</mat-icon>
-                                                    <p  class="table-info">{{t('docs.field.trial_days_left')}}</p>
+                                                <ng-container matColumnDef="daystrial_name">
+                                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef>
+                                                        <div style="position: relative;">
+                                                            <mat-icon 
+                                                            class="mat-icon" 
+                                                            style="position:absolute; top:11px; left:-20px; color:red" 
+                                                            (click)="stopTrialPeriod()"
+                                                            matTooltip="{{t('docs.tip.stop_trial')}}">close</mat-icon>
+                                                            <p  class="table-info">{{t('docs.field.trial_days_left')}}</p>
+                                                        </div>
+                                                    </th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="daystrial_value" >
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right"> {{subscription==undefined?'':subscription.free_trial_days}}</p> </th>
+                                                </ng-container>
+                                                <tr mat-header-row *matHeaderRowDef="['plan_name','plan_value']"></tr>
+                                                <tr mat-header-row [hidden]="!subscription.is_saas" *matHeaderRowDef="['balance_name','balance_value']"></tr>
+                                                <tr mat-header-row [hidden]="plan_free || subscription.free_trial_days>0 || !subscription.is_saas" *matHeaderRowDef="['writeoff_day_name','writeoff_day_value']"></tr>
+                                                <tr mat-header-row [hidden]="plan_free || subscription.free_trial_days>0 || !subscription.is_saas" *matHeaderRowDef="['writeoff_month_name','writeoff_month_value']"></tr>
+                                                    <tr mat-header-row [hidden]="subscription.free_trial_days>0 || plan_free || !subscription.is_saas" *matHeaderRowDef="['daysleft_name','daysleft_value']"></tr>
+                                                    <tr mat-header-row [hidden]="subscription.free_trial_days==0 || !subscription.is_saas" *matHeaderRowDef="['daystrial_name','daystrial_value']"></tr>
+                                            </table>
+                                        </mat-card-content>
+                                    </mat-card>
+                                </div>
+                                <div class="col-xl-8 col-lg-12 col-sm-12">
+                                    <mat-card style="margin-bottom:15px;">
+                                        <mat-card-header style="margin: 0 0 0 -13px;">
+                                            <mat-card-title class="card-title">{{t('docs.card.res_mngmnt')}}</mat-card-title>
+                                        </mat-card-header>
+                                        <mat-card-content class="input-form">
+                                            <div class="row">
+                                                <div class="col-12 col-xl-6"> 
+                                                    <mat-form-field style="width:100%" *ngIf="subscription">
+                                                        <mat-label>{{t('menu.table.plan')}}</mat-label>
+                                                        <mat-select  
+                                                        [disabled]="!subscription.is_saas"
+                                                        (selectionChange)="onPlanSelection()"
+                                                        [(value)]="subscription.plan_id">
+                                                            <mat-option  
+                                                                *ngFor="let plan of plansList"
+                                                                [value]="plan.id"
+                                                            >
+                                                                {{plan.name}}
+                                                            </mat-option>
+                                                        </mat-select>
+                                                    </mat-form-field>
                                                 </div>
-                                            </th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="daystrial_value" >
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right"> {{subscription==undefined?'':subscription.free_trial_days}}</p> </th>
-                                        </ng-container>
-                                        <tr mat-header-row *matHeaderRowDef="['plan_name','plan_value']"></tr>
-                                        <tr mat-header-row [hidden]="!subscription.is_saas" *matHeaderRowDef="['balance_name','balance_value']"></tr>
-                                        <tr mat-header-row [hidden]="plan_free || subscription.free_trial_days>0 || !subscription.is_saas" *matHeaderRowDef="['writeoff_day_name','writeoff_day_value']"></tr>
-                                        <tr mat-header-row [hidden]="plan_free || subscription.free_trial_days>0 || !subscription.is_saas" *matHeaderRowDef="['writeoff_month_name','writeoff_month_value']"></tr>
-                                            <tr mat-header-row [hidden]="subscription.free_trial_days>0 || plan_free || !subscription.is_saas" *matHeaderRowDef="['daysleft_name','daysleft_value']"></tr>
-                                            <tr mat-header-row [hidden]="subscription.free_trial_days==0 || !subscription.is_saas" *matHeaderRowDef="['daystrial_name','daystrial_value']"></tr>
-                                    </table>
-                                </mat-card-content>
-                            </mat-card>
+                                            </div>
+
+                                            <table mat-table class="mat-elevation-z8" *ngIf="subscription">
+                                                
+
+                                                <!-- header -->
+                                                <ng-container matColumnDef="name" >
+                                                    <th class="padded balance-bar bold" mat-header-cell *matHeaderCellDef> {{t('menu.table.name')}}  </th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="plan">
+                                                    <th class="padded balance-bar bold right" mat-header-cell *matHeaderCellDef><p  style="margin: 5px;">{{t('menu.table.plan_limit')}} </p></th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="add_option">
+                                                    <th class="padded balance-bar bold right" mat-header-cell *matHeaderCellDef><p  style="margin: 5px;">{{t('menu.table.add_option')}} </p></th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="limitation">
+                                                    <th class="padded balance-bar bold right" mat-header-cell *matHeaderCellDef><p  style="margin: 5px;">{{t('menu.table.limitation')}} </p></th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="in_use" >
+                                                    <th class="padded balance-bar bold right" mat-header-cell *matHeaderCellDef> {{t('menu.table.in_use')}}  </th>
+                                                </ng-container>
+
+
+                                                <!-- Companies -->
+                                                <ng-container matColumnDef="companies_name" >
+                                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('sidebar.menu.items.companies')}} </th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="companies_plan">
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_companies}}</p></th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="companies_option">
+                                                    <th class="padded add-option balance-bar right" mat-header-cell *matHeaderCellDef>
+                                                        <div class="add-opt-wrapper">
+                                                            <p class="table-info">{{subscription.n_companies_add}}</p>
+                                                        </div>
+                                                        <div class="plus-minus-wrapper">
+                                                            <span   class="material-icons unselectable" 
+                                                                [ngClass]="{plusMinusEnable: subscription.n_companies_add+subscription.n_companies<=(subscription.quantity_limit_companies-subscription.step_companies),
+                                                                plusMinusDisable: subscription.n_companies_add+subscription.n_companies>(subscription.quantity_limit_companies-subscription.step_companies)}"
+                                                                (click)="clickPlusMinus('companies','plus')">
+                                                                add_box
+                                                            </span>
+                                                            <span   class="material-icons unselectable"
+                                                                [ngClass]="{plusMinusEnable: subscription.n_companies+subscription.n_companies_add-subscription.step_companies>=subscription.n_companies_fact,
+                                                                    plusMinusDisable: subscription.n_companies+subscription.n_companies_add-subscription.step_companies<subscription.n_companies_fact}"
+                                                                (click)="clickPlusMinus('companies','minus')">
+                                                                indeterminate_check_box
+                                                            </span>
+                                                        </div>
+                                                    </th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="companies_plan_plus_option">
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_companies+subscription.n_companies_add}}</p></th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="companies_in_use" >
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right" [ngStyle]="(subscription.n_companies_fact>(subscription.plan_free?subscription.n_companies:subscription.n_companies+subscription.n_companies_add)&&!subscription.plan_no_limits)?{'color': 'red'}:{}">{{subscription.n_companies_fact}}</p></th>
+                                                </ng-container>
+
+                                                <!-- departments -->
+                                                <ng-container matColumnDef="departments_name" >
+                                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('sidebar.menu.items.departments')}} </th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="departments_plan">
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_departments}}</p></th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="departments_option">
+                                                    <th class="padded add-option balance-bar right" mat-header-cell *matHeaderCellDef>
+                                                        <div class="add-opt-wrapper">
+                                                            <p  class="table-info">{{subscription.n_departments_add}}</p>
+                                                        </div>
+                                                        <div class="plus-minus-wrapper">
+                                                            <span   class="material-icons unselectable" 
+                                                                [ngClass]="{plusMinusEnable: subscription.n_departments_add+subscription.n_departments<=(subscription.quantity_limit_departments-subscription.step_departments),
+                                                                plusMinusDisable: subscription.n_departments_add+subscription.n_departments>(subscription.quantity_limit_departments-subscription.step_departments)}"
+                                                                (click)="clickPlusMinus('departments','plus')">
+                                                                add_box
+                                                            </span>
+                                                            <span   class="material-icons unselectable"
+                                                                [ngClass]="{plusMinusEnable: subscription.n_departments+subscription.n_departments_add-subscription.step_departments>=subscription.n_departments_fact,
+                                                                    plusMinusDisable: subscription.n_departments+subscription.n_departments_add-subscription.step_departments<subscription.n_departments_fact}"
+                                                                (click)="clickPlusMinus('departments','minus')">
+                                                                indeterminate_check_box
+                                                            </span>
+                                                        </div>
+                                                    </th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="departments_plan_plus_option">
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_departments+subscription.n_departments_add}}</p></th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="departments_in_use" >
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right" [ngStyle]="(subscription.n_departments_fact>(subscription.plan_free?subscription.n_departments:subscription.n_departments+subscription.n_departments_add)&&!subscription.plan_no_limits)?{'color': ' red'}:{}"> {{subscription.n_departments_fact}}</p> </th>
+                                                </ng-container>
+                                                
+                                                <!-- users -->
+                                                <ng-container matColumnDef="users_name" >
+                                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('sidebar.menu.items.users')}} </th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="users_plan">
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_users}}</p></th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="users_option">
+                                                    <th class="padded add-option balance-bar right" mat-header-cell *matHeaderCellDef>
+                                                        <div class="add-opt-wrapper">
+                                                            <p  class="table-info">{{subscription.n_users_add}}</p>
+                                                        </div>
+                                                        <div class="plus-minus-wrapper">
+                                                            <span   class="material-icons unselectable" 
+                                                                [ngClass]="{plusMinusEnable: subscription.n_users_add+subscription.n_users<=(subscription.quantity_limit_users-subscription.step_users),
+                                                                plusMinusDisable: subscription.n_users_add+subscription.n_users>(subscription.quantity_limit_users-subscription.step_users)}"
+                                                                (click)="clickPlusMinus('users','plus')">
+                                                                add_box
+                                                            </span>
+                                                            <span   class="material-icons unselectable"
+                                                                [ngClass]="{plusMinusEnable: subscription.n_users+subscription.n_users_add-subscription.step_users>=subscription.n_users_fact,
+                                                                    plusMinusDisable: subscription.n_users+subscription.n_users_add-subscription.step_users<subscription.n_users_fact}"
+                                                                (click)="clickPlusMinus('users','minus')">
+                                                                indeterminate_check_box
+                                                            </span>
+                                                        </div>
+                                                    </th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="users_plan_plus_option">
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_users+subscription.n_users_add}}</p></th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="users_in_use" >
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right" [ngStyle]="(subscription.n_users_fact>(subscription.plan_free?subscription.n_users:subscription.n_users+subscription.n_users_add)&&!subscription.plan_no_limits)?{'color': 'red'}:{}"> {{subscription.n_users_fact}}</p> </th>
+                                                </ng-container>
+                                                
+                                                <!-- products -->
+                                                <ng-container matColumnDef="products_name" >
+                                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('sidebar.menu.items.products')}} </th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="products_plan">
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_products}}</p></th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="products_option">
+                                                    <th class="padded add-option balance-bar right" mat-header-cell *matHeaderCellDef>
+                                                        <div class="add-opt-wrapper">
+                                                            <p  class="table-info">{{subscription.n_products_add}}</p>
+                                                        </div>
+                                                        <div class="plus-minus-wrapper">
+                                                            <span   class="material-icons unselectable" 
+                                                                [ngClass]="{plusMinusEnable: subscription.n_products_add+subscription.n_products<=(subscription.quantity_limit_products-subscription.step_products),
+                                                                plusMinusDisable: subscription.n_products_add+subscription.n_products>(subscription.quantity_limit_products-subscription.step_products)}"
+                                                                (click)="clickPlusMinus('products','plus')">
+                                                                add_box
+                                                            </span>
+                                                            <span   class="material-icons unselectable"
+                                                                [ngClass]="{plusMinusEnable: subscription.n_products+subscription.n_products_add-subscription.step_products>=subscription.n_products_fact,
+                                                                    plusMinusDisable: subscription.n_products+subscription.n_products_add-subscription.step_products<subscription.n_products_fact}"
+                                                                (click)="clickPlusMinus('products','minus')">
+                                                                indeterminate_check_box
+                                                            </span>
+                                                        </div>
+                                                    </th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="products_plan_plus_option">
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_products+subscription.n_products_add}}</p></th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="products_in_use" >
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right" [ngStyle]="(subscription.n_products_fact>(subscription.plan_free?subscription.n_products:subscription.n_products+subscription.n_products_add)&&!subscription.plan_no_limits)?{'color': 'red'}:{}"> {{subscription.n_products_fact}}</p> </th>
+                                                </ng-container>
+                                                
+                                                <!-- counterparties -->
+                                                <ng-container matColumnDef="counterparties_name" >
+                                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('sidebar.menu.items.cagents')}} </th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="counterparties_plan">
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_counterparties}}</p></th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="counterparties_option">
+                                                    <th class="padded add-option balance-bar right" mat-header-cell *matHeaderCellDef>
+                                                        <div class="add-opt-wrapper">
+                                                            <p  class="table-info">{{subscription.n_counterparties_add}}</p>
+                                                        </div>
+                                                        <div class="plus-minus-wrapper">
+                                                            <span   class="material-icons unselectable" 
+                                                                [ngClass]="{plusMinusEnable: subscription.n_counterparties_add+subscription.n_counterparties<=(subscription.quantity_limit_counterparties-subscription.step_counterparties),
+                                                                plusMinusDisable: subscription.n_counterparties_add+subscription.n_counterparties>(subscription.quantity_limit_counterparties-subscription.step_counterparties)}"
+                                                                (click)="clickPlusMinus('counterparties','plus')">
+                                                                add_box
+                                                            </span>
+                                                            <span   class="material-icons unselectable"
+                                                                [ngClass]="{plusMinusEnable: subscription.n_counterparties+subscription.n_counterparties_add-subscription.step_counterparties>=subscription.n_counterparties_fact,
+                                                                    plusMinusDisable: subscription.n_counterparties+subscription.n_counterparties_add-subscription.step_counterparties<subscription.n_counterparties_fact}"
+                                                                (click)="clickPlusMinus('counterparties','minus')">
+                                                                indeterminate_check_box
+                                                            </span>
+                                                        </div>                                    
+                                                    </th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="counterparties_plan_plus_option">
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_counterparties+subscription.n_counterparties_add}}</p></th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="counterparties_in_use" >
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right" [ngStyle]="(subscription.n_counterparties_fact>(subscription.plan_free?subscription.n_counterparties:subscription.n_counterparties+subscription.n_counterparties_add)&&!subscription.plan_no_limits)?{'color': 'red'}:{}"> {{subscription.n_counterparties_fact}} </p></th>
+                                                </ng-container>
+                                                
+                                                <!-- megabytes -->
+                                                <ng-container matColumnDef="megabytes_name" >
+                                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('menu.table.files_mb')}} </th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="megabytes_plan">
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_megabytes}}</p></th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="megabytes_option">
+                                                    <th class="padded add-option balance-bar right" mat-header-cell *matHeaderCellDef>
+                                                        <div class="add-opt-wrapper">
+                                                            <p  class="table-info">{{subscription.n_megabytes_add}}</p>
+                                                        </div>
+                                                        <div class="plus-minus-wrapper">
+                                                            <span   class="material-icons unselectable" 
+                                                                [ngClass]="{plusMinusEnable: subscription.n_megabytes_add+subscription.n_megabytes<=(subscription.quantity_limit_megabytes-subscription.step_megabytes),
+                                                                plusMinusDisable: subscription.n_megabytes_add+subscription.n_megabytes>(subscription.quantity_limit_megabytes-subscription.step_megabytes)}"
+                                                                (click)="clickPlusMinus('megabytes','plus')">
+                                                                add_box
+                                                            </span>
+                                                            <span   class="material-icons unselectable"
+                                                                [ngClass]="{plusMinusEnable: subscription.n_megabytes+subscription.n_megabytes_add-subscription.step_megabytes>=subscription.n_megabytes_fact,
+                                                                    plusMinusDisable: subscription.n_megabytes+subscription.n_megabytes_add-subscription.step_megabytes<subscription.n_megabytes_fact}"
+                                                                (click)="clickPlusMinus('megabytes','minus')">
+                                                                indeterminate_check_box
+                                                            </span>
+                                                        </div>
+                                                    </th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="megabytes_plan_plus_option">
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_megabytes+subscription.n_megabytes_add}}</p></th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="megabytes_in_use" >
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right" [ngStyle]="(subscription.n_megabytes_fact>(subscription.plan_free?subscription.n_megabytes:subscription.n_megabytes+subscription.n_megabytes_add)&&!subscription.plan_no_limits)?{'color': 'red'}:{}"> {{subscription.n_megabytes_fact}} </p></th>
+                                                </ng-container>
+                                                
+                                                <!-- stores -->
+                                                <ng-container matColumnDef="stores_name" >
+                                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('sidebar.menu.items.stores')}} ({{t('menu.table.connections')}})</th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="stores_plan">
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_stores}}</p></th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="stores_option">
+                                                    <th class="padded add-option balance-bar right" mat-header-cell *matHeaderCellDef>
+                                                        <div class="add-opt-wrapper">
+                                                            <p  class="table-info">{{subscription.n_stores_add}}</p>
+                                                        </div>
+                                                        <div class="plus-minus-wrapper">
+                                                            <span   class="material-icons unselectable" 
+                                                                [ngClass]="{plusMinusEnable: subscription.n_stores_add+subscription.n_stores<=(subscription.quantity_limit_stores-subscription.step_stores),
+                                                                plusMinusDisable: subscription.n_stores_add+subscription.n_stores>(subscription.quantity_limit_stores-subscription.step_stores)}"
+                                                                (click)="clickPlusMinus('stores','plus')">
+                                                                add_box
+                                                            </span>
+                                                            <span   class="material-icons unselectable"
+                                                                [ngClass]="{plusMinusEnable: subscription.n_stores+subscription.n_stores_add-subscription.step_stores>=subscription.n_stores_fact,
+                                                                    plusMinusDisable: subscription.n_stores+subscription.n_stores_add-subscription.step_stores<subscription.n_stores_fact}"
+                                                                (click)="clickPlusMinus('stores','minus')">
+                                                                indeterminate_check_box
+                                                            </span>
+                                                        </div>
+                                                    </th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="stores_plan_plus_option">
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_stores+subscription.n_stores_add}}</p></th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="stores_in_use" >
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right" [ngStyle]="(subscription.n_stores_fact>(subscription.plan_free?subscription.n_stores:subscription.n_stores+subscription.n_stores_add)&&!subscription.plan_no_limits)?{'color': 'red'}:{}"> {{subscription.n_stores_fact}}</p> </th>
+                                                </ng-container>
+                                                
+                                                <!-- stores_woo -->
+                                                <ng-container matColumnDef="stores_woo_name" >
+                                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('sidebar.menu.items.stores')}} ({{t('menu.table.in_rent')}}) </th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="stores_woo_plan">
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_stores_woo}}</p></th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="stores_woo_option">
+                                                    <th class="padded add-option balance-bar right" mat-header-cell *matHeaderCellDef>
+                                                        <div class="add-opt-wrapper">
+                                                            <p  class="table-info">{{subscription.n_stores_woo_add}}</p>
+                                                        </div>
+                                                        <div class="plus-minus-wrapper">
+                                                            <span   class="material-icons unselectable" 
+                                                                [ngClass]="{plusMinusEnable: subscription.n_stores_woo_add+subscription.n_stores_woo<=(subscription.quantity_limit_stores_woo-subscription.step_stores_woo),
+                                                                plusMinusDisable: subscription.n_stores_woo_add+subscription.n_stores_woo>(subscription.quantity_limit_stores_woo-subscription.step_stores_woo)}"
+                                                                (click)="clickPlusMinus('stores_woo','plus')">
+                                                                add_box
+                                                            </span>
+                                                            <span   class="material-icons unselectable"
+                                                                [ngClass]="{
+                                                                plusMinusEnable: subscription.n_stores_woo+subscription.n_stores_woo_add-subscription.step_stores_woo>=subscription.n_stores_woo_fact,
+                                                                plusMinusDisable: subscription.n_stores_woo+subscription.n_stores_woo_add-subscription.step_stores_woo<subscription.n_stores_woo_fact}"
+                                                                (click)="clickPlusMinus('stores_woo','minus')">
+                                                                indeterminate_check_box
+                                                            </span>
+                                                        </div>
+                                                    </th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="stores_woo_plan_plus_option">
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_stores_woo+subscription.n_stores_woo_add}}</p></th>
+                                                </ng-container>
+                                                <ng-container matColumnDef="stores_woo_in_use" >
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right" [ngStyle]="(subscription.n_stores_woo_fact>(subscription.plan_free?subscription.n_stores_woo:subscription.n_stores_woo+subscription.n_stores_woo_add)&&!subscription.plan_no_limits)?{'color': 'red'}:{}"> {{subscription.n_stores_woo_fact}}</p> </th>
+                                                </ng-container>
+
+                                                <tr mat-header-row *matHeaderRowDef="displayedColumns" style="height: 48px;"></tr>
+                                                <tr mat-header-row *matHeaderRowDef="companiesColumns" style="height: 54px;"></tr>
+                                                <tr mat-header-row *matHeaderRowDef="departmentsColumns" style="height: 54px;"></tr>
+                                                <tr mat-header-row *matHeaderRowDef="usersColumns" style="height: 54px;"></tr>
+                                                <tr mat-header-row *matHeaderRowDef="productsColumns" style="height: 54px;"></tr>
+                                                <tr mat-header-row *matHeaderRowDef="counterpartiesColumns" style="height: 54px;"></tr>
+                                                <tr mat-header-row *matHeaderRowDef="megabytesColumns" style="height: 54px;"></tr>
+                                                <tr mat-header-row *matHeaderRowDef="storesColumns" style="height: 54px;"></tr>
+                                                <tr mat-header-row *matHeaderRowDef="stores_wooColumns" style="height: 54px;"></tr>
+
+
+                                                
+
+                                            </table>
+                                        </mat-card-content>
+                                    </mat-card>
+                                </div>
+                            </div>
+                        </div> 
+                    </mat-tab>
+                    <mat-tab label="{{t('docs.tab.operations')}}" *ngIf="subscription && subscription.is_saas">
+                        <div  class="container-fluid" style="margin-top:20px">
+                            <div class="row">
+                                <div class="col-12">
+                                    <mat-card style="margin-bottom:15px;">
+                                        <mat-card-content class="input-form">
+                                            <div class="card  w-100">
+                                                <div class="card-body">
+                                                        <div class="flex" style="display:none">
+                                                            <div class="form-group">
+                                                                <label class="control-label col-sm-2" for="offset">offset</label>
+                                                                <input [(ngModel)]="formPaymentsHistory.offset" 
+                                                                value="" 
+                                                                type="text" 
+                                                                class="form-control" 
+                                                                id="offset" 
+                                                                name="offSet"
+                                                                [ngModelOptions]="{standalone: true}">
+                                                            </div>
+                                    
+                                                            <div class="form-group">
+                                                                <label class="control-label col-sm-2" for="SortColumn">SortColumn</label>
+                                                                <input [(ngModel)]="formPaymentsHistory.sortColumn" 
+                                                                type="text" 
+                                                                class="form-control" 
+                                                                id="SortColumn" 
+                                                                name="SortColumn" 
+                                                                value=""
+                                                                [ngModelOptions]="{standalone: true}">
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label class="control-label col-sm-2" for="SortAsc">SortAsc</label>
+                                                                <input [(ngModel)]="formPaymentsHistory.sortAsc" 
+                                                                type="text" 
+                                                                class="form-control" 
+                                                                id="SortAsc" 
+                                                                name="SortAsc" 
+                                                                value=""
+                                                                [ngModelOptions]="{standalone: true}">
+                                                            </div>
+                                                        </div> 
+                                                        <div class="flex" >
+                                                            <mat-form-field style="width:50px;" class="num-of-rows">
+                                                                <mat-label>{{t('docs.field.p_rows')}}</mat-label>
+                                                                <mat-select [(value)]="formPaymentsHistory.result" (selectionChange)="setNumOfPages()" class="form-control" id="selectRowsPerPage" name="result">                           
+                                                                    <mat-option  *ngFor="let num of numRows" [value]="num.value">
+                                                                            {{num.viewValue}}
+                                                                    </mat-option>
+                                                                </mat-select>
+                                                            </mat-form-field>                                                                                                                            
+                                                            <mat-form-field style="margin-left: 10px; width: 100px;">
+                                                                <input  matInput 
+                                                                        placeholder="{{t('docs.field.from_date')}}"
+                                                                        [matDatepicker]="dpFrom"
+                                                                        [(ngModel)]="formPaymentsHistory.dateFrom"
+                                                                        (dateChange)="addEvent('dateFrom', $event)"
+                                                                        [ngModelOptions]="{standalone: true}"
+                                                                        />
+                                                                        <mat-datepicker-toggle matSuffix [for]="dpFrom"></mat-datepicker-toggle>
+                                                                <mat-datepicker #dpFrom></mat-datepicker>
+                                                            </mat-form-field>
+                                    
+                                                            <mat-form-field style="margin-left: 10px; width: 100px;">
+                                                                <input  matInput 
+                                                                        placeholder="{{t('docs.field.to_date')}}"
+                                                                        [matDatepicker]="dpTo"
+                                                                        [(ngModel)]="formPaymentsHistory.dateTo"
+                                                                        (dateChange)="addEvent('dateTo', $event)"
+                                                                        [ngModelOptions]="{standalone: true}"
+                                                                        />
+                                                                        <mat-datepicker-toggle matSuffix [for]="dpTo"></mat-datepicker-toggle>
+                                                                <mat-datepicker #dpTo></mat-datepicker>
+                                                            </mat-form-field>
+                                                            <button mat-button  
+                                                                class="filter-button"
+                                                                matTooltip="{{t('docs.button.refresh')}}"
+                                                                (click)="getTable()"  
+                                                                type="button"
+                                                                matSuffix mat-icon-button>
+                                                                <mat-icon style="margin-bottom: -22px;">refresh</mat-icon>
+                                                            </button>
+                                                            <span  class="emptyspace"></span>
+                                                            
+                                                            
+                                                        </div>
+                                                        <div id="result_form">
+                                                            <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+                                                                <ng-container matColumnDef="detailed"  style="height: 56px;">
+                                                                    <th mat-header-cell *matHeaderCellDef><span class="sortheader"> {{t('docs.field.wroff_price')}}</span></th>
+                                                                    <td mat-cell style="height: 48px;" *matCellDef="let row" class="table-launch-icon">
+                                                                        <span class="inactive" >
+                                                                            <mat-icon style="padding: 5px 5px 0 0">launch</mat-icon>
+                                                                        </span>
+                                                                    </td>   
+                                                                </ng-container>                                                                
+                                                                <ng-container matColumnDef="for_what_date">
+                                                                    <th mat-header-cell *matHeaderCellDef  style="height: 56px;">
+                                                                        <span (click)="setSort('for_what_date_sort')" class="sortheader"> {{t('docs.field.wroff_date')}} 
+                                                                            <i *ngIf="this.formPaymentsHistory.sortAsc=='asc' && this.formPaymentsHistory.sortColumn=='for_what_date_sort'" class="material-icons sortarrow">arrow_upward</i>
+                                                                            <i *ngIf="this.formPaymentsHistory.sortAsc=='desc' && this.formPaymentsHistory.sortColumn=='for_what_date_sort'" class="material-icons sortarrow">arrow_downward</i>
+                                                                        </span>
+                                                                    </th>
+                                                                    <td mat-cell style="height: 48px;" *matCellDef="let row"> {{row.for_what_date}} </td>
+                                                                </ng-container>
+                                                                <ng-container matColumnDef="operation_type">
+                                                                    <th mat-header-cell *matHeaderCellDef style="height: 56px;">
+                                                                        <span class="sortheader"> {{t('docs.field.oper_type')}}</span>
+                                                                    </th>
+                                                                    <td mat-cell style="height: 48px;" *matCellDef="let row"> {{row.operation_type}} </td>
+                                                                </ng-container>
+                                                                <ng-container matColumnDef="operation_sum">
+                                                                    <th mat-header-cell *matHeaderCellDef style="height: 56px;">
+                                                                        <span class="sortheader"> {{t('docs.field.oper_sum')}}</span>
+                                                                    </th>
+                                                                    <td mat-cell style="height: 48px;" *matCellDef="let row"> {{row.operation_sum}} </td>
+                                                                </ng-container>
+                                                                
+                                                                <tr mat-header-row *matHeaderRowDef="displayedPaymentsReportColumns"></tr>
+                                                                <tr mat-row *matRowDef="let row; columns: displayedPaymentsReportColumns;"></tr>
+                                                                
+                                                                <!-- Part "Data not founded" --> <!--+++-->
+                                                                <ng-container matColumnDef="data_not_found">
+                                                                    <td mat-footer-cell *matFooterCellDef colspan="5" class="text-center">
+                                                                        {{t('menu.msg.dt_not_fnd')}}
+                                                                    </td>
+                                                                </ng-container>
+                                                                <ng-container matColumnDef="nocolumn">
+                                                                    <td mat-footer-cell *matFooterCellDef colspan="5" style="display: none;"></td>
+                                                                </ng-container>
+                                                                <tr mat-footer-row 
+                                                                *matFooterRowDef="[(dataSource.data&&dataSource.data.length==0)?'data_not_found':'nocolumn']" 
+                                                                [ngStyle]="(dataSource.data && dataSource.data.length==0 && !gettingPaymentsTableData)?{}:{'display': 'none'}"></tr>
+                                                                <!-- End of Part "Data not founded" -->
+
+                                                            </table>
+                                                            
+                                                            <div class="flex">
+                                                                <div class="col-sm">
+                                                                    <p> {{t('menu.bottom.founded')}}: {{size}}, {{t('menu.bottom.page')}} {{pagenum}}  {{t('menu.bottom.of')}} {{listsize}}</p> <!--+++-->
+                                                                </div>
+                                                                <span  class="emptyspace"></span><!-- разделитель -->
+                                                                <div class="col-sm-auto justify-content-end">
+                                                                    <ul class="pagination" style="padding-right: 0px">
+                                                                        <ng-container *ngFor="let page of receivedPagesList; index as i">
+                                                                            <ng-container *ngIf="i>2 && listsize>1">
+                                                                                <ng-container *ngIf="i==3 && pagenum>1">
+                                                                                        <li><a (click)="setPage(0)"><mat-icon class="pagearrow active">first_page</mat-icon></a>  </li>                               
+                                                                                </ng-container>
+                                                                                <ng-container *ngIf="i==3 && pagenum==1">
+                                                                                        <li><mat-icon class="pagearrow inactive">first_page</mat-icon></li>                               
+                                                                                </ng-container>
+                                                                                    <mat-chip-list>
+                                                                                        <ng-container *ngIf="page==pagenum;else templateElse">
+                                                                                            <li><mat-chip style="margin: 8px;" selected>
+                                                                                                {{page}}               
+                                                                                            </mat-chip></li>
+                                                                                        </ng-container>
+                                                                                        <ng-template #templateElse >
+                                                                                            <li><mat-chip  style="margin: 8px;"  (click)="setPage(page-1)">
+                                                                                                {{page}}               
+                                                                                            </mat-chip></li>
+                                                                                        </ng-template>
+                                                                                    </mat-chip-list>
+                                                                                <ng-container *ngIf="pagenum < listsize && page==maxpage">
+                                                                                    <li><a (click)="setPage(listsize-1)"><mat-icon class="pagearrow active">last_page</mat-icon></a></li>
+                                                                                </ng-container>
+                                                                                <ng-container *ngIf="pagenum == listsize && page==maxpage">
+                                                                                    <li><mat-icon class="pagearrow inactive">last_page</mat-icon></li>
+                                                                                </ng-container>
+                                                                            <!-- pagenum - Страница, которая сейчас выбрана в пагинаторе
+                                                                                listsize - Последняя страница в пагинации (но не в пагинаторе. т.е. в пагинаторе может быть 1.2.3.4.5 а listsize =10)
+                                                                                maxpage - Последняя страница в пагинации 
+                                                                                page -    Страница пагинатора в текущем цикле -->
+                                                                            </ng-container>
+                                                                        </ng-container>
+                                                                    </ul>  
+                                                                </div>
+                                                            </div>
+
+
+                                                        </div>
+                                                    <!-- </form> -->
+                                                </div> 
+                                            </div> 
+                                        </mat-card-content>
+                                    </mat-card>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-xl-8 col-lg-12 col-sm-12">
-                            <!-- <mat-spinner 
-                            strokeWidth="3" 
-                            class="spinner"
-                            *ngIf="gettingTableData"
-                            [diameter]="50"
-                            ></mat-spinner>  -->
-                            <mat-card style="margin-bottom:15px;">
-                                <mat-card-header style="margin: 0 0 0 -13px;">
-                                    <mat-card-title class="card-title">{{t('docs.card.res_mngmnt')}}</mat-card-title>
-                                </mat-card-header>
-                                <mat-card-content class="input-form">
-                                    <div class="row">
-                                        <div class="col-12 col-xl-6"> 
-                                            <mat-form-field style="width:100%" *ngIf="subscription">
-                                                <mat-label>{{t('menu.table.plan')}}</mat-label>
-                                                <mat-select  
-                                                [disabled]="!subscription.is_saas"
-                                                (selectionChange)="onPlanSelection()"
-                                                [(value)]="subscription.plan_id">
-                                                    <mat-option  
-                                                        *ngFor="let plan of plansList"
-                                                        [value]="plan.id"
-                                                    >
-                                                        {{plan.name}}
-                                                    </mat-option>
-                                                </mat-select>
-                                            </mat-form-field>
-                                        </div>
-                                    </div>
-
-                                    <table mat-table [dataSource]="dataSource" class="mat-elevation-z8" *ngIf="subscription">
-                                        
-
-                                        <!-- header -->
-                                        <ng-container matColumnDef="name" >
-                                            <th class="padded balance-bar bold" mat-header-cell *matHeaderCellDef> {{t('menu.table.name')}}  </th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="plan">
-                                            <th class="padded balance-bar bold right" mat-header-cell *matHeaderCellDef><p  style="margin: 5px;">{{t('menu.table.plan_limit')}} </p></th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="add_option">
-                                            <th class="padded balance-bar bold right" mat-header-cell *matHeaderCellDef><p  style="margin: 5px;">{{t('menu.table.add_option')}} </p></th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="limitation">
-                                            <th class="padded balance-bar bold right" mat-header-cell *matHeaderCellDef><p  style="margin: 5px;">{{t('menu.table.limitation')}} </p></th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="in_use" >
-                                            <th class="padded balance-bar bold right" mat-header-cell *matHeaderCellDef> {{t('menu.table.in_use')}}  </th>
-                                        </ng-container>
-
-
-                                        <!-- Companies -->
-                                        <ng-container matColumnDef="companies_name" >
-                                            <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('sidebar.menu.items.companies')}} </th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="companies_plan">
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_companies}}</p></th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="companies_option">
-                                            <th class="padded add-option balance-bar right" mat-header-cell *matHeaderCellDef>
-                                                <div class="add-opt-wrapper">
-                                                    <p class="table-info">{{subscription.n_companies_add}}</p>
-                                                </div>
-                                                <div class="plus-minus-wrapper">
-                                                    <span   class="material-icons unselectable" 
-                                                        [ngClass]="{plusMinusEnable: subscription.n_companies_add+subscription.n_companies<=(subscription.quantity_limit_companies-subscription.step_companies),
-                                                        plusMinusDisable: subscription.n_companies_add+subscription.n_companies>(subscription.quantity_limit_companies-subscription.step_companies)}"
-                                                        (click)="clickPlusMinus('companies','plus')">
-                                                        add_box
-                                                    </span>
-                                                    <span   class="material-icons unselectable"
-                                                        [ngClass]="{plusMinusEnable: subscription.n_companies+subscription.n_companies_add-subscription.step_companies>=subscription.n_companies_fact,
-                                                            plusMinusDisable: subscription.n_companies+subscription.n_companies_add-subscription.step_companies<subscription.n_companies_fact}"
-                                                        (click)="clickPlusMinus('companies','minus')">
-                                                        indeterminate_check_box
-                                                    </span>
-                                                </div>
-                                            </th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="companies_plan_plus_option">
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_companies+subscription.n_companies_add}}</p></th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="companies_in_use" >
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right" [ngStyle]="(subscription.n_companies_fact>(subscription.plan_free?subscription.n_companies:subscription.n_companies+subscription.n_companies_add)&&!subscription.plan_no_limits)?{'color': 'red'}:{}">{{subscription.n_companies_fact}}</p></th>
-                                        </ng-container>
-
-                                        <!-- departments -->
-                                        <ng-container matColumnDef="departments_name" >
-                                            <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('sidebar.menu.items.departments')}} </th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="departments_plan">
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_departments}}</p></th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="departments_option">
-                                            <th class="padded add-option balance-bar right" mat-header-cell *matHeaderCellDef>
-                                                <div class="add-opt-wrapper">
-                                                    <p  class="table-info">{{subscription.n_departments_add}}</p>
-                                                </div>
-                                                <div class="plus-minus-wrapper">
-                                                    <span   class="material-icons unselectable" 
-                                                        [ngClass]="{plusMinusEnable: subscription.n_departments_add+subscription.n_departments<=(subscription.quantity_limit_departments-subscription.step_departments),
-                                                        plusMinusDisable: subscription.n_departments_add+subscription.n_departments>(subscription.quantity_limit_departments-subscription.step_departments)}"
-                                                        (click)="clickPlusMinus('departments','plus')">
-                                                        add_box
-                                                    </span>
-                                                    <span   class="material-icons unselectable"
-                                                        [ngClass]="{plusMinusEnable: subscription.n_departments+subscription.n_departments_add-subscription.step_departments>=subscription.n_departments_fact,
-                                                            plusMinusDisable: subscription.n_departments+subscription.n_departments_add-subscription.step_departments<subscription.n_departments_fact}"
-                                                        (click)="clickPlusMinus('departments','minus')">
-                                                        indeterminate_check_box
-                                                    </span>
-                                                </div>
-                                            </th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="departments_plan_plus_option">
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_departments+subscription.n_departments_add}}</p></th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="departments_in_use" >
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right" [ngStyle]="(subscription.n_departments_fact>(subscription.plan_free?subscription.n_departments:subscription.n_departments+subscription.n_departments_add)&&!subscription.plan_no_limits)?{'color': ' red'}:{}"> {{subscription.n_departments_fact}}</p> </th>
-                                        </ng-container>
-                                        
-                                        <!-- users -->
-                                        <ng-container matColumnDef="users_name" >
-                                            <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('sidebar.menu.items.users')}} </th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="users_plan">
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_users}}</p></th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="users_option">
-                                            <th class="padded add-option balance-bar right" mat-header-cell *matHeaderCellDef>
-                                                <div class="add-opt-wrapper">
-                                                    <p  class="table-info">{{subscription.n_users_add}}</p>
-                                                </div>
-                                                <div class="plus-minus-wrapper">
-                                                    <span   class="material-icons unselectable" 
-                                                        [ngClass]="{plusMinusEnable: subscription.n_users_add+subscription.n_users<=(subscription.quantity_limit_users-subscription.step_users),
-                                                        plusMinusDisable: subscription.n_users_add+subscription.n_users>(subscription.quantity_limit_users-subscription.step_users)}"
-                                                        (click)="clickPlusMinus('users','plus')">
-                                                        add_box
-                                                    </span>
-                                                    <span   class="material-icons unselectable"
-                                                        [ngClass]="{plusMinusEnable: subscription.n_users+subscription.n_users_add-subscription.step_users>=subscription.n_users_fact,
-                                                            plusMinusDisable: subscription.n_users+subscription.n_users_add-subscription.step_users<subscription.n_users_fact}"
-                                                        (click)="clickPlusMinus('users','minus')">
-                                                        indeterminate_check_box
-                                                    </span>
-                                                </div>
-                                            </th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="users_plan_plus_option">
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_users+subscription.n_users_add}}</p></th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="users_in_use" >
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right" [ngStyle]="(subscription.n_users_fact>(subscription.plan_free?subscription.n_users:subscription.n_users+subscription.n_users_add)&&!subscription.plan_no_limits)?{'color': 'red'}:{}"> {{subscription.n_users_fact}}</p> </th>
-                                        </ng-container>
-                                        
-                                        <!-- products -->
-                                        <ng-container matColumnDef="products_name" >
-                                            <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('sidebar.menu.items.products')}} </th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="products_plan">
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_products}}</p></th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="products_option">
-                                            <th class="padded add-option balance-bar right" mat-header-cell *matHeaderCellDef>
-                                                <div class="add-opt-wrapper">
-                                                    <p  class="table-info">{{subscription.n_products_add}}</p>
-                                                </div>
-                                                <div class="plus-minus-wrapper">
-                                                    <span   class="material-icons unselectable" 
-                                                        [ngClass]="{plusMinusEnable: subscription.n_products_add+subscription.n_products<=(subscription.quantity_limit_products-subscription.step_products),
-                                                        plusMinusDisable: subscription.n_products_add+subscription.n_products>(subscription.quantity_limit_products-subscription.step_products)}"
-                                                        (click)="clickPlusMinus('products','plus')">
-                                                        add_box
-                                                    </span>
-                                                    <span   class="material-icons unselectable"
-                                                        [ngClass]="{plusMinusEnable: subscription.n_products+subscription.n_products_add-subscription.step_products>=subscription.n_products_fact,
-                                                            plusMinusDisable: subscription.n_products+subscription.n_products_add-subscription.step_products<subscription.n_products_fact}"
-                                                        (click)="clickPlusMinus('products','minus')">
-                                                        indeterminate_check_box
-                                                    </span>
-                                                </div>
-                                            </th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="products_plan_plus_option">
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_products+subscription.n_products_add}}</p></th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="products_in_use" >
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right" [ngStyle]="(subscription.n_products_fact>(subscription.plan_free?subscription.n_products:subscription.n_products+subscription.n_products_add)&&!subscription.plan_no_limits)?{'color': 'red'}:{}"> {{subscription.n_products_fact}}</p> </th>
-                                        </ng-container>
-                                        
-                                        <!-- counterparties -->
-                                        <ng-container matColumnDef="counterparties_name" >
-                                            <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('sidebar.menu.items.cagents')}} </th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="counterparties_plan">
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_counterparties}}</p></th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="counterparties_option">
-                                            <th class="padded add-option balance-bar right" mat-header-cell *matHeaderCellDef>
-                                                <div class="add-opt-wrapper">
-                                                    <p  class="table-info">{{subscription.n_counterparties_add}}</p>
-                                                </div>
-                                                <div class="plus-minus-wrapper">
-                                                    <span   class="material-icons unselectable" 
-                                                        [ngClass]="{plusMinusEnable: subscription.n_counterparties_add+subscription.n_counterparties<=(subscription.quantity_limit_counterparties-subscription.step_counterparties),
-                                                        plusMinusDisable: subscription.n_counterparties_add+subscription.n_counterparties>(subscription.quantity_limit_counterparties-subscription.step_counterparties)}"
-                                                        (click)="clickPlusMinus('counterparties','plus')">
-                                                        add_box
-                                                    </span>
-                                                    <span   class="material-icons unselectable"
-                                                        [ngClass]="{plusMinusEnable: subscription.n_counterparties+subscription.n_counterparties_add-subscription.step_counterparties>=subscription.n_counterparties_fact,
-                                                            plusMinusDisable: subscription.n_counterparties+subscription.n_counterparties_add-subscription.step_counterparties<subscription.n_counterparties_fact}"
-                                                        (click)="clickPlusMinus('counterparties','minus')">
-                                                        indeterminate_check_box
-                                                    </span>
-                                                </div>                                    
-                                            </th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="counterparties_plan_plus_option">
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_counterparties+subscription.n_counterparties_add}}</p></th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="counterparties_in_use" >
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right" [ngStyle]="(subscription.n_counterparties_fact>(subscription.plan_free?subscription.n_counterparties:subscription.n_counterparties+subscription.n_counterparties_add)&&!subscription.plan_no_limits)?{'color': 'red'}:{}"> {{subscription.n_counterparties_fact}} </p></th>
-                                        </ng-container>
-                                        
-                                        <!-- megabytes -->
-                                        <ng-container matColumnDef="megabytes_name" >
-                                            <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('menu.table.files_mb')}} </th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="megabytes_plan">
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_megabytes}}</p></th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="megabytes_option">
-                                            <th class="padded add-option balance-bar right" mat-header-cell *matHeaderCellDef>
-                                                <div class="add-opt-wrapper">
-                                                    <p  class="table-info">{{subscription.n_megabytes_add}}</p>
-                                                </div>
-                                                <div class="plus-minus-wrapper">
-                                                    <span   class="material-icons unselectable" 
-                                                        [ngClass]="{plusMinusEnable: subscription.n_megabytes_add+subscription.n_megabytes<=(subscription.quantity_limit_megabytes-subscription.step_megabytes),
-                                                        plusMinusDisable: subscription.n_megabytes_add+subscription.n_megabytes>(subscription.quantity_limit_megabytes-subscription.step_megabytes)}"
-                                                        (click)="clickPlusMinus('megabytes','plus')">
-                                                        add_box
-                                                    </span>
-                                                    <span   class="material-icons unselectable"
-                                                        [ngClass]="{plusMinusEnable: subscription.n_megabytes+subscription.n_megabytes_add-subscription.step_megabytes>=subscription.n_megabytes_fact,
-                                                            plusMinusDisable: subscription.n_megabytes+subscription.n_megabytes_add-subscription.step_megabytes<subscription.n_megabytes_fact}"
-                                                        (click)="clickPlusMinus('megabytes','minus')">
-                                                        indeterminate_check_box
-                                                    </span>
-                                                </div>
-                                            </th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="megabytes_plan_plus_option">
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_megabytes+subscription.n_megabytes_add}}</p></th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="megabytes_in_use" >
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right" [ngStyle]="(subscription.n_megabytes_fact>(subscription.plan_free?subscription.n_megabytes:subscription.n_megabytes+subscription.n_megabytes_add)&&!subscription.plan_no_limits)?{'color': 'red'}:{}"> {{subscription.n_megabytes_fact}} </p></th>
-                                        </ng-container>
-                                        
-                                        <!-- stores -->
-                                        <ng-container matColumnDef="stores_name" >
-                                            <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('sidebar.menu.items.stores')}} ({{t('menu.table.connections')}})</th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="stores_plan">
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_stores}}</p></th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="stores_option">
-                                            <th class="padded add-option balance-bar right" mat-header-cell *matHeaderCellDef>
-                                                <div class="add-opt-wrapper">
-                                                    <p  class="table-info">{{subscription.n_stores_add}}</p>
-                                                </div>
-                                                <div class="plus-minus-wrapper">
-                                                    <span   class="material-icons unselectable" 
-                                                        [ngClass]="{plusMinusEnable: subscription.n_stores_add+subscription.n_stores<=(subscription.quantity_limit_stores-subscription.step_stores),
-                                                        plusMinusDisable: subscription.n_stores_add+subscription.n_stores>(subscription.quantity_limit_stores-subscription.step_stores)}"
-                                                        (click)="clickPlusMinus('stores','plus')">
-                                                        add_box
-                                                    </span>
-                                                    <span   class="material-icons unselectable"
-                                                        [ngClass]="{plusMinusEnable: subscription.n_stores+subscription.n_stores_add-subscription.step_stores>=subscription.n_stores_fact,
-                                                            plusMinusDisable: subscription.n_stores+subscription.n_stores_add-subscription.step_stores<subscription.n_stores_fact}"
-                                                        (click)="clickPlusMinus('stores','minus')">
-                                                        indeterminate_check_box
-                                                    </span>
-                                                </div>
-                                            </th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="stores_plan_plus_option">
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_stores+subscription.n_stores_add}}</p></th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="stores_in_use" >
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right" [ngStyle]="(subscription.n_stores_fact>(subscription.plan_free?subscription.n_stores:subscription.n_stores+subscription.n_stores_add)&&!subscription.plan_no_limits)?{'color': 'red'}:{}"> {{subscription.n_stores_fact}}</p> </th>
-                                        </ng-container>
-                                        
-                                        <!-- stores_woo -->
-                                        <ng-container matColumnDef="stores_woo_name" >
-                                            <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('sidebar.menu.items.stores')}} ({{t('menu.table.in_rent')}}) </th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="stores_woo_plan">
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_stores_woo}}</p></th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="stores_woo_option">
-                                            <th class="padded add-option balance-bar right" mat-header-cell *matHeaderCellDef>
-                                                <div class="add-opt-wrapper">
-                                                    <p  class="table-info">{{subscription.n_stores_woo_add}}</p>
-                                                </div>
-                                                <div class="plus-minus-wrapper">
-                                                    <span   class="material-icons unselectable" 
-                                                        [ngClass]="{plusMinusEnable: subscription.n_stores_woo_add+subscription.n_stores_woo<=(subscription.quantity_limit_stores_woo-subscription.step_stores_woo),
-                                                        plusMinusDisable: subscription.n_stores_woo_add+subscription.n_stores_woo>(subscription.quantity_limit_stores_woo-subscription.step_stores_woo)}"
-                                                        (click)="clickPlusMinus('stores_woo','plus')">
-                                                        add_box
-                                                    </span>
-                                                    <span   class="material-icons unselectable"
-                                                        [ngClass]="{
-                                                        plusMinusEnable: subscription.n_stores_woo+subscription.n_stores_woo_add-subscription.step_stores_woo>=subscription.n_stores_woo_fact,
-                                                        plusMinusDisable: subscription.n_stores_woo+subscription.n_stores_woo_add-subscription.step_stores_woo<subscription.n_stores_woo_fact}"
-                                                        (click)="clickPlusMinus('stores_woo','minus')">
-                                                        indeterminate_check_box
-                                                    </span>
-                                                </div>
-                                            </th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="stores_woo_plan_plus_option">
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_stores_woo+subscription.n_stores_woo_add}}</p></th>
-                                        </ng-container>
-                                        <ng-container matColumnDef="stores_woo_in_use" >
-                                            <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right" [ngStyle]="(subscription.n_stores_woo_fact>(subscription.plan_free?subscription.n_stores_woo:subscription.n_stores_woo+subscription.n_stores_woo_add)&&!subscription.plan_no_limits)?{'color': 'red'}:{}"> {{subscription.n_stores_woo_fact}}</p> </th>
-                                        </ng-container>
-
-                                        <tr mat-header-row *matHeaderRowDef="displayedColumns" style="height: 48px;"></tr>
-                                        <tr mat-header-row *matHeaderRowDef="companiesColumns" style="height: 54px;"></tr>
-                                        <tr mat-header-row *matHeaderRowDef="departmentsColumns" style="height: 54px;"></tr>
-                                        <tr mat-header-row *matHeaderRowDef="usersColumns" style="height: 54px;"></tr>
-                                        <tr mat-header-row *matHeaderRowDef="productsColumns" style="height: 54px;"></tr>
-                                        <tr mat-header-row *matHeaderRowDef="counterpartiesColumns" style="height: 54px;"></tr>
-                                        <tr mat-header-row *matHeaderRowDef="megabytesColumns" style="height: 54px;"></tr>
-                                        <tr mat-header-row *matHeaderRowDef="storesColumns" style="height: 54px;"></tr>
-                                        <tr mat-header-row *matHeaderRowDef="stores_wooColumns" style="height: 54px;"></tr>
-
-
-                                        
-
-                                    </table>
-                                </mat-card-content>
-                            </mat-card>
-                        </div>
-                    </div>
-                </div> 
+                    </mat-tab>
+                </mat-tab-group>
             </div>  
         </div>
     </mat-card-content>

@@ -200,6 +200,7 @@ export class StoresComponent implements OnInit {
     if(this.showOpenDocIcon) this.displayedColumns.push('opendoc');
     this.displayedColumns.push('name');
     this.displayedColumns.push('lang_code');
+    this.displayedColumns.push('is_let_sync');
     this.displayedColumns.push('company');
     this.displayedColumns.push('creator');
     this.displayedColumns.push('date_time_created');

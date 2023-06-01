@@ -8,11 +8,12 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { MatDialog } from '@angular/material/dialog';
-import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+// import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { v4 as uuidv4 } from 'uuid';
 import { translate } from '@ngneat/transloco'; //+++import { Observable } from 'rxjs';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
+import { RentStoreOrderDialog } from 'src/app/ui/dialogs/rent-store-order-dialog.component';
 
 interface docResponse {//интерфейс для получения ответа в методе getStoresDocsTableById
   id: number;
@@ -43,11 +44,83 @@ interface docResponse {//интерфейс для получения ответ
   store_days_for_esd: number;           // number of days for ESD of created store order. Default is 0 
   store_default_creator: string;        // name of default user that will be marked as a creator of store order.
   store_auto_reserve: boolean;          // auto reserve product after getting internet store order
-  storeDepartments: number[];    // internet store's departments
+  storeDepartments: number[];           // internet store's departments
   store_ip: string;                     // store server ip address
-  is_deleted: boolean;
-  
+  is_deleted: boolean;                  // store deleted
+  is_let_sync: boolean;                 // store can get synchronization queries from the online-store plugin
+  is_saas: boolean;                     // is this SaaS? (getting from settings_general)
+  is_sites_distribution: boolean;       // is there sites (stores) distribution in this SaaS? (getting from settings_general)
+  can_order_store: boolean;             // can user order the store at this moment 
 
+}
+interface MasterAccountInfo {
+  money: number;                       // how much money on main account
+  plan_id: number;             // id of tariff plan
+  plan_name: string;           // the name of tariff plan
+  plan_version: number;        // the version of tariff plan
+  plan_price: number;          // how much writeoff per day for tariff plan
+  plan_no_limits: boolean;     // tariff plan has no limits
+  is_saas:boolean;             // DokioCRM works as a SaaS
+  plan_free: boolean;          // for free plans the billing is not applied, also users that use it can't use an additional options
+  companies_ppu: number;       // writeoff per day for 1 additional company
+  departments_ppu: number;     // writeoff per day for 1 additional department
+  users_ppu: number;           // writeoff per day for 1 additional user
+  products_ppu: number;        // writeoff per day for 1 additional product or service
+  counterparties_ppu: number;  // writeoff per day for 1 additional counterparty
+  megabytes_ppu: number;       // writeoff per day for 1 additional Mb
+  stores_ppu: number;          // writeoff per day for 1 additional WooCommerce store connection (document "Store")
+  stores_woo_ppu: number;      // writeoff per day for 1 additional WooCommerce hosting
+
+  // plan
+  n_companies: number;
+  n_departments: number;
+  n_users: number;
+  n_products: number;
+  n_counterparties: number;
+  n_megabytes: number;
+  n_stores: number;
+  n_stores_woo: number;
+
+  // additional options
+  n_companies_add: number;
+  n_departments_add: number;
+  n_users_add: number;
+  n_products_add: number;
+  n_counterparties_add: number;
+  n_megabytes_add: number;
+  n_stores_add: number;
+  n_stores_woo_add: number;
+  free_trial_days: number;
+  
+  // limits of options quantity
+  quantity_limit_companies: number;
+  quantity_limit_counterparties: number;
+  quantity_limit_departments: number;
+  quantity_limit_megabytes: number;
+  quantity_limit_products: number;
+  quantity_limit_stores: number;
+  quantity_limit_stores_woo: number;
+  quantity_limit_users: number;
+
+  // options quantity steps 
+  step_companies: number;
+  step_counterparties: number;
+  step_departments: number;
+  step_megabytes: number;
+  step_products: number;
+  step_stores: number;
+  step_stores_woo: number;
+  step_users: number;
+
+  // using in fact
+  n_companies_fact: number;
+  n_departments_fact: number;
+  n_users_fact: number;
+  n_products_fact: number;
+  n_counterparties_fact: number;
+  n_megabytes_fact: number;
+  n_stores_fact: number;
+  n_stores_woo_fact: number;
 }
 interface StoresList {//интерфейс массива для получения всех налогов текущего документа
   id: string;
@@ -86,6 +159,7 @@ export class StoresDocComponent implements OnInit {
   editability:boolean = false; // возможность редактирования полей.
   receivedPriceTypesList: idNameDescription [] = [];//массив для получения списка типов цен
   receivedDepartmentsList: IdAndName [] = [];//массив для получения списка отделений
+  subscription: MasterAccountInfo;
 
   //для поиска контрагента (покупателя) по подстроке
   searchDefaultCustomerCtrl = new UntypedFormControl();//поле для поиска дефолтного контрагента для созданных из интернет-магазина заказов
@@ -124,12 +198,22 @@ export class StoresDocComponent implements OnInit {
   statusColor: string;
   storesList : StoresList [] = []; //массив для получения всех налогов текущего документа
 
+  // variables for online-store distribution;
+  is_saas: boolean = false;                     // is this SaaS? (getting from settings_general)
+  is_sites_distribution: boolean = false;       // is there sites (stores) distribution in this SaaS? (getting from settings_general)
+  can_order_store: boolean = false;             // can user order the store at this moment. It means: there is no active (non-deleted) stores for this online store connection
+  n_stores_woo = 0;                             // total quantity of rent stores in plan
+  n_stores_woo_add = 0;                         // additional (optional) quantity of rent stores
+  n_stores_woo_fact = 0;                        // using  quantity of rent stores
+
+
   @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
   
   constructor(
     private activateRoute: ActivatedRoute,
     private http: HttpClient,
-    private MessageDialog: MatDialog,
+    private MessageDialog: MatDialog, 
+    public RentStoreOrderDialog: MatDialog,
     public ConfirmDialog: MatDialog,
     private loadSpravService:   LoadSpravService,
     private _router:Router,
@@ -157,7 +241,9 @@ export class StoresDocComponent implements OnInit {
       storeDepartments:            new UntypedFormControl   ([],[Validators.required]),
       store_auto_reserve:          new UntypedFormControl   (false,[]), // auto reserve product after getting internet store order
       store_ip:                    new UntypedFormControl   ('',[Validators.required,Validators.maxLength(21)]),  // internet-store ip address
-      is_deleted: new UntypedFormControl      (false,[]),
+      is_deleted:                  new UntypedFormControl   (false,[]),
+      is_let_sync:                 new UntypedFormControl   (true,[]),
+      
     });
     this.formAboutDocument = new UntypedFormGroup({
       id: new UntypedFormControl      ('',[]),
@@ -170,6 +256,7 @@ export class StoresDocComponent implements OnInit {
     });
 
     this.getSetOfPermissions();
+    this.getMasterAccountInfo();
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Покупатель"
     this.onDefaultCreatorSearchValueChanges();//отслеживание изменений поля "Создатель по умолчанию"
     // getting base data from parent component
@@ -187,6 +274,19 @@ export class StoresDocComponent implements OnInit {
       && (+this.formBaseInformation.get('store_price_type_regular').value>0&&this.formBaseInformation.get('store_price_type_regular').value!=this.formBaseInformation.get('store_price_type_sale').value)
       );
     else return true;    //чтобы не было ExpressionChangedAfterItHasBeenCheckedError. Т.к. форма создается пустая и с .valid=true, а потом уже при заполнении проверяется еще раз.
+  }
+  get canOrderStore(){
+    // user can order the store if:
+    return this.id>0 &&           // 1. Online-store connection is created
+    this.allowToUpdate == true && // 2. Allow to update
+    this.is_saas &&               // 3. the SaaS mode in settings_general is on (is_saas=true)
+    this.is_sites_distribution && // 4. Sites distribution mode in settings_general is on (is_sites_distribution=true)
+    this.can_order_store &&       // 5. There is no active (non-deleted) stores for this online store connection
+    (this.n_stores_woo+           // 6. (Sum qtt of stores in plan and options) minus qtt of existed (distributed and non-deleted) stores > 0
+    this.n_stores_woo_add-this.n_stores_woo_fact) > 0;                         
+  }
+  get showRentStoreBlock(){
+    return this.id>0 && (this.n_stores_woo_fact>0 || this.canOrderStore);
   }
 //---------------------------------------------------------------------------------------------------------------------------------------                            
 // ----------------------------------------------------- *** ПРАВА *** ------------------------------------------------------------------
@@ -399,12 +499,18 @@ onDefaultCreatorSearchValueChanges(){
                   this.formBaseInformation.get('storeDepartments').setValue(documentValues.storeDepartments);    
                   this.formBaseInformation.get('store_ip').setValue(documentValues.store_ip); 
                   this.formBaseInformation.get('is_deleted').setValue(documentValues.is_deleted);
+                  this.formBaseInformation.get('is_let_sync').setValue(documentValues.is_let_sync);
                   this.formAboutDocument.get('master').setValue(documentValues.master);
                   this.formAboutDocument.get('creator').setValue(documentValues.creator);
                   this.formAboutDocument.get('changer').setValue(documentValues.changer);
                   this.formAboutDocument.get('company').setValue(documentValues.company);
                   this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
                   this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
+
+                  this.is_saas=documentValues.is_saas;
+                  this.is_sites_distribution=documentValues.is_sites_distribution;
+                  this.can_order_store=documentValues.can_order_store;
+
                   this.searchDefaultCreatorCtrl.setValue(documentValues.store_default_creator);
                   this.searchDefaultCustomerCtrl.setValue(documentValues.store_default_customer);
                   this.getPriceTypesList();
@@ -540,6 +646,33 @@ onDefaultCreatorSearchValueChanges(){
         (data) => {this.receivedDepartmentsList=data as any []},
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});}
     );
+  }
+  getMasterAccountInfo(){    
+    this.http.get('/api/auth/getMasterAccountInfo')
+        .subscribe(
+            data => { 
+                this.subscription=data as MasterAccountInfo; 
+                this.n_stores_woo = this.subscription.n_stores_woo;
+                this.n_stores_woo_add = this.subscription.n_stores_woo_add;
+                this.n_stores_woo_fact = this.subscription.n_stores_woo_fact;
+            },
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}
+        );
+  }
+  orderRentStore(){
+    const dialogRef = this.RentStoreOrderDialog.open(RentStoreOrderDialog, {
+      width: '800px', //+++
+      height:'800px', //+++
+      data:
+      { 
+        head: translate('menu.dialogs.duplication'), //+++
+        warning: translate('menu.dialogs.sel_dup_optio'),
+        productId: 1
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){this.getData()}
+    });
   }
   numberOnly(event): boolean {
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which

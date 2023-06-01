@@ -53,7 +53,10 @@
         "def_value":"Default values",
         "variations":"Variations",
         "add_attr_w_var":"To create variations: 1. In the \"Attributes\" tab, add the attribute(s); 2. Turn on \"Used for Variations\"; 3. Select attribute terms",
-        "res_mngmnt":"Management"
+        "res_mngmnt":"Management",
+        "store_rent":"Online-store rent",
+        "store_ordering":"Online-store ordering",
+        "agreement":    "Agreement"
     },
     "field":{ 
         "-- COMMON":"--",
@@ -331,7 +334,11 @@
         "s_dprtmnts":"Store departments",
         "lbl_dscrp":"Description for the label",
         "store_ip":"IP address of the online store",
-        "select_action":"Select action"
+        "select_action":"Select action",
+        "wroff_date":"Date",
+        "oper_type":"Operation type",
+        "oper_sum":"Operation sum",
+        "is_let_sync":  "Connection allowed"
     },
     "error":{ 
         "-- COMMON":"--",
@@ -662,7 +669,8 @@
         "del_all_var_q":"Do you really want to delete all variations?",
         "del_trial":"Deleting trial period",
         "del_trial_q":"Do you really want to delete trial period?",
-        "no_money":"You can not change the plan to a paid one with a zero or negative balance"
+        "no_money":"You can not change the plan to a paid one with a zero or negative balance",
+        "out_limits":"Cannot be saved if the used resources will exceed the total limits"
     },
     "button":{        
         "test_connct":  "Connection test",
@@ -672,7 +680,9 @@
         "save_ordr":    "Save the order",
         "cancel":       "Cancel",
         "refresh":      "Refresh table",
-        "sel_prod":     "Select product"
+        "sel_prod":     "Select product",
+        "order_store":  "Order store",
+        "i_agree":      "I agree"
     },
     "list":{
         "object":       "Object",

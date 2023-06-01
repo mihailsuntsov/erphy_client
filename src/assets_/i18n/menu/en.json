@@ -212,7 +212,8 @@
         "variable":     "variable",
         "plan":         "Plan",
         "add_option":   "Additional",
-        "plan_limit":   "Limit"
+        "plan_limit":   "Limit",
+        "is_let_sync":  "Connection allowed"
     },
     "bottom":{
         "founded":      "Founded",

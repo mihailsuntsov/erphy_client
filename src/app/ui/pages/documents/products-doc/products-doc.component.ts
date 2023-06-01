@@ -2175,6 +2175,7 @@ checkProductCodeFreeUnical() {
 
     // console.log("****checkedChangesList - "+JSON.stringify(this.checkedChangesList));
   }
+  // *************************************************  PRICES  ************************************************************
   getProductPrices(){
     this.receivedPriceTypesList=null;
     const control = <UntypedFormArray>this.formBaseInformation.get('productPricesTable');

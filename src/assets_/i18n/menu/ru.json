@@ -212,7 +212,8 @@
         "variable":     "вариативный",
         "plan":         "Тариф",
         "add_option":   "Дополнительно",
-        "plan_limit":   "Лимит"
+        "plan_limit":   "Лимит",
+        "is_let_sync":  "Соедниение разрешено"
     },
     "bottom":{
         "founded":      "Найдено",

@@ -12,17 +12,13 @@ import { CommonUtilitesService } from '../../../../services/common_utilites.serv
 import { translate, TranslocoService } from '@ngneat/transloco'; //+++
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 
-// import { MomentDefault } from 'src/app/services/moment-default';
-// import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
-// import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
-// const MY_FORMATS = MomentDefault.getMomentFormat();
-// const moment = MomentDefault.getMomentDefault();
+import { MomentDefault } from 'src/app/services/moment-default';
+import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
+import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+const MY_FORMATS = MomentDefault.getMomentFormat();
+const moment = MomentDefault.getMomentDefault();
+import { LOCALE_ID, Inject } from '@angular/core';
 
-
-interface ProfitLossSerie{
-  name:string;
-  value:number;
-}
 interface Plan{
   n_companies: number;
   n_departments: number;
@@ -117,22 +113,32 @@ export interface NumRow {//интерфейс для списка количес
   value: string;
   viewValue: string;
 }
+interface PaymentsHistoryQuery{
+  //sending data of payments history query
+  dateFrom:any;
+  dateTo:any;
+  sortColumn: string;
+  offset: any; // number of page page
+  sortAsc: any;
+  result: any;// quantity of rows per page
 
+}
 @Component({
   selector: 'app-subscription',
   templateUrl: './subscription.component.html',
   styleUrls: ['./subscription.component.css'],
   providers: [LoadSpravService, CommonUtilitesService, Cookie,
-    // { provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]},
-    // {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
+    { provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]},
+    {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
   ]
 })
 export class SubscriptionComponent implements OnInit {
   queryForm:any;//форма для отправки запроса 
   // queryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
   receivedPagesList: string [] ;//массив для получения данных пагинации
-  dataSource = new MatTableDataSource<any>(); //массив данных для таблицы и чекбоксов (чекбоксы берут из него id, таблица -всё)
-  displayedColumns: string[] = [];//массив отображаемых столбцов таблицы
+  dataSource = new MatTableDataSource<any>(); 
+  displayedColumns: string[] = []; 
+  displayedPaymentsReportColumns: string[] = [];//
   companiesColumns: string[] = [];
   departmentsColumns: string[] = [];
   usersColumns: string[] = [];
@@ -150,12 +156,24 @@ export class SubscriptionComponent implements OnInit {
   formBaseInformation:any;//форма для основной информации, содержащейся в документе
   subscription: DocResponse;
   plansList: Plan[];
-  
+  gettingTableData:boolean=false;  
+  gettingPaymentsTableData:boolean=false;  
+  // Form for a sending data of payments history query 
+  formPaymentsHistory: PaymentsHistoryQuery = { 
+    // default values for the filter of payments report 
+    sortAsc:'desc',
+    sortColumn:'for_what_date_sort',
+    offset:0,
+    result:'10',
+    dateFrom:moment([2000, 0, 1]),
+    dateTo:moment().endOf('month'),
+  }; 
+
   //переменные прав
   permissionsSet: any[];//сет прав на документ
   allowToView:boolean = false;
   allowToUpdate:boolean = false;
-  gettingTableData:boolean=true;
+
   // settingsForm: any; // форма с настройками
   plan_free:boolean = false;
   numRows: NumRow[] = [
@@ -190,6 +208,8 @@ export class SubscriptionComponent implements OnInit {
     public dialogRef1: MatDialogRef<SubscriptionComponent>, //+++
     private service: TranslocoService,
     // private _adapter: DateAdapter<any>
+    @Inject(LOCALE_ID) public locale: string,
+    private _adapter: DateAdapter<any>
     ) { }
 
     ngOnInit() {
@@ -214,12 +234,9 @@ export class SubscriptionComponent implements OnInit {
       });
 
 
-        //+++ getting base data from parent component
-        // this.getBaseData('myId');    
-        // this.getBaseData('myCompanyId');  
-        // this.getBaseData('companiesList');      
-        this.getSetOfPermissions();
 
+       this.getSetOfPermissions();
+       this.getPaymentsTableHeaderTitles();
     }
   get writeoffDay(){
     let result=this.subscription.plan_price +
@@ -277,9 +294,9 @@ export class SubscriptionComponent implements OnInit {
   getData(){
     if(this.allowToView)
     {
-      // this.getTable();
+      this.getTable();
       this.getMasterAccountInfo();
-    } else {this.gettingTableData=false;;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})}
+    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})}
   }
 
   getTableHeaderTitles(){
@@ -339,7 +356,6 @@ export class SubscriptionComponent implements OnInit {
                 this.plan_free=this.subscription.plan_free;
                 this.getTableHeaderTitles();
                 this.gettingTableData=false;                                       
-                this.dataSource.data = [];
                 this.getPlansList();
             },
             error => {this.gettingTableData=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}
@@ -490,7 +506,14 @@ export class SubscriptionComponent implements OnInit {
               }
               case -300:{//Нельзя изменить тариф на платный при нулевом или отрицательном балансе
                          //You can not change the plan to a paid one with a zero or negative balance
+                         this.getData();
                 this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.no_money')}});
+                break;
+              }
+              case -310:{//Нельзя сохранить, если используемые ресурсы будут выходить за суммарные лимиты
+                         //Cannot be saved if the used resources will exceed the total limits
+                         this.getData();
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.out_limits')}});
                 break;
               }
               default:{// Успешно
@@ -549,5 +572,96 @@ export class SubscriptionComponent implements OnInit {
     this.plan_free=this.subscription.plan_free;
     this.getTableHeaderTitles();
   }
+
+//************************************************************* PAYMENTS REPORT *************************************************************/    
+
+addEvent(type: string, event: any) {
+  console.log("type="+type);
+  if(type=='dateFrom') this.formPaymentsHistory.dateFrom = event.value;
+  else this.formPaymentsHistory.dateTo = event.value;
+  this.getTable();
+}
+getPagesList(){
+  this.http.post('/api/auth/getUserPaymentsPagesList', this.formPaymentsHistory)
+          .subscribe(
+              data => {this.receivedPagesList=data as string [];
+              this.size=this.receivedPagesList[0];
+              this.pagenum=this.receivedPagesList[1];
+              this.listsize=this.receivedPagesList[2];
+              this.maxpage=(this.receivedPagesList[this.receivedPagesList.length-1])},
+              error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}
+          ); 
+}
+getTable(){ 
+  this.getPagesList();
+  this.gettingPaymentsTableData=true;
+  this.http.post('/api/auth/getUserPaymentsTable', this.formPaymentsHistory)
+    .subscribe(
+        (data) => {
+          this.gettingPaymentsTableData=false;
+          if(!data){
+            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('docs.msg.c_err_exe_qury')}})
+          }
+          this.dataSource.data=data as any []; 
+        },
+        error => {console.log(error);this.gettingPaymentsTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}
+    );
+}
+
+getPaymentsTableHeaderTitles(){
+  this.displayedPaymentsReportColumns=[];
+  // this.displayedPaymentsReportColumns.push('detailed');
+  this.displayedPaymentsReportColumns.push('for_what_date');
+  this.displayedPaymentsReportColumns.push('operation_type');
+  this.displayedPaymentsReportColumns.push('operation_sum');
+}
+setPage(value:any) // set pagination
+  {
+    this.formPaymentsHistory.offset=value;
+    this.getData();
+  }
+setSort(valueSortColumn:any) // set sorting column
+  {
+      if(valueSortColumn==this.formPaymentsHistory.sortColumn){// если колонка, на которую ткнули, та же, по которой уже сейчас идет сортировка
+          if(this.formPaymentsHistory.sortAsc=="asc"){
+              this.formPaymentsHistory.sortAsc="desc"
+          } else {  
+              this.formPaymentsHistory.sortAsc="asc"
+          }
+      } else {
+          this.formPaymentsHistory.sortColumn=valueSortColumn;
+          this.formPaymentsHistory.sortAsc="asc";
+      }
+      this.getTable();
+  }
+  setNumOfPages(){
+    this.formPaymentsHistory.offset=0;
+    this.getTable();
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 }

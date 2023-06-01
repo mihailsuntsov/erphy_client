@@ -169,6 +169,28 @@ class="spinner"
                             </span>
                             <td mat-cell *matCellDef="let row"> {{row.lang_code}} </td>
                         </ng-container>
+                        <ng-container matColumnDef="is_let_sync">
+                            <th mat-header-cell *matHeaderCellDef style="width:300px;">
+                            <span (click)="setSort('is_let_sync')" class="sortheader"> {{t('menu.table.is_let_sync')}} 
+                                <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='is_let_sync'" class="material-icons sortarrow">arrow_upward</i>
+                                <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='is_let_sync'" class="material-icons sortarrow">arrow_downward</i>
+                            </span>
+                            <td mat-cell *matCellDef="let row"> 
+                                <mat-chip-list>
+                                    <mat-chip 
+                                    *ngIf="row.is_let_sync==false" 
+                                    style="color:red">
+                                    {{t('menu.dialogs.no')}}
+                                    </mat-chip>
+                                    <mat-chip 
+                                    *ngIf="row.is_let_sync==true"
+                                    style="color:green"
+                                    >
+                                    {{t('menu.dialogs.yes')}}
+                                    </mat-chip>
+                                </mat-chip-list>
+                            </td>
+                        </ng-container>
                         <ng-container matColumnDef="company">
                             <th mat-header-cell *matHeaderCellDef>
                             <span (click)="setSort('company')" class="sortheader"> {{t('menu.table.company')}} 
