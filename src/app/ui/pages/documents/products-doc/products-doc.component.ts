@@ -489,6 +489,8 @@ export class ProductsDocComponent implements OnInit {
   // reg_price: any; // Regular price in Store
   // sales_price: any; // Sales price in Store
   is_store: boolean = false;
+  is_vat: boolean = false;
+  is_vat_included:boolean = false;
   reg_price_selected: boolean = false;  // Regular price in Store settings is selected
   sales_price_selected: boolean = false; // Sales price in Store settings is selected
   store_sku:string='';  
@@ -1049,6 +1051,8 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
     this.formBaseInformation.get('id').setValue(null);
     this.formBaseInformation.get('name').setValue('');
     this.is_store=false;
+    this.is_vat=false;
+    this.is_vat_included=false;
     this.checkedList=[];
     this.formBaseInformation.get('edizm_id').setValue('');
     this.formBaseInformation.get('edizm_name').setValue('');
@@ -1473,6 +1477,8 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
         data => { 
           result=data as any;
           this.is_store = result.is_store;
+          this.is_vat = result.vat;
+          this.is_vat_included = result.vat_included;
         },
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );

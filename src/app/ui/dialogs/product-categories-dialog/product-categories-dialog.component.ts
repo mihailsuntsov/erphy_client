@@ -133,7 +133,7 @@ export class ProductCategoriesDialogComponent implements OnInit {
     public service:TranslocoService,
     private http: HttpClient,
     private slugifyPipe: SlugifyPipe,
-    public ShowImageDialog: MatDialog,
+    public ShowImageDialog: MatDialog,  
     @Inject(MAT_DIALOG_DATA) public data: any) {}
   onNoClick(): void {
     this.dialogRef.close();

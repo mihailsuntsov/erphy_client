@@ -137,7 +137,7 @@
                                             </mat-form-field>
                                     
                                             <mat-form-field>
-                                                <mat-label>{{t('docs.field.p_s_crm_key')}} <span *ngIf="formBaseInformation.get('crm_secret_key').value==''" class="star">*</span></mat-label>
+                                                <mat-label>{{t('docs.field.p_s_crm_key')}} <!--span *ngIf="formBaseInformation.get('crm_secret_key').value==''" class="star">*</span--></mat-label>
                                                 <input   matInput
                                                         [readonly]=!editability
                                                         (keypress)="numberOnly($event)"
@@ -169,7 +169,7 @@
                                                         <mat-hint align="end" *ngIf="formBaseInformation.get('crm_secret_key').value.length>30">{{formBaseInformation.get('crm_secret_key').value.length}} / 36</mat-hint>
                                             </mat-form-field>
                                             <mat-form-field>
-                                                <mat-label>{{t('docs.field.store_ip')}} <span *ngIf="formBaseInformation.get('store_ip').value==''" class="star">*</span></mat-label>
+                                                <mat-label>{{t('docs.field.store_ip')}} <!--span *ngIf="formBaseInformation.get('store_ip').value==''" class="star">*</span--></mat-label>
                                                 <input  matInput
                                                         [readonly]=!editability
                                                         (keypress)="numberOnlyPlusDotAndColon($event)"
@@ -186,18 +186,49 @@
                                             <div class="container-fluid">
                                                 <div class="row" style="padding: 10px">
                                                     <div class="col-12" style="text-align:center">
+                                                        
                                                         <button *ngIf="canOrderStore" mat-fab style="border-radius: 24px;
-                                                        padding-left: 20px; padding-right: 20px;
-                                                        width: auto; max-width: 100%;
-                                                        border: 3px solid #673ab7;
-                                                        height: 61px; line-height: normal; font-size: 24px;" 
-                                                        color="accent"
-                                                        (click)="orderRentStore()">
+                                                            padding-left: 20px; padding-right: 20px;
+                                                            width: auto; max-width: 100%;
+                                                            border: 3px solid #673ab7;
+                                                            margin-bottom:10px;
+                                                            height: 61px; line-height: normal; font-size: 24px;" 
+                                                            color="accent"
+                                                            (click)="orderRentStore()">
                                                             <mat-icon style="font-size: 30px;margin: -13px 8px 0 0;">
                                                                 add_business
                                                             </mat-icon>
                                                             {{t('docs.button.order_store')}}!
                                                         </button>
+                                                        
+                                                        <mat-accordion *ngIf="rentStoreShortInfo.length>0" style="display:block; margin-top:20px">
+
+                                                            <mat-expansion-panel *ngFor="let rt of rentStoreShortInfo" style="text-align: left;">
+                                                                <mat-expansion-panel-header>
+                                                                    <mat-panel-title>
+                                                                        <a href="https://{{rt.site_domain}}" style="font-size: larger; z-index: 1000;">{{rt.site_domain}}</a>
+                                                                    </mat-panel-title>
+                                                                    <mat-panel-description *ngIf="rt.is_deleted">
+                                                                        <span style="color:red">{{t('docs.field.removed')}}</span>
+                                                                    </mat-panel-description>
+                                                                </mat-expansion-panel-header>
+                                                                <p><strong>{{t('docs.field.sit_addr')}}</strong>: <a href="https://{{rt.panel_domain}}">{{rt.site_domain}}</a></p>
+                                                                <p><strong>{{t('docs.field.pan_dom')}}</strong>: <a href="https://{{rt.panel_domain}}">{{rt.panel_domain}}</a></p>
+                                                                <p><strong>{{t('docs.field.ordered_at')}}</strong>: {{rt.date_time_ordered}}</p>
+                                                                <p><strong>{{t('docs.field.distr_at')}}</strong>: {{rt.date_time_distributed}}</p>
+                                                                <p *ngIf="!rt.is_deleted"><strong>{{t('docs.field.q_to_remov')}}</strong>: {{rt.is_queried_to_delete?t('menu.dialogs.yes'):t('menu.dialogs.no')}} <span  *ngIf="!rt.is_queried_to_delete" (click)="deleteRentStore(rt.id)" style="color:red; cursor: pointer;">{{t('docs.tip.delete')}}</span></p>
+                                                                <p *ngIf="rt.is_queried_to_delete"><strong>{{t('docs.field.removed')}}</strong>: {{rt.is_deleted?t('menu.dialogs.yes'):t('menu.dialogs.no')}}</p>
+                                                                <p *ngIf="rt.is_deleted"><strong>{{t('docs.field.removed_at')}}</strong>: {{rt.date_time_deleted}}</p>
+                                                            </mat-expansion-panel>
+
+                                                        </mat-accordion>
+                                                          
+                                                        
+                                                        
+                                                        
+                                                        
+                                                        
+                                                        
                                                     </div>
                                                 </div>
                                             </div>
@@ -390,4 +421,5 @@
         </mat-tab-group>
     </mat-card-content> 
 </mat-card>
+<!-- <code><pre>{{formBaseInformation.value | json}}</pre></code> -->
 

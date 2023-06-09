@@ -54,9 +54,12 @@
         "variations":"Variations",
         "add_attr_w_var":"To create variations: 1. In the \"Attributes\" tab, add the attribute(s); 2. Turn on \"Used for Variations\"; 3. Select attribute terms",
         "res_mngmnt":"Management",
-        "store_rent":"Online-store rent",
+        "store_rent":"Online-store hosting",
         "store_ordering":"Online-store ordering",
-        "agreement":    "Agreement"
+        "agreement":    "Agreement",
+        "str_ordr_taken":"Online store order accepted",
+        "str_ordr_done":"Your online store is ready!",
+        "ready":"Ready"
     },
     "field":{ 
         "-- COMMON":"--",
@@ -222,12 +225,20 @@
         "legal_form":   "Legal form",
         "lang_code":    "Language",
         "default_lang": "Default language of online store",
-        "stores":       "Online store",
+        "stores":       "Online store (connection)",
         "balance":      "Balance",
-        "writeoff_day": "Write-off per day",
+        "writeoff_day": "Daily withdrawal",
         "writeoff_month":"Мonthly expenses",
         "days_left":    "Days left",
         "trial_days_left":"Remaining trial period",
+        "removed":      "Removed",
+        "sit_addr":"Site address",
+        "pan_dom":"Panel domain",
+        "ordered_at":"Ordered at",
+        "distr_at":"Distributed at",
+        "q_to_remov":"Query to remove",
+        "removed_at":"Removed at",
+        "st_in_rent":"Online-stores (DokioCRM hosted)",
 
         "-- SELL REGICTERS ":"--",
 
@@ -364,6 +375,10 @@
         "num_digits":       "Must be {{num}} digits",
         "num_letters":      "Must be {{num}} letter(s)",
         "prces_not_diff":   "Regular price and sale price should be different",
+        "320":"Не получено согласие на предоставление услуги",
+        "340":"Данное подключение уже имеет привязанный к нему действующий интернет-магазин",
+        "350":"Превышено максимально допустимое количество интернет-магазинов, которые можно заказать за 24 часа с одного аккаунта",
+        "351":"Превышено максимально допустимое количество интернет-магазинов, которые можно заказать за 24 часа с одного IP-адреса",
         
         "-- RETURNS TO SUPPLIERS":"--",
 
@@ -477,7 +492,9 @@
         "transl_mode":"Translation mode",
         "ctg_stores":"Online stores to which this category and its products belong",        
         "variation":"Define if the attribute can be used as variation",
-        "stop_trial":"Stop trial period"
+        "stop_trial":"Stop trial period",
+        "wp_sites":"Wordpress sites with a WooCommerce online store hosted on DokioCRM servers and provided to you. 1 connection needs to be ordered with each site.",
+        "connecton":"Connection is a module responsible for interaction with the online store (sending, receiving and processing data from the online store)"
     },
     "msg":{
         "error":        "Error!",
@@ -507,6 +524,7 @@
         "ne_perm_oper": "Not enough permissions for",
         "_of_comp":     " completion",
         "_of_save":     " saving",
+        "_of_del":      " removing",
         "_of_doc":      " of document \"{{name}}\"",
         "already_cmplt":"This document is already completed",
         "doc_name":     "Document \"{{name}}\"",
@@ -670,7 +688,8 @@
         "del_trial":"Deleting trial period",
         "del_trial_q":"Do you really want to delete trial period?",
         "no_money":"You can not change the plan to a paid one with a zero or negative balance",
-        "out_limits":"Cannot be saved if the used resources will exceed the total limits"
+        "out_limits":"Cannot be saved if the used resources will exceed the total limits",
+        "del_qry_suc":"Delete request sent successfully"
     },
     "button":{        
         "test_connct":  "Connection test",
@@ -681,8 +700,9 @@
         "cancel":       "Cancel",
         "refresh":      "Refresh table",
         "sel_prod":     "Select product",
-        "order_store":  "Order store",
-        "i_agree":      "I agree"
+        "order_store":  "Order site with store",
+        "i_agree":      "I agree",
+        "btn_go_site":  "Go to website"
     },
     "list":{
         "object":       "Object",

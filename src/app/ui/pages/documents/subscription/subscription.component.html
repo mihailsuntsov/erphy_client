@@ -48,11 +48,11 @@
                     </div>
                 </form>
                 <mat-spinner 
-strokeWidth="3" 
-class="spinner"
-[diameter]="50"
-*ngIf="gettingTableData || gettingPaymentsTableData"
-></mat-spinner>
+                    strokeWidth="3" 
+                    class="spinner"
+                    [diameter]="50"
+                    *ngIf="gettingTableData || gettingPaymentsTableData"
+                ></mat-spinner>
                 <mat-tab-group>
                     
                     <mat-tab label="{{t('docs.tab.info')}}">
@@ -73,21 +73,21 @@ class="spinner"
                                                 </ng-container>
 
                                                 <ng-container matColumnDef="balance_name">
-                                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef><p  class="table-info">{{t('docs.field.balance')}}</p></th>
+                                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef><p  class="table-info">{{t('docs.field.balance')}}, {{subscription.saas_payment_currency}}</p></th>
                                                 </ng-container>
                                                 <ng-container matColumnDef="balance_value" >
                                                     <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right"> {{subscription==undefined?'':subscription.money}}</p> </th>
                                                 </ng-container>
 
                                                 <ng-container matColumnDef="writeoff_day_name">
-                                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef><p  class="table-info">{{t('docs.field.writeoff_day')}}</p></th>
+                                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef><p  class="table-info">{{t('docs.field.writeoff_day')}}, {{subscription.saas_payment_currency}}</p></th>
                                                 </ng-container>
                                                 <ng-container matColumnDef="writeoff_day_value" >
                                                     <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right"> {{subscription==undefined?'':writeoffDay.toFixed(2)}}</p> </th>
                                                 </ng-container>
                                                 
                                                 <ng-container matColumnDef="writeoff_month_name">
-                                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef><p  class="table-info">{{t('docs.field.writeoff_month')}}</p></th>
+                                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef><p  class="table-info">{{t('docs.field.writeoff_month')}}, {{subscription.saas_payment_currency}}</p></th>
                                                 </ng-container>
                                                 <ng-container matColumnDef="writeoff_month_value" >
                                                     <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right"> {{subscription==undefined?'':(writeoffDay*30).toFixed(0)}}</p> </th>
@@ -359,16 +359,15 @@ class="spinner"
                                                             <p  class="table-info">{{subscription.n_megabytes_add}}</p>
                                                         </div>
                                                         <div class="plus-minus-wrapper">
-                                                            <span   class="material-icons unselectable" 
+                                                            <span   class="material-icons unselectable"                            
                                                                 [ngClass]="{plusMinusEnable: subscription.n_megabytes_add+subscription.n_megabytes<=(subscription.quantity_limit_megabytes-subscription.step_megabytes),
                                                                 plusMinusDisable: subscription.n_megabytes_add+subscription.n_megabytes>(subscription.quantity_limit_megabytes-subscription.step_megabytes)}"
                                                                 (click)="clickPlusMinus('megabytes','plus')">
                                                                 add_box
                                                             </span>
-                                                            <span   class="material-icons unselectable"
-                                                                [ngClass]="{plusMinusEnable: subscription.n_megabytes+subscription.n_megabytes_add-subscription.step_megabytes>=subscription.n_megabytes_fact,
-                                                                    plusMinusDisable: subscription.n_megabytes+subscription.n_megabytes_add-subscription.step_megabytes<subscription.n_megabytes_fact}"
-                                                                (click)="clickPlusMinus('megabytes','minus')">
+                                                            <span   class="material-icons unselectable"   
+                                                                [ngClass]="(subscription.n_megabytes+subscription.n_megabytes_add-subscription.step_megabytes>=subscription.n_megabytes_fact && subscription.n_megabytes_add>0)?'plusMinusEnable':'plusMinusDisable'"
+                                                                (click)="(subscription.n_megabytes+subscription.n_megabytes_add-subscription.step_megabytes>=subscription.n_megabytes_fact && subscription.n_megabytes_add>0)?clickPlusMinus('megabytes','minus'):onNoClick()">
                                                                 indeterminate_check_box
                                                             </span>
                                                         </div>
@@ -383,7 +382,8 @@ class="spinner"
                                                 
                                                 <!-- stores -->
                                                 <ng-container matColumnDef="stores_name" >
-                                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('sidebar.menu.items.stores')}} ({{t('menu.table.connections')}})</th>
+                                                    <th 
+                                                    matTooltip="{{t('docs.tip.connecton')}}" class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('sidebar.menu.items.stores')}}</th>
                                                 </ng-container>
                                                 <ng-container matColumnDef="stores_plan">
                                                     <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_stores}}</p></th>
@@ -401,9 +401,10 @@ class="spinner"
                                                                 add_box
                                                             </span>
                                                             <span   class="material-icons unselectable"
-                                                                [ngClass]="{plusMinusEnable: subscription.n_stores+subscription.n_stores_add-subscription.step_stores>=subscription.n_stores_fact,
-                                                                    plusMinusDisable: subscription.n_stores+subscription.n_stores_add-subscription.step_stores<subscription.n_stores_fact}"
-                                                                (click)="clickPlusMinus('stores','minus')">
+                                                                [ngClass]="((subscription.n_stores+subscription.n_stores_add-subscription.step_stores>=subscription.n_stores_fact) && 
+                                                                (subscription.n_stores+subscription.n_stores_add > subscription.n_stores_woo+subscription.n_stores_woo_add))?'plusMinusEnable':'plusMinusDisable'"
+                                                                (click)="((subscription.n_stores+subscription.n_stores_add-subscription.step_stores>=subscription.n_stores_fact) && 
+                                                                (subscription.n_stores+subscription.n_stores_add > subscription.n_stores_woo+subscription.n_stores_woo_add))?clickPlusMinus('stores','minus'):''">
                                                                 indeterminate_check_box
                                                             </span>
                                                         </div>
@@ -418,7 +419,8 @@ class="spinner"
                                                 
                                                 <!-- stores_woo -->
                                                 <ng-container matColumnDef="stores_woo_name" >
-                                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('sidebar.menu.items.stores')}} ({{t('menu.table.in_rent')}}) </th>
+                                                    <th  
+                                                    matTooltip="{{t('docs.tip.wp_sites')}}" class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('docs.field.st_in_rent')}}</th>
                                                 </ng-container>
                                                 <ng-container matColumnDef="stores_woo_plan">
                                                     <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info">{{subscription.n_stores_woo}}</p></th>
@@ -432,7 +434,8 @@ class="spinner"
                                                             <span   class="material-icons unselectable" 
                                                                 [ngClass]="{plusMinusEnable: subscription.n_stores_woo_add+subscription.n_stores_woo<=(subscription.quantity_limit_stores_woo-subscription.step_stores_woo),
                                                                 plusMinusDisable: subscription.n_stores_woo_add+subscription.n_stores_woo>(subscription.quantity_limit_stores_woo-subscription.step_stores_woo)}"
-                                                                (click)="clickPlusMinus('stores_woo','plus')">
+                                                                (click)="clickPlusMinus('stores_woo','plus');
+                                                                subscription.n_stores_woo+subscription.n_stores_woo_add>subscription.n_stores+subscription.n_stores_add?subscription.n_stores_add=(subscription.n_stores_woo+subscription.n_stores_woo_add-subscription.n_stores):''">
                                                                 add_box
                                                             </span>
                                                             <span   class="material-icons unselectable"
@@ -460,7 +463,7 @@ class="spinner"
                                                 <tr mat-header-row *matHeaderRowDef="counterpartiesColumns" style="height: 54px;"></tr>
                                                 <tr mat-header-row *matHeaderRowDef="megabytesColumns" style="height: 54px;"></tr>
                                                 <tr mat-header-row *matHeaderRowDef="storesColumns" style="height: 54px;"></tr>
-                                                <tr mat-header-row *matHeaderRowDef="stores_wooColumns" style="height: 54px;"></tr>
+                                                <tr  [hidden]="!subscription.is_saas" mat-header-row *matHeaderRowDef="stores_wooColumns" style="height: 54px;"></tr>
 
 
                                                 
@@ -587,6 +590,12 @@ class="spinner"
                                                                         <span class="sortheader"> {{t('docs.field.oper_sum')}}</span>
                                                                     </th>
                                                                     <td mat-cell style="height: 48px;" *matCellDef="let row"> {{row.operation_sum}} </td>
+                                                                </ng-container>
+                                                                <ng-container matColumnDef="additional">
+                                                                    <th mat-header-cell *matHeaderCellDef style="height: 56px;">
+                                                                        <span class="sortheader"> {{t('docs.field.description')}}</span>
+                                                                    </th>
+                                                                    <td mat-cell style="height: 48px;" *matCellDef="let row"> {{row.additional}} </td>
                                                                 </ng-container>
                                                                 
                                                                 <tr mat-header-row *matHeaderRowDef="displayedPaymentsReportColumns"></tr>

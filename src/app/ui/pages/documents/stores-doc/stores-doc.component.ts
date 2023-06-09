@@ -7,10 +7,11 @@ import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogConfig, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 // import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { v4 as uuidv4 } from 'uuid';
+import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
 import { translate } from '@ngneat/transloco'; //+++import { Observable } from 'rxjs';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { RentStoreOrderDialog } from 'src/app/ui/dialogs/rent-store-order-dialog.component';
@@ -122,6 +123,22 @@ interface MasterAccountInfo {
   n_stores_fact: number;
   n_stores_woo_fact: number;
 }
+interface RentStoreShortInfo{
+  date_time_created: string; 
+  date_time_ordered: string;            //when user sent query to get site
+  date_time_distributed: string;        //when user got the site
+  date_time_query_to_delete: string;    //-- when user sent query to delete - store mark as "is_queried_to_delete=true"
+  date_time_deleted: string;            //-- when site was physically deleted from server
+  distributed: boolean;
+  ready_to_distribute: boolean;
+  is_queried_to_delete: boolean;   //user sent query to delete
+  is_deleted: boolean;             //site was physically deleted from server
+  panel_domain: string;
+  site_domain: string;
+  record_creator_name: string;         // name of employee who created this record
+  orderer: string;                      // who ordered (who is clicked on the button "Order store")
+  deleter: string;                      // who deleted (who is clicked on the button "Delete store")
+}
 interface StoresList {//интерфейс массива для получения всех налогов текущего документа
   id: string;
   name: string;
@@ -160,7 +177,8 @@ export class StoresDocComponent implements OnInit {
   receivedPriceTypesList: idNameDescription [] = [];//массив для получения списка типов цен
   receivedDepartmentsList: IdAndName [] = [];//массив для получения списка отделений
   subscription: MasterAccountInfo;
-
+  userInfo: any;//информация о пользователе
+  rentStoreShortInfo:RentStoreShortInfo[]=[];
   //для поиска контрагента (покупателя) по подстроке
   searchDefaultCustomerCtrl = new UntypedFormControl();//поле для поиска дефолтного контрагента для созданных из интернет-магазина заказов
   isCagentListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
@@ -205,7 +223,7 @@ export class StoresDocComponent implements OnInit {
   n_stores_woo = 0;                             // total quantity of rent stores in plan
   n_stores_woo_add = 0;                         // additional (optional) quantity of rent stores
   n_stores_woo_fact = 0;                        // using  quantity of rent stores
-
+  plan_free = false;                            // for free plans the billing is not applied, also users that use it can't use an additional options
 
   @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
   
@@ -216,6 +234,7 @@ export class StoresDocComponent implements OnInit {
     public RentStoreOrderDialog: MatDialog,
     public ConfirmDialog: MatDialog,
     private loadSpravService:   LoadSpravService,
+    public deleteDialog: MatDialog,
     private _router:Router,
     private _snackBar: MatSnackBar) { 
       if(activateRoute.snapshot.params['id'])
@@ -230,17 +249,17 @@ export class StoresDocComponent implements OnInit {
       lang_code:                new UntypedFormControl      ('EN',[Validators.required, Validators.minLength(2),Validators.maxLength(2)]),  
       store_type:               new UntypedFormControl      ('woo',[]),  // e.g. woo
       store_api_version:        new UntypedFormControl      ('v3',[]),  // e.g. v3
-      crm_secret_key:           new UntypedFormControl      ('',[Validators.required, Validators.maxLength(36)]),  // like UUID generated
-      store_price_type_regular: new UntypedFormControl      ('',[Validators.required]),  // id of regular type price
-      store_price_type_sale:    new UntypedFormControl      ('',[]),  // id of sale type price                // used with nds_payer as default values for Customers orders fields "Tax" and "Tax included"
+      crm_secret_key:           new UntypedFormControl      ('',[Validators.maxLength(36)]),  // like UUID generated
+      store_price_type_regular: new UntypedFormControl      (null,[Validators.required]),  // id of regular type price
+      store_price_type_sale:    new UntypedFormControl      (null,[]),  // id of sale type price                // used with nds_payer as default values for Customers orders fields "Tax" and "Tax included"
       store_orders_department_id:  new UntypedFormControl   (null,[Validators.required]),   // department for creation Customer order from store
       store_if_customer_not_found: new UntypedFormControl   ('create_new',[Validators.required]),  // "create_new" or "use_default"
       store_default_customer_id:   new UntypedFormControl   (null,[]),    // counterparty id if store_if_customer_not_found=use_default
       store_default_creator_id:    new UntypedFormControl   (null,[Validators.required]),   // ID of default user, that will be marked as a creator of store order. Default is master user
-      store_days_for_esd:          new UntypedFormControl   ('0',[Validators.required,Validators.maxLength(3),Validators.pattern('^[0-9]{1,3}$')]),// number of days for ESD of created store order. Default is 0 
+      store_days_for_esd:          new UntypedFormControl   ('1',[Validators.required,Validators.maxLength(3),Validators.pattern('^[0-9]{1,3}$')]),// number of days for ESD of created store order. Default is 0 
       storeDepartments:            new UntypedFormControl   ([],[Validators.required]),
       store_auto_reserve:          new UntypedFormControl   (false,[]), // auto reserve product after getting internet store order
-      store_ip:                    new UntypedFormControl   ('',[Validators.required,Validators.maxLength(21)]),  // internet-store ip address
+      store_ip:                    new UntypedFormControl   ('',[Validators.maxLength(21)]),  // internet-store ip address
       is_deleted:                  new UntypedFormControl   (false,[]),
       is_let_sync:                 new UntypedFormControl   (true,[]),
       
@@ -282,11 +301,15 @@ export class StoresDocComponent implements OnInit {
     this.is_saas &&               // 3. the SaaS mode in settings_general is on (is_saas=true)
     this.is_sites_distribution && // 4. Sites distribution mode in settings_general is on (is_sites_distribution=true)
     this.can_order_store &&       // 5. There is no active (non-deleted) stores for this online store connection
-    (this.n_stores_woo+           // 6. (Sum qtt of stores in plan and options) minus qtt of existed (distributed and non-deleted) stores > 0
-    this.n_stores_woo_add-this.n_stores_woo_fact) > 0;                         
+    (                             // 6. (Sum qtt of stores in plan and options) minus qtt of existed (distributed and non-deleted) stores > 0
+      (!this.plan_free && (this.n_stores_woo+this.n_stores_woo_add-this.n_stores_woo_fact > 0)) || this.plan_free
+    );                         
   }
   get showRentStoreBlock(){
     return this.id>0 && (this.n_stores_woo_fact>0 || this.canOrderStore);
+  }
+  get showRentStoreInfo(){
+    return (this.showRentStoreBlock && !this.canOrderStore)
   }
 //---------------------------------------------------------------------------------------------------------------------------------------                            
 // ----------------------------------------------------- *** ПРАВА *** ------------------------------------------------------------------
@@ -408,6 +431,7 @@ onDefaultCreatorSearchValueChanges(){
       this.getDocumentValuesById();
     }else {
       this.getCompaniesList();
+      this.setDefaultOrderCretor();
     }
   }
 
@@ -464,8 +488,8 @@ onDefaultCreatorSearchValueChanges(){
   onCompanyChange(){
     this.searchDefaultCustomerCtrl.reset();
     this.searchDefaultCreatorCtrl.reset();
-    this.formBaseInformation.get('store_price_type_regular').setValue('');
-    this.formBaseInformation.get('store_price_type_sale').setValue('');
+    this.formBaseInformation.get('store_price_type_regular').setValue(null);
+    this.formBaseInformation.get('store_price_type_sale').setValue(null);
     this.formBaseInformation.get('store_orders_department_id').setValue(null);
     this.formBaseInformation.get('store_default_creator_id').setValue(null);
     this.formBaseInformation.get('store_default_customer_id').setValue(null);   
@@ -516,6 +540,8 @@ onDefaultCreatorSearchValueChanges(){
                   this.getPriceTypesList();
                   this.getDepartmentsList(); 
                   this.refreshPermissions();
+                  this.getRentStoreShortInfo();
+                  this.getMasterAccountInfo();
                 } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
@@ -530,7 +556,7 @@ onDefaultCreatorSearchValueChanges(){
                   let result:number=data as number;
                   switch(result){
                     case null:{// null возвращает если не удалось сохранить документ из-за ошибки
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_of') + (translate('docs.msg._of_save')) + translate('docs.msg._of_doc',{name:translate('docs.docs.company')})}});
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_of') + (translate('docs.msg._of_save')) + translate('docs.msg._of_doc',{name:translate('docs.docs.store')})}});
                       break;
                     }
                     case -1:{//недостаточно прав
@@ -563,7 +589,7 @@ onDefaultCreatorSearchValueChanges(){
             let result:number=data as number;
             switch(result){
               case null:{// null возвращает если не удалось сохранить документ из-за ошибки
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_of') + (translate('docs.msg._of_save')) + translate('docs.msg._of_doc',{name:translate('docs.docs.company')})}});
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_of') + (translate('docs.msg._of_save')) + translate('docs.msg._of_doc',{name:translate('docs.docs.store')})}});
                 break;
               }
               case -1:{//недостаточно прав
@@ -637,13 +663,42 @@ onDefaultCreatorSearchValueChanges(){
 
   getPriceTypesList(){
     this.loadSpravService.getPriceTypesList(this.formBaseInformation.get('company_id').value).subscribe(
-        (data) => {this.receivedPriceTypesList=data as any [];},
+        (data) => {this.receivedPriceTypesList=data as any [];
+          // set default price type
+          // console.log("this.receivedPriceTypesList.length>0 " + (this.receivedPriceTypesList.length>0));
+          // console.log("+this.formBaseInformation.get('store_price_type_regular').value==0" + (+this.formBaseInformation.get('store_price_type_regular').value==0))
+          // console.log("this.receivedPriceTypesList.length>1 " + (this.receivedPriceTypesList.length>0));
+          // console.log("+this.formBaseInformation.get('store_price_type_sale').value==0" + (+this.formBaseInformation.get('store_price_type_sale').value==0))
+          // console.log("this.receivedPriceTypesList[0] " + this.receivedPriceTypesList[0].id);
+          // console.log("this.receivedPriceTypesList[1] " + this.receivedPriceTypesList[1].id);
+
+          if(this.receivedPriceTypesList.length>0 && +this.formBaseInformation.get('store_price_type_regular').value==0) 
+            this.formBaseInformation.get('store_price_type_regular').setValue(this.receivedPriceTypesList[0].id);
+          if(this.receivedPriceTypesList.length>1 && +this.formBaseInformation.get('store_price_type_sale').value==0) 
+            this.formBaseInformation.get('store_price_type_sale').setValue(this.receivedPriceTypesList[1].id);
+        },
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});}
       );
   }
   getDepartmentsList(){
     this.loadSpravService.getDepartmentsList(this.formBaseInformation.get('company_id').value).subscribe(
-        (data) => {this.receivedDepartmentsList=data as any []},
+        (data) => {this.receivedDepartmentsList=data as any [];
+          
+          
+          // if creating:
+          if(+this.id==0){
+            //select first department as default for store department
+            if(this.receivedDepartmentsList.length>0) 
+            this.formBaseInformation.get('store_orders_department_id').setValue(this.receivedDepartmentsList[0].id);
+            //fill store departments
+            let storeDepartments: number[] = [];
+            storeDepartments
+            this.receivedDepartmentsList.forEach(dep=>{
+              storeDepartments.push(dep.id);
+            })
+            this.formBaseInformation.get('storeDepartments').setValue(storeDepartments);
+          }
+        },
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});}
     );
   }
@@ -655,24 +710,93 @@ onDefaultCreatorSearchValueChanges(){
                 this.n_stores_woo = this.subscription.n_stores_woo;
                 this.n_stores_woo_add = this.subscription.n_stores_woo_add;
                 this.n_stores_woo_fact = this.subscription.n_stores_woo_fact;
+                this.plan_free = this.subscription.plan_free;
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}
         );
   }
+
+  setDefaultOrderCretor(){
+    this.userInfo=this.loadSpravService.getMyShortInfo()
+    .subscribe(
+        (data) => {
+          this.userInfo=data as any;
+          this.searchDefaultCreatorCtrl.setValue(this.userInfo.name);
+          this.formBaseInformation.get('store_default_creator_id').setValue(this.userInfo.id);
+        },
+        error => console.log(error)
+    );
+  }
+
   orderRentStore(){
+    let dialogConfig = new MatDialogConfig(); 
     const dialogRef = this.RentStoreOrderDialog.open(RentStoreOrderDialog, {
-      width: '800px', //+++
+      width: '900px', //+++
       height:'800px', //+++
       data:
       { 
-        head: translate('menu.dialogs.duplication'), //+++
-        warning: translate('menu.dialogs.sel_dup_optio'),
-        productId: 1
+        companyId: this.formBaseInformation.get('company_id').value, //+++
+        storeId: this.id,
       },
     });
-    dialogRef.afterClosed().subscribe(result => {
-      if(result==1){this.getData()}
+    // renew data at the moment when online store taken
+    dialogRef.componentInstance.onGetOnlineStore.subscribe(data=> {
+      if(data) this.getData()
+    })
+    // dialogRef.afterClosed().subscribe(result => {
+    //   if(result){this.getData()}
+    // });
+  }
+
+  deleteRentStore(recordId:number){
+
+    const dialogRef = this.deleteDialog.open(DeleteDialog, {
+      width: '300px',
     });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){
+
+        return this.http.get('/api/auth/deleteRentStore?store_id='+this.id+'&record_id='+recordId)
+        .subscribe(
+          (data) => 
+          {   
+            let result:number=data as number;
+            switch(result){
+              case null:{// null возвращает если не удалось сохранить документ из-за ошибки
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_of') + (translate('docs.msg._of_del')) + translate('docs.msg._of_doc',{name:translate('docs.docs.store')})}});
+                break;
+              }
+              case -1:{//недостаточно прав
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});
+                break;
+              }
+              default:{// Успешно
+                this.getData();
+                this.openSnackBar(translate('docs.msg.del_qry_suc'),translate('docs.msg.close'));
+              }
+            }                  
+          },
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
+        );
+
+      }
+    });        
+
+    
+
+
+
+  }
+  getRentStoreShortInfo(){
+    this.http.get('/api/auth/getRentStoresShortInfo?store_id='+this.id)
+    .subscribe(
+        data => { 
+
+            this.rentStoreShortInfo = data as RentStoreShortInfo[];
+
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}
+    );
   }
   numberOnly(event): boolean {
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which

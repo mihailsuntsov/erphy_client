@@ -42,6 +42,10 @@ body {
     top: 16px;
     margin-top: -16px;
     z-index: 999;
+    
+    height: 65px;
+    top: 0;
+    padding-top: 20px;
     /* background: white; */
   }
   #topBlock {    

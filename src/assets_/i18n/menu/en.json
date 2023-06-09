@@ -244,7 +244,8 @@
         "vii_can_creat":"\"Issued VAT invoices\" can be created only from next documents: \"Credit slip\", \"Incoming payment\", \"Shipment\"",
         "vio_can_creat":"\"Received VAT invoices\" can be created only from next documents: \"Debit slip\", \"Outgoing payment\", \"Acceptance\"",
         "ext_acc_succ": "External access to selected files changed successfully",
-        "changed_succ": "Changed successfully"
+        "changed_succ": "Changed successfully",
+        "stores_have_sites":"One or more of the online stores to be deleted has a site linked to it that has not been deleted. First you need to delete the site"
     },
     "dialogs":{
         "restore":      "Restore",
@@ -388,7 +389,7 @@
         "currencies":   "currencies",
         "accounts":     "bank accounts",
         "productattr":  "product attributes",
-        "stores":       "online-stores",
+        "stores":       "online-stores (connections)",
         "ch_cat_stores":"Сhange online stores",
         "subscription": "subscription",
         "del_ctgrs":    "Delete categories"

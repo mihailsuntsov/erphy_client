@@ -622,8 +622,10 @@ export class ProductsComponent implements OnInit {
     this.sendingQueryForm.selectedNodeId='';
     this.sendingQueryForm.selectedNodeName='';
     this.sendingQueryForm.searchCategoryString='';
-    Cookie.delete('products_selectedNodeId');
-    Cookie.delete('products_selectedNodeName');
+    this.sendingQueryForm.selectedNodeName='';
+    this.sendingQueryForm.selectedNodeId='0';
+    Cookie.set('products_selectedNodeId',this.sendingQueryForm.selectedNodeId);
+    Cookie.set('products_selectedNodeName',this.sendingQueryForm.selectedNodeName);
     if(getData)this.getData();
   }
 

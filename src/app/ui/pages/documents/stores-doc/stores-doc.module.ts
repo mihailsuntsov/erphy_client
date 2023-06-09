@@ -8,8 +8,10 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
+import { SanitizedHtmlPipe } from 'src/app/services/sanitized-html.pipe';
+
 @NgModule({
-  declarations: [StoresDocComponent,RentStoreOrderDialog],
+  declarations: [StoresDocComponent,RentStoreOrderDialog,SanitizedHtmlPipe],
   imports: [
     CommonModule,
     StoresDocRoutingModule,

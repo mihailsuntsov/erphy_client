@@ -1166,11 +1166,10 @@
                                                                             </mat-form-field>
 
                                                                         </div>
-                                                                        <!-- <mat-divider style="margin:10px 0"></mat-divider> -->
+                                                                        <mat-divider style="margin:10px 0"></mat-divider>
 
-                                                                        <!-- *** I don't know why, but at the present time i can't find this settings (tax_status) in a WooCommerce product card ***  -->
                                                                         
-                                                                        <!-- <mat-form-field  class="mat-form-field-100" style="width:360px">
+                                                                        <mat-form-field *ngIf="is_vat" class="mat-form-field-100" style="width:360px">
                                                                             <mat-label>{{t('docs.field.tax_status')}}</mat-label>
                                                                             <mat-select formControlName="tax_status">
                                                                                 <option value="" selected></option>
@@ -1178,7 +1177,7 @@
                                                                                 <mat-option value="shippng">{{t('docs.list.ts_shippng')}}</mat-option>
                                                                                 <mat-option value="none">{{t('docs.list.ts_none')}}</mat-option>    
                                                                             </mat-select>                                              
-                                                                        </mat-form-field> -->
+                                                                        </mat-form-field>
                                                                     </div>
                                                                     <div class="col-12" *ngIf="prop_menu=='inventory'" class="drawer-settings">
                                                                         <mat-form-field  class="mat-form-field-100">
@@ -1875,6 +1874,6 @@
                 </mat-card-content> 
             </mat-card>
         </div>
-        <code><pre>{{formBaseInformation.value | json}}</pre></code>
+        <!-- <code><pre>{{formBaseInformation.value | json}}</pre></code> -->
     </mat-drawer-content>
 </mat-drawer-container>

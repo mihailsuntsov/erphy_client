@@ -43,6 +43,7 @@ interface DocResponse {
   plan_price: number;          // how much writeoff per day for tariff plan
   plan_no_limits: boolean;     // tariff plan has no limits
   is_saas:boolean;             // DokioCRM works as a SaaS
+
   plan_free: boolean;          // for free plans the billing is not applied, also users that use it can't use an additional options
   companies_ppu: number;       // writeoff per day for 1 additional company
   departments_ppu: number;     // writeoff per day for 1 additional department
@@ -52,6 +53,7 @@ interface DocResponse {
   megabytes_ppu: number;       // writeoff per day for 1 additional Mb
   stores_ppu: number;          // writeoff per day for 1 additional WooCommerce store connection (document "Store")
   stores_woo_ppu: number;      // writeoff per day for 1 additional WooCommerce hosting
+  saas_payment_currency:string;// currency of SaaS subscription accounting
 
   // plan
   n_companies: number;
@@ -614,6 +616,7 @@ getPaymentsTableHeaderTitles(){
   this.displayedPaymentsReportColumns.push('for_what_date');
   this.displayedPaymentsReportColumns.push('operation_type');
   this.displayedPaymentsReportColumns.push('operation_sum');
+  this.displayedPaymentsReportColumns.push('additional');
 }
 setPage(value:any) // set pagination
   {
@@ -638,7 +641,8 @@ setSort(valueSortColumn:any) // set sorting column
     this.formPaymentsHistory.offset=0;
     this.getTable();
   }
-
+  onNoClick(): void {
+}
 
 
 
