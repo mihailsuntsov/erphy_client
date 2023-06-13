@@ -6,9 +6,10 @@ import { RegisterComponent } from './register.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SharedModule } from '../modules/shared.module';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import { SanitizedHtmlPipe } from 'src/app/services/sanitized-html.pipe';
 
 @NgModule({
-  declarations: [RegisterComponent],
+  declarations: [RegisterComponent,SanitizedHtmlPipe],
   imports: [
     CommonModule,
     RegisterRoutingModule,

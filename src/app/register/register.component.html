@@ -140,12 +140,26 @@ class="spinner"
         </mat-hint>
       </mat-form-field>
 
+      <div style="margin-top:20px" *ngIf="showAgreeCheckbox">
+        <!-- <mat-form-field> -->
+          <mat-checkbox class="example-margin" formControlName="agree" required>{{'docs.button.i_agree_w' | transloco}}</mat-checkbox>
+          <span *ngIf="isTAC">&nbsp;<a target="_blank" href="{{settingsGeneral.url_terms_and_conditions}}">{{'docs.button._t_a_c' | transloco}}</a></span>
+
+          <span *ngIf="isTAC&&isPP">, </span>
+          <span *ngIf="isPP"><a target="_blank"href="{{settingsGeneral.url_privacy_policy}}">{{'docs.button._p_p' | transloco}}</a></span>
+          
+          <span *ngIf="(isTAC||isPP)&&isDPA">, </span>
+          <span *ngIf="isDPA"><a target="_blank" href="{{settingsGeneral.url_data_processing_agreement}}">{{'docs.button._d_p_a' | transloco}}</a></span>
+
+        <!-- </mat-form-field> -->
+      </div>
+
       <button mat-button 
       mat-raised-button 
       color="primary" 
       style="margin-top: 20px;" 
       (click)="onSubmit()" 
-      [disabled]="regform.invalid || isSendingForm">{{'user.btn.registration' | transloco}}</button>
+      [disabled]="regform.invalid || isSendingForm || (showAgreeCheckbox && !regform.get('agree').value)">{{'user.btn.registration' | transloco}}</button>
       <div *ngIf="isSignUpFailed" class="form-invalid">
         {{'user.error.reg_not_compl' | transloco}}: {{errorMessage}}
       </div>
@@ -156,4 +170,5 @@ class="spinner"
     </div>
   </mat-card-content>
 </mat-card>
+<!-- <code><pre>{{regform.value | json}}</pre></code> -->
 <!-- </ng-template> -->

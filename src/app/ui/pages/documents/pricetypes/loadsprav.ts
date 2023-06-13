@@ -11,5 +11,5 @@ export class LoadSpravService{
             has_parent:has_parent,
             companyId: companyId  };
         return this.http.post('/api/auth/getMyDepartmentsListByCompanyId', body);}
-    getSpravSysPriceRole(){return this.http.post('http://localhost:8080/api/auth/getSpravSysPriceRole', '');}
+    //getSpravSysPriceRole(){return this.http.post('http://localhost:8080/api/auth/getSpravSysPriceRole', '');}
 }

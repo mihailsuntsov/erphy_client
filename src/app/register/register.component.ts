@@ -4,6 +4,16 @@ import { SignUpInfo } from '../auth/signup-info';
 import {  Validators, UntypedFormGroup, UntypedFormControl } from '@angular/forms';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { translate, TranslocoService } from '@ngneat/transloco';
+import { HttpClient } from '@angular/common/http';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
+import { MatDialog } from '@angular/material/dialog';
+
+interface SettingsGeneral{
+  url_terms_and_conditions:string;
+  url_privacy_policy:string;
+  url_data_processing_agreement:string;
+  }
 
 @Component({
   selector: 'app-register',
@@ -24,7 +34,16 @@ export class RegisterComponent implements OnInit {
   emptyPassword=false;
   showPwd=false;
 
+  settingsGeneral:SettingsGeneral= {
+    url_terms_and_conditions:'_',
+    url_privacy_policy:'_',
+    url_data_processing_agreement:'_',
+  };
+
   constructor(private authService: AuthService,
+    private sanitized: DomSanitizer,
+    private http: HttpClient,
+    public MessageDialog: MatDialog,
     private service: TranslocoService,) { 
     this.regform = new UntypedFormGroup({
       name: new UntypedFormControl ('',[Validators.required,Validators.minLength(2)]),
@@ -32,6 +51,7 @@ export class RegisterComponent implements OnInit {
       email: new UntypedFormControl ('',[Validators.required,Validators.email]),
       password: new UntypedFormControl ('',[Validators.required,Validators.minLength(6),Validators.maxLength(20),Validators.pattern('^[a-zA-Z][a-zA-Z0-9-_\.]{1,20}$')]),
       language: new UntypedFormControl ('',[]),
+      agree: new UntypedFormControl ('',[]),
     });
   }
 
@@ -39,6 +59,8 @@ export class RegisterComponent implements OnInit {
     if(Cookie.get('language')=='undefined' || Cookie.get('language')==null || Cookie.get('language')=='null')
       this.setLanguage('en');
     this.service.setActiveLang(Cookie.get('language'));
+
+    this.getSettingsGeneral();
   
   }
 
@@ -53,6 +75,32 @@ export class RegisterComponent implements OnInit {
       case 'ru': return 'Русский';
       default: return 'English';
     }
+  }
+  get showAgreeCheckbox(){
+    return (this.settingsGeneral.url_data_processing_agreement!=''&&
+    this.settingsGeneral.url_privacy_policy!=''&&
+    this.settingsGeneral.url_terms_and_conditions!='');
+  }
+  get isTAC(){
+    return (
+    this.settingsGeneral.url_terms_and_conditions!='');
+  }
+  get isPP(){
+    return (
+    this.settingsGeneral.url_privacy_policy!='');
+  }
+  get isDPA(){
+    return (
+    this.settingsGeneral.url_data_processing_agreement!='');
+  }
+  getSettingsGeneral(){
+    return this.http.get('/api/public/getSettingsGeneral')
+      .subscribe(
+          (data) => {   
+              this.settingsGeneral=data as SettingsGeneral;
+          },
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
+          );
   }
   onSubmit() {
     if( (this.regform.get("name").value!="") && 

@@ -416,14 +416,14 @@ getTableHeaderTitles(){
           },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
     }  
 
-    getSpravSysPriceRole(){
-      this.receivedSpravSysPriceRole=null;
-      this.loadSpravService.getSpravSysPriceRole()
-              .subscribe(
-                  (data) => {this.receivedSpravSysPriceRole=data as any [];},
-                  error => console.log(error)
-              );
-    }
+    // getSpravSysPriceRole(){
+    //   this.receivedSpravSysPriceRole=null;
+    //   this.loadSpravService.getSpravSysPriceRole()
+    //           .subscribe(
+    //               (data) => {this.receivedSpravSysPriceRole=data as any [];},
+    //               error => console.log(error)
+    //           );
+    // }
 
     onClickRadioBtn(id:number, name:string){
       const body = {"id": this.sendingQueryForm.companyId, "id3":id}; 

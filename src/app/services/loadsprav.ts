@@ -118,7 +118,7 @@ export class LoadSpravService{
         const body = {companyId: companyId, documentId: documentId};
         return this.http.post('/api/auth/getStatusList', body);}    
     // загрузка роли цены. Устарело.    
-    getSpravSysPriceRole(){return this.http.post('/api/auth/getSpravSysPriceRole', '');}
+    //getSpravSysPriceRole(){return this.http.post('/api/auth/getSpravSysPriceRole', '');}
     //загружает деревья категорий контрагентов
     getCagentCategoriesTrees(companyId: number){
         const body = {companyId: companyId};

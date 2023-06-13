@@ -310,14 +310,14 @@ getSetOfPermissions(){
         },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},);
   }
 
-  getSpravSysPriceRole(){
-    this.receivedSpravSysPriceRole=null;
-    this.loadSpravService.getSpravSysPriceRole()
-            .subscribe(
-                (data) => {this.receivedSpravSysPriceRole=data as any [];},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
-            );
-  }
+  // getSpravSysPriceRole(){
+  //   this.receivedSpravSysPriceRole=null;
+  //   this.loadSpravService.getSpravSysPriceRole()
+  //           .subscribe(
+  //               (data) => {this.receivedSpravSysPriceRole=data as any [];},
+  //               error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+  //           );
+  // }
 
   getBaseData(data) {    //+++ emit data to parent component
     this.baseData.emit(data);

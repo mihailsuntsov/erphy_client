@@ -701,7 +701,7 @@
                                         </div>   
                                 </mat-tab>
 
-                                <mat-tab  *ngIf="visAfterCreatingBlocks && formBaseInformation.get('type').value != 'variable'"  label="{{t('docs.tab.operations')}}">
+                                <mat-tab  *ngIf="visAfterCreatingBlocks && formBaseInformation.get('type').value != 'variable' && +formBaseInformation.get('company_id').value>0"  label="{{t('docs.tab.operations')}}">
                                     <mat-spinner 
                                         strokeWidth="3" 
                                         class="spinner"

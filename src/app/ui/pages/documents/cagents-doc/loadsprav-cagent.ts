@@ -25,7 +25,7 @@ export class LoadSpravService{
     
     getMyId(){return this.http.get('/api/auth/getMyId');} 
 
-    getSpravSysPriceRole(){return this.http.post('http://localhost:8080/api/auth/getSpravSysPriceRole', '');}
+    // getSpravSysPriceRole(){return this.http.post('http://localhost:8080/api/auth/getSpravSysPriceRole', '');}
 
     getMyCompanyId(){return this.http.get('/api/auth/getMyCompanyId');} 
     

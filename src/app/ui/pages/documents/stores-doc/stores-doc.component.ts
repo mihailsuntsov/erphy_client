@@ -71,6 +71,7 @@ interface MasterAccountInfo {
   megabytes_ppu: number;       // writeoff per day for 1 additional Mb
   stores_ppu: number;          // writeoff per day for 1 additional WooCommerce store connection (document "Store")
   stores_woo_ppu: number;      // writeoff per day for 1 additional WooCommerce hosting
+  root_domain: string;         // like "dokio.me"
 
   // plan
   n_companies: number;
@@ -737,6 +738,7 @@ onDefaultCreatorSearchValueChanges(){
       { 
         companyId: this.formBaseInformation.get('company_id').value, //+++
         storeId: this.id,
+        rootDomain: this.subscription.root_domain
       },
     });
     // renew data at the moment when online store taken

@@ -239,6 +239,7 @@
         "q_to_remov":"Query to remove",
         "removed_at":"Removed at",
         "st_in_rent":"Online-stores (DokioCRM hosted)",
+        "site_name":"Site name",
 
         "-- SELL REGICTERS ":"--",
 
@@ -375,10 +376,12 @@
         "num_digits":       "Must be {{num}} digits",
         "num_letters":      "Must be {{num}} letter(s)",
         "prces_not_diff":   "Regular price and sale price should be different",
-        "320":"Не получено согласие на предоставление услуги",
-        "340":"Данное подключение уже имеет привязанный к нему действующий интернет-магазин",
-        "350":"Превышено максимально допустимое количество интернет-магазинов, которые можно заказать за 24 часа с одного аккаунта",
-        "351":"Превышено максимально допустимое количество интернет-магазинов, которые можно заказать за 24 часа с одного IP-адреса",
+        "320":"Consent to the service agreement not received",
+        "340":"This connection already has an active online store linked to it (or an order for online store)",
+        "350":"Exceeded the maximum allowable quantity of online stores that can be ordered in 24h from one account",
+        "351":"Exceeded the maximum allowable quantity of online stores that can be ordered in 24h from one IP address",
+        "too_short":"Too short",
+        "too_long":"Too long",
         
         "-- RETURNS TO SUPPLIERS":"--",
 
@@ -689,7 +692,8 @@
         "del_trial_q":"Do you really want to delete trial period?",
         "no_money":"You can not change the plan to a paid one with a zero or negative balance",
         "out_limits":"Cannot be saved if the used resources will exceed the total limits",
-        "del_qry_suc":"Delete request sent successfully"
+        "del_qry_suc":"Delete request sent successfully",
+        "site_name_n_allwd":"This site name is not allowed"
     },
     "button":{        
         "test_connct":  "Connection test",
@@ -702,7 +706,12 @@
         "sel_prod":     "Select product",
         "order_store":  "Order site with store",
         "i_agree":      "I agree",
-        "btn_go_site":  "Go to website"
+        "i_agree_w":    "I have read and agree to the:",
+        "_t_a_c":       "Terms and conditions",
+        "_p_p":         "Privacy policy",
+        "_d_p_a":       "Data processing agreement",
+        "btn_go_site":  "Go to website",
+        "next":"Next"
     },
     "list":{
         "object":       "Object",

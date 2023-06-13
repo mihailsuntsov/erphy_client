@@ -86,17 +86,92 @@ interface Agreement{
                                             [ngModelOptions]="{standalone: true}">
                                 </textarea>
 
-
                                 <div style="display:flex; margin-top:20px">
                                     <mat-checkbox class="example-margin" formControlName="agree" required>{{t('docs.button.i_agree')}}</mat-checkbox>
+                                    <button 
+                                        mat-raised-button 
+                                        color="primary"
+                                        [disabled]="!firstFormGroup.get('agree').value" 
+                                        style="position: absolute; right: 25px;"
+                                        type="button"
+                                        mat-button matStepperNext>
+                                        {{t('docs.button.next')}}
+                                    </button>
+                                    
 
-                                    <div *ngIf = "firstFormGroup.get('agree').value" style="width:50%">
-                                        <button mat-button [disabled]="gettingTableData" 
+                                </div>
+
+                            </mat-card-content>
+
+                        </mat-card>
+
+
+
+
+
+
+                    </form>
+                </mat-step>
+
+                <mat-step [stepControl]="secondFormGroup" label="{{t('docs.field.site_name')}}" [editable]="false">
+                    <form [formGroup]="secondFormGroup">
+
+
+
+                        <mat-card class="card for-sticky-header" style="height: 560px; margin-top: 10px;">
+                            
+                            <mat-card-title class="top-bar container-fluid" style="margin-bottom: 0px !important;"> 
+                                <div class="row" id="topBlock">
+                                    <div class="card-name">
+                                        <span>{{t('docs.field.site_name')}}</span>
+                                    </div>
+                                </div>
+                            </mat-card-title>
+                            <mat-card-content>
+                            <!--**--{{secondFormGroup.get('thirdLvlName').value.length}}--**--{{secondFormGroup.get('thirdLvlName').value.length>0 && secondFormGroup.get('thirdLvlName').touched && secondFormGroup.get('thirdLvlName').invalid}}-->
+                                <div id="site_name" style="text-align:center; height:417px; width:100%">
+                                    <mat-form-field style="margin-top: 80px;width:100%;max-width: 400px;
+                                    align-items: baseline;
+                                    box-sizing: border-box;
+                                    width: 100%; ">
+                                        <input type="texts"
+                                        (keypress)="numbersAndLettersOnly($event)"
+                                        (keyup)="isSiteNameAllowed()"
+                                        matInput
+                                        #thirdLvlName
+                                        style="width:100%"
+                                        maxlength="30"
+                                        placeholder="{{'docs.field.site_name' | transloco}}" 
+                                        formControlName="thirdLvlName"  
+                                        [ngClass]="{'is-invalid':secondFormGroup.get('thirdLvlName').value.length>0 && secondFormGroup.get('thirdLvlName').touched && secondFormGroup.get('thirdLvlName').invalid}"
+                                        />
+                                        
+                                        <span matTextSuffix>.{{data.rootDomain}}</span>
+                                        <mat-hint *ngIf="secondFormGroup.get('thirdLvlName').touched && secondFormGroup.get('thirdLvlName').invalid">
+                                            <i *ngIf="secondFormGroup.get('thirdLvlName').errors.minlength" class="form-invalid">{{'docs.error.too_short' | transloco}}<br></i>
+                                            <i *ngIf="secondFormGroup.get('thirdLvlName').errors.maxlength" class="form-invalid">{{'docs.error.too_long' | transloco}}<br></i>
+                                        </mat-hint>
+                                       
+                                    </mat-form-field>
+                                    <mat-progress-bar *ngIf="isNameUnicalChecking" style="display: inline-block;width:100%;max-width: 400px;top: -23px;" mode="indeterminate"></mat-progress-bar>
+                                    <div style="heigth:100%; width:100%; margin-top:15px;color: gray;" [innerHTML]="site_name_access | sanitizedHtml"></div>
+                                    
+                                </div>
+
+
+
+                                <div style="display:flex; margin-top:20px">
+                                    <div style="width:50%">
+                                    </div>
+                                    <div style="width:50%">
+                                        <button mat-raised-button color="primary"
+                                        [disabled]="gettingTableData || secondFormGroup.get('thirdLvlName').invalid || !nameIsChecked"
                                         (click)="getMyRentSite()"
-                                        style="background-color:#673ab7; color:white; position: absolute; right: 25px;"
+                                        style="position: absolute; right: 25px;"
                                         type="button" matStepperNext>{{t('docs.button.order_store')}}!</button>
                                     </div>
                                 </div>
+
 
 
                             </mat-card-content>
@@ -110,7 +185,9 @@ interface Agreement{
 
                     </form>
                 </mat-step>
-                <mat-step [stepControl]="secondFormGroup" label="{{t('docs.card.ready')}}!" [editable]="false">
+
+
+                <mat-step [stepControl]="thirdFormGroup" label="{{t('docs.card.ready')}}!" [editable]="false">
                     <mat-card class="card for-sticky-header" style="height: 543px; margin-top: 10px;">
                         <mat-card-content>
 
@@ -170,18 +247,37 @@ interface Agreement{
     .mat-mdc-form-field {
     margin-top: 16px;
     }
+    ::ng-deep #site_name .mat-form-field-infix {
+        display: inline-flex !important;
+        align-items: baseline;
+        font-size: xx-large;
+        box-sizing: border-box;
+        width: 100%;
+    }
     `]
   })
   
 
   export class RentStoreOrderDialog  implements OnInit {
+    // secondFormGroup:any;
+
 
     firstFormGroup = this._formBuilder.group({
         agree: ['',[]],
         firstCtrl: ['', ],
       });
       secondFormGroup = this._formBuilder.group({
-        secondCtrl: ['', Validators.required],
+        thirdLvlName: ['', [Validators.maxLength(30), Validators.minLength(2), Validators.pattern('^[a-zA-Z][a-zA-Z0-9-_\.]{1,20}$')]],
+      });
+
+    // this.secondFormGroup = new UntypedFormGroup({
+    //     id: new UntypedFormControl      (this.id,[]),
+    //     company_id: new UntypedFormControl      ('',[Validators.required]),
+    //     name: new UntypedFormControl      ('',[Validators.required,Validators.maxLength(250)]),
+
+    // });
+      thirdFormGroup = this._formBuilder.group({
+        thirdCtrl: ['', Validators.required],
       });
     
     stepperOrientation: Observable<StepperOrientation>;
@@ -192,6 +288,10 @@ interface Agreement{
     site_domain = '';
     getStoreDataAfterDialogClose=false;
     text='';
+    site_name_access=''; // Notification on the stage of selectiong site name
+    isNameUnicalChecking = false;
+    lastCheckedSiteName:string=''; //!!!
+    nameIsChecked=true;
 
     onGetOnlineStore = new EventEmitter();
 
@@ -220,6 +320,7 @@ interface Agreement{
         
         //console.log("productId:"+this.data.productId);
         this.getLastVersionAgreement();
+        this.getSiteNameAccessMsg();
         // this.result = this.sanitized.bypassSecurityTrustHtml(this.text)
     }
 
@@ -259,7 +360,8 @@ interface Agreement{
         '&companyId='+this.data.companyId+
         '&storeId='+this.data.storeId+
         '&agreementType='+this.agreement.type+
-        '&agreementVer='+this.agreement.version
+        '&agreementVer='+this.agreement.version+
+        '&thirdLvlName='+this.secondFormGroup.get('thirdLvlName').value
         )
             .subscribe(
                 data => {
@@ -319,7 +421,45 @@ interface Agreement{
           duration: 3000,
         });
     } 
+    getSiteNameAccessMsg(){
+        this.http.get('/api/auth/translateHTMLmessage?key=site_name_access')
+        .subscribe(
+            data => {
+                let result=  data as any;
+                this.site_name_access = result.result;
+            },
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}
+        );
+    }
 
-
+    isSiteNameAllowed() { //+++
+        let nameTmp=this.secondFormGroup.get('thirdLvlName').value;
+        this.nameIsChecked=false;
+        setTimeout(() => {
+          if(!this.secondFormGroup.get('thirdLvlName').errors && this.lastCheckedSiteName!=nameTmp && nameTmp!='' && nameTmp==this.secondFormGroup.get('thirdLvlName').value)
+            {
+              let Unic: boolean;
+              this.isNameUnicalChecking=true;
+              this.lastCheckedSiteName=nameTmp;
+              return this.http.get('/api/auth/isSiteNameAllowed?name='+this.secondFormGroup.get('thirdLvlName').value)
+              .subscribe(
+                  (data) => {   
+                            Unic = data as boolean;
+                            if(!Unic)
+                                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head: translate('docs.msg.attention'),message: translate('docs.msg.site_name_n_allwd'),}});
+                            else
+                                this.nameIsChecked=true;
+                            this.isNameUnicalChecking=false;
+                          },
+                  error => {console.log(error);this.isNameUnicalChecking=false;}
+              );
+            }
+        }, 1000);
+    }
+    
+    numbersAndLettersOnly(event): boolean {
+        const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
+        console.log('charCode = ' + charCode);
+        if ((charCode >= 48 && charCode <= 57)||(charCode >= 97 && charCode <= 122)) { return true; } return false;}
   }
   
