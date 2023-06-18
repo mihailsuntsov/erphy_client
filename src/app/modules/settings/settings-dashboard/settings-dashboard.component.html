@@ -43,12 +43,12 @@
                         <button 
                         (click)="applySettings()"
                         class="apply-button"
-                        matTooltip="Сохранить настройки и закрыть"
+                        matTooltip="{{t('modules.tip.save_n_close')}}"
                         mat-raised-button 
                         color="primary"
                         [disabled]="(!settingsForm.valid)"
                         >
-                        <i class="material-icons">done</i> Сохранить 
+                        <i class="material-icons">done</i> {{t('modules.button.save_n_close')}} 
                     </button>
                     </div>
                 </div>

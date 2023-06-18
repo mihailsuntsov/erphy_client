@@ -24,6 +24,7 @@ import { ProductDuplicateDialog } from 'src/app/ui/dialogs/product-duplicate-dia
 import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component'
 import { ProductReservesDialogComponent } from 'src/app/ui/dialogs/product-reserves-dialog/product-reserves-dialog.component';
 import { PricingDialogComponent } from 'src/app/ui/dialogs/pricing-dialog/pricing-dialog.component';
+import { SanitizedHtmlPipe } from 'src/app/services/sanitized-html.pipe';
 // translations
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 
@@ -43,7 +44,8 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
     ProductDuplicateDialog,
     ShowImageDialog,
     ProductReservesDialogComponent,
-    PricingDialogComponent
+    PricingDialogComponent,
+    SanitizedHtmlPipe
   ],
   imports: [
     CommonModule,
@@ -72,7 +74,8 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
     ProductDuplicateDialog,
     ShowImageDialog,
     ProductReservesDialogComponent,
-    PricingDialogComponent
+    PricingDialogComponent,
+    SanitizedHtmlPipe
 
   ],
   providers: [WINDOW_PROVIDERS],

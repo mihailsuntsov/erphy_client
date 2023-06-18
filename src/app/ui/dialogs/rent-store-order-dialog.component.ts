@@ -1,5 +1,5 @@
 import {MatDialogRef,MAT_DIALOG_DATA} from '@angular/material/dialog';
-import { Component , OnInit, Inject} from '@angular/core';
+import { Component , OnInit, Inject, ViewChild, NgZone} from '@angular/core';
 import { HttpClient} from '@angular/common/http';
 import { MatSnackBar} from '@angular/material/snack-bar';
 import { Validators, UntypedFormGroup, UntypedFormControl, FormBuilder} from '@angular/forms';
@@ -9,9 +9,22 @@ import { translate } from '@ngneat/transloco'; //+++
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { StepperOrientation } from '@angular/cdk/stepper';
 import { Observable, map } from 'rxjs';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { MatStepper } from '@angular/material/stepper';
 import { EventEmitter } from '@angular/core';
+import { SanitizedHtmlPipe } from 'src/app/services/sanitized-html.pipe';
 
+interface RentStoreOrder{
+    iagree: boolean;
+    companyId: number;
+    storeId :number;
+    agreementType: string;
+    thirdLvlName: string;
+    agreementVer: string;
+    existedStoreVariation: boolean;
+    parentVarSiteId: number;
+    position: string;
+    varName: string;
+}
 interface Agreement{
     type: string;
     version: string;
@@ -19,8 +32,12 @@ interface Agreement{
     name: string;
     text: string;
 }
-
+interface IdAndName {
+  id: number;
+  name:string;
+}
 @Component({
+    providers: [SanitizedHtmlPipe],
     selector: 'deletedialog',
     template:` 
     
@@ -130,10 +147,11 @@ interface Agreement{
                             <mat-card-content>
                             <!--**--{{secondFormGroup.get('thirdLvlName').value.length}}--**--{{secondFormGroup.get('thirdLvlName').value.length>0 && secondFormGroup.get('thirdLvlName').touched && secondFormGroup.get('thirdLvlName').invalid}}-->
                                 <div id="site_name" style="text-align:center; height:417px; width:100%">
-                                    <mat-form-field style="margin-top: 80px;width:100%;max-width: 400px;
+                                    <mat-form-field 
+                                    *ngIf="!secondFormGroup.get('existedStoreVariation').value"
+                                    style="margin-top: 80px;width:100%;max-width: 400px;
                                     align-items: baseline;
-                                    box-sizing: border-box;
-                                    width: 100%; ">
+                                    box-sizing: border-box;">
                                         <input type="texts"
                                         (keypress)="numbersAndLettersOnly($event)"
                                         (keyup)="isSiteNameAllowed()"
@@ -154,21 +172,43 @@ interface Agreement{
                                        
                                     </mat-form-field>
                                     <mat-progress-bar *ngIf="isNameUnicalChecking" style="display: inline-block;width:100%;max-width: 400px;top: -23px;" mode="indeterminate"></mat-progress-bar>
+                                
+                                    <mat-form-field 
+                                        *ngIf="secondFormGroup.get('existedStoreVariation').value"
+                                        style="margin-top: 80px; width:100%; max-width: 400px;
+                                        align-items: baseline;
+                                        box-sizing: border-box;">
+                                        <mat-label>{{t('docs.field.extd_sites')}}</mat-label>
+                                        <mat-select  formControlName="parentVarSiteId">                          
+                                            <mat-option  *ngFor="let rt of existedRentSitesList" [value]="rt.id">
+                                                {{rt.name}}
+                                            </mat-option> 
+                                        </mat-select>
+                                        /{{data.lang_code}}
+                                    </mat-form-field>
+
+                                    <mat-checkbox *ngIf="existedRentSitesList.length>0" class="example-margin" style="width: 100%;" formControlName="existedStoreVariation">{{t('docs.field.lv_extd_sites')}}</mat-checkbox>
+
                                     <div style="heigth:100%; width:100%; margin-top:15px;color: gray;" [innerHTML]="site_name_access | sanitizedHtml"></div>
-                                    
+
                                 </div>
 
-
+                                
 
                                 <div style="display:flex; margin-top:20px">
                                     <div style="width:50%">
                                     </div>
                                     <div style="width:50%">
                                         <button mat-raised-button color="primary"
-                                        [disabled]="gettingTableData || secondFormGroup.get('thirdLvlName').invalid || !nameIsChecked"
+                                        [disabled]="(gettingTableData || secondFormGroup.get('thirdLvlName').invalid || !nameIsChecked) && !secondFormGroup.get('existedStoreVariation').value"
                                         (click)="getMyRentSite()"
                                         style="position: absolute; right: 25px;"
-                                        type="button" matStepperNext>{{t('docs.button.order_store')}}!</button>
+                                        type="button">{{t('docs.button.order_store')}}!</button>
+                                        <!--button mat-raised-button color="primary"
+                                        
+                                        (click)="next()"
+                                        style="position: absolute; right: 25px;"
+                                        type="button">{{t('docs.button.order_store')}}!</button-->
                                     </div>
                                 </div>
 
@@ -210,8 +250,8 @@ interface Agreement{
 
 
             <div style="width:100%; text-align: center;margin-top: -6px;">
-                <a target="_blank" href="https://{{site_domain}}">
-                    <button *ngIf = "site_domain!=''"
+                <a target="_blank" href="https://{{site_url}}">
+                    <button *ngIf = "site_url!=''"
                         mat-raised-button 
                         color="accent"
                         class="button"
@@ -230,6 +270,7 @@ interface Agreement{
                 
         </mat-card-content>
     </mat-card>
+    <code><pre>{{firstFormGroup.value | json}}</pre></code>
     `,
     styles: [` 
     .example-stepper {
@@ -263,42 +304,42 @@ interface Agreement{
 
 
     firstFormGroup = this._formBuilder.group({
-        agree: ['',[]],
-        firstCtrl: ['', ],
-      });
-      secondFormGroup = this._formBuilder.group({
-        thirdLvlName: ['', [Validators.maxLength(30), Validators.minLength(2), Validators.pattern('^[a-zA-Z][a-zA-Z0-9-_\.]{1,20}$')]],
-      });
+        agree:      [false,[]],
+    });
+    secondFormGroup = this._formBuilder.group({
+        thirdLvlName:       ['', [Validators.maxLength(30), Validators.minLength(2), Validators.pattern('^[a-zA-Z][a-zA-Z0-9-_\.]{1,20}$')]],
+        existedStoreVariation:              false,
+        parentVarSiteId:    [null],
+        position:           'after',
+        varName:            ''
+    });
 
-    // this.secondFormGroup = new UntypedFormGroup({
-    //     id: new UntypedFormControl      (this.id,[]),
-    //     company_id: new UntypedFormControl      ('',[Validators.required]),
-    //     name: new UntypedFormControl      ('',[Validators.required,Validators.maxLength(250)]),
-
-    // });
-      thirdFormGroup = this._formBuilder.group({
-        thirdCtrl: ['', Validators.required],
-      });
+    thirdFormGroup = this._formBuilder.group({
+    //     thirdCtrl: ['', Validators.required],
+    });
     
     stepperOrientation: Observable<StepperOrientation>;
     agreement: Agreement;
     agreementName: string = '';
     agreementText: string = '';
     gettingTableData = true;
-    site_domain = '';
+    site_url = '';
     getStoreDataAfterDialogClose=false;
     text='';
     site_name_access=''; // Notification on the stage of selectiong site name
     isNameUnicalChecking = false;
     lastCheckedSiteName:string=''; //!!!
-    nameIsChecked=true;
-
+    nameIsChecked=false;
+    existedRentSitesList:IdAndName[] = [];
     onGetOnlineStore = new EventEmitter();
-
+    @ViewChild('stepper') private myStepper: MatStepper;
+    
     // result:SafeHtml;
     constructor(
         private _snackBar: MatSnackBar,
-        private sanitized: DomSanitizer,
+        // private sanitized: DomSanitizer,
+        private ngZone: NgZone,
+        public sanitizedHtml:SanitizedHtmlPipe,
         private http:HttpClient, 
         public MessageDialog: MatDialog,
         public dialogRef: MatDialogRef<RentStoreOrderDialog>,
@@ -321,6 +362,7 @@ interface Agreement{
         //console.log("productId:"+this.data.productId);
         this.getLastVersionAgreement();
         this.getSiteNameAccessMsg();
+        this.getExistedRentSitesList();
         // this.result = this.sanitized.bypassSecurityTrustHtml(this.text)
     }
 
@@ -347,24 +389,52 @@ interface Agreement{
                 error => {this.gettingTableData = false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}
             );
     }
-
-    getMyRentSite(){ 
+    getExistedRentSitesList(){ 
         this.gettingTableData = true;   
-        // iagree           boolean iagree,
-        // companyId        Long companyId,
-        // storeId          Long storeId,
-        // agreementType    String agreementType,
-        // agreementVer     String agreementVer
-        this.http.get('/api/auth/getMyRentSite?'+
-        'iagree='+this.firstFormGroup.get('agree').value+
-        '&companyId='+this.data.companyId+
-        '&storeId='+this.data.storeId+
-        '&agreementType='+this.agreement.type+
-        '&agreementVer='+this.agreement.version+
-        '&thirdLvlName='+this.secondFormGroup.get('thirdLvlName').value
-        )
+        this.http.get('/api/auth/getExistedRentSitesList?company_id='+this.data.companyId)
             .subscribe(
+                data => { 
+                    this.existedRentSitesList = data as IdAndName[];
+                    switch(this.existedRentSitesList){
+                        case null:{
+                          this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.error_msg')}});
+                          break;
+                        }default:{
+                            if(this.existedRentSitesList.length>0)
+                                this.secondFormGroup.get('parentVarSiteId').setValue(this.existedRentSitesList[0].id);
+                            break;
+                        }
+                    }
+                    this.gettingTableData = false;                    
+                },
+                error => {this.gettingTableData = false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}
+            );
+    }
+    getMyRentSite(){ 
+        
+        this.gettingTableData = true;
+        
+        let rentStoreOrder: RentStoreOrder = {
+            iagree: this.firstFormGroup.get('agree').value,
+            companyId: this.data.companyId,
+            storeId :this.data.storeId,
+            agreementType: this.agreement.type,
+            thirdLvlName: this.secondFormGroup.get('thirdLvlName').value,
+            agreementVer: this.agreement.version,
+            existedStoreVariation: this.secondFormGroup.get('existedStoreVariation').value,
+            parentVarSiteId: this.secondFormGroup.get('parentVarSiteId').value,
+            position: 'after',
+            varName: this.data.lang_code
+        }
+        if(!rentStoreOrder.existedStoreVariation){// if it is not a variation of an existed store
+            rentStoreOrder.parentVarSiteId=null;
+            rentStoreOrder.position=null;
+            rentStoreOrder.varName=null;
+        } else rentStoreOrder.thirdLvlName=null;
+        
+        this.http.post('/api/auth/getMyRentSite', rentStoreOrder).subscribe(
                 data => {
+                    
                     let result = data as any;
                     switch(result.result){
                         case null:{ //Error
@@ -378,36 +448,40 @@ interface Agreement{
                         }
                         case -320:{ // Не получено согласие на предоставление услуги
                                     // Consent to the service agreement not received
-                          this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.320')}});
+                          this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.error.320')}});
                           break;
                         }
                         case -330:{ // Нет свободных сайтов для аренды
                                     // No free sites to rent
-                          this.text = result.message;                          
-                          this.onGetOnlineStore.emit(true);
+                                    this.text = result.message;
+                                    this.site_url = result.storeInfo.site_url;
+                                    this.next();  
                           break;
                         }
                         case -340:{ // Данное подключение уже имеет привязанный к нему действующий интернет-магазин
                                     // This connection already has an active online store linked to it
-                          this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.340')}});
+                          this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.error.340')}});
                           break;
                         }
                         case -350:{ // Превышено максимально допустимое количество интернет-магазинов, которые можно заказать за 24 часа с одного аккаунта
                                     // Exceeded the maximum allowable quantity of online stores that can be ordered in 24h from one account
-                          this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.350')}});
+                          this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.error.350')}});
                           break;
                         }
                         case -351:{ // Превышено максимально допустимое количество интернет-магазинов, которые можно заказать за 24 часа с одного IP-адреса
                                     // Exceeded the maximum allowable quantity of online stores that can be ordered in 24h from one IP address
-                          this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.351')}});
+                          this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.error.351')}});
+                          break;
+                        }
+                        case -370:{ // Один и тот же сайт не может иметь одинаковые языковые версии
+                                    // The same site cannot have the same language versions (e.g. mystore.me/fr is already existed, & mystore.me/fr creation -> error)
+                          this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.error.370')}});
                           break;
                         }
                         default:{
-                          this.text = result.message;
-                          this.site_domain = result.storeInfo.site_domain;
-                          this.getStoreDataAfterDialogClose=true;
-                          this.onGetOnlineStore.emit(true);
-                          break;
+                            this.text = result.message;
+                            this.site_url = result.storeInfo.site_url;
+                            this.next();  
                         }
                     }
                     this.gettingTableData = false;                    
@@ -415,7 +489,16 @@ interface Agreement{
                 error => {this.gettingTableData = false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}
             );
     }
+    next(){
 
+    //    1. В бэкэнде заполнять в таблице сайтов domain_name для заказов без сайтов как flowers.dokio.me
+    //    2. Заполнять getSite_url
+    //    3. Изменить css классы чтобы поле "Existed sites" смотрелось органично
+
+        this.getStoreDataAfterDialogClose=true;
+        this.onGetOnlineStore.emit(true);
+        this.myStepper.next();
+    }
     openSnackBar(message: string, action: string) {
         this._snackBar.open(message, action, {
           duration: 3000,

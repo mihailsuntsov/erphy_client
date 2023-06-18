@@ -1,0 +1,164 @@
+<mat-card class="card" *transloco="let t">
+    <mat-card-title class="flex">
+        <div class="card-name">{{t('modules.card.lui')}}</div>
+        <!-- <button 
+                mat-raised-button 
+                matTooltip="{{t('docs.tip.save')}}"
+                (click)="updateDocument()"
+                [disabled]="!isFormValid" 
+                color="primary"
+                type="button"
+                class="button small-button">
+                <i class="material-icons">save</i>
+        </button> -->
+        <button 
+            (click)="onNoClick()"
+            matTooltip="{{t('modules.tip.cls_sttng_wnd')}}"
+            mat-raised-button 
+            color="accent"
+            class="button small-button">
+            <i class="material-icons">close</i> 
+        </button>
+    </mat-card-title>
+    <mat-card-content > 
+        <div class="card">
+            <mat-spinner 
+                strokeWidth="3" 
+                class="spinner"
+                [diameter]="50"
+                *ngIf="gettingData"
+            ></mat-spinner>
+            <form [formGroup]="mainForm">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-lg-6  col-md-12">
+                            <mat-form-field  style="display: none;" >
+                                <input   matInput
+                                        placeholder="{{t('docs.field.country')}}"
+                                        [readonly]=!editability
+                                        formControlName="jr_country_id"/>
+                            </mat-form-field>
+                            <mat-form-field style="width:100%">
+                                <mat-label>{{t('docs.field.country')}} <span *ngIf="+mainForm.get('jr_country_id').value==0||mainForm.get('jr_country_id').value==null" class="star">*</span></mat-label>
+                                <input matInput
+                                type="text"
+                                [readonly]=!editability
+                                formControlName="jr_country" 
+                                [matAutocomplete]="auto2" 
+                                (input)="checkEmptyJrCountryField();"
+                                (change)="checkEmptyJrCountryField();">
+                                <button mat-button 
+                                    *ngIf="+mainForm.get('jr_country_id').value>0"
+                                    type="button"
+                                    class="clear-button"
+                                    (click)="clearField('jr_country');checkEmptyJrCountryField();"
+                                    matSuffix mat-icon-button>
+                                    <mat-icon>close</mat-icon>
+                                </button>
+                                <mat-autocomplete #auto2="matAutocomplete">
+                                    <mat-option *ngFor="let option of filteredSpravSysJrCountries | async" [value]="option.name_ru">
+                                        <div (click)="mainForm.get('jr_country_id').setValue(option.id)">
+                                            <span style="margin:10px;">{{option.name_ru}}</span>
+                                        </div>
+                                    </mat-option>
+                                </mat-autocomplete>
+                            </mat-form-field>
+                        </div>
+                        <div class="col-lg-6  col-md-12">
+                            
+                            <mat-form-field  class="mat-form-field-100">
+                                <mat-label>{{t('docs.field.type')}}</mat-label>
+                                <mat-select  
+                                    formControlName="jr_legal_form"
+                                    [disabled]=!editability
+                                >                          
+                                    <mat-option 
+                                        value="entity" 
+                                    >
+                                            {{t('docs.list.entity')}}
+                                    </mat-option>                     
+                                    <mat-option 
+                                        value="individual"
+                                    >
+                                            {{t('docs.list.individual')}}
+                                    </mat-option>                                                 
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <mat-form-field style="width:100%" *ngIf="mainForm.get('jr_legal_form').value=='entity'">
+                                <mat-label>{{t('docs.field.name_full')}} <span *ngIf="mainForm.get('jr_jur_name').value==''||mainForm.get('jr_jur_name').value==null" class="star">*</span></mat-label>
+                                <input matInput
+                                        type="text"
+                                        style="width:100%"
+                                        placeholder="{{t('docs.field.name_full')}}"
+                                        [readonly]=!editability
+                                        maxlength="500"
+                                        formControlName="jr_jur_name">
+                                <mat-hint align="end" *ngIf="mainForm.get('jr_jur_name').value.length>400">{{mainForm.get('jr_jur_name').value.length}} / 500</mat-hint>
+                            </mat-form-field>   
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6  col-md-12">
+                            <mat-form-field style="width:100%" *ngIf="mainForm.get('jr_legal_form').value=='individual'">
+                                <mat-label>{{t('docs.field.person_name')}} <span *ngIf="mainForm.get('jr_name').value==''||mainForm.get('jr_name').value==null" class="star">*</span></mat-label>
+                                <input  matInput
+                                        style="width:100%"
+                                        placeholder="{{t('docs.field.person_name')}}"
+                                        [readonly]=!editability
+                                        maxlength="100"
+                                        formControlName="jr_name"/>
+                                <mat-hint align="end" *ngIf="mainForm.get('jr_name').value.length>90">{{mainForm.get('jr_name').value.length}} / 120</mat-hint>
+                            </mat-form-field>
+                        </div>
+                        <div class="col-lg-6  col-md-12">
+                            <mat-form-field style="width:100%" *ngIf="mainForm.get('jr_legal_form').value=='individual'">
+                                <mat-label>{{t('docs.field.surname')}} <span *ngIf="mainForm.get('jr_surname').value==''||mainForm.get('jr_surname').value==null" class="star">*</span></mat-label>
+                                <input  matInput
+                                        style="width:100%"
+                                        placeholder="{{t('docs.field.surname')}}"
+                                        [readonly]=!editability
+                                        maxlength="100"
+                                        formControlName="jr_surname"/>
+                                <mat-hint align="end" *ngIf="mainForm.get('jr_surname').value.length>90">{{mainForm.get('jr_surname').value.length}} / 120</mat-hint>
+                            </mat-form-field>
+                        </div>
+                    </div>
+                    <div class="row" *ngIf="mainForm.get('jr_legal_form').value=='entity'">
+                        <div class="col-12">
+                            <!-- VAT -->
+                            <mat-form-field  style="width:100%">
+                                <!-- <mat-label>{{t('docs.field.'+vatName)}} <span *ngIf="mainForm.get('jr_vat').value==''||mainForm.get('jr_vat').value==null" class="star">*</span></mat-label> -->
+                                <input  matInput style="width:100%"
+                                        maxlength="100"
+                                        placeholder="{{t('docs.field.'+vatName)}}"
+                                        [readonly]=!editability
+                                        formControlName="jr_vat"/>
+                            </mat-form-field>
+                        </div>
+                    </div>
+
+                    <mat-divider></mat-divider>
+                    
+                    <div class="row">
+                        <button 
+                        (click)="updateDocument()"
+                        class="apply-button"
+                        matTooltip="{{t('modules.tip.save_n_close')}}"
+                        mat-raised-button 
+                        color="primary"
+                        [disabled]="(!mainForm.valid) || !isFormValid"
+                        >
+                        <i class="material-icons">done</i> {{t('modules.button.save_n_close')}} 
+                    </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <!-- <code><pre>{{mainForm.value | json}}</pre></code> -->
+    </mat-card-content> 
+</mat-card>
+    

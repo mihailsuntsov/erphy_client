@@ -15,6 +15,8 @@ import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
 import { translate } from '@ngneat/transloco'; //+++import { Observable } from 'rxjs';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { RentStoreOrderDialog } from 'src/app/ui/dialogs/rent-store-order-dialog.component';
+// import { SanitizedHtmlPipe } from 'src/app/services/sanitized-html.pipe';
+
 
 interface docResponse {//интерфейс для получения ответа в методе getStoresDocsTableById
   id: number;
@@ -139,6 +141,8 @@ interface RentStoreShortInfo{
   record_creator_name: string;         // name of employee who created this record
   orderer: string;                      // who ordered (who is clicked on the button "Order store")
   deleter: string;                      // who deleted (who is clicked on the button "Delete store")
+  site_url: string;
+
 }
 interface StoresList {//интерфейс массива для получения всех налогов текущего документа
   id: string;
@@ -164,7 +168,7 @@ interface IdAndName{
   selector: 'app-stores-doc',
   templateUrl: './stores-doc.component.html',
   styleUrls: ['./stores-doc.component.css'],
-  providers: [LoadSpravService,]
+  providers: [LoadSpravService]
 })
 export class StoresDocComponent implements OnInit {
 
@@ -642,8 +646,13 @@ onDefaultCreatorSearchValueChanges(){
     this.formBaseInformation.reset();
     this.formBaseInformation.get('id').setValue(null);
     this.formBaseInformation.get('name').setValue('');
+    this.formBaseInformation.get('store_ip').setValue('');
     this.formBaseInformation.get('lang_code').setValue('EN');
     this.formBaseInformation.get('crm_secret_key').setValue('');
+    this.formBaseInformation.get('store_days_for_esd').setValue('1');
+    this.formBaseInformation.get('is_let_sync').setValue(true);
+    this.formBaseInformation.get('store_if_customer_not_found').setValue('create_new');
+    this.rentStoreShortInfo = [];
     this.searchDefaultCustomerCtrl.reset();
     this.searchDefaultCreatorCtrl.reset();
 
@@ -738,7 +747,8 @@ onDefaultCreatorSearchValueChanges(){
       { 
         companyId: this.formBaseInformation.get('company_id').value, //+++
         storeId: this.id,
-        rootDomain: this.subscription.root_domain
+        rootDomain: this.subscription.root_domain,
+        lang_code: this.formBaseInformation.get('lang_code').value.toLowerCase()
       },
     });
     // renew data at the moment when online store taken

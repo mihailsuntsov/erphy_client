@@ -577,7 +577,7 @@
         color="primary"
         [disabled]="!kassaSettingsForm.valid||((kassaSettingsForm.get('cashier_value_id').value=='another')&&anotherCashierFio=='') || !isKassaInList(kassaSettingsForm.get('selected_kassa_id').value)" 
         class="button">
-        <i class="material-icons">done</i> Сохранить настройки
+        <i class="material-icons">done</i> {{t('modules.button.save_n_close')}} настройки
     </button>
     <mat-card-actions>
         <span class="kassa_status">{{kassa_status}}</span>

@@ -64,7 +64,7 @@
                                             <mat-card-title class="card-title">{{t('docs.card.base_info')}}</mat-card-title>
                                         </mat-card-header>
                                         <mat-card-content class="input-form">
-                                            <table mat-table class="mat-elevation-z8" *ngIf="subscription">
+                                            <table mat-table class="mat-elevation-z8" *ngIf="subscription" id="maininfo">
                                                 <ng-container matColumnDef="plan_name">
                                                     <th class="padded balance-bar" mat-header-cell *matHeaderCellDef><p  class="table-info">{{t('menu.table.plan')}}</p></th>
                                                 </ng-container>
@@ -73,7 +73,16 @@
                                                 </ng-container>
 
                                                 <ng-container matColumnDef="balance_name">
-                                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef><p  class="table-info">{{t('docs.field.balance')}}, {{subscription.saas_payment_currency}}</p></th>
+                                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> 
+                                                        <div style="position: relative;">
+                                                            <mat-icon 
+                                                            class="mat-icon" 
+                                                            style="position:absolute; top:11px; left:-28px; color:#673ab7" 
+                                                            (click)="addMoneyBtnClick()"
+                                                            matTooltip="{{t('docs.tip.add_money')}}">add_box</mat-icon>
+                                                            <p  class="table-info">{{t('docs.field.balance')}}, {{subscription.saas_payment_currency}}</p>
+                                                        </div>
+                                                    </th>
                                                 </ng-container>
                                                 <ng-container matColumnDef="balance_value" >
                                                     <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right"> {{subscription==undefined?'':subscription.money}}</p> </th>
@@ -105,7 +114,7 @@
                                                         <div style="position: relative;">
                                                             <mat-icon 
                                                             class="mat-icon" 
-                                                            style="position:absolute; top:11px; left:-20px; color:red" 
+                                                            style="position:absolute; top:11px; left:-28px; color:red" 
                                                             (click)="stopTrialPeriod()"
                                                             matTooltip="{{t('docs.tip.stop_trial')}}">close</mat-icon>
                                                             <p  class="table-info">{{t('docs.field.trial_days_left')}}</p>

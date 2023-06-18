@@ -240,6 +240,9 @@
         "removed_at":"Removed at",
         "st_in_rent":"Online-stores (DokioCRM hosted)",
         "site_name":"Site name",
+        "extd_sites":"Existed sites",
+        "lv_extd_sites":"Language version of existed site",
+        "preparing":"Preparing",
 
         "-- SELL REGICTERS ":"--",
 
@@ -380,6 +383,7 @@
         "340":"This connection already has an active online store linked to it (or an order for online store)",
         "350":"Exceeded the maximum allowable quantity of online stores that can be ordered in 24h from one account",
         "351":"Exceeded the maximum allowable quantity of online stores that can be ordered in 24h from one IP address",
+        "370":"The same site cannot have the same language versions",
         "too_short":"Too short",
         "too_long":"Too long",
         
@@ -497,7 +501,8 @@
         "variation":"Define if the attribute can be used as variation",
         "stop_trial":"Stop trial period",
         "wp_sites":"Wordpress sites with a WooCommerce online store hosted on DokioCRM servers and provided to you. 1 connection needs to be ordered with each site.",
-        "connecton":"Connection is a module responsible for interaction with the online store (sending, receiving and processing data from the online store)"
+        "connecton":"Connection is a module responsible for interaction with the online store (sending, receiving and processing data from the online store)",
+        "add_money":"Refill your account"
     },
     "msg":{
         "error":        "Error!",

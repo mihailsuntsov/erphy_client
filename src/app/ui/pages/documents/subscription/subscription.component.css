@@ -175,6 +175,10 @@ li {list-style: none;}
     color: black;
     max-width: 210px;
 }
+
+::ng-deep #maininfo th.mat-header-cell:first-of-type{
+    padding-left: 40px;
+}
 /*Данные не найдены*/
 .spinner{
     position: absolute;

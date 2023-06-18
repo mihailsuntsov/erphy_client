@@ -206,17 +206,21 @@
                                                             <mat-expansion-panel *ngFor="let rt of rentStoreShortInfo" style="text-align: left;">
                                                                 <mat-expansion-panel-header>
                                                                     <mat-panel-title>
-                                                                        <a href="https://{{rt.site_domain}}" style="font-size: larger; z-index: 1000;">{{rt.site_domain}}</a>
+                                                                        <a *ngIf = "rt.distributed" href="https://{{rt.site_url}}" style="font-size: larger; z-index: 1000;">{{rt.site_url}}</a>
+                                                                        <span *ngIf = "!rt.distributed" style = "color: rgb(176, 176, 176);font-size: larger; z-index: 1000;">{{rt.site_url}}</span>
                                                                     </mat-panel-title>
                                                                     <mat-panel-description *ngIf="rt.is_deleted">
                                                                         <span style="color:red">{{t('docs.field.removed')}}</span>
                                                                     </mat-panel-description>
+                                                                    <mat-panel-description *ngIf="!rt.distributed">
+                                                                        <span style="color:orange">{{t('docs.field.preparing')}}</span>
+                                                                    </mat-panel-description>
                                                                 </mat-expansion-panel-header>
-                                                                <p><strong>{{t('docs.field.sit_addr')}}</strong>: <a href="https://{{rt.panel_domain}}">{{rt.site_domain}}</a></p>
-                                                                <p><strong>{{t('docs.field.pan_dom')}}</strong>: <a href="https://{{rt.panel_domain}}">{{rt.panel_domain}}</a></p>
+                                                                <p *ngIf = "rt.distributed"><strong>{{t('docs.field.sit_addr')}}</strong>: <a href="https://{{rt.panel_domain}}">{{rt.site_url}}</a></p>
+                                                                <p *ngIf = "rt.distributed"><strong>{{t('docs.field.pan_dom')}}</strong>: <a href="https://{{rt.panel_domain}}">{{rt.panel_domain}}</a></p>
                                                                 <p><strong>{{t('docs.field.ordered_at')}}</strong>: {{rt.date_time_ordered}}</p>
-                                                                <p><strong>{{t('docs.field.distr_at')}}</strong>: {{rt.date_time_distributed}}</p>
-                                                                <p *ngIf="!rt.is_deleted"><strong>{{t('docs.field.q_to_remov')}}</strong>: {{rt.is_queried_to_delete?t('menu.dialogs.yes'):t('menu.dialogs.no')}} <span  *ngIf="!rt.is_queried_to_delete" (click)="deleteRentStore(rt.id)" style="color:red; cursor: pointer;">{{t('docs.tip.delete')}}</span></p>
+                                                                <p *ngIf = "rt.distributed"><strong>{{t('docs.field.distr_at')}}</strong>: {{rt.date_time_distributed}}</p>
+                                                                <p *ngIf="!rt.is_deleted && rt.distributed"><strong>{{t('docs.field.q_to_remov')}}</strong>: {{rt.is_queried_to_delete?t('menu.dialogs.yes'):t('menu.dialogs.no')}} <span  *ngIf="!rt.is_queried_to_delete" (click)="deleteRentStore(rt.id)" style="color:red; cursor: pointer;">{{t('docs.tip.delete')}}</span></p>
                                                                 <p *ngIf="rt.is_queried_to_delete"><strong>{{t('docs.field.removed')}}</strong>: {{rt.is_deleted?t('menu.dialogs.yes'):t('menu.dialogs.no')}}</p>
                                                                 <p *ngIf="rt.is_deleted"><strong>{{t('docs.field.removed_at')}}</strong>: {{rt.date_time_deleted}}</p>
                                                             </mat-expansion-panel>

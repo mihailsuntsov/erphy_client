@@ -7,11 +7,10 @@ import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
-
-import { SanitizedHtmlPipe } from 'src/app/services/sanitized-html.pipe';
+import { SharedModule } from '../../../../modules/shared.module'; // !! FOR USING PIPE "SanitizedHtmlPipe"
 
 @NgModule({
-  declarations: [StoresDocComponent,RentStoreOrderDialog,SanitizedHtmlPipe],
+  declarations: [StoresDocComponent,RentStoreOrderDialog],
   imports: [
     CommonModule,
     StoresDocRoutingModule,
@@ -19,7 +18,8 @@ import { SanitizedHtmlPipe } from 'src/app/services/sanitized-html.pipe';
     FormsModule,
     ReactiveFormsModule,
     DragDropModule,
-    TranslocoModule
+    TranslocoModule,
+    SharedModule
   ],
   exports:[
     RentStoreOrderDialog,

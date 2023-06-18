@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 
 import { SubscriptionRoutingModule } from './subscription-routing.module';
 import { SubscriptionComponent } from './subscription.component';
-
+import { UserLegalInfoModule } from '../../../../modules/user-legal-info/user-legal-info.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MaterialModule } from '../../../../modules/material.module';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
@@ -20,7 +20,7 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
     SubscriptionRoutingModule,
     ReactiveFormsModule,
     // SubscriptionDetModule,
-    
+    UserLegalInfoModule,
     FormsModule,
     MaterialModule,
     TranslocoModule

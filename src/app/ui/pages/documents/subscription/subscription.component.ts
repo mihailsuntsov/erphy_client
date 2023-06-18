@@ -11,7 +11,7 @@ import { UntypedFormGroup, UntypedFormControl } from '@angular/forms';
 import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
 import { translate, TranslocoService } from '@ngneat/transloco'; //+++
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
-
+import { UserLegalInfoComponent } from '../../../../modules/user-legal-info/user-legal-info.component';
 import { MomentDefault } from 'src/app/services/moment-default';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
@@ -54,6 +54,7 @@ interface DocResponse {
   stores_ppu: number;          // writeoff per day for 1 additional WooCommerce store connection (document "Store")
   stores_woo_ppu: number;      // writeoff per day for 1 additional WooCommerce hosting
   saas_payment_currency:string;// currency of SaaS subscription accounting
+  masterAccountLegalInfoFilled:boolean; // completed form with legal information about the user
 
   // plan
   n_companies: number;
@@ -202,6 +203,7 @@ export class SubscriptionComponent implements OnInit {
     private _snackBar: MatSnackBar,
     public universalCategoriesDialog: MatDialog,
     private MessageDialog: MatDialog,
+    private userLegalInfoComponent: MatDialog,
     public confirmDialog: MatDialog,
     private http: HttpClient,
     public ConfirmDialog: MatDialog,
@@ -573,6 +575,37 @@ export class SubscriptionComponent implements OnInit {
     });
     this.plan_free=this.subscription.plan_free;
     this.getTableHeaderTitles();
+  }
+
+  addMoneyBtnClick(){
+
+    if(!this.subscription.masterAccountLegalInfoFilled)
+      this.openUserLegalInfo();
+    else this.addMoney();
+
+  }
+  openUserLegalInfo() { 
+    const dialogSettings = this.userLegalInfoComponent.open(UserLegalInfoComponent, {
+      maxWidth: '95vw',
+      // maxHeight: '95vh',
+      // height: '680px',
+      width: '550px', 
+      // minHeight: '650px',
+      data:
+      { //sending into dialog
+        
+      },
+    });
+    dialogSettings.afterClosed().subscribe(result => {
+      if(result){ // if pushed button Save:
+        this.subscription.masterAccountLegalInfoFilled=true;
+        this.addMoney();
+      }
+    });
+  }
+  
+  addMoney(){
+    alert('Adding money!')
   }
 
 //************************************************************* PAYMENTS REPORT *************************************************************/    
