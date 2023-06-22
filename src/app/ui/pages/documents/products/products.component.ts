@@ -886,7 +886,7 @@ export class ProductsComponent implements OnInit {
   }
 
   deleteProductCategories(checkedCategoriesIds:number[]){
-    const body = {setOfLongs1: checkedCategoriesIds}; 
+    const body = {setOfLongs1: checkedCategoriesIds,id:this.sendingQueryForm.companyId}; 
     return this.http.post('/api/auth/deleteProductCategories',body).subscribe(
       (data) => {   
         let result=data as any;

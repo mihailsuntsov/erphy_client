@@ -682,10 +682,12 @@ onDefaultCreatorSearchValueChanges(){
           // console.log("this.receivedPriceTypesList[0] " + this.receivedPriceTypesList[0].id);
           // console.log("this.receivedPriceTypesList[1] " + this.receivedPriceTypesList[1].id);
 
-          if(this.receivedPriceTypesList.length>0 && +this.formBaseInformation.get('store_price_type_regular').value==0) 
-            this.formBaseInformation.get('store_price_type_regular').setValue(this.receivedPriceTypesList[0].id);
-          if(this.receivedPriceTypesList.length>1 && +this.formBaseInformation.get('store_price_type_sale').value==0) 
-            this.formBaseInformation.get('store_price_type_sale').setValue(this.receivedPriceTypesList[1].id);
+          if(+this.id==0){
+            if(this.receivedPriceTypesList.length>0 && +this.formBaseInformation.get('store_price_type_regular').value==0) 
+              this.formBaseInformation.get('store_price_type_regular').setValue(this.receivedPriceTypesList[0].id);
+            if(this.receivedPriceTypesList.length>1 && +this.formBaseInformation.get('store_price_type_sale').value==0) 
+              this.formBaseInformation.get('store_price_type_sale').setValue(this.receivedPriceTypesList[1].id);
+          }          
         },
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});}
       );

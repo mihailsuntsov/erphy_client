@@ -754,7 +754,7 @@ refreshPermissions():boolean{
     this.getCompaniesList();
     if(+this.id>0){
       this.getDocumentValuesById();
-      this.getSets();
+      // this.getSets();
       this.loadImagesInfo();
       this.loadDownloadableFilesInfo();
       this.loadCagentsInfo();
@@ -1084,33 +1084,33 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
     return this.spravSysEdizmOfProductAll.filter(option => option.name.toLowerCase().includes(filterValue));
   }
   //Загрузка групп (сетов) полей
-  getSets(){
-    const docId = {"field_type":"1","documentId":this.id};
-    this.http.post('/api/auth/getProductGroupFieldsListWithValues', docId)
-            .subscribe(
-                (data) => {
-                  this.receivedSetsOfFields=data as any []; 
-                  this.getProductGroupFieldsListWithValues();
-                },
-                error => console.log(error) 
-            );
-  }
+  // getSets(){
+  //   const docId = {"field_type":"1","documentId":this.id};
+  //   this.http.post('/api/auth/getProductGroupFieldsListWithValues', docId)
+  //           .subscribe(
+  //               (data) => {
+  //                 this.receivedSetsOfFields=data as any []; 
+  //                 this.getProductGroupFieldsListWithValues();
+  //               },
+  //               error => console.log(error) 
+  //           );
+  // }
 
   getFieldsFormControls() {
     return (this.fieldsForm.get('fields') as UntypedFormArray).controls;
   }
 
   getProductGroupFieldsListWithValues(){//загружает кастомные поля со значениями (field_type=2) или их сеты (field_type=1) 
-    const docId = {"field_type":"2","documentId":this.id};
-        this.http.post('/api/auth/getProductGroupFieldsListWithValues', docId)
-        .subscribe(
-            data => {                
-                this.dataFields=data as any;               
-                this.patchFieldsFormArray();
-                this.onFieldsValueChanges(); //отслеживание изменений настраиваемых полей во вкладке "Поля"
-            },
-            error => console.log(error)
-        );
+  //   const docId = {"field_type":"2","documentId":this.id};
+  //       this.http.post('/api/auth/getProductGroupFieldsListWithValues', docId)
+  //       .subscribe(
+  //           data => {                
+  //               this.dataFields=data as any;               
+  //               this.patchFieldsFormArray();
+  //               this.onFieldsValueChanges(); //отслеживание изменений настраиваемых полей во вкладке "Поля"
+  //           },
+  //           error => console.log(error)
+  //       );
   }
   patchFieldsFormArray() {
     this.fieldsForm = this.fb.group({fields: this.fb.array([])});// если поля каждый раз не переопределять, они будут пушиться уже к существующим, и сохранение не будет корректно работать
@@ -1343,14 +1343,16 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
             break;
           }
           default:{// Успешно
-            this.http.post('/api/auth/updateProductCustomFields', this.fieldsForm.get('fields').value).subscribe(
-                (data2) => 
-                {
-                  this.getData();
-                  this.openSnackBar(translate('docs.msg.doc_sved_succ',{name:translate('docs.docs.products')}), translate('docs.msg.close'));
-                },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
-            );
+            this.getData();
+            this.openSnackBar(translate('docs.msg.doc_sved_succ',{name:translate('docs.docs.products')}), translate('docs.msg.close'));
+            // this.http.post('/api/auth/updateProductCustomFields', this.fieldsForm.get('fields').value).subscribe(
+            //     (data2) => 
+            //     {
+            //       this.getData();
+            //       this.openSnackBar(translate('docs.msg.doc_sved_succ',{name:translate('docs.docs.products')}), translate('docs.msg.close'));
+            //     },
+            //     error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
+            // );
           }
         }
         
@@ -1878,19 +1880,19 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
     })
     return i;
   }
-  openCagentCard(docId:number) {
-    const dialogRef = this.dialogAddImages.open(CagentsDocComponent, {
-      maxWidth: '95vw',
-      maxHeight: '95vh',
-      height: '95%',
-      width: '95%',
-      data:
-      { 
-        mode: 'window',
-        docId: docId
-      },
-    });
-  }
+  // openCagentCard(docId:number) {
+  //   const dialogRef = this.dialogAddImages.open(CagentsDocComponent, {
+  //     maxWidth: '95vw',
+  //     maxHeight: '95vh',
+  //     height: '95%',
+  //     width: '95%',
+  //     data:
+  //     { 
+  //       mode: 'window',
+  //       docId: docId
+  //     },
+  //   });
+  // }
 //*****************************************************************************************************************************************/
 //***************************************************        B A R C O D E S      *********************************************************/
 //*****************************************************************************************************************************************/

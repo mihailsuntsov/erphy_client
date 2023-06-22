@@ -33,6 +33,7 @@ interface docResponse {//интерфейс для получения ответ
   date_time_created: string;
   name: string;
   type: string;
+  description: string;
   slug: string;
   order_by: string;
   has_archives: boolean;
@@ -120,6 +121,7 @@ export class ProductAttributeDocComponent implements OnInit {
       order_by: new UntypedFormControl        ('menu_order',[]),
       has_archives: new UntypedFormControl    ('false',[]),
       is_deleted: new UntypedFormControl      ('false',[]),
+      description: new UntypedFormControl      ('',[Validators.maxLength(250)]),
       terms:  new UntypedFormControl          ([],[]),//массив с названиями термсов атрибута
       storeAttributeTranslations: new UntypedFormArray ([]) ,
       storesIds: new UntypedFormControl       ([],[]),
@@ -331,6 +333,7 @@ this.http.get('/api/auth/getStoresList?company_id='+this.formBaseInformation.get
                   this.formAboutDocument.get('creator').setValue(documentValues.creator);
                   this.formAboutDocument.get('changer').setValue(documentValues.changer);
                   this.formAboutDocument.get('company').setValue(documentValues.company);
+                  this.formBaseInformation.get('description').setValue(documentValues.description);
                   this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
                   this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
                   this.storeAttributeTranslations=documentValues.storeAttributeTranslations;

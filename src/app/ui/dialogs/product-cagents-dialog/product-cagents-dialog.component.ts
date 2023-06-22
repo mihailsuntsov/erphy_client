@@ -46,8 +46,8 @@ export class ProductCagentsDialogComponent implements OnInit {
     return this.http.post('/api/auth/updateProductCagentProperties', body)
             .subscribe(
                 (data) => {   
-                          this.openSnackBar("Поставщик сохранён", "Закрыть");
-                          this.dialogRef.close();
+                            this.openSnackBar(translate('docs.msg.doc_sved_suc'),translate('docs.msg.close'));
+                            this.dialogRef.close();
                         },
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
             );

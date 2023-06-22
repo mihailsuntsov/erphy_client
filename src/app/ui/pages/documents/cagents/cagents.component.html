@@ -105,13 +105,13 @@ class="spinner"
                         <div *ngIf="!displayingDeletedDocs" class="emptyspace">{{cu.cap(t('menu.docs.cparties'))}}</div>
                         <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">{{t('menu.top.deleted')}}</span> {{t('menu.docs.cparties')}}</div>
                         <div [style.display]="(checkedList.length>0 && mode=='select')?'block':'none'" style="margin:0px 0px 10px 10px">
-                            <button  mat-raised-button [mat-dialog-close]=checkedList cdkFocusInitial color="primary"><i class="material-icons">done</i>
-                                <span> {{t('menu.tip.select')}}</span>
+                            <button  mat-raised-button class="button small-button" [mat-dialog-close]=checkedList cdkFocusInitial color="primary"><i class="material-icons">done</i>
+                                <!-- <span> {{t('menu.tip.select')}}</span> -->
                             </button>
                         </div>
                         <div [style.display]="(mode=='select')?'block':'none'" style="margin:0px 0px 10px 10px">
-                            <button  mat-raised-button matDialogClose color="accent"><i class="material-icons">done</i>
-                                <span> {{t('menu.tip.cancel')}}</span>
+                            <button  mat-raised-button class="button small-button" matDialogClose color="accent"><i class="material-icons">close</i>
+                                <!-- <span> {{t('menu.tip.cancel')}}</span> -->
                             </button>
                         </div>
                         <div [style.display]="(visBtnAdd==true && mode=='standart' && !displayingDeletedDocs)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">

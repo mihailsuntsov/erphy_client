@@ -133,6 +133,15 @@
                                                             <mat-hint align="end" *ngIf="name.value.length>100 && allowToUpdate">{{name.value.length}} / 120</mat-hint>
                                                         </mat-form-field>
                                                         <mat-form-field class="mat-form-field-100">
+                                                            <input  matInput
+                                                                    maxlength="250"
+                                                                    #description
+                                                                    [readonly]="!allowToUpdate"
+                                                                    placeholder="{{t('docs.field.description')}}"
+                                                                    formControlName="description"/>                                                                    
+                                                            <mat-hint align="end" *ngIf="description.value.length>200 && allowToUpdate">{{description.value.length}} / 250</mat-hint>
+                                                        </mat-form-field>
+                                                        <mat-form-field class="mat-form-field-100">
                                                             <mat-label>{{t('docs.field.slug')}} <span *ngIf="formBaseInformation.get('slug').value==''" class="star">*</span></mat-label>
                                                             <input  matInput
                                                                     [readonly]="!allowToUpdate"

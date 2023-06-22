@@ -184,11 +184,11 @@ height:30px;
 display: flex;
 }
 .drag-box-wrapper{
-border: 2px solid rgb(61, 58, 255);
+/* border: 2px solid rgb(61, 58, 255);
 padding: 3px;
 margin: 5px;
 width:360px; 
-height:30px;
+height:30px; */
 }    
 
 .cdk-drag-animating {
@@ -222,7 +222,12 @@ height:30px;
     display: flex;
     justify-content: space-between;
 } 
-
+::ng-deep .cdk-drag{
+    padding:0px !important;
+}
+::ng-deep .field-box-drag{
+    padding:0px !important;
+}
 /*---------- DRAG n DROP -------------*/
 
 .handler {
