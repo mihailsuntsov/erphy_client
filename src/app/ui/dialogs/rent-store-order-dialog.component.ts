@@ -251,7 +251,7 @@ interface IdAndName {
 
             <div style="width:100%; text-align: center;margin-top: -6px;">
                 <a target="_blank" href="https://{{site_url}}">
-                    <button *ngIf = "site_url!=''"
+                    <button *ngIf = "site_url!='' && isStoreGettingSuccessful"
                         mat-raised-button 
                         color="accent"
                         class="button"
@@ -331,6 +331,7 @@ interface IdAndName {
     lastCheckedSiteName:string=''; //!!!
     nameIsChecked=false;
     existedRentSitesList:IdAndName[] = [];
+    isStoreGettingSuccessful=false; // to show or not to show the button "Go to my site"
     onGetOnlineStore = new EventEmitter();
     @ViewChild('stepper') private myStepper: MatStepper;
     
@@ -482,6 +483,7 @@ interface IdAndName {
                             this.text = result.message;
                             this.site_url = result.storeInfo.site_url;
                             this.next();  
+                            this.isStoreGettingSuccessful=true;
                         }
                     }
                     this.gettingTableData = false;                    

@@ -7,7 +7,7 @@
                                     matTooltip="{{t('docs.tip.create')}}"
                                     (click)="onSubmit()" 
                                     *ngIf="allowToCreate && +id==0 "
-                                    [disabled]="!formBaseInformation.valid" 
+                                    [disabled]="!formBaseInformation.valid||oneClickSaveControl" 
                                     color="primary"
                                     type="submit"
                                     class="button small-button">
@@ -18,7 +18,7 @@
                                     *ngIf="+id>0 && allowToUpdate && allowToView"
                                     matTooltip="{{t('docs.tip.save')}}"
                                     (click)="updateDocument()"
-                                    [disabled]="!formBaseInformation.valid" 
+                                    [disabled]="!formBaseInformation.valid||oneClickSaveControl" 
                                     color="primary"
                                     type="button"
                                     class="button small-button">

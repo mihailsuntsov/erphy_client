@@ -29,7 +29,7 @@
                         formControlName="price"/>
                 <mat-hint align="start" *ngIf="formBaseInformation.get('price').touched">
                     <i *ngIf="formBaseInformation.get('price').invalid && formBaseInformation.get('price').errors.pattern" class="form-invalid">{{t('docs.error.price_format',{int:7,fract:2})}}</i>
-                    <i *ngIf="formBaseInformation.get('price').value==''" class="form-invalid">{{t('docs.error.field_miss')}}</i>
+                    <!-- <i *ngIf="formBaseInformation.get('price').value==''" class="form-invalid">{{t('docs.error.field_miss')}}</i> -->
                 </mat-hint>
             </mat-form-field>
         </form>

@@ -47,7 +47,7 @@ export class UserLegalInfoComponent implements OnInit {getUserLegalInfo
       jr_jur_name:  new UntypedFormControl          ('',[]),
       jr_name:  new UntypedFormControl              ('',[]),
       jr_surname:  new UntypedFormControl           ('',[]),
-      jr_country_id:  new UntypedFormControl        (100,[Validators.required]),//Afghanistan
+      jr_country_id:  new UntypedFormControl        (null,[Validators.required]),//Afghanistan
       jr_country:  new UntypedFormControl           ('',[]),
       jr_vat:  new UntypedFormControl               ('',[]),
       jr_changer_id:  new UntypedFormControl        ('',[]),
@@ -119,7 +119,7 @@ export class UserLegalInfoComponent implements OnInit {getUserLegalInfo
   }
   
   private filter_jr_country(value: string): IdAndName[] {
-    const filterValue = value.toLowerCase();
+    const filterValue = value?value.toLowerCase():'';
     return this.spravSysCountries.filter(option => option.name_ru.toLowerCase().includes(filterValue));
   }  
 

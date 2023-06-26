@@ -201,7 +201,7 @@ export class CompaniesDocComponent implements OnInit {
   filesInfo : filesInfo [] = []; //массив для получения информации по прикрепленным к документу файлам 
   fileInfo : filesInfo = null; //массив для получения информации по прикрепленным к документу файлам 
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра карточки документа
-
+  oneClickSaveControl:boolean=false;//блокировка кнопок Save и Complete для защиты от двойного клика
   //поиск адреса и юр. адреса (Страна, Район, Город):
   // Страны 
   spravSysCountries: IdAndName_ru[] = [];// массив, куда будут грузиться все страны 
@@ -725,6 +725,7 @@ onDefaultCreatorSearchValueChanges(){
   }
   
   createNewDocument(){
+    this.oneClickSaveControl=true;
     this.http.post('/api/auth/insertCompany', this.formBaseInformation.value)
     .subscribe(
     (data) =>   {
@@ -744,8 +745,9 @@ onDefaultCreatorSearchValueChanges(){
               this.openSnackBar(translate('docs.msg.doc_crtd_suc'),translate('docs.msg.close'));
         }
       }
+      this.oneClickSaveControl=false;
     },
-    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+    error => {this.oneClickSaveControl=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
   
@@ -760,6 +762,7 @@ onDefaultCreatorSearchValueChanges(){
   }
 
   updateDocument(){ 
+    this.oneClickSaveControl=true;
     return this.http.post('/api/auth/updateCompany', this.formBaseInformation.value)
       .subscribe(
           (data) => 
@@ -778,9 +781,11 @@ onDefaultCreatorSearchValueChanges(){
                 this.getData();
                 this.openSnackBar(translate('docs.msg.doc_sved_suc'),translate('docs.msg.close'));
               }
-            }                  
+            }   
+            
+          this.oneClickSaveControl=false;               
           },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
+          error => {this.oneClickSaveControl=false; console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
       );
   }
 

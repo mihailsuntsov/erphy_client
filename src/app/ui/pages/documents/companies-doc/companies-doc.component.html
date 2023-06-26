@@ -17,7 +17,7 @@
                 (click)="clickBtnUpdate()"
                 [style.display]="id>0?'block':'none'"
                 *ngIf="allowToView"
-                [disabled]="!formBaseInformation.valid" 
+                [disabled]="!formBaseInformation.valid||oneClickSaveControl" 
                 matTooltip="{{t('docs.tip.save')}}"
                 color="primary"
                 class="button small-button">
@@ -27,7 +27,7 @@
                 mat-raised-button 
                 [style.display]="id>0?'none':'block'"
                 (click)="clickBtnCreateNewDocument()" 
-                [disabled]="!formBaseInformation.valid" 
+                [disabled]="!formBaseInformation.valid||oneClickSaveControl" 
                 matTooltip="{{t('docs.tip.create')}}"
                 *ngIf="allowToCreate"
                 color="primary"

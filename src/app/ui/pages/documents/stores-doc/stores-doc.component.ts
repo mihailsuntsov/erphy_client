@@ -122,9 +122,9 @@ interface MasterAccountInfo {
   n_users_fact: number;
   n_products_fact: number;
   n_counterparties_fact: number;
-  n_megabytes_fact: number;
-  n_stores_fact: number;
-  n_stores_woo_fact: number;
+  n_megabytes_fact: number;      
+  n_stores_fact: number;         // real qtt of used store connections
+  n_stores_woo_fact: number;     // real qtt of used sites with stores
 }
 interface RentStoreShortInfo{
   date_time_created: string; 

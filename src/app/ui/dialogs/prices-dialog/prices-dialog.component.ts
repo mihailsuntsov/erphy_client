@@ -27,7 +27,7 @@ export class PricesDialogComponent implements OnInit {
 
   ngOnInit() {
     this.formBaseInformation = new UntypedFormGroup({
-      price: new UntypedFormControl('',[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      price: new UntypedFormControl('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       // warning_quantity: new FormControl('',[]),
     });
 

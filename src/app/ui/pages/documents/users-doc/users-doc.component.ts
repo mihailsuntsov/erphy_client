@@ -79,6 +79,7 @@ export class UsersDocComponent implements OnInit {
   receivedUserGroupList: any [];//для групп пользователей
   spravSysLanguages: IdAndName[] = [];                // here will be loaded all languages
   spravSysLocales  : IdAndName[] = [];                // here will be loaded all locales
+  oneClickSaveControl:boolean=false;//блокировка кнопок Save и Complete для защиты от двойного клика
 
   visBtnUpdate = false;
 
@@ -403,6 +404,7 @@ export class UsersDocComponent implements OnInit {
   }
 
   updateDocument(){
+    this.oneClickSaveControl=true;
     return this.http.post('/api/auth/updateUser', this.formBaseInformation.value)
     .subscribe(
       (data) => {let result=data as any;
@@ -411,11 +413,13 @@ export class UsersDocComponent implements OnInit {
           case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_msg')}});break;}
           case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});break;}
         }
-      },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},);
+        this.oneClickSaveControl=false;
+      },error => {this.oneClickSaveControl=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},);
   }
 
   getDocumentValuesById(){
     const docId = {"id": this.id};
+    this.oneClickSaveControl=true;
     this.http.post('/api/auth/getUserValuesById', docId)
         .subscribe(
             data => {  let documentResponse: docResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
@@ -446,14 +450,11 @@ export class UsersDocComponent implements OnInit {
                   this.getDepartmentsList(this.formBaseInformation.get('company_id').value);  
                   this.getUserGroupListByCompanyId(this.formBaseInformation.get('company_id').value);
 
-
-
-
-                  
-                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
+                } else {this.oneClickSaveControl=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();
+                this.oneClickSaveControl=false;
             },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
+            error => {this.oneClickSaveControl=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
         );
   }
 
@@ -463,6 +464,7 @@ export class UsersDocComponent implements OnInit {
         (this.formBaseInformation.get("email").value!="") && 
         (this.formBaseInformation.get("password").value!="")&& (!this.formBaseInformation.invalid))
     {
+      this.oneClickSaveControl=true;
       this.http.post('/api/auth/addUser', this.formBaseInformation.value)
       .subscribe(
         (data) =>   {
@@ -486,8 +488,9 @@ export class UsersDocComponent implements OnInit {
               this.openSnackBar(translate('docs.msg.doc_crtd_suc'),translate('docs.msg.close'));
             }
           }
+          this.oneClickSaveControl=false;
         },
-        error => {this.isSignUpFailed = true;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.message}})
+        error => {this.oneClickSaveControl=false;this.isSignUpFailed = true;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.message}})
         }
       );
     }else{

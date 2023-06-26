@@ -539,7 +539,7 @@ export class PricesComponent implements OnInit {
 
   clickBtnEditPrices(): void {
     const dialogRef = this.pricesDialogComponent.open(PricesDialogComponent, {
-      width: '800px', 
+      maxWidth: '500px',
       data:
       { 
         companyId:+this.sendingQueryForm.companyId,
