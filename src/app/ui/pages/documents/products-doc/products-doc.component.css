@@ -249,7 +249,7 @@ height:30px; */
     height: 20px;
     color: #585858;
     z-index: 1000;
-}
+    }
 .cdk-drag-placeholder {
     background: white;
     transition: transform 500ms ease;
