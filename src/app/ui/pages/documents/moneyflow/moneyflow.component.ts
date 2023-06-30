@@ -321,7 +321,7 @@ export class MoneyflowComponent implements OnInit {
     this.total_summ_out_bx=0;
     this.total_summ_in_all=0;
     this.total_summ_out_all=0;
-    this.getData();
+    this.getCompaniesPaymentAccounts();
   }
     
   openSnackBar(message: string, action: string) {
@@ -383,13 +383,13 @@ export class MoneyflowComponent implements OnInit {
       this.http.get('/api/auth/getBoxofficesList?id='+this.queryForm.get('companyId').value).subscribe(
           (data) => { 
             this.boxofficesAccounts=data as any [];
-            this.pushAllFiels();
+            this.pushAllFields();
             this.getCRUD_rights(this.permissionsSet);
           },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
   }
-  pushAllFiels(){
+  pushAllFields(){
     let ids: number[]=[];
     this.paymentAccounts.map(i=>{ids.push(i.id);});
     this.queryForm.get('accountsIds').setValue(ids);

@@ -15,7 +15,7 @@ import { Observable } from 'rxjs';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { map, startWith } from 'rxjs/operators';
 import { translate } from '@ngneat/transloco'; //+++
-
+import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { MomentDefault } from 'src/app/services/moment-default';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
@@ -163,8 +163,8 @@ export class UsersDocComponent implements OnInit {
       status_employee: new UntypedFormControl      ('',[]),
       timeZoneName: new UntypedFormControl      ('',[]),
       vatin: new UntypedFormControl      ('',[Validators.maxLength(12), Validators.minLength(12),Validators.pattern('^[0-9]{12}$')]),
-      selectedUserDepartments: new UntypedFormControl([],[]),
-      userGroupList: new UntypedFormControl      ([],[]),      
+      selectedUserDepartments: new UntypedFormControl([],[Validators.required]),
+      userGroupList: new UntypedFormControl      ([],[Validators.required]),      
       timeZoneId: new UntypedFormControl  (24,[Validators.required]),
       localeId: new UntypedFormControl      (4,[Validators.required]),
       languageId: new UntypedFormControl    (1,[Validators.required]),
@@ -380,7 +380,12 @@ export class UsersDocComponent implements OnInit {
   }
 
   setDefaultCompany(){
-    this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+    if(+this.id==0)
+      if(this.allowToCreateAllCompanies)
+        this.formBaseInformation.get('company_id').setValue(Cookie.get('users_companyId')=="0"?this.myCompanyId:+Cookie.get('users_companyId'));
+      else
+        this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+
     this.getDepartmentsList(+this.formBaseInformation.get('company_id').value);
     this.getUserGroupListByCompanyId(this.formBaseInformation.get('company_id').value);
     this.refreshPermissions();

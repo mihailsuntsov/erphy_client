@@ -12,6 +12,8 @@ import { translate } from '@ngneat/transloco'; //+++
 import { SlugifyPipe } from 'src/app/services/slugify.pipe';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ProductAttributeTermsComponent } from 'src/app/modules/trade-modules/product-attribute-terms/product-attribute-terms.component';
+import { Cookie } from 'ng2-cookies/ng2-cookies';
+
 
 interface StoreAttributeTranslation{
   // description: string;
@@ -298,7 +300,10 @@ this.http.get('/api/auth/getStoresList?company_id='+this.formBaseInformation.get
 
   setDefaultCompany(){
     if(this.id==0){
-      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+      if(this.allowToCreateAllCompanies)
+        this.formBaseInformation.get('company_id').setValue(Cookie.get('productattributes_companyId')=="0"?this.myCompanyId:+Cookie.get('productattributes_companyId'));
+      else
+        this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
       this.getStoresLanguagesList();
       this.getStoresList();
     }

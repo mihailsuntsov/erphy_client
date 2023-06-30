@@ -282,7 +282,7 @@ export class ReceiptsComponent implements OnInit {
     // if(this.allowToDelete) this.displayedColumns.push('select');
     // if(this.showOpenDocIcon) this.displayedColumns.push('opendoc');
 
-    this.displayedColumns.push('company');
+    //this.displayedColumns.push('company');
     this.displayedColumns.push('department');
     this.displayedColumns.push('kassa');
     this.displayedColumns.push('shift_number');

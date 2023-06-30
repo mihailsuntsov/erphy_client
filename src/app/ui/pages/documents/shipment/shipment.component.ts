@@ -266,7 +266,7 @@ export class ShipmentComponent implements OnInit {
     this.displayedColumns.push('doc_number');
     this.displayedColumns.push('cagent');
     this.displayedColumns.push('shipment_date');
-    this.displayedColumns.push('company');
+    //this.displayedColumns.push('company');
     this.displayedColumns.push('department');
     this.displayedColumns.push('status');
     this.displayedColumns.push('product_count');

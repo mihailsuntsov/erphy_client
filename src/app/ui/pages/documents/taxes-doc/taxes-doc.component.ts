@@ -31,7 +31,7 @@ interface docResponse {//интерфейс для получения ответ
   multiplier: number;
   is_active: boolean;
   is_deleted: boolean;
-  name_api_atol: string;
+  // name_api_atol: string;
 }
 interface TaxesList {//интерфейс массива для получения всех налогов текущего документа
   id: string;
@@ -108,7 +108,7 @@ export class TaxesDocComponent implements OnInit {
       multiplier: new UntypedFormControl      (1,[]),
       is_active: new UntypedFormControl      (true,[]),
       is_deleted: new UntypedFormControl      (false,[]),
-      name_api_atol: new UntypedFormControl      ('',[Validators.maxLength(10)]),
+      // name_api_atol: new UntypedFormControl      ('',[Validators.maxLength(10)]),
       // color: new FormControl      ('#d0d0d0',[Validators.required]),
       // doc_id: new FormControl      (0,[Validators.required]),
       // doc:new FormControl      ('',[]),
@@ -219,8 +219,12 @@ getSetOfPermissions(){
   }
 
   setDefaultCompany(){
-    this.formBaseInformation.get('company_id').setValue(Cookie.get('taxesdoc_companyId')=="0"?this.myCompanyId:+Cookie.get('taxesdoc_companyId'));
-    this.refreshPermissions();
+    if(this.allowToCreateAllCompanies)
+      this.formBaseInformation.get('company_id').setValue(Cookie.get('taxesdoc_companyId')=="0"?this.myCompanyId:+Cookie.get('taxesdoc_companyId'));
+    else
+      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+    
+      this.refreshPermissions();
   }
   
   doFilterCompaniesList(){
@@ -251,7 +255,7 @@ getSetOfPermissions(){
                   this.formBaseInformation.get('multiplier').setValue(documentValues.multiplier);
                   this.formBaseInformation.get('is_active').setValue(documentValues.is_active);
                   this.formBaseInformation.get('is_deleted').setValue(documentValues.is_deleted);
-                  this.formBaseInformation.get('name_api_atol').setValue(documentValues.name_api_atol);
+                  // this.formBaseInformation.get('name_api_atol').setValue(documentValues.name_api_atol);
                   this.formAboutDocument.get('master').setValue(documentValues.master);
                   this.formAboutDocument.get('creator').setValue(documentValues.creator);
                   this.formAboutDocument.get('changer').setValue(documentValues.changer);
@@ -356,7 +360,7 @@ getSetOfPermissions(){
     this.formBaseInformation.get('multiplier').setValue(1);
     this.formBaseInformation.get('is_active').setValue(true);
     this.formBaseInformation.get('is_deleted').setValue(false);
-    this.formBaseInformation.get('name_api_atol').setValue('');
+    // this.formBaseInformation.get('name_api_atol').setValue('');
     this.taxesList=[];
     this.getData();
   }

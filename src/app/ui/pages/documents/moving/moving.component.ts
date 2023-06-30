@@ -267,7 +267,7 @@ export class MovingComponent implements OnInit {
       this.displayedColumns.push('status');
       this.displayedColumns.push('product_count');
       this.displayedColumns.push('is_completed');
-      this.displayedColumns.push('company');
+      //this.displayedColumns.push('company');
       this.displayedColumns.push('departmentFrom');
       this.displayedColumns.push('departmentTo');
       this.displayedColumns.push('creator');

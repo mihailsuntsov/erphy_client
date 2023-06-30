@@ -677,7 +677,7 @@ export class ShipmentDocComponent implements OnInit {
   }
   setDefaultDepartment(){
     //если в настройках не было отделения, и в списке предприятий только одно предприятие - ставим его по дефолту
-    if(+this.formBaseInformation.get('department_id').value==0 && this.receivedDepartmentsList.length==1){
+    if(+this.formBaseInformation.get('department_id').value==0 && this.receivedDepartmentsList.length>0){
       this.formBaseInformation.get('department_id').setValue(this.receivedDepartmentsList[0].id);
       //Если дочерние компоненты уже загружены - устанавливаем данный склад по дефолту как склад в форме поиска и добавления товара
       if(!this.startProcess){
@@ -1251,7 +1251,8 @@ export class ShipmentDocComponent implements OnInit {
     if(complete){
       if(this.productSearchAndTableComponent.getProductTable().length==0){
         this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.no_prods')}});      
-        throw new Error(translate('docs.msg.no_prods'));
+        this.oneClickSaveControl=false;
+        return;
       }
       this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с завершением - временно устанавливаем true, временно - чтобы это ушло в запросе на сервер, но не повлияло на внешний вид документа, если вернется не true
       console.log('statusIdOnComplete - ' + this.settingsForm.get('statusIdOnComplete').value);
@@ -1319,9 +1320,9 @@ export class ShipmentDocComponent implements OnInit {
             }
             this.oneClickSaveControl=false;
           },
-          error => {
-            this.showQueryErrorMessage(error);this.oneClickSaveControl=false;
-            },
+          // error => {
+          //   this.showQueryErrorMessage(error);this.oneClickSaveControl=false;
+          //   },
       );
   } 
 
@@ -1339,6 +1340,7 @@ export class ShipmentDocComponent implements OnInit {
     });
   }
   showQueryErrorMessage(error:any){
+    console.log('error');
     console.log(error);
       let errMsg = (error.message) ? error.message : error.status ? `${error.status} - ${error.statusText}` : 'Server error';
       this.MessageDialog.open(MessageDialog,

@@ -239,10 +239,9 @@ export class InvoiceinComponent implements OnInit {
     if(this.allowToDelete) this.displayedColumns.push('select');
     if(this.showOpenDocIcon) this.displayedColumns.push('opendoc');
     this.displayedColumns.push('doc_number');
+    this.displayedColumns.push('department');
     this.displayedColumns.push('cagent');
     this.displayedColumns.push('invoicein_date');
-    this.displayedColumns.push('company');
-    this.displayedColumns.push('department');
     this.displayedColumns.push('status');
     this.displayedColumns.push('product_count');
     this.displayedColumns.push('is_completed');

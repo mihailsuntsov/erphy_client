@@ -8,6 +8,7 @@ import { Validators, UntypedFormGroup, UntypedFormControl} from '@angular/forms'
 import {HttpClient} from '@angular/common/http';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import { translate } from '@ngneat/transloco'; //+++
+import { Cookie } from 'ng2-cookies/ng2-cookies';
 
 interface docResponse {//интерфейс для получения ответа в запросе значений полей документа
   id: number;
@@ -232,7 +233,11 @@ getSetOfPermissions(){
   }
 
   setDefaultCompany(){
-    this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+    if(+this.id==0)
+      if(this.allowToCreateAllCompanies)
+        this.formBaseInformation.get('company_id').setValue(Cookie.get('pricetypes_companyId')=="0"?this.myCompanyId:+Cookie.get('pricetypes_companyId'));
+      else
+        this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
     this.refreshPermissions();
   }
 

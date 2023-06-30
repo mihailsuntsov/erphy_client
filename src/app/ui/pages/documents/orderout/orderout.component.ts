@@ -214,7 +214,7 @@ export class OrderoutComponent implements OnInit {
     if(this.showOpenDocIcon) this.displayedColumns.push('opendoc');
     this.displayedColumns.push('doc_number');
     this.displayedColumns.push('cagent');
-    this.displayedColumns.push('company');
+    //this.displayedColumns.push('company');
     this.displayedColumns.push('status');
     this.displayedColumns.push('is_completed');
     this.displayedColumns.push('summ');

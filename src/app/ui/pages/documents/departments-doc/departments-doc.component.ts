@@ -11,7 +11,8 @@ import {HttpClient} from '@angular/common/http';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
-import { translate } from '@ngneat/transloco'; //+++
+import { translate } from '@ngneat/transloco'; 
+import { Cookie } from 'ng2-cookies/ng2-cookies';
 
 interface docResponse {//интерфейс для получения ответа в методе getDepartmentValuesById
     id: number;
@@ -312,7 +313,14 @@ export class DepartmentsDocComponent implements OnInit {
   }
 
   setDefaultCompany(){
-    this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+
+    if(+this.id==0)
+      if(this.allowToCreateAllCompanies)
+        this.formBaseInformation.get('company_id').setValue(Cookie.get('departments_companyId')=="0"?this.myCompanyId:+Cookie.get('departments_companyId'));
+      else
+        this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+
+
     this.getCompaniesPaymentAccounts();
     this.getBoxofficesList();
     this.getPriceTypesList(); 
@@ -378,11 +386,9 @@ export class DepartmentsDocComponent implements OnInit {
   }
 
   setDefaultPriceType(){
-    // console.log("this.receivedPriceTypesList.length="+this.receivedPriceTypesList.length);
-    if(this.receivedPriceTypesList.length==1)
+    if(this.receivedPriceTypesList.length>0)
     {
-      this.formBaseInformation.get('priceTypeId').setValue(+this.receivedPriceTypesList[0].id);
-      // Cookie.set('prices_priceTypeId',this.sendingQueryForm.priceTypeId);
+      this.formBaseInformation.get('price_id').setValue(+this.receivedPriceTypesList[0].id);
     }
   }
   getBaseData(data) {    //+++ emit data to parent component

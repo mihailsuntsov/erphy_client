@@ -198,7 +198,7 @@ export class CurrenciesComponent implements OnInit {
     this.displayedColumns.push('code_lit');
     this.displayedColumns.push('code_num');
     this.displayedColumns.push('is_default');
-    this.displayedColumns.push('company');
+    //this.displayedColumns.push('company');
     this.displayedColumns.push('creator');
     this.displayedColumns.push('date_time_created');
   }

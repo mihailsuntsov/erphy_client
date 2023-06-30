@@ -50,6 +50,7 @@
                                                 <div class="col-lg-4  col-md-12">    
                                                     <mat-form-field  style="display: none">
                                                         <input  matInput
+                                                        #product_id
                                                         placeholder="product_id"
                                                         formControlName="product_id" [readonly]=true/>
                                                     </mat-form-field>
@@ -112,9 +113,9 @@
                                                 <div class="col-lg-8 col-md-12">
                                                     <div class="container-fluid" style="padding-right: 0px; padding-left: 0px;">
                                                         <div class="row">
-                                                            <div class="col-lg-1 col-md-12" style="min-width: 112px;"> 
+                                                            <div class="col-xl-2 col-md-12" style="min-width: 112px;"> 
                                                                 <mat-form-field  class="mat-form-field-100">
-                                                                    <mat-label>{{t('modules.field.count')}}</mat-label>
+                                                                    <mat-label>{{t('modules.field.count')}} <span *ngIf="+product_id.value>0 && product_count.value==''" class="star">*</span></mat-label>
                                                                     <input  matInput 
                                                                             #product_count
                                                                             [placeholder]="placeholderActualBalance"
@@ -132,10 +133,11 @@
                                                                     </mat-hint>
                                                                 </mat-form-field>
                                                             </div>
-                                                            <div class="col-lg-1 col-md-12" style="min-width: 112px;"> 
+                                                            <div class="col-xl-2 col-md-12" style="min-width: 112px;"> 
                                                                 <mat-form-field class="mat-form-field-100">
+                                                                    <mat-label>{{t('modules.field.price')}}{{formSearch.get('edizm').value==''?'':' '+t('modules.field.for')+' 1'}}{{formSearch.get('edizm').value}} <span *ngIf="+product_id.value>0 && product_price.value==''" class="star">*</span></mat-label>
                                                                     <input  matInput 
-                                                                            placeholder="{{t('modules.field.price')}}{{formSearch.get('edizm').value==''?'':' '+t('modules.field.for')+' 1'}}{{formSearch.get('edizm').value}}"
+                                                                            #product_price
                                                                             formControlName="product_price"
                                                                             (input)="checkProductPriceInForm()"
                                                                             (change)="checkProductPriceInForm()"
@@ -145,12 +147,12 @@
                                                                     <mat-hint align="start">
                                                                         <i *ngIf=" formSearch.get('product_price').invalid && formSearch.get('product_price').errors.pattern && formSearch.get('product_price').value>0 && formSearch.get('product_price').touched" class="form-invalid">{{t('modules.error.price_format',{int:7,fract:2})}}</i>
                                                                         <i *ngIf="(formSearch.get('product_price').value==null || formSearch.get('product_price').value=='') && formSearch.get('product_price').value!='0' && +this.formSearch.get('product_id').value>0 && formSearch.get('product_price').touched" class="form-invalid">{{t('docs.error.field_miss')}}</i>
-                                                                        <i *ngIf="formSearch.get('product_price').value=='0' && formSearch.get('product_price').touched" class="form-invalid">{{t('modules.error.more_than',{num:0})}}</i>
+                                                                        <!-- <i *ngIf="formSearch.get('product_price').value=='0' && formSearch.get('product_price').touched" class="form-invalid">{{t('modules.error.more_than',{num:0})}}</i> -->
                                                                         <i *ngIf="formSearch.get('product_price').value<0 && formSearch.get('product_price').value!=''" class="form-invalid">{{t('modules.error.more_than',{num:0})}}</i>
                                                                     </mat-hint>
                                                                 </mat-form-field>
                                                             </div>
-                                                            <!-- <div class="col-lg-1  col-md-12"  style="min-width: 112px;">
+                                                            <!-- <div class="col-xl-2  col-md-12"  style="min-width: 112px;">
                                                                 <mat-form-field class="mat-form-field-100">
                                                                     <input  matInput 
                                                                             placeholder="{{t('modules.field.unit')}}"
@@ -160,7 +162,7 @@
                                                                             />
                                                                 </mat-form-field>
                                                             </div> -->
-                                                            <div class="col-lg-1  col-md-12" style="min-width: 112px;">
+                                                            <div class="col-xl-2  col-md-12" style="min-width: 112px;">
                                                                 <mat-form-field class="mat-form-field-100">
                                                                     <input  matInput 
                                                                             placeholder="{{t('modules.field.remains')}}"
@@ -170,7 +172,7 @@
                                                                     <span matSuffix>{{formSearch.get('edizm').value}}</span>
                                                                 </mat-form-field>
                                                             </div>
-                                                            <div class="col-lg-1  col-md-12" style="min-width: 112px;">
+                                                            <div class="col-xl-2  col-md-12" style="min-width: 112px;">
                                                                 <mat-form-field  class="mat-form-field-100">
                                                                     <mat-label>{{t('modules.field.tax')}}</mat-label>
                                                                     <mat-select  formControlName="nds_id"  [disabled]="!nds" (selectionChange)="productTableRecount()">                          
@@ -180,7 +182,7 @@
                                                                     </mat-select>
                                                                 </mat-form-field>
                                                             </div>
-                                                            <div class="col-lg-1  col-md-12" style="min-width: 112px;">
+                                                            <div class="col-xl-2  col-md-12" style="min-width: 112px;">
                                                                 <mat-form-field class="mat-form-field-100">
                                                                     <input  matInput 
                                                                             placeholder="{{t('modules.field.sum')}}"

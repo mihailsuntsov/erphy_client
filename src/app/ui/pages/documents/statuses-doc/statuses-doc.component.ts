@@ -227,7 +227,10 @@ export class StatusesDocComponent implements OnInit {
   setDefaultCompany(){
     if(this.receivedDocumentsList.length>1)
     {
-      this.formBaseInformation.get('company_id').setValue(Cookie.get('satusdoc_companyId')=="0"?this.myCompanyId:+Cookie.get('satusdoc_companyId'));
+      if(this.allowToCreateAllCompanies)
+        this.formBaseInformation.get('company_id').setValue(Cookie.get('satusdoc_companyId')=="0"?this.myCompanyId:+Cookie.get('satusdoc_companyId'));
+      else
+        this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
     } else {
       this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
     }

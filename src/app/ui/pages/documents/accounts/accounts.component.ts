@@ -203,7 +203,7 @@ export class PaymentAccountComponent implements OnInit {
     this.displayedColumns.push('name');
     this.displayedColumns.push('description');
     this.displayedColumns.push('is_main');
-    this.displayedColumns.push('company');
+    //this.displayedColumns.push('company');
     this.displayedColumns.push('creator');
     this.displayedColumns.push('date_time_created');
   }

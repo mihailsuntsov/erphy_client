@@ -169,7 +169,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   checkedList:number[]=[]; //строка для накапливания id чекбоксов вида [2,5,27...]
   row_id:number=0;// уникальность строки в табл. товаров только id товара обеспечить не может, т.к. в таблице может быть > 1 одинакового товара (уникальность обеспечивается id товара и id склада). Для уникальности используем виртуальный row_id
 
-  @ViewChild("countInput", {static: false}) countInput;
+  @ViewChild("product_count", {static: false}) product_count;
   @ViewChild("nameInput", {static: false}) nameInput; 
   @ViewChild("form", {static: false}) form; 
   @ViewChild("productSearchFieldValue", {static: false}) productSearchFieldValue;
@@ -792,7 +792,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
       this.formSearchReadOnly=true;
       if(!this.autoAdd)this.loadMainImage();//если автодобавление, то картинку грузить ни к чему
       this.getProductsPriceAndRemains();
-      setTimeout(() => { this.countInput.nativeElement.focus(); }, 500);
+      setTimeout(() => { this.product_count.nativeElement.focus(); }, 500);
   }
   loadMainImage(){
     if(this.productImageName!=null){

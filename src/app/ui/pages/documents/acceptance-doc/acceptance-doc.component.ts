@@ -156,6 +156,7 @@ export class AcceptanceDocComponent implements OnInit {
   receivedStatusesList: StatusInterface [] = []; // массив для получения статусов
   receivedMyDepartmentsList: IdAndName [] = [];//массив для получения списка отделений
   companySettings:CompanySettings={vat:false,vat_included:true};
+  oneClickSaveControl=false;
   myCompanyId:number=0;
   myId:number=0;
   // allFields: any[][] = [];//[номер строки начиная с 0][объект - вся инфо о товаре (id,кол-во, цена... )] - массив товаров
@@ -574,6 +575,9 @@ export class AcceptanceDocComponent implements OnInit {
   onCompanyChange(){
     this.formBaseInformation.get('department_id').setValue(null);
     this.formBaseInformation.get('status_id').setValue(null);
+    this.formBaseInformation.get('cagent_id').setValue(null);
+    this.formBaseInformation.get('cagent').setValue('');
+    this.searchCagentCtrl.reset();
     this.actionsBeforeGetChilds=0;
     this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
     this.getDepartmentsList();
@@ -599,7 +603,7 @@ export class AcceptanceDocComponent implements OnInit {
   }
   setDefaultDepartment(){
     //если в настройках не было отделения, и в списке предприятий только одно предприятие - ставим его по дефолту
-    if(+this.formBaseInformation.get('department_id').value==0 && this.receivedDepartmentsList.length==1){
+    if(+this.formBaseInformation.get('department_id').value==0 && this.receivedDepartmentsList.length>0){
       this.formBaseInformation.get('department_id').setValue(this.receivedDepartmentsList[0].id);
       //Если дочерние компоненты уже загружены - устанавливаем предприятие по дефолту как склад в форме поиска и добавления товара !!!!!!!!
       // if(!this.startProcess){
@@ -967,12 +971,15 @@ export class AcceptanceDocComponent implements OnInit {
       );
   }
   updateDocument(complete?:boolean){ //+++
+    this.oneClickSaveControl=true;
     this.getProductsTable();    
     let currentStatus:number=this.formBaseInformation.get('status_id').value;
-    if(complete){if(this.acceptanceProductsTableComponent.getProductTable().length==0){
-      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.no_prods')}});      
-      throw new Error(translate('docs.msg.no_prods'));
-    }
+    if(complete){
+      if(this.acceptanceProductsTableComponent.getProductTable().length==0){
+        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.no_prods')}});      
+        this.oneClickSaveControl=false;
+        return;
+      }
       this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - временно устанавливаем true, временно - чтобы это ушло в запросе на сервер, но не повлияло на внешний вид документа, если вернется не true
       console.log('statusOnFinishId - ' + this.settingsForm.get('statusOnFinishId').value);
       console.log('statusIdInList - ' + this.statusIdInList(this.settingsForm.get('statusOnFinishId').value));

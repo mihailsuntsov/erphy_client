@@ -8,6 +8,7 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { translate } from '@ngneat/transloco'; //+++
+import { Cookie } from 'ng2-cookies/ng2-cookies';
 
 interface docResponse {//интерфейс для получения ответа в запросе значений полей документа
   id: number;
@@ -223,7 +224,12 @@ export class EdizmDocComponent implements OnInit {
   }
 
   setDefaultCompany(){
-    this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+    if(+this.id==0)
+      if(this.allowToCreateAllCompanies)
+        this.formBaseInformation.get('company_id').setValue(Cookie.get('edizm_companyId')=="0"?this.myCompanyId:+Cookie.get('edizm_companyId'));
+      else
+        this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+        
     this.refreshPermissions();
   }
 

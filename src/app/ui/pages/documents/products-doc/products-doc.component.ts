@@ -28,7 +28,7 @@ import { map, startWith } from 'rxjs/operators';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { translate } from '@ngneat/transloco'; //+++
 import { Router } from '@angular/router';
-// import Quill from 'quill';
+import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { MomentDefault } from 'src/app/services/moment-default';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
@@ -358,7 +358,7 @@ export class ProductsDocComponent implements OnInit {
   // Отчет по товарам Изменения
   formProductHistory: ProductHistoryQuery=new ProductHistoryQuery();//форма, содержащая информацию для запроса отчета об истории изменения количества товара на складе
   donePagesList: boolean = false;
-  receivedCompaniesListForHistoryReport: any [];//массив для получения списка предприятий
+  // receivedCompaniesListForHistoryReport: any [];//массив для получения списка предприятий
   receivedPagesList: string [];//массив для получения данных пагинации
   receivedMatTable: DocTable []=[] ;//массив для получения данных для материал таблицы
   dataSource = new MatTableDataSource<DocTable>(this.receivedMatTable); //источник данных для материал таблицы
@@ -394,7 +394,7 @@ export class ProductsDocComponent implements OnInit {
   prefixes: any[];
   st_prefix_barcode_pieced:number=0;
   st_prefix_barcode_packed:number=0;
-  filteredProductGroups: any;
+  // filteredProductGroups: any;
   isLoading = false;
   isProductGroupLoading = false;
   canAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
@@ -661,7 +661,7 @@ export class ProductsDocComponent implements OnInit {
     this.getBaseData('myDepartmentsList');    
 
 
-    this.onProductGroupValueChanges();//отслеживание изменений поля "Группа товаров"
+    // this.onProductGroupValueChanges();//отслеживание изменений поля "Группа товаров"
     this.loadMainImage();// при создании документа загрузится картинка "no image"
     this.getSpravSysPPR();//загрузка справочника признаков предмета расчёта
     this.getTableHeaderTitles();//столбцы таблицы с историей изменений товара
@@ -717,9 +717,10 @@ getSetOfPermissions(){
         },
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
         );
-  }
+}
 
 getCRUD_rights(){
+  console.log("in getCRUD_rights");
   this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==163)});
   this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==164)});
   this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==167)});
@@ -751,7 +752,7 @@ refreshPermissions():boolean{
 }
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
   getData(){
-    this.getCompaniesList();
+    
     if(+this.id>0){
       this.getDocumentValuesById();
       // this.getSets();
@@ -759,6 +760,8 @@ refreshPermissions():boolean{
       this.loadDownloadableFilesInfo();
       this.loadCagentsInfo();
       this.loadBarcodesInfo();
+    } else {
+      this.getCompaniesList();
     }
   }
   getCompaniesList(){ //+++
@@ -768,7 +771,7 @@ refreshPermissions():boolean{
             (data) => 
             {
               this.receivedCompaniesList=data as any [];
-              this.receivedCompaniesListForHistoryReport=data as any [];
+              // this.receivedCompaniesListForHistoryReport=data as any [];
               this.doFilterCompaniesList();
             },                      
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
@@ -776,20 +779,36 @@ refreshPermissions():boolean{
     else this.doFilterCompaniesList();
   }
   getMyCompanyId(){ //+++
-    if(+this.myCompanyId==0)
+    console.log("in getMyCompanyId");
+    console.log("+this.myCompanyId=",+this.myCompanyId);
+    if(+this.myCompanyId==0){
+      console.log(" Getting myCompanyId...",);
       this.loadSpravService.getMyCompanyId().subscribe(
         (data) => {
-          this.myCompanyId=data as number;
+          this.myCompanyId=data as number;          
+          console.log("+this.myCompanyId=",+this.myCompanyId);
           this.getCRUD_rights();
         }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
-    else this.getCRUD_rights();
+      } else this.getCRUD_rights();
   }
-  getMyDepartmentsList(){ //+++
+  getMyDepartmentsList(){
     if(this.receivedMyDepartmentsList.length==0)
-    this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
+      this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
             .subscribe(
                 (data) => {this.receivedMyDepartmentsList=data as any [];
-                  this.setDefaultDepartment();},
+
+
+
+
+
+
+
+
+
+
+                  this.setDefaultDepartment();
+                
+                },
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
     else this.setDefaultDepartment();
@@ -802,7 +821,12 @@ refreshPermissions():boolean{
       // this.formProductHistory.companyId=this.myCompanyId;
       this.getDepartmentsList();
     }else{//если еще не создан - устанавливаем дефолтное предприятие для документа
-      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+      
+      if(this.allowToCreateAllCompanies)
+        this.formBaseInformation.get('company_id').setValue(Cookie.get('products_companyId')=="0"?this.myCompanyId:+Cookie.get('products_companyId'));
+      else
+        this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+
       this.getSpravTaxes();//загрузка налогов
       this.getStoresLanguagesList();
       this.getSpravSysEdizm();
@@ -820,10 +844,10 @@ refreshPermissions():boolean{
   }
 
   setDefaultDepartment(){
-    if(this.receivedMyDepartmentsList.length==1)
+    if(this.receivedDepartmentsList.length==1)
     {
-      // console.log('установка отделения по умолчанию - '+this.receivedMyDepartmentsList[0].id);
-      this.formProductHistory.departmentId=+this.receivedMyDepartmentsList[0].id;
+      // console.log('установка отделения по умолчанию - '+this.receivedDepartmentsList[0].id);
+      this.formProductHistory.departmentId=+this.receivedDepartmentsList[0].id;
       // Cookie.set('acceptance_departmentId',this.formProductHistory.departmentId);
     } else this.formProductHistory.departmentId="0";
     this.setDefaultDates();
@@ -980,8 +1004,8 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
                   this.isVariation=documentValues.variation;
                   if(this.formBaseInformation.get('type').value!='grouped' && this.formBaseInformation.get('type').value!='variable') this.prop_menu='general'
                   // this.defaultAttributeSaved = documentValues.defaultAttributes;
-
-                  this.getSpravSysMarkableGroup(); //загрузка справочника маркированных групп товаров
+                  this.getCompaniesList();
+                  // this.getSpravSysMarkableGroup(); //загрузка справочника маркированных групп товаров
                   this.getSpravSysEdizm(); //загрузка единиц измерения
                   this.getProductBarcodesPrefixes(); //загрузка префиксов штрих-кодов
                   this.getProductPrices(); // загрузка типов цен
@@ -1100,7 +1124,7 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
     return (this.fieldsForm.get('fields') as UntypedFormArray).controls;
   }
 
-  getProductGroupFieldsListWithValues(){//загружает кастомные поля со значениями (field_type=2) или их сеты (field_type=1) 
+  // getProductGroupFieldsListWithValues(){//загружает кастомные поля со значениями (field_type=2) или их сеты (field_type=1) 
   //   const docId = {"field_type":"2","documentId":this.id};
   //       this.http.post('/api/auth/getProductGroupFieldsListWithValues', docId)
   //       .subscribe(
@@ -1111,7 +1135,7 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
   //           },
   //           error => console.log(error)
   //       );
-  }
+  // }
   patchFieldsFormArray() {
     this.fieldsForm = this.fb.group({fields: this.fb.array([])});// если поля каждый раз не переопределять, они будут пушиться уже к существующим, и сохранение не будет корректно работать
     const control = <UntypedFormArray>this.fieldsForm.get('fields');
@@ -1158,53 +1182,53 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
       }
   }
 // слушалка на изменение кастомных полей
-  onFieldsValueChanges(){
-    this.fieldsForm.valueChanges
-    .pipe(
-      debounceTime(500),
-      tap(() => {
-        this.errorMsg = "";
-        this.filteredProductGroups = [];
-      }),       
-      switchMap(fieldObject =>  
-        this.getProductFieldsValuesList(fieldObject)
-      )
-    )
-    .subscribe(data => {
-      this.isLoading = false;
-      if (data == undefined) {
-        this.errorMsg = data['Error'];
-        this.filteredProductGroups = [];
-      } else {
-        this.errorMsg = "";
-        this.filteredProductGroups = data as any;
-      }
-    });
-  }
+  // onFieldsValueChanges(){
+  //   this.fieldsForm.valueChanges
+  //   .pipe(
+  //     debounceTime(500),
+  //     tap(() => {
+  //       this.errorMsg = "";
+  //       this.filteredProductGroups = [];
+  //     }),       
+  //     switchMap(fieldObject =>  
+  //       this.getProductFieldsValuesList(fieldObject)
+  //     )
+  //   )
+  //   .subscribe(data => {
+  //     this.isLoading = false;
+  //     if (data == undefined) {
+  //       this.errorMsg = data['Error'];
+  //       this.filteredProductGroups = [];
+  //     } else {
+  //       this.errorMsg = "";
+  //       this.filteredProductGroups = data as any;
+  //     }
+  //   });
+  // }
 // слушалка на изменение поля Группа товаров
-  onProductGroupValueChanges(){
-    this.searchProductGroupsCtrl.valueChanges
-    .pipe(
-      debounceTime(500),
-      tap(() => {
-        this.errorMsg = "";
-        this.filteredProductGroups = [];
-      }),       
-      switchMap(fieldObject =>  
-        this.getProductGroupsList()
-      )
-    )
-    .subscribe(data => {
-      this.isProductGroupLoading = false;
-      if (data == undefined) {
-        this.errorMsg = data['Error'];
-        this.filteredProductGroups = [];
-      } else {
-        this.errorMsg = "";
-        this.filteredProductGroups = data as any;
-      }
-    });
-  }
+  // onProductGroupValueChanges(){
+  //   this.searchProductGroupsCtrl.valueChanges
+  //   .pipe(
+  //     debounceTime(500),
+  //     tap(() => {
+  //       this.errorMsg = "";
+  //       this.filteredProductGroups = [];
+  //     }),       
+  //     switchMap(fieldObject =>  
+  //       this.getProductGroupsList()
+  //     )
+  //   )
+  //   .subscribe(data => {
+  //     this.isProductGroupLoading = false;
+  //     if (data == undefined) {
+  //       this.errorMsg = data['Error'];
+  //       this.filteredProductGroups = [];
+  //     } else {
+  //       this.errorMsg = "";
+  //       this.filteredProductGroups = data as any;
+  //     }
+  //   });
+  // }
   onSelectProductGroup(id:any,name:string){
     console.log("selected id - "+id)
     this.formBaseInformation.get('productgroup_id').setValue(+id);
@@ -2068,10 +2092,11 @@ checkProductCodeFreeUnical() {
         this.receivedCompaniesList.push(myCompany);
       }
       if(!this.allowToViewAllCompanies){
-        this.receivedCompaniesListForHistoryReport.forEach(company=>{
-        if(this.myCompanyId==company.id) myCompany={id:company.id, name:company.name}});
-        this.receivedCompaniesListForHistoryReport=[];
-        this.receivedCompaniesListForHistoryReport.push(myCompany);
+        this.receivedCompaniesList.forEach(company=>{
+          if(this.myCompanyId==company.id) myCompany={id:company.id, name:company.name}
+        });
+        this.receivedCompaniesList=[];
+        this.receivedCompaniesList.push(myCompany);
       }
     this.setDefaultCompany();
   }

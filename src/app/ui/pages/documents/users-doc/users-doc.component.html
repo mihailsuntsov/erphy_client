@@ -256,7 +256,7 @@
                                                             [ngModel]="formAboutDocument.get('company').value" [ngModelOptions]="{standalone: true}"/>
                                                 </mat-form-field>
                                                 <mat-form-field>
-                                                    <mat-label>{{t('docs.field.user_departs')}}</mat-label>
+                                                    <mat-label>{{t('docs.field.user_departs')}} <span *ngIf="formBaseInformation.get('selectedUserDepartments').value.length==0||formBaseInformation.get('selectedUserDepartments').value==null" class="star">*</span></mat-label>
                                                     <mat-select formControlName="selectedUserDepartments" multiple>
                                                         <mat-option *ngFor="let department of receivedDepartmentsList" 
                                                                     [value]="department.id">
@@ -265,7 +265,7 @@
                                                     </mat-select>
                                                 </mat-form-field>
                                                 <mat-form-field>
-                                                    <mat-label>{{t('docs.field.roles')}}</mat-label>
+                                                    <mat-label>{{t('docs.field.roles')}} <span *ngIf="formBaseInformation.get('userGroupList').value.length==0||formBaseInformation.get('userGroupList').value==null" class="star">*</span></mat-label>
                                                     <mat-select formControlName="userGroupList" multiple>
                                                         <mat-option *ngFor="let group of receivedUserGroupList" 
                                                                     [value]="group.id">

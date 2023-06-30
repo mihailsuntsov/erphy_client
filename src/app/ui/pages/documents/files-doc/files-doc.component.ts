@@ -368,7 +368,6 @@ constructor(private activateRoute: ActivatedRoute,
     return(location.protocol+'//'+location.hostname+(location.port ? ':'+location.port: ''));
   }
   copyFileAddress(){
-    // let domain=this.getDomain();
     navigator.clipboard.writeText(this.getDomain()+'/api/public/getFile/'+this.formBaseInformation.get('name').value);
   }
   getBaseData(data) {    //+++ emit data to parent component
@@ -516,7 +515,7 @@ createImageFromBlob(image: Blob) {
             downloadLink.click();
         }
     )
-}
+  }
 
 
 

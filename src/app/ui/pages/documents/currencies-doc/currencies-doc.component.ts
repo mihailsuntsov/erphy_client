@@ -8,6 +8,8 @@ import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { translate } from '@ngneat/transloco'; //+++
+import { Cookie } from 'ng2-cookies/ng2-cookies';
+
 
 interface docResponse {//интерфейс для получения ответа в методе getCurrenciesTableById
   id: number;
@@ -203,7 +205,10 @@ export class CurrenciesDocComponent implements OnInit {
 
   setDefaultCompany(){
     if(this.id==0){
-      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+      if(this.allowToCreateAllCompanies)
+        this.formBaseInformation.get('company_id').setValue(Cookie.get('currencies_companyId')=="0"?this.myCompanyId:+Cookie.get('currencies_companyId'));
+      else
+        this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
     }
     this.refreshPermissions();
   }

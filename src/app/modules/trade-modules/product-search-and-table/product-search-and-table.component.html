@@ -46,6 +46,7 @@
                                                     <mat-form-field  style="display: none">
                                                         <input  matInput
                                                         placeholder="product_id"
+                                                        #product_id
                                                         formControlName="product_id" [readonly]=true/>
                                                     </mat-form-field>
                                                     <mat-form-field  class="mat-form-field-100">
@@ -110,9 +111,9 @@
                                                         <div class="row">
                                                             <div class="col-lg-3 col-md-12"> 
                                                                 <mat-form-field  class="mat-form-field-100">
+                                                                    <mat-label>{{t('modules.field.count')}} <span *ngIf="+product_id.value>0 && product_count.value==''" class="star">*</span></mat-label>
                                                                     <input  matInput 
-                                                                            #countInput
-                                                                            placeholder="{{t('modules.field.count')}}"
+                                                                            #product_count
                                                                             formControlName="product_count"
                                                                             (input)="calcSumPriceOfProduct();checkIndivisibleErrorOfSearchForm();"
                                                                             (change)="calcSumPriceOfProduct();checkIndivisibleErrorOfSearchForm();"
@@ -120,11 +121,11 @@
                                                                             [readonly]="+formSearch.get('product_id').value==0?true:false"/>
                                                                     <span matSuffix>{{edizmName}}</span>
                                                                     <mat-hint  align="start" *ngIf="formSearch.get('product_count').dirty">
-                                                                        <i *ngIf="formSearch.get('product_count').invalid && formSearch.get('product_count').errors.pattern" class="form-invalid">{{t('modules.error.price_format',{int:6,fract:3})}} </i>
-                                                                        <i *ngIf="(+formSearch.get('product_count').value==0) && formSearch.get('product_count').value!=''" class="form-invalid">{{t('modules.error.more_than',{num:0})}}</i>
-                                                                        <i *ngIf="formSearch.get('product_count').value=='' && +this.formSearch.get('product_id').value>0" class="form-invalid">{{t('modules.error.field_miss')}}</i>
+                                                                        <i *ngIf="product_count.invalid && product_count.errors.pattern" class="form-invalid">{{t('modules.error.price_format',{int:6,fract:3})}} </i>
+                                                                        <i *ngIf="(+product_count.value==0) && product_count.value!=''" class="form-invalid">{{t('modules.error.more_than',{num:0})}}</i>
+                                                                        <i *ngIf="product_count.value=='' && +this.formSearch.get('product_id').value>0" class="form-invalid">{{t('modules.error.field_miss')}}</i>
                                                                         <i *ngIf="indivisibleErrorOfSearchForm" class="form-invalid">{{t('modules.error.mst_be_integr')}}</i>
-                                                                        <i *ngIf="(+formSearch.get('product_count').value>+formSearch.get('available').value)&&!indivisibleErrorOfSearchForm" class="form-invalid">{{t('modules.error.available')}} {{+formSearch.get('available').value}} {{edizmName}}</i>
+                                                                        <i *ngIf="(+product_count.value>+formSearch.get('available').value)&&!indivisibleErrorOfSearchForm" class="form-invalid">{{t('modules.error.available')}} {{+formSearch.get('available').value}} {{edizmName}}</i>
                                                                     </mat-hint>
                                                             
                                                                 </mat-form-field>
@@ -387,9 +388,10 @@
                                                         <div class="row">
                                                             <div class="col-lg-3  col-md-12">
                                                                 <mat-form-field class="mat-form-field-100">
+                                                                    <mat-label>{{t('modules.field.price')}}{{edizmName==''?'':' '+t('modules.field.for')+' 1'}}{{edizmName}} <span *ngIf="+product_id.value>0 && product_price.value==''" class="star">*</span></mat-label>
                                                                     <input  matInput 
-                                                                            placeholder="{{t('modules.field.price')}}{{edizmName==''?'':' '+t('modules.field.for')+' 1'}}{{edizmName}}"
                                                                             formControlName="product_price"
+                                                                            #product_price
                                                                             (input)="calcSumPriceOfProduct()"
                                                                             (change)="calcSumPriceOfProduct()"
                                                                             (keypress)="numberOnlyPlusDotAndComma($event)"
@@ -407,10 +409,11 @@
                                                                     </span>
                                                                             
                                                                     <mat-hint align="start">
-                                                                        <i *ngIf=" formSearch.get('product_price').invalid && formSearch.get('product_price').errors.pattern && formSearch.get('product_price').value>0 && formSearch.get('product_price').touched" class="form-invalid">{{t('modules.error.price_format',{int:7,fract:2})}}</i>
-                                                                        <i *ngIf="formSearch.get('product_price').value=='' && +this.formSearch.get('product_id').value>0 && formSearch.get('product_price').touched" class="form-invalid">{{t('modules.error.field_miss')}}</i>
-                                                                        <!-- <i *ngIf="formSearch.get('product_price').value==0 && formSearch.get('product_price').value!=''" class="form-invalid">{{t('modules.error.more_than',{num:0})}}</i> -->
-                                                                        <!-- <i *ngIf="formSearch.get('product_price').value<0  && formSearch.get('product_price').value!=''" class="form-invalid">{{t('modules.error.more_than',{num:0})}}</i> -->
+                                                                        <i *ngIf=" product_price.invalid && product_price.errors.pattern && product_price.value>0 && product_price.touched" class="form-invalid">{{t('modules.error.price_format',{int:7,fract:2})}}</i>
+                                                                        <i *ngIf="product_price.value=='' && +this.formSearch.get('product_id').value>0 && product_price.touched" class="form-invalid">{{t('modules.error.field_miss')}}</i>
+                                                                        <!-- <i *ngIf="product_price.value==0 && product_price.value!=''" class="form-invalid">{{t('modules.error.more_than',{num:0})}}</i> -->
+                                                                        <i *ngIf="product_price.value=='' && +this.formSearch.get('product_id').value>0" class="form-invalid">{{t('modules.error.field_miss')}}</i>
+                                                                        <i *ngIf="product_price.value<0  && product_price.value!=''" class="form-invalid">{{t('modules.error.more_than',{num:0})}}</i>
                                                                     </mat-hint>
                                                                         
                                                                 </mat-form-field>

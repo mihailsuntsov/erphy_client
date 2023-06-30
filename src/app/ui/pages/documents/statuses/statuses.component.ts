@@ -209,7 +209,7 @@ export class StatusesComponent implements OnInit {
     this.displayedColumns.push('name');
     this.displayedColumns.push('output_order');
     this.displayedColumns.push('is_default');
-    this.displayedColumns.push('company');
+    //this.displayedColumns.push('company');
     this.displayedColumns.push('description');
     this.displayedColumns.push('creator');
     this.displayedColumns.push('date_time_created');

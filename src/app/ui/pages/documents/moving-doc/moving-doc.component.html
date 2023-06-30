@@ -353,7 +353,7 @@
                 <mat-tab *ngIf="+id>0">
                     <ng-template mat-tab-label>
                         <p>
-                            <span [matBadge]="filesInfo.length" matBadgeOverlap="false">{{t('docs.tab.files')}}</span>
+                            <span [matBadge]="filesInfo?filesInfo.length:''" matBadgeOverlap="false">{{t('docs.tab.files')}}</span>
                         </p>
 
                       

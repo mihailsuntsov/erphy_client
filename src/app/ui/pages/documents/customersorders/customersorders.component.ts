@@ -285,14 +285,14 @@ export class CustomersordersComponent implements OnInit {
     this.displayedColumns.push('doc_number');
     this.displayedColumns.push('name');
     this.displayedColumns.push('cagent');
+    this.displayedColumns.push('department');    
     this.displayedColumns.push('status');
     this.displayedColumns.push('product_count');
     this.displayedColumns.push('sum_price');
     this.displayedColumns.push('is_completed');    
     this.displayedColumns.push('shipment_date');
-    // this.displayedColumns.push('description');
-    this.displayedColumns.push('company');
-    this.displayedColumns.push('department');    
+    this.displayedColumns.push('description');
+    // this.displayedColumns.push('company');
     this.displayedColumns.push('store');    
     this.displayedColumns.push('creator');    
     this.displayedColumns.push('date_time_created');

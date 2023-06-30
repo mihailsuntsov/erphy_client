@@ -196,7 +196,7 @@ export class ProductAttributeComponent implements OnInit {
     this.displayedColumns.push('name');
     this.displayedColumns.push('description');
     this.displayedColumns.push('slug');
-    this.displayedColumns.push('company');
+    //this.displayedColumns.push('company');
     this.displayedColumns.push('creator');
     this.displayedColumns.push('date_time_created');
   }

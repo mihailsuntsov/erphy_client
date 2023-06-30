@@ -474,7 +474,12 @@ onDefaultCreatorSearchValueChanges(){
   }
 
   setDefaultCompany(){
-    this.formBaseInformation.get('company_id').setValue(Cookie.get('storesdoc_companyId')=="0"?this.myCompanyId:+Cookie.get('storesdoc_companyId'));
+    if(+this.id==0)
+      if(this.allowToCreateAllCompanies)
+        this.formBaseInformation.get('company_id').setValue(Cookie.get('storesdoc_companyId')=="0"?this.myCompanyId:+Cookie.get('storesdoc_companyId'));
+      else
+        this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+    
     this.getPriceTypesList();
     this.getDepartmentsList();   
     this.refreshPermissions();

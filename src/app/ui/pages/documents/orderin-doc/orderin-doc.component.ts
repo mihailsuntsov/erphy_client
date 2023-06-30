@@ -20,7 +20,7 @@ import { graphviz }  from 'd3-graphviz';
 import { FilesComponent } from '../files/files.component';
 import { FilesDocComponent } from '../files-doc/files-doc.component';
 import { translate } from '@ngneat/transloco'; //+++
-
+import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { MomentDefault } from 'src/app/services/moment-default';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
@@ -543,8 +543,11 @@ export class OrderinDocComponent implements OnInit {
       );
   }
   setDefaultCompany(){
-    if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим своё по дефолту
-      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+    if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим дефолтное
+      if(this.allowToCreateAllCompanies)
+        this.formBaseInformation.get('company_id').setValue(Cookie.get('orderin_companyId')=="0"?this.myCompanyId:+Cookie.get('orderin_companyId'));
+      else
+        this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
     this.getStatusesList();
     this.getBoxofficesList();  
     this.getCompaniesPaymentAccounts(); // загрузка расч. счетов

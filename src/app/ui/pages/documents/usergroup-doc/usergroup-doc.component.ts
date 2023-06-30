@@ -14,6 +14,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
 import { translate } from '@ngneat/transloco'; //+++
+import { Cookie } from 'ng2-cookies/ng2-cookies';
 
 
 interface docResponse {//интерфейс для получения ответа в методе getUserValuesById
@@ -235,7 +236,11 @@ refreshPermissions(){
   }
 
   setDefaultCompany(){
-    this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+    if(+this.id==0)
+      if(this.allowToCreateAllCompanies)
+        this.formBaseInformation.get('company_id').setValue(Cookie.get('usergroup_companyId')=="0"?this.myCompanyId:+Cookie.get('usergroup_companyId'));
+      else
+        this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
     this.refreshPermissions();
   }
 

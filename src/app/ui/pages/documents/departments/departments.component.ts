@@ -320,6 +320,7 @@ export class DepartmentsComponent implements OnInit {
   }
   onCompanySelection(){
     Cookie.set('departments_companyId',this.sendingQueryForm.companyId);
+    // alert(Cookie.get('departments_companyId'))
     this.resetOptions();
     this.getData();
   }

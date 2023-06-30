@@ -280,24 +280,12 @@ export class TemplatesDialogComponent implements OnInit {
 
   // using output_order as a row id, because the same file id can't be unic, as it can be repeated in many fields
   deleteFileInField(output_order:number) {
-    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
-      width: '400px',
-      data:
-      { 
-        head: translate('docs.msg.file_del_head'),
-        query: translate('docs.msg.file_del_qury'),
-        warning: translate('docs.msg.file_del_warn'),
-      },
-    });
-    dialogRef.afterClosed().subscribe(result => {
-      if(result==1){
-        this.formBaseInformation.get('templatesList').controls.forEach(m =>{
-          if(m.get('output_order').value==output_order){
-            m.get('file_id').setValue(null);
-            m.get('file_original_name').setValue("");
-          }
-        });
+    this.formBaseInformation.get('templatesList').controls.forEach(m =>{
+      if(m.get('output_order').value==output_order){
+        m.get('file_id').setValue(null);
+        m.get('file_original_name').setValue("");
       }
     });
   }
+  
 }

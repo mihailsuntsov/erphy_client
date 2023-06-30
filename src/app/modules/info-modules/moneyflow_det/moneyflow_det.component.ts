@@ -305,7 +305,9 @@ export class MoneyflowDetComponent implements OnInit {
   onCompanySelection(){
     // Cookie.set('moneyflow_det_companyId',this.queryForm.get('companyId').value);
     this.resetOptions();
-    this.getData();
+    this.queryForm.get('accountsIds').value=[];
+    this.queryForm.get('boxofficesIds').value=[];
+    this.getCompaniesPaymentAccounts();
   }
     
   openSnackBar(message: string, action: string) {
@@ -366,13 +368,23 @@ export class MoneyflowDetComponent implements OnInit {
       this.http.get('/api/auth/getBoxofficesList?id='+this.queryForm.get('companyId').value).subscribe(
           (data) => { 
             this.boxofficesAccounts=data as any [];
-            // this.pushAllFiels();
+            this.pushAllFields();
             this.getCRUD_rights();
           },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
   }
-
+  pushAllFields(){
+    if(this.queryForm.get('accountsIds').value.length==0 && this.queryForm.get('boxofficesIds').value.length==0){
+      let ids: number[]=[];
+      this.paymentAccounts.map(i=>{ids.push(i.id);});
+      this.queryForm.get('accountsIds').setValue(ids);
+      ids=[];
+      this.boxofficesAccounts.map(i=>{ids.push(i.id);});
+      this.queryForm.get('boxofficesIds').setValue(ids);
+    }
+    
+  }
   doFilterCompaniesList(){
     let myCompany:idAndName;
     if(!this.allowToViewAllCompanies){

@@ -51,6 +51,7 @@
                                                     <mat-form-field  style="display: none">
                                                         <input  matInput
                                                         placeholder="product_id"
+                                                        #product_id
                                                         formControlName="product_id" [readonly]=true/>
                                                     </mat-form-field>
                                                     <mat-form-field  class="mat-form-field-100">
@@ -168,7 +169,7 @@
                                                                     <mat-hint align="start">
                                                                         <i *ngIf=" formSearch.get('product_price').invalid && formSearch.get('product_price').errors.pattern && formSearch.get('product_price').value>0 && formSearch.get('product_price').touched" class="form-invalid">{{t('modules.error.price_format',{int:7,fract:2})}}</i>
                                                                         <i *ngIf="(formSearch.get('product_price').value==null || formSearch.get('product_price').value=='') && formSearch.get('product_price').value!='0' && +this.formSearch.get('product_id').value>0 && formSearch.get('product_price').touched" class="form-invalid">{{t('docs.error.field_miss')}}</i>
-                                                                        <i *ngIf="formSearch.get('product_price').value=='0' && formSearch.get('product_price').touched" class="form-invalid">{{t('modules.error.more_than',{num:0})}}</i>
+                                                                        <!-- <i *ngIf="formSearch.get('product_price').value=='0' && formSearch.get('product_price').touched" class="form-invalid">{{t('modules.error.more_than',{num:0})}}</i> -->
                                                                         <i *ngIf="formSearch.get('product_price').value<0 && formSearch.get('product_price').value!=''" class="form-invalid">{{t('modules.error.more_than',{num:0})}}</i>
                                                                     </mat-hint>
                                                                 </mat-form-field>

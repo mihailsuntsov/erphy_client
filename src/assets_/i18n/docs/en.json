@@ -152,7 +152,7 @@
         "boxoffice":    "Cash room",
         "shrt_unit_nme":"Abbreviation (for example, Kg., m., Pcs.)",
         "unit_type":    "Type of unit of measurement",
-        "mltplyer_to":  "Multiplier to adjust to",
+        "mltplyer_to":  "Multiplier for",
         "tax_value":    "Value of tax, %",
         "mplicator":    "Multiplier",
         "active_tax":   "Active",

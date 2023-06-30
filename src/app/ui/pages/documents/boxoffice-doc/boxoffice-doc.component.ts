@@ -5,6 +5,7 @@ import { UntypedFormGroup, Validators, UntypedFormControl } from '@angular/forms
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
+import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { MatDialog } from '@angular/material/dialog';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { translate } from '@ngneat/transloco'; //+++
@@ -203,7 +204,10 @@ export class BoxofficeDocComponent implements OnInit {
 
   setDefaultCompany(){
     if(this.id==0){
-      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+      if(this.allowToCreateAllCompanies)
+        this.formBaseInformation.get('company_id').setValue(Cookie.get('boxoffice_companyId')=="0"?this.myCompanyId:+Cookie.get('boxoffice_companyId'));
+      else
+        this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
     }
     this.refreshPermissions();
   }

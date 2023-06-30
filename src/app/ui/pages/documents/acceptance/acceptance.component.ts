@@ -248,7 +248,7 @@ export class AcceptanceComponent implements OnInit {
     if(this.showOpenDocIcon) this.displayedColumns.push('opendoc');
     this.displayedColumns.push('doc_number');
     this.displayedColumns.push('acceptance_date');
-    this.displayedColumns.push('company');
+    // this.displayedColumns.push('company');
     this.displayedColumns.push('department');
     this.displayedColumns.push('cagent');
     this.displayedColumns.push('status');

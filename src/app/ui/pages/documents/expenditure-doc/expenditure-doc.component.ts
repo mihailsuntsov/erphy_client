@@ -7,7 +7,9 @@ import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { translate } from '@ngneat/transloco'; //+++
+import { translate } from '@ngneat/transloco'; 
+import { Cookie } from 'ng2-cookies/ng2-cookies';
+
 
 interface docResponse {//интерфейс для получения ответа в методе getExpenditureTableById
   id: number;
@@ -205,8 +207,11 @@ export class ExpenditureDocComponent implements OnInit {
   }
 
   setDefaultCompany(){
-    if(this.id==0){
-      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+    if(this.id==0){      
+      if(this.allowToCreateAllCompanies)
+        this.formBaseInformation.get('company_id').setValue(Cookie.get('expenditure_companyId')=="0"?this.myCompanyId:+Cookie.get('expenditure_companyId'));
+      else
+        this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
     }
     this.setDefaultExpenditureType();
     this.refreshPermissions();

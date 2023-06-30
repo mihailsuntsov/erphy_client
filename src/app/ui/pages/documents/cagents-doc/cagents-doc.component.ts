@@ -16,7 +16,7 @@ import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { MutualpaymentDetComponent } from 'src/app/modules/info-modules/mutualpayment_det/mutualpayment_det.component';
 import { translate } from '@ngneat/transloco'; //+++
-
+import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { MomentDefault } from 'src/app/services/moment-default';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
@@ -500,8 +500,12 @@ constructor(private activateRoute: ActivatedRoute,
   }
 
   setDefaultCompany(){
-      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
-      this.getStatusesList();
+    if(+this.id==0)
+      if(this.allowToCreateAllCompanies)
+        this.formBaseInformation.get('company_id').setValue(Cookie.get('cagents_companyId')=="0"?this.myCompanyId:+Cookie.get('cagents_companyId'));
+      else
+        this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+    this.getStatusesList();
   }
 
   getSpravSysOPF(){

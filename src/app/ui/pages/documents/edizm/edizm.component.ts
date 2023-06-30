@@ -205,7 +205,7 @@ export class EdizmComponent implements OnInit {
     this.displayedColumns.push('name');
     this.displayedColumns.push('short_name');
     this.displayedColumns.push('is_default');
-    this.displayedColumns.push('company');
+    //this.displayedColumns.push('company');
     this.displayedColumns.push('creator');
     this.displayedColumns.push('date_time_created');
   }

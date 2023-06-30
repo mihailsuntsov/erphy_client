@@ -257,7 +257,7 @@ export class PostingComponent implements OnInit {
     if(this.showOpenDocIcon) this.displayedColumns.push('opendoc');
     this.displayedColumns.push('doc_number');
     this.displayedColumns.push('posting_date');
-    this.displayedColumns.push('company');
+    //this.displayedColumns.push('company');
     this.displayedColumns.push('department');
     this.displayedColumns.push('status');
     this.displayedColumns.push('product_count');

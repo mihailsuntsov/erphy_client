@@ -217,7 +217,7 @@ export class CorrectionComponent implements OnInit {
     this.displayedColumns.push('boxoffice');
     this.displayedColumns.push('payment_account');
     this.displayedColumns.push('cagent');
-    this.displayedColumns.push('company');
+    //this.displayedColumns.push('company');
     this.displayedColumns.push('status');
     this.displayedColumns.push('is_completed');
     this.displayedColumns.push('summ');

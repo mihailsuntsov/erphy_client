@@ -420,7 +420,7 @@ export class DepositingDocComponent implements OnInit {
   }
   setDefaultDepartment(){
     //если в списке предприятий только одно предприятие - ставим его по дефолту
-    if(+this.formBaseInformation.get('department_id').value==0 && this.receivedDepartmentsList.length==1){
+    if(+this.formBaseInformation.get('department_id').value==0 && this.receivedDepartmentsList.length>0){
       this.formBaseInformation.get('department_id').setValue(this.receivedDepartmentsList[0].id);
       this.getKassaListByDepartmentId();// список касс в отделении
     }

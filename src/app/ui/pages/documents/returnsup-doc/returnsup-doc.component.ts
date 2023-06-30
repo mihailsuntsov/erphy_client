@@ -592,6 +592,9 @@ export class ReturnsupDocComponent implements OnInit {
   onCompanyChange(){
     this.formBaseInformation.get('department_id').setValue(null);
     this.formBaseInformation.get('status_id').setValue(null);
+    this.formBaseInformation.get('cagent_id').setValue(null);
+    this.formBaseInformation.get('cagent').setValue('');
+    this.searchCagentCtrl.reset();
     this.actionsBeforeGetChilds=0;
     this.getDepartmentsList();
     this.getPriceTypesList();
@@ -617,7 +620,7 @@ export class ReturnsupDocComponent implements OnInit {
   }
   setDefaultDepartment(){
     //если в настройках не было отделения, и в списке предприятий только одно предприятие - ставим его по дефолту
-    if(+this.formBaseInformation.get('department_id').value==0 && this.receivedDepartmentsList.length==1){
+    if(+this.formBaseInformation.get('department_id').value==0 && this.receivedDepartmentsList.length>0){
       this.formBaseInformation.get('department_id').setValue(this.receivedDepartmentsList[0].id);
       //Если дочерние компоненты уже загружены - устанавливаем предприятие по дефолту как склад в форме поиска и добавления товара !!!!!!!!
       // if(!this.startProcess){
@@ -992,6 +995,10 @@ export class ReturnsupDocComponent implements OnInit {
     this.getProductsTable();    
     let currentStatus:number=this.formBaseInformation.get('status_id').value;
     if(complete){
+      if(this.returnsupProductsTableComponent.getProductTable().length==0){
+        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.no_prods')}});      
+        return;
+      }
       this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с проведением - временно устанавливаем true, временно - чтобы это ушло в запросе на сервер, но не повлияло на внешний вид документа, если вернется не true
       if(this.settingsForm.get('statusOnFinishId').value&&this.statusIdInList(this.settingsForm.get('statusOnFinishId').value)){// если в настройках есть "Статус при проведении" - временно выставляем его
         this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);}
