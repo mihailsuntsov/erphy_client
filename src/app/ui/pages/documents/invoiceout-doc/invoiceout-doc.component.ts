@@ -1217,7 +1217,7 @@ export class InvoiceoutDocComponent implements OnInit {
                   this.is_completed=true;
                   if(this.productSearchAndTableComponent){
                     this.productSearchAndTableComponent.hideOrShowNdsColumn(); //чтобы спрятать столбцы после проведения 
-                    this.productSearchAndTableComponent.tableNdsRecount();
+                    this.productSearchAndTableComponent.getProductsTable();
                   }
                   if(this.settingsForm.get('statusIdOnComplete').value&&this.statusIdInList(this.settingsForm.get('statusIdOnComplete').value)){// если в настройках есть "Статус при завершении" - выставим его
                     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}

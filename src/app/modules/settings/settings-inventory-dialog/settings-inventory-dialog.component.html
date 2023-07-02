@@ -50,7 +50,7 @@
                             </mat-form-field>
                         </div>
                     </div>
-                    <div class="row">
+                    <!-- <div class="row">
                         <div class="col-12"> 
                             <mat-form-field   class="mat-form-field-100">
                                 <input  matInput
@@ -59,7 +59,7 @@
                                         formControlName="name"/>
                             </mat-form-field>
                         </div>
-                    </div>
+                    </div> -->
                     <div class="row">
                         <div class="col-12"> 
                             <mat-form-field  class="mat-form-field-100">
@@ -140,13 +140,13 @@
                     <div class="row">
                         <div class="col-9"> 
                             <mat-form-field  class="mat-form-field-100">
-                                <mat-label>Фактическое кол-во</mat-label>
-                                <mat-select formControlName="defaultActualBalance"  matTooltip="Фактическое количество товара по умолчанию">
+                                <mat-label>{{t('docs.field.d_fact_qtt')}}</mat-label>
+                                <mat-select formControlName="defaultActualBalance">
                                     <mat-option value="estimated">
-                                        Равно расчётному
+                                        {{t('docs.list.like_estmtd')}}
                                     </mat-option>
                                     <mat-option value="other">
-                                        Другое
+                                        {{t('docs.list.another')}}
                                     </mat-option>
                                 </mat-select>
                             </mat-form-field>

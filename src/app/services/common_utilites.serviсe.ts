@@ -10,6 +10,7 @@ export class CommonUtilitesService{
   //пересчёт цены в зависимости от настроек (наценка, плюс-минус, проценты/рубли)
   priceFilter(prePrice:number,changePrice:number,changePriceType:string,plusMinus:string,hideTenths:boolean):string{// prePrice - цена до перерасчета
     //величина изменения цены (не важно проценты или валюта). Например 50. А чего 50 (проценты или рубли) - это уже другой вопрос
+    console.log("prePrice="+prePrice+", changePrice="+changePrice+", changePriceType="+changePriceType+", plusMinus="+plusMinus+", hideTenths="+hideTenths)
     let priceChangeValue:number = +changePrice;
     // фактическая величина изменения цены 
     let priceChangeDelta:number;
@@ -26,6 +27,7 @@ export class CommonUtilitesService{
     }
     let resultPrice=+prePrice+priceChangeDelta;
     let resultPriceText='';
+    console.log("resultPrice="+resultPrice);
     if(hideTenths){//если опция "Убрать копейки"
       //отбросим копейки:
       resultPrice=+this.numToPrice(resultPrice,0);

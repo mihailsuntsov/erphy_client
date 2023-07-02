@@ -544,7 +544,7 @@ export class InventoryDocComponent implements OnInit {
       this.receivedCompaniesList=[];
       this.receivedCompaniesList.push(myCompany);
     }
-    if(+this.id==0)//!!!!! отсюда загружаем настройки только если документ новый. Если уже создан - настройки грузятся из get<Document>ValuesById
+    if(+this.id==0)//!!!!! отсюда загружаем настройки только если документ новый. Если уже создан - настройки грузятся из getDocumentValuesById
       this.getSettings();
   }
   doFilterDepartmentsList(){
@@ -585,12 +585,12 @@ export class InventoryDocComponent implements OnInit {
             this.settingsForm.get('statusOnFinishId').setValue(result.statusOnFinishId);
             this.settingsForm.get('priceTypeId').setValue(result.priceTypeId);
             //данная группа настроек не зависит от предприятия
-            this.settingsForm.get('pricingType').setValue(result.pricingType?result.pricingType:'avgCostPrice');
-            this.settingsForm.get('plusMinus').setValue(result.plusMinus?result.plusMinus:'plus');
-            this.settingsForm.get('changePrice').setValue(result.changePrice?result.changePrice:50);
-            this.settingsForm.get('changePriceType').setValue(result.changePriceType?result.changePriceType:'procents');
+            this.settingsForm.get('pricingType').setValue(result.pricingType);
+            this.settingsForm.get('plusMinus').setValue(result.plusMinus);
+            this.settingsForm.get('changePrice').setValue(result.changePrice);
+            this.settingsForm.get('changePriceType').setValue(result.changePriceType);
             this.settingsForm.get('hideTenths').setValue(result.hideTenths);
-            this.settingsForm.get('name').setValue(result.name/*?result.name:''*/);
+            this.settingsForm.get('name').setValue(result.name);
             this.settingsForm.get('defaultActualBalance').setValue(result.defaultActualBalance);
             this.settingsForm.get('otherActualBalance').setValue(result.otherActualBalance);
             this.settingsForm.get('autoAdd').setValue(result.autoAdd);
@@ -664,6 +664,7 @@ export class InventoryDocComponent implements OnInit {
                   this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
                   this.getPriceTypesList();
                   this.loadFilesInfo();
+                  this.getSettings();
                   this.getDepartmentsList();//отделения
                   this.getStatusesList();//статусы документа Инвентаризация
                   this.getLinkedDocsScheme(true); //загрузка связанных документов
@@ -889,8 +890,8 @@ export class InventoryDocComponent implements OnInit {
                     this.inventoryProductsTableComponent.showColumns(); //чтобы спрятать столбцы после проведения 
                     this.inventoryProductsTableComponent.getProductsTable();
                   }
-                  if(this.settingsForm.get('statusIdOnComplete').value&&this.statusIdInList(this.settingsForm.get('statusIdOnComplete').value)){// если в настройках есть "Статус при проведении" - выставим его
-                    this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
+                  if(this.settingsForm.get('statusOnFinishId').value&&this.statusIdInList(this.settingsForm.get('statusOnFinishId').value)){// если в настройках есть "Статус при проведении" - выставим его
+                    this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusOnFinishId').value);}
                   this.setStatusColor();//чтобы обновился цвет статуса
                 }
               }
@@ -954,17 +955,17 @@ export class InventoryDocComponent implements OnInit {
     dialogSettings.afterClosed().subscribe(result => {
       if(result){
         //если нажата кнопка Сохранить настройки - вставляем настройки в форму настроек и сохраняем
-        if(result.get('companyId')) this.settingsForm.get('companyId').setValue(result.get('companyId').value);
-        if(result.get('departmentId')) this.settingsForm.get('departmentId').setValue(result.get('departmentId').value);
-        if(result.get('pricingType')) this.settingsForm.get('pricingType').setValue(result.get('pricingType').value);
-        if(result.get('priceTypeId')) this.settingsForm.get('priceTypeId').setValue(result.get('priceTypeId').value);
-        if(result.get('plusMinus')) this.settingsForm.get('plusMinus').setValue(result.get('plusMinus').value);
-        if(result.get('changePrice')) this.settingsForm.get('changePrice').setValue(result.get('changePrice').value);
-        if(result.get('changePriceType')) this.settingsForm.get('changePriceType').setValue(result.get('changePriceType').value);
-        if(result.get('name')) this.settingsForm.get('name').setValue(result.get('name').value);
-        if(result.get('defaultActualBalance')) this.settingsForm.get('defaultActualBalance').setValue(result.get('defaultActualBalance').value);
-        if(result.get('otherActualBalance')) this.settingsForm.get('otherActualBalance').setValue(result.get('otherActualBalance').value);
-        if(result.get('autoAdd')) this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
+        this.settingsForm.get('companyId').setValue(result.get('companyId').value);
+        this.settingsForm.get('departmentId').setValue(result.get('departmentId').value);
+        this.settingsForm.get('pricingType').setValue(result.get('pricingType').value);
+        this.settingsForm.get('priceTypeId').setValue(result.get('priceTypeId').value);
+        this.settingsForm.get('plusMinus').setValue(result.get('plusMinus').value);
+        this.settingsForm.get('changePrice').setValue(result.get('changePrice').value);
+        this.settingsForm.get('changePriceType').setValue(result.get('changePriceType').value);
+        this.settingsForm.get('name').setValue(result.get('name').value);
+        this.settingsForm.get('defaultActualBalance').setValue(result.get('defaultActualBalance').value);
+        this.settingsForm.get('otherActualBalance').setValue(result.get('otherActualBalance').value);
+        this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
         this.settingsForm.get('hideTenths').setValue(result.get('hideTenths').value);
         this.settingsForm.get('statusOnFinishId').setValue(result.get('statusOnFinishId').value);
         this.saveSettingsInventory();

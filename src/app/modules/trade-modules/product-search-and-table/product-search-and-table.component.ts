@@ -137,10 +137,6 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   imageToShow:any; // переменная в которую будет подгружаться картинка товара (если он jpg или png)
 
   //форма поиска товара
-  shortInfoAboutProduct: ShortInfoAboutProduct = null; //получение краткого инфо по товару
-  shortInfoAboutProductArray: any[] = []; //получение краткого инфо по товару
-  // receivedPriceTypesList: idNameDescription [] = [];//массив для получения списка типов цен
-  // spravTaxesSet: SpravTaxesSet[] = []; //массив имен и id для ндс 
   selected_type_price_id: number; //тип цены, выбранный в форме поиска. Нужен для восстановления выбранного типа цены при сбросе формы поиска товара
   selected_price: number = 0; //цена, выбранная через поле Тип цены. Нужна для сравнения с полем Цена для выявления факта изменения его значения, и оставления значения столбце Тип цены пустым
   selected_sklad_id: number; //id склада, выбранный в форме поиска. Нужен для восстановления при сбросе формы поиска товара
@@ -159,7 +155,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
   productPrice:number=0; //Цена найденного и выбранного в форме поиска товара.
   avgCostPrice:number = 0; // себестоимость найденного и выбранного в форме поиска товара.
   lastPurchasePrice:number = 0; // последняя закупочная цена найденного и выбранного в форме поиска товара.
-  avgPurchasePrice:number = 0; // средняя закупочная цена найденного и выбранного в форме поиска товара.
+  // avgPurchasePrice:number = 0; // средняя закупочная цена найденного и выбранного в форме поиска товара.
   priceUpDownFieldName:string = translate('modules.field.markup'); // Наименование поля с наценкой-скидкой
   priceTypeId_temp:number; // id типа цены. Нужна для временного хранения типа цены на время сброса формы поиска товара
   companyId_temp:number; // id предприятия. Нужна для временного хранения предприятия на время сброса формы formBaseInformation
@@ -386,6 +382,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
                     control.push(this.formingProductRowFromApiResponse(row));
                   });
                   this.finishRecount();// подсчёт итогов у таблицы
+                  this.refreshTableColumns();
                 }
             },
             error => {
@@ -898,25 +895,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
         reader.readAsDataURL(image);
     }
   }
-  getShortInfoAboutProduct(){
-    this.http.get('/api/auth/getShortInfoAboutProduct?department_id='+this.formSearch.get('secondaryDepartmentId').value+'&product_id='+this.formSearch.get('product_id').value+'&price_type_id='+this.formSearch.get('price_type_id').value)
-      .subscribe(
-          data => { 
-            this.shortInfoAboutProduct=data as any;
-            this.shortInfoAboutProductArray[0]=this.shortInfoAboutProduct.quantity;
-            this.shortInfoAboutProductArray[1]=this.shortInfoAboutProduct.change;
-            this.shortInfoAboutProductArray[2]=this.shortInfoAboutProduct.date_time_created;
-            this.shortInfoAboutProductArray[3]=this.shortInfoAboutProduct.avg_purchase_price;
-            this.shortInfoAboutProductArray[4]=this.shortInfoAboutProduct.avg_netcost_price;
-            this.shortInfoAboutProductArray[5]=this.shortInfoAboutProduct.last_purchase_price;
-            this.shortInfoAboutProductArray[6]=this.shortInfoAboutProduct.department_type_price;
-            this.shortInfoAboutProductArray[7]=this.shortInfoAboutProduct.department_sell_price;
-            this.setPrice(+this.shortInfoAboutProductArray[7]>0?this.shortInfoAboutProductArray[7]:0);
-            this.calcSumPriceOfProduct();
-          },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
-      );
-  }
+
   getProductsPriceAndRemains(){
      let result:any;
      let price_type_id:number;
@@ -930,7 +909,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
             this.formSearch.get('available').setValue(result.total-result.reserved);
             this.avgCostPrice=(+result.avgCostPrice>0?result.avgCostPrice:0);
             this.lastPurchasePrice=(+result.lastPurchasePrice>0?result.lastPurchasePrice:0);
-            this.avgPurchasePrice=(+result.avgPurchasePrice>0?result.avgPurchasePrice:0);
+            // this.avgPurchasePrice=(+result.avgPurchasePrice>0?result.avgPurchasePrice:0);
             this.productPrice=(+result.price>0?result.price:0);
             this.priceRecount();
             if(this.autoAdd){
@@ -944,7 +923,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
     //перерасчет цены в зависимости от выбранного в поле "Расценивать по" значения
     switch (this.formSearch.get('pricingType').value) {
       case 'priceType': {//если "Тип цены"
-        this.setPrice(this.productPrice);
+        this.setChangePrice(this.productPrice);
         break;}
       case 'manual': {      //если "Вручную"
           this.setPrice(0);
@@ -958,10 +937,10 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
         this.setChangePrice(this.lastPurchasePrice);
         break;
       }
-      case 'avgPurchasePrice':{
-        this.setChangePrice(this.avgPurchasePrice);
-        break;
-      }
+      // case 'avgPurchasePrice':{
+      //   this.setChangePrice(this.avgPurchasePrice);
+      //   break;
+      // }
     }
   }
   setChangePrice(price:number){
@@ -1043,7 +1022,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
       this.selected_price=0;
       this.avgCostPrice = 0; // себестоимость найденного и выбранного в форме поиска товара.
       this.lastPurchasePrice = 0; // последняя закупочная цена найденного и выбранного в форме поиска товара.
-      this.avgPurchasePrice = 0; // средняя закупочная цена найденного и выбранного в форме поиска товара.
+      // this.avgPurchasePrice = 0; // средняя закупочная цена найденного и выбранного в форме поиска товара.
       this.calcSumPriceOfProduct();//иначе неправильно будут обрабатываться проверки формы
       this.resetProductCountOfSecondaryDepartmentsList();// сброс кол-ва товара по отделениям (складам)
       this.gotProductCount=false;

@@ -796,16 +796,6 @@ refreshPermissions():boolean{
       this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
             .subscribe(
                 (data) => {this.receivedMyDepartmentsList=data as any [];
-
-
-
-
-
-
-
-
-
-
                   this.setDefaultDepartment();
                 
                 },
@@ -2160,9 +2150,7 @@ checkProductCodeFreeUnical() {
     this.displayedColumns.push('quantity');
     this.displayedColumns.push('date_time_created');
     this.displayedColumns.push('price');
-    // this.displayedColumns.push('last_purchase_price');
-    // this.displayedColumns.push('avg_purchase_price');
-    this.displayedColumns.push('netcost');
+    // this.displayedColumns.push('netcost');
     this.displayedColumns.push('avg_netcost_price');
   }
   getPricesTableHeaderTitles(){

@@ -24,7 +24,7 @@
             "password":     "Password",
             "password_rpt": "Repeat password",
             "ur_name":      "Your name",
-            "ur_email":     "Your e-mail" 
+            "ur_email":     "Your e-mail"
         },
         "error":{
             "enter_login":  "Enter login",

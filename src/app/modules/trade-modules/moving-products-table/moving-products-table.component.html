@@ -64,22 +64,6 @@
                                                         [readonly]="formSearchReadOnly"
                                                         (input)="canAutocompleteQuery=true; checkEmptyProductField();"
                                                         (change)="canAutocompleteQuery=false; checkEmptyProductField();">
-                                                        <!-- <button mat-button 
-                                                        [matMenuTriggerFor]="productInfo"
-                                                        type="button"
-                                                        *ngIf="formSearchReadOnly" 
-                                                        matTooltip='Показать информацию о товаре'
-                                                        matSuffix mat-icon-button>
-                                                        <mat-icon>info</mat-icon>
-                                                        </button>
-                                                        <mat-menu #productInfo="matMenu" xPosition="before">
-                                                            <button mat-menu-item>Кол-во на складе: {{+shortInfoAboutProductArray[0]}} {{formSearch.get('edizm').value}}</button>
-                                                            <button mat-menu-item>Последнее изменение кол-ва: {{+shortInfoAboutProductArray[1]}} {{formSearch.get('edizm').value}}</button>
-                                                            <button mat-menu-item>Дата последнего изменения кол-ва: {{(shortInfoAboutProductArray[2]==null?'нет':shortInfoAboutProductArray[2])}}</button>
-                                                            <button mat-menu-item (click)="setPrice(shortInfoAboutProductArray[5])">Последняя закупочная цена: {{+shortInfoAboutProductArray[5]}} руб.</button>
-                                                            <button mat-menu-item (click)="setPrice(shortInfoAboutProductArray[3])">Средняя закупочная цена: {{+shortInfoAboutProductArray[3]}} руб.</button>
-                                                            <button mat-menu-item (click)="setPrice(shortInfoAboutProductArray[4])">Средняя себестоимость: {{+shortInfoAboutProductArray[4]}} руб.</button>
-                                                        </mat-menu> -->
                                                         <button mat-button 
                                                         type="button"
                                                         (click)="openProductCard(formSearch.get('product_id').value)"
@@ -136,9 +120,9 @@
                                                 <div class="col-lg-8 col-md-12">
                                                     <div class="container-fluid" style="padding-right: 0px; padding-left: 0px;">
                                                         <div class="row">
-                                                            <div class="col-lg-1 col-md-12" style="min-width: 120px;"> 
+                                                            <div class="col-xl-4 col-md-12" style="min-width: 120px;"> 
                                                                 <mat-form-field  class="mat-form-field-100">
-                                                                    <mat-label>{{t('modules.field.count')}}</mat-label>
+                                                                    <mat-label>{{t('modules.field.count')}} <span *ngIf="+product_id.value>0 && product_count.value==''" class="star">*</span></mat-label>
                                                                     <input  matInput 
                                                                             #product_count
                                                                             [placeholder]="placeholderActualBalance"
@@ -157,11 +141,12 @@
                                                                     </mat-hint>
                                                                 </mat-form-field>
                                                             </div>
-                                                            <div class="col-lg-1 col-md-12" style="min-width: 120px;"> 
+                                                            <div class="col-xl-4 col-md-12" style="min-width: 120px;"> 
                                                                 <mat-form-field class="mat-form-field-100">
+                                                                    <mat-label>{{t('modules.field.price')}}{{formSearch.get('edizm').value==''?'':' '+t('modules.field.for')+' 1'}}{{formSearch.get('edizm').value}} <span *ngIf="+product_id.value>0 && product_price.value==''" class="star">*</span></mat-label>
                                                                     <input  matInput 
-                                                                            placeholder="{{t('modules.field.price')}}{{formSearch.get('edizm').value==''?'':' '+t('modules.field.for')+' 1'}}{{formSearch.get('edizm').value}}"
                                                                             formControlName="product_price"
+                                                                            #product_price
                                                                             (input)="checkProductPriceInForm();calcSumPriceOfProduct()"
                                                                             (change)="checkProductPriceInForm();calcSumPriceOfProduct()"
                                                                             (keypress)="numberOnlyPlusDotAndComma($event)"
@@ -170,12 +155,12 @@
                                                                     <mat-hint align="start">
                                                                         <i *ngIf=" formSearch.get('product_price').invalid && formSearch.get('product_price').errors.pattern && formSearch.get('product_price').value>0 && formSearch.get('product_price').touched" class="form-invalid">{{t('modules.error.price_format',{int:7,fract:2})}}</i>
                                                                         <i *ngIf="(formSearch.get('product_price').value==null || formSearch.get('product_price').value=='') && formSearch.get('product_price').value!='0' && +this.formSearch.get('product_id').value>0 && formSearch.get('product_price').touched" class="form-invalid">{{t('docs.error.field_miss')}}</i>
-                                                                        <i *ngIf="formSearch.get('product_price').value=='0' && formSearch.get('product_price').touched" class="form-invalid">{{t('modules.error.more_than',{num:0})}}</i>
+                                                                        <!-- <i *ngIf="formSearch.get('product_price').value=='0' && formSearch.get('product_price').touched" class="form-invalid">{{t('modules.error.more_than',{num:0})}}</i> -->
                                                                         <i *ngIf="formSearch.get('product_price').value<0 && formSearch.get('product_price').value!=''" class="form-invalid">{{t('modules.error.more_than',{num:0})}}</i>
                                                                     </mat-hint>
                                                                 </mat-form-field>
                                                             </div>
-                                                            <div class="col-lg-1 col-md-12" style="min-width: 120px;">
+                                                            <div class="col-xl-4 col-md-12" style="min-width: 120px;">
                                                                 <mat-form-field class="mat-form-field-100">
                                                                     <input  matInput matTooltip="{{t('modules.tip.avail_to_mov')}} {{department_from}}"
                                                                             placeholder="{{t('modules.field.available')}}"
@@ -185,7 +170,7 @@
                                                                     <span matSuffix>{{formSearch.get('edizm').value}}</span>
                                                                 </mat-form-field>
                                                             </div>
-                                                            <div class="col-lg-1  col-md-12" style="min-width: 120px;">
+                                                            <div class="col-xl-4  col-md-12" style="min-width: 120px;">
                                                                 <mat-form-field class="mat-form-field-100">
                                                                     <input  matInput matTooltip="{{t('modules.tip.total_dep_frm')}} {{department_from}}"
                                                                             placeholder="{{t('modules.field.remains')}}"
@@ -195,7 +180,7 @@
                                                                     <span matSuffix>{{formSearch.get('edizm').value}}</span>
                                                                 </mat-form-field>
                                                             </div>
-                                                            <div class="col-lg-1  col-md-12" style="min-width: 120px;">
+                                                            <div class="col-xl-4  col-md-12" style="min-width: 120px;">
                                                                 <mat-form-field class="mat-form-field-100">
                                                                     <input  matInput matTooltip="{{t('modules.tip.resrv_dep_frm')}} {{department_from}}"
                                                                             placeholder="{{t('modules.field.reserved')}}"
@@ -216,7 +201,7 @@
                                                                             
                                                                 </mat-form-field>
                                                             </div>
-                                                            <div class="col-lg-1  col-md-12" style="min-width: 120px;">
+                                                            <div class="col-xl-4  col-md-12" style="min-width: 120px;">
                                                                 <mat-form-field class="mat-form-field-100">
                                                                     <input  matInput 
                                                                             placeholder="{{t('modules.field.sum')}}"

@@ -24,7 +24,7 @@
             "password":     "Пароль",
             "password_rpt": "Повтор пароля",
             "ur_name":      "Ваше имя",
-            "ur_email":     "Ваш e-mail"            
+            "ur_email":     "Ваш e-mail"
         },
         "error":{
             "enter_login":  "Введите логин",

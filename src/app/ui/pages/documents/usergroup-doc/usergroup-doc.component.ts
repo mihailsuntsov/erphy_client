@@ -20,8 +20,8 @@ import { Cookie } from 'ng2-cookies/ng2-cookies';
 interface docResponse {//интерфейс для получения ответа в методе getUserValuesById
   id: number;
   name: string;
-  company: string;
-  company_id: string;
+  // company: string;
+  // company_id: string;
   creator: string;
   creator_id: string;
   master: string;
@@ -53,7 +53,7 @@ export class UsergroupDocComponent implements OnInit {
 
   createdDocId: string[];//массив для получение id созданного документа
   updateDocumentResponse: string;//массив для получения данных
-  receivedCompaniesList: any [] = [];//массив для получения списка предприятий
+  // receivedCompaniesList: any [] = [];//массив для получения списка предприятий
   receivedDocumentsWithPermissions: docListResponse []=[] ;//массив для получения JSON со списком документов и правами (listPermissions) у каждого документа
   receivedPermissions:listPermissions[]=[];
   nonSortedReceivedPermissions:listPermissions[];
@@ -62,7 +62,7 @@ export class UsergroupDocComponent implements OnInit {
   visBtnUpdate = false;
 
   id: number=0;// id документа
-  myCompanyId:number=0;
+  // myCompanyId:number=0;
   myId:number=0;
 
   //Формы
@@ -82,15 +82,9 @@ export class UsergroupDocComponent implements OnInit {
   //переменные прав
   permissionsSet: any[];//сет прав на документ
   allowToCreateAllCompanies:boolean = false;
-  allowToCreateMyCompany:boolean = false;
   allowToCreate:boolean = false;
   allowToUpdateAllCompanies:boolean = false;//разрешение на...
-  allowToUpdateMyCompany:boolean = false;
   allowToViewAllCompanies:boolean = false;
-  allowToViewMyCompany:boolean = false;
-  allowToUpdateMyDepartments:boolean = false;
-  allowToUpdateMy:boolean = false;
-  itIsDocumentOfMyCompany:boolean = false;//набор проверок на документ (документ моего предприятия?/документ моих отделений?/документ мой?/)
   itIsDocumentOfMyMastersCompanies:boolean = false;
   allowToUpdate:boolean = false;
   allowToView:boolean = false;
@@ -115,7 +109,6 @@ export class UsergroupDocComponent implements OnInit {
     this.formBaseInformation = new UntypedFormGroup({
       id: new UntypedFormControl      (this.id,[]),
       name: new UntypedFormControl      ('',[Validators.required]),
-      company_id: new UntypedFormControl      ('',[Validators.required]),
       description: new UntypedFormControl      ('',[]),
       selectedUserGroupPermissions:new UntypedFormControl      ([],[]),
     });
@@ -124,16 +117,13 @@ export class UsergroupDocComponent implements OnInit {
       master: new UntypedFormControl      ('',[]),
       creator: new UntypedFormControl      ('',[]),
       changer: new UntypedFormControl      ('',[]),
-      company: new UntypedFormControl      ('',[]),
       date_time_created: new UntypedFormControl      ('',[]),
       date_time_changed: new UntypedFormControl      ('',[]),
     });
     this.checkedList = [];
-    this.getSetOfPermissions();
     //+++ getting base data from parent component
     this.getBaseData('myId');    
-    this.getBaseData('myCompanyId');  
-    this.getBaseData('companiesList');  
+    this.getSetOfPermissions();
   }
 
 // -------------------------------------- *** ПРАВА *** ------------------------------------
@@ -148,50 +138,21 @@ export class UsergroupDocComponent implements OnInit {
                   );
   }
 
-  getCompaniesList(){ //+++
-    if(this.receivedCompaniesList.length==0)
-      this.loadSpravService.getCompaniesList()
-        .subscribe(
-            (data) => 
-            {
-              this.receivedCompaniesList=data as any [];
-              this.doFilterCompaniesList();
-            },                      
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
-        );
-    else this.doFilterCompaniesList();
-  }
   getMyId(){ //+++
     if(+this.myId==0)
       this.loadSpravService.getMyId()
             .subscribe(
                 (data) => {this.myId=data as any;
-                  this.getMyCompanyId();},
+                  this.getCRUD_rights();},
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
-    else this.getMyCompanyId();
-  }
-  getMyCompanyId(){ //+++
-    if(+this.myCompanyId==0)
-      this.loadSpravService.getMyCompanyId().subscribe(
-        (data) => {
-          this.myCompanyId=data as number;
-          this.getCRUD_rights();
-        }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
     else this.getCRUD_rights();
   }
 
 getCRUD_rights(){
   this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==31)});
-  this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==31)});
   this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==29)});
-  this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==30)});
   this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==34)});
-  this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==33)});
- 
-  if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;}
-  if(this.allowToViewAllCompanies){this.allowToViewMyCompany=true;}
-  if(this.allowToUpdateAllCompanies){this.allowToUpdateMyCompany=true;}
   this.getData();
 }
 
@@ -199,21 +160,18 @@ getData(){
   if(+this.id>0){
     this.getDocumentValuesById();
   }else {
-    this.getCompaniesList(); 
+    this.refreshPermissions(); 
   }
 }
 
 refreshPermissions(){
-  let documentOfMyCompany:boolean = (+this.formBaseInformation.get('company_id').value==this.myCompanyId);
   this.allowToView=(
-    (this.allowToViewAllCompanies)||
-    (this.allowToViewMyCompany&&documentOfMyCompany)
+    (this.allowToViewAllCompanies)
   )?true:false;
   this.allowToUpdate=(
-    (this.allowToUpdateAllCompanies)||
-    (this.allowToUpdateMyCompany&&documentOfMyCompany)
+    (this.allowToUpdateAllCompanies)
   )?true:false;
-  this.allowToCreate=(this.allowToCreateAllCompanies || this.allowToCreateMyCompany)?true:false;
+  this.allowToCreate=(this.allowToCreateAllCompanies)?true:false;
   // console.log("myCompanyId - "+this.myCompanyId);
   // console.log("documentOfMyCompany - "+documentOfMyCompany);
   // console.log("allowToView - "+this.allowToView);
@@ -223,27 +181,6 @@ refreshPermissions(){
 }
 
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
-
-  doFilterCompaniesList(){
-    let myCompany:any;
-    if(!this.allowToCreateAllCompanies){
-      this.receivedCompaniesList.forEach(company=>{
-      if(this.myCompanyId==company.id) myCompany={id:company.id, name:company.name}});
-      this.receivedCompaniesList=[];
-      this.receivedCompaniesList.push(myCompany);
-    }
-    this.setDefaultCompany();
-  }
-
-  setDefaultCompany(){
-    if(+this.id==0)
-      if(this.allowToCreateAllCompanies)
-        this.formBaseInformation.get('company_id').setValue(Cookie.get('usergroup_companyId')=="0"?this.myCompanyId:+Cookie.get('usergroup_companyId'));
-      else
-        this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
-    this.refreshPermissions();
-  }
-
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
       duration: 3000,
@@ -276,16 +213,14 @@ refreshPermissions(){
         .subscribe(
             data => {  let documentResponse: docResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
                 //Заполнение формы из интерфейса documentResponse:
-                if(data!=null&&documentResponse.company_id!=null){
+                if(data!=null){
                   this.formAboutDocument.get('id').setValue(+documentResponse.id);
                   this.formAboutDocument.get('master').setValue(documentResponse.master);
                   this.formAboutDocument.get('creator').setValue(documentResponse.creator);
                   this.formAboutDocument.get('changer').setValue(documentResponse.changer);
-                  this.formAboutDocument.get('company').setValue(documentResponse.company);
                   this.formAboutDocument.get('date_time_created').setValue(documentResponse.date_time_created);
                   this.formAboutDocument.get('date_time_changed').setValue(documentResponse.date_time_changed);
                   this.formBaseInformation.get('name').setValue(documentResponse.name);
-                  this.formBaseInformation.get('company_id').setValue(+documentResponse.company_id);
                   this.formBaseInformation.get('description').setValue(documentResponse.description);
                   this.checkedList=documentResponse.userGroupPermissionsId;
                   this.getDocumentsWithPermissionList();                  

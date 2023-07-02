@@ -94,7 +94,7 @@ export class SettingsInventoryDialogComponent implements OnInit {
       // статус после завершения инвентаризации
       statusOnFinishId: new UntypedFormControl         ('',[]),
       //  фактический баланс по умолчанию. "estimated" - как расчётный, "other" - другой (выбирается в other_actual_balance)
-      defaultActualBalance: new UntypedFormControl                ('',[]),
+      defaultActualBalance: new UntypedFormControl                ('other',[]),
       // "другой" фактический баланс по умолчанию. Например, 1
       otherActualBalance: new UntypedFormControl       (0,[Validators.pattern('^[0-9]{1,6}(?:[.,][0-9]{0,3})?\r?$')]),
       // автодобавление товара из формы поиска в таблицу

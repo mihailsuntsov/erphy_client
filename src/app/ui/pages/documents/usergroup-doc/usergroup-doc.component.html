@@ -72,7 +72,7 @@
                                                                 placeholder="id"
                                                                 formControlName="id"/>
                                                     </mat-form-field>
-
+<!-- 
                                                     <mat-form-field class="mat-form-field-100" *ngIf="+id==0">
                                                         <mat-label>{{t('docs.field.company')}} <span *ngIf="formBaseInformation.get('company_id').value==''||formBaseInformation.get('company_id').value==null" class="star">*</span></mat-label>
                                                         <mat-select  formControlName="company_id" (selectionChange)="onCompanyChange()">                          
@@ -85,11 +85,12 @@
                                                         <mat-label>{{t('docs.field.company')}}</mat-label>
                                                         <input  matInput [readonly]="true"
                                                                 [ngModel]="formAboutDocument.get('company').value" [ngModelOptions]="{standalone: true}"/>
-                                                    </mat-form-field>
+                                                    </mat-form-field> -->
                                                     <mat-form-field>
                                                         <mat-label>{{t('docs.field.name')}} <span *ngIf="formBaseInformation.get('name').value==''||formBaseInformation.get('name').value==null" class="star">*</span></mat-label>
                                                         <input matInput
                                                                 placeholder="{{t('docs.field.name')}}"
+                                                                maxlength="300"
                                                                 formControlName="name"/>
                                                             <mat-hint *ngIf="formBaseInformation.get('name').touched && formBaseInformation.get('name').invalid" class="invalid-feedback">
                                                                 <i class="form-invalid" *ngIf="formBaseInformation.get('name').errors.required">{{t('docs.error.field_miss')}}</i>
@@ -98,6 +99,7 @@
                                                     <mat-form-field>
                                                         <textarea matInput
                                                                 placeholder="{{t('docs.field.description')}}"
+                                                                maxlength="1000"
                                                                 formControlName="description"></textarea>
                                                     </mat-form-field>
                                                 
@@ -141,11 +143,11 @@
                             <form [formGroup]="formAboutDocument">
                                 <mat-card style="margin:10px;">
                                     <mat-card-content class="input-form">
-                                            <mat-form-field [ngClass]="{invisible: +id==0}">
+                                            <!-- <mat-form-field [ngClass]="{invisible: +id==0}">
                                                 <input  matInput
                                                         placeholder="{{t('docs.field.company')}}"
                                                         formControlName="company" [readonly]=true/>
-                                            </mat-form-field>
+                                            </mat-form-field> -->
                                             <mat-form-field [ngClass]="{invisible: +id==0}">
                                                 <input  matInput
                                                         placeholder="{{t('docs.field.creator')}}"

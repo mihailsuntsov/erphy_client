@@ -46,16 +46,7 @@ interface ProductSearchResponse{  // интерфейс получения сп�
   lastPurchasePrice: number;      // последняя закупочная цена
   avgPurchasePrice : number;      // средняя закупочная цена
 }
-interface ShortInfoAboutProduct{//интерф. для получения инфо о состоянии товара в отделении (кол-во, последняя поставка), и средним ценам (закупочной и себестоимости) товара
-  quantity:number;
-  change:number;
-  avg_purchase_price:number;
-  avg_netcost_price:number;
-  last_purchase_price:number;
-  department_sell_price:number;
-  department_type_price:string;
-  date_time_created:string;
-}
+
 interface SpravTaxesSet{
   id: number;
   name: string;
@@ -96,8 +87,6 @@ export class InvoiceinProductsTableComponent implements OnInit {
   imageToShow:any; // переменная в которую будет подгружаться картинка товара (если он jpg или png)
 
   //форма поиска товара
-  shortInfoAboutProduct: ShortInfoAboutProduct = null; //получение краткого инфо по товару
-  shortInfoAboutProductArray: any[] = []; //получение краткого инфо по товару
   selected_type_price_id: number; //тип цены, выбранный в форме поиска. Нужен для восстановления выбранного типа цены при сбросе формы поиска товара
   selected_pricingType: string; // тип расценки, выбранный в форме поиска.  Нужен для восстановления при сбросе формы поиска товара
   formSearchReadOnly=false;
@@ -331,7 +320,6 @@ export class InvoiceinProductsTableComponent implements OnInit {
     }else {
       this.formSearchReadOnly=true;
       this.loadMainImage();
-      this.getShortInfoAboutProduct();
       this.formSearch.get('product_count').setValue(1);  
       this.calcSumPriceOfProduct();
       this.changeProductsTableLength.emit();//для того, чтобы заблокировать поля Предприятие, Отделение
@@ -409,6 +397,7 @@ export class InvoiceinProductsTableComponent implements OnInit {
                   });
 
                   this.onChangeTable();
+                  this.refreshTableColumns();
                   
                   this.changeProductsTableLength.emit();//событие изменения кол-ва товаров в таблице
                 }
@@ -533,21 +522,6 @@ export class InvoiceinProductsTableComponent implements OnInit {
           if(+a.id == srchId) {value=a.multiplier}
         }); return value;}   
 
-  getShortInfoAboutProduct(){
-    this.http.get('/api/auth/getShortInfoAboutProduct?department_id='+this.department_id+'&product_id='+this.formSearch.get('product_id').value)
-      .subscribe(
-          data => { 
-            this.shortInfoAboutProduct=data as any;
-            this.shortInfoAboutProductArray[0]=this.shortInfoAboutProduct.quantity;
-            this.shortInfoAboutProductArray[1]=this.shortInfoAboutProduct.change;
-            this.shortInfoAboutProductArray[2]=this.shortInfoAboutProduct.date_time_created;
-            this.shortInfoAboutProductArray[3]=this.shortInfoAboutProduct.avg_purchase_price;
-            this.shortInfoAboutProductArray[4]=this.shortInfoAboutProduct.avg_netcost_price;
-            this.shortInfoAboutProductArray[5]=this.shortInfoAboutProduct.last_purchase_price;
-          },
-          error => console.log(error)
-      );
-  }
   getTaxFromPrice(price:number, taxId:number):number {
     // вычисляет налог из цены. Например, для цены 100, уже содержащей в себе налог, и налога 20% вернёт: 100 * 20 / 120 = 16.67
     let value=0;

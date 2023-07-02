@@ -29,6 +29,7 @@ interface ReturnsupProductTable { //интерфейс для товаров, (�
   nds_id: number;                 // id ставки НДС
   product_sumprice: number;       // сумма как product_count * product_price (высчитываем сумму и пихем ее в БД, чтобы потом на бэкэнде в SQL запросах ее не высчитывать)
   indivisible: boolean;           // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
+  is_material: boolean;
 }
 interface ProductSearchResponse{  // интерфейс получения списка товаров во время поиска товара 
   name: string;                   // наименование товара
@@ -43,6 +44,7 @@ interface ProductSearchResponse{  // интерфейс получения сп�
   avgCostPrice: number;           // средняя себестоимость
   lastPurchasePrice: number;      // последняя закупочная цена
   avgPurchasePrice : number;      // средняя закупочная цена
+  is_material: boolean;
 }
 interface ShortInfoAboutProduct{//интерф. для получения инфо о состоянии товара в отделении (кол-во, последняя поставка), и средним ценам (закупочной и себестоимости) товара
   quantity:number;
@@ -95,8 +97,6 @@ export class ReturnsupProductsTableComponent implements OnInit {
   imageToShow:any; // переменная в которую будет подгружаться картинка товара (если он jpg или png)
 
   //форма поиска товара
-  shortInfoAboutProduct: ShortInfoAboutProduct = null; //получение краткого инфо по товару
-  shortInfoAboutProductArray: any[] = []; //получение краткого инфо по товару
   selected_type_price_id: number; //тип цены, выбранный в форме поиска. Нужен для восстановления выбранного типа цены при сбросе формы поиска товара
   selected_price: number = 0; //цена, выбранная через поле Тип цены. Нужна для сравнения с полем Цена для выявления факта изменения его значения, и оставления значения столбце Тип цены пустым
   selected_pricingType: string; // тип расценки, выбранный в форме поиска.  Нужен для восстановления при сбросе формы поиска товара
@@ -174,6 +174,7 @@ export class ReturnsupProductsTableComponent implements OnInit {
       // nds: new FormControl                      (0,[]),                    // НДС в валютном ввыражении
       product_sumprice : new UntypedFormControl        (0,[]),                       // суммарная стоимость товара = цена * кол-во
       indivisible: new UntypedFormControl              ('',[]),                      // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
+      is_material: new UntypedFormControl              ('',[]),                      // материальный товар (не услуга)
       priceOfTypePrice: new UntypedFormControl         ('',[]),                                                              // цена по запрошенному id типа цены
       avgCostPrice: new UntypedFormControl             ('',[]),                                                              // средняя себестоимость
       lastPurchasePrice: new UntypedFormControl        ('',[]),                                                              // последняя закупочная цена
@@ -320,6 +321,7 @@ export class ReturnsupProductsTableComponent implements OnInit {
     this.formSearch.get('remains').setValue(this.filteredProducts[0].total);                      // остатки - кол-во товара по БД
     this.formSearch.get('nds_id').setValue(this.filteredProducts[0].nds_id);                        // id НДС 
     this.formSearch.get('indivisible').setValue(this.filteredProducts[0].indivisible);              // неделимость (необходимо для проверки правильности ввода кол-ва товара)
+    this.formSearch.get('is_material').setValue(this.filteredProducts[0].is_material); 
     this.formSearch.get('priceOfTypePrice').setValue(this.filteredProducts[0].priceOfTypePrice);    // цена по запрошенному id типа цены
     this.formSearch.get('avgCostPrice').setValue(this.filteredProducts[0].avgCostPrice);            // средняя себестоимость
     this.formSearch.get('lastPurchasePrice').setValue(this.filteredProducts[0].lastPurchasePrice);  // последняя закупочная цена
@@ -337,6 +339,7 @@ export class ReturnsupProductsTableComponent implements OnInit {
     this.formSearch.get('remains').setValue(product.total);                      // остатки - кол-во товара по БД
     this.formSearch.get('nds_id').setValue(product.nds_id);                        // id НДС 
     this.formSearch.get('indivisible').setValue(product.indivisible);              // неделимость (необходимо для проверки правильности ввода кол-ва товара)
+    this.formSearch.get('is_material').setValue(product.is_material); 
     this.formSearch.get('priceOfTypePrice').setValue(product.priceOfTypePrice);    // цена по запрошенному id типа цены
     this.formSearch.get('avgCostPrice').setValue(product.avgCostPrice);            // средняя себестоимость
     this.formSearch.get('lastPurchasePrice').setValue(product.lastPurchasePrice);  // последняя закупочная цена
@@ -445,6 +448,7 @@ export class ReturnsupProductsTableComponent implements OnInit {
                     control.push(this.formingProductRowFromApiResponse(row));
                   });
                   this.productTableRecount();//чтобы подсчитались итоги
+                  this.refreshTableColumns();
                   this.changeProductsTableLength.emit();//событие изменения кол-ва товаров в таблице
                 }
             },
@@ -467,6 +471,7 @@ export class ReturnsupProductsTableComponent implements OnInit {
       // ValidationService.priceMoreThanZero  -- пока исключил ошибку "Цена=0", чтобы позволить сохранять с нулевой ценой, а также делать с ней связанные документы.
       ]),
       indivisible:  new UntypedFormControl (row.indivisible,[]),
+      is_material:  new UntypedFormControl (row.is_material,[]),
     });
   }
 
@@ -505,6 +510,7 @@ export class ReturnsupProductsTableComponent implements OnInit {
       nds_id: new UntypedFormControl (+this.formSearch.get('nds_id').value,[]),
       product_sumprice: new UntypedFormControl ((+this.formSearch.get('product_count').value*(+this.formSearch.get('product_price').value)).toFixed(2),[]),
       indivisible:  new UntypedFormControl (this.formSearch.get('indivisible').value,[]),
+      is_material:  new UntypedFormControl (this.formSearch.get('is_material').value,[]),
       // nds: new FormControl (+this.formSearch.get('remains').value,[]),
     });
   }

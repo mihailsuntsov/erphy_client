@@ -736,7 +736,7 @@ export class OrdersupDocComponent implements OnInit {
             this.settingsForm.get('autoAdd').setValue(result.autoAdd);
             this.settingsForm.get('autoPrice').setValue(result.auto_price);
             this.settingsForm.get('autocreate').setValue(result.autocreate);
-            this.settingsForm.get('name').setValue(result.name?result.name:'');
+            this.settingsForm.get('name').setValue(result.name);
             //если предприятия из настроек больше нет в списке предприятий (например, для пользователя урезали права, и выбранное предприятие более недоступно)
             //настройки не принимаем 
             if(this.isCompanyInList(+result.companyId)){
@@ -823,6 +823,7 @@ export class OrdersupDocComponent implements OnInit {
                   this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
                   this.getPriceTypesList();
                   this.loadFilesInfo();
+                  this.getSettings();
                   this.getDepartmentsList();//отделения
                   this.getStatusesList();//статусы документа Заказ поставщику
                   this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов

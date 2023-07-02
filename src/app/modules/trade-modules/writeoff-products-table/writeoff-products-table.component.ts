@@ -90,8 +90,6 @@ export class WriteoffProductsTableComponent implements OnInit {
   imageToShow:any; // переменная в которую будет подгружаться картинка товара (если он jpg или png)
 
   //форма поиска товара
-  shortInfoAboutProduct: ShortInfoAboutProduct = null; //получение краткого инфо по товару
-  shortInfoAboutProductArray: any[] = []; //получение краткого инфо по товару
   selected_type_price_id: number; //тип цены, выбранный в форме поиска. Нужен для восстановления выбранного типа цены при сбросе формы поиска товара
   selected_pricingType: string; // тип расценки, выбранный в форме поиска.  Нужен для восстановления при сбросе формы поиска товара
   formSearchReadOnly=false;
@@ -154,7 +152,7 @@ export class WriteoffProductsTableComponent implements OnInit {
       product_id: new UntypedFormControl               ('',[Validators.required]),    // id товара
       edizm: new UntypedFormControl                    ('',[]),                       // наименование единицы измерения товара
       product_price : new UntypedFormControl           ('',[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),                      // цена товара (которая уйдет в таблицу выбранных товаров). Т.е. мы как можем вписать цену вручную, так и выбрать из предложенных (см. выше)
-      product_count : new UntypedFormControl           ('',[Validators.required,Validators.pattern('^[0-9]{1,6}(?:[.,][0-9]{0,3})?\r?$')]),                      // количество товара к возврату
+      product_count : new UntypedFormControl           ('',[Validators.required,Validators.min(0.001),Validators.pattern('^[0-9]{1,6}(?:[.,][0-9]{0,3})?\r?$')]),                      // количество товара к возврату
       total : new UntypedFormControl                   ('',[]),                       // остатки на складе
       product_sumprice : new UntypedFormControl        ('',[]),                       // суммарная стоимость товара = цена * кол-во
       reason_id: new UntypedFormControl                (null,[]),                     // причина списания
@@ -313,7 +311,11 @@ export class WriteoffProductsTableComponent implements OnInit {
     this.formSearch.get('avgCostPrice').setValue(this.filteredProducts[0].avgCostPrice);            // средняя себестоимость
     this.formSearch.get('lastPurchasePrice').setValue(this.filteredProducts[0].lastPurchasePrice);  // последняя закупочная цена
     this.formSearch.get('avgPurchasePrice').setValue(this.filteredProducts[0].avgPurchasePrice);    // средняя закупочная цена
+    // this.formSearch.get('product_price').setValue(this.filteredProducts[0].avgCostPrice);           // price set as a cost price
+
+    // alert(this.formSearch.get('product_price').value)
     this.afterSelectProduct();
+    // alert(this.formSearch.get('product_price').value)
     this.filteredProducts=[];
   }
 
@@ -329,19 +331,19 @@ export class WriteoffProductsTableComponent implements OnInit {
     this.formSearch.get('avgCostPrice').setValue(product.avgCostPrice);            // средняя себестоимость
     this.formSearch.get('lastPurchasePrice').setValue(product.lastPurchasePrice);  // последняя закупочная цена
     this.formSearch.get('avgPurchasePrice').setValue(product.avgPurchasePrice);    // средняя закупочная цена
+    // this.formSearch.get('product_price').setValue(this.filteredProducts[0].avgCostPrice);           // price set as a cost price
     this.formSearch.get('additional').setValue('');
     this.canAutocompleteQuery=false;
     this.afterSelectProduct();
   }
 
   afterSelectProduct(){
-    this.setPrice(0);
+    this.setPrice();
     if(this.autoAdd){
       setTimeout(() => {this.addProductRow();}, 100);
     }else {
       this.formSearchReadOnly=true;
       this.loadMainImage();
-      this.getShortInfoAboutProduct();
       this.formSearch.get('product_count').setValue(1);  
       this.calcSumPriceOfProduct();
       this.changeProductsTableLength.emit();//для того, чтобы заблокировать поля Предприятие, Отделение
@@ -350,7 +352,7 @@ export class WriteoffProductsTableComponent implements OnInit {
     
   }
 
-  setPrice(price:number){
+  setPrice(){
     switch (this.pricingType){
       case 'priceType':{//по типу цены
         this.formSearch.get('product_price').setValue(this.commonUtilites.priceFilter(+this.formSearch.get('priceOfTypePrice').value,this.changePrice,this.changePriceType,this.plusMinus,this.hideTenths));
@@ -438,6 +440,7 @@ export class WriteoffProductsTableComponent implements OnInit {
                     control.push(this.formingProductRowFromApiResponse(row));
                   });
 
+                  this.refreshTableColumns();
                   this.onChangeTable();
                   
                   this.changeProductsTableLength.emit();//событие изменения кол-ва товаров в таблице
@@ -456,7 +459,7 @@ export class WriteoffProductsTableComponent implements OnInit {
       edizm: new UntypedFormControl (row.edizm,[]),
       total: new UntypedFormControl (+row.total,[]),
       product_sumprice: new UntypedFormControl ((+row.product_count*(+row.product_price)).toFixed(2),[]),
-      product_count:  new UntypedFormControl (row.product_count,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
+      product_count:  new UntypedFormControl (row.product_count,[Validators.required,Validators.min(0.001),Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
       product_price:  new UntypedFormControl (this.numToPrice(row.product_price,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),
       // ValidationService.priceMoreThanZero  -- пока исключил ошибку "Цена=0", чтобы позволить сохранять с нулевой ценой, а также делать с ней связанные документы.
       ]),
@@ -496,7 +499,7 @@ export class WriteoffProductsTableComponent implements OnInit {
       name:  new UntypedFormControl (this.searchProductCtrl.value,[]),
       edizm:  new UntypedFormControl (this.formSearch.get('edizm').value,[]),
       product_price: new UntypedFormControl (this.formSearch.get('product_price').value,[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),/*ValidationService.priceMoreThanZero*/]),
-      product_count:  new UntypedFormControl (this.formSearch.get('product_count').value,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
+      product_count:  new UntypedFormControl (this.formSearch.get('product_count').value,[Validators.required,Validators.min(0.001), Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
       total: new UntypedFormControl (+this.formSearch.get('total').value,[]),
       product_sumprice: new UntypedFormControl ((+this.formSearch.get('product_count').value*(+this.formSearch.get('product_price').value)).toFixed(2),[]),
       indivisible:  new UntypedFormControl (this.formSearch.get('indivisible').value,[]),
@@ -551,22 +554,6 @@ export class WriteoffProductsTableComponent implements OnInit {
     let current_row_id:number=this.row_id;
     this.row_id++;
     return current_row_id;
-  }
-
-  getShortInfoAboutProduct(){
-    this.http.get('/api/auth/getShortInfoAboutProduct?department_id='+this.department_id+'&product_id='+this.formSearch.get('product_id').value)
-      .subscribe(
-          data => { 
-            this.shortInfoAboutProduct=data as any;
-            this.shortInfoAboutProductArray[0]=this.shortInfoAboutProduct.quantity;
-            this.shortInfoAboutProductArray[1]=this.shortInfoAboutProduct.change;
-            this.shortInfoAboutProductArray[2]=this.shortInfoAboutProduct.date_time_created;
-            this.shortInfoAboutProductArray[3]=this.shortInfoAboutProduct.avg_purchase_price;
-            this.shortInfoAboutProductArray[4]=this.shortInfoAboutProduct.avg_netcost_price;
-            this.shortInfoAboutProductArray[5]=this.shortInfoAboutProduct.last_purchase_price;
-          },
-          error => console.log(error)
-      );
   }
 
     //пересчитывает НДС в таблице товаров
@@ -787,7 +774,7 @@ openDialogCreateProduct() {
       name: new UntypedFormControl (row.name,[]),
       edizm: new UntypedFormControl (row.edizm,[]),
       total: new UntypedFormControl (+row.total,[]),
-      product_count:  new UntypedFormControl (1,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
+      product_count:  new UntypedFormControl (1,[Validators.required,Validators.min(0.001),Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
       product_price:  new UntypedFormControl (this.commonUtilites.priceFilter(this.getPrice(row),this.changePrice,this.changePriceType,this.plusMinus,this.hideTenths),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),/*ValidationService.priceMoreThanZero*/]),
       product_sumprice: new UntypedFormControl (0,[]),
       indivisible: new UntypedFormControl (row.indivisible,[]),

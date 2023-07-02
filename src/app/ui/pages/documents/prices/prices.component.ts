@@ -196,7 +196,13 @@ export class PricesComponent implements OnInit {
     this.getBaseData('companiesList');   
     // this.getBaseData('myDepartmentsList');      
 
-    this.optionsIds.forEach(z=>{this.selectionFilterOptions.select(z);this.checkedOptionsList.push(+z.id);});//включаем все чекбоксы в фильтре, и заполняем ими список для отправки запроса
+    this.optionsIds.forEach(z=>{
+      if(z.name=='menu.top.hide_selloff'){
+        this.selectionFilterOptions.select(z);
+      this.checkedOptionsList.push(+z.id);
+    }
+      
+    });//включаем все чекбоксы в фильтре, и заполняем ими список для отправки запроса
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Поставщик"
     this.getStartData();
   

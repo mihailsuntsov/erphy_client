@@ -36,10 +36,8 @@ export class LoadSpravService{
         const body = {id:depId};
         return this.http.post('/api/auth/getUsersListByDepartmentId', body);}     
           
-    getUserGroupListByCompanyId(companyId: number){
-        const body = {companyId: companyId};
-        return this.http.post('/api/auth/getUserGroupListByCompanyId', body);}
-        
+    getUserGroupList(){return this.http.get('/api/auth/getUserGroupList');}
+    
     //отдает сотрудников (пользователей) по id отделения
     getEmployeeListByDepartmentId(id:number){return this.http.get('/api/auth/getEmployeeListByDepartmentId?id='+id);}
 

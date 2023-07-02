@@ -566,10 +566,10 @@ export class WriteoffDocComponent implements OnInit {
             result=data as any;
             //вставляем настройки в форму настроек
             //данная группа настроек не зависит от предприятия
-            this.settingsForm.get('pricingType').setValue(result.pricingType?result.pricingType:'lastPurchasePrice');
-            this.settingsForm.get('plusMinus').setValue(result.plusMinus?result.plusMinus:'plus');
-            this.settingsForm.get('changePrice').setValue(result.changePrice?result.changePrice:0);
-            this.settingsForm.get('changePriceType').setValue(result.changePriceType?result.changePriceType:'procents');
+            this.settingsForm.get('pricingType').setValue(result.pricingType);
+            this.settingsForm.get('plusMinus').setValue(result.plusMinus);
+            this.settingsForm.get('changePrice').setValue(result.changePrice);
+            this.settingsForm.get('changePriceType').setValue(result.changePriceType);
             this.settingsForm.get('hideTenths').setValue(result.hideTenths);
             this.settingsForm.get('autoAdd').setValue(result.autoAdd);
             //если предприятия из настроек больше нет в списке предприятий (например, для пользователя урезали права, и выбранное предприятие более недоступно)
@@ -641,6 +641,7 @@ export class WriteoffDocComponent implements OnInit {
                   this.creatorId=+documentValues.creator_id;
                   this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
                   this.getPriceTypesList();
+                  this.getSettings();
                   this.loadFilesInfo();
                   this.getDepartmentsList();//отделения
                   this.getStatusesList();//статусы документа Списание

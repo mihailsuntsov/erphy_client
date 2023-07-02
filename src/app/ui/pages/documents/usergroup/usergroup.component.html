@@ -4,9 +4,9 @@ class="spinner"
 [diameter]="50"
 *ngIf="gettingTableData"
 ></mat-spinner>
-<mat-card class="card" *transloco="let t"> <!--+++-->
+<mat-card class="card" *transloco="let t"> 
   
-    <mat-card-title class="flex" style="height: 30px;"> <!--+++-->
+    <mat-card-title class="flex" style="height: 30px;"> 
         <div *ngIf="!displayingDeletedDocs" class="card-name">{{cu.cap(t('menu.docs.roles'))}}</div>
         <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">{{t('menu.top.deleted')}}</span> {{t('menu.docs.roles')}}</div>
         <div [style.display]="(visBtnAdd  && !displayingDeletedDocs)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
@@ -47,7 +47,7 @@ class="spinner"
                         </div>
                     </div>
                     <div class="flex">
-                        <mat-form-field style="width:50px;" class="num-of-rows"> <!--+++-->
+                        <mat-form-field style="width:50px;" class="num-of-rows"> 
                             <mat-label>{{t('menu.top.rows')}}</mat-label>
                             <mat-select [(value)]="sendingQueryForm.result" (selectionChange)="setNumOfPages()" class="form-control" id="selectRowsPerPage" name="result">                           
                                 <mat-option  *ngFor="let num of numRows" [value]="num.value">
@@ -55,7 +55,7 @@ class="spinner"
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
-                        <mat-form-field class="company-select" style="margin-left: 10px; max-width: 250px;"><!--+++-->
+                        <!-- <mat-form-field class="company-select" style="margin-left: 10px; max-width: 250px;">
                             <mat-label>{{t('menu.top.company')}}</mat-label>
                             <mat-select  [(value)]="sendingQueryForm.companyId" 
                             (selectionChange)="onCompanySelection()">                          
@@ -63,7 +63,7 @@ class="spinner"
                                         {{rt.name}}
                                 </mat-option>
                             </mat-select>
-                        </mat-form-field>
+                        </mat-form-field> -->
                         <button mat-button  
                             class="filter-button"
                             matTooltip="{{t('docs.button.refresh')}}"
@@ -79,7 +79,7 @@ class="spinner"
                             [matMenuTriggerFor]="oper"
                             type="button"
                             matTooltip="{{t('menu.tip.select_opt')}}" 
-                            matSuffix mat-icon-button> <!--+++-->
+                            matSuffix mat-icon-button> 
                             <mat-icon>list_alt</mat-icon>
                         </button>
                         <mat-menu #oper="matMenu" xPosition="before">
@@ -90,7 +90,7 @@ class="spinner"
                                         (click)="$event.stopPropagation()"
                                         (change)="$event ? clickFilterOptionsCheckbox(row) : null"
                                         [checked]="selectionFilterOptions.isSelected(row)"
-                                        >{{t(row.name)}}</mat-checkbox> <!--+++-->
+                                        >{{t(row.name)}}</mat-checkbox> 
                                     </li>
                                 </ul>
                             </div>
@@ -99,7 +99,7 @@ class="spinner"
                                     <button matTooltip="{{t('menu.tip.apply_filters')}}" 
                                             mat-mini-fab 
                                             color="primary" 
-                                            (click)="clickApplyFilters()"> <!--+++-->
+                                            (click)="clickApplyFilters()"> 
                                         <mat-icon>done</mat-icon>
                                     </button>
                                 </div>
@@ -107,7 +107,7 @@ class="spinner"
                         </mat-menu>
                         <span  class="emptyspace" style="display: none"></span>
                         <div class="flex">     
-                            <mat-form-field class="emptyspace"> <!--+++-->
+                            <mat-form-field class="emptyspace"> 
                                     <input matInput 
                                     placeholder="{{t('menu.top.search')}}" 
                                     [(ngModel)]="sendingQueryForm.searchString" 
@@ -165,7 +165,7 @@ class="spinner"
                                 </ng-container>
                                 
                                 <!-- Name Column -->
-                                <ng-container matColumnDef="name"> <!--+++-->
+                                <ng-container matColumnDef="name"> 
                                     <th mat-header-cell *matHeaderCellDef>
                                         <span (click)="setSort('name')" class="sortheader">{{t('menu.table.name')}}
                                             <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='name'" class="material-icons sortarrow">arrow_upward</i>
@@ -195,7 +195,7 @@ class="spinner"
                                 
                                 <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                                 <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-                                <!-- Part "Data not founded" --> <!--+++-->
+                                <!-- Part "Data not founded" --> 
                                 <ng-container matColumnDef="data_not_found">
                                     <td mat-footer-cell *matFooterCellDef colspan="13" class="text-center">
                                         {{t('menu.msg.dt_not_fnd')}}
@@ -215,7 +215,7 @@ class="spinner"
               
                     <div class="flex">
                         <div class="col-sm">
-                            <p> {{t('menu.bottom.founded')}}: {{size}}, {{t('menu.bottom.page')}} {{pagenum}}  {{t('menu.bottom.of')}} {{listsize}}</p> <!--+++-->
+                            <p> {{t('menu.bottom.founded')}}: {{size}}, {{t('menu.bottom.page')}} {{pagenum}}  {{t('menu.bottom.of')}} {{listsize}}</p> 
                         </div>
                         <span  class="emptyspace"></span>
                         <div class="col-sm-auto justify-content-end">

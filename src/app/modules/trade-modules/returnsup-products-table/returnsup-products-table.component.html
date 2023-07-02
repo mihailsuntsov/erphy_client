@@ -272,7 +272,7 @@
                                         [formGroupName]="i"
                                         [matTooltip]="((getControlTablefield().controls[i].get('product_count').invalid && getControlTablefield().controls[i].get('product_count').errors.pattern)) ? t('modules.tip.err_value') : ''"
                                         [ngStyle]="   ((getControlTablefield().controls[i].get('product_count').invalid && getControlTablefield().controls[i].get('product_count').errors.pattern))?{'background-color': '#ffe4e1'}:{'background-color': 'white'}"
-                                        [ngStyle]="   (!readonly&&(getControlTablefield().controls[i].get('product_count').value>(getControlTablefield().controls[i].get('remains').value))&&!(getControlTablefield().controls[i].get('product_count').invalid && getControlTablefield().controls[i].get('product_count').errors.pattern))?{'background-color': '#ffe4e1'}:{'background-color': 'white'}">
+                                        [ngStyle]="   (getControlTablefield().controls[i].get('is_material').value && !readonly&&(getControlTablefield().controls[i].get('product_count').value>(getControlTablefield().controls[i].get('remains').value))&&!(getControlTablefield().controls[i].get('product_count').invalid && getControlTablefield().controls[i].get('product_count').errors.pattern))?{'background-color': '#ffe4e1'}:{'background-color': 'white'}">
                                             <input matInput 
                                                 class="table-field-editable quantity-field"
                                                 [ngClass]="{'table-field-editable':!readonly}"

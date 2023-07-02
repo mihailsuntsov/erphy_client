@@ -44,6 +44,7 @@ interface ProductSearchResponse{  // интерфейс получения сп�
   lastPurchasePrice: number;      // последняя закупочная цена
   avgPurchasePrice : number;      // средняя закупочная цена
   indivisible: boolean;           // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
+  is_material: boolean;
 }
 interface ShortInfoAboutProduct{//интерф. для получения инфо о состоянии товара в отделении (кол-во, последняя поставка), и средним ценам (закупочной и себестоимости) товара
   quantity:number;
@@ -89,8 +90,6 @@ export class InventoryProductsTableComponent implements OnInit {
   imageToShow:any; // переменная в которую будет подгружаться картинка товара (если он jpg или png)
 
   //форма поиска товара
-  shortInfoAboutProduct: ShortInfoAboutProduct = null; //получение краткого инфо по товару
-  shortInfoAboutProductArray: any[] = []; //получение краткого инфо по товару
   selected_type_price_id: number; //тип цены, выбранный в форме поиска. Нужен для восстановления выбранного типа цены при сбросе формы поиска товара
   selected_price: number = 0; //цена, выбранная через поле Тип цены. Нужна для сравнения с полем Цена для выявления факта изменения его значения, и оставления значения столбце Тип цены пустым
   selected_pricingType: string; // тип расценки, выбранный в форме поиска.  Нужен для восстановления при сбросе формы поиска товара
@@ -117,7 +116,7 @@ export class InventoryProductsTableComponent implements OnInit {
 
   trackByIndex = (i) => i;
 
-  @ViewChild("estimated_balance", {static: false}) estimated_balance;
+  @ViewChild("actual_balance", {static: false}) actual_balance;
   // @ViewChild(MatTable) _table: MatTable<any>;
   // @ViewChild("nameInput", {static: false}) nameInput; 
   @ViewChild("form", {static: false}) form; // связь с формой <form #form="ngForm" ...
@@ -363,7 +362,7 @@ export class InventoryProductsTableComponent implements OnInit {
       this.loadMainImage();
     }
     
-    setTimeout(() => { this.estimated_balance.nativeElement.focus(); }, 100);
+    setTimeout(() => { this.actual_balance.nativeElement.focus(); }, 100);
   }
 
   setPrice(){
@@ -552,6 +551,7 @@ export class InventoryProductsTableComponent implements OnInit {
                     control.push(this.formingProductRowFromApiResponse(row));
                   });
                   this.productTableRecount();//чтобы подсчитались итоги
+                  this.showColumns();
                   this.changeProductsTableLength.emit();//событие изменения кол-ва товаров в таблице
                 }
             },
@@ -580,20 +580,24 @@ export class InventoryProductsTableComponent implements OnInit {
   this.productSearchField.nativeElement.focus();//убираем курсор из текущего поля, чтобы оно не было touched и красным после сброса формы
   const control = <UntypedFormArray>this.formBaseInformation.get('inventoryProductTable');
   let thereProductInTableWithSameId:boolean=false;
+  let rowIndex = 0;
     this.formBaseInformation.value.inventoryProductTable.map(i => 
     {// список товаров не должен содержать одинаковые товары из одного и того же склада. Тут проверяем на это
       if(+i['product_id']==this.formSearch.get('product_id').value)
       {//такой товар с таким складом уже занесён в таблицу товаров ранее, и надо смёрджить их, т.е. слить в один, просуммировав их фактические остатки.
         
         //суммируем кол-во уже имеющегося в таблице товара и того, что в форме поиска
-        control.controls[i['row_id']].get('actual_balance').setValue(
+        // alert("i['product_id'] = "+i['product_id']+"formSearch.get('product_id').value="+this.formSearch.get('product_id').value+", rowIndex=" + rowIndex);
+        control.controls[rowIndex].get('actual_balance').setValue(
           (this.formSearch.get('actual_balance').value==''?this.getDefaultActualBalance('form'):+this.formSearch.get('actual_balance').value)+(+i['actual_balance'])
         );
-// alert(i['row_id'])
-        this.onChangeActualBalance(i['row_id']);
+
+        this.onChangeActualBalance(rowIndex);
 
         thereProductInTableWithSameId=true; 
+        
       }
+      rowIndex++;
     });
     if(!thereProductInTableWithSameId){//такого товара  для выбранного складад в списке ещё нет. Добавляем в таблицу (в форму formBaseInformation)
       control.push(this.formingProductRowFromSearchForm());
@@ -702,6 +706,7 @@ export class InventoryProductsTableComponent implements OnInit {
     this.productTableRecount();
   }
   onChangeActualBalance(row_index:number){
+    console.log('row_index',row_index)
     this.commaToDotInTableField(row_index, 'actual_balance');
     this.setRowDifference(row_index);
     this.setRowDiscrepancy(row_index);
@@ -786,18 +791,20 @@ export class InventoryProductsTableComponent implements OnInit {
   
   //заменяет запятую на точку при вводе цены или количества в заданной ячейке
   commaToDotInTableField(row_index:number, fieldName:string){
+    console.log('row_index = ' +row_index+', fieldName = '+fieldName);
     const control = this.getControlTablefield();
-    control.controls[row_index].get(fieldName).setValue(control.controls[row_index].get(fieldName).value.replace(",", "."));
+    console.log('control.controls='+control.controls[row_index].get(fieldName).value)
+    control.controls[row_index].get(fieldName).setValue(control.controls[row_index].get(fieldName).value.toString().replace(",", "."));
   }
 
   checkActualBalanceInForm(){
     if(this.formSearch.get('actual_balance').value!=null && this.formSearch.get('actual_balance').value!='')
-      this.formSearch.get('actual_balance').setValue((this.formSearch.get('actual_balance').value).replace(",", "."));
+      this.formSearch.get('actual_balance').setValue((this.formSearch.get('actual_balance').value).toString().replace(",", "."));
     this.checkIndivisibleErrorOfSearchForm();
   }
   checkProductPriceInForm(){
     if(this.formSearch.get('product_price').value!=null && this.formSearch.get('product_price').value!='')
-      this.formSearch.get('product_price').setValue((this.formSearch.get('product_price').value).replace(",", "."));
+      this.formSearch.get('product_price').setValue((this.formSearch.get('product_price').value).toString().replace(",", "."));
     this.checkIndivisibleErrorOfSearchForm();
   }
   // true - ошибка (если введено нецелое кол-во товара, при том что оно должно быть целым)
@@ -863,28 +870,31 @@ export class InventoryProductsTableComponent implements OnInit {
 
   addProductsListByIds(filteredProducts:ProductSearchResponse[]){
     filteredProducts.map(i=>{
-      this.addProductRowFromProductsList(i);
+      if(i.is_material)
+        this.addProductRowFromProductsList(i);
     });
     filteredProducts=[];
   }
   
   addProductRowFromProductsList(row: ProductSearchResponse){ 
-  const control = <UntypedFormArray>this.formBaseInformation.get('inventoryProductTable');
-  let thereProductInTableWithSameId:boolean=false;
-    this.formBaseInformation.value.inventoryProductTable.map(i => 
-    { // список товаров не должен содержать одинаковые товары из одного и того же склада. Тут проверяем на это
-        // console.log('product_id - '+i['product_id']);
-      if(+i['product_id']==row.product_id){
-        //такой товар с таким складом уже занесён в таблицу товаров ранее, и надо смёрджить их, т.е. слить в один, просуммировав их фактические остатки.
-        console.log(' estimated_balance -'+ i['estimated_balance']);
-        
-        //суммируем кол-во уже имеющегося в таблице товара и того, что в форме поиска
-        this.estimatedBalance=i['estimated_balance'];// это нужно, чтобы getDefaultActualBalance воспользовалась данным количеством в своем решении
-        console.log('getDefaultActualBalance - '+this.getDefaultActualBalance('list'));
-        control.controls[i['row_id']].get('actual_balance').setValue(this.getDefaultActualBalance('list')+(+i['actual_balance']));
-        this.onChangeActualBalance(i['row_id']); 
-        thereProductInTableWithSameId=true; 
-      }
+    const control = <UntypedFormArray>this.formBaseInformation.get('inventoryProductTable');
+    let thereProductInTableWithSameId:boolean=false;
+    let rowIndex = 0;
+    this.formBaseInformation.value.inventoryProductTable.map(i =>{
+      // список товаров не должен содержать одинаковые товары из одного и того же склада. Тут проверяем на это
+          // console.log('product_id - '+i['product_id']);
+        if(+i['product_id']==row.product_id){
+          //такой товар с таким складом уже занесён в таблицу товаров ранее, и надо смёрджить их, т.е. слить в один, просуммировав их фактические остатки.
+          console.log(' estimated_balance -'+ i['estimated_balance']);
+          
+          //суммируем кол-во уже имеющегося в таблице товара и того, что в форме поиска
+          this.estimatedBalance=i['estimated_balance'];// это нужно, чтобы getDefaultActualBalance воспользовалась данным количеством в своем решении
+          console.log('getDefaultActualBalance - '+this.getDefaultActualBalance('list'));
+          control.controls[rowIndex].get('actual_balance').setValue(this.getDefaultActualBalance('list')+(+i['actual_balance']));
+          this.onChangeActualBalance(rowIndex); 
+          thereProductInTableWithSameId=true; 
+        }
+      rowIndex++;
     });
     if(!thereProductInTableWithSameId){//такого товара  для выбранного склада в списке ещё нет. Добавляем в таблицу (в форму formBaseInformation)
       this.estimatedBalance=row['estimated_balance'];// это нужно, чтобы getDefaultActualBalance воспользовалась данным количеством в своем решении

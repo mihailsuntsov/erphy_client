@@ -1084,10 +1084,10 @@ export class AcceptanceDocComponent implements OnInit {
     dialogSettings.afterClosed().subscribe(result => {
       if(result){
         //если нажата кнопка Сохранить настройки - вставляем настройки в форму настроек и сохраняем
-        if(result.get('companyId')) this.settingsForm.get('companyId').setValue(result.get('companyId').value);
-        if(result.get('departmentId')) this.settingsForm.get('departmentId').setValue(result.get('departmentId').value);
-        if(result.get('autoAdd')) this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
-        if(result.get('autoPrice')) this.settingsForm.get('autoPrice').setValue(result.get('autoPrice').value);
+        this.settingsForm.get('companyId').setValue(result.get('companyId').value);
+        this.settingsForm.get('departmentId').setValue(result.get('departmentId').value);
+        this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
+        this.settingsForm.get('autoPrice').setValue(result.get('autoPrice').value);
         this.settingsForm.get('statusOnFinishId').setValue(result.get('statusOnFinishId').value);
         this.saveSettingsAcceptance();
         // если это новый документ, и ещё нет выбранных товаров - применяем настройки 

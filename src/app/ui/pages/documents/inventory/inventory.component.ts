@@ -585,10 +585,12 @@ export class InventoryComponent implements OnInit {
         if(result.get('plusMinus')) this.settingsForm.get('plusMinus').setValue(result.get('plusMinus').value);
         if(result.get('changePrice')) this.settingsForm.get('changePrice').setValue(result.get('changePrice').value);
         if(result.get('changePriceType')) this.settingsForm.get('changePriceType').setValue(result.get('changePriceType').value);
-        this.settingsForm.get('hideTenths').setValue(result.get('hideTenths').value);
         if(result.get('name')) this.settingsForm.get('name').setValue(result.get('name').value);
+        if(result.get('defaultActualBalance')) this.settingsForm.get('defaultActualBalance').setValue(result.get('defaultActualBalance').value);
+        if(result.get('otherActualBalance')) this.settingsForm.get('otherActualBalance').setValue(result.get('otherActualBalance').value);
+        if(result.get('autoAdd')) this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
+        this.settingsForm.get('hideTenths').setValue(result.get('hideTenths').value);
         this.settingsForm.get('statusOnFinishId').setValue(result.get('statusOnFinishId').value);
-        this.settingsForm.get('autoAdd').setValue(result.get('autoAdd').value);
         this.saveSettingsInventory();
       }
     });

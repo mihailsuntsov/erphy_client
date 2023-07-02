@@ -42,20 +42,14 @@ export class UsergroupComponent implements OnInit {
   dataSource = new MatTableDataSource<CheckBox>(); //массив данных для таблицы и чекбоксов (чекбоксы берут из него id, таблица -всё)
   displayedColumns: string[] = [];//массив отображаемых столбцов таблицы
   selection = new SelectionModel<CheckBox>(true, []);//Class to be used to power selecting one or more options from a list.
-  receivedCompaniesList: idAndName [] = [];//массив для получения списка предприятий
-  myCompanyId:number=0;//
   myId:number=0;
   checkedList:number[]=[]; //строка для накапливания id чекбоксов вида [2,5,27...]
 
   //переменные прав
   permissionsSet: any[];//сет прав на документ
   allowToViewAllCompanies:boolean = false;
-  allowToViewMyCompany:boolean = false;
   allowToUpdateAllCompanies:boolean = false;
-  allowToUpdateMyCompany:boolean = false;
-  allowToCreateMyCompany:boolean = false;
   allowToCreateAllCompanies:boolean = false;
-  allowToDeleteMyCompany:boolean = false;
   allowToDeleteAllCompanies:boolean = false;
 
   allowToView:boolean = false;
@@ -107,7 +101,6 @@ export class UsergroupComponent implements OnInit {
     ngOnInit() {
   
 
-      this.sendingQueryForm.companyId='0';
       this.sendingQueryForm.sortAsc='asc';
       this.sendingQueryForm.sortColumn='name';
       this.sendingQueryForm.offset='0';
@@ -115,8 +108,8 @@ export class UsergroupComponent implements OnInit {
       this.sendingQueryForm.searchCategoryString="";
       this.sendingQueryForm.filterOptionsIds = [];
 
-      if(Cookie.get('usergroup_companyId')=='undefined' || Cookie.get('usergroup_companyId')==null)     
-        Cookie.set('usergroup_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('usergroup_companyId')=="0"?"0":+Cookie.get('usergroup_companyId'));
+      // if(Cookie.get('usergroup_companyId')=='undefined' || Cookie.get('usergroup_companyId')==null)     
+        // Cookie.set('usergroup_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('usergroup_companyId')=="0"?"0":+Cookie.get('usergroup_companyId'));
       if(Cookie.get('usergroup_sortAsc')=='undefined' || Cookie.get('usergroup_sortAsc')==null)       
         Cookie.set('usergroup_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('usergroup_sortAsc');
       if(Cookie.get('usergroup_sortColumn')=='undefined' || Cookie.get('usergroup_sortColumn')==null)    
@@ -128,11 +121,10 @@ export class UsergroupComponent implements OnInit {
 
       //+++ getting base data from parent component
       this.getBaseData('myId');    
-      this.getBaseData('myCompanyId');  
-      this.getBaseData('companiesList');      
+      // this.getBaseData('companiesList');      
 
       this.fillOptionsList();//заполняем список опций фильтра
-      this.getCompaniesList();// 
+      this.getSetOfPermissions();// 
     }
 
     // -------------------------------------- *** ПРАВА *** ------------------------------------
@@ -149,22 +141,17 @@ export class UsergroupComponent implements OnInit {
 
   getCRUD_rights(){
     this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==31)});
-    this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==31)});
     this.allowToDeleteAllCompanies = this.permissionsSet.some(         function(e){return(e==32)});
-    this.allowToDeleteMyCompany = this.permissionsSet.some(            function(e){return(e==32)});
     this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==29)});
-    this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==30)});
     this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==34)});
-    this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==33)});
     this.getData();
   }
 
   refreshPermissions():boolean{
-    let documentOfMyCompany:boolean = (this.sendingQueryForm.companyId==this.myCompanyId);
-    this.allowToView=(this.allowToViewAllCompanies||this.allowToViewMyCompany)?true:false;
-    this.allowToUpdate=(this.allowToUpdateAllCompanies||this.allowToUpdateMyCompany)?true:false;
-    this.allowToCreate=(this.allowToCreateAllCompanies||this.allowToCreateMyCompany)?true:false;
-    this.allowToDelete=(this.allowToDeleteAllCompanies || this.allowToDeleteMyCompany)?true:false;
+    this.allowToView=(this.allowToViewAllCompanies)?true:false;
+    this.allowToUpdate=(this.allowToUpdateAllCompanies)?true:false;
+    this.allowToCreate=(this.allowToCreateAllCompanies)?true:false;
+    this.allowToDelete=(this.allowToDeleteAllCompanies)?true:false;
     this.showOpenDocIcon=(this.allowToUpdate||this.allowToView);
     this.visBtnAdd = (this.allowToCreate)?true:false;
     
@@ -180,7 +167,6 @@ export class UsergroupComponent implements OnInit {
     if(this.refreshPermissions() && this.allowToView)
     {
       this.updateSortOptions();
-      this.doFilterCompaniesList(); //если нет просмотра по всем предприятиям - фильтруем список предприятий до своего предприятия
       this.getTableHeaderTitles();
       this.getPagesList();
       this.getTable();
@@ -193,8 +179,6 @@ export class UsergroupComponent implements OnInit {
     if(this.allowToDelete) this.displayedColumns.push('select');
     if(this.showOpenDocIcon) this.displayedColumns.push('opendoc');
     this.displayedColumns.push('name');
-    // this.displayedColumns.push('address');
-    // this.displayedColumns.push('company');
     this.displayedColumns.push('creator');
     this.displayedColumns.push('date_time_created');
   }
@@ -320,11 +304,6 @@ export class UsergroupComponent implements OnInit {
       }
       this.getData();
   }
-  onCompanySelection(){
-    Cookie.set('usergroup_companyId',this.sendingQueryForm.companyId);
-    this.resetOptions();
-    this.getData();
-  }
 
   clickBtnDelete(): void {
     const dialogRef = this.deleteDialog.open(DeleteDialog, {
@@ -389,66 +368,22 @@ export class UsergroupComponent implements OnInit {
     });
   }
 
-  getCompaniesList(){ //+++
-    if(this.receivedCompaniesList.length==0)
-      this.loadSpravService.getCompaniesList()
-              .subscribe(
-                (data) => {this.receivedCompaniesList=data as any [];
-                  this.getSetOfPermissions();
-                },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
-            );
-    else this.getSetOfPermissions();
-  }  
-  getMyId(){ //+++
+  getMyId(){
     if(+this.myId==0)
      this.loadSpravService.getMyId()
             .subscribe(
-                (data) => {this.myId=data as any;
-                  this.getMyCompanyId();},
+                (data) => {this.myId=data as any;this.getCRUD_rights()},
                   error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
             );
-      else this.getMyCompanyId();
-  }
-  getMyCompanyId(){ //+++
-    if(+this.myCompanyId==0)
-      this.loadSpravService.getMyCompanyId().subscribe(
-      (data) => {
-        this.myCompanyId=data as number;
-        this.setDefaultCompany();
-      }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
-    else this.setDefaultCompany();
-  } 
-
-  setDefaultCompany(){
-    if(Cookie.get('usergroup_companyId')=='0'||!this.companyIdInList(Cookie.get('usergroup_companyId'))){
-      this.sendingQueryForm.companyId=this.myCompanyId;
-      Cookie.set('usergroup_companyId',this.sendingQueryForm.companyId);
-    }
-      this.getCRUD_rights();
+    else this.getCRUD_rights();
   }
 
   showCheckbox(row:CheckBox):boolean{
     if(
-      (this.allowToDeleteAllCompanies)||
-      (this.allowToDeleteMyCompany && row.company_id==this.myCompanyId)
+      this.allowToDeleteAllCompanies
     )
     return true; else return false;
   }
-
-  doFilterCompaniesList(){
-    let myCompany:idAndName;
-    if(!this.allowToViewAllCompanies){
-      this.receivedCompaniesList.forEach(company=>{
-      if(this.myCompanyId==company.id) myCompany={id:company.id, name:company.name}});
-      this.receivedCompaniesList=[];
-      this.receivedCompaniesList.push(myCompany);
-    }
-  }
-
-  // getTranslate(phrase:string){
-  //   this.service.selectTranslate(phrase, {}, 'usergroup').subscribe(t => {return({t}.t)});
-  // }
 
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
   resetOptions(){
@@ -494,6 +429,4 @@ export class UsergroupComponent implements OnInit {
   getBaseData(data) {    //+++ emit data to parent component
     this.baseData.emit(data);
   }
-  // sometimes in cookie "..._companyId" there value that not exists in list of companies. If it happens, company will be not selected and data not loaded until user select company manually
-  companyIdInList(id:any):boolean{let r=false;this.receivedCompaniesList.forEach(c=>{if(+id==c.id) r=true});return r}
 }

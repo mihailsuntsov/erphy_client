@@ -65,22 +65,6 @@
                                                         (input)="canAutocompleteQuery=true; checkEmptyProductField();"
                                                         (change)="canAutocompleteQuery=false; checkEmptyProductField();">
                                                         <button mat-button 
-                                                        [matMenuTriggerFor]="productInfo"
-                                                        type="button"
-                                                        *ngIf="formSearchReadOnly" 
-                                                        matTooltip='Показать информацию о товаре'
-                                                        matSuffix mat-icon-button>
-                                                        <mat-icon>info</mat-icon>
-                                                        </button>
-                                                        <mat-menu #productInfo="matMenu" xPosition="before">
-                                                            <button mat-menu-item>Кол-во на складе: {{+shortInfoAboutProductArray[0]}} {{formSearch.get('edizm').value}}</button>
-                                                            <button mat-menu-item>Последнее изменение кол-ва: {{+shortInfoAboutProductArray[1]}} {{formSearch.get('edizm').value}}</button>
-                                                            <button mat-menu-item>Дата последнего изменения кол-ва: {{(shortInfoAboutProductArray[2]==null?'нет':shortInfoAboutProductArray[2])}}</button>
-                                                            <button mat-menu-item (click)="setPrice(shortInfoAboutProductArray[5])">Последняя закупочная цена: {{+shortInfoAboutProductArray[5]}} руб.</button>
-                                                            <button mat-menu-item (click)="setPrice(shortInfoAboutProductArray[3])">Средняя закупочная цена: {{+shortInfoAboutProductArray[3]}} руб.</button>
-                                                            <button mat-menu-item (click)="setPrice(shortInfoAboutProductArray[4])">Средняя себестоимость: {{+shortInfoAboutProductArray[4]}} руб.</button>
-                                                        </mat-menu>
-                                                        <button mat-button 
                                                         type="button"
                                                         (click)="openProductCard(formSearch.get('product_id').value)"
                                                         *ngIf="formSearchReadOnly" 

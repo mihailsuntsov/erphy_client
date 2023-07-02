@@ -355,9 +355,9 @@ export class UsersDocComponent implements OnInit {
                 error => console.log(error)
             );
   }
-  getUserGroupListByCompanyId(company: number){
+  getUserGroupList(){
     this.receivedUserGroupList=null;
-    this.loadSpravService.getUserGroupListByCompanyId(company)
+    this.loadSpravService.getUserGroupList()
             .subscribe(
                 (data) => {this.receivedUserGroupList=data as any [];console.log("receivedUserGroupList-"+this.receivedUserGroupList)},
                 error => console.log(error)
@@ -387,14 +387,14 @@ export class UsersDocComponent implements OnInit {
         this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
 
     this.getDepartmentsList(+this.formBaseInformation.get('company_id').value);
-    this.getUserGroupListByCompanyId(this.formBaseInformation.get('company_id').value);
+    this.getUserGroupList();
     this.refreshPermissions();
   }
   
   onCompanyChange(){
     this.formBaseInformation.get('selectedUserDepartments').setValue([]);
     this.getDepartmentsList(+this.formBaseInformation.get('company_id').value);
-    this.getUserGroupListByCompanyId(this.formBaseInformation.get('company_id').value);
+    this.getUserGroupList();
     this.refreshPermissions();
   }
 
@@ -453,7 +453,7 @@ export class UsersDocComponent implements OnInit {
                   this.formBaseInformation.get('userGroupList').setValue(documentResponse.userGroupsId);
 
                   this.getDepartmentsList(this.formBaseInformation.get('company_id').value);  
-                  this.getUserGroupListByCompanyId(this.formBaseInformation.get('company_id').value);
+                  this.getUserGroupList();
 
                 } else {this.oneClickSaveControl=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();

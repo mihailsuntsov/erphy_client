@@ -95,8 +95,6 @@ export class ReturnProductsTableComponent implements OnInit {
   imageToShow:any; // переменная в которую будет подгружаться картинка товара (если он jpg или png)
 
   //форма поиска товара
-  shortInfoAboutProduct: ShortInfoAboutProduct = null; //получение краткого инфо по товару
-  shortInfoAboutProductArray: any[] = []; //получение краткого инфо по товару
   selected_type_price_id: number; //тип цены, выбранный в форме поиска. Нужен для восстановления выбранного типа цены при сбросе формы поиска товара
   selected_price: number = 0; //цена, выбранная через поле Тип цены. Нужна для сравнения с полем Цена для выявления факта изменения его значения, и оставления значения столбце Тип цены пустым
   selected_pricingType: string; // тип расценки, выбранный в форме поиска.  Нужен для восстановления при сбросе формы поиска товара
@@ -414,6 +412,7 @@ export class ReturnProductsTableComponent implements OnInit {
                     control.push(this.formingProductRowFromApiResponse(row));
                   });
                   this.productTableRecount();//чтобы подсчитались итоги
+                  this.refreshTableColumns();
                   this.changeProductsTableLength.emit();//событие изменения кол-ва товаров в таблице
                 }
             },

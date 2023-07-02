@@ -243,6 +243,7 @@
         "extd_sites":"Existed sites",
         "lv_extd_sites":"Language version of existed site",
         "preparing":"Preparing",
+        "d_fact_qtt":   "Default actual in-stock balance",
 
         "-- SELL REGICTERS ":"--",
 
@@ -772,7 +773,9 @@
         "any":"Any",
         "add_variation":"Add variation",
         "gen_variation":"Generate all possible variations",
-        "del_variation":"Delete all variations"
+        "del_variation":"Delete all variations",
+        "like_estmtd":"Like estimated",
+        "another":"Another"
     },
     "docs":{            
         "role":         "Role",

@@ -300,12 +300,12 @@ class="spinner"
                         <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
                         <!-- Part "Data not founded" --> <!--+++-->
                         <ng-container matColumnDef="data_not_found">
-                            <td mat-footer-cell *matFooterCellDef colspan="13" class="text-center">
+                            <td mat-footer-cell *matFooterCellDef colspan="23" class="text-center">
                                 {{t('menu.msg.dt_not_fnd')}}
                             </td>
                         </ng-container>
                         <ng-container matColumnDef="nocolumn">
-                            <td mat-footer-cell *matFooterCellDef colspan="13" style="display: none;"></td>
+                            <td mat-footer-cell *matFooterCellDef colspan="23" style="display: none;"></td>
                         </ng-container>
                         <tr mat-footer-row 
                         *matFooterRowDef="[dataSource.data.length==0?'data_not_found':'nocolumn']" 
