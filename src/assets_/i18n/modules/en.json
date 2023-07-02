@@ -162,7 +162,8 @@
         "lab_print":    "Label print settings",
         "str_select":   "Stores selection",
         "str_selectd":  "Selected stores",
-        "lui":"Legal user information"
+        "lui":"Legal user information",
+        "info_tpo":"This information is collected for tax purposes only"
     },
     "field":{ 
         "company":      "Company",

@@ -1,25 +1,28 @@
 <mat-card class="card" *transloco="let t">
-    <mat-card-title class="flex">
-        <div class="card-name">{{t('modules.card.lui')}}</div>
-        <!-- <button 
+    <!-- <mat-card-header> -->
+        <mat-card-title class="flex">
+            <div class="card-name">{{t('modules.card.lui')}}</div>
+            <!-- <button 
+                    mat-raised-button 
+                    matTooltip="{{t('docs.tip.save')}}"
+                    (click)="updateDocument()"
+                    [disabled]="!isFormValid" 
+                    color="primary"
+                    type="button"
+                    class="button small-button">
+                    <i class="material-icons">save</i>
+            </button> -->
+            <button 
+                (click)="onNoClick()"
+                matTooltip="{{t('modules.tip.cls_sttng_wnd')}}"
                 mat-raised-button 
-                matTooltip="{{t('docs.tip.save')}}"
-                (click)="updateDocument()"
-                [disabled]="!isFormValid" 
-                color="primary"
-                type="button"
+                color="accent"
                 class="button small-button">
-                <i class="material-icons">save</i>
-        </button> -->
-        <button 
-            (click)="onNoClick()"
-            matTooltip="{{t('modules.tip.cls_sttng_wnd')}}"
-            mat-raised-button 
-            color="accent"
-            class="button small-button">
-            <i class="material-icons">close</i> 
-        </button>
-    </mat-card-title>
+                <i class="material-icons">close</i> 
+            </button>
+        </mat-card-title>
+    <!-- </mat-card-header> -->
+    <mat-card-subtitle style="position: absolute; top: 50px;left: 16px;">{{t('modules.card.info_tpo')}}</mat-card-subtitle>
     <mat-card-content > 
         <div class="card">
             <mat-spinner 
