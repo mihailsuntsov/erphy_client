@@ -163,6 +163,7 @@
         "str_select":   "Stores selection",
         "str_selectd":  "Selected stores",
         "lui":"Legal user information",
+        "pay_methds":   "Payment methods",
         "info_tpo":"This information is collected for tax purposes only"
     },
     "field":{ 
@@ -311,7 +312,8 @@
         "close":        "Close",
         "categories":   "Categories",
         "begin":        "Start",
-        "cancel":       "Cancel"
+        "cancel":       "Cancel",
+        "pay":          "Go to the payment"
     },
     "list":{
         "price_type":   "Price type",

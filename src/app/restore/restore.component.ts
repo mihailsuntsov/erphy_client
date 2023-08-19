@@ -67,6 +67,10 @@ export class RestoreComponent implements OnInit {
             this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('user.msg.error'), message:translate('user.msg.usr_no_fnd_by')}});
             break;
           }
+          case -105:{
+            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('user.msg.error'), message:translate('user.msg.freq_too')}});
+            break;
+          }
           default:{// returned 1  
             this.MessageDialog.open(MessageDialog,{width:'400px',data:{head: translate('user.msg.attention'), message: translate('user.msg.chk_email_pwd'),}});
           }

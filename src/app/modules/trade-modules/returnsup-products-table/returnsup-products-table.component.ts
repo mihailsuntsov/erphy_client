@@ -457,6 +457,7 @@ export class ReturnsupProductsTableComponent implements OnInit {
   }
 
   formingProductRowFromApiResponse(row: ReturnsupProductTable) {
+    let multiplifierNDS = this.getTaxMultiplifierBySelectedId(+row.nds_id);
     return this._fb.group({
       id: new UntypedFormControl (row.id,[]),
       row_id: [this.getRowId()],// row_id нужен для идентифицирования строк у которых нет id (например из только что создали и не сохранили)
@@ -465,7 +466,8 @@ export class ReturnsupProductsTableComponent implements OnInit {
       edizm: new UntypedFormControl (row.edizm,[]),
       remains: new UntypedFormControl (+row.remains,[]),
       nds_id: new UntypedFormControl (+row.nds_id,[]),
-      product_sumprice: new UntypedFormControl ((+row.product_count*(+row.product_price)).toFixed(2),[]),
+      // product_sumprice: new UntypedFormControl ((+row.product_count*(+row.product_price)).toFixed(2),[]),
+      product_sumprice: new UntypedFormControl (this.numToPrice(+(row.product_count*row.product_price*(this.nds&&!this.nds_included?multiplifierNDS:1)).toFixed(2),2),[]),
       product_count:  new UntypedFormControl (row.product_count,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
       product_price:  new UntypedFormControl (this.numToPrice(row.product_price,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),
       // ValidationService.priceMoreThanZero  -- пока исключил ошибку "Цена=0", чтобы позволить сохранять с нулевой ценой, а также делать с ней связанные документы.
@@ -687,6 +689,14 @@ export class ReturnsupProductsTableComponent implements OnInit {
         }
       })}
   }
+
+  getTaxMultiplifierBySelectedId(srchId:number):number {
+    //возвращает множитель по выбранному НДС. например, для 20% будет 1.2, 0% - 1 и т.д 
+        let value=0;
+        this.spravTaxesSet.forEach(a=>{
+          if(+a.id == srchId) {value=a.multiplier}
+  }); return value;}   
+
   getTaxFromPrice(price:number, taxId:number):number {
     // вычисляет налог из цены. Например, для цены 100, уже содержащей в себе налог, и налога 20% вернёт: 100 * 20 / 120 = 16.67
     let value=0;

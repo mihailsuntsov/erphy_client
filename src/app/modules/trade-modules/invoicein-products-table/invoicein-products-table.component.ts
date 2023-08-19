@@ -407,6 +407,7 @@ export class InvoiceinProductsTableComponent implements OnInit {
   }
 
   formingProductRowFromApiResponse(row: InvoiceinProductTable) {
+    let multiplifierNDS = this.getTaxMultiplifierBySelectedId(+row.nds_id);
     return this._fb.group({
       id: new UntypedFormControl (row.id,[]),
       row_id: [this.getRowId()],// row_id нужен для идентифицирования строк у которых нет id (например из только что создали и не сохранили)
@@ -417,7 +418,8 @@ export class InvoiceinProductsTableComponent implements OnInit {
       reserved:  new UntypedFormControl (row.reserved,[]), // сколько зарезервировано этого товара в других документах за исключением этого
       available:  new UntypedFormControl ((row.total)-(row.reserved),[]),
       nds_id: new UntypedFormControl (+row.nds_id,[]),
-      product_sumprice: new UntypedFormControl ((+row.product_count*(+row.product_price)).toFixed(2),[]),
+      // product_sumprice: new UntypedFormControl ((+row.product_count*(+row.product_price)).toFixed(2),[]),
+      product_sumprice: new UntypedFormControl (this.numToPrice(+(row.product_count*row.product_price*(this.nds&&!this.nds_included?multiplifierNDS:1)).toFixed(2),2),[]),
       product_count:  new UntypedFormControl (row.product_count,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
       product_price:  new UntypedFormControl (this.numToPrice(row.product_price,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),
       // ValidationService.priceMoreThanZero  -- пока исключил ошибку "Цена=0", чтобы позволить сохранять с нулевой ценой, а также делать с ней связанные документы.
@@ -842,7 +844,7 @@ openDialogCreateProduct() {
     //если не целое число
     const b = charsAfterDot - (a.length - dot) + 1;
     return b > 0 ? (a + "0".repeat(b)) : a;
-  }
+  } 
   //для проверки в таблице с вызовом из html
   isInteger (i:number):boolean{return Number.isInteger(i)}
   parseFloat(i:string){return parseFloat(i)}

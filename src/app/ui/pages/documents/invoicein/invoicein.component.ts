@@ -516,13 +516,18 @@ export class InvoiceinComponent implements OnInit {
 
   setDefaultDepartment(){
     if(this.receivedDepartmentsList.length==1)
-    {
-      console.log('установка отделения по умолчанию - '+this.receivedDepartmentsList[0].id);
-
       this.sendingQueryForm.departmentId=+this.receivedDepartmentsList[0].id;
-      Cookie.set('invoicein_departmentId',this.sendingQueryForm.departmentId);
-    }
+    if(!this.isDepartmentInList(this.sendingQueryForm.departmentId))
+      this.sendingQueryForm.departmentId='0';
+    Cookie.set('invoicein_departmentId',this.sendingQueryForm.departmentId);
     this.getCRUD_rights(this.permissionsSet);
+  }
+
+  isDepartmentInList(depId:number):boolean{
+    let inList:boolean=false;
+    if(this.receivedDepartmentsList) 
+      this.receivedDepartmentsList.map(i=>{if(i.id==depId) inList=true;});
+    return inList;
   }
 
   inMyDepthsId(id:number):boolean{//проверяет, состоит ли присланный id в группе id отделений пользователя

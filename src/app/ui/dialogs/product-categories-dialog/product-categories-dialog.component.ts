@@ -379,7 +379,7 @@ getStoresList(){
   }
 
   // !!! now the auto-slugify is off, because is there isn't in WooCommerce !!!
-  // WooCommerce has autoslug, if slug field is empty. Also, if DokioCRMm user wants to cpecify the slug, he can do it manually
+  // WooCommerce has autoslug, if slug field is empty. Also, if CRMm user wants to cpecify the slug, he can do it manually
   slugify(){
     this.formBaseInformation.get('slug').setValue(
       this.slugifyPipe.transform(this.formBaseInformation.get('name').value)

@@ -403,6 +403,7 @@ export class AcceptanceProductsTableComponent implements OnInit {
   }
 
   formingProductRowFromApiResponse(row: AcceptanceProductTable) {
+    let multiplifierNDS = this.getTaxMultiplifierBySelectedId(+row.nds_id);
     return this._fb.group({
       id: new UntypedFormControl (row.id,[]),
       row_id: [this.getRowId()],// row_id нужен для идентифицирования строк у которых нет id (например из только что создали и не сохранили)
@@ -411,7 +412,8 @@ export class AcceptanceProductsTableComponent implements OnInit {
       edizm: new UntypedFormControl (row.edizm,[]),
       total: new UntypedFormControl (+row.total,[]),
       nds_id: new UntypedFormControl (+row.nds_id,[]),
-      product_sumprice: new UntypedFormControl ((+row.product_count*(+row.product_price)).toFixed(2),[]),
+      // product_sumprice: new UntypedFormControl ((+row.product_count*(+row.product_price)).toFixed(2),[]),
+      product_sumprice: new UntypedFormControl (this.numToPrice(+(row.product_count*row.product_price*(this.nds&&!this.nds_included?multiplifierNDS:1)).toFixed(2),2),[]),
       product_count:  new UntypedFormControl (row.product_count,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$'), ValidationService.countMoreThanZero]),
       product_price:  new UntypedFormControl (this.numToPrice(row.product_price,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),
       // ValidationService.priceMoreThanZero  -- пока исключил ошибку "Цена=0", чтобы позволить сохранять с нулевой ценой, а также делать с ней связанные документы.

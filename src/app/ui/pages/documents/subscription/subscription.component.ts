@@ -12,6 +12,7 @@ import { CommonUtilitesService } from '../../../../services/common_utilites.serv
 import { translate, TranslocoService } from '@ngneat/transloco'; //+++
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { UserLegalInfoComponent } from '../../../../modules/user-legal-info/user-legal-info.component';
+import { PaymentSelectComponent } from '../../../../modules/payment-select/payment-select.component';
 import { MomentDefault } from 'src/app/services/moment-default';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
@@ -42,7 +43,7 @@ interface DocResponse {
   plan_version: number;        // the version of tariff plan
   plan_price: number;          // how much writeoff per day for tariff plan
   plan_no_limits: boolean;     // tariff plan has no limits
-  is_saas:boolean;             // DokioCRM works as a SaaS
+  is_saas:boolean;             // CRM works as a SaaS
 
   plan_free: boolean;          // for free plans the billing is not applied, also users that use it can't use an additional options
   companies_ppu: number;       // writeoff per day for 1 additional company
@@ -177,7 +178,6 @@ export class SubscriptionComponent implements OnInit {
   allowToView:boolean = false;
   allowToUpdate:boolean = false;
 
-  // settingsForm: any; // форма с настройками
   plan_free:boolean = false;
   numRows: NumRow[] = [
     {value: '5', viewValue: '5'},
@@ -204,6 +204,7 @@ export class SubscriptionComponent implements OnInit {
     public universalCategoriesDialog: MatDialog,
     private MessageDialog: MatDialog,
     private userLegalInfoComponent: MatDialog,
+    private paymentSelectComponent: MatDialog,
     public confirmDialog: MatDialog,
     private http: HttpClient,
     public ConfirmDialog: MatDialog,
@@ -247,9 +248,9 @@ export class SubscriptionComponent implements OnInit {
     this.subscription.n_companies_add*this.subscription.companies_ppu +
     this.subscription.n_departments_add*this.subscription.departments_ppu +
     this.subscription.n_users_add*this.subscription.users_ppu +
-    this.subscription.n_products_add*this.subscription.products_ppu +
-    this.subscription.n_counterparties_add*this.subscription.counterparties_ppu +
-    this.subscription.n_megabytes_add*this.subscription.megabytes_ppu +
+    this.subscription.n_products_add*this.subscription.products_ppu/1000 +
+    this.subscription.n_counterparties_add*this.subscription.counterparties_ppu/1000 +
+    this.subscription.n_megabytes_add*this.subscription.megabytes_ppu/1024 +
     this.subscription.n_stores_add*this.subscription.stores_ppu +
     this.subscription.n_stores_woo_add*this.subscription.stores_woo_ppu
     ;
@@ -581,7 +582,7 @@ export class SubscriptionComponent implements OnInit {
 
     if(!this.subscription.masterAccountLegalInfoFilled)
       this.openUserLegalInfo();
-    else this.addMoney();
+    else this.openPaymentSelectComponent();
 
   }
   openUserLegalInfo() { 
@@ -599,14 +600,33 @@ export class SubscriptionComponent implements OnInit {
     dialogSettings.afterClosed().subscribe(result => {
       if(result){ // if pushed button Save:
         this.subscription.masterAccountLegalInfoFilled=true;
-        this.addMoney();
+        this.openPaymentSelectComponent();
       }
     });
   }
-  
-  addMoney(){
-    alert('Adding money!')
+
+  openPaymentSelectComponent() { 
+    const dialogSettings = this.paymentSelectComponent.open(PaymentSelectComponent, {
+      maxWidth: '95vw',
+      // maxHeight: '95vh',
+      // height: '680px',
+      width: '560px', 
+      minHeight: '650px',
+      data:
+      { //sending into dialog
+        
+      },
+    });
+    dialogSettings.afterClosed().subscribe(result => {
+      if(result){ // if pushed button Save:
+       
+      }
+    });
   }
+
+  // addMoney(){
+  //   alert('Adding money!')
+  // }
 
 //************************************************************* PAYMENTS REPORT *************************************************************/    
 

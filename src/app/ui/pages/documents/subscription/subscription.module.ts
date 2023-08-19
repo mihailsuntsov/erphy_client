@@ -4,11 +4,10 @@ import { CommonModule } from '@angular/common';
 import { SubscriptionRoutingModule } from './subscription-routing.module';
 import { SubscriptionComponent } from './subscription.component';
 import { UserLegalInfoModule } from '../../../../modules/user-legal-info/user-legal-info.module';
+import { PaymentSelectModule } from '../../../../modules/payment-select/payment-select.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MaterialModule } from '../../../../modules/material.module';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
-
-// import { SubscriptionDetModule } from 'src/app/modules/info-modules/moneyflow_det/moneyflow_det.module';
 
 @NgModule({
   declarations: [SubscriptionComponent],
@@ -19,8 +18,8 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
     CommonModule,
     SubscriptionRoutingModule,
     ReactiveFormsModule,
-    // SubscriptionDetModule,
     UserLegalInfoModule,
+    PaymentSelectModule,
     FormsModule,
     MaterialModule,
     TranslocoModule

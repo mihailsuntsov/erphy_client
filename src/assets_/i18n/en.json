@@ -12,6 +12,7 @@
             "error":        "Error!",
             "attention":    "Attention!",
             "usr_no_fnd_by":"No user found with this e-mail",
+            "freq_too":     "Request rate exceeded",
             "chk_email_pwd":"Check your email and follow the link sent in the email to create a new password",
             "pwd_rep_succs":"Password recovery completed successfully! Please sign in",
             "reg_completd1":"Your registration has been completed successfully!",

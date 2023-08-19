@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { TokenStorageService } from '../auth/token-storage.service';
 import { HttpClient } from '@angular/common/http';
 import { LoadSpravService } from '../services/loadsprav';
@@ -13,6 +13,7 @@ import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { filter } from 'rxjs/operators';
 import { translate } from '@ngneat/transloco'; //+++
 import { DelCookiesService } from '../services/del-cookies.service';
+import { MatSidenav } from '@angular/material/sidenav';
 
 /** @title Fixed sidenav */
 @Component({
@@ -42,6 +43,11 @@ export class UiComponent implements OnInit {
   myCompanyId:number=null;
   myDepartmentsList:any[]=[];
   companiesList:any[]=[];
+  showLogo=false;
+  waitingSidebarUpdate=false;
+  
+  @ViewChild(MatSidenav)
+  sidenav!: MatSidenav;
 
   constructor(
     private token: TokenStorageService,
@@ -237,10 +243,23 @@ export class UiComponent implements OnInit {
       clickedElement.parentElement.parentElement.parentElement.classList.toggle("showMenu");
   }
 
-  menuClick(e){
+  menuClick(){
     let sidebar = document.querySelector(".sidebar");
     sidebar.classList.toggle("close");
-  }
+    if(!sidebar.classList.value.includes('close')) this.showLogo=true;
+
+    if(!this.waitingSidebarUpdate){
+      this.waitingSidebarUpdate=true;
+        setTimeout(() => {
+          this.waitingSidebarUpdate=false;
+          this.http.get('/api/auth/setSidenavDrawer?user_id='+this.myId+'&sidenav='+(sidebar.classList.value.includes('close')?'close':'open'))
+            .subscribe(
+                data => {},
+                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+              );
+        }, 1000);
+      }
+    }
   
   // settings loading
   getSettings(updateDashboard:boolean){
@@ -249,12 +268,13 @@ export class UiComponent implements OnInit {
       .subscribe(
           data => { 
             result=data as any;
+            if(result.sidenav=='close') this.setSidebarClose(); else this.showLogo=true;
             //if user still have no settings - let's set default settings:
             this.settingsForm.get('timeZoneId').setValue((result.time_zone_id&&result.time_zone_id>0)?result.time_zone_id:21);// Europe, London (+0 GMT)
             this.settingsForm.get('languageId').setValue((result.language_id&&result.language_id>0)?result.language_id:1);// English
             this.settingsForm.get('localeId').setValue((result.locale_id&&result.locale_id>0)?result.locale_id:3);// en-us suffix
             this.settingsForm.get('timeFormat').setValue((result.timeFormat)?result.timeFormat:'12');// 12 or 24
-
+            
             this.locale=result.locale?result.locale:'en-us';// en-us
             this.suffix=result.suffix?result.suffix:'en';// suffix - at same time means language for Transloco
             this.accountingCurrency=result.accounting_currency;// short name of Accounting currency of user's company (e.g. $ or EUR)
@@ -268,6 +288,16 @@ export class UiComponent implements OnInit {
           },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
+  }
+
+  setSidebarClose(){
+    if(document.querySelector(".sidebar")==null){
+      setTimeout(() => {
+        console.log('null');
+        this.setSidebarClose();
+      }, 100);
+    }
+    else document.querySelector(".sidebar").classList.toggle("close")
   }
 
   //open settings dialog

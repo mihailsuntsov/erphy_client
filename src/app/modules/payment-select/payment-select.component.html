@@ -1,0 +1,64 @@
+<mat-card class="card" *transloco="let t" style="height: 600px;">
+    <mat-card-title class="flex">
+        <div class="card-name">{{t('modules.card.pay_methds')}}</div>
+        <button 
+            (click)="onNoClick()"
+            matTooltip="{{t('modules.tip.cls_sttng_wnd')}}"
+            mat-raised-button 
+            color="accent"
+            class="button small-button">
+            <i class="material-icons">close</i> 
+        </button>
+    </mat-card-title>
+    <mat-card-content > 
+        <div class="card" style="height: 265px; overflow-y: scroll;">
+            <mat-spinner 
+                strokeWidth="3" 
+                class="spinner"
+                [diameter]="50"
+                *ngIf="gettingData"
+            ></mat-spinner>
+            <!-- <form [formGroup]="mainForm"> -->
+                <!-- <div class="container-fluid"> -->
+                    <!-- <div class="row"> -->
+                        <!-- <div class="col-12" style = "display: contents;"> -->
+                            <div style="display: inline-block; 
+                            width:200px; 
+                            height: 100px; 
+                            border: 1px solid lightgray; 
+                            border-radius: 10px; 
+                            margin:14px;
+                            cursor:pointer" 
+                                *ngFor="let method of paymentMethodsList"
+                                (click)="onSelectPaymentMethod(method)">
+                                <img src="{{method.img_address}}" width="200" height="100">
+                            </div>
+                        <!-- </div> -->
+                        
+
+                    <!-- </div> -->
+                    
+                <!-- </div> -->
+            <!-- </form> -->
+        </div>
+        <!-- <code><pre>{{mainForm.value | json}}</pre></code> -->
+    </mat-card-content> 
+    <mat-divider></mat-divider>
+    <div class="row" 
+    [innerHTML]="paymentDescription | sanitizedHtml"
+    style="position: absolute;bottom: 0px;width: 100%;padding: 15px;left: 10px; bottom: 67px;height: 175px;">
+        
+    </div>
+    <div class="row" style="position: absolute;bottom: 0px;width: 100%;padding: 16px;left: 10px;">
+        <button 
+            (click)="doPayment()"
+            class="apply-button"
+            mat-raised-button 
+            color="primary"
+            [disabled]="!(link && link.length>0)"
+            >
+            <i class="material-icons">done</i> {{t('modules.button.pay')}} 
+        </button>
+    </div>
+</mat-card>
+    

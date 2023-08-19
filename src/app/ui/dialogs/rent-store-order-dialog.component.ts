@@ -178,13 +178,14 @@ interface IdAndName {
                                         style="margin-top: 80px; width:100%; max-width: 400px;
                                         align-items: baseline;
                                         box-sizing: border-box;">
+                                        {{data.lang_code}}.
                                         <mat-label>{{t('docs.field.extd_sites')}}</mat-label>
                                         <mat-select  formControlName="parentVarSiteId">                          
                                             <mat-option  *ngFor="let rt of existedRentSitesList" [value]="rt.id">
                                                 {{rt.name}}
                                             </mat-option> 
                                         </mat-select>
-                                        /{{data.lang_code}}
+                                        
                                     </mat-form-field>
 
                                     <mat-checkbox *ngIf="existedRentSitesList.length>0" class="example-margin" style="width: 100%;" formControlName="existedStoreVariation">{{t('docs.field.lv_extd_sites')}}</mat-checkbox>
@@ -270,7 +271,7 @@ interface IdAndName {
                 
         </mat-card-content>
     </mat-card>
-    <code><pre>{{firstFormGroup.value | json}}</pre></code>
+    <!--code><pre>{{firstFormGroup.value | json}}</pre></code-->
     `,
     styles: [` 
     .example-stepper {
@@ -310,7 +311,7 @@ interface IdAndName {
         thirdLvlName:       ['', [Validators.maxLength(30), Validators.minLength(2), Validators.pattern('^[a-zA-Z][a-zA-Z0-9-_\.]{1,20}$')]],
         existedStoreVariation:              false,
         parentVarSiteId:    [null],
-        position:           'after',
+        position:           'before',
         varName:            ''
     });
 
@@ -424,7 +425,7 @@ interface IdAndName {
             agreementVer: this.agreement.version,
             existedStoreVariation: this.secondFormGroup.get('existedStoreVariation').value,
             parentVarSiteId: this.secondFormGroup.get('parentVarSiteId').value,
-            position: 'after',
+            position: 'before',
             varName: this.data.lang_code
         }
         if(!rentStoreOrder.existedStoreVariation){// if it is not a variation of an existed store

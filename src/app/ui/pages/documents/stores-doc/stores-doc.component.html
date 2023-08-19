@@ -215,8 +215,8 @@
                                                                         <span style="color:orange">{{t('docs.field.preparing')}}</span>
                                                                     </mat-panel-description>
                                                                 </mat-expansion-panel-header>
-                                                                <p *ngIf = "rt.distributed"><strong>{{t('docs.field.sit_addr')}}</strong>: <a href="https://{{rt.panel_domain}}">{{rt.site_url}}</a></p>
-                                                                <p *ngIf = "rt.distributed"><strong>{{t('docs.field.pan_dom')}}</strong>: <a href="https://{{rt.panel_domain}}">{{rt.panel_domain}}</a></p>
+                                                                <p *ngIf = "rt.distributed"><strong>{{t('docs.field.sit_addr')}}</strong>: <a href="https://{{rt.site_url}}">{{rt.site_url}}</a></p>
+                                                                <p *ngIf = "rt.distributed"><strong>{{t('docs.field.pan_dom')}}</strong>: <a href="https://{{rt.site_url}}/wp-admin">{{rt.site_url}}/wp-admin</a></p>
                                                                 <p><strong>{{t('docs.field.ordered_at')}}</strong>: {{rt.date_time_ordered}}</p>
                                                                 <p *ngIf = "rt.distributed"><strong>{{t('docs.field.distr_at')}}</strong>: {{rt.date_time_distributed}}</p>
                                                                 <p *ngIf="!rt.is_deleted && rt.distributed"><strong>{{t('docs.field.q_to_remov')}}</strong>: {{rt.is_queried_to_delete?t('menu.dialogs.yes'):t('menu.dialogs.no')}} <span  *ngIf="!rt.is_queried_to_delete" (click)="deleteRentStore(rt.id)" style="color:red; cursor: pointer;">{{t('docs.tip.delete')}}</span></p>

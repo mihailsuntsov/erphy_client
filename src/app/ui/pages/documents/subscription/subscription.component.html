@@ -99,7 +99,7 @@
                                                     <th class="padded balance-bar" mat-header-cell *matHeaderCellDef><p  class="table-info">{{t('docs.field.writeoff_month')}}, {{subscription.saas_payment_currency}}</p></th>
                                                 </ng-container>
                                                 <ng-container matColumnDef="writeoff_month_value" >
-                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right"> {{subscription==undefined?'':(writeoffDay*30).toFixed(0)}}</p> </th>
+                                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p  class="table-info-right"> {{subscription==undefined?'':(writeoffDay*30).toFixed(2)}}</p> </th>
                                                 </ng-container>
                                                 
                                                 <ng-container matColumnDef="daysleft_name">

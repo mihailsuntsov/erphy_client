@@ -222,7 +222,6 @@ export class RemainsComponent implements OnInit {
       
   }
 
-  //определяет, есть ли предприятие в загруженном списке предприятий
   isDepartmentInList(depId:number):boolean{
     let inList:boolean=false;
     if(this.departmentsList) 

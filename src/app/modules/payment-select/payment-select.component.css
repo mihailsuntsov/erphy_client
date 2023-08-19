@@ -1,0 +1,122 @@
+:host{
+    flex-grow: 1;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+}
+table {width: 100%;}
+li {list-style: none;}
+.flex{ display: flex; }
+.text-center{text-align: center;}
+.card{
+    width:100%;
+}
+.invisible{display:none;}
+.card-name{ flex-grow: 1; }
+.button{
+    margin-left: 10px;
+}
+.input-form{
+    display: flex;
+    flex-direction: column;
+}
+.field-box{
+    padding: 3px;
+    margin: 5px;
+    width:100%; 
+    height:30px;
+    display: flex;
+    }
+.cursor-pointer{
+    cursor: pointer;
+}
+.spinner{
+    position: absolute;
+    top: 15%; left: 50%;
+    margin-left: -25px;
+    margin-top: 15%;
+}
+.active{
+    color:rgb(27, 27, 27);
+}
+.form-invalid{
+    color: red;
+}
+.inactive{
+    color:gray;
+}
+
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    margin: 15px 0;
+  }
+  
+  .radio-button {
+    margin: 5px;
+  }
+  .mat-form-field-100{
+    width:100%
+}
+.apply-button{
+    margin: auto !important;
+    margin-top: 15px !important;
+}
+.final-price{
+    margin: 15px 0;
+    font-size: xxx-large;
+    font-weight: bold;
+    text-align: center;
+}
+.plusMinusEnable{
+    color: black;
+    cursor: pointer;
+}
+.plusMinusDisable{
+    color: lightgray;
+    cursor: pointer;
+}
+.material-icons {
+    line-height:0 !important;
+    vertical-align: middle;
+}
+/*--------------- стили для статуса------------------*/
+/*для цветного круга в статусах*/
+.circle-wrapper {
+    width: 30px;
+    height: 100%;
+    vertical-align: middle;
+    text-align: center;
+    display: inline-block;
+}
+.circle-in-list {
+    width: 20px;
+    height: 20px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+} 
+.circle-in-selected{
+    width: 20px;
+    height: 20px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    position: relative;
+    top: 20px;
+}
+/*название статуса*/
+.status-name {
+    display: inline-block;
+    line-height: 20px;
+} 
+
+.clear-button{
+    position: relative;
+    right: 0px;
+    top: 6px;
+    flex: 0 0 0%;
+    color: black;
+    z-index: 1000;
+    line-height: 34px !important;
+}

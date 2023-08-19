@@ -63,7 +63,7 @@ interface MasterAccountInfo {
   plan_version: number;        // the version of tariff plan
   plan_price: number;          // how much writeoff per day for tariff plan
   plan_no_limits: boolean;     // tariff plan has no limits
-  is_saas:boolean;             // DokioCRM works as a SaaS
+  is_saas:boolean;             // CRM works as a SaaS
   plan_free: boolean;          // for free plans the billing is not applied, also users that use it can't use an additional options
   companies_ppu: number;       // writeoff per day for 1 additional company
   departments_ppu: number;     // writeoff per day for 1 additional department
