@@ -3,7 +3,8 @@
     {{'user.card.hurray' | transloco}}
   </mat-card-title>
   <mat-card-content class="text-center">
-    {{'user.msg.reg_completd1' | transloco}}<br>{{'user.msg.reg_completd2' | transloco}}<br>
+    {{'user.msg.reg_completd1' | transloco}}<br>
+    <span *ngIf="createdUserId!='1'">{{'user.msg.reg_completd2' | transloco}}</span><br>
     <a routerLink="../auth/login" style="color:white"><button mat-button mat-raised-button color="primary" style="margin-top: 20px;">{{'user.btn.go_to_auth' | transloco}}</button></a>
   </mat-card-content>
   
@@ -142,7 +143,7 @@ class="spinner"
 
       <div style="margin-top:20px" *ngIf="showAgreeCheckbox">
         <!-- <mat-form-field> -->
-          <mat-checkbox class="example-margin" formControlName="agree" required>{{'docs.button.i_agree_w' | transloco}}</mat-checkbox>
+          <mat-checkbox class="example-margin" formControlName="agree">{{'docs.button.i_agree_w' | transloco}}</mat-checkbox>
           <span *ngIf="isTAC">&nbsp;<a target="_blank" href="{{settingsGeneral.url_terms_and_conditions}}">{{'docs.button._t_a_c' | transloco}}</a></span>
 
           <span *ngIf="isTAC&&isPP">, </span>
@@ -153,7 +154,7 @@ class="spinner"
 
         <!-- </mat-form-field> -->
       </div>
-
+       <!-- 1-{{regform.invalid}}, 2-{{isSendingForm}}, 3-{{(showAgreeCheckbox && !regform.get('agree').value)}} -->
       <button mat-button 
       mat-raised-button 
       color="primary" 

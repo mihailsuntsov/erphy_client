@@ -13,6 +13,7 @@ interface SettingsGeneral{
   url_terms_and_conditions:string;
   url_privacy_policy:string;
   url_data_processing_agreement:string;
+  saas:boolean;
   }
 
 @Component({
@@ -25,6 +26,7 @@ export class RegisterComponent implements OnInit {
   regform: any  ;
   signupInfo: SignUpInfo;
   isSignedUp = false;
+  isSaaS = false;
   isSignUpFailed = false;
   isSendingForm = false;
   errorMessage = '';
@@ -33,11 +35,13 @@ export class RegisterComponent implements OnInit {
   emptyEmail=false;
   emptyPassword=false;
   showPwd=false;
+  createdUserId="";
 
   settingsGeneral:SettingsGeneral= {
     url_terms_and_conditions:'_',
     url_privacy_policy:'_',
     url_data_processing_agreement:'_',
+    saas:false
   };
 
   constructor(private authService: AuthService,
@@ -51,7 +55,7 @@ export class RegisterComponent implements OnInit {
       email: new UntypedFormControl ('',[Validators.required,Validators.email]),
       password: new UntypedFormControl ('',[Validators.required,Validators.minLength(6),Validators.maxLength(20),Validators.pattern('^[a-zA-Z][a-zA-Z0-9-_\.]{1,20}$')]),
       language: new UntypedFormControl ('',[]),
-      agree: new UntypedFormControl ('',[]),
+      agree: new UntypedFormControl (false,[]),
     });
   }
 
@@ -77,9 +81,9 @@ export class RegisterComponent implements OnInit {
     }
   }
   get showAgreeCheckbox(){
-    return (this.settingsGeneral.url_data_processing_agreement!=''&&
-    this.settingsGeneral.url_privacy_policy!=''&&
-    this.settingsGeneral.url_terms_and_conditions!='');
+    return ((this.settingsGeneral.url_data_processing_agreement!=''||
+    this.settingsGeneral.url_privacy_policy!=''||
+    this.settingsGeneral.url_terms_and_conditions!=''));
   }
   get isTAC(){
     return (
@@ -116,6 +120,7 @@ export class RegisterComponent implements OnInit {
       this.regform.get("language").setValue(Cookie.get('language'));// отправим выбранный при регистрации язык, чтобы сразу прописать его в настройках пользователя при его создании
       this.authService.signUp(this.regform.value).subscribe(
         data => {
+          this.createdUserId = data as any;
           console.log(data);
           this.isSignedUp = true;
           this.isSignUpFailed = false;
