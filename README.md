@@ -15,6 +15,7 @@ Multilingual real estate online catalog: https://dokio.me/examples/realestate_en
 Multilingual food delivery site: https://food.erphy.me
 
 ## How to install
+[<img src="https://dokio.me/downloads/shared/screen2.jpg" width="50%">](https://youtu.be/z2qjwzGXB30 "Now in Android: 55")<br><br>
 You can install the program on your VPS server using a bash installation script. 
 Bash installation script tested on:<br> 
 * Ubuntu Server 20.04
