@@ -122,3 +122,49 @@ tr.mat-footer-row {
 .e-radio-button {
     margin: 5px;
 }
+
+
+.icon{
+    color: rgba(0,0,0,.54); 
+    cursor: pointer;
+}
+.field-box-drag {
+    /* border: 1px solid rgb(221, 221, 221); */
+    width:100%; 
+    margin-bottom: 10px;
+    height:50px;
+    /* background-color: #cfc; */
+    display: flex;
+    justify-content: space-between;
+}
+.img-wrapper{
+    flex-grow: 1; 
+    width: 100%;
+    display: table-cell; 
+    vertical-align: middle;
+    height: 50px;border: 1px solid white;
+}
+.drag-box-with-handler{
+    border: 2px solid rgb(255, 0, 0);
+    padding: 3px;
+    /* width:600px; 
+    height:200px; */
+}
+.drag-box-wrapper{
+    border: 2px solid rgb(61, 58, 255);
+    padding: 3px;
+    margin: 5px;
+    width:360px; 
+    height:30px;
+}    
+.cdk-drag-animating {
+        transition: transform 300ms ease;
+}
+.cdk-drag-placeholder {
+        background: white;
+        border: dotted 1px #999;
+        transition: transform 500ms ease;
+}
+.cdk-drag-preview {
+        box-shadow: 0 3px 3px -3px #0084ff;
+}

@@ -409,6 +409,7 @@ export class MoneyflowComponent implements OnInit {
     }
   }
   openDetailslWindow(date:string) {
+    //alert('this.dateFormat='+this.dateFormat.replace('FMDD','DD').replace('FMMM','MM')+", date="+date)
     this.moneyflowDetDialog.open(MoneyflowDetComponent, {
       maxWidth: '95vw',
       maxHeight: '95vh',
@@ -423,7 +424,7 @@ export class MoneyflowComponent implements OnInit {
         myId:this.myId,
         myCompanyId:this.myCompanyId,
         companiesList:this.receivedCompaniesList,
-        dateFormat:this.dateFormat,
+        dateFormat:this.dateFormat.replace('FMDD','DD').replace('FMMM','MM'),//FMDD. FMMM. YYYY. is a PostgreSQL format for Serbian language. If not to replace -> Invalid date error
         accountsIds: this.queryForm.get('accountsIds').value,
         boxofficesIds: this.queryForm.get('boxofficesIds').value,
         // dateFrom:this.queryForm.get('dateFrom').value,

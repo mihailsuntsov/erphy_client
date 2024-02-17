@@ -2,7 +2,7 @@
     "user":{
         "card":{
             "authorization":"Пријавите се",
-            "Регистрација": "Регистрација",
+            "registration": "Регистрација",
             "pwd_recovery": "Опоравак изгубљене лозинке",
             "new_pwd":      "Нова лозинка",
             "hurray":       "Честитам!",
@@ -72,7 +72,7 @@
                 "purchases":"Куповине",
                 "sales":"Продаја",
                 "retail":"Малопродаја",
-                "goods":"Роба",
+                "goods":"Производи",
                 "money":"Новац",
                 "registries":"Регистри",
                 "docs":"Документи",
@@ -81,10 +81,10 @@
             },
             "items":{
                 "returnsup":"Враћа добављачима",
-                "ordersup":"Куповни налози",
+                "ordersup":"Налози добављачу",
                 "acceptance":"Прихватања",
                 "invoicein":"Рачуни добављача",
-                "vatinvoicein":"Примљене фактуре са ПДВ-ом",
+                "vatinvoicein":"Примљене ПДВ фактуре",
 
                 "return":"Поврати од купаца",
                 "customersorders":"Поруџбине купаца",
@@ -94,51 +94,51 @@
 
                 "retailsales":"Малопродаја",
                 "shifts":"Смене благајника",
-                "receipts":"Благајнички чекови",
-                "kassa":"Продајни регистри",
+                "receipts":"Чекови",
+                "kassa":"Касе",
                 "withdrawal":"Повлачења",
                 "depositing":"Депозити",
 
-                "products":"Роба и услуге",
-                "remains":"Преостала роба",
+                "products":"Производи и услуге",
+                "remains":"Преостали производи",
                 "prices":"Цене",
                 "inventory":"Инвентар",
                 "writeoff":"Отписи",
-                "posting":"Прокњижити",
-                "moving":"Премјештање",
+                "posting":"Стављања",
+                "moving":"Премјештања",
 
                 "paymentin":"Долазне уплате",
-                "paymentout":"Одлазне исплате",
-                "orderin":"Кредитни листићи",
-                "orderout":"Дебитне листиће",
+                "paymentout":"Одлазне уплате",
+                "orderin":"Потврде о пријему",
+                "orderout":"Потврде о исплати",
                 "correction":"Исправке",
                 "profitloss":"Профит и губитак",
                 "mutualpayment":"Међусобна плаћања",
                 "moneyflow":"Новац тече",
 
-                "productgroups":"Роба производа",
-                "edizm":"Мерних јединица",
-                "boxoffice":"Собе за новац",
-                "cagents":"Контрахенти",
+                "productgroups":"Групе производа",
+                "edizm":"Јединице",
+                "boxoffice":"Касе предузећа",
+                "cagents":"Уговорне стране",
                 "taxes":"Порези",
                 "statuses":"Статуси докумената",
                 "expenditure":"Расходи",
-                "pricetypes":"Типови цена",
-                "currencies":"Валуте",
+                "pricetypes":"Типови цене",
+                "currencies":"Валута",
 
-                "files":"Фајлови",
+                "files":"Фајлове",
 
                 "traderesults":"Резултати трговине",
 
-                "companies":"Предприятија",
+                "companies":"Предузећа",
                 "departments":"Одељења",
                 "users":"Корисници",
                 "usergroup":"Улоге",
-                "accounts":"Банкарски рачуни",
+                "accounts":"Банковне рачуни",
                 "subscription":"Претплата",
 
-                "prodattr":"Атрибути роба",
-                "stores":"Интернет продавнице (везу)"
+                "prodattr":"Атрибути производа",
+                "stores":"Онлине продавнице (конекције)"
             }
         }
     }

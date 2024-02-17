@@ -362,8 +362,6 @@
         "withdrawals":  "withdrawals",
         "depositing":   "depositing",
         "depositings":  "depositings",
-        "tr":           "trade result",
-        "trs":          "trade results",
         "return":       "customers' return",
         "returns":      "customers' returns",
         "c_order":      "customer's order",

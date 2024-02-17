@@ -110,6 +110,7 @@ export class LoginComponent implements OnInit {
     switch (Cookie.get('language')){
       case 'en': return 'English';
       case 'ru': return 'Русский';
+      case 'sr': return 'Српски';
       default: return 'English';
     }
   }

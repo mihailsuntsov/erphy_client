@@ -100,6 +100,8 @@ const routes: Routes = [
       { path: 'stores', loadChildren: () => import('./pages/documents/stores/stores.module').then(m => m.StoresModule) },
       { path: 'storesdoc', loadChildren: () => import('./pages/documents/stores-doc/stores-doc.module').then(m => m.StoresDocModule) },
       { path: 'subscription', loadChildren: () => import('./pages/documents/subscription/subscription.module').then(m => m.SubscriptionModule) },
+      { path: 'resources', loadChildren: () => import('./pages/documents/resources/resources.module').then(m => m.ResourcesModule) },
+      { path: 'resourcesdoc', loadChildren: () => import('./pages/documents/resources-doc/resources-doc.module').then(m => m.ResourcesDocModule) },
 
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
       { path: '**', redirectTo: 'dashboard',pathMatch: 'full' },

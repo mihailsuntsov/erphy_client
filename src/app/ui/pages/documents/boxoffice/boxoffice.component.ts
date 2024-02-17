@@ -162,7 +162,7 @@ export class BoxofficeComponent implements OnInit {
     this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==555)});
     this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==556)});
     this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==557)});
-    this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==558)});`~`
+    this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==558)});
     this.getData();
   }
 

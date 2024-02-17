@@ -370,26 +370,7 @@ export class AcceptanceDocComponent implements OnInit {
   //---------------------------------------------------------------------------------------------------------------------------------------                            
   // ----------------------------------------------------- *** ПРАВА *** ------------------------------------------------------------------
   //---------------------------------------------------------------------------------------------------------------------------------------
-  // ru(){
-  //   this._adapter.setLocale('ru');
-  //   // moment.locale('ru');
-  //   console.log(moment(1316116057189).fromNow());
-  // }
-  // fr(){
-  //   this._adapter.setLocale('fr');
-  //   // moment.locale('fr');
-  //   console.log(moment(1316116057189).fromNow());
-  // }
-  // en(){
-  //   this._adapter.setLocale('en-US');
-  //   // moment.locale('en');
-  //   console.log(moment(1316116057189).fromNow());
-  // }
-  // ja(){
-  //   this._adapter.setLocale('ja');
-  //   // moment.locale('ja');
-  //   console.log(moment(1316116057189).fromNow());
-  // }
+
   getSetOfPermissions(){
     return this.http.get('/api/auth/getMyPermissions?id=15')
       .subscribe(

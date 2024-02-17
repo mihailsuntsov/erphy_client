@@ -57,6 +57,7 @@
                     matTooltip="{{t('docs.tip.user_settings')}}"
                     (click)="openDialogSettings()"
                     type="button"
+                    id="settings_btn"
                     class="button small-button">
                     <i class="material-icons">settings</i>
                 </button>
@@ -64,6 +65,7 @@
                     mat-button 
                     [matMenuTriggerFor]="addDocMenu"
                     mat-raised-button 
+                    id="add_doc_btn"
                     matTooltip="{{t('docs.tip.create_docs')}}"
                     *ngIf="+id>0 && inventoryProductsTableComponent"
                     color="primary"
@@ -71,13 +73,13 @@
                     <i class="material-icons">add</i>
                 </button>
                 <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
-                    <button mat-menu-item (click)="goToNewDocument()">
+                    <button mat-menu-item id="new_doc_btn" (click)="goToNewDocument()">
                         <span>{{t('docs.docs.inventory')}}</span>
                     </button>
-                    <button mat-menu-item (click)="createLinkedDoc('Writeoff')">
+                    <button mat-menu-item id="writeoff_btn" (click)="createLinkedDoc('Writeoff')">
                         <span>{{t('docs.docs.writeoff')}}</span>
                     </button>
-                    <button mat-menu-item (click)="createLinkedDoc('Posting')">
+                    <button mat-menu-item id="posting_btn" (click)="createLinkedDoc('Posting')">
                         <span>{{t('docs.docs.posting')}}</span></button>
                 </mat-menu>
                 <button 
@@ -87,6 +89,7 @@
                     (click)="updateDocument()"
                     [disabled]="!childFormValid||inventoryProductsTableComponent.indivisibleErrorOfProductTable" 
                     color="primary"
+                    id="save_btn"
                     type="button"
                     class="button small-button">
                     <i class="material-icons">save</i>
@@ -99,6 +102,7 @@
                     *ngIf="allowToCreate && +id==0  && inventoryProductsTableComponent"
                     [disabled]="!childFormValid||!formBaseInformation.valid||inventoryProductsTableComponent.indivisibleErrorOfProductTable" 
                     color="primary"
+                    id="newdoc_btn"
                     type="submit"
                     class="button small-button">
                     <i class="material-icons">done</i>
@@ -110,6 +114,7 @@
                     [disabled]="!childFormValid||inventoryProductsTableComponent.indivisibleErrorOfProductTable" 
                     (click)="completeDocument()" 
                     type="button"
+                    id="complete_btn"
                     color="primary"
                     class="button small-button">
                     <i class="material-icons">playlist_add_check</i>
@@ -120,6 +125,7 @@
                     *ngIf=" +id>0 && canGetChilds && formBaseInformation.get('is_completed').value && inventoryProductsTableComponent"
                     (click)="decompleteDocument()" 
                     type="button"
+                    id="completed_btn"
                     color="primary"
                     class="button small-button completed">
                     <i class="material-icons">playlist_add_check</i> 
@@ -127,6 +133,7 @@
                 <a routerLink="../../inventory">
                     <button 
                         mat-raised-button 
+                        id="cancel_btn"
                         [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
                         color="accent"
                         class="button small-button">

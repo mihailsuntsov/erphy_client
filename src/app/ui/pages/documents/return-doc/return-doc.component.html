@@ -56,6 +56,7 @@
                     matTooltip="{{t('docs.tip.user_settings')}}"
                     (click)="openDialogSettings()"
                     type="button"
+                    id="settings_btn"
                     class="button small-button">
                     <i class="material-icons">settings</i>
                 </button>
@@ -67,6 +68,7 @@
                     color="primary"                
                     (click)="printDocs()"
                     type="button"
+                    id="print_btn"
                     (submit)="false"
                     class="button small-button small-button">
                     <i class="material-icons">print</i>
@@ -87,7 +89,7 @@
                         </div>
                     </button>
                     <mat-divider></mat-divider>
-                    <button mat-menu-item (click)="openDialogTemplates()" >
+                    <button mat-menu-item id="menu_print_btn" (click)="openDialogTemplates()" >
                         <span>{{t('docs.tip.set_prnt_menu')}}</span>
                     </button>
                 </mat-menu>
@@ -98,20 +100,21 @@
                     *ngIf="+id>0 && returnProductsTableComponent"
                     [disabled]="!childFormValid||!formBaseInformation.valid||returnProductsTableComponent.indivisibleErrorOfProductTable" 
                     color="primary"
+                    id="add_doc_btn"
                     class="button small-button">
                     <i class="material-icons">add</i>
                 </button>
                 <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
-                    <button mat-menu-item (click)="goToNewDocument()">
+                    <button mat-menu-item id="new_doc_btn" (click)="goToNewDocument()">
                         <span>{{t('docs.docs.return')}}</span>
                     </button>
-                    <button mat-menu-item (click)="createLinkedDoc('Paymentout')">
+                    <button mat-menu-item id="paymentout_btn" (click)="createLinkedDoc('Paymentout')">
                         <span>{{t('docs.docs.paymentout')}}</span>
                     </button>
-                    <button mat-menu-item (click)="createLinkedDoc('Orderout')">
+                    <button mat-menu-item id="orderout_btn" (click)="createLinkedDoc('Orderout')">
                         <span>{{t('docs.docs.orderout')}}</span>
                     </button>
-                    <button mat-menu-item 
+                    <button mat-menu-item id="writeoff_btn" 
                             (click)="createLinkedDoc('Writeoff')">
                         <span>{{t('docs.docs.writeoff')}}</span>
                     </button>
@@ -125,6 +128,7 @@
                                                        (returnProductsTableComponent && returnProductsTableComponent.gettingTableData)||
                                                        oneClickSaveControl" 
                     color="primary"
+                    id="save_btn"
                     type="button"
                     class="button small-button">
                     <i class="material-icons">save</i>
@@ -136,6 +140,7 @@
                     *ngIf="allowToCreate && +id==0  && returnProductsTableComponent"
                     [disabled]="!childFormValid||!formBaseInformation.valid||returnProductsTableComponent.indivisibleErrorOfProductTable" 
                     color="primary"
+                    id="newdoc_btn"
                     type="submit"
                     class="button small-button">
                     <i class="material-icons">done</i>
@@ -150,6 +155,7 @@
                     type="button"
                     matTooltip="{{t('docs.tip.complete')}}"
                     color="primary"
+                    id="complete_btn"
                     class="button small-button">
                     <i class="material-icons">playlist_add_check</i>
                 </button>
@@ -159,6 +165,7 @@
                     *ngIf=" +id>0 && canGetChilds && formBaseInformation.get('is_completed').value && returnProductsTableComponent"
                     (click)="decompleteDocument()" 
                     type="button"
+                    id="completed_btn"
                     color="primary"
                     class="button small-button completed">
                     <i class="material-icons">playlist_add_check</i> 
@@ -168,6 +175,7 @@
                         mat-raised-button 
                         [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
                         color="accent"
+                        id="cancel_btn"
                         class="button small-button">
                         <i class="material-icons">close</i>
                     </button>
@@ -177,6 +185,7 @@
                         style="margin-left:10px"
                         [mat-dialog-close]="formBaseInformation.get('is_completed').value"
                         matDialogClose 
+                        id="close_btn"
                         class="button small-button"
                         color="accent">
                         <i class="material-icons">close</i>
@@ -274,6 +283,7 @@
                                                                     <input  matInput 
                                                                     [matAutocomplete]="auto4" 
                                                                     [formControl]="searchCagentCtrl"
+                                                                    id="cagent_search"
                                                                     (input)="canCagentAutocompleteQuery=true; checkEmptyCagentField();"
                                                                     (change)="canCagentAutocompleteQuery=false; checkEmptyCagentField();">
                                                                     <app-balance-cagent 

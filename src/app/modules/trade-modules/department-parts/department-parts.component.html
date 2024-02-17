@@ -1,0 +1,75 @@
+<mat-card class="card" *transloco="let t">
+
+    <mat-card-title class="flex">
+        <div class="card-name">{{actionType=='create'?('modules.card.dep_part_create' | transloco):('modules.card.dep_part_edit' | transloco)}}</div>
+        <button 
+            mat-raised-button 
+            *ngIf="+formBaseInformation.get('id').value==0"
+            (click)="insertDepartmentPart()"
+            color="primary"
+            [disabled]="!formBaseInformation.valid" 
+            matTooltip="{{t('docs.tip.create')}}"
+            class="button small-button">
+            <i class="material-icons">done</i>
+        </button>
+        <button 
+            mat-raised-button 
+            *ngIf="+formBaseInformation.get('id').value!=0"
+            (click)="updateDepartmentPart()"
+            color="primary"
+            [disabled]="!formBaseInformation.valid" 
+            matTooltip="{{t('docs.tip.save')}}"
+            class="button small-button">
+            <i class="material-icons">save</i>
+        </button>
+        <button 
+            (click)="onNoClick()"
+            matTooltip="{{t('docs.tip.close')}}"
+            mat-raised-button 
+            color="accent"
+            class="button small-button">
+            <i class="material-icons">close</i>
+        </button>
+    </mat-card-title>
+
+    <mat-card-content>
+        <form *ngIf="formBaseInformation" [formGroup]="formBaseInformation">   
+            <div>   
+                <mat-form-field style="width: 100%">
+                    <mat-label>{{'docs.field.name' | transloco}} <span *ngIf="formBaseInformation.get('name').value==''||formBaseInformation.get('name').value==null" class="star">*</span></mat-label>
+                    <input  matInput
+                            maxlength="120"
+                            #name
+                            formControlName="name"/>  
+                            <mat-hint  align="start" *ngIf="formBaseInformation.get('name').touched && formBaseInformation.get('name').invalid">
+                                <i class="form-invalid">{{t('modules.error.field_miss')}}</i>
+                            </mat-hint>
+                            <mat-hint align="end" *ngIf="name.value.length>100">{{name.value.length}} / 120</mat-hint>
+                </mat-form-field>
+                
+                <mat-form-field style="width: 100%">
+                    <mat-label>{{'docs.field.description' | transloco}} </mat-label>
+                    <input  matInput
+                            maxlength="1000"
+                            formControlName="description"/>  
+                            <mat-hint align="end" *ngIf="formBaseInformation.get('description').value.length>900">{{formBaseInformation.get('description').value.length}} / 1000</mat-hint>
+                </mat-form-field>
+                
+                <mat-form-field style="width: 100%; margin-top: -5px;">
+                    <mat-slide-toggle 
+                    formControlName="is_active"
+                    >{{t('docs.field.is_active')}}</mat-slide-toggle>
+                    <input matInput hidden/>
+                </mat-form-field>
+
+            </div>
+
+        </form>
+
+
+
+    </mat-card-content>
+
+    <!-- <code><pre>{{formBaseInformation.value | json}}</pre></code> -->
+
+</mat-card>

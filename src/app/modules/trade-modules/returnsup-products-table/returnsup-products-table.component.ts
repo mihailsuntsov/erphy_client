@@ -766,10 +766,11 @@ export class ReturnsupProductsTableComponent implements OnInit {
         // console.log('product_id - '+i['product_id']);
       if(+i['product_id']==row.product_id){
         //такой товар с таким складом уже занесён в таблицу товаров ранее, и надо смёрджить их, т.е. слить в один, просуммировав их фактические остатки.
-        alert('такой товар с таким складом уже занесён в таблицу товаров ранее')
+        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('modules.msg.prd_alr_slctd')}});
         thereProductInTableWithSameId=true; 
       }
     });
+    
     if(!thereProductInTableWithSameId){//такого товара  для выбранного склада в списке ещё нет. Добавляем в таблицу (в форму formBaseInformation)
       this.estimatedBalance=row['estimated_balance'];// это нужно, чтобы getDefaultActualBalance воспользовалась данным количеством в своем решении
       control.push(this.formingProductRowFromProductsList(row));
@@ -780,20 +781,22 @@ export class ReturnsupProductsTableComponent implements OnInit {
     this.recountTotals();
   }
 
-  formingProductRowFromProductsList(row: ProductSearchResponse) {
-    return this._fb.group({
-      row_id: [this.getRowId()],// row_id нужен для идентифицирования строк у которых нет id (например из только что создали и не сохранили)
-      product_id: new UntypedFormControl (row.product_id,[]),
-      name: new UntypedFormControl (row.name,[]),
-      edizm: new UntypedFormControl (row.edizm,[]),
-      remains: new UntypedFormControl (+row.remains,[]),
-      product_count:  new UntypedFormControl (1,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
-      product_price:  new UntypedFormControl (this.commonUtilites.priceFilter(this.getPrice(row),this.changePrice,this.changePriceType,this.plusMinus,this.hideTenths),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),/*ValidationService.priceMoreThanZero*/]),
-      product_sumprice: new UntypedFormControl (0,[]),
-      nds_id: new UntypedFormControl (row.nds_id,[]),
-      indivisible: new UntypedFormControl (row.indivisible,[]),
-    });
-  }
+    formingProductRowFromProductsList(row: ProductSearchResponse) {
+      
+      return this._fb.group({
+        row_id: [this.getRowId()],// row_id нужен для идентифицирования строк у которых нет id (например из только что создали и не сохранили)
+        product_id: new UntypedFormControl (row.product_id,[]),
+        name: new UntypedFormControl (row.name,[]),
+        edizm: new UntypedFormControl (row.edizm,[]),
+        remains: new UntypedFormControl (+row.remains,[]),
+        product_count:  new UntypedFormControl (1,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
+        product_price:  new UntypedFormControl (this.commonUtilites.priceFilter(this.getPrice(row),this.changePrice,this.changePriceType,this.plusMinus,this.hideTenths),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$'),/*ValidationService.priceMoreThanZero*/]),
+        product_sumprice: new UntypedFormControl (0,[]),
+        nds_id: new UntypedFormControl (row.nds_id,[]),
+        indivisible: new UntypedFormControl (row.indivisible,[]),
+        is_material:  new UntypedFormControl (row.is_material,[]),
+      });
+    }
 
   //в зависимости от политики назначения цены возвращаем одну из цен, содержащихся в передаваемом объекте
   getPrice(row: ProductSearchResponse):number{

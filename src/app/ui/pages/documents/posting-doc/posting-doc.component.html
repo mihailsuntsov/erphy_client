@@ -57,6 +57,7 @@
                     matTooltip="{{t('docs.tip.user_settings')}}"
                     (click)="openDialogSettings()"
                     type="button"
+                    id="settings_btn"
                     class="button small-button">
                     <i class="material-icons">settings</i>
                 </button>
@@ -69,11 +70,12 @@
                     color="primary"
                     (submit)="false"
                     type="button"
+                    id="add_doc_btn"
                     class="button small-button">
                     <i class="material-icons">add</i>
                 </button>
                 <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
-                    <button mat-menu-item (click)="goToNewDocument()">
+                    <button mat-menu-item id="new_doc_btn" (click)="goToNewDocument()">
                         <span>{{t('docs.docs.posting')}}</span>
                     </button>
                 </mat-menu>
@@ -84,6 +86,7 @@
                     (click)="updateDocument()"
                     [disabled]="!childFormValid||!formBaseInformation.valid||postingProductsTableComponent.indivisibleErrorOfProductTable" 
                     color="primary"
+                    id="save_btn"
                     type="button"
                     class="button small-button">
                     <i class="material-icons">save</i>
@@ -95,6 +98,7 @@
                     *ngIf="allowToCreate && +id==0  && postingProductsTableComponent"
                     [disabled]="!childFormValid||!formBaseInformation.valid||postingProductsTableComponent.indivisibleErrorOfProductTable" 
                     color="primary"
+                    id="newdoc_btn"
                     type="submit"
                     class="button small-button">
                     <i class="material-icons">done</i>
@@ -106,6 +110,7 @@
                     [disabled]="!childFormValid||!formBaseInformation.valid||postingProductsTableComponent.indivisibleErrorOfProductTable"  
                     (click)="completeDocument()" 
                     type="button"
+                    id="complete_btn"
                     color="primary"
                     class="button small-button">
                     <i class="material-icons">playlist_add_check</i>
@@ -116,6 +121,7 @@
                     *ngIf=" +id>0 && canGetChilds && formBaseInformation.get('is_completed').value && postingProductsTableComponent"
                     (click)="decompleteDocument()" 
                     type="button"
+                    id="completed_btn"
                     color="primary"
                     class="button small-button completed">
                     <i class="material-icons">playlist_add_check</i> 
@@ -125,6 +131,7 @@
                         mat-raised-button 
                         [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
                         color="accent"
+                        id="cancel_btn"
                         class="button small-button">
                         <i class="material-icons">close</i>
                     </button>
@@ -135,6 +142,7 @@
                         style="margin-left:10px"
                         [mat-dialog-close]="formBaseInformation.get('is_completed').value"
                         matDialogClose 
+                        id="close_btn"
                         class="button small-button"
                         color="accent">
                         <i class="material-icons">close</i>

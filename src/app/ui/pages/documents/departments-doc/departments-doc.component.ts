@@ -10,8 +10,11 @@ import { Router } from '@angular/router';
 import {HttpClient} from '@angular/common/http';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { translate } from '@ngneat/transloco'; 
+import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+import { DepartmentPartsComponent } from 'src/app/modules/trade-modules/department-parts/department-parts.component';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 
 interface docResponse {//интерфейс для получения ответа в методе getDepartmentValuesById
@@ -41,6 +44,13 @@ interface idNameDescription{ //универсалный интерфейс дл�
   description: string;
 }
 
+interface DepartmentPart{
+  id: number;
+  name: string;
+  description: string;
+  is_active: boolean;
+  menu_order: number;
+} 
 @Component({
   selector: 'app-departments-doc',
   templateUrl: './departments-doc.component.html',
@@ -56,6 +66,7 @@ export class DepartmentsDocComponent implements OnInit {
   receivedPriceTypesList: idNameDescription [] = [];//массив для получения списка типов цен
   paymentAccounts:any[]=[];// список расчётных счетов предприятия
   boxoffices:any[]=[];// список касс предприятия (не путать с ККМ!)
+  receivedPartsList:DepartmentPart[]=[];
 
   visBtnUpdate = false;
 
@@ -95,6 +106,8 @@ export class DepartmentsDocComponent implements OnInit {
     private http: HttpClient,
     private loadSpravService:   LoadSpravService,
     private _router:Router,
+    private departmentPartsDialog: MatDialog,
+    public  ConfirmDialog: MatDialog,
     public MessageDialog: MatDialog,
     private _snackBar: MatSnackBar
     ){
@@ -113,6 +126,7 @@ export class DepartmentsDocComponent implements OnInit {
       additional: new UntypedFormControl               ('',[]),
       boxoffice_id: new UntypedFormControl             ('',[]), // касса предприятия, к которой относится отделение
       payment_account_id: new UntypedFormControl       ('',[]), // расч. счёт по умолчанию
+      parts:  new UntypedFormControl                   ([],[]),//массив с частями отделения
     });
     this.formAboutDocument = new UntypedFormGroup({
       id: new UntypedFormControl                       ('',[]),
@@ -227,6 +241,7 @@ export class DepartmentsDocComponent implements OnInit {
   }
 
   updateDocument(){
+    this.formBaseInformation.get('parts').setValue(this.receivedPartsList);
     this.updateDocumentResponse=null;
     return this.http.post('/api/auth/updateDepartment', this.formBaseInformation.value)
             .subscribe(
@@ -270,13 +285,14 @@ export class DepartmentsDocComponent implements OnInit {
                   // this.getDepartmentsList();  // если отделения и типы цен грузить не здесь, а в месте где вызывалась getDocumentValuesById,
                   this.getPriceTypesList();   // то из-за асинхронной передачи данных company_id будет еще null, 
                                               // и запрашиваемые списки не загрузятся
+                  this.getDepartmentPartsList();
                   
                 } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
         );
-  }
+  } 
 
   createNewDocument(){
     this.http.post('/api/auth/insertDepartment', this.formBaseInformation.value)
@@ -393,6 +409,100 @@ export class DepartmentsDocComponent implements OnInit {
   }
   getBaseData(data) {    //+++ emit data to parent component
     this.baseData.emit(data);
+  }
+
+
+  // *************************  DEPARTMENT PARTS  ******************************
+  getDepartmentPartsList(){
+    this.http.get('/api/auth/getDepartmentPartsList?department_id='+this.id)
+    .subscribe(
+      (data) => {
+        this.receivedPartsList=data as DepartmentPart[];
+      },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+    );
+  }
+
+  getMaxOrder(){
+    let mo:number = 0;
+    this.receivedPartsList.forEach(i => {
+      mo = i.menu_order;
+    });
+    return mo;
+  }
+
+  dropPart(event: CdkDragDrop<string[]>) {
+    moveItemInArray(this.receivedPartsList, event.previousIndex, event.currentIndex);
+  }
+
+  clickBtnAddPart(): void {
+    const dialogRef = this.departmentPartsDialog.open(DepartmentPartsComponent, {
+      width: '800px', 
+      data:
+      { 
+        actionType: "create",
+        department_id: this.id,
+        menu_order: this.getMaxOrder(),
+        partName: '', 
+        partId:'',
+        is_active:true,
+        partDescription:'',
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+     // console.log("createdPartId: "+result);
+      this.getDepartmentPartsList();
+    });        
+  }
+
+  clickBtnEditPart(part: any): void {
+    const dialogRef = this.departmentPartsDialog.open(DepartmentPartsComponent, {
+      width: '800px', 
+      data:
+      { 
+        actionType:"update",
+        department_id: this.id,
+        partName: part.name, 
+        partId:part.id,
+        is_active:part.is_active,
+        partDescription:part.description,
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      this.getDepartmentPartsList();
+    });        
+  }
+
+  clickBtnDeletePart(id: number): void {
+    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+      width: '400px',
+      data:
+      { 
+        head:   translate('docs.msg.del_dep_part'),
+        query:  translate('docs.msg.del_dep_part_questn'),
+        warning:translate(''),
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){this.deletePart(id);}
+    });        
+  }
+  deletePart(partId:number){
+    return this.http.get('/api/auth/deleteDepartmentPart?id='+partId)
+    .subscribe(
+        (data) => {  
+          let result = data as any; 
+          switch(result){
+            case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_msg')}});break;}
+            case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});break;}
+            default:{ 
+              this.openSnackBar(translate('docs.msg.deletet_succs'), translate('docs.msg.close'));
+              this.getDepartmentPartsList();
+            }
+          }
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
+    );  
   }
 
 }

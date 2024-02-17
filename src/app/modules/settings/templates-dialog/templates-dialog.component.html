@@ -185,7 +185,8 @@
                 </div>
                 <div class="div-100" [style.display]="editability"> 
                     <div class="center hand" style="width:100%; height: 38px;text-align: center; padding: 7px;">
-                        <button matTooltip="{{t('modules.tip.add_template')}}" 
+                        <button matTooltip="{{t('modules.tip.add_template')}}"
+                                id="add_print_template_btn" 
                                 mat-mini-fab color="primary" 
                                 [disabled]="(!formBaseInformation.valid)" 
                                 (click)="addNewTemplate()">

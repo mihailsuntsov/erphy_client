@@ -716,7 +716,7 @@
                                         </th>
                                         <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> {{row.department}} </td>
                                         <td mat-footer-cell *matFooterCellDef></td>
-                                    </ng-container>
+                                    </ng-container> 
                                     <ng-container matColumnDef="delete" [formArrayName]="'customersOrdersProductTable'">
                                         <th mat-header-cell *matHeaderCellDef style="width: 30px;"><mat-icon style="cursor: default" (click)="clearTable()" matTooltip="{{t('modules.tip.del_frm_tabl_')}}">close</mat-icon></th>
                                         <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i">

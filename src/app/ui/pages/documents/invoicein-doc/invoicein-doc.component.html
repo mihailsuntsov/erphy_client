@@ -58,6 +58,7 @@
                     matTooltip="{{t('docs.tip.user_settings')}}"
                     (click)="openDialogSettings()"
                     type="button"
+                    id="settings_btn"
                     class="button small-button">
                     <i class="material-icons">settings</i>
                 </button>
@@ -69,6 +70,7 @@
                     color="primary"                
                     (click)="printDocs()"
                     type="button"
+                    id="print_btn"
                     (submit)="false"
                     class="button small-button">
                     <i class="material-icons">print</i>
@@ -89,7 +91,7 @@
                         </div>
                     </button>
                     <mat-divider></mat-divider>
-                    <button mat-menu-item (click)="openDialogTemplates()" >
+                    <button mat-menu-item id="menu_print_btn" (click)="openDialogTemplates()" >
                         <span>{{t('docs.tip.set_prnt_menu')}}</span>
                     </button>
                 </mat-menu>
@@ -102,24 +104,25 @@
                     *ngIf="+id>0 && invoiceinProductsTableComponent"
                     color="primary"
                     (submit)="false"
+                    id="add_doc_btn"
                     type="button"
                     class="button small-button">
                     <i class="material-icons">add</i>
                 </button>
                 <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
-                    <button mat-menu-item (click)="goToNewDocument()">
+                    <button mat-menu-item id="new_doc_btn" (click)="goToNewDocument()">
                         <span>{{t('docs.docs.invoicein')}}</span>
                     </button>
-                    <button mat-menu-item (click)="createLinkedDoc('Ordersup')">
+                    <button mat-menu-item id="ordersup_doc_btn" (click)="createLinkedDoc('Ordersup')">
                         <span>{{t('docs.docs.ordersup')}}</span>
                     </button>
-                    <button mat-menu-item (click)="createLinkedDoc('Paymentout')">
+                    <button mat-menu-item id="paymentout_doc_btn" (click)="createLinkedDoc('Paymentout')">
                         <span>{{t('docs.docs.paymentout')}}</span>
                     </button>
-                    <button mat-menu-item (click)="createLinkedDoc('Orderout')">
+                    <button mat-menu-item id="orderout_doc_btn" (click)="createLinkedDoc('Orderout')">
                         <span>{{t('docs.docs.orderout')}}</span>
                     </button>
-                    <button mat-menu-item (click)="createLinkedDoc('Acceptance')">
+                    <button mat-menu-item id="acceptance_doc_btn" (click)="createLinkedDoc('Acceptance')">
                         <span>{{t('docs.docs.acceptance')}}</span>
                     </button>
                     <!-- <button mat-menu-item (click)="createLinkedDoc('Returnsup')">
@@ -134,6 +137,7 @@
                     [disabled]="!childFormValid||!formBaseInformation.valid||invoiceinProductsTableComponent.indivisibleErrorOfProductTable" 
                     color="primary"
                     type="button"
+                    id="save_btn"
                     class="button small-button">
                     <i class="material-icons">save</i>
                 </button>
@@ -145,6 +149,7 @@
                     [disabled]="!childFormValid||!formBaseInformation.valid||invoiceinProductsTableComponent.indivisibleErrorOfProductTable" 
                     color="primary"
                     type="submit"
+                    id="newdoc_btn"
                     class="button small-button">
                     <i class="material-icons">done</i>
                 </button>
@@ -155,6 +160,7 @@
                     (click)="completeDocument()" 
                     matTooltip="{{t('docs.tip.complete')}}"
                     type="button"
+                    id="complete_btn"
                     color="primary"
                     class="button small-button">
                     <i class="material-icons">playlist_add_check</i>
@@ -165,6 +171,7 @@
                     *ngIf=" +id>0 && canGetChilds && formBaseInformation.get('is_completed').value && invoiceinProductsTableComponent"
                     (click)="decompleteDocument()" 
                     type="button"
+                    id="completed_btn"
                     color="primary"
                     class="button small-button completed">
                     <i class="material-icons">playlist_add_check</i> 
@@ -175,6 +182,7 @@
                         mat-raised-button 
                         [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
                         color="accent"
+                        id="cancel_btn"
                         class="button small-button">
                         <i class="material-icons">close</i>
                     </button>
@@ -185,6 +193,7 @@
                         matTooltip="{{t('docs.tip.close')}}"
                         [mat-dialog-close]="formBaseInformation.get('is_completed').value"
                         matDialogClose 
+                        id="close_btn"
                         color="accent">
                         class="button small-button"
                         <i class="material-icons">close</i>
@@ -283,6 +292,7 @@
                                                                     <input  matInput 
                                                                     [matAutocomplete]="auto4" 
                                                                     [formControl]="searchCagentCtrl"
+                                                                    id="cagent_search"
                                                                     (input)="canCagentAutocompleteQuery=true; checkEmptyCagentField();"
                                                                     (change)="canCagentAutocompleteQuery=false; checkEmptyCagentField();">
                                                                     <app-balance-cagent 

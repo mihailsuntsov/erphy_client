@@ -55,6 +55,7 @@
                     matTooltip="{{t('docs.tip.user_settings')}}"
                     (click)="openDialogSettings()"
                     type="button"
+                    id="settings_btn"
                     class="button small-button">
                     <i class="material-icons">settings</i>
                 </button>
@@ -62,6 +63,7 @@
                     mat-raised-button 
                     [matMenuTriggerFor]="templatesMenu"
                     *ngIf="+id>0"
+                    id="print_btn"
                     matTooltip="{{t('docs.tip.print')}}"
                     color="primary"                
                     (click)="printDocs()"
@@ -86,7 +88,7 @@
                         </div>
                     </button>
                     <mat-divider></mat-divider>
-                    <button mat-menu-item (click)="openDialogTemplates()" matTooltip="{{t('docs.tip.tip_prnt_menu')}}">
+                    <button mat-menu-item id="menu_print_btn" (click)="openDialogTemplates()" matTooltip="{{t('docs.tip.tip_prnt_menu')}}">
                         <span>{{t('docs.tip.set_prnt_menu')}}</span>
                     </button>
                 </mat-menu>
@@ -98,24 +100,25 @@
                     *ngIf="+id>0 && acceptanceProductsTableComponent"
                     color="primary"
                     (submit)="false"
+                    id="add_doc_btn"
                     type="button"
                     class="button small-button">
                     <i class="material-icons">add</i>
                 </button>
                 <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
-                    <button mat-menu-item (click)="goToNewDocument()">
+                    <button mat-menu-item id="new_doc_btn" (click)="goToNewDocument()">
                         <span>{{t('docs.docs.acceptance')}}</span>
                     </button>
-                    <button mat-menu-item (click)="createLinkedDoc('Paymentout')">
+                    <button mat-menu-item id="paymentout_btn" (click)="createLinkedDoc('Paymentout')">
                         <span>{{t('docs.docs.paymentout')}}</span>
                     </button>
-                    <button mat-menu-item (click)="createLinkedDoc('Orderout')">
+                    <button mat-menu-item id="orderout_btn" (click)="createLinkedDoc('Orderout')">
                         <span>{{t('docs.docs.orderout')}}</span>
                     </button>
-                    <button mat-menu-item (click)="createLinkedDoc('Returnsup')">
+                    <button mat-menu-item id="returnsup_btn" (click)="createLinkedDoc('Returnsup')">
                         <span>{{t('docs.docs.returnsup')}}</span>
                     </button>
-                    <button mat-menu-item (click)="createLinkedDoc('Vatinvoicein')">
+                    <button mat-menu-item id="v_invoicein_btn" (click)="createLinkedDoc('Vatinvoicein')">
                         <span>{{t('docs.docs.v_invoicein')}}</span>
                     </button>
                 </mat-menu>
@@ -126,6 +129,7 @@
                     (click)="updateDocument()"
                     [disabled]="!childFormValid||!formBaseInformation.valid||acceptanceProductsTableComponent.indivisibleErrorOfProductTable" 
                     color="primary"
+                    id="save_btn"
                     type="button"
                     class="button small-button">
                     <i class="material-icons">save</i>
@@ -137,6 +141,7 @@
                     *ngIf="allowToCreate && +id==0  && acceptanceProductsTableComponent"
                     [disabled]="!childFormValid||!formBaseInformation.valid||acceptanceProductsTableComponent.indivisibleErrorOfProductTable" 
                     color="primary"
+                    id="newdoc_btn"
                     type="submit"
                     class="button small-button">
                     <i class="material-icons">done</i>
@@ -148,6 +153,7 @@
                     [disabled]="!childFormValid||!formBaseInformation.valid||acceptanceProductsTableComponent.indivisibleErrorOfProductTable" 
                     (click)="completeDocument()" 
                     type="button"
+                    id="complete_btn"
                     color="primary"
                     class="button small-button">
                     <i class="material-icons">playlist_add_check</i>
@@ -158,6 +164,7 @@
                     *ngIf=" +id>0 && canGetChilds && formBaseInformation.get('is_completed').value && acceptanceProductsTableComponent"
                     (click)="decompleteDocument()" 
                     type="button"
+                    id="completed_btn"
                     color="primary"
                     class="button small-button completed">
                     <i class="material-icons">playlist_add_check</i> 
@@ -167,6 +174,7 @@
                         mat-raised-button 
                         [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
                         color="accent"
+                        id="cancel_btn"
                         class="button small-button">
                         <i class="material-icons">close</i>
                     </button>
@@ -177,6 +185,7 @@
                         matTooltip="{{t('docs.tip.close')}}"
                         [mat-dialog-close]="formBaseInformation.get('is_completed').value"
                         matDialogClose 
+                        id="close_btn"
                         color="accent">
                         <i class="material-icons">close</i>
                 </button>
@@ -284,6 +293,7 @@
                                                                     <input  matInput 
                                                                     [matAutocomplete]="auto4" 
                                                                     [formControl]="searchCagentCtrl"
+                                                                    id="cagent_search"
                                                                     (input)="canCagentAutocompleteQuery=true; checkEmptyCagentField();"
                                                                     (change)="canCagentAutocompleteQuery=false; checkEmptyCagentField();">
                                                                     <app-balance-cagent 

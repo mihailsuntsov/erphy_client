@@ -9,7 +9,7 @@
         <div class="icon-link" (click)="arrowClick($event,1)">
           <a>
             <i class="material-icons unselectable" (click)="arrowClick($event,3)">add_shopping_cart</i>
-            <span class="link_name unselectable" (click)="arrowClick($event,3)">{{t('sidebar.menu.headers.purchases')}}</span>
+            <span class="link_name unselectable" id="purchases" (click)="arrowClick($event,3)">{{t('sidebar.menu.headers.purchases')}}</span>
           </a>
           <i class="material-icons arrow unselectable" (click)="arrowClick($event,2)">arrow_drop_down</i>
         </div>
@@ -20,23 +20,23 @@
           </li>
           <li *ngIf="hasPermission(424)">
             <a routerLink="ordersup">
-              <span class="unselectable">{{t('sidebar.menu.items.ordersup')}}</span></a>
+              <span class="unselectable" id="ordersup">{{t('sidebar.menu.items.ordersup')}}</span></a>
           </li>
           <li *ngIf="hasPermission(444)">
             <a routerLink="invoicein">
-              <span class="unselectable">{{t('sidebar.menu.items.invoicein')}}</span></a>
+              <span class="unselectable" id="invoicein">{{t('sidebar.menu.items.invoicein')}}</span></a>
           </li>
           <li *ngIf="hasPermission(183)">
             <a routerLink="acceptance">
-              <span class="unselectable">{{t('sidebar.menu.items.acceptance')}}</span></a>
+              <span class="unselectable" id="acceptance">{{t('sidebar.menu.items.acceptance')}}</span></a>
           </li>
           <li *ngIf="hasPermission(360)">
             <a routerLink="returnsup">
-              <span class="unselectable">{{t('sidebar.menu.items.returnsup')}}</span></a>
+              <span class="unselectable" id="returnsup">{{t('sidebar.menu.items.returnsup')}}</span></a>
           </li>
           <li *ngIf="hasPermission(528)">
             <a routerLink="vatinvoicein">
-              <span class="unselectable">{{t('sidebar.menu.items.vatinvoicein')}}</span></a>
+              <span class="unselectable" id="vatinvoicein">{{t('sidebar.menu.items.vatinvoicein')}}</span></a>
           </li>
         </ul>
       </li>
@@ -44,7 +44,7 @@
         <div class="icon-link" (click)="arrowClick($event,1)">
           <a>
             <i class="material-icons unselectable" (click)="arrowClick($event,3)">credit_card</i>
-            <span class="link_name unselectable" (click)="arrowClick($event,3)">{{t('sidebar.menu.headers.sales')}}</span>
+            <span class="link_name unselectable" id="sales" (click)="arrowClick($event,3)">{{t('sidebar.menu.headers.sales')}}</span>
           </a>
           <i class="material-icons arrow unselectable" (click)="arrowClick($event,2)">arrow_drop_down</i>
         </div>
@@ -55,23 +55,23 @@
           </li>
           <li *ngIf="hasPermission(279)">
             <a routerLink="customersorders">
-              <span class="unselectable">{{t('sidebar.menu.items.customersorders')}}</span></a>
+              <span class="unselectable" id="customersorders">{{t('sidebar.menu.items.customersorders')}}</span></a>
           </li>
           <li *ngIf="hasPermission(404)">
             <a routerLink="invoiceout">
-              <span class="unselectable">{{t('sidebar.menu.items.invoiceout')}}</span></a>
+              <span class="unselectable" id="invoiceout">{{t('sidebar.menu.items.invoiceout')}}</span></a>
           </li>
           <li *ngIf="hasPermission(252)">
             <a routerLink="shipment">
-              <span class="unselectable">{{t('sidebar.menu.items.shipment')}}</span></a>
+              <span class="unselectable" id="shipment">{{t('sidebar.menu.items.shipment')}}</span></a>
           </li>
           <li *ngIf="hasPermission(344)">
             <a routerLink="return">
-              <span class="unselectable">{{t('sidebar.menu.items.return')}}</span></a>
+              <span class="unselectable" id="return">{{t('sidebar.menu.items.return')}}</span></a>
           </li>
           <li *ngIf="hasPermission(486)">
             <a routerLink="vatinvoiceout">
-              <span class="unselectable">{{t('sidebar.menu.items.vatinvoiceout')}}</span></a>
+              <span class="unselectable" id="vatinvoiceout">{{t('sidebar.menu.items.vatinvoiceout')}}</span></a>
           </li>
         </ul>
       </li>
@@ -79,7 +79,7 @@
         <div class="icon-link" (click)="arrowClick($event,1)">
           <a>
             <i class="material-icons unselectable" (click)="arrowClick($event,3)">shopping_bag</i>
-            <span class="link_name unselectable" (click)="arrowClick($event,3)">{{t('sidebar.menu.headers.retail')}}</span>
+            <span class="link_name unselectable" id="retail" (click)="arrowClick($event,3)">{{t('sidebar.menu.headers.retail')}}</span>
           </a>
           <i class="material-icons arrow unselectable" (click)="arrowClick($event,2)">arrow_drop_down</i>
         </div>
@@ -90,31 +90,31 @@
           </li>
           <li *ngIf="hasPermission(308)">
             <a routerLink="retailsales">
-              <span class="unselectable">{{t('sidebar.menu.items.retailsales')}}</span></a>
+              <span class="unselectable" id="retailsales">{{t('sidebar.menu.items.retailsales')}}</span></a>
           </li>
           <li *ngIf="hasPermission(559)">
             <a routerLink="shifts">
-              <span class="unselectable">{{t('sidebar.menu.items.shifts')}}</span></a>
+              <span class="unselectable" id="shifts">{{t('sidebar.menu.items.shifts')}}</span></a>
           </li>
           <li *ngIf="hasPermission(562)">
             <a routerLink="receipts">
-              <span class="unselectable">{{t('sidebar.menu.items.receipts')}}</span></a>
+              <span class="unselectable" id="receipts">{{t('sidebar.menu.items.receipts')}}</span></a>
           </li>
           <li *ngIf="hasPermission(295)">
             <a routerLink="kassa">
-              <span class="unselectable">{{t('sidebar.menu.items.kassa')}}</span></a>
+              <span class="unselectable" id="kassa">{{t('sidebar.menu.items.kassa')}}</span></a>
           </li>
           <li *ngIf="hasPermission(567)">
             <a routerLink="withdrawal">
-              <span class="unselectable">{{t('sidebar.menu.items.withdrawal')}}</span></a>
+              <span class="unselectable" id="withdrawal">{{t('sidebar.menu.items.withdrawal')}}</span></a>
           </li>
           <li *ngIf="hasPermission(575)">
             <a routerLink="depositing">
-              <span class="unselectable">{{t('sidebar.menu.items.depositing')}}</span></a>
+              <span class="unselectable" id="depositing">{{t('sidebar.menu.items.depositing')}}</span></a>
           </li>
           <li *ngIf="hasPermission(70)">
             <a routerLink="traderesults">
-              <span class="unselectable">{{t('sidebar.menu.items.traderesults')}}</span></a>
+              <span class="unselectable" id="traderesults">{{t('sidebar.menu.items.traderesults')}}</span></a>
           </li>
         </ul>
       </li>
@@ -122,7 +122,7 @@
         <div class="icon-link" (click)="arrowClick($event,1)">
           <a>
             <i class="material-icons unselectable" (click)="arrowClick($event,3)">widgets</i>
-            <span class="link_name unselectable" (click)="arrowClick($event,3)">{{t('sidebar.menu.headers.goods')}}</span>
+            <span class="link_name unselectable" id="goods" (click)="arrowClick($event,3)">{{t('sidebar.menu.headers.goods')}}</span>
           </a>
           <i class="material-icons arrow unselectable" (click)="arrowClick($event,2)">arrow_drop_down</i>
         </div>
@@ -133,31 +133,31 @@
           </li>
           <li *ngIf="hasPermission(160)">
             <a routerLink="products">
-              <span class="unselectable">{{t('sidebar.menu.items.products')}}</span></a>
+              <span class="unselectable" id="products">{{t('sidebar.menu.items.products')}}</span></a>
           </li>
           <li *ngIf="hasPermission(231)">
             <a routerLink="remains">
-              <span class="unselectable">{{t('sidebar.menu.items.remains')}}</span></a>
+              <span class="unselectable" id="remains">{{t('sidebar.menu.items.remains')}}</span></a>
           </li>
           <li *ngIf="hasPermission(238)">
             <a routerLink="prices">
-              <span class="unselectable">{{t('sidebar.menu.items.prices')}}</span></a>
+              <span class="unselectable" id="prices">{{t('sidebar.menu.items.prices')}}</span></a>
           </li>
           <li *ngIf="hasPermission(328)">
             <a routerLink="inventory">
-              <span class="unselectable">{{t('sidebar.menu.items.inventory')}}</span></a>
+              <span class="unselectable" id="inventory">{{t('sidebar.menu.items.inventory')}}</span></a>
           </li>
           <li *ngIf="hasPermission(199)">
             <a routerLink="posting">
-              <span class="unselectable">{{t('sidebar.menu.items.posting')}}</span></a>
+              <span class="unselectable" id="posting">{{t('sidebar.menu.items.posting')}}</span></a>
           </li>
           <li *ngIf="hasPermission(215)">
             <a routerLink="writeoff">
-              <span class="unselectable">{{t('sidebar.menu.items.writeoff')}}</span></a>
+              <span class="unselectable" id="writeoff">{{t('sidebar.menu.items.writeoff')}}</span></a>
           </li>
           <li *ngIf="hasPermission(376)">
             <a routerLink="moving">
-              <span class="unselectable">{{t('sidebar.menu.items.moving')}}</span></a>
+              <span class="unselectable" id="moving">{{t('sidebar.menu.items.moving')}}</span></a>
           </li>
         </ul>
       </li>
@@ -165,7 +165,7 @@
         <div class="icon-link" (click)="arrowClick($event,1)">
           <a>
             <i class="material-icons unselectable" (click)="arrowClick($event,3)">payments</i>
-            <span class="link_name unselectable" (click)="arrowClick($event,3)">{{t('sidebar.menu.headers.money')}}</span>
+            <span class="link_name unselectable" id="money" (click)="arrowClick($event,3)">{{t('sidebar.menu.headers.money')}}</span>
           </a>
           <i class="material-icons arrow unselectable" (click)="arrowClick($event,2)">arrow_drop_down</i>
         </div>
@@ -176,43 +176,43 @@
           </li>
           <li *ngIf="hasPermission(464)">
             <a routerLink="paymentin">  
-              <span class="unselectable">{{t('sidebar.menu.items.paymentin')}}</span></a>
+              <span class="unselectable" id="paymentin">{{t('sidebar.menu.items.paymentin')}}</span></a>
           </li>
           <li *ngIf="hasPermission(506)">
             <a routerLink="paymentout">
-              <span class="unselectable">{{t('sidebar.menu.items.paymentout')}}</span></a>
+              <span class="unselectable" id="paymentout">{{t('sidebar.menu.items.paymentout')}}</span></a>
           </li>
           <li *ngIf="hasPermission(475)">
             <a routerLink="orderin">
-              <span class="unselectable">{{t('sidebar.menu.items.orderin')}}</span></a>
+              <span class="unselectable" id="orderin">{{t('sidebar.menu.items.orderin')}}</span></a>
           </li>
           <li *ngIf="hasPermission(517)">
             <a routerLink="orderout">
-              <span class="unselectable">{{t('sidebar.menu.items.orderout')}}</span></a>
+              <span class="unselectable" id="orderout">{{t('sidebar.menu.items.orderout')}}</span></a>
           </li>
           <li *ngIf="hasPermission(539)">
             <a routerLink="correction">
-              <span class="unselectable">{{t('sidebar.menu.items.correction')}}</span></a>
+              <span class="unselectable" id="correction">{{t('sidebar.menu.items.correction')}}</span></a>
           </li>
           <li *ngIf="hasPermission(589)">
             <a routerLink="profitloss">
-              <span class="unselectable">{{t('sidebar.menu.items.profitloss')}}</span></a>
+              <span class="unselectable" id="profitloss">{{t('sidebar.menu.items.profitloss')}}</span></a>
           </li>
           <li *ngIf="hasPermission(583)">
             <a routerLink="mutualpayment">
-              <span class="unselectable">{{t('sidebar.menu.items.mutualpayment')}}</span></a>
+              <span class="unselectable" id="mutualpayment">{{t('sidebar.menu.items.mutualpayment')}}</span></a>
           </li>
           <li *ngIf="hasPermission(586)">
             <a routerLink="moneyflow">
-              <span class="unselectable">{{t('sidebar.menu.items.moneyflow')}}</span></a>
+              <span class="unselectable" id="moneyflow">{{t('sidebar.menu.items.moneyflow')}}</span></a>
           </li>
         </ul>
       </li>
-      <li *ngIf="hasPermission(662)||hasPermission(143)||hasPermission(108)||hasPermission(268)||hasPermission(117)||hasPermission(126)||hasPermission(497)||hasPermission(550)||hasPermission(635)||hasPermission(90)||hasPermission(644)||hasPermission(653)">
+      <li *ngIf="hasPermission(683)||hasPermission(662)||hasPermission(143)||hasPermission(108)||hasPermission(268)||hasPermission(117)||hasPermission(126)||hasPermission(497)||hasPermission(550)||hasPermission(635)||hasPermission(90)||hasPermission(644)||hasPermission(653)">
         <div class="icon-link" (click)="arrowClick($event,1)">
           <a>
             <i class="material-icons unselectable" (click)="arrowClick($event,3)">menu_book</i>
-            <span class="link_name unselectable" (click)="arrowClick($event,3)">{{t('sidebar.menu.headers.registries')}}</span>
+            <span class="link_name unselectable" id="registries" (click)="arrowClick($event,3)">{{t('sidebar.menu.headers.registries')}}</span>
           </a>
           <i class="material-icons arrow unselectable" (click)="arrowClick($event,2)">arrow_drop_down</i>
         </div>
@@ -223,51 +223,55 @@
           </li>
           <li *ngIf="hasPermission(653)">
             <a routerLink="accounts">
-              <span class="unselectable">{{t('sidebar.menu.items.accounts')}}</span></a>
+              <span class="unselectable" id="accounts">{{t('sidebar.menu.items.accounts')}}</span></a>
           </li>
           <li *ngIf="hasPermission(550)">
             <a routerLink="boxoffice">
-              <span class="unselectable">{{t('sidebar.menu.items.boxoffice')}}</span></a>
+              <span class="unselectable" id="boxoffice">{{t('sidebar.menu.items.boxoffice')}}</span></a>
           </li>
           <li *ngIf="hasPermission(126)">
             <a routerLink="cagents">
-              <span class="unselectable">{{t('sidebar.menu.items.cagents')}}</span></a>
+              <span class="unselectable" id="cagents">{{t('sidebar.menu.items.cagents')}}</span></a>
           </li>
           <li *ngIf="hasPermission(644)">
             <a routerLink="currencies">
-              <span class="unselectable">{{t('sidebar.menu.items.currencies')}}</span></a>
+              <span class="unselectable" id="currencies">{{t('sidebar.menu.items.currencies')}}</span></a>
           </li>
           <li *ngIf="hasPermission(268)">
             <a routerLink="statuses">
-              <span class="unselectable">{{t('sidebar.menu.items.statuses')}}</span></a>
+              <span class="unselectable" id="statuses">{{t('sidebar.menu.items.statuses')}}</span></a>
           </li>
           <li *ngIf="hasPermission(497)">
             <a routerLink="expenditure">
-              <span class="unselectable">{{t('sidebar.menu.items.expenditure')}}</span></a>
+              <span class="unselectable" id="expenditure">{{t('sidebar.menu.items.expenditure')}}</span></a>
           </li>          
           <li *ngIf="hasPermission(143)">
             <a routerLink="files">
-              <span class="unselectable">{{t('sidebar.menu.items.files')}}</span></a>
+              <span class="unselectable" id="files">{{t('sidebar.menu.items.files')}}</span></a>
           </li>
           <li *ngIf="hasPermission(90)">
             <a routerLink="pricetypes">
-              <span class="unselectable">{{t('sidebar.menu.items.pricetypes')}}</span></a>
+              <span class="unselectable" id="pricetypes">{{t('sidebar.menu.items.pricetypes')}}</span></a>
           </li>          
           <li *ngIf="hasPermission(662)">
             <a routerLink="productattributes">  
-              <span class="unselectable">{{t('sidebar.menu.items.prodattr')}}</span></a>
+              <span class="unselectable" id="prodattr">{{t('sidebar.menu.items.prodattr')}}</span></a>
           </li>
           <li *ngIf="hasPermission(108)">
             <a routerLink="productgroups">
-              <span class="unselectable">{{t('sidebar.menu.items.productgroups')}}</span></a>
+              <span class="unselectable" id="productgroups">{{t('sidebar.menu.items.productgroups')}}</span></a>
+          </li>
+          <li *ngIf="hasPermission(683)">
+            <a routerLink="resources">
+              <span class="unselectable" id="resources">{{t('sidebar.menu.items.resources')}}</span></a>
           </li>
           <li *ngIf="hasPermission(635)">
             <a routerLink="taxes">
-              <span class="unselectable">{{t('sidebar.menu.items.taxes')}}</span></a>
+              <span class="unselectable" id="taxes">{{t('sidebar.menu.items.taxes')}}</span></a>
           </li>
           <li *ngIf="hasPermission(117)">
             <a routerLink="edizm">
-              <span class="unselectable">{{t('sidebar.menu.items.edizm')}}</span></a>
+              <span class="unselectable" id="edizm">{{t('sidebar.menu.items.edizm')}}</span></a>
           </li>
         </ul>
       </li>
@@ -275,7 +279,7 @@
         <div class="icon-link" (click)="arrowClick($event,1)">
           <a>
             <i class="material-icons unselectable" (click)="arrowClick($event,3)">settings</i>
-            <span class="link_name unselectable" (click)="arrowClick($event,3)">{{t('sidebar.menu.headers.settings')}}</span>
+            <span class="link_name unselectable" id="settings" (click)="arrowClick($event,3)">{{t('sidebar.menu.headers.settings')}}</span>
           </a>
           <i class="material-icons arrow unselectable" (click)="arrowClick($event,2)">arrow_drop_down</i>
         </div>
@@ -286,27 +290,27 @@
           </li>
           <li *ngIf="hasPermission(18)">
             <a routerLink="companies">
-              <span class="unselectable">{{t('sidebar.menu.items.companies')}}</span></a>
+              <span class="unselectable" id="companies">{{t('sidebar.menu.items.companies')}}</span></a>
           </li>
           <li *ngIf="hasPermission(17)">
             <a routerLink="departments">
-              <span class="unselectable">{{t('sidebar.menu.items.departments')}}</span></a>
+              <span class="unselectable" id="departments">{{t('sidebar.menu.items.departments')}}</span></a>
           </li>
           <li *ngIf="hasPermission(671)">
             <a routerLink="stores">
-              <span class="unselectable">{{t('sidebar.menu.items.stores')}}</span></a>
+              <span class="unselectable" id="stores">{{t('sidebar.menu.items.stores')}}</span></a>
           </li>          
           <li *ngIf="hasPermission(680)">
             <a routerLink="subscription">
-              <span class="unselectable">{{t('sidebar.menu.items.subscription')}}</span></a>
+              <span class="unselectable" id="subscription">{{t('sidebar.menu.items.subscription')}}</span></a>
           </li>          
           <li *ngIf="hasPermission(19)">
             <a routerLink="users">
-              <span class="unselectable">{{t('sidebar.menu.items.users')}}</span></a>
+              <span class="unselectable" id="users">{{t('sidebar.menu.items.users')}}</span></a>
           </li>
           <li *ngIf="hasPermission(28)">
             <a routerLink="usergroup">
-              <span class="unselectable">{{t('sidebar.menu.items.usergroup')}}</span></a>
+              <span class="unselectable" id="usergroup">{{t('sidebar.menu.items.usergroup')}}</span></a>
           </li>
         </ul>
       </li>

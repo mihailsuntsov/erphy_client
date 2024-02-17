@@ -15,17 +15,17 @@ interface StoreTermTranslation{
   langCode: string ;
 }
 
-interface IdAndName{ //универсалный интерфейс для выбора из справочников
-  id: any;
-  name: string;
-}
+// interface IdAndName{ //универсалный интерфейс для выбора из справочников
+//   id: any;
+//   name: string;
+// }
 
-interface ProductAttributeTerm{
-  id: number;
-  name: string;
-  description: string;
-  slug: string;
-}
+// interface ProductAttributeTerm{
+//   id: number;
+//   name: string;
+//   description: string;
+//   slug: string;
+// }
 
 @Component({
   selector: 'app-product-attribute-terms',

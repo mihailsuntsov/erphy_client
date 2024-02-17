@@ -56,6 +56,7 @@
                     matTooltip="{{t('docs.tip.user_settings')}}"
                     (click)="openDialogSettings()"
                     type="button"
+                    id="settings_btn"
                     class="button small-button">
                     <i class="material-icons">settings</i>
                 </button>
@@ -66,6 +67,7 @@
                     matTooltip="{{t('docs.tip.print')}}"
                     color="primary"                
                     (click)="printDocs()"
+                    id="print_btn"
                     type="button"
                     (submit)="false"
                     class="button small-button">
@@ -81,13 +83,13 @@
                         *ngIf="gettingTemplatesData"
                     ></mat-spinner>
                     </div>                
-                    <button mat-menu-item *ngFor="let template of templatesList">
-                        <div style="width:100%; height: 100%;" (click)="clickOnTemplate(template)">
+                    <button mat-menu-item *ngFor="let template of templatesList; let i = index">
+                        <div style="width:100%; height: 100%;" (click)="clickOnTemplate(template)" [id]="'menuitem' + i">
                             <span>{{template.name}}</span>                    
                         </div>
                     </button>
                     <mat-divider></mat-divider>
-                    <button mat-menu-item (click)="openDialogTemplates()" matTooltip="{{t('docs.tip.tip_prnt_menu')}}">
+                    <button mat-menu-item id="menu_print_btn" (click)="openDialogTemplates()" matTooltip="{{t('docs.tip.tip_prnt_menu')}}">
                         <span>{{t('docs.tip.set_prnt_menu')}}</span>
                     </button>
                 </mat-menu>
@@ -101,21 +103,22 @@
                     color="primary"
                     (submit)="false"
                     type="button"
+                    id="add_doc_btn"
                     class="button small-button"
                     >
                     <i class="material-icons">add</i>
                 </button>
                 <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
-                    <button mat-menu-item (click)="goToNewDocument()">
+                    <button mat-menu-item id="new_doc_btn" (click)="goToNewDocument()">
                         <span>{{t('docs.docs.ordersup')}}</span>
                     </button>
-                    <button mat-menu-item (click)="createLinkedDoc('Invoicein')">
+                    <button mat-menu-item id="invoicein_doc_btn" (click)="createLinkedDoc('Invoicein')">
                         <span>{{t('docs.docs.invoicein')}}</span>
                     </button>
-                    <button mat-menu-item (click)="createLinkedDoc('Acceptance')">
+                    <button mat-menu-item id="acceptance_doc_btn" (click)="createLinkedDoc('Acceptance')">
                         <span>{{t('docs.docs.acceptance')}}</span>
                     </button>
-                    <button mat-menu-item (click)="createLinkedDoc('Returnsup')">
+                    <button mat-menu-item id="returnsup_doc_btn" (click)="createLinkedDoc('Returnsup')">
                         <span>{{t('docs.docs.returnsup')}}</span>
                     </button>
                 </mat-menu>
@@ -127,6 +130,7 @@
                     [disabled]="!childFormValid||!formBaseInformation.valid||ordersupProductsTableComponent.indivisibleErrorOfProductTable" 
                     color="primary"
                     type="button"
+                    id="save_btn"
                     class="button small-button">
                     <i class="material-icons">save</i>
                 </button>
@@ -138,6 +142,7 @@
                     [disabled]="!childFormValid||!formBaseInformation.valid||ordersupProductsTableComponent.indivisibleErrorOfProductTable" 
                     color="primary"
                     type="submit"
+                    id="newdoc_btn"
                     class="button small-button">
                     <i class="material-icons">done</i>
                 </button>
@@ -149,6 +154,7 @@
                     (click)="completeDocument()" 
                     type="button"
                     color="primary"
+                    id="complete_btn"
                     class="button small-button">
                     <i class="material-icons">playlist_add_check</i>
                 </button>
@@ -159,6 +165,7 @@
                     (click)="decompleteDocument()" 
                     type="button"
                     color="primary"
+                    id="completed_btn"
                     class="button small-button completed">
                     <i class="material-icons">playlist_add_check</i> 
                 </button>
@@ -167,6 +174,7 @@
                         mat-raised-button 
                         [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
                         color="accent"
+                        id="cancel_btn"
                         class="button small-button">
                         <i class="material-icons">close</i>
                     </button>
@@ -177,6 +185,7 @@
                         style="margin-left:10px"
                         [mat-dialog-close]="formBaseInformation.get('is_completed').value"
                         matDialogClose 
+                        id="close_btn"
                         color="accent">
                         <i class="material-icons">close</i>
                 </button>
@@ -274,6 +283,7 @@
                                                                     <input  matInput 
                                                                     [matAutocomplete]="auto4" 
                                                                     [formControl]="searchCagentCtrl"
+                                                                    id="cagent_search"
                                                                     (input)="canCagentAutocompleteQuery=true; checkEmptyCagentField();"
                                                                     (change)="canCagentAutocompleteQuery=false; checkEmptyCagentField();">
                                                                     <mat-autocomplete #auto4="matAutocomplete">
