@@ -279,7 +279,7 @@
                                                 <ng-container matColumnDef="name" [formArrayName]="'departmentPartsTable'">
                                                     <th mat-header-cell *matHeaderCellDef>{{t('modules.col.name')}}</th>
                                                     <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> 
-                                                        <span style="margin-left:30px;">{{i}}{{row.name}}</span>
+                                                        <span style="margin-left:30px;">{{row.name}}</span>
                                                     </td>
                                                 </ng-container>
                                                 <!-- Quantity Column -->
@@ -305,7 +305,7 @@
                                                             placeholder=""
                                                             formControlName="resource_qtt"
                                                         />
-                                                        <!-- <mat-hint align="start" >*{{i}}*{{getControlTablefield().controls[i].get('resource_qtt').value}}*</mat-hint> -->
+                                                        <!-- <mat-hint align="start" >**{{getControlTablefield().controls[i].get('resource_qtt').value}}*</mat-hint> -->
                                                         <control-messages  class="table-form-invalid" [control]="getControlTablefield().controls[i].get('resource_qtt')"></control-messages>
                                                         <mat-hint align="start" >
                                                             <i *ngIf="  getControlTablefield().controls[i].get('resource_qtt').value !='' && 
@@ -320,7 +320,7 @@
                                                 <ng-container matColumnDef="delete" [formArrayName]="'departmentPartsTable'">
                                                     <th mat-header-cell *matHeaderCellDef style="width: 30px;"><mat-icon style="cursor: default" (click)="clearTable()" matTooltip="{{t('modules.tip.del_frm_tabl_')}}">close</mat-icon></th>
                                                     <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i">
-                                                        <mat-icon style="cursor: default" (click)="deleteProductRow(row,i)">delete_forever</mat-icon>
+                                                        <mat-icon style="cursor: default" (click)="deleteDepartmentPartRow(row,i)">delete_forever</mat-icon>
                                                     </td>
                                                 </ng-container>
 
@@ -344,85 +344,6 @@
                                     </mat-card-content>
                                 </mat-card>
 
-
-
-
-
-
-
-
-
-                                <!--mat-card class="internal-card">
-                                    <mat-card-header>
-                                        <mat-card-title class="card-title">{{t('docs.card.resource_parts_qtt')}}</mat-card-title>
-                                    </mat-card-header>
-                                    <mat-card-content class="input-form">
-                                        
-                                            <mat-card   *ngFor="let part of formBaseInformation.get('departmentPartsTable').controls;let i = index" 
-                                                        [formGroup]="part"
-                                                        cdkDrag
-                                                        style="background-color: #f7f7f7">
-                                                <div class="del-icon" style="text-align: end;" [style.display]="editability?'block':'none'">
-                                                    <mat-icon   (click)="deletePart(i)" 
-                                                                matTooltip="{{t('docs.tip.delete')}}"    
-                                                                class="nav-icon">cancel
-                                                    </mat-icon>
-                                                </div>
-                                                <mat-card-content class="input-form" >
-                                                    <div class="row">
-                                                        <div class="col-lg-8  col-md-12">
-                                                            <mat-form-field style="width: 100%;">
-                                                                <mat-label>Pokemon</mat-label>
-                                                                <mat-select formControlName="id">
-                                                                    <mat-option>-- None --</mat-option>
-                                                                    <mat-optgroup 
-                                                                        *ngFor="let department of receivedDepartmentsWithPartsList;"
-                                                                        [label]="department.department_name"
-                                                                    >
-                                                                        <mat-option 
-                                                                            *ngFor= "let part of department.parts;"
-                                                                            [value]="part.id"
-                                                                            [matTooltip]="part.description"
-                                                                            [matTooltipPosition]="'right'"
-                                                                        >
-                                                                            {{part.name}}
-                                                                        </mat-option>
-                                                                    </mat-optgroup>
-                                                                
-                                                                </mat-select>
-                                                            </mat-form-field>
-                                                        </div>
-                                                        <div class="col-lg-4  col-md-12">
-                                                            <mat-form-field style="width: 100%;">
-                                                                <input   matInput
-                                                                        placeholder="{{t('docs.field.quantity')}}"
-                                                                        [readonly]=!editability
-                                                                        #quantity
-                                                                        maxlength="5"
-                                                                        formControlName="resource_qtt"/>
-                                                            </mat-form-field>
-                                                        </div>
-                                                        
-                                                    
-                                                            <mat-form-field style="width: 100%; display: none">
-                                                                <input matInput placeholder="id" formControlName="id"/>
-                                                            </mat-form-field>
-                                                        
-                                                    </div>
-                                                </mat-card-content>
-                                            </mat-card>
-                                        <div class="div-100" [style.display]="((allowToCreate && +id==0)||(allowToUpdate && id>0)) ?'block':'none'"> 
-                                            <div class="center hand" style="width:100%; height: 38px;">
-                                                <button matTooltip="{{t('docs.tip.add_cnt_prsn')}}" mat-mini-fab color="primary" (click)="addNewPart()">
-                                                    <mat-icon>add</mat-icon>
-                                                </button>
-                                            </div>
-                                        </div>
-                                       
-
-                                        
-                                    </mat-card-content>
-                                </mat-card-->
                             </div>
                         </div>  
                     </div>  

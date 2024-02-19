@@ -379,3 +379,17 @@ border: 0px solid black;
 ::ng-deep #product_properties .no-underline .mat-form-field-underline{
     visibility: hidden;
 }
+/*----------- table form -----------*/
+.form-invalid{
+    color: red;
+}
+.table-form-invalid{
+    color: red;
+    font-size: 11px;
+    line-height: 0.9em;
+    display: block;
+    font-style: italic;
+}
+.table-field-editable{
+    border-bottom: 1px lightgray dotted;
+}

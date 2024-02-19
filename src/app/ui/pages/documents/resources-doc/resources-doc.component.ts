@@ -54,7 +54,6 @@ export class ResourcesDocComponent implements OnInit {
   createdDocId: string[];//массив для получение id созданного документа
   receivedCompaniesList: any [] = [];//массив для получения списка предприятий
   receivedDepartmentsWithPartsList: any [] = [];//массив для получения списка отделений с их частями
-  receivedDepartmentPartsWithResourceQtt: any [] = [];//массив для получения списка отделений с их частями и кол-вом ресурса в каждой из них
   myCompanyId:number=0;
   myId:number=0;
   creatorId:number=0;
@@ -442,7 +441,7 @@ export class ResourcesDocComponent implements OnInit {
     }, 1);
   }
 
-  deleteProductRow(row: any,index:number) {
+  deleteDepartmentPartRow(row: any,index:number) {
     const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {  
       width: '400px',
       data:
@@ -484,13 +483,13 @@ export class ResourcesDocComponent implements OnInit {
     });
     if(!thereSamePart){
       const control = <UntypedFormArray>this.formBaseInformation.get('departmentPartsTable');
-      control.push(this.formingProductRowFromSearchForm());
+      control.push(this.formingDepartmentPartRowFromSearchForm());
     }
     // Sorting this array of objects by Department names for group displaying table by department names
     this.formBaseInformation.value.departmentPartsTable.sort((a: any, b: any) => {
       // alert(a['department_name']+', '+b['department_name'])
-      const nameA = a['department_name']; // ignore upper and lowercase
-      const nameB = b['department_name']; // ignore upper and lowercase
+      const nameA = a['department_name'].toUpperCase(); // ignore upper and lowercase
+      const nameB = b['department_name'].toUpperCase(); // ignore upper and lowercase
       if (nameA < nameB) {
         return -1;
       }
@@ -534,7 +533,7 @@ export class ResourcesDocComponent implements OnInit {
   }
 
   //формирование строки таблицы с товарами для заказа покупателя из формы поиска товара
-  formingProductRowFromSearchForm() {
+  formingDepartmentPartRowFromSearchForm() {
     return this._fb.group({
       id: new UntypedFormControl (this.formSearch.get('id').value,[]),
       row_id: [this.getRowId()],

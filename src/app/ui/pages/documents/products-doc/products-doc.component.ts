@@ -26,7 +26,7 @@ import { ProductBarcodesDialogComponent } from 'src/app/ui/dialogs/product-barco
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
-import { translate } from '@ngneat/transloco'; //+++
+import { translate } from '@ngneat/transloco'; //
 import { Router } from '@angular/router';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { MomentDefault } from 'src/app/services/moment-default';
@@ -114,6 +114,7 @@ interface docResponse {//интерфейс для получения ответ
   defaultAttributes:DefaultAttribute[];
   productVariations:ProductVariation[];
   variation: boolean;
+  productResourcesTable:any[];
   }
   interface SpravTaxesSet{
     id: number;
@@ -277,7 +278,7 @@ interface docResponse {//интерфейс для получения ответ
   templateUrl: './products-doc.component.html',
   styleUrls: ['./products-doc.component.css'],
   providers: [LoadSpravService,UploadFileService,ProductHistoryService,
-    { provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]}, //+++
+    { provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]}, //
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
   ]
 })
@@ -296,8 +297,6 @@ export class ProductsDocComponent implements OnInit {
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
   selectedProductCategory:any;//форма, содержащая информацию о выбранной категории товара (id, name)
   productPricesTable: ProductPricesTable; //массив форм с ценами
-  // defaultAttributeSaved: DefaultAttribute[] = []; //массив форм с дефолтными атрибутами
-
 
   //переменные для управления динамическим отображением элементов
   visBeforeCreatingBlocks = true; //блоки, отображаемые ДО создания документа (до получения id)
@@ -307,35 +306,6 @@ export class ProductsDocComponent implements OnInit {
   // WYSIWYG editor
   name = 'Angular 6';
   htmlContent = '';
-
-  // config: AngularEditorConfig = {
-  //   editable: true,
-  //   spellcheck: true,
-  //   height: '15rem',
-  //   minHeight: '5rem',
-  //   placeholder: 'Enter text here...',
-  //   translate: 'no',
-  //   defaultParagraphSeparator: 'p',
-  //   defaultFontName: 'Arial',
-  //   toolbarHiddenButtons: [
-  //     ['bold']
-  //     ],
-  //   customClasses: [
-  //     {
-  //       name: "quote",
-  //       class: "quote",
-  //     },
-  //     {
-  //       name: 'redText',
-  //       class: 'redText'
-  //     },
-  //     {
-  //       name: "titleText",
-  //       class: "titleText",
-  //       tag: "h1",
-  //     },
-  //   ]
-  // };
 
   //переменные прав
   permissionsSet: any[];//сет прав на документ
@@ -350,6 +320,7 @@ export class ProductsDocComponent implements OnInit {
   allowToUpdate:boolean = false;
   allowToCreate:boolean = false;
   rightsDefined:boolean; // определены ли права !!!
+  editability:boolean = false;//редактируемость.
 
   //печать документов
   gettingTemplatesData: boolean = false; // идёт загрузка шаблонов
@@ -373,17 +344,10 @@ export class ProductsDocComponent implements OnInit {
     {value: 25, viewValue: '25'},
     {value: 50, viewValue: '50'},
     {value: 100, viewValue: '100'},
-    // {value: '500', viewValue: '500'},
-    // {value: '1000', viewValue: '1000'}
   ];
   documentsIds: IdAndName [] = [];
-
   checkedChangesList:number[]=[]; //массив для накапливания id выбранных документов чекбоксов в отчете по истории товара, вида [2,5,27...], а так же для заполнения загруженными значениями чекбоксов
-
   gettingTableData:boolean=false;
-
-
-
   checkedList:any[]; //массив для накапливания id выбранных чекбоксов вида [2,5,27...], а так же для заполнения загруженными значениями чекбоксов
   searchProductGroupsCtrl = new UntypedFormControl();
   fieldsForm: UntypedFormGroup;
@@ -408,7 +372,7 @@ export class ProductsDocComponent implements OnInit {
   // viewInWindow - открытие на просмотр в окне в другом документе
   selectedTab = new FormControl(0); // the index of selected tab
   @ViewChild("codeFreeValue", {static: false}) codeFreeValue;
-  @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
+  @Output() baseData: EventEmitter<any> = new EventEmitter(); // for get base datа from parent component (like myId, myCompanyId etc)
   // *****  переменные tree  ***** 
   private _transformer = (node: ProductCategoriesTreeNode, level: number) => {
     return {
@@ -458,17 +422,6 @@ export class ProductsDocComponent implements OnInit {
 
   loadedProductVariations:ProductVariation[];
   thereIsAttributesUsedForVariationsWithSelectedTerms=false; // read its name
-  // selectedVariationAction:string;
-
-  // defaultAttribute: DefaultAttribute = {attribute_id:null, term_id:null};
-    // {
-    //   attribute_id:null,
-    //   term_id:null
-    // }
-  // ]
-  // allFruits: number[] = [1, 2, 3, 4, 5];
-
-
   prop_menu: string = 'inventory';
 
 
@@ -505,23 +458,16 @@ export class ProductsDocComponent implements OnInit {
   storeProductTranslations: StoreProductTranslation[]=[]; // the list of translated product's data
   storeTranslationModeOn = false; // translation mode ON
 
-  // toolbar: [
-  //   ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
-  //   ['blockquote', 'code-block'],
+  // Resources variables +++
+  resourcesList : any [] = []; //массив для получения всех статусов текущего документа
+  gettingResourcesTableData: boolean = false;//идет загрузка списка ресурсов
+  resource_row_id:number=0;
+  formResourceSearch:any;// форма для выбора ресурса и последующего формирования строки таблицы
+  showResourceSearchFormFields:boolean = false;
+  showSearchFormFields:boolean = false;
+  displayedResourcesColumns: string[]=[];//массив отображаемых столбцов таблицы с ресурсами
 
-  //   [{ 'header': 1 }, { 'header': 2 }],               // custom button values
-  //   [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-  //   [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
-  //   [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
-  //   [{ 'direction': 'rtl' }],                         // text direction
-  //   [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
-  //   [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-  //   [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
-  //   [{ 'font': [] }],
-  //   // [{ 'align': [] }],
-  //   ['clean'],                                        // remove formatting button
-  //   ['link', 'image', 'video']                         // link and image, video
-  // ]
+
   constructor(private activateRoute: ActivatedRoute,
     private http: HttpClient,
     private loadSpravService:   LoadSpravService,
@@ -529,7 +475,7 @@ export class ProductsDocComponent implements OnInit {
     private _snackBar: MatSnackBar,
     private fb: UntypedFormBuilder,
     public ConfirmDialog: MatDialog,
-    private _fb: UntypedFormBuilder, //чтобы билдить группу форм productPricesTable и другие
+    private _fb: UntypedFormBuilder, //чтобы билдить группы форм productPricesTable и другие
     public productHistoryService: ProductHistoryService,
     public MessageDialog: MatDialog,
     public dialogAddImages: MatDialog,
@@ -593,9 +539,7 @@ export class ProductsDocComponent implements OnInit {
       indivisible: new UntypedFormControl      (true,[]),
       productPricesTable: new UntypedFormArray([]),//массив с формами цен
       defaultAttributes: new UntypedFormArray([]),//массив с формами дефолтных атрибутов
-
       productVariations: new UntypedFormArray([]),//массив с формами вариаций
-
       short_description: new UntypedFormControl      ('',[Validators.maxLength(100000)]),
       type: new UntypedFormControl      ('simple',[]),
       slug: new UntypedFormControl      ('',[]),
@@ -636,6 +580,7 @@ export class ProductsDocComponent implements OnInit {
       description_type: new UntypedFormControl      ('editor',[]),       // "editor" or "custom"
       short_description_type: new UntypedFormControl      ('editor',[]), // "editor" or "custom"
       storeProductTranslations: new UntypedFormArray ([]) ,
+      productResourcesTable: new UntypedFormArray([]),//массив с формами ресурсов
     });
     this.formAboutDocument = new UntypedFormGroup({
       id: new UntypedFormControl      ('',[]),
@@ -646,6 +591,12 @@ export class ProductsDocComponent implements OnInit {
       date_time_created: new UntypedFormControl      ('',[]),
       date_time_changed: new UntypedFormControl      ('',[]),
     });
+    this.formResourceSearch = new UntypedFormGroup({
+      resource_id: new UntypedFormControl ('' ,[Validators.required]),      
+      name: new UntypedFormControl ('' ,[Validators.required]),
+      resource_qtt: new UntypedFormControl (0 ,[Validators.required,Validators.pattern('^[0-9]{1,5}$'),Validators.maxLength(5),Validators.minLength(1)]),
+      // description: new UntypedFormControl ('' ,[]),      
+    });
 
     this.selectedProductCategory = new UntypedFormGroup({
       selectedNodeId: new UntypedFormControl      ('',[]),
@@ -655,7 +606,7 @@ export class ProductsDocComponent implements OnInit {
     this.fillDocumentsList();
     this.documentsIds.forEach(z=>{this.selection.select(z);this.checkedChangesList.push(+z.id);});
     this.getSetOfPermissions();
-    //+++ getting base data from parent component
+    // getting base data from parent component
     this.getBaseData('myCompanyId');  
     this.getBaseData('companiesList');  
     this.getBaseData('myDepartmentsList');    
@@ -715,7 +666,7 @@ getSetOfPermissions(){
                     this.permissionsSet=data as any [];
                     this.getMyCompanyId();
         },
-        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //
         );
 }
 
@@ -746,6 +697,7 @@ refreshPermissions():boolean{
     this.visAfterCreatingBlocks = false;
     this.visBeforeCreatingBlocks = true;
   }
+  this.editability=((this.allowToCreate && +this.id==0)||(this.allowToUpdate && this.id>0));
   this.loadTrees();
   this.rightsDefined=true;//!!!
   return true;
@@ -764,7 +716,7 @@ refreshPermissions():boolean{
       this.getCompaniesList();
     }
   }
-  getCompaniesList(){ //+++
+  getCompaniesList(){ //
     if(this.receivedCompaniesList.length==0)
       this.loadSpravService.getCompaniesList()
         .subscribe(
@@ -778,7 +730,7 @@ refreshPermissions():boolean{
         );
     else this.doFilterCompaniesList();
   }
-  getMyCompanyId(){ //+++
+  getMyCompanyId(){ //
     console.log("in getMyCompanyId");
     console.log("+this.myCompanyId=",+this.myCompanyId);
     if(+this.myCompanyId==0){
@@ -849,7 +801,7 @@ getStoresLanguagesList(){
                   this.storeLanguagesList = data as any[];
                   this.getStoreDefaultLanguageOfCompany();
                 },
-      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //
   );
 }
 
@@ -859,7 +811,7 @@ getStoreDefaultLanguageOfCompany(){
                   this.storeDefaultLanguage = data as string;
                   this.fillStoreProductTranslationsArray();
                 },  
-      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //
   );
 }
 
@@ -1004,11 +956,13 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
                   this.getProductAttributesList(); // product attributes list from company registry
                   this.getCompanySettings();
                   this.getStoresLanguagesList();
+                  this.getResourcesList();
+                  this.fillResourcesObjectListFromApiResponse(documentValues.productResourcesTable);
                   //!!!
-                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
+                } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //
                 this.refreshPermissions();
             },
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //
         );
   }
 
@@ -1311,7 +1265,7 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
       while (productVariations.length !== 0) {productVariations.removeAt(0)};
       while (defaultAttributes.length !== 0) {defaultAttributes.removeAt(0)};
     }
-
+    this.showSearchFormFields=false;
     this.http.post('/api/auth/updateProducts', this.formBaseInformation.value).subscribe(
       (data) => 
       {
@@ -2138,7 +2092,7 @@ checkProductCodeFreeUnical() {
             }
             this.dataSource.data=data as any []; 
           },
-          error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+          error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //
       );
   }
   getTableHeaderTitles(){
@@ -2151,7 +2105,7 @@ checkProductCodeFreeUnical() {
     this.displayedColumns.push('date_time_created');
     this.displayedColumns.push('price');
     // this.displayedColumns.push('netcost');
-    this.displayedColumns.push('avg_netcost_price');
+    this.displayedColumns.push('avg_netcost_price');      
   }
   getPricesTableHeaderTitles(){
     this.pricesDisplayedColumns=['price_name', 'price_value'];
@@ -2227,8 +2181,6 @@ checkProductCodeFreeUnical() {
       price_name: new UntypedFormControl (row.price_name,[]),
       price_value: new UntypedFormControl (row.price_value,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       price_description: new UntypedFormControl (row.price_description,[]),      
-      // is_store_price_type_regular: new UntypedFormControl (row.is_store_price_type_regular,[]),      
-      // is_store_price_type_sale: new UntypedFormControl (row.is_store_price_type_sale,[]),
     });
   }
 
@@ -2262,7 +2214,7 @@ checkProductCodeFreeUnical() {
   round(n:number):string{
     return parseFloat(n.toFixed(3)).toString(); //toFixed-округляет, parseFloat-преобр. в число, toString-отбрасывает 000 в конце числа
   }
-  getBaseData(data) {    //+++ emit data to parent component
+  getBaseData(data) {    // emit data to parent component
     this.baseData.emit(data);
   }
   onSelectTab(a){
@@ -2933,65 +2885,125 @@ openPrintLabelsDialog(template:TemplatesList){
     if(result){}
   });
 }
+// *******************    Quantity by resources    *******************
+// +++
+  // list for select part
+  getResourcesList(){ 
+    return this.http.get('/api/auth/getResourcesList?company_id='+this.formBaseInformation.get('company_id').value)
+      .subscribe(
+          (data) => {   
+                      this.resourcesList=data as any [];
+      },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //
+      );
+  }
 
-// clickOnTemplate(template:TemplatesList){
-//   const baseUrl = '/api/auth/productPrint/';
-//   this.http.get(baseUrl+ 
-//                 "?file_name="+template.file_name+
-//                 "&doc_id="+this.id+
-//                 "&tt_id="+template.template_type_id,
-//                 { responseType: 'blob' as 'json', withCredentials: false}).subscribe(
-//     (response: any) =>{
-//         let dataType = response.type;
-//         let binaryData = [];
-//         binaryData.push(response);
-//         let downloadLink = document.createElement('a');
-//         downloadLink.href = window.URL.createObjectURL(new Blob(binaryData, {type: dataType}));
-//         downloadLink.setAttribute('download', template.file_original_name);
-//         document.body.appendChild(downloadLink);
-//         downloadLink.click();
-//     }, 
-//     error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
-//   );  
-// }
-// printLabels(template:TemplatesList){
-//   const baseUrl = '/api/auth/labelsPrint/';
-//   this.http.get(baseUrl+ 
-//                 // "?file_name="+template.file_name+
-//                 "?file_name=94ca2b16-dc1-2023-01-02-12-51-33-559.xls"+
-//                 "&doc_id="+this.id,
-//                 // "&tt_id="+template.template_type_id,
-//                 { responseType: 'blob' as 'json', withCredentials: false}).subscribe(
-//     (response: any) =>{
-//         let dataType = response.type;
-//         let binaryData = [];
-//         binaryData.push(response);
-//         let downloadLink = document.createElement('a');
-//         downloadLink.href = window.URL.createObjectURL(new Blob(binaryData, {type: dataType}));
-//         // downloadLink.setAttribute('download', template.file_original_name);
-        
-//         downloadLink.setAttribute('download', "94ca2b16-dc1-2023-01-02-12-51-33-559.xls");
-//         document.body.appendChild(downloadLink);
-//         downloadLink.click();
-//     }, 
-//     error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
-//   );  
-// }
+  formResourceTableColumns(){
+    this.displayedResourcesColumns=[];
+    // if(this.editability)
+        // this.displayedResourcesColumns.push('select');
+    this.displayedResourcesColumns.push('name','resource_qtt');
+    if(this.editability && this.showSearchFormFields)
+      this.displayedResourcesColumns.push('delete');
+  }
 
-  // getTermIndexById(row_index:number, term_id:number){
-  //   let result_index;
-  //   let current_index = 0;
-  //   this.getAttributeFieldValue(row_index, 'terms_ids').forEach(i =>{
-  //     console.log("term_id = " + term_id+ ", i.id = " + i.id +", i.name = " + i.name);
-  //     if(i==term_id) result_index = current_index;
-  //     current_index++;
-  //   });
-  //   return result_index;
-  // }
-  // removeChip(row_index:number, term_id:number){
-  //   const add = this.getAttributeFieldValue(row_index, 'terms_ids');
-  //   let rem_index = this.getTermIndexById(row_index,term_id);
-  //   if(rem_index) add.splice(rem_index, 1);
-  // }
+  clearResourcesTable(): void {
+    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+      width: '400px',data:{head: translate('docs.msg.prod_list_cln'),warning: translate('docs.msg.prod_list_qry'),query: ''},});
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){
+        this.getControl('productResourcesTable').clear();
+        // this.formBaseInformation.get('productResourcesTable').clear();
+      }});  
+  }
+  refreshRresourceTableColumns(){
+    this.displayedResourcesColumns=[];
+    setTimeout(() => { 
+      this.formResourceTableColumns();
+    }, 1);
+  }
 
+  deleteResourceRow(row: any,index:number) {
+    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {  
+      width: '400px',
+      data:
+      { 
+        head: translate('docs.msg.del_prod_item'),
+        warning: translate('docs.msg.del_prod_quer',{name:row.name})+'?',
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){
+        const control = <UntypedFormArray>this.formBaseInformation.get('productResourcesTable');
+          control.removeAt(index);
+          this.refreshRresourceTableColumns();//чтобы глючные input-поля в таблице встали на свои места. Это у Ангуляра такой прикол
+      }
+    }); 
+  }
+
+  addResourceRow() 
+  { 
+    let thereSamePart:boolean=false;
+    this.formBaseInformation.value.productResourcesTable.map(i => 
+    { // Cписок не должен содержать одинаковые ресурсы. Тут проверяем на это
+      // Table shouldn't contain the same resources. Here is checking about it
+      if(+i['resource_id']==this.formResourceSearch.get('resource_id').value)
+      {
+        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('modules.msg.record_in_list'),}});
+        thereSamePart=true; 
+      }
+    });
+    if(!thereSamePart){
+      const control = <UntypedFormArray>this.formBaseInformation.get('productResourcesTable');
+      control.push(this.formingResourceRowFromSearchForm());
+    }
+     this.resetFormResourceSearch();//подготовка формы поиска к дальнейшему вводу товара
+  }
+  //формирование строки таблицы с ресурсами, необходимыми для оказания услуги
+  formingResourceRowFromSearchForm() {
+    return this._fb.group({
+      resource_id: new UntypedFormControl (this.formResourceSearch.get('resource_id').value,[]),
+      row_id: [this.getResourceRowId()],
+      name:  new UntypedFormControl (this.formResourceSearch.get('name').value,[]),
+      resource_qtt: new UntypedFormControl (+this.formResourceSearch.get('resource_qtt').value,[Validators.required,Validators.pattern('^[0-9]{1,5}$'),Validators.maxLength(5),Validators.minLength(1)]),
+    });
+  }
+
+  fillResourcesObjectListFromApiResponse(resourcesArray:any[]){
+    this.getControl('productResourcesTable').clear();
+    if(resourcesArray.length>0){
+      const control = <UntypedFormArray>this.formBaseInformation.get('productResourcesTable');
+      resourcesArray.forEach(row=>{
+        control.push(this.formingProductResourceRow(row));            
+      });
+    }
+    this.refreshRresourceTableColumns();
+  }
+  
+  formingProductResourceRow(row: any) {
+    return this._fb.group({
+      row_id: [this.getResourceRowId()],// row_id нужен для идентифицирования строк у которых нет id (например из только что создали и не сохранили)
+      resource_id: new UntypedFormControl (row.resource_id,[]),
+      name: new UntypedFormControl (row.name,[]),
+      resource_qtt: new UntypedFormControl (+row.resource_qtt,[Validators.required,Validators.pattern('^[0-9]{1,5}$'),Validators.maxLength(5),Validators.minLength(1)]),
+      description: new UntypedFormControl (row.description,[]),      
+    });
+  }
+  resetFormResourceSearch(){
+    this.formResourceSearch.get('resource_id').setValue('0');
+    this.formResourceSearch.get('resource_qtt').setValue('0');
+    this.formResourceSearch.get('name').setValue('');
+  }
+  getResourcesRowId():number{
+    let current_resource_row_id:number=this.resource_row_id;
+    this.resource_row_id++;
+    return current_resource_row_id;
+  }
+  isInteger (i:number):boolean{return Number.isInteger(i)}
+  parseFloat(i:string){return parseFloat(i)}
+  getResourceRowId():number{
+    let current_row_id:number=this.resource_row_id;
+    this.resource_row_id++;
+    return current_row_id;
+  }
 }

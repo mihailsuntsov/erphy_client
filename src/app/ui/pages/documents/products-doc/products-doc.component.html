@@ -248,7 +248,7 @@
                                                                     </mat-option> 
                                                                 </mat-select>
                                                             </mat-form-field>
-                                                                <mat-form-field>
+                                                            <mat-form-field>
                                                                     <mat-label>{{t('docs.field.name')}} <span *ngIf="formBaseInformation.get('name').value==''" class="star">*</span></mat-label>
                                                                 <input   matInput 
                                                                         #name
@@ -582,14 +582,173 @@
 
 
 
+                                             
+                                                    <!--+++-->
+                                                                                                        
+                                                    <mat-card class="card-block">
+                                                        <mat-card-header>                          
+                                                            <mat-card-title class="card-title">
+                                                                <div class="flex card">
+                                                                    <!-- <div class="card-title" style="width:100%;"> -->
+                                                                        {{t('docs.card.resources')}}
+                                                                    <!-- </div> -->
+                                                                    <div style="position: absolute; right: 20px;">
+                                                                        <button 
+                                                                            mat-raised-button 
+                                                                            (click)="
+                                                                            showSearchFormFields=!showSearchFormFields;
+                                                                            refreshRresourceTableColumns();"
+                                                                            type="button"
+                                                                            *ngIf="!showSearchFormFields && editability"
+                                                                            color="primary"
+                                                                            class="button">
+                                                                            {{t('docs.tip.p_edit')}}
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            </mat-card-title>
+                                                        </mat-card-header>
+                                                        <mat-card-content class="input-form" style="padding: 15px 0;">
+
+                                                            <form #form="ngForm" [formGroup]="formResourceSearch" *ngIf="showSearchFormFields">
+
+                                                                <div class="row">
+
+                                                                
+
+                                                                    <div class="col-xl-6 col-lg-6 col-md-12">
+                                                                        <mat-form-field  class="mat-form-field-100">
+                                                                            <mat-label>
+                                                                                {{t('docs.field.dep_part')}}
+                                                                            </mat-label>
+                                                                            <mat-select
+                                                                            panelClass="department-list"
+                                                                            formControlName="resource_id">
+                                                                                <mat-option value="0">---</mat-option>
+                                                                                <mat-option *ngFor="let resource of resourcesList;"
+                                                                                            [value]="resource.resource_id"
+                                                                                            (click)="
+                                                                                            formResourceSearch.get('name').setValue(resource.name);
+                                                                                            formResourceSearch.get('resource_id').setValue(resource.resource_id);"
+
+                                                                                            [matTooltip]="resource.description"
+                                                                                            [matTooltipPosition]="'right'"
+                                                                                >
+                                                                                    {{resource.name}}
+                                                                                </mat-option>
+                                                                            </mat-select>
+                                                                        </mat-form-field>
+
+                                                                    </div>
+                                                                    <div class="col-xl-3 col-lg-2 col-md-12">
+
+                                                                        <mat-form-field  class="mat-form-field-100">
+                                                                            <mat-label>{{t('modules.field.count')}}</mat-label>
+
+                                                                            <input matInput 
+                                                                                [readonly]="!editability"
+                                                                                placeholder=""
+                                                                                type="number" min="0"
+                                                                                formControlName="resource_qtt"
+                                                                            />
+                                                                            
+                                                                            <mat-hint align="start" >
+                                                                                <i *ngIf="  formResourceSearch.get('resource_qtt').value !='' && 
+                                                                                            !isInteger(parseFloat(formResourceSearch.get('resource_qtt').value))"  class="table-form-invalid">
+                                                                                            {{t('modules.error.mst_be_integr')}}
+                                                                                </i>
+                                                                                <i *ngIf="formResourceSearch.get('resource_qtt').invalid && formResourceSearch.get('resource_qtt').errors.pattern" class="table-form-invalid">{{t('modules.error.price_format',{int:5,fract:0})}}</i>
+                                                                                <control-messages  class="table-form-invalid" [control]="formResourceSearch.get('resource_qtt')"></control-messages>
+                                                                            </mat-hint>
+                                                                            
+                                                                        </mat-form-field>                                                    
+                                                                    </div>
+                                                                    <div class="col-xl-2 col-lg-3 col-md-12" [style.display]="((allowToCreate && +id==0)||(allowToUpdate && id>0)) ?'block':'none'">
+                                                                        <div class="center hand" style="width:100%; height: 38px; text-align: right;">
+                                                                            <button matTooltip="{{t('docs.tip.add_row')}}" 
+                                                                                    mat-mini-fab color="primary" 
+                                                                                    [disabled]="+formResourceSearch.get('resource_id').value == 0" 
+                                                                                    (click)="addResourceRow()">
+                                                                                <mat-icon>add</mat-icon>
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+
+                                                                </div>
+
+                                                            </form>
 
 
+                                                            <div class="row" *ngIf="getControl('productResourcesTable').value.length>0 || gettingTableData" style="margin-right:0;margin-left:0;">
+                                                                <mat-spinner 
+                                                                strokeWidth="3" 
+                                                                class="spinner"
+                                                                [diameter]="44"
+                                                                *ngIf="gettingTableData"
+                                                                ></mat-spinner>
+                                                                <table mat-table #resources_table  
+                                                                [dataSource]="getControl('productResourcesTable').value" 
+                                                                [formGroup]="formBaseInformation" 
+                                                                [trackBy]="trackByIndex" 
+                                                                style="margin-top: 20px;" 
+                                                                class="mat-elevation-z8">
+                                                                    <!-- Name of resource Column -->
+                                                                    <ng-container matColumnDef="name" [formArrayName]="'productResourcesTable'">
+                                                                        <th mat-header-cell *matHeaderCellDef>{{t('modules.col.name')}}</th>
+                                                                        <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> 
+                                                                            <span>{{row.name}}</span>
+                                                                        </td>
+                                                                    </ng-container>
+                                                                    <!-- Quantity Column -->
+                                                                    <ng-container matColumnDef="resource_qtt" [formArrayName]="'productResourcesTable'">
+                                                                        <th mat-header-cell *matHeaderCellDef style="width: 60px;">
+                                                                            <span 
+                                                                                style="cursor: default;"
+                                                                                matTooltip="{{t('modules.tip.cnt_to_order')}}">
+                                                                                {{t('modules.col.qnt')}}
+                                                                            </span>
+                                                                        </th>
+                                                                        <td mat-cell *matCellDef="let row; let i = index" 
+                                                                        style="width: 80px;"
+                                                                        [formGroupName]="i">
+                                                                            <input matInput 
+                                                                                class="quantity-field"
+                                                                                [ngClass]="{'table-field-editable':editability&&showSearchFormFields}"
+                                                                                [readonly]="!showSearchFormFields || !editability"
+                                                                                style="width: 50px !important;"
+                                                                                type="number" min="0"
+                                                                                placeholder=""
+                                                                                formControlName="resource_qtt"
+                                                                            />
+                                                                            <!-- <mat-hint align="start" >*{{i}}*{{getControl('productResourcesTable').controls[i].get('resource_qtt').value}}*</mat-hint> -->
+                                                                            <control-messages  class="table-form-invalid" [control]="getControl('productResourcesTable').controls[i].get('resource_qtt')"></control-messages>
+                                                                            <mat-hint align="start" >
+                                                                                <i *ngIf="  getControl('productResourcesTable').controls[i].get('resource_qtt').value !='' && 
+                                                                                            !isInteger(parseFloat(getControl('productResourcesTable').controls[i].get('resource_qtt').value))"  class="table-form-invalid">
+                                                                                            {{t('modules.error.mst_be_integr')}}
+                                                                                </i>
+                                                                                <i *ngIf="getControl('productResourcesTable').controls[i].get('resource_qtt').invalid && getControl('productResourcesTable').controls[i].get('resource_qtt').errors.pattern" class="table-form-invalid">{{t('modules.error.price_format',{int:5,fract:0})}}</i>
+                                                                            </mat-hint>
+                                                                    </ng-container>
+                    
+                                                                    <!-- Delete Column -->
+                                                                    <ng-container matColumnDef="delete" [formArrayName]="'productResourcesTable'">
+                                                                        <th mat-header-cell *matHeaderCellDef style="width: 30px;"><mat-icon style="cursor: default" (click)="clearResourcesTable()" matTooltip="{{t('modules.tip.del_frm_tabl_')}}">close</mat-icon></th>
+                                                                        <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i">
+                                                                            <mat-icon style="cursor: default" (click)="deleteResourceRow(row,i)">delete_forever</mat-icon>
+                                                                        </td>
+                                                                    </ng-container>
+                    
+                                                                    <tr mat-header-row *matHeaderRowDef="displayedResourcesColumns"></tr>
+                                                                    <tr mat-row *matRowDef="let row; columns: displayedResourcesColumns;"></tr>
+                                                                    
+                    
+                                                                </table> 
+                                                            </div>
 
 
-
-
-
-
+                                                        </mat-card-content>
+                                                    </mat-card>
 
 
 
@@ -664,6 +823,9 @@
                                                         </div> 
                                                     </mat-card>
                                                 </div>
+
+                                                
+
                                                 <div class="col-lg-4 col-md-12"  [ngClass]="{invisible: visBeforeCreatingBlocks}">
                                                     <mat-card class="card-block">
                                                         
@@ -763,7 +925,7 @@
                                                                     </mat-option>
                                                                 </mat-select>
                                                             </mat-form-field> -->
-                                                            <mat-form-field style="margin-left: 10px; min-width: 300px;">
+                                                            <mat-form-field style="min-width: 100px;">
                                                                 <mat-label>{{t('docs.field.department')}}</mat-label>
                                                                 <mat-select  [(value)]="formProductHistory.departmentId" (selectionChange)="getTable()">
                                                                     <mat-option *ngIf="receivedDepartmentsList && receivedDepartmentsList.length>1" value="0" selected>Все доступные отделения</mat-option>                          
@@ -773,7 +935,7 @@
                                                                 </mat-select>
                                                             </mat-form-field>
                                                                                                                             
-                                                            <mat-form-field style="margin-left: 10px; width: 100px;">
+                                                            <mat-form-field style="width: 100px;">
                                                                 <input  matInput 
                                                                         placeholder="{{t('docs.field.from_date')}}"
                                                                         [matDatepicker]="dpFrom"
@@ -904,7 +1066,7 @@
                                                                 <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                                                                 <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
                                                                 
-                                                                <!-- Part "Data not founded" --> <!--+++-->
+                                                                <!-- Part "Data not founded" --> 
                                                                 <ng-container matColumnDef="data_not_found">
                                                                     <td mat-footer-cell *matFooterCellDef colspan="13" class="text-center">
                                                                         {{t('menu.msg.dt_not_fnd')}}
@@ -931,6 +1093,25 @@
                                         </mat-card-content>
                                     </mat-card>
                                 </mat-tab>
+                                
+                                <!-- Booking -->
+                                <!--mat-tab  *ngIf="is_store"  label="{{t('docs.tab.booking')}}">
+                                    <mat-card style="margin:10px;" id="product_properties">
+                                        <mat-card-header>
+                                            <mat-card-title class="card-title">{{t('docs.card.prod_prprts')}}</mat-card-title>
+                                        </mat-card-header>
+                                        <mat-card-content class="input-form">
+
+                                            <div class="row" style="padding: 10px">
+
+
+
+                                            </div>
+
+                                        </mat-card-content>
+                                    </mat-card>
+                                </mat-tab-->
+
 
                                 <mat-tab  *ngIf="is_store"  label="{{t('docs.tab.store')}}">
                                     <mat-card style="margin:10px;" id="product_properties">
@@ -1883,6 +2064,6 @@
                 </mat-card-content> 
             </mat-card>
         </div>
-        <!-- <code><pre>{{formBaseInformation.value | json}}</pre></code> -->
+        <code><pre>{{formBaseInformation.value | json}}</pre></code>
     </mat-drawer-content>
 </mat-drawer-container>

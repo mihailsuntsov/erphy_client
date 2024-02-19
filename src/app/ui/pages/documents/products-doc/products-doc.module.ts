@@ -12,10 +12,11 @@ import { ProductCategoriesSelectModule } from 'src/app/modules/trade-modules/pro
 import { QuillModule } from 'ngx-quill';
 // import { TemplatesDialogModule } from '../../../../modules/settings/templates-dialog/templates-dialog.module';
 import { LabelsPrintDialogModule } from '../../../../modules/settings/labelprint-dialog/labelprint-dialog.module';
+import { ControlMessagesComponent } from './control-messages.component';
 
 
 @NgModule({
-  declarations: [ProductsDocComponent],
+  declarations: [ProductsDocComponent, ControlMessagesComponent],
   imports: [
     CommonModule,
     ProductsDocRoutingModule,
