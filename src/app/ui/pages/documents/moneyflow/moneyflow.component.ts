@@ -196,17 +196,20 @@ export class MoneyflowComponent implements OnInit {
   }
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
 
-
+  get datesExistAndValid(){
+    return(this.queryForm.controls.dateFrom.value!='' && !this.queryForm.controls.dateFrom.invalid && this.queryForm.controls.dateTo.value!='' && !this.queryForm.controls.dateTo.invalid) && this.queryForm.controls.dateFrom.value<=this.queryForm.controls.dateTo.value;
+  }
 
   getData(){
-    if(this.refreshPermissions() && this.allowToView)
-    {
-      this.doFilterCompaniesList(); //если нет просмотра по всем предприятиям - фильтруем список предприятий до своего предприятия
-      this.getTableHeaderTitles();
-      this.getPagesList();
-      this.getTable();
-      this.getMoneyflowBalances();
-    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})} //+++
+    if(this.datesExistAndValid)
+      if(this.refreshPermissions() && this.allowToView)
+      {
+        this.doFilterCompaniesList(); //если нет просмотра по всем предприятиям - фильтруем список предприятий до своего предприятия
+        this.getTableHeaderTitles();
+        this.getPagesList();
+        this.getTable();
+        this.getMoneyflowBalances();
+      } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})} //+++
   }
 
   getTableHeaderTitles(){

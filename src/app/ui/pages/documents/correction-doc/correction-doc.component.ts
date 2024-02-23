@@ -918,7 +918,6 @@ export class CorrectionDocComponent implements OnInit {
       maxWidth: '95vw',
       maxHeight: '95vh',
       width: '400px', 
-      minHeight: '650px',
       data:
       { //отправляем в диалог:
         receivedCompaniesList: this.receivedCompaniesList, //список предприятий

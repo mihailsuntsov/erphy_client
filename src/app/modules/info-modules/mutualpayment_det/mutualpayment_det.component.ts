@@ -150,6 +150,10 @@ getSettings(){
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
 }
+
+get datesExistAndValid(){
+  return(this.queryForm.controls.dateFrom.value!='' && !this.queryForm.controls.dateFrom.invalid && this.queryForm.controls.dateTo.value!='' && !this.queryForm.controls.dateTo.invalid) && this.queryForm.controls.dateFrom.value<=this.queryForm.controls.dateTo.value;
+}
     // -------------------------------------- *** ПРАВА *** ------------------------------------
    getSetOfPermissions(){
     return this.http.get('/api/auth/getMyPermissions?id=47')// права на приосмотр регулируются документом Взаиморасчёты
@@ -175,16 +179,15 @@ getSettings(){
   }
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
 
-
-
   getData(){
-    if(this.refreshPermissions() && this.allowToView)
-    {
-      this.doFilterCompaniesList(); //если нет просмотра по всем предприятиям - фильтруем список предприятий до своего предприятия
-      this.getTableHeaderTitles();
-      this.getPagesList();
-      this.getTable();
-    } else {this.gettingTableData=false;;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:"Нет прав на просмотр"}})}
+    if(this.datesExistAndValid)
+      if(this.refreshPermissions() && this.allowToView)
+      {
+        this.doFilterCompaniesList(); //если нет просмотра по всем предприятиям - фильтруем список предприятий до своего предприятия
+        this.getTableHeaderTitles();
+        this.getPagesList();
+        this.getTable();
+      } else {this.gettingTableData=false;;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:"Нет прав на просмотр"}})}
   }
 
   getTableHeaderTitles(){

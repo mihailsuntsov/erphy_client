@@ -1,4 +1,4 @@
-<mat-card class="card" *transloco="let t">
+<mat-card appearance="outlined" class="card" *transloco="let t">
   
     <mat-card-title class="flex">
         <div class="card-name">Итог смены</div>
@@ -38,7 +38,7 @@
 
                         <mat-tab label="{{t('docs.tab.info')}}">
         
-                                <mat-card slyle="margin:10px;">
+                                <mat-card appearance="outlined" slyle="margin:10px;">
 
                                     <mat-card-content class="input-form">
 
@@ -160,7 +160,7 @@
                         </mat-tab>
                         <mat-tab  *ngIf="visAfterCreatingBlocks"  label="{{t('docs.tab.about')}}">
                             <form [formGroup]="formAboutDocument">
-                                <mat-card style="margin:10px;">
+                                <mat-card appearance="outlined" style="margin:10px;">
                                     <mat-card-content class="input-form">
                                             <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
                                                 <input  matInput

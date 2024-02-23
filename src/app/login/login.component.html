@@ -3,7 +3,7 @@
     Logged in. Please wait...
 </div>  
   
-<mat-card *ngIf="!isLoggedIn;" class="login-mat-card">
+<mat-card appearance="outlined" *ngIf="!isLoggedIn;" class="login-mat-card">
                 <div class="lang-select"
                     [matMenuTriggerFor]="addDocMenu">
                     <span>{{language}}</span><div class="arrow-wrap"><i class="material-icons" style="font-size: 18px;">arrow_drop_down</i></div>
@@ -52,7 +52,7 @@
     <mat-card-content>
         <div class="version" (click)="displayVerson=!displayVerson;">
             <span [ngClass]="{'versions-incomp':!isVersionsCompatible()}" >ver. {{getVersionToDisplay()}}</span>
-            <mat-card *ngIf="displayVerson;" class="version-mat-card">
+            <mat-card appearance="outlined" *ngIf="displayVerson;" class="version-mat-card">
                 <div class="container" style="width: 150px !important;">
                     <div class="row">
                         <div class="col-6">
@@ -114,7 +114,7 @@
                     {{settingsGeneral.showInSignin}}
                 </div>
 
-                <button mat-button mat-raised-button color="primary" style="margin-top: 20px;" (click)="onSubmit()">{{'user.btn.enter' | transloco}}</button>
+                <button mat-raised-button color="primary" style="margin-top: 20px;" (click)="onSubmit()">{{'user.btn.enter' | transloco}}</button>
                 <div *ngIf="isLoginFailed" class="form-invalid">
                     {{'user.error.not_logged' | transloco}}: {{errorMessage?errorMessage:('user.error.no_bd_srvr_cn' | transloco)}}
                 </div>
@@ -124,11 +124,11 @@
             <div   style="width:100%;">
                 <div 
                     style="display: inline-block; text-align: left;width:50%;">
-                    <a *ngIf="settingsGeneral.showRegistrationLink" routerLink="../../signup">{{'user.btn.registration' | transloco}}</a>
+                    <a *ngIf="settingsGeneral.showRegistrationLink" routerLink="./signup">{{'user.btn.registration' | transloco}}</a>
                 </div>
                 <div
                     style="display: inline-block; text-align: right;width:50%;">
-                    <a *ngIf="settingsGeneral.showForgotLink" routerLink="../../restore">{{'user.btn.forgot_pass' | transloco}}</a>
+                    <a *ngIf="settingsGeneral.showForgotLink" routerLink="./restore">{{'user.btn.forgot_pass' | transloco}}</a>
                 </div>
             </div>
   

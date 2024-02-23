@@ -12,7 +12,9 @@ table {width: 100%;}
 .card{
     width:100%;
 }
-
+.date-range {
+    width: 268px !important;
+}
 .company-select{
     flex-grow: 1; 
     max-width: 400px;
@@ -123,7 +125,7 @@ li {list-style: none;}
 .balance-bar-bottom{
     text-align: left;
 }
-tr.mat-header-row, tr.mat-footer-row {
+tr.mat-mdc-header-row, tr.mat-mdc-footer-row {
     height: 30px    ;
 }
 .top-bar{

@@ -1,4 +1,4 @@
-<mat-card class="card" *transloco="let t">
+<mat-card appearance="outlined" class="card" *transloco="let t">
         <mat-card-title class="flex">
             <div class="card-name">{{t('modules.card.lui')}}</div>
             <button 
@@ -38,7 +38,7 @@
                                 [matAutocomplete]="auto2" 
                                 (input)="checkEmptyJrCountryField();"
                                 (change)="checkEmptyJrCountryField();">
-                                <button mat-button 
+                                <button
                                     *ngIf="+mainForm.get('jr_country_id').value>0"
                                     type="button"
                                     class="clear-button"

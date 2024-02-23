@@ -13,7 +13,7 @@
     *ngIf="operationId=='undefined'">
 </mat-spinner>
 
-<mat-card class="internal-card" 
+<mat-card appearance="outlined" class="internal-card" 
         [ngClass]="{settingsBlock:(operationId=='kassaSettings'),smallBlock:(operationId=='undefined'||operationId=='cantwork'||operationId=='sell'||operationId=='buy'||operationId=='sellReturn'||operationId=='buyReturn'||operationId=='openShift'||operationId=='closeShift'||operationId=='printXreport'||operationId=='error'),mediumBlock:(operationId=='sellCorrection'||operationId=='buyCorrection'||operationId=='sellReturnCorrection'||operationId=='buyReturnCorrection')}" *transloco="let t">
    
     <div class="icon-panel">

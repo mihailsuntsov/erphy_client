@@ -1,4 +1,4 @@
-<mat-card class="card" *transloco="let t">
+<mat-card appearance="outlined" class="card" *transloco="let t">
 
     <mat-card-title class="flex">
         <div class="card-name">{{idTypes=='categories'?('modules.card.cat_select' | transloco):('modules.card.prods_select' | transloco)}}</div>
@@ -36,7 +36,7 @@
                                         id="search_input" 
                                         name="search_input" 
                                     />
-                                    <button mat-button matSuffix mat-icon-button aria-label="search"  type="submit" (click)="searchCategory()">
+                                    <button matSuffix mat-icon-button aria-label="search"  type="submit" (click)="searchCategory()">
                                         <mat-icon>search</mat-icon>
                                     </button>
                                 </mat-form-field>
@@ -87,7 +87,7 @@
                 </mat-tree>
         </mat-drawer>
         <div class="categories-sidenav-content">
-            <mat-card class="card"  *ngIf="idTypes=='products'">
+            <mat-card appearance="outlined" class="card"  *ngIf="idTypes=='products'">
                 <mat-card-content>
                     <div class="card  w-100">
                         <div class="card-body">
@@ -123,7 +123,7 @@
                                             id="SelectedNodeName" 
                                             name="SelectedNodeName" 
                                             value="">
-                                            <button mat-button matSuffix mat-icon-button aria-label="Clear" (click)="resetSelectedCategory(true);">
+                                            <button matSuffix mat-icon-button aria-label="Clear" (click)="resetSelectedCategory(true);">
                                                 <mat-icon>close</mat-icon>
                                             </button>
                                         </mat-form-field>
@@ -139,7 +139,7 @@
                                                 name="search_input" 
                                                 style="width:150px"  
                                                 />
-                                                <button mat-button matSuffix mat-icon-button aria-label="search"  type="submit" (click)="setNumOfPages()">
+                                                <button matSuffix mat-icon-button aria-label="search"  type="submit" (click)="setNumOfPages()">
                                                     <mat-icon>search</mat-icon>
                                                 </button>
                                         </mat-form-field>
@@ -198,18 +198,18 @@
                                                             <li><mat-icon class="pagearrow inactive">first_page</mat-icon></li>                               
                                                     </ng-container>
                                                     
-                                                        <mat-chip-list>
+                                                        <mat-chip-listbox>
                                                             <ng-container *ngIf="page==pagenum;else templateElse">
-                                                                <li><mat-chip style="margin: 8px;" selected>
+                                                                <li><mat-chip-option style="margin: 8px;" selected>
                                                                     {{page}}               
-                                                                </mat-chip></li>
+                                                                </mat-chip-option></li>
                                                             </ng-container>
                                                             <ng-template #templateElse >
-                                                                <li><mat-chip  style="margin: 8px;"  (click)="setPage(page-1)">
+                                                                <li><mat-chip-option  style="margin: 8px;"  (click)="setPage(page-1)">
                                                                     {{page}}               
-                                                                </mat-chip></li>
+                                                                </mat-chip-option></li>
                                                             </ng-template>
-                                                        </mat-chip-list>
+                                                        </mat-chip-listbox>
                                                     <ng-container *ngIf="pagenum < listsize && page==maxpage">
                                                         <li><a (click)="setPage(listsize-1)"><mat-icon class="pagearrow active">last_page</mat-icon></a></li>
                                                     </ng-container>
@@ -229,22 +229,22 @@
             </mat-card>
             
         </div>
-        <mat-card class="card" *ngIf="selectedObjects.length>0">
+        <mat-card appearance="outlined" class="card" *ngIf="selectedObjects.length>0">
             <mat-card-title class="flex">
                 <div class="card-name" style="font-size: 20px;">{{idTypes=='categories'?('modules.card.cat_selectd' | transloco):('modules.card.prods_selectd' | transloco)}}</div>
             </mat-card-title>
             <mat-card-content>
                 <mat-form-field class="chip-list" appearance="fill">
-                    <mat-chip-list #chipList aria-label="Selected objects">
-                        <mat-chip
+                    <mat-chip-listbox #chipList aria-label="Selected objects">
+                        <mat-chip-option
                         *ngFor="let object of selectedObjects"
                         [selectable]="selectable"
                         [removable]="removable"
                         (removed)="remove(object)">
                         {{object.name}}
                         <mat-icon matChipRemove *ngIf="removable">cancel</mat-icon>
-                        </mat-chip>
-                    </mat-chip-list>
+                        </mat-chip-option>
+                    </mat-chip-listbox>
                 </mat-form-field>
             </mat-card-content>
         </mat-card>

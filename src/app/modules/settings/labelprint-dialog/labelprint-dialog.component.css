@@ -20,13 +20,7 @@ li {list-style: none;}
     display: flex;
     flex-direction: column;
 }
-.table-form-invalid{
-    color: red;
-    font-size: 11px;
-    line-height: 0.9em;
-    display: block;
-    font-style: italic;
-}
+ 
 .table-field-editable{
     border-bottom: 1px lightgray dotted;
 }
@@ -170,6 +164,7 @@ transition: transform 500ms cubic-bezier(0, 0, 0.2, 1);
     z-index: 1000;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
 ::ng-deep #toggle .mat-form-field-underline {
         background-color: #f7f7f7 !important;
     }

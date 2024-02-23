@@ -19,6 +19,9 @@ table {width: 100%;}
     margin-left: 10px;
 }
 
+.date-range {
+    width: 268px !important;
+}
 .card-name{ flex-grow: 1; }
 
 .depatrment-select{flex-grow: 1;}
@@ -44,7 +47,7 @@ table {width: 100%;}
 .balance-bar-bottom{
     text-align: left;
 }
-tr.mat-header-row, tr.mat-footer-row {
+tr.mat-mdc-header-row, tr.mat-mdc-footer-row {
     height: 30px    ;
 }
 .top-bar{
@@ -123,24 +126,22 @@ li {list-style: none;}
 /*Данные не найдены*/
 .spinner{
     position: absolute;
-    top: 7%;
+    top: 12%;
     left: 50%;
     margin-left: -25px;
     margin-top: 100px;
     z-index: 100;
 }
 
-::ng-deep th .mat-form-field-label-wrapper, th .mat-form-field-underline, th .mat-form-field-label {
+/*TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.*/
+::ng-deep th .mdc-line-ripple, th mat-label {
     display: none !important;
 }
-::ng-deep th .mat-form-field-underline {
-    height: 0px !important;
-    background-color: rgba(0,0,0,0) !important;
-    width: 0px !important;
-}
-::ng-deep th .mat-select-arrow {
+/*TODO(mdc-migration): The following rule targets internal classes of select that may no longer apply for the MDC version.*/
+::ng-deep th .mat-mdc-select-arrow {
     display: none !important;
 }
-::ng-deep th .mat-select-value {
+/*TODO(mdc-migration): The following rule targets internal classes of select that may no longer apply for the MDC version.*/
+::ng-deep th .mat-mdc-select-value {
     display: none !important;
 }

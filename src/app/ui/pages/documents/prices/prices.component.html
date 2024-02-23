@@ -20,7 +20,7 @@ class="spinner"
                                     name="search_input" 
                                     style="width:100%"  
                                 />
-                                <button mat-button matSuffix mat-icon-button aria-label="search"  type="submit" (click)="searchCategory()">
+                                <button matSuffix mat-icon-button aria-label="search"  type="submit" (click)="searchCategory()">
                                     <mat-icon>search</mat-icon>
                                 </button>
                             </mat-form-field>
@@ -49,13 +49,15 @@ class="spinner"
             </mat-tree>
     </mat-drawer>
     <div class="categories-sidenav-content">
-        <mat-card class="card">
-                <mat-card-title class="flex" style="height: 30px;">
+        <mat-card appearance="outlined" class="card">
+                <mat-card-header>
+                    <mat-card-title class="flex" style="height: 30px;">
                         <div class="emptyspace">{{cu.cap(t('menu.docs.prices'))}}</div>
                         <div  *ngIf="selection.selected.length>0 && visBtnEditPrices" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
                             <button mat-raised-button (click)="clickBtnEditPrices()" color="primary"><i class="material-icons">timeline</i> {{t('menu.top.btn_set_price')}}</button>
                         </div>
                     </mat-card-title>
+                </mat-card-header>
                     <mat-card-content>
                         <div class="card  w-100">
                             <div class="card-body">
@@ -131,7 +133,7 @@ class="spinner"
                                             </ng-container>
                                             </mat-autocomplete>
                                             <mat-progress-bar style="position:relative; top: 1em; width: 200px;" *ngIf="isCagentListLoading"  mode="indeterminate"></mat-progress-bar>
-                                            <button *ngIf="searchCagentCtrl.value.length!=0" mat-button  type="button" matTooltip="{{t('menu.tip.clr_filter')}}" matSuffix mat-icon-button aria-label="ClearCagents" (click)="resetSelectedCagent(true);">
+                                            <button *ngIf="searchCagentCtrl.value.length!=0" type="button" matTooltip="{{t('menu.tip.clr_filter')}}" matSuffix mat-icon-button aria-label="ClearCagents" (click)="resetSelectedCagent(true);">
                                                 <mat-icon>close</mat-icon>
                                             </button>
                                         </mat-form-field>
@@ -146,12 +148,12 @@ class="spinner"
                                                 id="SelectedNodeName" 
                                                 name="SelectedNodeName" 
                                                 value="">
-                                                <button mat-button type="button" matTooltip="{{t('menu.tip.clr_filter')}}" matSuffix mat-icon-button aria-label="Clear" (click)="resetSelectedCategory(true);">
+                                                <button type="button" matTooltip="{{t('menu.tip.clr_filter')}}" matSuffix mat-icon-button aria-label="Clear" (click)="resetSelectedCategory(true);">
                                                     <mat-icon>close</mat-icon>
                                                 </button>
                                             </mat-form-field>
                                         </div>
-                                        <button mat-button  
+                                        <button 
                                             class="filter-button"
                                             matTooltip="{{t('docs.button.refresh')}}"
                                             (click)="getTable()"  
@@ -160,7 +162,7 @@ class="spinner"
                                             <mat-icon>refresh</mat-icon>
                                         </button>
                                         <span  class="emptyspace"></span>                                        
-                                        <button mat-button
+                                        <button
                                             class="filter-button"
                                             [matMenuTriggerFor]="oper"
                                             type="button"
@@ -198,12 +200,10 @@ class="spinner"
                                                     name="search_input" 
                                                     style="width:150px"  
                                                     />
-                                                    <button mat-button matSuffix mat-icon-button aria-label="search"  type="submit" (click)="setNumOfPages()">
+                                                    <button matSuffix mat-icon-button aria-label="search"  type="submit" (click)="setNumOfPages()">
                                                         <mat-icon>search</mat-icon>
                                                     </button>
                                             </mat-form-field>
-                                            <!-- <button mat-button (click)="getData()"  type="submit" id="btn" style="min-width: 20px; padding: 0px;"><mat-icon>search</mat-icon></button> -->
-                                                
                                         </div>
                                     </div>
                                 </form>
@@ -232,7 +232,7 @@ class="spinner"
                                                 <ng-container matColumnDef="opendoc">
                                                     <th mat-header-cell *matHeaderCellDef></th>
                                                     <td mat-cell *matCellDef="let row" class="table-launch-icon">
-                                                        <a class="inactive" [routerLink]="['../../productsdoc', row.id ]">
+                                                        <a class="inactive" [routerLink]="['../productsdoc', row.id ]">
                                                             <mat-icon>launch</mat-icon>
                                                         </a>
                                                     </td>   
@@ -281,21 +281,21 @@ class="spinner"
                                                         <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='not_buy'" class="material-icons sortarrow">arrow_downward</i>
                                                     </span>
                                                     <td mat-cell *matCellDef="let row"> 
-                                                        <mat-chip-list *ngIf="row.ppr_id==0||row.ppr_id==1">
-                                                            <mat-chip 
+                                                        <mat-chip-listbox *ngIf="row.ppr_id==0||row.ppr_id==1">
+                                                            <mat-chip-option 
                                                             *ngIf="row.not_buy==false" 
                                                             matTooltip="{{t('menu.tip.in_purchase')}}"
                                                             style="color:green">
                                                             {{t('menu.dialogs.yes')}}
-                                                            </mat-chip>
-                                                            <mat-chip 
+                                                            </mat-chip-option>
+                                                            <mat-chip-option 
                                                             *ngIf="row.not_buy==true"
                                                             matTooltip="{{t('menu.tip.not_purchase')}}"
                                                             style="color:red"
                                                             >
                                                             {{t('menu.dialogs.no')}}
-                                                            </mat-chip>
-                                                        </mat-chip-list>
+                                                            </mat-chip-option>
+                                                        </mat-chip-listbox>
                                                     </td>
                                                 </ng-container>
                                                 <ng-container matColumnDef="not_sell">
@@ -305,21 +305,21 @@ class="spinner"
                                                         <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='not_sell'" class="material-icons sortarrow">arrow_downward</i>
                                                     </span>
                                                     <td mat-cell *matCellDef="let row"> 
-                                                        <mat-chip-list>
-                                                            <mat-chip 
+                                                        <mat-chip-listbox>
+                                                            <mat-chip-option 
                                                             *ngIf="row.not_sell==false" 
                                                             matTooltip="{{t('menu.tip.in_sells')}}"
                                                             style="color:green">
                                                             {{t('menu.dialogs.yes')}}
-                                                            </mat-chip>
-                                                            <mat-chip 
+                                                            </mat-chip-option>
+                                                            <mat-chip-option 
                                                             *ngIf="row.not_sell==true"
                                                             matTooltip="{{t('menu.tip.not_in_sells')}}"
                                                             style="color:red"
                                                             >
                                                             {{t('menu.dialogs.no')}}
-                                                            </mat-chip>
-                                                        </mat-chip-list>
+                                                            </mat-chip-option>
+                                                        </mat-chip-listbox>
                                                     </td>
                                                 </ng-container>
                                                 <ng-container matColumnDef="price">
@@ -329,25 +329,25 @@ class="spinner"
                                                         <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='price'" class="material-icons sortarrow">arrow_downward</i>
                                                     </span>
                                                     <td mat-cell *matCellDef="let row">
-                                                        <mat-chip-list>
-                                                            <mat-chip 
+                                                        <mat-chip-listbox>
+                                                            <mat-chip-option 
                                                             *ngIf="row.price==-1" 
                                                             matTooltip="{{t('menu.tip.price_diff')}}">
                                                                 {{t('menu.top.different')}}
-                                                            </mat-chip>
-                                                            <mat-chip 
+                                                            </mat-chip-option>
+                                                            <mat-chip-option 
                                                             *ngIf="+row.price==0"
                                                             matTooltip="{{t('menu.tip.price_not_set')}} {{sendingQueryForm.priceTypeId=='0'?t('menu.tip._for_any_prty'):t('menu.tip._for_this_typ')}}"
                                                             >
                                                                 0
-                                                            </mat-chip>
-                                                            <mat-chip 
+                                                            </mat-chip-option>
+                                                            <mat-chip-option 
                                                             *ngIf="+row.price>0 "
                                                             matTooltip="{{sendingQueryForm.priceTypeId=='0'?t('menu.tip.pr_eq_all'):t('menu.tip.pr_for_sel_pt')}}" 
                                                             >
                                                                 {{row.price}}
-                                                            </mat-chip>
-                                                        </mat-chip-list>    
+                                                            </mat-chip-option>
+                                                        </mat-chip-listbox>    
                                                     </td>
                                                 </ng-container>
                                                 <ng-container matColumnDef="creator">
@@ -401,18 +401,18 @@ class="spinner"
                                                                 <li><mat-icon class="pagearrow inactive">first_page</mat-icon></li>                               
                                                         </ng-container>
                                                         
-                                                            <mat-chip-list>
+                                                            <mat-chip-listbox>
                                                                 <ng-container *ngIf="page==pagenum;else templateElse">
-                                                                    <li><mat-chip style="margin: 8px;" selected>
+                                                                    <li><mat-chip-option style="margin: 8px;" selected>
                                                                         {{page}}               
-                                                                    </mat-chip></li>
+                                                                    </mat-chip-option></li>
                                                                 </ng-container>
                                                                 <ng-template #templateElse >
-                                                                    <li><mat-chip  style="margin: 8px;"  (click)="setPage(page-1)">
+                                                                    <li><mat-chip-option  style="margin: 8px;"  (click)="setPage(page-1)">
                                                                         {{page}}               
-                                                                    </mat-chip></li>
+                                                                    </mat-chip-option></li>
                                                                 </ng-template>
-                                                            </mat-chip-list>
+                                                            </mat-chip-listbox>
                                                         <ng-container *ngIf="pagenum < listsize && page==maxpage">
                                                             <li><a (click)="setPage(listsize-1)"><mat-icon class="pagearrow active">last_page</mat-icon></a></li>
                                                         </ng-container>

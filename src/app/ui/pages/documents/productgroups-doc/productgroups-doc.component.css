@@ -17,7 +17,7 @@ li {list-style: none;}
 .card-name{ flex-grow: 1; }
 
 .internal-card{
-    padding: 10px 0 10px;
+    padding: 0;
     margin: 10px 0 10px 0;
 }
 .expansion-card-top{

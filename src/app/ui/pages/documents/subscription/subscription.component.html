@@ -1,25 +1,26 @@
-<mat-card class="card for-sticky-header" *transloco="let t" style="min-height: 434px;">
-    <mat-card-title class="top-bar container-fluid" style="height: 30px;">
-        
-        <div class="row" id="topBlock">
-            <div class="card-name">
-                {{cu.cap(t('menu.docs.subscription'))}}
+<mat-card appearance="outlined" class="card for-sticky-header" *transloco="let t" style="min-height: 434px;">
+    <mat-card-header>
+        <mat-card-title class="top-bar container-fluid" style="height: 30px;">
+            <div class="row" id="topBlock">
+                <div class="card-name">
+                    {{cu.cap(t('menu.docs.subscription'))}}
+                </div>
+                    <!-- <div class="emptyspace"></div> -->
+                    
+                <button 
+                    mat-raised-button 
+                    *ngIf="allowToUpdate && subscription && subscription.is_saas"
+                    matTooltip="{{t('docs.tip.save')}}"
+                    (click)="updateDocument()"
+                    [disabled]="!formValid" 
+                    color="primary"
+                    type="button"
+                    class="button small-button">
+                    <i class="material-icons">save</i>
+                </button>
             </div>
-                <!-- <div class="emptyspace"></div> -->
-                
-            <button 
-                mat-raised-button 
-                *ngIf="allowToUpdate && subscription && subscription.is_saas"
-                matTooltip="{{t('docs.tip.save')}}"
-                (click)="updateDocument()"
-                [disabled]="!formValid" 
-                color="primary"
-                type="button"
-                class="button small-button">
-                <i class="material-icons">save</i>
-            </button>
-        </div>
-    </mat-card-title>
+        </mat-card-title>
+    </mat-card-header>
     <mat-card-content>
         <div class="card  w-100" style="margin-top: 50px;">
             <div class="card-body">
@@ -35,7 +36,7 @@
                                 </mat-option>
                             </mat-select>
                         </mat-form-field> -->
-                        <!-- <button mat-button  
+                        <!-- <button  
                             class="filter-button"
                             matTooltip="{{t('docs.button.refresh')}}"
                             (click)="getMasterAccountInfo()"  
@@ -56,11 +57,11 @@
                 <mat-tab-group>
                     
                     <mat-tab label="{{t('docs.tab.info')}}">
-                        <div  class="container-fluid" id="result_form"  style="margin-top:20px">
+                        <div  class="container-fluid" id="subscription_form"  style="margin-top:20px">
                             <div class="row">
                                 <div class="col-xl-4 col-lg-12 col-sm-12">
-                                    <mat-card style="margin-bottom:15px;">
-                                        <mat-card-header style="margin: 0 0 0 -13px;">
+                                    <mat-card appearance="outlined" style="margin-bottom:15px;">
+                                        <mat-card-header>
                                             <mat-card-title class="card-title">{{t('docs.card.base_info')}}</mat-card-title>
                                         </mat-card-header>
                                         <mat-card-content class="input-form">
@@ -135,8 +136,8 @@
                                     </mat-card>
                                 </div>
                                 <div class="col-xl-8 col-lg-12 col-sm-12">
-                                    <mat-card style="margin-bottom:15px;">
-                                        <mat-card-header style="margin: 0 0 0 -13px;">
+                                    <mat-card appearance="outlined" style="margin-bottom:15px;">
+                                        <mat-card-header>
                                             <mat-card-title class="card-title">{{t('docs.card.res_mngmnt')}}</mat-card-title>
                                         </mat-card-header>
                                         <mat-card-content class="input-form">
@@ -159,7 +160,7 @@
                                                 </div>
                                             </div>
 
-                                            <table mat-table class="mat-elevation-z8" *ngIf="subscription">
+                                            <table mat-table class="mat-elevation-z8" *ngIf="subscription" id="settings_table">
                                                 
 
                                                 <!-- header -->
@@ -488,7 +489,7 @@
                         <div  class="container-fluid" style="margin-top:20px">
                             <div class="row">
                                 <div class="col-12">
-                                    <mat-card style="margin-bottom:15px;">
+                                    <mat-card appearance="outlined" style="margin-bottom:15px;">
                                         <mat-card-content class="input-form">
                                             <div class="card  w-100">
                                                 <div class="card-body">
@@ -533,8 +534,22 @@
                                                                             {{num.viewValue}}
                                                                     </mat-option>
                                                                 </mat-select>
-                                                            </mat-form-field>                                                                                                                            
-                                                            <mat-form-field style="margin-left: 10px; width: 100px;">
+                                                            </mat-form-field> 
+                                                            
+                                                            
+                                                            <mat-form-field class="date-range" style="margin-left:20px;">
+                                                                <mat-label>{{t('menu.top.date_range')}}</mat-label>
+                                                                <mat-date-range-input [rangePicker]="picker">
+                                                                <input matStartDate (dateChange)="getData()" [(ngModel)]="formPaymentsHistory.dateFrom" placeholder="{{t('menu.top.date_from')}}">
+                                                                <input matEndDate (dateChange)="getData()" [(ngModel)]="formPaymentsHistory.dateTo" placeholder="{{t('menu.top.date_to')}}">
+                                                                </mat-date-range-input>
+                                                                <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                                                                <mat-date-range-picker #picker></mat-date-range-picker>
+                                                                <mat-error *ngIf="!getMoment(formPaymentsHistory.dateFrom).isValid()"><i>{{t('menu.top.start_date')}}</i></mat-error>
+                                                                <mat-error *ngIf="!getMoment(formPaymentsHistory.dateTo).isValid()"><i>{{t('docs.error.end_date')}}</i></mat-error>
+                                                            </mat-form-field>
+
+                                                            <!--mat-form-field style="margin-left: 10px; width: 100px;">
                                                                 <input  matInput 
                                                                         placeholder="{{t('docs.field.from_date')}}"
                                                                         [matDatepicker]="dpFrom"
@@ -556,8 +571,9 @@
                                                                         />
                                                                         <mat-datepicker-toggle matSuffix [for]="dpTo"></mat-datepicker-toggle>
                                                                 <mat-datepicker #dpTo></mat-datepicker>
-                                                            </mat-form-field>
-                                                            <button mat-button  
+                                                            </mat-form-field-->
+
+                                                            <button  
                                                                 class="filter-button"
                                                                 matTooltip="{{t('docs.button.refresh')}}"
                                                                 (click)="getTable()"  
@@ -570,7 +586,7 @@
                                                             
                                                         </div>
                                                         <div id="result_form">
-                                                            <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+                                                            <table mat-table [dataSource]="dataSource" class="mat-elevation-z8" id="report_table">
                                                                 <ng-container matColumnDef="detailed"  style="height: 56px;">
                                                                     <th mat-header-cell *matHeaderCellDef><span class="sortheader"> {{t('docs.field.wroff_price')}}</span></th>
                                                                     <td mat-cell style="height: 48px;" *matCellDef="let row" class="table-launch-icon">
@@ -641,18 +657,18 @@
                                                                                 <ng-container *ngIf="i==3 && pagenum==1">
                                                                                         <li><mat-icon class="pagearrow inactive">first_page</mat-icon></li>                               
                                                                                 </ng-container>
-                                                                                    <mat-chip-list>
+                                                                                    <mat-chip-listbox>
                                                                                         <ng-container *ngIf="page==pagenum;else templateElse">
-                                                                                            <li><mat-chip style="margin: 8px;" selected>
+                                                                                            <li><mat-chip-option style="margin: 8px;" selected>
                                                                                                 {{page}}               
-                                                                                            </mat-chip></li>
+                                                                                            </mat-chip-option></li>
                                                                                         </ng-container>
                                                                                         <ng-template #templateElse >
-                                                                                            <li><mat-chip  style="margin: 8px;"  (click)="setPage(page-1)">
+                                                                                            <li><mat-chip-option  style="margin: 8px;"  (click)="setPage(page-1)">
                                                                                                 {{page}}               
-                                                                                            </mat-chip></li>
+                                                                                            </mat-chip-option></li>
                                                                                         </ng-template>
-                                                                                    </mat-chip-list>
+                                                                                    </mat-chip-listbox>
                                                                                 <ng-container *ngIf="pagenum < listsize && page==maxpage">
                                                                                     <li><a (click)="setPage(listsize-1)"><mat-icon class="pagearrow active">last_page</mat-icon></a></li>
                                                                                 </ng-container>

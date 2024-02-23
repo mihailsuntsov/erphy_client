@@ -1,12 +1,14 @@
 
-<mat-card class="card" *transloco="let t">
-    <mat-card-title class="flex" style="height: 30px;">
-        <div *ngIf="!displayingDeletedDocs" class="emptyspace">{{cu.cap(t('menu.docs.profitloss'))}}</div>
-    </mat-card-title>
-    <mat-card-content>
+<mat-card appearance="outlined" class="card" *transloco="let t">
+    <mat-card-header>
+        <mat-card-title class="flex" style="height: 30px;">
+            <div *ngIf="!displayingDeletedDocs" class="emptyspace">{{cu.cap(t('menu.docs.profitloss'))}}</div>
+        </mat-card-title>
+    </mat-card-header>
+    <mat-card-content style="padding-bottom: 50px;">
         <div class="card  w-100">
             <div class="card-body">
-                <form  class="form-horizontal" [formGroup]="queryForm" style="margin-bottom: 0px;">
+                <form  class="form-horizontal" [formGroup]="queryForm">
                     <div class="flex">
                         <mat-form-field class="company-select" style="margin-left: 10px; max-width: 250px;">
                             <mat-label>{{t('menu.top.company')}}</mat-label>
@@ -17,29 +19,20 @@
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
-                                <mat-form-field style="width: 100px; margin: 0 10px;">
-                                    <input  matInput 
-                                            formControlName="dateFrom"
-                                            placeholder="{{t('menu.top.date_from')}}"
-                                            [matDatepicker]="dpFrom"
-                                            (dateChange)="getData()"
-                                            />
-                                            <mat-datepicker-toggle matSuffix [for]="dpFrom"></mat-datepicker-toggle>
-                                    <mat-datepicker #dpFrom></mat-datepicker>
-                                </mat-form-field>
-                                <mat-form-field style="width: 100px; margin: 0 10px;">
-                                    <input  matInput 
-                                            formControlName="dateTo"
-                                            placeholder="{{t('menu.top.date_to')}}"
-                                            [matDatepicker]="dpTo"
-                                            (dateChange)="getData()"
-                                            />
-                                            <mat-datepicker-toggle 
-                                            matSuffix [for]="dpTo" 
-                                            ></mat-datepicker-toggle>
-                                    <mat-datepicker #dpTo></mat-datepicker>
-                                </mat-form-field>
-                                <button mat-button  
+                        
+                        <mat-form-field class="date-range" style="margin-left:20px;">
+                            <mat-label>{{t('menu.top.date_range')}}</mat-label>
+                            <mat-date-range-input [rangePicker]="picker">
+                              <input matStartDate (dateChange)="getData()" formControlName="dateFrom" placeholder="{{t('menu.top.date_from')}}">
+                              <input matEndDate (dateChange)="getData()" formControlName="dateTo" placeholder="{{t('menu.top.date_to')}}">
+                            </mat-date-range-input>
+                            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                            <mat-date-range-picker #picker></mat-date-range-picker>
+                              <mat-error *ngIf="queryForm.controls.dateFrom.touched && queryForm.controls.dateFrom.invalid"><i>{{t('menu.top.start_date')}}</i></mat-error>
+                              <mat-error *ngIf="queryForm.controls.dateTo.touched && queryForm.controls.dateTo.invalid"><i>{{t('docs.error.end_date')}}</i></mat-error>
+                        </mat-form-field>
+                        
+                                <button
                                     class="filter-button"
                                     matTooltip="{{t('docs.button.refresh')}}"
                                     (click)="clickApplyFilters()"  
@@ -48,7 +41,7 @@
                                     <mat-icon>refresh</mat-icon>
                                 </button>
                         <span  class="emptyspace"></span>
-                        <!-- <button mat-button
+                        <!-- <button
                             *ngIf="displaySelectOptions"
                             class="options-button"
                             [matMenuTriggerFor]="oper"
@@ -84,7 +77,7 @@
                     </div>
                 </form>
                 
-                <div  class="container-fluid" id="result_form">
+                <div  class="container-fluid" id="profitloss_form">
                     <div class="row">
                         <div class="col-xl-6 col-sm-12">
                             <mat-spinner 
@@ -96,62 +89,62 @@
                             <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
                                 
                                 <ng-container matColumnDef="name" >
-                                    <th mat-header-cell *matHeaderCellDef class="padded" style="width:9%">
+                                    <th mat-header-cell *matHeaderCellDef class="bottom-bar-left border-bottom padded" style="width:9%">
                                     <span class="sortheader"> {{t('menu.table.name')}} </span></th>
-                                    <td mat-cell class="padded" style="padding-left: 50px; height: 35px;" *matCellDef="let row">
+                                    <td mat-cell class="padded" style="padding-left: 50px;" *matCellDef="let row">
                                          {{row.name=='writeoffs'?t('menu.indicators.writeoffs'):row.name}} 
-                                        </td>
+                                    </td>
                                 </ng-container>
                                 <ng-container matColumnDef="value">
-                                    <th mat-header-cell *matHeaderCellDef class="padded" style="width:9%;text-align: right;">
+                                    <th mat-header-cell *matHeaderCellDef class="padded border-bottom bottom-bar-right" style="width:9%;text-align: right;">
                                     <span class="sortheader"> {{t('menu.table.profit')}} </span></th>
-                                    <td mat-cell class="padded right" style="height: 35px;" *matCellDef="let row"><p style="margin: 5px">{{cu.numToPrice(row.value,2,true)}}</p></td>
+                                    <td mat-cell class="bottom-bar-right padded balance-bar right" *matCellDef="let row">{{cu.numToPrice(row.value,2,true)}}  </td>
                                 </ng-container>
                                 <!-- Выручка -->
                                 <ng-container matColumnDef="revenue_name" >
-                                    <th class="padded balance-bar bold" mat-header-cell *matHeaderCellDef> {{t('menu.indicators.revenue')}} </th>
+                                    <th class="bottom-bar-left padded balance-bar bold" mat-header-cell *matHeaderCellDef> {{t('menu.indicators.revenue')}} </th>
                                 </ng-container>
                                 <ng-container matColumnDef="revenue_value">
-                                    <th class="padded balance-bar bold right" mat-header-cell *matHeaderCellDef><p style="margin: 5px">{{cu.numToPrice(revenue,2,true)}}</p></th>
+                                    <th class="bottom-bar-right padded balance-bar bold right" mat-header-cell *matHeaderCellDef>{{cu.numToPrice(revenue,2,true)}}  </th>
                                 </ng-container>
                                 <!-- Себестоимость -->
                                 <ng-container matColumnDef="cost_price_name" >
-                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('menu.indicators.cost_price')}} </th>
+                                    <th class="bottom-bar-left padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('menu.indicators.cost_price')}} </th>
                                 </ng-container>
                                 <ng-container matColumnDef="cost_price_value">
-                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p style="margin: 5px">{{cu.numToPrice(cost_price,2,true)}}</p></th>
+                                    <th class="bottom-bar-right padded balance-bar right" mat-header-cell *matHeaderCellDef>{{cu.numToPrice(cost_price,2,true)}}    </th>
                                 </ng-container>
                                 <!-- Валовая прибыль -->
                                 <ng-container matColumnDef="gross_profit_name" >
-                                    <th class="padded balance-bar bold" mat-header-cell *matHeaderCellDef> {{t('menu.indicators.gross_profit')}} </th>
+                                    <th class="bottom-bar-left padded balance-bar bold" mat-header-cell *matHeaderCellDef> {{t('menu.indicators.gross_profit')}} </th>
                                 </ng-container>
                                 <ng-container matColumnDef="gross_profit_value">
-                                    <th class="padded balance-bar bold right" mat-header-cell *matHeaderCellDef><p style="margin: 5px">{{cu.numToPrice(gross_profit,2,true)}}</p></th>
+                                    <th class="bottom-bar-right padded balance-bar bold right" mat-header-cell *matHeaderCellDef>{{cu.numToPrice(gross_profit,2,true)}}     </th>
                                 </ng-container>
                                 <!-- Операционные расходы -->
                                 <ng-container matColumnDef="operating_expenses_name" >
-                                    <th class="padded balance-bar" mat-header-cell *matHeaderCellDef> {{t('menu.indicators.opex')}} </th>
+                                    <th class="bottom-bar-left padded balance-bar" style="border-bottom-width: 0px;" mat-header-cell *matHeaderCellDef> {{t('menu.indicators.opex')}} </th>
                                 </ng-container>
                                 <ng-container matColumnDef="operating_expenses_value">
-                                    <th class="padded balance-bar right" mat-header-cell *matHeaderCellDef><p style="margin: 5px">{{cu.numToPrice(operating_expenses,2,true)}}</p></th>
+                                    <th class="bottom-bar-right padded balance-bar right" style="border-bottom-width: 0px;" mat-header-cell *matHeaderCellDef>{{cu.numToPrice(operating_expenses,2,true)}}    </th>
                                 </ng-container>
                                 <!-- Операционная прибыль -->
                                 <ng-container matColumnDef="operating_profit_name">
-                                    <th class="bottom-bar-left padded balance-bar bold" style="padding-left: 24px; text-align: left;" mat-footer-cell *matFooterCellDef>{{t('menu.indicators.op_profit')}}</th>
+                                    <th class="bottom-bar-left padded balance-bar bold" style="border-top: 1px solid rgba(0,0,0,.12);" mat-footer-cell *matFooterCellDef>{{t('menu.indicators.op_profit')}}</th>
                                 </ng-container>
                                 <ng-container matColumnDef="operating_profit_value">
-                                    <th class="bottom-bar-right balance-bar balance-bar-bottom bold right" mat-footer-cell *matFooterCellDef>{{cu.numToPrice(operating_profit,2,true)}}</th>
+                                    <th class="bottom-bar-right balance-bar balance-bar-bottom bold right" style="border-top: 1px solid rgba(0,0,0,.12);" mat-footer-cell *matFooterCellDef>{{cu.numToPrice(operating_profit,2,true)}}</th>
                                 </ng-container>
                                 <!-- Налоги и сборы -->
                                 <ng-container matColumnDef="taxes_and_fees_name">
-                                    <th class="bottom-bar-left padded balance-bar normal" style="padding-left: 24px; text-align: left;" mat-footer-cell *matFooterCellDef>{{t('menu.indicators.taxes_n_fees')}}</th>
+                                    <th class="bottom-bar-left padded balance-bar normal" mat-footer-cell *matFooterCellDef>{{t('menu.indicators.taxes_n_fees')}}</th>
                                 </ng-container>
                                 <ng-container matColumnDef="taxes_and_fees_value">
                                     <th class="bottom-bar-right balance-bar balance-bar-bottom normal right" mat-footer-cell *matFooterCellDef>{{cu.numToPrice(taxes_and_fees,2,true)}}</th>
                                 </ng-container>
                                 <!-- Чистая прибыль -->
                                 <ng-container matColumnDef="net_profit_name">
-                                    <th class="bottom-bar-left padded balance-bar bold" style="padding-left: 24px; text-align: left;" mat-footer-cell *matFooterCellDef>{{t('menu.indicators.net_profit')}}</th>
+                                    <th class="bottom-bar-left padded balance-bar bold" mat-footer-cell *matFooterCellDef>{{t('menu.indicators.net_profit')}}</th>
                                 </ng-container>
                                 <ng-container matColumnDef="net_profit_value">
                                     <th class="bottom-bar-right balance-bar balance-bar-bottom bold right" mat-footer-cell *matFooterCellDef>{{cu.numToPrice(net_profit,2,true)}}</th>

@@ -23,7 +23,7 @@ li {list-style: none;}
     margin-top:-10px;
 }
 .internal-card{
-    padding: 10px 0 10px;
+    padding: 0;
     margin: 10px 0 10px 0;
 }
 .expansion-card-top{
@@ -88,20 +88,14 @@ li {list-style: none;}
     width:50%; 
     padding-left: 10px;
 }
-tr.mat-footer-row {
+tr.mat-mdc-footer-row {
     font-weight: bold;
 }
 
 .form-invalid{
     color: red;
 }
-.table-form-invalid{
-    color: red;
-    font-size: 11px;
-    line-height: 0.9em;
-    display: block;
-    font-style: italic;
-}
+ 
 .table-field-editable{
     border-bottom: 1px lightgray dotted;
 }
@@ -117,6 +111,7 @@ tr.mat-footer-row {
 
 
 
+/* TODO(mdc-migration): The following rule targets internal classes of select that may no longer apply for the MDC version. */
 ::ng-deep td  .mat-select-arrow { /*прячем стрелку mat-select НДС в таблице товаров*/
     border-top: 0px;
 }
@@ -126,15 +121,19 @@ div#status {
     flex-grow: 20;
     width: 200px;
 }
+/* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
 ::ng-deep div#status .mat-form-field-underline{
     height: 0px !important;
 }
+/* TODO(mdc-migration): The following rule targets internal classes of select that may no longer apply for the MDC version. */
 ::ng-deep div#status .mat-select-arrow{
     border-top: 0px !important;
 }
+/* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
 ::ng-deep div#status .mat-form-field-wrapper{
     padding-bottom: 0;
 }
+/* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
 ::ng-deep div#status .mat-form-field-underline{
     display:none;
 }
@@ -145,6 +144,7 @@ div#status {
     min-width: 350px !important;
 }
 
+/* TODO(mdc-migration): The following rule targets internal classes of button that may no longer apply for the MDC version. */
 ::ng-deep div#pricetype .mat-button-ripple.mat-ripple, .mat-button-focus-overlay {
     position: relative;
     left: -12px;
@@ -254,7 +254,7 @@ div#costPrice input {
     color: rgba(0, 0, 0, 0.7);
     z-index: 1000;
 }
-::ng-deep .mat-card-actions {
+::ng-deep .mat-mdc-card-actions {
     margin: 0px 5px -8px !important;
     padding: 0px 0 !important;
     font-size: x-small !important;
@@ -267,7 +267,7 @@ div#costPrice input {
     width: 100%px;
     margin: 8px 8px 8px 0;
   }
-::ng-deep .mat-stroked-button{
+::ng-deep .mat-mdc-outlined-button{
     line-height: 20px !important;
     width: 33.33%;
     font-size: 12px !important;

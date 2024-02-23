@@ -3,7 +3,7 @@
     <div class="row">
         <div class="col-12">
             <form #form="ngForm" [formGroup]="formSearch">
-                <mat-card class="internal-card">
+                <mat-card appearance="outlined" class="internal-card">
                     
                     <div class="flex card" style="padding: 0px 15px; font-size: 20px;">
                         <div class="card-name">
@@ -60,7 +60,7 @@
                                                         (input)="canAutocompleteQuery=true; checkEmptyProductField();"
                                                         (change)="canAutocompleteQuery=false; checkEmptyProductField();">
                                                         
-                                                        <button mat-button 
+                                                        <button
                                                         type="button"
                                                         (click)="openProductCard(formSearch.get('product_id').value)"
                                                         *ngIf="formSearchReadOnly" 
@@ -69,7 +69,7 @@
                                                             <mat-icon>launch</mat-icon>
                                                         </button>
 
-                                                        <button mat-button 
+                                                        <button
                                                         type="button"
                                                         *ngIf="formSearchReadOnly" 
                                                         matTooltip="{{t('modules.tip.clr_srch_form')}}"
@@ -85,21 +85,21 @@
                                                                             <span class="internal-card">{{value.name}}</span>
                                                                         </div>
                                                                     </mat-option>
-                                                                    <mat-chip-list class="mat-chip-list">
-                                                                        <mat-chip 
+                                                                    <mat-chip-listbox class="mat-chip-list">
+                                                                        <mat-chip-option 
                                                                             *ngIf="(value.total-value.reserved)>0" 
                                                                             matTooltip="{{t('modules.tip.instock_th_dp')}}"
                                                                             style="margin:12px 5px;flex-grow: 0;">
                                                                             <span style="color:green; font-weight: bold">{{value.total-value.reserved}}</span>
-                                                                        </mat-chip>
-                                                                        <mat-chip 
+                                                                        </mat-chip-option>
+                                                                        <mat-chip-option 
                                                                             *ngIf="(value.total-value.reserved)==0" 
                                                                             [matTooltip]="(value.total_in_all_my_depths-value.reserved_in_all_my_depths)>0?t('modules.tip.no_prod_but'):t('modules.tip.no_prod_nowhr')"
                                                                             [ngStyle]="(value.total_in_all_my_depths-value.reserved_in_all_my_depths)>0?{'background-color': 'LightGreen'}:{'background-color': '#e0e0e0'}"
                                                                             style="margin:12px 5px;flex-grow: 0;">
                                                                             <span style="color:rgb(122, 0, 0); font-weight: bold">{{value.total-value.reserved}}</span>
-                                                                        </mat-chip>
-                                                                    </mat-chip-list>
+                                                                        </mat-chip-option>
+                                                                    </mat-chip-listbox>
                                                                 </span>
                                                             </ng-container>
                                                         </mat-autocomplete>
@@ -149,7 +149,7 @@
                                                                             />
                                                                             <span matSuffix>
                                                                                 {{edizmName}}
-                                                                                <button mat-button 
+                                                                                <button
                                                                                     type="button"
                                                                                     (click)="openDialogProductReserves(formSearch.get('secondaryDepartmentId').value,this.formSearch.get('product_id').value )"
                                                                                     *ngIf="+formSearch.get('product_id').value>0" 
@@ -205,20 +205,20 @@
                                                                     style="padding:0px 5px; flex-grow: 1;">
                                                                     {{department.name}}
                                                                 </mat-option>
-                                                                <mat-chip-list *ngIf="formSearch.get('product_id').value>0" class="mat-chip-list">
-                                                                    <mat-chip 
+                                                                <mat-chip-listbox *ngIf="formSearch.get('product_id').value>0" class="mat-chip-list">
+                                                                    <mat-chip-option 
                                                                         *ngIf="(department.total-department.reserved)>0 && !gettingProductCount" 
                                                                         matTooltip="{{t('modules.tip.instock_th_dp')}}"
                                                                         style="margin: 8px;flex-grow: 0;">
                                                                         <span style="color:green; font-weight: bold">{{department.total-department.reserved}}</span>
-                                                                    </mat-chip>
-                                                                    <mat-chip 
+                                                                    </mat-chip-option>
+                                                                    <mat-chip-option 
                                                                         *ngIf="(department.total-department.reserved)==0 && !gettingProductCount" 
                                                                         matTooltip="{{t('modules.tip.nostock_th_dp')}}"
                                                                         style="margin: 8px;flex-grow: 0;">
                                                                         <span style="color:rgb(122, 0, 0); font-weight: bold">{{department.total-department.reserved}}</span>
-                                                                    </mat-chip>
-                                                                </mat-chip-list>
+                                                                    </mat-chip-option>
+                                                                </mat-chip-listbox>
                                                                 <mat-spinner 
                                                                     strokeWidth="3" 
                                                                     [diameter]="20"
@@ -398,7 +398,7 @@
                                                                             [readonly]="+formSearch.get('product_id').value==0?true:false"/>
                                                                     <span matSuffix>
                                                                         {{accountingCurrency}}
-                                                                        <button mat-button 
+                                                                        <button
                                                                             type="button"
                                                                             (click)="openDialogPricing(formSearch.get('product_id').value,formSearch.get('secondaryDepartmentId').value,formSearch.get('price_type_id').value, 'searchForm')"
                                                                             *ngIf="+formSearch.get('product_id').value>0" 

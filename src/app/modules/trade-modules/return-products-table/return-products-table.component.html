@@ -2,7 +2,7 @@
     <div class="row">
         <div class="col-12">
             <form #form="ngForm" [formGroup]="formSearch">
-                <mat-card class="internal-card">
+                <mat-card appearance="outlined" class="internal-card">
                     
                     <div class="flex card" style="padding: 0px 15px; font-size: 20px;">
                         <div class="card-name">
@@ -65,7 +65,7 @@
                                                         (input)="canAutocompleteQuery=true; checkEmptyProductField();"
                                                         (change)="canAutocompleteQuery=false; checkEmptyProductField();">
                                                         
-                                                        <button mat-button 
+                                                        <button
                                                         type="button"
                                                         (click)="openProductCard(formSearch.get('product_id').value)"
                                                         *ngIf="formSearchReadOnly" 
@@ -74,7 +74,7 @@
                                                             <mat-icon>launch</mat-icon>
                                                         </button>
 
-                                                        <button mat-button 
+                                                        <button
                                                         type="button"
                                                         *ngIf="formSearchReadOnly" 
                                                         matTooltip="{{t('modules.tip.clr_srch_form')}}"
@@ -90,20 +90,20 @@
                                                                             <span class="internal-card">{{value.name}}</span>
                                                                         </div>
                                                                     </mat-option>
-                                                                    <mat-chip-list class="mat-chip-list">
-                                                                        <mat-chip 
+                                                                    <mat-chip-listbox class="mat-chip-list">
+                                                                        <mat-chip-option 
                                                                             *ngIf="value.total>0" 
                                                                             matTooltip="{{t('modules.tip.instock_th_dp')}}"
                                                                             style="margin:12px 5px;flex-grow: 0;">
                                                                             <span style="color:green; font-weight: bold">{{value.total-value.reserved}}</span>
-                                                                        </mat-chip>
-                                                                        <mat-chip 
+                                                                        </mat-chip-option>
+                                                                        <mat-chip-option 
                                                                             *ngIf="value.total==0" 
                                                                             matTooltip="{{t('modules.tip.nostock_th_dp')}}"
                                                                             style="background-color: #e0e0e0; margin:12px 5px;flex-grow: 0;">
                                                                             <span style="color:rgb(122, 0, 0); font-weight: bold">{{value.total-value.reserved}}</span>
-                                                                        </mat-chip>
-                                                                    </mat-chip-list>
+                                                                        </mat-chip-option>
+                                                                    </mat-chip-listbox>
                                                                 </span>
                                                             </ng-container>
                                                         </mat-autocomplete>

@@ -79,8 +79,8 @@ table {width: 100%;}
 .balance-bar-bottom{
     text-align: left;
 }
-tr.mat-header-row, tr.mat-footer-row {
-    height: 30px    ;
+tr.mat-mdc-header-row, tr.mat-mdc-footer-row {
+    height: 60px    ;
 }
 .right{text-align: right !important;}
 .top-bar{
@@ -101,7 +101,7 @@ tr.mat-header-row, tr.mat-footer-row {
     border-bottom-style: solid; 
     border-bottom-color: rgba(0,0,0,.12);
 }
-tr.mat-row{
+tr.mat-mdc-row{
     height: 35px !important;
 }
 /******* опции *******/
@@ -176,8 +176,17 @@ li {list-style: none;}
     /*max-width: 210px;*/
 }
 
-::ng-deep #maininfo th.mat-header-cell:first-of-type{
-    padding-left: 40px;
+::ng-deep #maininfo th.mat-mdc-header-cell:first-of-type{
+    padding-left: 40px !important;
+}
+#maininfo th.mat-mdc-header-cell:last-of-type {
+    padding: 0 16px 0 0px !important;
+}
+#settings_table th{
+    padding: 5px 16px !important;
+}
+.date-range {
+    width: 268px !important;
 }
 /*Данные не найдены*/
 .spinner{

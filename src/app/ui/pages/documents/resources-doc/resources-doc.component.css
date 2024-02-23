@@ -46,7 +46,7 @@ li {list-style: none;}
     margin:-8.5px 5px 0 0;
 }
 
-tr.mat-footer-row {
+tr.mat-mdc-footer-row {
     font-weight: bold;
   }
 .form-invalid{
@@ -168,13 +168,7 @@ tr.mat-footer-row {
 .form-invalid{
     color: red;
 }
-.table-form-invalid{
-    color: red;
-    font-size: 11px;
-    line-height: 0.9em;
-    display: block;
-    font-style: italic;
-}
+ 
 .table-field-editable{
     border-bottom: 1px lightgray dotted;
 }

@@ -1,4 +1,4 @@
-<mat-card class="card for-sticky-header" *transloco="let t">
+<mat-card appearance="outlined" class="card for-sticky-header" *transloco="let t">
     <!-- <div class="top-bar-plug"></div> -->
     <mat-card-title class="top-bar container-fluid"> 
             <div class="row" id="topBlock">
@@ -42,7 +42,7 @@
     (!allowToView && +id>0) ||
     (!allowToCreate && +id==0)
 )"> 
-    <mat-card class="internal-card">
+    <mat-card appearance="outlined" class="internal-card">
         <mat-card-content style="font-size: 20px;font-weight: bold;color: red;text-align: center;height: 100px;padding: 38px 0;">
             {{t('docs.msg.no_perm')}}
         </mat-card-content>
@@ -62,7 +62,7 @@
                                 <div class="row" style="padding: 10px">
                                     <div class="col-lg-4  col-md-12">    
                                         <form [formGroup]="formBaseInformation">
-                                            <mat-card class="card-block">
+                                            <mat-card appearance="outlined" class="card-block">
                                                 <mat-card-header>
                                                     <mat-card-title class="card-title">{{t('docs.card.base_info')}}</mat-card-title>
                                                 </mat-card-header>
@@ -109,7 +109,7 @@
                                     </div>
                                     <div class="col-lg-8  col-md-12">    
 
-                                        <mat-card slyle="margin:10px;" *ngIf="+id>0">
+                                        <mat-card appearance="outlined" slyle="margin:10px;" *ngIf="+id>0">
                                             <mat-card-header>
                                                 <mat-card-title class="card-title">{{t('docs.card.permissions')}}</mat-card-title>
                                             </mat-card-header>
@@ -141,7 +141,7 @@
                         </mat-tab>
                         <mat-tab  *ngIf="+id>0"  label="{{t('docs.tab.about')}}">
                             <form [formGroup]="formAboutDocument">
-                                <mat-card style="margin:10px;">
+                                <mat-card appearance="outlined" style="margin:10px;">
                                     <mat-card-content class="input-form">
                                             <!-- <mat-form-field [ngClass]="{invisible: +id==0}">
                                                 <input  matInput

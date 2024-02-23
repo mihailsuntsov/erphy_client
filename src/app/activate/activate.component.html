@@ -1,6 +1,6 @@
 
   
-  <mat-card class="login-mat-card">
+  <mat-card appearance="outlined" class="login-mat-card">
     <div class="lang-select"
         [matMenuTriggerFor]="addDocMenu">
         <span>{{language}}</span><div class="arrow-wrap"><i class="material-icons" style="font-size: 18px;">arrow_drop_down</i></div>
@@ -26,7 +26,7 @@
 
       <div *ngIf="isActivated && !emptyUUID">
         <p>{{'user.msg.act_success' | transloco}}<br>{{'user.msg.please_login' | transloco}}</p>
-        <p><a routerLink="../auth/login" style="color:white"><button mat-button mat-raised-button color="primary" style="margin-top: 20px;">{{'user.btn.go_to_auth' | transloco}}</button></a></p>
+        <p><a routerLink="../auth/login" style="color:white"><button mat-raised-button color="primary" style="margin-top: 20px;">{{'user.btn.go_to_auth' | transloco}}</button></a></p>
       </div>
 
 

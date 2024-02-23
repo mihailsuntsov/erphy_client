@@ -1,4 +1,4 @@
-<mat-card class="card for-sticky-header" *transloco="let t">
+<mat-card appearance="outlined" class="card for-sticky-header" *transloco="let t">
   
     <mat-card-title class="top-bar container-fluid"> 
         <div class="row" id="topBlock">
@@ -72,7 +72,7 @@
         (!allowToView && +id>0) ||
         (!allowToCreate && +id==0)
     )"> 
-        <mat-card class="internal-card">
+        <mat-card appearance="outlined" class="internal-card">
             <mat-card-content style="font-size: 20px;font-weight: bold;color: red;text-align: center;height: 100px;padding: 38px 0;">
                 {{t('docs.msg.no_perm')}}
             </mat-card-content>
@@ -87,7 +87,7 @@
                         <div class="row">
                             <div class="col-lg-6  col-xl-6 col-md-12">  
 
-                                <mat-card class="internal-card" *ngIf="!storeTranslationModeOn">
+                                <mat-card appearance="outlined" class="internal-card" *ngIf="!storeTranslationModeOn">
                                     <mat-card-header>
                                         <mat-card-title class="card-title">{{t('docs.card.base_info')}}</mat-card-title>
                                     </mat-card-header>
@@ -196,7 +196,7 @@
                                         </form>
                                     </mat-card-content>
                                 </mat-card>
-                                <mat-card class="internal-card" *ngIf="storeTranslationModeOn">
+                                <mat-card appearance="outlined" class="internal-card" *ngIf="storeTranslationModeOn">
                                     <mat-card-header>
                                         <mat-card-title class="card-title">{{t('docs.card.transl')}}</mat-card-title>
                                     </mat-card-header>
@@ -206,7 +206,7 @@
                                                 <div class="container-fluid">        
                                                     <div class="row">
                                                         <div class="col-12">
-                                                            <mat-card style="margin:10px 0">
+                                                            <mat-card appearance="outlined" style="margin:10px 0">
                                                                 <mat-card-content class="input-form">
                                                                     <mat-form-field>
                                                                         <input  matInput
@@ -256,7 +256,7 @@
                             </div>
                             <div class="col-lg-6  col-xl-6 col-md-12">  
 
-                                <mat-card class="internal-card" *ngIf="+id>0" >
+                                <mat-card appearance="outlined" class="internal-card" *ngIf="+id>0" >
                                     <mat-card-header>
                                         <mat-card-title class="card-title">{{t('docs.card.terms')}}</mat-card-title>
                                         <div class="separator"></div>
@@ -295,7 +295,7 @@
 
                 <mat-tab  *ngIf="+id>0"  label="{{t('docs.tab.about')}}">
                     <form [formGroup]="formAboutDocument">
-                        <mat-card class="internal-card">
+                        <mat-card appearance="outlined" class="internal-card">
                             <mat-card-content class="input-form">
                                     <mat-form-field [ngClass]="{invisible: +id==0}">
                                         <input  matInput

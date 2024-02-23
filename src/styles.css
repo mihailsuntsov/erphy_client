@@ -1,4 +1,6 @@
 /* You can add global styles to this file, and also import other style files */
+/*@import '../node_modules/@angular/material/legacy-prebuilt-themes/legacy-deeppurple-amber.css';*/
+/* @import '@angular/material/legacy-prebuilt-themes/legacy-deeppurple-amber.css'; */
 @import '@angular/material/prebuilt-themes/deeppurple-amber.css';
 /* @import '@angular/material/prebuilt-themes/pink-bluegrey.css'; */
 
@@ -23,13 +25,8 @@ body {
   }
 
   .table-checkbox{
-    padding: 15px 15px 15px 24px !important;
+    padding: 0 15px !important;
     width:30px;
-  }
-
-  .table-launch-icon{
-    text-align: center; 
-    padding: 5px 0 0 !important;
   }
 
   .checkbox-col{/*узкая колонка чекбоксов в mat-table*/
@@ -52,6 +49,9 @@ body {
     position: -webkit-sticky;
     position: sticky;
     top: 0;
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 !important;
   }
   .for-sticky-header{
     height: 100vh;
@@ -64,7 +64,8 @@ body {
     font-weight: bold;
     vertical-align:sub;
   }
-  .mat-form-field-required-marker{/*звездочка от material design - не показываем*/
+  /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
+  .mat-mdc-form-field-required-marker{/*звездочка от material design - не показываем*/
     color:white !important; 
     font-size: 0px !important;
   }
@@ -86,12 +87,37 @@ body {
     border: 1px solid black;
 }
 /*для поля ввода номера документа*/
-#cardname .nowrap .mat-form-field-appearance-legacy .mat-form-field-infix {
+/* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
+#cardname .nowrap .docnumber .mat-mdc-form-field-infix {
   padding: 0 !important;
 }
 .docnumber{
   width:70px; margin-top:-30px
 }
+#cardname .nowrap .docnumber .mdc-line-ripple, #status .mdc-line-ripple, #status .mat-mdc-select-arrow{
+  display: none;
+}
+#cardname input[formcontrolname="doc_number"]{
+  border-bottom: 1px solid gray;
+}
+
+/* Status of document */
+.circle-in-selected {
+  width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  position: relative;
+  top: 20px;
+}
+mat-select[formcontrolname="status_id"] {
+  padding: 0px 0px 0px 15px!important;
+  position: relative!important;
+  top: -4px!important;
+}
+mat-select[formcontrolname="status_id"] .mat-mdc-select-value{
+  margin-left: 15px;
+}/* Status of document end*/
+
 /*спиннеры*/
 .field-spinner{
   position: absolute !important;
@@ -111,16 +137,7 @@ body {
 #topBlock .button{/*Для кнопок верхней панели*/
   margin: 0 5px 5px 0 !important;
 }
-/*.card .top-bar .row {Для кнопок верхней панели*/
-/*   
-  position: fixed !important;
-  width:fit-content; */
-/* background-color: azure;
-  top: 6px;
-  right: 0px;
-  width: 100%;
-  height: 20px; */
-/* } */
+
 .separator{
   flex-grow: 1;
 }
@@ -133,11 +150,12 @@ body {
   border-radius: 8px 8px 8px 8px !important;
   background-color: white;
   border-width: 0px !important;
-  top: -15px;
+  top: 0px;
+  white-space: nowrap;
   right: -2px;
-  width: 175px !important;
+  width: 210px !important;
   cursor: default !important;
-  height: 20px;
+  height: 20px !important;
   font-size:12px;
   line-height: 21px !important;
   margin: 0 2px !important;
@@ -152,7 +170,7 @@ body {
   font-weight: bold;
 }
 /* mat-tooltip (всплывающая подсказка) */
-.mat-tooltip {
+.mat-mdc-tooltip {
   /* background-color: darkblue !important; */
   font-size: 14px !important;
   white-space: pre-line !important;
@@ -171,11 +189,7 @@ body {
 .mat-icon{
   overflow: inherit !important;
 }
-.mat-card-title {
-  display: block;
-  background-color: white;
-  margin-bottom: 28px !important;
-}
+
 .quantity-field{
   display: inline-block;
   width: 60px !important;
@@ -184,11 +198,12 @@ body {
   display: inline-block;
   width: 45px !important;
 }
-.mat-card-header-text {
+/* TODO(mdc-migration): The following rule targets internal classes of card that may no longer apply for the MDC version. */
+/* .mat-card-header-text {
   margin: 0 16px !important;
-}
-.mat-card-content {
-  margin: 0 6px !important;
+} */
+.mat-mdc-card-content {
+  margin: 0 !important;
 } 
 
 .timepicker__header{
@@ -211,3 +226,136 @@ body {
   -ms-transform: translateY(-50%);
   transform: translateY(-50%);
 }
+/* After MDC migration */
+
+/* Form-field (Input) */
+.mdc-text-field--filled:not(.mdc-text-field--disabled) {
+  background-color: transparent !important;
+}
+.mdc-text-field{
+  padding: 0px!important;
+}
+.mat-mdc-form-field-hint-wrapper{
+  line-height: 12px!important;
+  padding:0!important;
+}
+.mat-mdc-form-field-bottom-align, .mat-mdc-form-field-bottom-align::before {
+  height: 14px!important;
+  line-height:14px !important;
+}/* Form-field (Input) end */
+
+.pagearrow {
+  font-size: 40px!important;
+  margin: 4px 15px 0px -7px!important;
+  cursor: default!important;
+}
+#result_form div div p{
+  margin: 30px 0 0 -10px!important;
+}
+mat-card-title{
+  padding: 0!important;
+}
+.mat-mdc-menu-panel.mat-mdc-menu-panel{
+  padding-bottom: 15px!important;
+  max-width: 350px!important;
+}
+
+#formControl .mat-mdc-form-field{
+  min-width: 60px;
+}
+#result_form .flex{
+  margin-bottom: -15px;
+  min-height: 80px;
+}
+.pagination{
+  margin-right: -19px;
+}
+.mat-mdc-card-title {
+  display: block;
+  background-color: white;
+  /*margin-bottom: 28px !important;*/
+  margin: 0px 0px 28px 0px !important;
+}
+app-products .categories-sidenav-content, app-remains .categories-sidenav-content, app-prices .categories-sidenav-content {
+  overflow: hidden;
+}
+.mat-mdc-card-header-text{
+  width:100%;
+}
+.mat-column-data_not_found{
+  text-align: center !important;
+}
+.table-launch-icon{
+  text-align: center;
+}
+.emptyspace.ng-star-inserted, li.ng-star-inserted{
+  overflow:unset;
+}
+.mdc-tab {
+  max-width: 200px;
+}
+.mat-mdc-form-field-focus-overlay {
+  background-color: transparent;
+}
+.mdc-data-table__cell, .mdc-data-table__header-cell {
+  padding: 0 0 0 16px !important;
+}
+.num-of-rows{
+  width: 60px !important;
+}
+.mat-mdc-form-field-icon-suffix, [dir=rtl] .mat-mdc-form-field-icon-prefix {
+  padding: 0 !important;
+}
+
+
+/* Mat-datapickeк icon */
+mat-datepicker-toggle .mat-mdc-icon-button {
+  width: 24px!important;
+  height: 24px!important;
+  padding: 6px!important;
+  top: 7px!important;
+  left: 0!important;
+}
+mat-datepicker-toggle .mat-mdc-icon-button .mat-datepicker-toggle-default-icon{
+  position: relative;
+  top: -7px;
+  left: -3px;
+  width: 18px!important;
+  height: 18px!important;
+}/* Mat-datapickeк icon end */
+
+/* Select list - user can't select if clicking not on the <SPAN> tag */
+.mat-mdc-option .mdc-list-item__primary-text {
+  line-height: 48px!important;
+  width: 100%!important;
+  padding-left:10px;
+}
+.mat-mdc-option{
+  padding: 0!important;
+}
+.mat-mdc-option .mat-pseudo-checkbox {
+  display: none;
+}
+
+/* Editable inputs in product tables */
+.table-field-editable {
+  border-bottom: 1px lightgray dotted!important;
+  border-width: 0 0 1px 0!important;
+}
+.table-field-editable:focus{
+  outline: none!important;
+  border-bottom: 1px lightgray solid!important;
+  border-width: 0 0 1px 0!important;
+}
+.table-form-invalid {
+  color: red;
+  font-size: 11px;
+  line-height: 1em;
+  display: inline-block;
+  font-style: italic;
+  margin-top: 2px;
+}
+table input[readonly="true"] {
+  outline: none!important;
+  border-width: 0 !important;
+}/* Editable inputs in product tables end */

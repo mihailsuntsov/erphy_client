@@ -295,13 +295,19 @@ export class SubscriptionComponent implements OnInit {
   }
 
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
-
+  getMoment(date){
+    return moment(date);
+  }
+  get datesExistAndValid(){
+    return(this.getMoment(this.formPaymentsHistory.dateFrom).isValid() && this.getMoment(this.formPaymentsHistory.dateTo).isValid());
+  }
   getData(){
-    if(this.allowToView)
-    {
-      this.getTable();
-      this.getMasterAccountInfo();
-    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})}
+    if(this.datesExistAndValid)
+      if(this.allowToView)
+      {
+        this.getTable();
+        this.getMasterAccountInfo();
+      } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})}
   }
 
   getTableHeaderTitles(){

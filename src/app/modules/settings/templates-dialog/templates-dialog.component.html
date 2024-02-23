@@ -1,4 +1,4 @@
-<mat-card class="card for-sticky-header" *transloco="let t" style="padding: 15px !important;">
+<mat-card appearance="outlined" class="card for-sticky-header" *transloco="let t" style="padding: 15px !important;">
     <mat-card-title class="flex">
         <div class="card-name">{{t('docs.docs.set_templates')}}</div>
         <button 
@@ -30,7 +30,7 @@
             ></mat-spinner>
             <form [formGroup]="formBaseInformation">
                 <div cdkDropList (cdkDropListDropped)="dropTemplate($event)" style="margin-top:40px">
-                    <mat-card   *ngFor="let template of formBaseInformation.get('templatesList').controls;let i = index" 
+                    <mat-card   appearance="outlined"   *ngFor="let template of formBaseInformation.get('templatesList').controls;let i = index" 
                                 [formGroup]="template"
                                 cdkDrag
                                 style="background-color: #f7f7f7; margin-top:5px">

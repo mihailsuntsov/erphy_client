@@ -18,7 +18,9 @@ table {width: 100%;}
     max-width: 400px;
     margin-left: 10px;
 }
-
+.date-range {
+    width: 268px !important;
+}
 .card-name{ flex-grow: 1; }
 
 .depatrment-select{flex-grow: 1;}

@@ -1,58 +1,57 @@
 
-<mat-card class="card for-sticky-header" *transloco="let t">
-    <form #formBI="ngForm" [formGroup]="formBaseInformation">
-        <!-- !!! -->
-        <!-- <div class="top-bar-plug"></div> -->
-        <mat-card-title class="top-bar container-fluid"> 
-            <div class="row" id="topBlock">
-                <div id="cardname">
-                    <div class="nowrap">{{t('docs.docs.c_order')}} {{t('docs.top.number')}}
-                        <mat-form-field class="docnumber" *ngIf="doc_number_isReadOnly && +id==0 && (+formBaseInformation.get('company_id').value>0)">                                                               
-                            <input  matInput
-                                    (click)="EditDocNumber()"
-                                    formControlName="doc_number"
-                                    [readonly]=true/>
-                        </mat-form-field>
-                        <mat-form-field class="docnumber" *ngIf="!doc_number_isReadOnly && +id==0 && (+formBaseInformation.get('company_id').value>0)">
-                            <input  matInput
-                                    #doc_number 
-                                    maxlength="10"
-                                    (keypress)="numberOnly($event)"
-                                    (keyup)="checkDocNumberUnical('customersorders')"
-                                    formControlName="doc_number"/>
-                            <mat-hint  align="start" style="font-size: x-small;margin-top: -1px;" *ngIf="formBaseInformation.get('doc_number').touched && formBaseInformation.get('doc_number').invalid">
-                                <i class="form-invalid" *ngIf="formBaseInformation.get('doc_number').errors.pattern" class="form-invalid">{{t('docs.error.num_only')}}</i>
-                            </mat-hint>
-                            <mat-hint align="end" *ngIf="doc_number.value.length>5 && !formBaseInformation.get('is_completed').value" style="font-size: x-small;margin-top: -1px;">{{doc_number.value.length}} / 10</mat-hint>
-                            <mat-progress-bar *ngIf="isDocNumberUnicalChecking" mode="indeterminate"></mat-progress-bar>
-                        </mat-form-field>
-                        <span [ngClass]="{invisible: +id==0}"> {{formBaseInformation.get('doc_number').value}}</span>
+<mat-card appearance="outlined" class="card for-sticky-header" *transloco="let t">
+    <mat-card-header class="card-header">
+        
+            <mat-card-title class="top-bar container-fluid"> 
+                <div class="row" id="topBlock">
+                    <div id="cardname">
+                        <div class="nowrap">{{t('docs.docs.c_order')}} {{t('docs.top.number')}}
+                            <mat-form-field class="docnumber" *ngIf="doc_number_isReadOnly && +id==0 && (+formBaseInformation.get('company_id').value>0)">                                                               
+                                <input  matInput
+                                        (click)="EditDocNumber()"
+                                        formControlName="doc_number"
+                                        [readonly]=true/>
+                            </mat-form-field>
+                            <mat-form-field class="docnumber" *ngIf="!doc_number_isReadOnly && +id==0 && (+formBaseInformation.get('company_id').value>0)">
+                                <input  matInput
+                                        #doc_number 
+                                        maxlength="10"
+                                        (keypress)="numberOnly($event)"
+                                        (keyup)="checkDocNumberUnical('customersorders')"
+                                        formControlName="doc_number"/>
+                                <mat-hint  align="start" style="font-size: x-small;margin-top: -1px;" *ngIf="formBaseInformation.get('doc_number').touched && formBaseInformation.get('doc_number').invalid">
+                                    <i class="form-invalid" *ngIf="formBaseInformation.get('doc_number').errors.pattern" class="form-invalid">{{t('docs.error.num_only')}}</i>
+                                </mat-hint>
+                                <mat-hint align="end" *ngIf="doc_number.value.length>5 && !formBaseInformation.get('is_completed').value" style="font-size: x-small;margin-top: -1px;">{{doc_number.value.length}} / 10</mat-hint>
+                                <mat-progress-bar *ngIf="isDocNumberUnicalChecking" mode="indeterminate"></mat-progress-bar>
+                            </mat-form-field>
+                            <span [ngClass]="{invisible: +id==0}"> {{formBaseInformation.get('doc_number').value}}</span>
+                        </div>
                     </div>
-                </div>
-                <div  id="status" style=" font-size: 15px;"> 
-                    <div class = "circle-in-selected" *ngIf="+formBaseInformation.get('status_id').value>0" [style.background-color]="formBaseInformation.get('status_color').value"></div>
-                    <mat-form-field  class="mat-form-field-100" style="margin-top: -25px;">
-                        <mat-select     style="padding: 0px 0px 0px 23px" 
-                                        panelClass="statuseslist"
-                                        formControlName="status_id"
-                                        (selectionChange)="setStatusColor();">
-                                        <!-- !!! -->
-                            <mat-option *ngFor="let status of receivedStatusesList" 
-                                        [ngClass]="{invisible: !(allowToUpdate && !formBaseInformation.get('is_completed').value)}"
-                                        [value]="status.id"
-                                        matTooltip={{status.description}}>
-                                        <div style="display: inline;line-height: 20px;">
-                                            <div class = "circle-wrapper">
-                                                <div class = "circle-in-list" [style.background-color]="status.color"></div>
+                    <div  id="status" style=" font-size: 15px;"> 
+                        <div class = "circle-in-selected" *ngIf="+formBaseInformation.get('status_id').value>0" [style.background-color]="formBaseInformation.get('status_color').value"></div>
+                        <mat-form-field  class="mat-form-field-100" style="margin-top: -25px;">
+                            <mat-select     style="padding: 0px 0px 0px 23px" 
+                                            panelClass="statuseslist"
+                                            formControlName="status_id"
+                                            (selectionChange)="setStatusColor();">
+                                            <!-- !!! -->
+                                <mat-option *ngFor="let status of receivedStatusesList" 
+                                            [ngClass]="{invisible: !(allowToUpdate && !formBaseInformation.get('is_completed').value)}"
+                                            [value]="status.id"
+                                            matTooltip={{status.description}}>
+                                            <div style="display: inline;line-height: 20px;">
+                                                <div class = "circle-wrapper">
+                                                    <div class = "circle-in-list" [style.background-color]="status.color"></div>
+                                                </div>
+                                                <div class = "status-name">{{status.name}}</div>
                                             </div>
-                                            <div class = "status-name">{{status.name}}</div>
-                                        </div>
-                            </mat-option>
-                        </mat-select>
-                        
-                    </mat-form-field>
-                </div>
-                <div class="separator"></div><!-- !!! -->
+                                </mat-option>
+                            </mat-select>
+                            
+                        </mat-form-field>
+                    </div>
+                    <div class="separator"></div><!-- !!! -->
                     <button 
                         mat-raised-button 
                         color="primary"
@@ -190,13 +189,15 @@
                     </a>
                 </div>
             </mat-card-title>
+        
+    </mat-card-header>
             <!-- !!! -->
             <mat-card-content *ngIf="rightsDefined && 
             (
                 (!allowToView && +id>0) ||
                 (!allowToCreate && +id==0)
             )"> 
-                <mat-card class="internal-card">
+                <mat-card appearance="outlined" class="internal-card">
                     <mat-card-content style="font-size: 20px;font-weight: bold;color: red;text-align: center;height: 100px;padding: 38px 0;">
                         {{t('docs.msg.no_perm')}}
                     </mat-card-content>
@@ -204,6 +205,7 @@
             </mat-card-content>
             <!-- !!! -->
             <mat-card-content *ngIf="!rightsDefined || (rightsDefined && (( +id>0 && allowToView)||(+id==0 && allowToCreate)))"> 
+                <form #formBI="ngForm" [formGroup]="formBaseInformation">
             <mat-tab-group
             (focusChange)="myTabFocusChange($event)"
             (selectedIndexChange)="myTabSelectedIndexChange($event)"  
@@ -213,7 +215,7 @@
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-lg-8 col-xl-8 col-md-12">  
-                                    <mat-card class="internal-card">
+                                    <mat-card appearance="outlined" class="internal-card">
                                         <mat-card-header>
                                             <mat-card-title class="card-title">{{t('docs.card.base_info')}}</mat-card-title>
                                         </mat-card-header>
@@ -809,7 +811,7 @@
                         <div class="col-12">
                             <div class="container-fluid">
                                 <div class="row">
-                                    <mat-card  style="margin:10px 0 10px; width:100%; min-height: 90vh;">
+                                    <mat-card  appearance="outlined"  style="margin:10px 0 10px; width:100%; min-height: 90vh;">
                                         <mat-card-header>
                                             <mat-card-title class="card-title">{{t('docs.card.linked')}}</mat-card-title>
                                         </mat-card-header>
@@ -836,7 +838,7 @@
                         <div class="col-xl-5 col-lg-5 col-md-8 col-sm-12">
                             <div class="container-fluid">
                                 <div class="row">
-                                    <mat-card  style="margin:10px 0 10px;width:100%;">
+                                    <mat-card  appearance="outlined"  style="margin:10px 0 10px;width:100%;">
                                         <mat-card-header>
                                             <mat-card-title class="card-title">{{t('docs.card.files')}}</mat-card-title>
                                         </mat-card-header>
@@ -884,7 +886,7 @@
                     </mat-tab>
                     <mat-tab  *ngIf="visAfterCreatingBlocks"  label="{{t('docs.tab.about')}}">
                         <form [formGroup]="formAboutDocument">
-                            <mat-card class="internal-card">
+                            <mat-card appearance="outlined" class="internal-card">
                                 <mat-card-content class="input-form">
                                         <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
                                             <input  matInput
@@ -916,10 +918,10 @@
                         </form>  
                     </mat-tab>
             </mat-tab-group>
-            
+        </form>
         </mat-card-content> 
         <!-- <code><pre>{{receivedDepartmentsList | json}}</pre></code> -->
-    </form>
+    
 </mat-card>
 
 

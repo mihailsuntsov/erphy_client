@@ -1,4 +1,4 @@
-<mat-card class="card" *transloco="let t">
+<mat-card appearance="outlined" class="card" *transloco="let t">
     <div class="icon-panel">
         <mat-icon   matTooltip="{{'modules.kpi.reprt_settggs' | transloco}}"    
                     (click)="onClickMenuIcon()"
@@ -60,7 +60,7 @@
                                     </div>
                                     <div class="col-lg-1 col-12">
 
-                                        <button mat-button
+                                        <button
                                         style="margin-left: 10px" 
                                         [matMenuTriggerFor]="oper"
                                         type="button"
@@ -101,11 +101,10 @@
                                                 name="search_input" 
                                                 style="width:100%"  
                                                 />
-                                                <button mat-button matSuffix mat-icon-button aria-label="search"  type="submit" (click)="setNumOfPages()">
+                                                <button matSuffix mat-icon-button aria-label="search"  type="submit" (click)="setNumOfPages()">
                                                     <mat-icon>search</mat-icon>
                                                 </button>
                                         </mat-form-field>
-                                        <!-- <button mat-button (click)="getData()"  type="submit" id="btn" style="min-width: 20px; padding: 0px;"><mat-icon>search</mat-icon></button> -->
                                     </div>
                                 </div>
                             </div>
@@ -126,7 +125,7 @@
                                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='p.name'" class="material-icons sortarrow">arrow_downward</i>
                                             </span>
                                             <td mat-cell *matCellDef="let row"> 
-                                                <a class="inactive" [routerLink]="['../../productsdoc', row.id ]">
+                                                <a class="inactive" [routerLink]="['../productsdoc', row.id ]">
                                                     {{row.name}}
                                                 </a>
                                             </td>
@@ -154,25 +153,25 @@
                                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='min_quantity'" class="material-icons sortarrow">arrow_downward</i>
                                             </span>
                                             <td mat-cell *matCellDef="let row"> 
-                                                <mat-chip-list>
-                                                    <mat-chip 
+                                                <mat-chip-listbox>
+                                                    <mat-chip-option 
                                                     *ngIf="row.min_quantity==-1" 
                                                     matTooltip="{{t('menu.tip.m_rem_d_depar')}}">
                                                         {{t('menu.top.rem_various')}}
-                                                    </mat-chip>
-                                                    <mat-chip 
+                                                    </mat-chip-option>
+                                                    <mat-chip-option 
                                                     *ngIf="+row.min_quantity==0"
                                                     matTooltip="{{t('menu.tip.m_rem_not_set')}} {{sendingQueryForm.departmentId=='0'?t('menu.tip._for_no_depth'):t('menu.tip._for_th_depth')}}"
                                                     >
                                                         {{t('menu.top.rem_not_set')}}
-                                                    </mat-chip>
-                                                    <mat-chip 
+                                                    </mat-chip-option>
+                                                    <mat-chip-option 
                                                     *ngIf="+row.min_quantity>0"
                                                     matTooltip="{{sendingQueryForm.departmentId=='0'?t('menu.tip.m_rem_for_all'):t('menu.tip.m_rem_in_dep')}}" 
                                                     >
                                                         {{row.min_quantity}}
-                                                    </mat-chip>
-                                                </mat-chip-list>
+                                                    </mat-chip-option>
+                                                </mat-chip-listbox>
                                             </td>
                                         </ng-container>
                                         <ng-container matColumnDef="estimate_quantity">
@@ -182,27 +181,27 @@
                                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='estimate_quantity'" class="material-icons sortarrow">arrow_downward</i>
                                             </span>
                                             <td mat-cell *matCellDef="let row"> 
-                                                <mat-chip-list>
-                                                    <mat-chip 
+                                                <mat-chip-listbox>
+                                                    <mat-chip-option 
                                                     *ngIf="row.estimate_quantity==2" 
                                                     matTooltip="{{t('menu.tip.prod_quantity')}} {{sendingQueryForm.departmentId=='0'?t('menu.tip._in_all_depth'):t('menu.tip._in_this_dept')}} {{t('menu.tip.m_th_min_rem')}}">
                                                         {{t('menu.top.enough')}}
-                                                    </mat-chip>
-                                                    <mat-chip 
+                                                    </mat-chip-option>
+                                                    <mat-chip-option 
                                                     *ngIf="row.estimate_quantity==1"
                                                     matTooltip="{{t('menu.tip.prod_quantity')}} {{sendingQueryForm.departmentId=='0'?t('menu.tip._in_all_depth'):t('menu.tip._in_this_dept')}} {{t('menu.tip.lol_min_rem')}}"
                                                     color="accent" 
                                                     selected>
                                                         {{t('menu.top.few')}}
-                                                    </mat-chip>
-                                                    <mat-chip 
+                                                    </mat-chip-option>
+                                                    <mat-chip-option 
                                                     *ngIf="row.estimate_quantity==0"
                                                     matTooltip="{{sendingQueryForm.departmentId=='0'?cu.cap(t('menu.tip.in_some_depth')):cu.cap(t('menu.tip._in_this_dept'))}} {{t('menu.tip.no_goods')}}" 
                                                     color="warn" 
                                                     selected>
                                                         {{t('menu.top.not_available')}}
-                                                    </mat-chip>
-                                                </mat-chip-list>
+                                                    </mat-chip-option>
+                                                </mat-chip-listbox>
 
                                             </td>
                                         </ng-container>
@@ -224,18 +223,18 @@
                                                             <li><mat-icon class="pagearrow inactive">first_page</mat-icon></li>                               
                                                     </ng-container>
                                                     
-                                                        <mat-chip-list>
+                                                        <mat-chip-listbox>
                                                             <ng-container *ngIf="page==pagenum;else templateElse">
-                                                                <li><mat-chip style="margin: 8px;" selected>
+                                                                <li><mat-chip-option style="margin: 8px;" selected>
                                                                     {{page}}               
-                                                                </mat-chip></li>
+                                                                </mat-chip-option></li>
                                                             </ng-container>
                                                             <ng-template #templateElse >
-                                                                <li><mat-chip  style="margin: 8px;"  (click)="setPage(page-1)">
+                                                                <li><mat-chip-option  style="margin: 8px;"  (click)="setPage(page-1)">
                                                                     {{page}}               
-                                                                </mat-chip></li>
+                                                                </mat-chip-option></li>
                                                             </ng-template>
-                                                        </mat-chip-list>
+                                                        </mat-chip-listbox>
                                                     <ng-container *ngIf="pagenum < listsize && page==maxpage">
                                                         <li><a (click)="setPage(listsize-1)"><mat-icon class="pagearrow active">last_page</mat-icon></a></li>
                                                     </ng-container>

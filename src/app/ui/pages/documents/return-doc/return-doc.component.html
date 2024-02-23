@@ -1,4 +1,4 @@
-<mat-card class="card for-sticky-header" *transloco="let t">
+<mat-card appearance="outlined" class="card for-sticky-header" *transloco="let t">
     <form #formBI="ngForm" [formGroup]="formBaseInformation">
         <!-- !!! -->
         <mat-card-title class="top-bar container-fluid"> 
@@ -94,7 +94,6 @@
                     </button>
                 </mat-menu>
                 <button 
-                    mat-button 
                     [matMenuTriggerFor]="addDocMenu"
                     mat-raised-button 
                     *ngIf="+id>0 && returnProductsTableComponent"
@@ -198,7 +197,7 @@
             (!allowToView && +id>0) ||
             (!allowToCreate && +id==0)
         )"> 
-            <mat-card class="internal-card">
+            <mat-card appearance="outlined" class="internal-card">
                 <mat-card-content style="font-size: 20px;font-weight: bold;color: red;text-align: center;height: 100px;padding: 38px 0;">
                     {{t('docs.msg.no_perm')}}
                 </mat-card-content>
@@ -215,7 +214,7 @@
                     <div class="container-fluid">
                         <div class="row">
                             <div class="col-xl-7 col-md-6 col-sm-12">  
-                                <mat-card class="internal-card">
+                                <mat-card appearance="outlined" class="internal-card">
                                     <mat-card-header>
                                         <mat-card-title class="card-title">{{t('docs.card.base_info')}}</mat-card-title>
                                     </mat-card-header>
@@ -463,7 +462,7 @@
                     <div class="col-12">
                         <div class="container-fluid">
                             <div class="row">
-                                <mat-card  style="margin:10px 0 10px; width:100%; min-height: 90vh;">
+                                <mat-card  appearance="outlined"  style="margin:10px 0 10px; width:100%; min-height: 90vh;">
                                     <mat-card-header>
                                         <mat-card-title class="card-title">{{t('docs.card.linked')}}</mat-card-title>
                                     </mat-card-header>
@@ -493,7 +492,7 @@
                     <div class="col-xl-5 col-lg-5 col-md-8 col-sm-12">
                         <div class="container-fluid">
                             <div class="row">
-                                <mat-card  style="margin:10px 0 10px;width:100%;">
+                                <mat-card  appearance="outlined"  style="margin:10px 0 10px;width:100%;">
                                     <mat-card-header>
                                         <mat-card-title class="card-title">{{t('docs.card.files')}}</mat-card-title>
                                     </mat-card-header>
@@ -545,7 +544,7 @@
                         <div class="container-fluid">
                             <div class="row">
                                    
-                                        <mat-card style="margin:10px 0 10px;width:100%;">
+                                        <mat-card appearance="outlined" style="margin:10px 0 10px;width:100%;">
                                             <form [formGroup]="formAboutDocument">
                                                 <mat-card-content class="input-form">
                                                         <mat-form-field [ngClass]="{invisible: +id==0}">

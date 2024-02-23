@@ -1,4 +1,4 @@
-<mat-card class="card" *transloco="let t">
+<mat-card appearance="outlined" class="card" *transloco="let t">
 
     <mat-card-title class="flex">
         <div class="card-name">{{actionType=='create'?('modules.card.term_create' | transloco):('modules.card.term_edit' | transloco)}}</div>
@@ -48,7 +48,7 @@
                     <div class="container-fluid">        
                         <div class="row">
                             <div class="col-12">
-                                <mat-card style="margin: 15px 0">
+                                <mat-card appearance="outlined" style="margin: 15px 0">
                                     <mat-card-content class="input-form">
                                         <mat-form-field style="width: 100%">
                                             <input  matInput

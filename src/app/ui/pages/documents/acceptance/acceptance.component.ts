@@ -572,9 +572,7 @@ export class AcceptanceComponent implements OnInit {
     const dialogSettings = this.settingsAcceptanceDialogComponent.open(SettingsAcceptanceDialogComponent, {
       maxWidth: '95vw',
       maxHeight: '95vh',
-      // height: '680px',
       width: '400px', 
-      minHeight: '650px',
       data:
       { //отправляем в диалог:
         receivedCompaniesList: this.receivedCompaniesList, //список предприятий

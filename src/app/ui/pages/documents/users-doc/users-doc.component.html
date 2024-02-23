@@ -1,4 +1,4 @@
-<mat-card class="card for-sticky-header" *transloco="let t">
+<mat-card appearance="outlined" class="card for-sticky-header" *transloco="let t">
     <mat-card-title class="top-bar container-fluid"> 
             <div class="row" id="topBlock">
                     <div class="card-name">{{t('docs.docs.user')}}</div>
@@ -41,7 +41,7 @@
     (!allowToView && +id>0) ||
     (!allowToCreate && +id==0)
 )"> 
-    <mat-card class="internal-card">
+    <mat-card appearance="outlined" class="internal-card">
         <mat-card-content style="font-size: 20px;font-weight: bold;color: red;text-align: center;height: 100px;padding: 38px 0;">
             {{t('docs.msg.no_perm')}}
         </mat-card-content>
@@ -61,7 +61,7 @@
                             <div class="container-fluid">
                                 <div class="row">
                                     <div class="col-lg-4 col-xl-4 col-md-6 col-12">  
-                                        <mat-card class="internal-card">
+                                        <mat-card appearance="outlined" class="internal-card">
                                             <mat-card-header>
                                                 <mat-card-title class="card-title">{{t('docs.card.base_info')}}</mat-card-title>
                                             </mat-card-header>
@@ -157,7 +157,7 @@
                                     </div>
                                     <div class="col-lg-4 col-xl-4 col-md-6 col-12">
                                         
-                                        <mat-card  class="internal-card">
+                                        <mat-card  appearance="outlined"  class="internal-card">
                                             <mat-card-header>
                                                 <mat-card-title class="card-title">{{t('docs.card.account')}}</mat-card-title>
                                             </mat-card-header>
@@ -237,7 +237,7 @@
                                                 </mat-form-field>
                                             </mat-card-content>
                                         </mat-card>
-                                        <mat-card  class="internal-card">
+                                        <mat-card  appearance="outlined"  class="internal-card">
                                             <mat-card-header>
                                                 <mat-card-title class="card-title">{{t('docs.card.perm_n_access')}}</mat-card-title>
                                             </mat-card-header>
@@ -280,7 +280,7 @@
 
                                     <div class="col-lg-4 col-xl-4 col-md-6 col-12" [ngClass]="{invisible: +id>0}">
                                         
-                                        <mat-card  class="internal-card">
+                                        <mat-card  appearance="outlined"  class="internal-card">
                                             <mat-card-header>
                                                 <mat-card-title class="card-title">{{t('docs.card.lang_n_stand')}}</mat-card-title>
                                             </mat-card-header>
@@ -298,7 +298,7 @@
                                                         [matAutocomplete]="lg" 
                                                         (input)="checkEmptyFields('languageId','languageName');"
                                                         (change)="checkEmptyFields('languageId','languageName');">
-                                                    <button mat-button 
+                                                    <button 
                                                         type="button"
                                                         class="clear-button"
                                                         (click)="clearField('languageName');checkEmptyFields('languageId','languageName');"
@@ -331,7 +331,7 @@
                                                         [matAutocomplete]="lc" 
                                                         (input)="checkEmptyFields('localeId','localeName');"
                                                         (change)="checkEmptyFields('localeId','localeName');">
-                                                    <button mat-button 
+                                                    <button 
                                                         type="button"
                                                         class="clear-button"
                                                         (click)="clearField('localeName');checkEmptyFields('localeId','localeName');"
@@ -358,7 +358,7 @@
                                                     [matAutocomplete]="auto" 
                                                     (input)="checkEmptyFields('timeZoneId','timeZoneName');"
                                                     (change)="checkEmptyFields('timeZoneId','timeZoneName');">
-                                                    <button mat-button 
+                                                    <button 
                                                         type="button"
                                                         class="clear-button"
                                                         (click)="clearField('timeZoneName');checkEmptyFields('timeZoneId','timeZoneName');"
@@ -390,7 +390,7 @@
                                 <div class="container-fluid">
                                     <div class="row">
                                         <div class="col-lg-4 col-xl-4 col-md-6 col-12">
-                                            <mat-card  class="internal-card">
+                                            <mat-card  appearance="outlined"  class="internal-card">
                                                 <mat-card-content class="input-form"  style="padding: 10px;">
                                                         <mat-form-field [ngClass]="{invisible: +id==0}">
                                                             <input  matInput

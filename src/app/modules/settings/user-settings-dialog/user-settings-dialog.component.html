@@ -1,4 +1,4 @@
-<mat-card class="card" *transloco="let t">
+<mat-card appearance="outlined" class="card" *transloco="let t">
     <mat-card-title class="flex">
         <div class="card-name">{{t('modules.card.settings')}}</div>
         <button 
@@ -36,7 +36,7 @@
                                     [matAutocomplete]="lg" 
                                     (input)="checkEmptyFields('languageId','languageName');"
                                     (change)="checkEmptyFields('languageId','languageName');">
-                                <button mat-button 
+                                <button
                                     type="button"
                                     class="clear-button"
                                     (click)="clearField('languageName');checkEmptyFields('languageId','languageName');"
@@ -69,7 +69,7 @@
                                     [matAutocomplete]="lc" 
                                     (input)="checkEmptyFields('localeId','localeName');"
                                     (change)="checkEmptyFields('localeId','localeName');">
-                                <button mat-button 
+                                <button
                                     type="button"
                                     class="clear-button"
                                     (click)="clearField('localeName');checkEmptyFields('localeId','localeName');"
@@ -118,7 +118,7 @@
                                     [matAutocomplete]="tz" 
                                     (input)="checkEmptyFields('timeZoneId','timeZoneName');"
                                     (change)="checkEmptyFields('timeZoneId','timeZoneName');">
-                                <button mat-button 
+                                <button 
                                     type="button"
                                     class="clear-button"
                                     (click)="clearField('timeZoneName'); checkEmptyFields('timeZoneId','timeZoneName');"

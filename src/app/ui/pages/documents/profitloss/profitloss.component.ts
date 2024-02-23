@@ -8,9 +8,8 @@ import { LoadSpravService } from '../../../../services/loadsprav';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { UntypedFormGroup, UntypedFormControl } from '@angular/forms';
-import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
-import { translate, TranslocoService } from '@ngneat/transloco'; //+++
-
+import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe';
+import { translate, TranslocoService } from '@ngneat/transloco';
 import { MomentDefault } from 'src/app/services/moment-default';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
@@ -150,7 +149,9 @@ export class ProfitlossComponent implements OnInit {
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
             );
   }
-
+  get datesExistAndValid(){
+    return(this.queryForm.controls.dateFrom.value!='' && !this.queryForm.controls.dateFrom.invalid && this.queryForm.controls.dateTo.value!='' && !this.queryForm.controls.dateTo.invalid) && this.queryForm.controls.dateFrom.value<=this.queryForm.controls.dateTo.value;
+  }
   getCRUD_rights(permissionsSet:any[]){
     this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==590)});
     this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==591)});
@@ -165,13 +166,14 @@ export class ProfitlossComponent implements OnInit {
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
 
   getData(){
-    if(this.refreshPermissions() && this.allowToView)
-    {
-      this.doFilterCompaniesList(); //если нет просмотра по всем предприятиям - фильтруем список предприятий до своего предприятия
-      this.getTableHeaderTitles();
-      // this.getTable();
-      this.getProfitlossBalances();
-    } else {this.gettingTableData=false;;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})}
+    if(this.datesExistAndValid)
+      if(this.refreshPermissions() && this.allowToView)
+      {
+        this.doFilterCompaniesList(); //если нет просмотра по всем предприятиям - фильтруем список предприятий до своего предприятия
+        this.getTableHeaderTitles();
+        // this.getTable();
+        this.getProfitlossBalances();
+      } else {this.gettingTableData=false;;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})}
   }
 
   getTableHeaderTitles(){

@@ -1,16 +1,16 @@
  
-  <mat-card *ngIf="isPasswordChanged" class="reg-mat-card text-center">
+  <mat-card appearance="outlined" *ngIf="isPasswordChanged" class="reg-mat-card text-center">
     <mat-card-title>
       {{'user.card.new_pwd' | transloco}}
     </mat-card-title>
     <mat-card-content class="text-center">
       {{'user.msg.pwd_rep_succs' | transloco}}<br>
-      <a routerLink="../auth/login" style="color:white"><button mat-button mat-raised-button color="primary" style="margin-top: 20px;">{{'user.btn.go_to_auth' | transloco}}</button></a>
+      <a routerLink="../auth/login" style="color:white"><button mat-raised-button color="primary" style="margin-top: 20px;">{{'user.btn.go_to_auth' | transloco}}</button></a>
     </mat-card-content>
   </mat-card>
   
   
-  <mat-card class="login-mat-card" *ngIf="!isPasswordChanged">
+  <mat-card appearance="outlined" class="login-mat-card" *ngIf="!isPasswordChanged">
     <div class="lang-select"
         [matMenuTriggerFor]="addDocMenu">
         <span>{{language}}</span><div class="arrow-wrap"><i class="material-icons" style="font-size: 18px;">arrow_drop_down</i></div>
@@ -42,7 +42,7 @@
                 [type]="showPwd ? 'text' : 'password'"  
                 [ngClass]="{'is-invalid':newpassform.get('password').touched && newpassform.get('password').invalid}" 
                 />
-                <button mat-button 
+                <button
                     type="button"
                     class="clear-button"
                     (click)="password()"
@@ -57,7 +57,7 @@
                 </mat-hint>
               </mat-form-field>
 
-              <button mat-button mat-raised-button color="primary" style="margin-top: 20px;" (click)="onSubmit()">{{'user.btn.pwd_create' | transloco}}</button>
+              <button mat-raised-button color="primary" style="margin-top: 20px;" (click)="onSubmit()">{{'user.btn.pwd_create' | transloco}}</button>
               
             </form>
             <div *ngIf="emptyUUID" class="form-invalid">

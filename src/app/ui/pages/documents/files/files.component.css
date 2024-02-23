@@ -130,7 +130,7 @@ flex: 1 1 auto;
 .grid-card {
     width: 164px;
     overflow: hidden;
-    height: 174px;
+    height: 204px;
   }
   .grid-header-image {
     background-image: url('https://material.angular.io/assets_/img/examples/shiba1.jpg');
@@ -160,7 +160,7 @@ flex: 1 1 auto;
     text-align: center;
     vertical-align: middle;
     overflow: hidden;
-   
+    padding-top: 14px;
   }
   .selected_mode_button{
     height: 48px;
@@ -181,7 +181,7 @@ flex: 1 1 auto;
   .evenly{
     justify-content: center;
   }  
-  ::ng-deep .mat-dialog-container app-files{
+  ::ng-deep .mat-mdc-dialog-container app-files{
     height: 100%;
   }
 

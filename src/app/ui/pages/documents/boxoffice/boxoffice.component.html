@@ -4,24 +4,26 @@ class="spinner"
 [diameter]="50"
 *ngIf="gettingTableData"
 ></mat-spinner>
-<mat-card class="card" *transloco="let t">
-    <mat-card-title class="flex" style="height: 30px;">
-        <div *ngIf="!displayingDeletedDocs" class="card-name">{{cu.cap(t('menu.docs.boxoffices'))}}</div>
-        <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">{{t('menu.top.deleted')}}</span> {{t('menu.docs.boxoffices')}}</div>
-        <div [style.display]="(visBtnAdd  && !displayingDeletedDocs)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
-            <a [routerLink]="['../../boxofficedoc', '']">
-                <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> {{t('menu.top.btn_create')}}</button>
-            </a>   
-        </div>
-        <div [style.display]="(!displayingDeletedDocs && visBtnDelete)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
-            <button mat-raised-button (click)="clickBtnDelete()" color="warn"><i class="material-icons">delete_forever</i> {{t('menu.top.btn_delete')}}</button>
-        </div>
+<mat-card appearance="outlined" class="card" *transloco="let t">
+    <mat-card-header>
+        <mat-card-title class="flex" style="height: 30px;">
+            <div *ngIf="!displayingDeletedDocs" class="card-name">{{cu.cap(t('menu.docs.boxoffices'))}}</div>
+            <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">{{t('menu.top.deleted')}}</span> {{t('menu.docs.boxoffices')}}</div>
+            <div [style.display]="(visBtnAdd  && !displayingDeletedDocs)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
+                <a [routerLink]="['../boxofficedoc', '']">
+                    <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> {{t('menu.top.btn_create')}}</button>
+                </a>   
+            </div>
+            <div [style.display]="(!displayingDeletedDocs && visBtnDelete)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
+                <button mat-raised-button (click)="clickBtnDelete()" color="warn"><i class="material-icons">delete_forever</i> {{t('menu.top.btn_delete')}}</button>
+            </div>
 
-        <div *ngIf="displayingDeletedDocs && visBtnDelete" class="col-sm-auto justify-content-center" style="margin:0px 10px 10px 0px">
-            <button mat-raised-button (click)="clickBtnRestore()" color="accent"><i class="material-icons">restore_from_trash</i> {{t('menu.top.btn_restore')}}</button>
-        </div>
+            <div *ngIf="displayingDeletedDocs && visBtnDelete" class="col-sm-auto justify-content-center" style="margin:0px 10px 10px 0px">
+                <button mat-raised-button (click)="clickBtnRestore()" color="accent"><i class="material-icons">restore_from_trash</i> {{t('menu.top.btn_restore')}}</button>
+            </div>
 
-    </mat-card-title>
+        </mat-card-title>
+    </mat-card-header>
     <mat-card-content>
         <div class="card  w-100">
             <div class="card-body">
@@ -59,7 +61,7 @@ class="spinner"
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
-                        <button mat-button  
+                        <button  
                             class="filter-button"
                             matTooltip="{{t('docs.button.refresh')}}"
                             (click)="getTable()"  
@@ -69,7 +71,7 @@ class="spinner"
                         </button>
                         <span  class="emptyspace"></span>
                         <span  class="card-name"></span>
-                            <button mat-button
+                            <button
                                 *ngIf="displaySelectOptions"
                                 class="options-button"
                                 [matMenuTriggerFor]="oper"
@@ -108,7 +110,7 @@ class="spinner"
                                     id="search_input" 
                                     name="search_input" 
                                     style="width:150px"/>
-                                    <button mat-button matSuffix mat-icon-button aria-label="search"  type="submit" (click)="getData()">
+                                    <button matSuffix mat-icon-button aria-label="search"  type="submit" (click)="getData()">
                                         <mat-icon>search</mat-icon>
                                     </button>
                             </mat-form-field>
@@ -135,7 +137,7 @@ class="spinner"
                         <ng-container matColumnDef="opendoc">
                             <th mat-header-cell *matHeaderCellDef></th>
                             <td mat-cell *matCellDef="let row" class="table-launch-icon">
-                                <a class="inactive" [routerLink]="['../../boxofficedoc', row.id ]">
+                                <a class="inactive" [routerLink]="['../boxofficedoc', row.id ]">
                                     <mat-icon style="padding: 0 5px 0 0">launch</mat-icon>
                                 </a>
                             </td>   
@@ -216,18 +218,18 @@ class="spinner"
                                         <ng-container *ngIf="i==3 && pagenum==1">
                                                 <li><mat-icon class="pagearrow inactive">first_page</mat-icon></li>                               
                                         </ng-container>
-                                            <mat-chip-list>
-                                                <ng-container *ngIf="page==pagenum;else templateElse">
-                                                    <li><mat-chip style="margin: 8px;" selected>
-                                                        {{page}}               
-                                                    </mat-chip></li>
-                                                </ng-container>
-                                                <ng-template #templateElse >
-                                                    <li><mat-chip  style="margin: 8px;"  (click)="setPage(page-1)">
-                                                        {{page}}               
-                                                    </mat-chip></li>
-                                                </ng-template>
-                                            </mat-chip-list>
+                                        <mat-chip-listbox>
+                                            <ng-container *ngIf="page==pagenum;else templateElse">
+                                                <li><mat-chip-option style="margin: 8px;" selected>
+                                                    {{page}}               
+                                                </mat-chip-option></li>
+                                            </ng-container>
+                                            <ng-template #templateElse >
+                                                <li><mat-chip-option  style="margin: 8px;"  (click)="setPage(page-1)">
+                                                    {{page}}               
+                                                </mat-chip-option></li>
+                                            </ng-template>
+                                        </mat-chip-listbox>
                                         <ng-container *ngIf="pagenum < listsize && page==maxpage">
                                             <li><a (click)="setPage(listsize-1)"><mat-icon class="pagearrow active">last_page</mat-icon></a></li>
                                         </ng-container>

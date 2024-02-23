@@ -13,7 +13,7 @@
                             style="width:100%"  
                             />
                     </mat-form-field>
-                    <button mat-button (click)="searchCategory()"  type="submit" id="btn" style="min-width: 20px; padding: 0px;"><mat-icon>search</mat-icon></button> -->
+                    <button (click)="searchCategory()"  type="submit" id="btn" style="min-width: 20px; padding: 0px;"><mat-icon>search</mat-icon></button> -->
                 </div>
             <span style="flex-grow: 1;"></span>
         </div>
@@ -72,7 +72,7 @@
 
     </mat-drawer>
     <div class="categories-sidenav-content">
-        <mat-card class="card for-sticky-header">
+        <mat-card appearance="outlined" class="card for-sticky-header">
         
             <mat-card-title class="top-bar container-fluid">
                 <div class="row" id="topBlock">
@@ -122,7 +122,7 @@
                 (!allowToView && +id>0) ||
                 (!allowToCreate && +id==0)
             )"> 
-                <mat-card class="internal-card">
+                <mat-card appearance="outlined" class="internal-card">
                     <mat-card-content style="font-size: 20px;font-weight: bold;color: red;text-align: center;height: 100px;padding: 38px 0;">
                         {{t('docs.msg.no_perm')}}
                     </mat-card-content>
@@ -151,7 +151,7 @@
                                         <div class="container">
                                             <div class="row" style="padding: 10px">
                                                 <div class="col-12 col-lg-4">
-                                                    <mat-card class="carg-foto"> 
+                                                    <mat-card appearance="outlined" class="carg-foto"> 
                                                          <div class="div-foto" *ngIf="
                                                             formBaseInformation.get('extention').value.toUpperCase() != '.PNG' && 
                                                             formBaseInformation.get('extention').value.toUpperCase() != '.JPG' && 
@@ -166,7 +166,7 @@
                                                     </mat-card>
                                                 </div>
                                                 <div class="col-12 col-lg-8">    
-                                                    <mat-card>
+                                                    <mat-card appearance="outlined">
 
                                                         <mat-card-content class="input-form">
 
@@ -217,7 +217,7 @@
                                                                             <mat-slide-toggle 
                                                                             formControlName="anonyme_access"
                                                                             >{{t('docs.field.shared_file')}}</mat-slide-toggle>
-                                                                            <button mat-button 
+                                                                            <button 
                                                                             matSuffix 
                                                                             *ngIf="formBaseInformation.get('anonyme_access').value"
                                                                             mat-icon-button 
@@ -243,7 +243,7 @@
 
                                 <mat-tab  *ngIf="+id>0"  label="{{t('docs.tab.about')}}">
                                     <form [formGroup]="formAboutDocument">
-                                        <mat-card style="margin:10px;">
+                                        <mat-card appearance="outlined" style="margin:10px;">
                                             <mat-card-content class="input-form">
                                                     <mat-form-field [ngClass]="{invisible: +id==0}">
                                                         <input  matInput

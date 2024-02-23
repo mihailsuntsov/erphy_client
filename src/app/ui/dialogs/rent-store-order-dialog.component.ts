@@ -41,7 +41,7 @@ interface IdAndName {
     selector: 'deletedialog',
     template:` 
     
-    <mat-card class="card for-sticky-header" *transloco="let t" style="height: 100%;">
+    <mat-card appearance="outlined" class="card for-sticky-header" *transloco="let t" style="height: 100%;">
 
         <mat-spinner 
         strokeWidth="3" 
@@ -85,7 +85,7 @@ interface IdAndName {
 
 
 
-                        <mat-card class="card for-sticky-header" style="height: 560px; margin-top: 10px;">
+                        <mat-card appearance="outlined" class="card for-sticky-header" style="height: 560px; margin-top: 10px;">
                             <mat-card-title class="top-bar container-fluid" style="margin-bottom: 0px !important;"> 
                                 <div class="row" id="topBlock">
                                     <div class="card-name">
@@ -135,7 +135,7 @@ interface IdAndName {
 
 
 
-                        <mat-card class="card for-sticky-header" style="height: 560px; margin-top: 10px;">
+                        <mat-card appearance="outlined" class="card for-sticky-header" style="height: 560px; margin-top: 10px;">
                             
                             <mat-card-title class="top-bar container-fluid" style="margin-bottom: 0px !important;"> 
                                 <div class="row" id="topBlock">
@@ -229,7 +229,7 @@ interface IdAndName {
 
 
                 <mat-step [stepControl]="thirdFormGroup" label="{{t('docs.card.ready')}}!" [editable]="false">
-                    <mat-card class="card for-sticky-header" style="height: 543px; margin-top: 10px;">
+                    <mat-card appearance="outlined" class="card for-sticky-header" style="height: 543px; margin-top: 10px;">
                         <mat-card-content>
 
                             
@@ -289,6 +289,7 @@ interface IdAndName {
     .mat-mdc-form-field {
     margin-top: 16px;
     }
+    /* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
     ::ng-deep #site_name .mat-form-field-infix {
         display: inline-flex !important;
         align-items: baseline;

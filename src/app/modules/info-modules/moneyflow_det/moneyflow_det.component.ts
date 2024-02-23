@@ -13,6 +13,7 @@ import { translate } from '@ngneat/transloco'; //+++
 import { MomentDefault } from 'src/app/services/moment-default';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+import { CommonUtilitesService } from 'src/app/services/common_utilites.serviсe';
 const MY_FORMATS = MomentDefault.getMomentFormat();
 const moment = MomentDefault.getMomentDefault();
 
@@ -53,7 +54,7 @@ export interface NumRow {//интерфейс для списка количес
   providers: [
     {provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]}, //+++
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
-    /*QueryFormService,*/LoadSpravService,Cookie]
+    /*QueryFormService,*/LoadSpravService,CommonUtilitesService,Cookie]
 })
 export class MoneyflowDetComponent implements OnInit {
   queryForm:any;//форма для отправки запроса 
@@ -111,6 +112,7 @@ export class MoneyflowDetComponent implements OnInit {
     private _snackBar: MatSnackBar,
     public universalCategoriesDialog: MatDialog,
     private MessageDialog: MatDialog,
+    public cu: CommonUtilitesService,
     public confirmDialog: MatDialog,
     private http: HttpClient,
     public deleteDialog: MatDialog,
@@ -193,18 +195,21 @@ export class MoneyflowDetComponent implements OnInit {
     return true;
   }
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
-
-
+  
+  get datesExistAndValid(){
+    return(this.queryForm.controls.dateFrom.value!='' && !this.queryForm.controls.dateFrom.invalid && this.queryForm.controls.dateTo.value!='' && !this.queryForm.controls.dateTo.invalid) && this.queryForm.controls.dateFrom.value<=this.queryForm.controls.dateTo.value;
+  }
 
   getData(){
-    if(this.refreshPermissions() && this.allowToView)
-    {
-      this.doFilterCompaniesList(); //если нет просмотра по всем предприятиям - фильтруем список предприятий до своего предприятия
-      this.getTableHeaderTitles();
-      this.getPagesList();
-      this.getTable();
-      this.getMoneyflowBalances();
-    } else {this.gettingTableData=false;;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:"Нет прав на просмотр"}})}
+    if(this.datesExistAndValid)
+      if(this.refreshPermissions() && this.allowToView)
+      {
+        this.doFilterCompaniesList(); //если нет просмотра по всем предприятиям - фильтруем список предприятий до своего предприятия
+        this.getTableHeaderTitles();
+        this.getPagesList();
+        this.getTable();
+        this.getMoneyflowBalances();
+      } else {this.gettingTableData=false;;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:"Нет прав на просмотр"}})}
   }
 
   getTableHeaderTitles(){

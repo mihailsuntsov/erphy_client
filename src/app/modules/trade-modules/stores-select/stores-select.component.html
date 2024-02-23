@@ -1,4 +1,4 @@
-<mat-card class="card" *transloco="let t">
+<mat-card appearance="outlined" class="card" *transloco="let t">
 
     <mat-card-title class="flex">
         <div class="card-name">{{('modules.card.str_select' | transloco)}}</div>
@@ -49,22 +49,22 @@
             
             
         </div>
-        <mat-card class="card" *ngIf="selectedObjects.length>0">
+        <mat-card appearance="outlined" class="card" *ngIf="selectedObjects.length>0">
             <mat-card-title class="flex">
                 <div class="card-name" style="font-size: 20px;">{{('modules.card.str_selectd' | transloco)}}</div>
             </mat-card-title>
             <mat-card-content>
                 <mat-form-field class="chip-list" appearance="fill">
-                    <mat-chip-list #chipList aria-label="Selected objects">
-                        <mat-chip
+                    <mat-chip-listbox #chipList aria-label="Selected objects">
+                        <mat-chip-option
                         *ngFor="let object of selectedObjects"
                         [selectable]="selectable"
                         [removable]="removable"
                         (removed)="remove(object)">
                         {{object.name}}
                         <mat-icon matChipRemove *ngIf="removable">cancel</mat-icon>
-                        </mat-chip>
-                    </mat-chip-list>
+                        </mat-chip-option>
+                    </mat-chip-listbox>
                 </mat-form-field>
             </mat-card-content>
         </mat-card>

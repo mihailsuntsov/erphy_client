@@ -29,7 +29,7 @@ li {list-style: none;}
 
 .card-name{ flex-grow: 1; }
 
-.mat-card-title {
+.mat-mdc-card-title {
     margin-bottom: 12px !important;
 }
 
@@ -53,7 +53,7 @@ li {list-style: none;}
     margin:-8.5px 5px 0 0;
 }
 
-tr.mat-footer-row {
+tr.mat-mdc-footer-row {
     font-weight: bold;
   }
 .form-invalid{

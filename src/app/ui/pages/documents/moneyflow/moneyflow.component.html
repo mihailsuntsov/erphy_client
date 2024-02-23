@@ -4,10 +4,12 @@ class="spinner"
 [diameter]="50"
 *ngIf="gettingTableData"
 ></mat-spinner>
-<mat-card class="card" *transloco="let t">
-    <mat-card-title class="flex" style="height: 30px;">
-        <div *ngIf="!displayingDeletedDocs" class="emptyspace">{{cu.cap(t('menu.docs.moneyflow'))}}</div>
-    </mat-card-title>
+<mat-card appearance="outlined" class="card" *transloco="let t">
+    <mat-card-header>
+        <mat-card-title class="flex" style="height: 30px;">
+            <div *ngIf="!displayingDeletedDocs" class="emptyspace">{{cu.cap(t('menu.docs.moneyflow'))}}</div>
+        </mat-card-title>
+    </mat-card-header>
     <mat-card-content>
         <div class="card  w-100">
             <div class="card-body">
@@ -58,7 +60,18 @@ class="spinner"
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
-                        <mat-form-field style="width: 100px; margin: 0 10px;">
+                        <mat-form-field class="date-range" style="margin-left:10px;">
+                            <mat-label>{{t('menu.top.date_range')}}</mat-label>
+                            <mat-date-range-input [rangePicker]="picker">
+                              <input matStartDate (dateChange)="getData()" formControlName="dateFrom" placeholder="{{t('menu.top.date_from')}}">
+                              <input matEndDate (dateChange)="getData()" formControlName="dateTo" placeholder="{{t('menu.top.date_to')}}">
+                            </mat-date-range-input>
+                            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                            <mat-date-range-picker #picker></mat-date-range-picker>
+                              <mat-error *ngIf="queryForm.controls.dateFrom.touched && queryForm.controls.dateFrom.invalid"><i>{{t('menu.top.start_date')}}</i></mat-error>
+                              <mat-error *ngIf="queryForm.controls.dateTo.touched && queryForm.controls.dateTo.invalid"><i>{{t('docs.error.end_date')}}</i></mat-error>
+                        </mat-form-field>
+                        <!-- <mat-form-field style="width: 100px; margin: 0 10px;">
                             <input  matInput 
                                     formControlName="dateFrom"
                                     placeholder="{{t('menu.top.date_from')}}"
@@ -79,8 +92,8 @@ class="spinner"
                                     matSuffix [for]="dpTo" 
                                     ></mat-datepicker-toggle>
                             <mat-datepicker #dpTo></mat-datepicker>
-                        </mat-form-field>
-                        <button mat-button  
+                        </mat-form-field> -->
+                        <button 
                             class="filter-button"
                             matTooltip="{{t('docs.button.refresh')}}"
                             (click)="clickApplyFilters()"  
@@ -97,7 +110,7 @@ class="spinner"
 
 
                         <span  class="emptyspace"></span>
-                        <!-- <button mat-button
+                        <!-- <button
                             *ngIf="displaySelectOptions"
                             class="options-button"
                             [matMenuTriggerFor]="oper"
@@ -139,7 +152,7 @@ class="spinner"
                                     id="search_input" 
                                     name="search_input" 
                                     style="width:150px"/>
-                                    <button mat-button matSuffix mat-icon-button aria-label="search"  type="submit" (click)="getData()">
+                                    <button matSuffix mat-icon-button aria-label="search"  type="submit" (click)="getData()">
                                         <mat-icon>search</mat-icon>
                                     </button>
                             </mat-form-field>
@@ -232,35 +245,35 @@ class="spinner"
                                 <th colspan="4" style="padding-left:25px" class="padded balance-bar balance-bar-bottom" mat-footer-cell *matFooterCellDef>{{t('menu.table.clsng_balance')}}</th>
                             </ng-container>
                             <ng-container matColumnDef="summ_bottom_pa">
-                                <th colspan="3" class="padded balance-bar balance-bar-bottom" mat-footer-cell *matFooterCellDef>{{summ_result_pa}}</th>
+                                <th colspan="3" class="padded balance-bar balance-bar-bottom" style="padding-left: 16px;" mat-footer-cell *matFooterCellDef>{{summ_result_pa}}</th>
                             </ng-container>
                             <ng-container matColumnDef="summ_bottom_bx">
-                                <th colspan="3" class="padded balance-bar balance-bar-bottom" mat-footer-cell *matFooterCellDef>{{summ_result_bx}}</th>
+                                <th colspan="3" class="padded balance-bar balance-bar-bottom" style="padding-left: 16px;" mat-footer-cell *matFooterCellDef>{{summ_result_bx}}</th>
                             </ng-container>
                             <ng-container matColumnDef="summ_bottom_all">
-                                <th             class="padded balance-bar balance-bar-bottom" mat-footer-cell *matFooterCellDef>{{summ_result_all}}</th>
+                                <th             class="padded balance-bar balance-bar-bottom" style="padding-left: 16px;" mat-footer-cell *matFooterCellDef>{{summ_result_all}}</th>
                             </ng-container>
                             <!-- totals -->
                             <ng-container matColumnDef="totals_name">
                                 <th colspan="2" style="padding-left:25px" class="padded balance-bar balance-bar-bottom" mat-footer-cell *matFooterCellDef>{{t('menu.table.sum_period')}}</th>
                             </ng-container>
                             <ng-container matColumnDef="total_summ_in_pa">
-                                <th             class="padded balance-bar balance-bar-bottom" mat-footer-cell *matFooterCellDef>{{total_summ_in_pa}}</th>
+                                <th             class="padded balance-bar balance-bar-bottom" style="padding-left: 16px;" mat-footer-cell *matFooterCellDef>{{total_summ_in_pa}}</th>
                             </ng-container>
                             <ng-container matColumnDef="total_summ_out_pa">
-                                <th colspan="2" class="padded balance-bar balance-bar-bottom" mat-footer-cell *matFooterCellDef>{{total_summ_out_pa}}</th>
+                                <th colspan="2" class="padded balance-bar balance-bar-bottom" style="padding-left: 22px;" mat-footer-cell *matFooterCellDef>{{total_summ_out_pa}}</th>
                             </ng-container>
                             <ng-container matColumnDef="total_summ_in_bx">
-                                <th             class="padded balance-bar balance-bar-bottom" mat-footer-cell *matFooterCellDef>{{total_summ_in_bx}}</th>
+                                <th             class="padded balance-bar balance-bar-bottom" style="padding-left: 16px;" mat-footer-cell *matFooterCellDef>{{total_summ_in_bx}}</th>
                             </ng-container>
                             <ng-container matColumnDef="total_summ_out_bx">
-                                <th colspan="2" class="padded balance-bar balance-bar-bottom" mat-footer-cell *matFooterCellDef>{{total_summ_out_bx}}</th>
+                                <th colspan="2" class="padded balance-bar balance-bar-bottom" style="padding-left: 22px;" mat-footer-cell *matFooterCellDef>{{total_summ_out_bx}}</th>
                             </ng-container>
                             <ng-container matColumnDef="total_summ_in_all">
-                                <th             class="padded balance-bar balance-bar-bottom" mat-footer-cell *matFooterCellDef>{{total_summ_in_all}}</th>
+                                <th             class="padded balance-bar balance-bar-bottom" style="padding-left: 16px;" mat-footer-cell *matFooterCellDef>{{total_summ_in_all}}</th>
                             </ng-container>
                             <ng-container matColumnDef="total_summ_out_all">
-                                <th colspan="2" class="padded balance-bar balance-bar-bottom" mat-footer-cell *matFooterCellDef>{{total_summ_out_all}}</th>
+                                <th colspan="2" class="padded balance-bar balance-bar-bottom" style="padding-left: 22px;" mat-footer-cell *matFooterCellDef>{{total_summ_out_all}}</th>
                             </ng-container>
 
                             <ng-container matColumnDef="empty">
@@ -315,7 +328,7 @@ class="spinner"
 
                             <!-- Part "Data not founded" --> <!--+++-->
                             <ng-container matColumnDef="data_not_found">
-                                <td mat-footer-cell *matFooterCellDef colspan="13" class="text-center">
+                                <td mat-footer-cell *matFooterCellDef colspan="13" class="text-center" style="height: 63px;">
                                     {{t('menu.msg.dt_not_fnd')}}
                                 </td>
                             </ng-container>
@@ -344,18 +357,18 @@ class="spinner"
                                     <ng-container *ngIf="i==3 && pagenum==1">
                                             <li><mat-icon class="pagearrow inactive">first_page</mat-icon></li>                               
                                     </ng-container>
-                                        <mat-chip-list>
+                                        <mat-chip-listbox>
                                             <ng-container *ngIf="page==pagenum;else templateElse">
-                                                <li><mat-chip style="margin: 8px;" selected>
+                                                <li><mat-chip-option style="margin: 8px;" selected>
                                                     {{page}}               
-                                                </mat-chip></li>
+                                                </mat-chip-option></li>
                                             </ng-container>
                                             <ng-template #templateElse >
-                                                <li><mat-chip  style="margin: 8px;"  (click)="setPage(page-1)">
+                                                <li><mat-chip-option  style="margin: 8px;"  (click)="setPage(page-1)">
                                                     {{page}}               
-                                                </mat-chip></li>
+                                                </mat-chip-option></li>
                                             </ng-template>
-                                        </mat-chip-list>
+                                        </mat-chip-listbox>
                                     <ng-container *ngIf="pagenum < listsize && page==maxpage">
                                         <li><a (click)="setPage(listsize-1)"><mat-icon class="pagearrow active">last_page</mat-icon></a></li>
                                     </ng-container>

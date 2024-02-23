@@ -4,42 +4,44 @@ class="spinner"
 [diameter]="50"
 *ngIf="gettingTableData"
 ></mat-spinner>
-<mat-card class="card" *transloco="let t">
-    <mat-card-title class="flex" style="height: 30px;" *ngIf="mode=='viewInWindow'">
-        <div class="emptyspace">{{cu.cap(t('menu.docs.counterpays'))}} <span *ngIf="cagent!=undefined||data.cagent">{{t('menu.docs.with')}} </span>{{cagent==undefined?data.cagent:cagent}}</div>
-        <!-- <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> входящие платежи</div> -->
-        <!-- <button 
-            mat-raised-button 
-            style="width: 36px;height: 36px;min-width: 38px;padding: 0px;"
-            color="primary"
-            matTooltip="{{t('docs.tip.user_settings')}}"
-            (click)="openDialogSettings()"
-            type="button"
-            class="button">
-            <i class="material-icons">settings</i>
-        </button> -->
-        <!-- <div [style.display]="(visBtnAdd==true&&!displayingDeletedDocs)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
-            <a [routerLink]="['../../mutualpaymentdoc', '']">
-                <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> Создать</button>
-            </a>   
-        </div> -->
-        <!-- <div [style.display]="(!displayingDeletedDocs&&visBtnDelete)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
-            <button mat-raised-button (click)="clickBtnDelete()" color="warn"><i class="material-icons">delete_forever</i> Удалить</button>
-        </div>
-        <div *ngIf="displayingDeletedDocs && visBtnDelete" class="col-sm-auto justify-content-center" style="margin:0px 10px 10px 0px">
-            <button mat-raised-button (click)="clickBtnRestore()" color="accent"><i class="material-icons">restore_from_trash</i> Восстановить</button>
-        </div> -->
-        
-        <button 
-            (click)="onNoClick()"
-            matTooltip="{{t('menu.dialogs.close_window')}}"
-            mat-raised-button 
-            color="accent"
-            style="height: 36px;"
-            class="button small-button">
-            <i class="material-icons">close</i>
-        </button>
-    </mat-card-title>
+<mat-card appearance="outlined" class="card" *transloco="let t">
+    <mat-card-header>
+        <mat-card-title class="flex" style="height: 30px;" *ngIf="mode=='viewInWindow'">
+            <div class="emptyspace">{{cu.cap(t('menu.docs.counterpays'))}} <span *ngIf="cagent!=undefined||data.cagent">{{t('menu.docs.with')}} </span>{{cagent==undefined?data.cagent:cagent}}</div>
+            <!-- <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">Удалённые</span> входящие платежи</div> -->
+            <!-- <button 
+                mat-raised-button 
+                style="width: 36px;height: 36px;min-width: 38px;padding: 0px;"
+                color="primary"
+                matTooltip="{{t('docs.tip.user_settings')}}"
+                (click)="openDialogSettings()"
+                type="button"
+                class="button">
+                <i class="material-icons">settings</i>
+            </button> -->
+            <!-- <div [style.display]="(visBtnAdd==true&&!displayingDeletedDocs)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
+                <a [routerLink]="['../mutualpaymentdoc', '']">
+                    <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> Создать</button>
+                </a>   
+            </div> -->
+            <!-- <div [style.display]="(!displayingDeletedDocs&&visBtnDelete)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
+                <button mat-raised-button (click)="clickBtnDelete()" color="warn"><i class="material-icons">delete_forever</i> Удалить</button>
+            </div>
+            <div *ngIf="displayingDeletedDocs && visBtnDelete" class="col-sm-auto justify-content-center" style="margin:0px 10px 10px 0px">
+                <button mat-raised-button (click)="clickBtnRestore()" color="accent"><i class="material-icons">restore_from_trash</i> Восстановить</button>
+            </div> -->
+            
+            <button 
+                (click)="onNoClick()"
+                matTooltip="{{t('menu.dialogs.close_window')}}"
+                mat-raised-button 
+                color="accent"
+                style="height: 36px;"
+                class="button small-button">
+                <i class="material-icons">close</i>
+            </button>
+        </mat-card-title>
+    </mat-card-header>
     <mat-card-content>
         <div class="card  w-100">
             <div class="card-body">
@@ -96,10 +98,21 @@ class="spinner"
 
 
 
+                                <mat-form-field class="date-range" style="margin-left:20px;">
+                                    <mat-label>{{t('menu.top.date_range')}}</mat-label>
+                                    <mat-date-range-input [rangePicker]="picker">
+                                    <input matStartDate (dateChange)="getData()" formControlName="dateFrom" placeholder="{{t('menu.top.date_from')}}">
+                                    <input matEndDate (dateChange)="getData()" formControlName="dateTo" placeholder="{{t('menu.top.date_to')}}">
+                                    </mat-date-range-input>
+                                    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                                    <mat-date-range-picker #picker></mat-date-range-picker>
+                                    <mat-error *ngIf="queryForm.controls.dateFrom.touched && queryForm.controls.dateFrom.invalid"><i>{{t('menu.top.start_date')}}</i></mat-error>
+                                    <mat-error *ngIf="queryForm.controls.dateTo.touched && queryForm.controls.dateTo.invalid"><i>{{t('docs.error.end_date')}}</i></mat-error>
+                                </mat-form-field>
 
 
 
-                                <mat-form-field style="width: 100px; margin: 0 10px;">
+                                <!-- <mat-form-field style="width: 100px; margin: 0 10px;">
                                     <input  matInput 
                                             formControlName="dateFrom"
                                             placeholder="{{t('menu.top.date_from')}}"
@@ -120,10 +133,10 @@ class="spinner"
                                             matSuffix [for]="dpTo" 
                                             ></mat-datepicker-toggle>
                                     <mat-datepicker #dpTo></mat-datepicker>
-                                </mat-form-field>
+                                </mat-form-field> -->
 
 
-                                <button mat-button  
+                                <button  
                                     class="filter-button"
                                     matTooltip="{{t('docs.button.refresh')}}"
                                     (click)="getData()"  
@@ -137,7 +150,7 @@ class="spinner"
 
 
                         <span  class="emptyspace"></span>
-                        <!-- <button mat-button
+                        <!-- <button
                             *ngIf="displaySelectOptions"
                             class="options-button"
                             [matMenuTriggerFor]="oper"
@@ -179,14 +192,14 @@ class="spinner"
                                     id="search_input" 
                                     name="search_input" 
                                     style="width:150px"/>
-                                    <button mat-button matSuffix mat-icon-button aria-label="search"  type="submit" (click)="getData()">
+                                    <button matSuffix mat-icon-button aria-label="search"  type="submit" (click)="getData()">
                                         <mat-icon>search</mat-icon>
                                     </button>
                             </mat-form-field>
                         </div>
                     </div>
                 </form>
-                <div id="result_form">
+                <div id="mutualpayments_det_form">
                     <div class="container-fluid">
                         <div class="row" style="margin: 15px 0; background-color:oldlace; line-height: 2em; font-size:1.4em;">
                             <div class="col-3">
@@ -294,18 +307,18 @@ class="spinner"
                                         <ng-container *ngIf="i==3 && pagenum==1">
                                                 <li><mat-icon class="pagearrow inactive">first_page</mat-icon></li>                               
                                         </ng-container>
-                                            <mat-chip-list>
-                                                <ng-container *ngIf="page==pagenum;else templateElse">
-                                                    <li><mat-chip style="margin: 8px;" selected>
-                                                        {{page}}               
-                                                    </mat-chip></li>
-                                                </ng-container>
-                                                <ng-template #templateElse >
-                                                    <li><mat-chip  style="margin: 8px;"  (click)="setPage(page-1)">
-                                                        {{page}}               
-                                                    </mat-chip></li>
-                                                </ng-template>
-                                            </mat-chip-list>
+                                        <mat-chip-listbox>
+                                            <ng-container *ngIf="page==pagenum;else templateElse">
+                                                <li><mat-chip-option style="margin: 8px;" selected>
+                                                    {{page}}               
+                                                </mat-chip-option></li>
+                                            </ng-container>
+                                            <ng-template #templateElse >
+                                                <li><mat-chip-option  style="margin: 8px;"  (click)="setPage(page-1)">
+                                                    {{page}}               
+                                                </mat-chip-option></li>
+                                            </ng-template>
+                                        </mat-chip-listbox>
                                         <ng-container *ngIf="pagenum < listsize && page==maxpage">
                                             <li><a (click)="setPage(listsize-1)"><mat-icon class="pagearrow active">last_page</mat-icon></a></li>
                                         </ng-container>

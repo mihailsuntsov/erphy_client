@@ -151,15 +151,19 @@ div#status {
     flex-grow: 20;
     width: 200px;
 }
+/*TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.*/
 ::ng-deep div#status .mat-form-field-underline{
     height: 0px !important;
 }
+/*TODO(mdc-migration): The following rule targets internal classes of select that may no longer apply for the MDC version.*/
 ::ng-deep div#status .mat-select-arrow{
     border-top: 0px !important;
 }
+/*TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.*/
 ::ng-deep div#status .mat-form-field-wrapper{
     padding-bottom: 0;
 }
+/*TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.*/
 ::ng-deep div#status .mat-form-field-underline{
     display:none;
 }

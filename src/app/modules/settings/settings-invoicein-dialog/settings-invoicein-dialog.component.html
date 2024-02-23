@@ -1,4 +1,4 @@
-<mat-card class="card" *transloco="let t">
+<mat-card appearance="outlined" class="card" *transloco="let t">
     <mat-card-title class="flex">
         <div class="card-name">{{t('modules.card.settings')}}</div>
         <button 
@@ -59,6 +59,7 @@
                                         formControlName="cagentId"/>
                             </mat-form-field>
                             <mat-form-field class="mat-form-field-100"> 
+								<mat-label>{{t('docs.field.supplier')}}</mat-label>
                                 <input  matInput 
                                 placeholder="{{settingsForm.get('cagentId').value==null?t('modules.field.supplier_srch'):t('modules.field.supplier')}}"
                                 [matAutocomplete]="auto4" 

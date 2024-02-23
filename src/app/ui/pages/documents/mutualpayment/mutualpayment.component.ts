@@ -13,6 +13,10 @@ import { UntypedFormGroup, UntypedFormControl } from '@angular/forms';
 import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
 import { translate, TranslocoService } from '@ngneat/transloco'; //+++
 
+// import {MatDatepickerModule} from '@angular/material/datepicker';
+// import {MatFormFieldModule} from '@angular/material/form-field';
+// import {provideNativeDateAdapter} from '@angular/material/core'
+
 import { MomentDefault } from 'src/app/services/moment-default';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
@@ -42,7 +46,7 @@ export interface NumRow {//интерфейс для списка количес
   styleUrls: ['./mutualpayment.component.css'],
   providers: [LoadSpravService,Cookie,CommonUtilitesService,
     { provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]},
-    {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},]
+    {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},],
 })
 export class MutualpaymentComponent implements OnInit {
   queryForm:any;//форма для отправки запроса 
@@ -188,16 +192,19 @@ export class MutualpaymentComponent implements OnInit {
   }
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
 
-
+  get datesExistAndValid(){
+    return(this.queryForm.controls.dateFrom.value!='' && !this.queryForm.controls.dateFrom.invalid && this.queryForm.controls.dateTo.value!='' && !this.queryForm.controls.dateTo.invalid) && this.queryForm.controls.dateFrom.value<=this.queryForm.controls.dateTo.value;
+  }
 
   getData(){
-    if(this.refreshPermissions() && this.allowToView)
-    {
-      this.doFilterCompaniesList(); //если нет просмотра по всем предприятиям - фильтруем список предприятий до своего предприятия
-      this.getTableHeaderTitles();
-      this.getPagesList();
-      this.getTable();
-    } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})} //+++
+    if(this.datesExistAndValid)
+      if(this.refreshPermissions() && this.allowToView)
+      {
+        this.doFilterCompaniesList(); //если нет просмотра по всем предприятиям - фильтруем список предприятий до своего предприятия
+        this.getTableHeaderTitles();
+        this.getPagesList();
+        this.getTable();
+      } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})} //+++
   }
 
   getTableHeaderTitles(){

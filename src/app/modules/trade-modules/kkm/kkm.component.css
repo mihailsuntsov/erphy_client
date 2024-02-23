@@ -14,7 +14,7 @@ li {list-style: none;}
     width:100%;
 }
 .internal-card{
-    padding: 10px 0 10px;
+    padding: 0;
     margin: 10px 0 10px 0;
 }
 .invisible{display:none;}
@@ -65,7 +65,7 @@ li {list-style: none;}
     color: rgba(0, 0, 0, 0.7);
     z-index: 1000;
 }
-::ng-deep .mat-card-actions {
+::ng-deep .mat-mdc-card-actions {
     margin: 0px 5px -8px !important;
     padding: 0px 0 !important;
     font-size: x-small !important;
@@ -87,7 +87,7 @@ li {list-style: none;}
     margin: 5px;
 }
 
-::ng-deep .mat-stroked-button{
+::ng-deep .mat-mdc-outlined-button{
     line-height: 20px !important;
     width: 33.33%;
     font-size: 12px !important;

@@ -1049,7 +1049,6 @@ export class AcceptanceDocComponent implements OnInit {
       maxWidth: '95vw',
       maxHeight: '95vh',
       width: '400px', 
-      minHeight: '650px',
       data:
       { //отправляем в диалог:
         priceTypesList:   this.receivedPriceTypesList, //список типов цен

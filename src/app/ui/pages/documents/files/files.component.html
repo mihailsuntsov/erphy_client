@@ -20,7 +20,7 @@ class="spinner"
                                     name="search_input" 
                                     style="width:100%"  
                                 />
-                                <button mat-button matSuffix mat-icon-button aria-label="search"  type="submit" (click)="searchCategory()">
+                                <button matSuffix mat-icon-button aria-label="search"  type="submit" (click)="searchCategory()">
                                     <mat-icon>search</mat-icon>
                                 </button>
                             </mat-form-field>
@@ -99,135 +99,137 @@ class="spinner"
                 </mat-tree-node>
             </mat-tree>
     </mat-drawer>
-    <div class="categories-sidenav-content">
-        <mat-card class="card">
-            <mat-card-title class="top-bar container-fluid"> 
-                <div class="row" id="topBlock">
-                    <div class="emptyspace flex"><span>{{cu.cap(t('menu.docs.files'))}}</span>
-                        <span [style.display]="sendingQueryForm.trash?'block':'none'">&nbsp;{{t('menu.top.in_bin')}}</span>
-                    </div>                    
-                    <div class="separator"></div><!-- !!! -->
-                    <button 
-                        mat-raised-button 
-                        matTooltip="{{t('menu.tip.upload')}}"
-                        [style.display]="visBtnAdd==true?'block':'none'"
-                        (click)="clickBtnFileUplioad()" 
-                        color="primary"
-                        class="button small-button">
-                        <i class="material-icons">cloud_upload</i>
-                    </button>
-                    <button 
-                        mat-button 
-                        [matMenuTriggerFor]="addDocMenu"
-                        mat-raised-button 
-                        matTooltip="{{t('menu.tip.prod_actions')}}"                        
-                        *ngIf="selection.selected.length>0 && !sendingQueryForm.trash"
-                        color="primary"
-                        (submit)="false"
-                        type="button"
-                        class="button"
-                        style="width: 142px;height: 36px;min-width: 38px;">
-                        <i class="material-icons">add_task</i>&nbsp;&nbsp;{{t('menu.top.btn_actions')}}<i class="material-icons">arrow_drop_down</i>
-                    </button>
-                    <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
-                        <button mat-menu-item *ngIf="allowToUpdate && selection.selected.length>0 && !sendingQueryForm.trash" (click)="openDialogFileCategoriesSelect()" matTooltip="{{t('menu.tip.ch_cat_prod')}}" matTooltipPosition="left"><mat-icon>rule</mat-icon><span>{{t('menu.menu.categories')}}</span></button>
-                        <button mat-menu-item [matMenuTriggerFor]="shareExMenu" *ngIf="allowToUpdate && selection.selected.length>0 && !sendingQueryForm.trash"><mat-icon>share</mat-icon><span>{{t('menu.menu.share_ex')}}</span></button>
+    <div class="categories-sidenav-content" style="overflow: hidden;">
+        <mat-card appearance="outlined" class="card">
+            <mat-card-header>
+                <mat-card-title class="top-bar container-fluid"> 
+                    <div style="display: flex; flex-wrap: wrap;" id="topBlock">
+                        <div class="emptyspace flex"><span>{{cu.cap(t('menu.docs.files'))}}</span>
+                            <span [style.display]="sendingQueryForm.trash?'block':'none'">&nbsp;{{t('menu.top.in_bin')}}</span>
+                        </div>                    
+                        <div class="separator"></div><!-- !!! -->
                         <button 
-                            matTooltip="{{t('menu.tip.delete_to_bin')}}"
-                            matTooltipPosition="left"
-                            [style.display]="(sendingQueryForm.trash || mode!='standart')?'none':'block'"
-                            (click)="clickBtnDelete()" 
-                            *ngIf="allowToDelete && selection.selected.length>0"
-                            mat-menu-item>
-                            <mat-icon>delete_forever</mat-icon><span>{{t('menu.top.btn_delete')}}</span>
-                        </button>
-                    </mat-menu>
-                    <mat-menu #shareExMenu="matMenu" yPosition="below" xPosition="before">
-                        <button mat-menu-item (click)="setFilesExternalAccess(true)"><span>{{t('menu.menu.share_ex_y')}}</span></button>
-                        <button mat-menu-item (click)="setFilesExternalAccess(false)"><span>{{t('menu.menu.share_ex_n')}}</span></button>
-                    </mat-menu>
-                    <!-- <div [style.display]="visBtnAdd==true?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
-                        <button mat-raised-button (click)="clickBtnFileUplioad()" matTooltip="Загрузить файлы на сервер" color="primary"><i class="material-icons">cloud_upload</i> Загрузить</button>
-                    </div> -->
-                    
-                    <button 
-                        mat-raised-button 
-                        matTooltip="{{t('menu.tip.restore_f_bin')}}"
-                        matTooltipPosition="left"
-                        [style.display]="(visBtnRecover==true && selection.selected.length)?'block':'none'"
-                        (click)="clickBtnRecover()" 
-                        color="accent"
-                        class="button small-button">
-                        <i class="material-icons">restore_from_trash</i>
-                    </button>
-
-                    <!-- <div [style.display]="(visBtnRecover==true && selection.selected.length)?'block':'none'" class="col-sm-auto justify-content-center" style="margin:0px 10px 10px 0px">
-                        <button mat-raised-button (click)="clickBtnRecover()" color="accent"><i class="material-icons">restore_from_trash</i> Восстановить</button>
-                    </div> -->
-                    
-                    <button 
-                        mat-raised-button 
-                        matTooltip="{{t('menu.tip.select_files')}}"
-                        [style.display]="(checkedList.length>0 && mode=='select')?'block':'none'"
-                        [mat-dialog-close]=checkedList 
-                        cdkFocusInitial 
-                        color="primary"
-                        class="button small-button">
-                        <i class="material-icons">done</i>
-                    </button>
-                    <!--<div [style.display]="(checkedList.length>0 && mode=='select')?'block':'none'" style="margin:0px 0px 10px 10px">
-                        <button  mat-raised-button [mat-dialog-close]=checkedList cdkFocusInitial color="primary"><i class="material-icons">done</i>
-                            <span> {{t('docs.tip.select')}}</span>
-                        </button>
-                    </div> -->
-                    
-                    
-                    <!-- <div *ngIf="allowToDelete && selection.selected.length>0" [style.display]="(sendingQueryForm.trash || mode!='standart')?'none':'block'" style="margin:0px 0px 10px 10px">
-                        <button  mat-raised-button (click)="clickBtnDelete()" color="warn"><i class="material-icons">delete_forever</i>
-                            <span> Удалить</span>
-                        </button>
-                    </div> -->
-                    
-                    <button 
-                        mat-raised-button 
-                        matTooltip="{{t('menu.tip.delete_perman')}}"
-                        [style.display]="(allowToDeleteFromTrash && selection.selected.length && sendingQueryForm.trash && selection.selected.length>0)?'block':'none'"
-                        (click)="clickBtnDeleteFromTrash()" 
-                        color="warn"
-                        class="button small-button">
-                        <i class="material-icons">delete_forever</i>
-                    </button>
-                    <!-- <div  [style.display]="(allowToDeleteFromTrash && selection.selected.length)?'block':'none'">
-                        <button *ngIf="allowToDeleteFromTrash" [style.display]="(allowToDeleteFromTrash && selection.selected.length && sendingQueryForm.trash && selection.selected.length>0)?'block':'none'" mat-raised-button (click)="clickBtnDeleteFromTrash()" color="warn"><i class="material-icons">delete_forever</i>
-                            <span> Удалить окончательно</span>
-                        </button>
-                    </div> -->
-                    <button 
-                        mat-raised-button 
-                        matTooltip="{{t('menu.tip.empty_bin')}}"
-                        [style.display]="(sendingQueryForm.trash && +size>0)?'block':'none'"
-                        (click)="clickBtnClearTrash()" 
-                        *ngIf="allowToClearTrash"
-                        color="warn"
-                        class="button small-button">
-                        <i class="material-icons">delete_sweep</i>
-                    </button>
-                    <!-- <div *ngIf="allowToClearTrash" [style.display]="(sendingQueryForm.trash && +size>0)?'block':'none'"  style="margin:0px 0px 10px 10px">
-                        <button mat-raised-button (click)="clickBtnClearTrash()" color="warn"><i class="material-icons">delete_sweep</i>
-                            <span> Очистить корзину</span>
-                        </button>
-                    </div> -->
-                    <button 
-                            matTooltip="{{t('menu.dialogs.close_window')}}"
                             mat-raised-button 
-                            *ngIf="mode=='select'"
-                            matDialogClose
+                            matTooltip="{{t('menu.tip.upload')}}"
+                            [style.display]="visBtnAdd==true?'flex':'none'"
+                            (click)="clickBtnFileUplioad()" 
+                            color="primary"
+                            class="button small-button">
+                            <i class="material-icons">cloud_upload</i>
+                        </button>
+                        <button 
+                            mat-button 
+                            [matMenuTriggerFor]="addDocMenu"
+                            mat-raised-button 
+                            matTooltip="{{t('menu.tip.prod_actions')}}"                        
+                            *ngIf="selection.selected.length>0 && !sendingQueryForm.trash"
+                            color="primary"
+                            (submit)="false"
+                            type="button"
+                            class="button"
+                            style="width: 142px;height: 36px;min-width: 38px;">
+                            <i class="material-icons">add_task</i>&nbsp;&nbsp;{{t('menu.top.btn_actions')}}<i class="material-icons">arrow_drop_down</i>
+                        </button>
+                        <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
+                            <button mat-menu-item *ngIf="allowToUpdate && selection.selected.length>0 && !sendingQueryForm.trash" (click)="openDialogFileCategoriesSelect()" matTooltip="{{t('menu.tip.ch_cat_prod')}}" matTooltipPosition="left"><mat-icon>rule</mat-icon><span>{{t('menu.menu.categories')}}</span></button>
+                            <button mat-menu-item [matMenuTriggerFor]="shareExMenu" *ngIf="allowToUpdate && selection.selected.length>0 && !sendingQueryForm.trash"><mat-icon>share</mat-icon><span>{{t('menu.menu.share_ex')}}</span></button>
+                            <button 
+                                matTooltip="{{t('menu.tip.delete_to_bin')}}"
+                                matTooltipPosition="left"
+                                [style.display]="(sendingQueryForm.trash || mode!='standart')?'none':'block'"
+                                (click)="clickBtnDelete()" 
+                                *ngIf="allowToDelete && selection.selected.length>0"
+                                mat-menu-item>
+                                <mat-icon>delete_forever</mat-icon><span>{{t('menu.top.btn_delete')}}</span>
+                            </button>
+                        </mat-menu>
+                        <mat-menu #shareExMenu="matMenu" yPosition="below" xPosition="before">
+                            <button mat-menu-item (click)="setFilesExternalAccess(true)"><span>{{t('menu.menu.share_ex_y')}}</span></button>
+                            <button mat-menu-item (click)="setFilesExternalAccess(false)"><span>{{t('menu.menu.share_ex_n')}}</span></button>
+                        </mat-menu>
+                        <!-- <div [style.display]="visBtnAdd==true?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
+                            <button mat-raised-button (click)="clickBtnFileUplioad()" matTooltip="Загрузить файлы на сервер" color="primary"><i class="material-icons">cloud_upload</i> Загрузить</button>
+                        </div> -->
+                        
+                        <button 
+                            mat-raised-button 
+                            matTooltip="{{t('menu.tip.restore_f_bin')}}"
+                            matTooltipPosition="left"
+                            [style.display]="(visBtnRecover==true && selection.selected.length)?'block':'none'"
+                            (click)="clickBtnRecover()" 
                             color="accent"
                             class="button small-button">
-                            <i class="material-icons">close</i>
-                    </button>
-                </div>
-            </mat-card-title>
+                            <i class="material-icons">restore_from_trash</i>
+                        </button>
+
+                        <!-- <div [style.display]="(visBtnRecover==true && selection.selected.length)?'block':'none'" class="col-sm-auto justify-content-center" style="margin:0px 10px 10px 0px">
+                            <button mat-raised-button (click)="clickBtnRecover()" color="accent"><i class="material-icons">restore_from_trash</i> Восстановить</button>
+                        </div> -->
+                        
+                        <button 
+                            mat-raised-button 
+                            matTooltip="{{t('menu.tip.select_files')}}"
+                            [style.display]="(checkedList.length>0 && mode=='select')?'block':'none'"
+                            [mat-dialog-close]=checkedList 
+                            cdkFocusInitial 
+                            color="primary"
+                            class="button small-button">
+                            <i class="material-icons">done</i>
+                        </button>
+                        <!--<div [style.display]="(checkedList.length>0 && mode=='select')?'block':'none'" style="margin:0px 0px 10px 10px">
+                            <button  mat-raised-button [mat-dialog-close]=checkedList cdkFocusInitial color="primary"><i class="material-icons">done</i>
+                                <span> {{t('docs.tip.select')}}</span>
+                            </button>
+                        </div> -->
+                        
+                        
+                        <!-- <div *ngIf="allowToDelete && selection.selected.length>0" [style.display]="(sendingQueryForm.trash || mode!='standart')?'none':'block'" style="margin:0px 0px 10px 10px">
+                            <button  mat-raised-button (click)="clickBtnDelete()" color="warn"><i class="material-icons">delete_forever</i>
+                                <span> Удалить</span>
+                            </button>
+                        </div> -->
+                        
+                        <button 
+                            mat-raised-button 
+                            matTooltip="{{t('menu.tip.delete_perman')}}"
+                            [style.display]="(allowToDeleteFromTrash && selection.selected.length && sendingQueryForm.trash && selection.selected.length>0)?'block':'none'"
+                            (click)="clickBtnDeleteFromTrash()" 
+                            color="warn"
+                            class="button small-button">
+                            <i class="material-icons">delete_forever</i>
+                        </button>
+                        <!-- <div  [style.display]="(allowToDeleteFromTrash && selection.selected.length)?'block':'none'">
+                            <button *ngIf="allowToDeleteFromTrash" [style.display]="(allowToDeleteFromTrash && selection.selected.length && sendingQueryForm.trash && selection.selected.length>0)?'block':'none'" mat-raised-button (click)="clickBtnDeleteFromTrash()" color="warn"><i class="material-icons">delete_forever</i>
+                                <span> Удалить окончательно</span>
+                            </button>
+                        </div> -->
+                        <button 
+                            mat-raised-button 
+                            matTooltip="{{t('menu.tip.empty_bin')}}"
+                            [style.display]="(sendingQueryForm.trash && +size>0)?'block':'none'"
+                            (click)="clickBtnClearTrash()" 
+                            *ngIf="allowToClearTrash"
+                            color="warn"
+                            class="button small-button">
+                            <i class="material-icons">delete_sweep</i>
+                        </button>
+                        <!-- <div *ngIf="allowToClearTrash" [style.display]="(sendingQueryForm.trash && +size>0)?'block':'none'"  style="margin:0px 0px 10px 10px">
+                            <button mat-raised-button (click)="clickBtnClearTrash()" color="warn"><i class="material-icons">delete_sweep</i>
+                                <span> Очистить корзину</span>
+                            </button>
+                        </div> -->
+                        <button 
+                                matTooltip="{{t('menu.dialogs.close_window')}}"
+                                mat-raised-button 
+                                *ngIf="mode=='select'"
+                                matDialogClose
+                                color="accent"
+                                class="button small-button">
+                                <i class="material-icons">close</i>
+                        </button>
+                    </div>
+                </mat-card-title>
+            </mat-card-header>
                     <mat-card-content>
                         <div class="card  w-100">
                             <div class="card-body">
@@ -253,7 +255,7 @@ class="spinner"
                                         </div>
                                     </div>
                                     <div class="flex">
-                                        <mat-form-field style="width:50px;" class="num-of-rows">
+                                        <mat-form-field style="width: 85px !important; min-width: 85px;" class="num-of-rows">
                                             <mat-label>{{cu.cap(t('menu.docs.files'))}}</mat-label>
                                             <mat-select [(value)]="sendingQueryForm.result" (selectionChange)="setNumOfPages()" class="form-control" id="selectRowsPerPage" name="result">                           
                                                 <mat-option  *ngFor="let num of numRows" [value]="num.value">
@@ -262,7 +264,7 @@ class="spinner"
                                             </mat-select>
                                         </mat-form-field>
                                         
-                                        <mat-form-field style="margin-left: 10px; max-width: 250px;">
+                                        <mat-form-field style="margin-left: 10px; min-width: 250px;">
                                             <mat-label>{{t('menu.top.company')}}</mat-label>
                                             <mat-select  [(value)]="sendingQueryForm.companyId" [disabled]="mode=='select'" (selectionChange)="onCompanySelection()">                          
                                                 <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
@@ -282,12 +284,12 @@ class="spinner"
                                                 id="SelectedNodeName" 
                                                 name="SelectedNodeName" 
                                                 value="" >
-                                                <button mat-button matSuffix mat-icon-button aria-label="Clear" (click)="resetSelectedCategory();">
+                                                <button matSuffix mat-icon-button aria-label="Clear" (click)="resetSelectedCategory();">
                                                     <mat-icon>close</mat-icon>
                                                 </button>
                                             </mat-form-field>
                                         </div>
-                                        <button mat-button  
+                                        <button  
                                             class="filter-button"
                                             matTooltip="{{t('docs.button.refresh')}}"
                                             (click)="getTable()"  
@@ -318,14 +320,14 @@ class="spinner"
                                                 type="text"  
                                                 name="search_input" 
                                                 style="width:100%"/>
-                                            <button mat-button matSuffix mat-icon-button aria-label="search"  type="submit" (click)="setNumOfPages()">
+                                            <button matSuffix mat-icon-button aria-label="search"  type="submit" (click)="setNumOfPages()">
                                                 <mat-icon>search</mat-icon>
                                             </button>
                                         </mat-form-field>
                                     </div>
                                 </form>
 
-                                <div id="result_form" *ngIf="allowToView">
+                                <div id="files_form" style="margin: 0 -10px;" *ngIf="allowToView">
                                         <table *ngIf="viewMode=='table'" mat-table [dataSource]="files" class="mat-elevation-z8">
                                                 <ng-container matColumnDef="select">
                                                         <th mat-header-cell *matHeaderCellDef style="width: 40px;">
@@ -353,7 +355,7 @@ class="spinner"
                                                         <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='extention'" class="material-icons sortarrow">arrow_downward</i>
                                                     </span>
                                                     <td mat-cell *matCellDef="let row">
-                                                            <a  [routerLink]="['../../filesdoc', row.id ]">
+                                                            <a  [routerLink]="['../filesdoc', row.id ]">
                                                                 <img class="file_icon" src="../../../../../../assets_/images/ext_icons/{{getIcon(row.extention)}}.png" width=40>
                                                             </a>
                                                     </td>
@@ -412,19 +414,19 @@ class="spinner"
                                                     </span>
                                                     <!-- <td mat-cell *matCellDef="let row"> {{row.anonyme_access==true?t('menu.dialogs.yes'):t('menu.dialogs.no')}} </td> -->
                                                     <td mat-cell *matCellDef="let row"> 
-                                                        <mat-chip-list>
-                                                            <mat-chip 
+                                                        <mat-chip-listbox>
+                                                            <mat-chip-option 
                                                             *ngIf="row.anonyme_access==true" 
                                                             style="color:green">
                                                             {{t('menu.dialogs.yes')}}
-                                                            </mat-chip>
-                                                            <mat-chip 
+                                                            </mat-chip-option>
+                                                            <mat-chip-option 
                                                             *ngIf="row.anonyme_access==false"
                                                             style="color:red"
                                                             >
                                                             {{t('menu.dialogs.no')}}
-                                                            </mat-chip>
-                                                        </mat-chip-list>
+                                                            </mat-chip-option>
+                                                        </mat-chip-listbox>
                                                     </td>
                                                 </ng-container>
 
@@ -452,17 +454,17 @@ class="spinner"
 
                                         <div class="card-blocks"  *ngIf="viewMode=='grid'">
                                             <div *ngFor="let block of files; let i = index"  class="card-block">
-                                                <mat-card class="grid-card">
+                                                <mat-card appearance="outlined" class="grid-card">
                                                     <div *ngIf="block.anonyme_access" matTooltip="{{t('menu.tip.ext_access')}}" class="grid-card-info"><mat-icon>share</mat-icon></div>
                                                     <div class="iconArea" *ngIf="block.extention.toUpperCase() != '.PNG' && block.extention.toUpperCase() != '.JPG' && block.extention.toUpperCase() != '.JPEG'; else other_content">
-                                                        <a *ngIf="mode!='select'" [routerLink]="['../../filesdoc', block.id ]">
+                                                        <a *ngIf="mode!='select'" [routerLink]="['../filesdoc', block.id ]">
                                                             <img class="file_icon" src="../../../../../../assets_/images/ext_icons/{{getIcon(block.extention)}}.png" width=120>
                                                         </a>
                                                         <img *ngIf="mode=='select'" class="file_icon" src="../../../../../../assets_/images/ext_icons/{{getIcon(block.extention)}}.png" width=120>
                                                     </div>
                                                     <ng-template #other_content>
                                                         <div class="iconArea">
-                                                                <a *ngIf="mode!='select'" [routerLink]="['../../filesdoc', block.id ]"><img class="file_icon" [src]="block.image" width=120></a>
+                                                                <a *ngIf="mode!='select'" [routerLink]="['../filesdoc', block.id ]"><img class="file_icon" [src]="block.image" width=120></a>
                                                                 <img *ngIf="mode=='select'" class="file_icon" [src]="block.image" width=120>
                                                         </div>
                                                     </ng-template>
@@ -490,7 +492,7 @@ class="spinner"
                                             <p> {{t('menu.bottom.founded')}}: {{size}}, {{t('menu.bottom.page')}} {{pagenum}}  {{t('menu.bottom.of')}} {{listsize}}</p>
                                         </div>
                                         <span  class="emptyspace"></span><!-- разделитель -->
-                                        <div class="col-sm-auto justify-content-end">
+                                        <div class="col-sm-auto justify-content-end" style="margin-right:10px;">
                                             <ul class="pagination" style="padding-right: 0px">
                                                 <ng-container *ngFor="let page of receivedPagesList; index as i">
                                                     <ng-container *ngIf="i>2 && listsize>1">
@@ -501,18 +503,18 @@ class="spinner"
                                                                 <li><mat-icon class="pagearrow inactive">first_page</mat-icon></li>                               
                                                         </ng-container>
                                                         
-                                                            <mat-chip-list>
+                                                            <mat-chip-listbox>
                                                                 <ng-container *ngIf="page==pagenum;else templateElse">
-                                                                    <li><mat-chip style="margin: 8px;" selected>
+                                                                    <li><mat-chip-option style="margin: 8px;" selected>
                                                                         {{page}}               
-                                                                    </mat-chip></li>
+                                                                    </mat-chip-option></li>
                                                                 </ng-container>
                                                                 <ng-template #templateElse >
-                                                                    <li><mat-chip  style="margin: 8px;"  (click)="setPage(page-1)">
+                                                                    <li><mat-chip-option  style="margin: 8px;"  (click)="setPage(page-1)">
                                                                         {{page}}               
-                                                                    </mat-chip></li>
+                                                                    </mat-chip-option></li>
                                                                 </ng-template>
-                                                            </mat-chip-list>
+                                                            </mat-chip-listbox>
                                                         <ng-container *ngIf="pagenum < listsize && page==maxpage">
                                                             <li><a (click)="setPage(listsize-1)"><mat-icon class="pagearrow active">last_page</mat-icon></a></li>
                                                         </ng-container>

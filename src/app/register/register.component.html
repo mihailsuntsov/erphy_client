@@ -1,18 +1,18 @@
-<mat-card *ngIf="isSignedUp" class="reg-mat-card text-center">
+<mat-card appearance="outlined" *ngIf="isSignedUp" class="reg-mat-card text-center">
   <mat-card-title>
     {{'user.card.hurray' | transloco}}
   </mat-card-title>
   <mat-card-content class="text-center">
     {{'user.msg.reg_completd1' | transloco}}<br>
     <span *ngIf="createdUserId!='1'">{{'user.msg.reg_completd2' | transloco}}</span><br>
-    <a routerLink="../auth/login" style="color:white"><button mat-button mat-raised-button color="primary" style="margin-top: 20px;">{{'user.btn.go_to_auth' | transloco}}</button></a>
+    <a routerLink="../auth/login" style="color:white"><button mat-raised-button color="primary" style="margin-top: 20px;">{{'user.btn.go_to_auth' | transloco}}</button></a>
   </mat-card-content>
   
 </mat-card>
 
 
 <!-- <ng-template #signupForm> -->
-<mat-card *ngIf="!isSignedUp;" class="reg-mat-card">
+<mat-card appearance="outlined" *ngIf="!isSignedUp;" class="reg-mat-card">
   <mat-spinner 
 strokeWidth="3" 
 class="spinner"
@@ -125,7 +125,7 @@ class="spinner"
         formControlName="password"  
         [ngClass]="{'is-invalid':regform.get('password').touched && regform.get('password').invalid}"
         />
-        <button mat-button 
+        <button
             type="button"
             class="clear-button"
             (click)="password()"
@@ -158,7 +158,7 @@ class="spinner"
         <!-- </mat-form-field> -->
       </div>
        <!-- 1-{{regform.invalid}}, 2-{{isSendingForm}}, 3-{{(showAgreeCheckbox && !regform.get('agree').value)}} -->
-      <button mat-button 
+      <button
       mat-raised-button 
       color="primary" 
       style="margin-top: 20px;" 

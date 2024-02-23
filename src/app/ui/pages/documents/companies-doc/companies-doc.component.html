@@ -1,4 +1,4 @@
-<mat-card class="card for-sticky-header" *transloco="let t">
+<mat-card appearance="outlined" class="card for-sticky-header" *transloco="let t">
     <mat-card-title class="top-bar container-fluid"> 
         <div class="row" id="topBlock">
             <div class="card-name">{{t('docs.docs.company')}}</div>
@@ -58,7 +58,7 @@
         (!allowToView && +id>0) ||
         (!allowToCreate && +id==0)
     )"> 
-        <mat-card class="internal-card">
+        <mat-card appearance="outlined" class="internal-card">
             <mat-card-content style="font-size: 20px;font-weight: bold;color: red;text-align: center;height: 100px;padding: 38px 0;">
                 {{t('docs.msg.no_perm')}}
             </mat-card-content>
@@ -76,7 +76,7 @@
                     <div class="container-fluid">
                         <div class="row" style="padding: 10px">
                             <div class="col-lg-4 col-xl-4 col-md-12">    
-                                <mat-card>
+                                <mat-card appearance="outlined">
                                     <mat-card-header>
                                         <mat-card-title class="card-title">{{t('docs.card.base_info')}}</mat-card-title>
                                     </mat-card-header>
@@ -220,7 +220,7 @@
                                         
                                     </mat-card-content>
                                 </mat-card>
-                                <mat-card>
+                                <mat-card appearance="outlined">
                                     <mat-card-header>
                                         <mat-card-title class="card-title">{{t('docs.card.base_data')}}</mat-card-title>
                                     </mat-card-header>
@@ -343,7 +343,7 @@
                                 </mat-card>
                             </div> 
                             <div class="col-lg-4 col-xl-4 col-md-12">   
-                                <mat-card>
+                                <mat-card appearance="outlined">
                                     <div class="del-icon"  [style.display]="editability?'block':'none'">
                                         <mat-icon   (click)="copyfromAddressToJurAddress()" 
                                                     matTooltip="{{t('docs.tip.addr_copy_q')}}" 
@@ -509,7 +509,7 @@
                                         </mat-form-field>
                                     </mat-card-content>
                                 </mat-card>  
-                                <mat-card>
+                                <mat-card appearance="outlined">
                                     <!-- АДРЕС -->
                                     <div class="del-icon"  [style.display]="editability?'block':'none'">
                                         <mat-icon   (click)="copyfromJurAddressToAddress()" 
@@ -682,7 +682,7 @@
                                 </mat-card>
                             </div>
                             <div class="col-lg-4 col-xl-4 col-md-12"> 
-                                <mat-card>
+                                <mat-card appearance="outlined">
                                     <mat-card-header>
                                         <mat-card-title class="card-title">{{t('docs.card.contacts')}}</mat-card-title>
                                     </mat-card-header>
@@ -716,7 +716,7 @@
                                         </mat-form-field>
                                     </mat-card-content>
                                 </mat-card> 
-                                <mat-card *ngIf="+id>0">
+                                <mat-card appearance="outlined" *ngIf="+id>0">
                                     <mat-card-header>
                                         <mat-card-title class="card-title">{{t('docs.card.files')}}</mat-card-title>
                                     </mat-card-header>
@@ -907,13 +907,13 @@
                     <div class="container-fluid">
                         <div class="row" style="padding: 10px">
                             <div class="col-xl-7 col-lg-10 col-md-12">
-                                <mat-card>
+                                <mat-card appearance="outlined">
                                     <mat-card-header>
                                         <mat-card-title class="card-title">{{t('docs.card.bank_data')}}</mat-card-title>
                                     </mat-card-header>
                                     <mat-card-content class="input-form">
                                         <div cdkDropList (cdkDropListDropped)="dropPaymentAccount($event)">
-                                            <mat-card   *ngFor="let req of formBaseInformation.get('companiesPaymentAccountsTable').controls;let i = index" 
+                                            <mat-card   appearance="outlined"   *ngFor="let req of formBaseInformation.get('companiesPaymentAccountsTable').controls;let i = index" 
                                                         [formGroup]="req"
                                                         cdkDrag
                                                         style="background-color: #f7f7f7">
@@ -1061,7 +1061,7 @@
                     <div class="container-fluid">
                         <div class="row" style="padding: 10px">
                             <div class="col-xl-5 col-lg-9 col-md-12">
-                                <mat-card>
+                                <mat-card appearance="outlined">
                                     <mat-card-content class="input-form">
                 
                                         <!-- Валюта/Currency -->
@@ -1160,7 +1160,7 @@
                         <div class="row" style="padding: 10px">
                             <div class="col-xl-5 col-lg-9 col-md-12">
                                 <form [formGroup]="formAboutDocument">
-                                    <mat-card>
+                                    <mat-card appearance="outlined">
                                         <mat-card-content class="input-form">
                     
                                             <mat-form-field [ngClass]="{invisible: +id==0}">

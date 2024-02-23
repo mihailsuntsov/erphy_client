@@ -103,7 +103,8 @@ li {list-style: none;}
     -webkit-border-radius: 10px;
     border-radius: 10px;
     position:absolute;
-    top: 20px;
+    top: 30px;
+	left:9px
 }
 /*название статуса*/
 .status-name {

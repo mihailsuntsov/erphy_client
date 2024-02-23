@@ -1,5 +1,5 @@
 
-  <mat-card class="login-mat-card">
+  <mat-card appearance="outlined" class="login-mat-card">
     <div class="lang-select"
         [matMenuTriggerFor]="addDocMenu">
         <span>{{language}}</span><div class="arrow-wrap"><i class="material-icons" style="font-size: 18px;">arrow_drop_down</i></div>
@@ -64,7 +64,7 @@
                 </mat-hint> -->
               </mat-form-field>
     
-              <button mat-button mat-raised-button color="primary" style="margin-top: 20px;" (click)="onReset()">{{'user.btn.pwd_recovery' | transloco}}</button>
+              <button mat-raised-button color="primary" style="margin-top: 20px;" (click)="onReset()">{{'user.btn.pwd_recovery' | transloco}}</button>
 
             </form>
         

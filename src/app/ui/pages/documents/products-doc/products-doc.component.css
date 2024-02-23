@@ -19,13 +19,7 @@ li {list-style: none;}
     border-bottom: 1px lightgray dotted;
 }
 .card-name{ flex-grow: 1; }
-.table-form-invalid{
-    color: red;
-    font-size: 11px;
-    line-height: 0.9em;
-    display: block;
-    font-style: italic;
-}
+ 
 .button{
     margin-left: 10px;
 }
@@ -376,6 +370,7 @@ border: 0px solid black;
     z-index: 100;
 }
 
+/*TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.*/
 ::ng-deep #product_properties .no-underline .mat-form-field-underline{
     visibility: hidden;
 }
@@ -383,13 +378,7 @@ border: 0px solid black;
 .form-invalid{
     color: red;
 }
-.table-form-invalid{
-    color: red;
-    font-size: 11px;
-    line-height: 0.9em;
-    display: block;
-    font-style: italic;
-}
+ 
 .table-field-editable{
     border-bottom: 1px lightgray dotted;
 }
