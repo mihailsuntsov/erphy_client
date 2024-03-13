@@ -1,37 +1,37 @@
 <mat-card appearance="outlined" class="card" *transloco="let t">
-
-    <mat-card-title class="flex">
-        <div class="card-name">{{actionType=='create'?('modules.card.dep_part_create' | transloco):('modules.card.dep_part_edit' | transloco)}}</div>
-        <button 
-            mat-raised-button 
-            *ngIf="+formBaseInformation.get('id').value==0"
-            (click)="insertDepartmentPart()"
-            color="primary"
-            [disabled]="!formBaseInformation.valid" 
-            matTooltip="{{t('docs.tip.create')}}"
-            class="button small-button">
-            <i class="material-icons">done</i>
-        </button>
-        <button 
-            mat-raised-button 
-            *ngIf="+formBaseInformation.get('id').value!=0"
-            (click)="updateDepartmentPart()"
-            color="primary"
-            [disabled]="!formBaseInformation.valid" 
-            matTooltip="{{t('docs.tip.save')}}"
-            class="button small-button">
-            <i class="material-icons">save</i>
-        </button>
-        <button 
-            (click)="onNoClick()"
-            matTooltip="{{t('docs.tip.close')}}"
-            mat-raised-button 
-            color="accent"
-            class="button small-button">
-            <i class="material-icons">close</i>
-        </button>
-    </mat-card-title>
-
+    <mat-card-header>
+        <mat-card-title class="flex">
+            <div class="card-name">{{actionType=='create'?('modules.card.dep_part_create' | transloco):('modules.card.dep_part_edit' | transloco)}}</div>
+            <button 
+                mat-raised-button 
+                *ngIf="+formBaseInformation.get('id').value==0"
+                (click)="insertDepartmentPart()"
+                color="primary"
+                [disabled]="!formBaseInformation.valid" 
+                matTooltip="{{t('docs.tip.create')}}"
+                class="button small-button">
+                <i class="material-icons">done</i>
+            </button>
+            <button 
+                mat-raised-button 
+                *ngIf="+formBaseInformation.get('id').value!=0"
+                (click)="updateDepartmentPart()"
+                color="primary"
+                [disabled]="!formBaseInformation.valid" 
+                matTooltip="{{t('docs.tip.save')}}"
+                class="button small-button">
+                <i class="material-icons">save</i>
+            </button>
+            <button 
+                (click)="onNoClick()"
+                matTooltip="{{t('docs.tip.close')}}"
+                mat-raised-button 
+                color="accent"
+                class="button small-button">
+                <i class="material-icons">close</i>
+            </button>
+        </mat-card-title>
+    </mat-card-header>
     <mat-card-content>
         <form *ngIf="formBaseInformation" [formGroup]="formBaseInformation">   
             <div>   

@@ -277,10 +277,7 @@ export class ResourcesDocComponent implements OnInit {
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
         );
   }
-  formingDepPartQttRowFromApiResponse(row: any) {
 
-
-  }
   createNewDocument(){
     this.createdDocId=null;
     this.http.post('/api/auth/insertResource', this.formBaseInformation.value)

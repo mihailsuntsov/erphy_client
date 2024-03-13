@@ -13,12 +13,11 @@ li {list-style: none;}
     width:100%;
 }
 .internal-card{
-    padding: 15px 0 15px;
     margin: 10px 0 10px 0;
 }
-.card-title{
+/* .card-title{
     margin:0px -15px 15px !important;
-}
+} */
 .input-form{
     display: flex;
     flex-direction: column;
@@ -123,29 +122,9 @@ border: 0px solid black;
 }
 /*--------------- стили для статуса------------------*/
 /*для цветного круга в статусах*/
-.circle-wrapper {
-    width: 30px;
-    height: 100%;
-    vertical-align: middle;
-    text-align: center;
-    display: inline-block;
-}
-.circle-in-list {
-    width: 20px;
-    height: 20px;
-    -moz-border-radius: 10px;
-    -webkit-border-radius: 10px;
-    border-radius: 10px;
-} 
-.circle-in-selected{
-    width: 20px;
-    height: 20px;
-    -moz-border-radius: 10px;
-    -webkit-border-radius: 10px;
-    border-radius: 10px;
-    position: relative;
-    top: 18px;
-}
+ 
+  
+   
 div#status {
     margin-top: -14px;
     flex-grow: 20;

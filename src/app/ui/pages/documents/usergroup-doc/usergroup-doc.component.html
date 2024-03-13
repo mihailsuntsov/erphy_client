@@ -1,41 +1,43 @@
 <mat-card appearance="outlined" class="card for-sticky-header" *transloco="let t">
     <!-- <div class="top-bar-plug"></div> -->
-    <mat-card-title class="top-bar container-fluid"> 
-            <div class="row" id="topBlock">
-                    <div class="card-name">{{t('docs.docs.role')}}</div>
-                            <button 
-                                    mat-raised-button 
-                                    matTooltip="{{t('docs.tip.create')}}"
-                                    (click)="clickBtnCreateNewDocument()" 
-                                    *ngIf="allowToCreate && +id==0 "
-                                    [disabled]="!formBaseInformation.valid" 
-                                    color="primary"
-                                    type="submit"
-                                    class="button small-button">
-                                    <i class="material-icons">done</i>
-                            </button>
-                            <button 
-                                    mat-raised-button 
-                                    *ngIf="+id>0 && allowToUpdate && allowToView"
-                                    matTooltip="{{t('docs.tip.save')}}"
-                                    (click)="updateDocument()"
-                                    [disabled]="!formBaseInformation.valid" 
-                                    color="primary"
-                                    type="button"
-                                    class="button small-button">
-                                    <i class="material-icons">save</i>
-                            </button>
-                            <a routerLink="../../usergroup">
-                            <button 
-                                    [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
-                                    mat-raised-button 
-                                    color="accent"
-                                    class="button small-button">
-                                    <i class="material-icons">close</i>
-                            </button>
-                            </a>
-            </div>
-</mat-card-title>
+    <mat-card-header>
+        <mat-card-title class="top-bar container-fluid"> 
+                <div class="row" id="topBlock">
+                        <div class="card-name">{{t('docs.docs.role')}}</div>
+                                <button 
+                                        mat-raised-button 
+                                        matTooltip="{{t('docs.tip.create')}}"
+                                        (click)="clickBtnCreateNewDocument()" 
+                                        *ngIf="allowToCreate && +id==0 "
+                                        [disabled]="!formBaseInformation.valid" 
+                                        color="primary"
+                                        type="submit"
+                                        class="button small-button">
+                                        <i class="material-icons">done</i>
+                                </button>
+                                <button 
+                                        mat-raised-button 
+                                        *ngIf="+id>0 && allowToUpdate && allowToView"
+                                        matTooltip="{{t('docs.tip.save')}}"
+                                        (click)="updateDocument()"
+                                        [disabled]="!formBaseInformation.valid" 
+                                        color="primary"
+                                        type="button"
+                                        class="button small-button">
+                                        <i class="material-icons">save</i>
+                                </button>
+                                <a routerLink="../{{+id>0?'../':''}}usergroup">
+                                <button 
+                                        [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
+                                        mat-raised-button 
+                                        color="accent"
+                                        class="button small-button">
+                                        <i class="material-icons">close</i>
+                                </button>
+                                </a>
+                </div>
+        </mat-card-title>
+    </mat-card-header>
 <!-- !!! -->
 <mat-card-content *ngIf="rightsDefined && 
 (
@@ -64,7 +66,7 @@
                                         <form [formGroup]="formBaseInformation">
                                             <mat-card appearance="outlined" class="card-block">
                                                 <mat-card-header>
-                                                    <mat-card-title class="card-title">{{t('docs.card.base_info')}}</mat-card-title>
+                                                    <mat-card-title>{{t('docs.card.base_info')}}</mat-card-title>
                                                 </mat-card-header>
                                                 <mat-card-content class="input-form">
                                                     <mat-form-field style="display: none">
@@ -96,7 +98,8 @@
                                                                 <i class="form-invalid" *ngIf="formBaseInformation.get('name').errors.required">{{t('docs.error.field_miss')}}</i>
                                                             </mat-hint>
                                                     </mat-form-field>
-                                                    <mat-form-field>
+                                                    <mat-form-field>                                                        
+                                                        <mat-label>{{t('docs.field.description')}}</mat-label>
                                                         <textarea matInput
                                                                 placeholder="{{t('docs.field.description')}}"
                                                                 maxlength="1000"
@@ -111,25 +114,26 @@
 
                                         <mat-card appearance="outlined" slyle="margin:10px;" *ngIf="+id>0">
                                             <mat-card-header>
-                                                <mat-card-title class="card-title">{{t('docs.card.permissions')}}</mat-card-title>
+                                                <mat-card-title>{{t('docs.card.permissions')}}</mat-card-title>
                                             </mat-card-header>
-                                            <mat-expansion-panel *ngFor="let rt of receivedDocumentsWithPermissions">
-                                                <mat-expansion-panel-header>
-                                                    <mat-panel-title>
-                                                            {{rt.name}}
-                                                    </mat-panel-title>
-                                                </mat-expansion-panel-header>
-                                                <ul>
-                                                    <li *ngFor="let row of rt.permissions">
-                                                            <mat-checkbox
-                                                            (click)="$event.stopPropagation()"
-                                                            (change)="$event ? clickTableCheckbox(row) : null"
-                                                            [checked]="selection.isSelected(row)"
-                                                            >{{row.name}}</mat-checkbox>
-                                                    </li>
-                                                </ul>
-                                            </mat-expansion-panel>
-            
+                                            <mat-card-content>
+                                                <mat-expansion-panel *ngFor="let rt of receivedDocumentsWithPermissions">
+                                                    <mat-expansion-panel-header>
+                                                        <mat-panel-title>
+                                                                {{rt.name}}
+                                                        </mat-panel-title>
+                                                    </mat-expansion-panel-header>
+                                                    <ul>
+                                                        <li *ngFor="let row of rt.permissions">
+                                                                <mat-checkbox
+                                                                (click)="$event.stopPropagation()"
+                                                                (change)="$event ? clickTableCheckbox(row) : null"
+                                                                [checked]="selection.isSelected(row)"
+                                                                >{{row.name}}</mat-checkbox>
+                                                        </li>
+                                                    </ul>
+                                                </mat-expansion-panel>
+                                            </mat-card-content>
                                         </mat-card>
                                     </div>
 

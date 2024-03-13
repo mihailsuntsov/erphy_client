@@ -3,48 +3,51 @@
         <div class="col-12">
             <form #form="ngForm" [formGroup]="formSearch">
                 <mat-card appearance="outlined" class="internal-card">
-                    
-                    <div class="flex card" style="padding: 0px 15px; font-size: 20px;">
-                        <div class="card-name">
-                            {{readonly?t('modules.card.prod_inventor'):t('modules.card.srch_prodcts')}}
-                        </div>
-                        <div>
-                            <button 
-                                mat-raised-button 
-                                *ngIf="!readonly"
-                                matTooltip="{{t('modules.tip.selct_prodcts')}}"
-                                (click)="openDialogProductCategoriesSelect('products')" 
-                                style="margin-bottom: 10px;"
-                                color="primary"
-                                type="button"
-                                class="button">
-                                <i class="material-icons">local_grocery_store</i> {{t('modules.button.prods')}}
-                            </button>
-                            <button 
-                                mat-raised-button 
-                                *ngIf="!readonly"
-                                (click)="openDialogProductCategoriesSelect('categories')" 
-                                matTooltip="{{t('modules.tip.selct_categor')}}"
-                                style="margin-bottom: 10px;"
-                                color="primary"
-                                type="button"
-                                class="button">
-                                <i class="material-icons">view_list</i> {{t('modules.button.categories')}}
-                            </button>
-                            <button  
-                                mat-raised-button 
-                                (click)="addProductRow()" 
-                                *ngIf="!readonly"
-                                type="submit"
-                                style="margin-bottom: 10px;"
-                                [disabled]="(!formSearch.valid)||indivisibleErrorOfSearchForm"
-                                color="primary"
-                                matTooltip="{{t('modules.tip.to_list')}}"
-                                class="button">
-                                <i class="material-icons">playlist_add</i> {{t('modules.button.to_list')}}
-                            </button>
-                        </div>
-                    </div>
+                    <mat-card-header>
+                        <mat-card-title class="top-bar container-fluid">
+                            <div class="flex card">
+                                <div class="card-name">
+                                    {{readonly?t('modules.card.prod_inventor'):t('modules.card.srch_prodcts')}}
+                                </div>
+                                <div>
+                                    <button 
+                                        mat-raised-button 
+                                        *ngIf="!readonly"
+                                        matTooltip="{{t('modules.tip.selct_prodcts')}}"
+                                        (click)="openDialogProductCategoriesSelect('products')" 
+                                        style="margin-bottom: 10px;"
+                                        color="primary"
+                                        type="button"
+                                        class="button">
+                                        <i class="material-icons">local_grocery_store</i> {{t('modules.button.prods')}}
+                                    </button>
+                                    <button 
+                                        mat-raised-button 
+                                        *ngIf="!readonly"
+                                        (click)="openDialogProductCategoriesSelect('categories')" 
+                                        matTooltip="{{t('modules.tip.selct_categor')}}"
+                                        style="margin-bottom: 10px;"
+                                        color="primary"
+                                        type="button"
+                                        class="button">
+                                        <i class="material-icons">view_list</i> {{t('modules.button.categories')}}
+                                    </button>
+                                    <button  
+                                        mat-raised-button 
+                                        (click)="addProductRow()" 
+                                        *ngIf="!readonly"
+                                        type="submit"
+                                        style="margin-bottom: 10px;"
+                                        [disabled]="(!formSearch.valid)||indivisibleErrorOfSearchForm"
+                                        color="primary"
+                                        matTooltip="{{t('modules.tip.to_list')}}"
+                                        class="button">
+                                        <i class="material-icons">playlist_add</i> {{t('modules.button.to_list')}}
+                                    </button>
+                                </div>
+                            </div>
+                        </mat-card-title>
+                    </mat-card-header>
                     <mat-card-content class="input-form">
                         <div class="container-fluid" [hidden]="readonly">
                             <div class="row">
@@ -126,6 +129,7 @@
                                                         <div class="row">
                                                             <div class="col-lg-2  col-md-12" style="min-width: 116px;">
                                                                 <mat-form-field class="mat-form-field-100">
+                                                                    <mat-label>{{t('modules.field.est_balance')}}</mat-label>
                                                                     <input  matInput 
                                                                             placeholder="{{t('modules.field.est_balance')}}"
                                                                             formControlName="estimated_balance"
@@ -139,9 +143,8 @@
                                                                 <mat-form-field  class="mat-form-field-100">
                                                                     <mat-label>{{t('modules.field.fact_balance')}}  <span *ngIf="+product_id.value>0 && actual_balance.value==''" class="star">*</span></mat-label>
                                                                     <input  matInput 
-                                                                            class="table-field-editable quantity-field"
+                                                                            class="quantity-field"
                                                                             #actual_balance
-                                                                            [placeholder]="placeholderActualBalance"
                                                                             formControlName="actual_balance"
                                                                             (input)="checkActualBalanceInForm()"
                                                                             (change)="checkActualBalanceInForm()"
@@ -167,15 +170,17 @@
                                                                             [readonly]="+formSearch.get('product_id').value==0?true:false"/>
                                                                     <span matSuffix>
                                                                         {{accountingCurrency}}
-                                                                        <button 
-                                                                            type="button"
-                                                                            (click)="openDialogPricing()"
-                                                                            *ngIf="+formSearch.get('product_id').value>0" 
-                                                                            matTooltip="{{t('modules.tip.pricing_else')}}"
-                                                                            matSuffix mat-icon-button>
-                                                                            <mat-icon>assessment</mat-icon>
-                                                                        </button>
                                                                     </span>
+                                                                    <button style="     position: absolute;
+                                                                                        bottom: 0;
+                                                                                        right: 20px;"
+                                                                        type="button"
+                                                                        (click)="openDialogPricing()"
+                                                                        *ngIf="+formSearch.get('product_id').value>0" 
+                                                                        matTooltip="{{t('modules.tip.pricing_else')}}"
+                                                                        matSuffix mat-icon-button>
+                                                                        <mat-icon>assessment</mat-icon>
+                                                                    </button>
                                                                             
                                                                     <mat-hint align="start">
                                                                         <i *ngIf=" formSearch.get('product_price').invalid && formSearch.get('product_price').errors.pattern && formSearch.get('product_price').value!=='' && formSearch.get('product_price').dirty" class="form-invalid">{{t('docs.error.price_format',{int:7,fract:2})}}</i>
@@ -188,6 +193,7 @@
                                                             </div>
                                                             <div class="col-lg-2  col-md-12" style="min-width: 116px;">
                                                                 <mat-form-field class="mat-form-field-100">
+                                                                    <mat-label>{{t('modules.field.difference')}}</mat-label>
                                                                     <input  matInput 
                                                                             placeholder="{{t('modules.field.difference')}}"
                                                                             [ngModel]="+formSearch.get('product_id').value==0?'':(+formSearch.get('actual_balance').value-(+formSearch.get('estimated_balance').value)).toFixed(3).replace('.000', '').replace('.00', '')"
@@ -199,6 +205,7 @@
                                                             </div>                                                            
                                                             <div class="col-lg-2  col-md-12" style="min-width: 116px;">
                                                                 <mat-form-field class="mat-form-field-100">
+                                                                    <mat-label>{{t('modules.field.ex_def')}}</mat-label>
                                                                     <input  matInput 
                                                                             placeholder="{{t('modules.field.ex_def')}}"
                                                                             [ngModel]="+formSearch.get('product_id').value==0?'':((+formSearch.get('actual_balance').value-(+formSearch.get('estimated_balance').value))*+formSearch.get('product_price').value).toFixed(3).replace('.000', '').replace('.00', '')"
@@ -231,7 +238,7 @@
                                 [formGroup]="formBaseInformation" 
                                 [trackBy]="trackByIndex" 
                                 style="margin-top: 20px;" 
-                                class="mat-elevation-z8">
+                                class="mat-elevation-z8 product-table">
 
                                     <ng-container matColumnDef="select" [formArrayName]="'inventoryProductTable'">
                                         <th mat-header-cell *matHeaderCellDef class="checkbox-col">

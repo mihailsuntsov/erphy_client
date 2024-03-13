@@ -1,0 +1,195 @@
+:host{
+    flex-grow: 1;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+}
+
+table {width: 100%;}
+
+.flex{ display: flex; }
+
+.card{
+    width:100%;
+}
+
+.company-select{
+    flex-grow: 1; 
+    max-width: 400px;
+}
+
+.card-name{ flex-grow: 1; }
+
+.depatrment-select{flex-grow: 1;}
+.plusMinusEnable{
+    color: #673ab7;
+    cursor: pointer;
+    margin: 10px;
+}
+.plusMinusDisable{
+    color: lightgray;
+    cursor: pointer;
+    margin: 10px;
+}
+
+.add-option{
+    display:flex;
+}
+.table-info{
+    margin: 5px;
+    font-size: 20px;
+}
+.table-info-right{
+    margin: 5px 0 5px 5px;
+    font-size: 20px;
+}
+.plus-minus-wrapper{
+    width:10px;
+    padding: 2px 0 0;
+}
+.add-opt-wrapper{
+    width: 80%;
+    padding: inherit;
+}
+/*********доп. строки в таблице***********/
+.padded{
+    padding: 5px;
+}
+.bg-account{
+    background-color: aliceblue;
+}
+.bg-kassa{
+    background-color:azure;;
+}
+.bg-all{
+    background-color:honeydew;
+}
+.balance-bar{
+    font-size: 14px !important;
+    color:black !important;
+}
+.bold{
+    font-weight: bold;
+}
+.normal{font-weight:100}
+.balance-bar-bottom{
+    text-align: left;
+}
+tr.mat-mdc-header-row, tr.mat-mdc-footer-row {
+    height: 60px    ;
+}
+.right{text-align: right !important;}
+.top-bar{
+    text-align: left;
+    padding-left: 24px;
+}
+.bottom-bar-right{
+    height: 37px;
+    padding: 5px 29px 5px 10px;    
+    border-bottom-width: 1px; 
+    border-bottom-style: solid; 
+    border-bottom-color: rgba(0,0,0,.12);
+}
+.bottom-bar-left{
+    height: 37px;
+    padding: 5px 10px 5px 29px;
+    border-bottom-width: 1px; 
+    border-bottom-style: solid; 
+    border-bottom-color: rgba(0,0,0,.12);
+}
+tr.mat-mdc-row{
+    height: 35px !important;
+}
+/******* опции *******/
+.emptyspace{ flex-grow: 1;}
+
+li {list-style: none;}
+
+.div-100{
+    width:100%;
+    text-align: center;
+}
+
+.card-name{ flex-grow: 1; }
+
+.options-button{
+ margin: 5px 15px 0
+}
+
+/**********************/
+.pagination {
+    display: flex;
+    padding-left: 10px;
+    list-style: none;
+    border-radius: .25rem;
+}
+
+.active{
+    color:rgb(27, 27, 27);
+}
+
+.inactive{
+    color:gray;
+}
+
+.pagearrow{
+    font-size: 40px;
+    margin: 0px 15px -47px 0px;
+    cursor: default;
+}
+
+.sortarrow{
+    font-size: 14px;
+    cursor: default;
+    margin-bottom: 7px;
+}
+
+.sortheader{
+    cursor: default;
+    margin: 0 2px 0 2px;
+}
+
+.doc-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width:100%;
+    border: 0px solid black;
+  }
+  
+.doc_container_select_mode {
+  left: 0;
+  top: 0;
+  height: 100%;
+  width:100%;
+  border: 0px solid black;
+}
+   
+.status-name{
+    margin: 5px;
+    color: black;
+    /*max-width: 210px;*/
+}
+
+::ng-deep #maininfo th.mat-mdc-header-cell:first-of-type{
+    padding-left: 40px !important;
+}
+#maininfo th.mat-mdc-header-cell:last-of-type {
+    padding: 0 16px 0 0px !important;
+}
+#settings_table th{
+    padding: 5px 16px !important;
+}
+.date-range {
+    width: 268px !important;
+}
+/*Данные не найдены*/
+.spinner{
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    margin-left: -25px;
+    margin-top: 100px;
+    z-index: 100;
+}

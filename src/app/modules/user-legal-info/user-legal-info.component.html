@@ -1,4 +1,5 @@
 <mat-card appearance="outlined" class="card" *transloco="let t">
+    <mat-card-header>
         <mat-card-title class="flex">
             <div class="card-name">{{t('modules.card.lui')}}</div>
             <button 
@@ -10,7 +11,8 @@
                 <i class="material-icons">close</i> 
             </button>
         </mat-card-title>
-    <mat-card-subtitle style="position: absolute; top: 50px;left: 16px;">{{t('modules.card.info_tpo')}}</mat-card-subtitle>
+        <mat-card-subtitle style="position: absolute; top: 50px;left: 16px;">{{t('modules.card.info_tpo')}}</mat-card-subtitle>
+    </mat-card-header>
     <mat-card-content > 
         <div class="card">
             <mat-spinner 

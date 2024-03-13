@@ -4,31 +4,34 @@
         <div class="col-12">
             <form #form="ngForm" [formGroup]="formSearch">
                 <mat-card appearance="outlined" class="internal-card">
-                    
-                    <div class="flex card" style="padding: 0px 15px; font-size: 20px;">
-                        <div class="card-name">
-                            {{readonly?t('modules.card.prod_list'):t('modules.card.srch_prodcts')}}
-                        </div>
-                        <div>
-                           
-                            <button 
-                                mat-raised-button 
-                                (click)="addProductRow()" 
-                                type="submit"
-                                style="margin-bottom: 10px;"
-                                [disabled]="(!formSearch.valid) ||
-                                ((+formSearch.get('product_count').value==0) && formSearch.get('product_count').value!='') ||
-                                (formSearch.get('product_count').value=='') ||
-                                indivisibleErrorOfSearchForm ||
-                                (formSearch.get('product_price').value=='')"
-                                color="primary"
-                                matTooltip="{{t('modules.tip.to_list')}}"
-                                class="button">
-                                <i class="material-icons">playlist_add</i> {{t('modules.button.to_list')}}
-                            </button>
-                            <!-- Deleted from [disabled] of this button: (formSearch.get('product_price').value==0 && formSearch.get('product_price').value!='')|| -->
-                        </div>
-                    </div>
+                    <mat-card-header>
+                        <mat-card-title class="top-bar container-fluid">
+                            <div class="flex card">
+                                <div class="card-name">
+                                    {{readonly?t('modules.card.prod_list'):t('modules.card.srch_prodcts')}}
+                                </div>
+                                <div>
+                                
+                                    <button 
+                                        mat-raised-button 
+                                        (click)="addProductRow()" 
+                                        type="submit"
+                                        style="margin-bottom: 10px;"
+                                        [disabled]="(!formSearch.valid) ||
+                                        ((+formSearch.get('product_count').value==0) && formSearch.get('product_count').value!='') ||
+                                        (formSearch.get('product_count').value=='') ||
+                                        indivisibleErrorOfSearchForm ||
+                                        (formSearch.get('product_price').value=='')"
+                                        color="primary"
+                                        matTooltip="{{t('modules.tip.to_list')}}"
+                                        class="button">
+                                        <i class="material-icons">playlist_add</i> {{t('modules.button.to_list')}}
+                                    </button>
+                                    <!-- Deleted from [disabled] of this button: (formSearch.get('product_price').value==0 && formSearch.get('product_price').value!='')|| -->
+                                </div>
+                            </div>
+                        </mat-card-title>
+                    </mat-card-header>
                     <mat-card-content class="input-form">
                         <div class="container-fluid" [hidden]="readonly">
                             <div class="row">
@@ -132,6 +135,7 @@
                                                             </div>
                                                             <div class="col-lg-3  col-md-12">
                                                                 <mat-form-field class="mat-form-field-100">
+                                                                    <mat-label>{{t('modules.field.available')}}</mat-label>
                                                                     <input  matInput 
                                                                             placeholder="{{t('modules.field.available')}}"
                                                                             formControlName="available"
@@ -142,6 +146,7 @@
                                                             </div>
                                                             <div class="col-lg-3  col-md-12">
                                                                 <mat-form-field class="mat-form-field-100">
+                                                                    <mat-label>{{t('modules.field.reserved')}}</mat-label>
                                                                     <input  matInput 
                                                                             placeholder="{{t('modules.field.reserved')}}"
                                                                             formControlName="reserved"
@@ -149,21 +154,24 @@
                                                                             />
                                                                             <span matSuffix>
                                                                                 {{edizmName}}
-                                                                                <button
-                                                                                    type="button"
-                                                                                    (click)="openDialogProductReserves(formSearch.get('secondaryDepartmentId').value,this.formSearch.get('product_id').value )"
-                                                                                    *ngIf="+formSearch.get('product_id').value>0" 
-                                                                                    matTooltip="{{t('modules.tip.other_orders')}}"
-                                                                                    matSuffix mat-icon-button>
-                                                                                    <mat-icon>info</mat-icon>
-                                                                                </button>
                                                                             </span>
+                                                                            <button style="     position: absolute;
+                                                                                                bottom: 0;
+                                                                                                right: 20px;"
+                                                                                type="button"
+                                                                                (click)="openDialogProductReserves(formSearch.get('secondaryDepartmentId').value,this.formSearch.get('product_id').value )"
+                                                                                *ngIf="+formSearch.get('product_id').value>0" 
+                                                                                matTooltip="{{t('modules.tip.other_orders')}}"
+                                                                                matSuffix mat-icon-button>
+                                                                                <mat-icon>info</mat-icon>
+                                                                            </button>
 
                                                                             
                                                                 </mat-form-field>
                                                             </div>
                                                             <div class="col-lg-3  col-md-12">
                                                                 <mat-form-field class="mat-form-field-100">
+                                                                    <mat-label>{{t('modules.field.total')}}</mat-label>
                                                                     <input  matInput 
                                                                             placeholder="{{t('modules.field.total')}}"
                                                                             formControlName="total"
@@ -287,18 +295,16 @@
                                                             </mat-option>
                                                         </mat-select>
                                                     </mat-form-field>
+                                                    
                                                     <button 
-                                                    mat-icon-button
-                                                    *ngIf="formSearch.get('pricingType').value=='priceType'" 
-                                                    [matMenuTriggerFor]="menu" 
-                                                    style="position: relative;
-                                                    right: 40px;
-                                                    top: 0px;
-                                                    flex: 0 0 0%;
-                                                    color:black;
-                                                    z-index: 1000;"
-                                                    matTooltip="{{t('modules.tip.sel_prior_pt')}}">
-                                                        <mat-icon style="font-size: 15px; height: 15px;">settings</mat-icon>
+                                                        mat-icon-button
+                                                        *ngIf="formSearch.get('pricingType').value=='priceType'" 
+                                                        [matMenuTriggerFor]="menu" 
+                                                        style="     position: absolute;
+                                                                    bottom: 15px;
+                                                                    right: 15px;"
+                                                        matTooltip="{{t('modules.tip.sel_prior_pt')}}">
+                                                        <mat-icon>settings</mat-icon>
                                                     </button>
                                                     <mat-menu #menu="matMenu">
                                                         <div matTooltip="{{t('modules.tip.depart_pt')}}"
@@ -308,7 +314,7 @@
                                                             [disabled]="+department_type_price_id==0">
                                                             <span class="priceTypeName">{{getPriceTypesNameById(department_type_price_id)}}</span>
                                                             <mat-icon>widgets</mat-icon>
-                                                            <span>{{t('modules.list.department')}}</span>
+                                                            <span style="position:absolute;left:56px;top:18px;">{{t('modules.list.department')}}</span>
                                                             </button>
                                                         </div>
                                                         <div matTooltip="{{t('modules.tip.cagent_pt')}}"
@@ -317,7 +323,7 @@
                                                             (click)="onSelectPriorityPriceType(cagent_type_price_id,'cagent')" 
                                                             [disabled]="+cagent_type_price_id==0">
                                                             <mat-icon>perm_identity</mat-icon>
-                                                            <span>{{t('modules.list.customer')}}</span><span class="priceTypeName">{{getPriceTypesNameById(cagent_type_price_id)}}</span>
+                                                            <span style="position:absolute;left:56px;top:18px;">{{t('modules.list.customer')}}</span><span class="priceTypeName">{{getPriceTypesNameById(cagent_type_price_id)}}</span>
                                                             </button>
                                                         </div>
                                                         <div matTooltip="{{t('modules.tip.def_price_pt')}}"
@@ -326,7 +332,7 @@
                                                             (click)="onSelectPriorityPriceType(default_type_price_id,'defprice')" 
                                                             [disabled]="+default_type_price_id==0">
                                                             <mat-icon>signal_cellular_alt</mat-icon>
-                                                            <span>{{t('modules.list.default_price')}}</span><span class="priceTypeName">{{getPriceTypesNameById(default_type_price_id)}}</span>
+                                                            <span style="position:absolute;left:56px;top:18px;">{{t('modules.list.default_price')}}</span><span class="priceTypeName">{{getPriceTypesNameById(default_type_price_id)}}</span>
                                                             </button>
                                                         </div>
                                                     </mat-menu>
@@ -344,7 +350,7 @@
                                                                 [ngClass]="{invisible: formSearch.get('plusMinus').value=='minus'}"
                                                                 *ngIf="formSearch.get('changePrice').value>=0"
                                                                 (click)="clickPlusMinus('minus')">
-                                                                    <mat-icon style="font-size: 15px; height: 15px;">add_box</mat-icon>
+                                                                    <mat-icon style="position: relative; top: 8px;">add_box</mat-icon>
                                                                 </button>
                                                                 <button 
                                                                 mat-icon-button
@@ -358,10 +364,10 @@
                                                                 [ngClass]="{invisible: formSearch.get('plusMinus').value=='plus'}"
                                                                 *ngIf="formSearch.get('changePrice').value>=0"
                                                                 (click)="clickPlusMinus('plus')">
-                                                                    <mat-icon style="font-size: 15px; height: 15px;">indeterminate_check_box</mat-icon>
+                                                                    <mat-icon style="position: relative; top: 8px;">indeterminate_check_box</mat-icon>
                                                                 </button>
-                                                                <mat-form-field 
-                                                                                style="width:68%;">
+                                                                <mat-form-field style="width:60%;">
+                                                                    <mat-label>&nbsp;</mat-label>
                                                                     <input  matInput
                                                                             (input)="priceRecount()"
                                                                             (change)="priceRecount()"
@@ -370,7 +376,7 @@
                                                                             formControlName="changePrice"
                                                                             />
                                                                 </mat-form-field>
-                                                                <mat-form-field style="width:32%;margin-left: 5px;">
+                                                                <mat-form-field style="width:40%;margin-left: 5px;">
                                                                     <mat-select formControlName="changePriceType" (selectionChange)="priceRecount()" >
                                                                         <mat-option value="procents">
                                                                         %
@@ -396,17 +402,22 @@
                                                                             (change)="calcSumPriceOfProduct()"
                                                                             (keypress)="numberOnlyPlusDotAndComma($event)"
                                                                             [readonly]="+formSearch.get('product_id').value==0?true:false"/>
+                                                                            
                                                                     <span matSuffix>
                                                                         {{accountingCurrency}}
-                                                                        <button
-                                                                            type="button"
-                                                                            (click)="openDialogPricing(formSearch.get('product_id').value,formSearch.get('secondaryDepartmentId').value,formSearch.get('price_type_id').value, 'searchForm')"
-                                                                            *ngIf="+formSearch.get('product_id').value>0" 
-                                                                            matTooltip="{{t('modules.tip.pricing_else')}}"
-                                                                            matSuffix mat-icon-button>
-                                                                            <mat-icon>assessment</mat-icon>
-                                                                        </button>
                                                                     </span>
+                                                                    
+                                                                    <button style="     position: absolute;
+                                                                                        bottom: 0;
+                                                                                        right: 9px;"
+                                                                        type="button"
+                                                                        (click)="openDialogPricing(formSearch.get('product_id').value,formSearch.get('secondaryDepartmentId').value,formSearch.get('price_type_id').value, 'searchForm')"
+                                                                        *ngIf="+formSearch.get('product_id').value>0" 
+                                                                        matTooltip="{{t('modules.tip.pricing_else')}}"
+                                                                        matSuffix mat-icon-button>
+                                                                        <mat-icon>assessment</mat-icon>
+                                                                    </button>
+                                                                    
                                                                             
                                                                     <mat-hint align="start">
                                                                         <i *ngIf=" product_price.invalid && product_price.errors.pattern && product_price.value>0 && product_price.touched" class="form-invalid">{{t('modules.error.price_format',{int:7,fract:2})}}</i>
@@ -420,6 +431,7 @@
                                                             </div>
                                                             <div class="col-lg-3  col-md-12">
                                                                 <mat-form-field class="mat-form-field-100">
+                                                                    <mat-label>{{t('modules.field.sum')}}</mat-label>
                                                                     <input  matInput 
                                                                             placeholder="{{t('modules.field.sum')}}"
                                                                             [value]="(+formSearch.get('product_id').value==0 && formSearch.get('product_sumprice').value==0)?'':formSearch.get('product_sumprice').value"
@@ -473,7 +485,7 @@
                                 [formGroup]="formBaseInformation" 
                                 [trackBy]="trackByIndex" 
                                 style="margin-top: 20px;" 
-                                class="mat-elevation-z8">
+                                class="mat-elevation-z8 product-table">
 
                                     <ng-container matColumnDef="select" [formArrayName]="'customersOrdersProductTable'">
                                         <th mat-header-cell *matHeaderCellDef class="checkbox-col">
@@ -547,6 +559,7 @@
                                         [ngStyle]="   (getControlTablefield().controls[i].get('product_price').value==0&&!readonly && !(getControlTablefield().controls[i].get('product_price').invalid && !getControlTablefield().controls[i].get('product_price').errors.pattern))?{'background-color': '#ffe4e1'}:{'background-color': 'white'}"
                                         [matTooltip]="(getControlTablefield().controls[i].get('product_price').value==0&&!readonly && !(getControlTablefield().controls[i].get('product_price').invalid && !getControlTablefield().controls[i].get('product_price').errors.pattern))? t('modules.tip.zero_price') : ''">
                                             <input matInput 
+                                                style="width: 70px;margin-right: 15px;"
                                                 [ngClass]="{'table-field-editable':!readonly}"
                                                 [readonly]=readonly
                                                 placeholder=""

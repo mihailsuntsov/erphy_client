@@ -102,6 +102,9 @@ const routes: Routes = [
       { path: 'subscription', loadChildren: () => import('./pages/documents/subscription/subscription.module').then(m => m.SubscriptionModule) },
       { path: 'resources', loadChildren: () => import('./pages/documents/resources/resources.module').then(m => m.ResourcesModule) },
       { path: 'resourcesdoc', loadChildren: () => import('./pages/documents/resources-doc/resources-doc.module').then(m => m.ResourcesDocModule) },
+      { path: 'jobtitles', loadChildren: () => import('./pages/documents/jobtitles/jobtitles.module').then(m => m.JobtitlesModule) },
+      { path: 'jobtitlesdoc', loadChildren: () => import('./pages/documents/jobtitles-doc/jobtitles-doc.module').then(m => m.JobtitlesDocModule) },
+      { path: 'employeescdl', loadChildren: () => import('./pages/documents/employeescdl/employeescdl.module').then(m => m.EmployeeScdlModule) },
 
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
       { path: '**', redirectTo: 'dashboard',pathMatch: 'full' },

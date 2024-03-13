@@ -4,7 +4,7 @@
           {{progress.percentage}}%</div>
 </div>
 <div class="center" style="width:100%; height: 38px;">
-    <button mat-mini-fab color="primary" onclick="document.getElementById('fileToUpload').click()" matTooltip="Выбрать картинку для загрузки. (До 1 Мб, JPG)">
+    <button mat-icon-button color="primary" onclick="document.getElementById('fileToUpload').click()" matTooltip="Выбрать картинку для загрузки. (До 1 Мб, JPG)">
         <mat-icon>add</mat-icon>
     </button>
     <input id="fileToUpload" type="file" style="display:none;"  (change)="selectFile($event)"> 

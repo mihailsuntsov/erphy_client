@@ -14,7 +14,6 @@ li {list-style: none;}
     margin-bottom: 10px;
 }
 .internal-card{
-    padding: 15px 0 15px;
     margin: 10px 0 10px 0;
 }
 .card-title{
@@ -49,9 +48,7 @@ border: 0px solid black;
     width:100%;
     margin:-8.5px 0 0 0;
 }
-.chip-list {
-    width: 100%;
-}
+ 
 .field-name{
     font: inherit;
     font-size: 10.5px;

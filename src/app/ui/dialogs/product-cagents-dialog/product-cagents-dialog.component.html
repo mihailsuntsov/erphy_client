@@ -1,32 +1,36 @@
-<mat-card appearance="outlined" class="card" *transloco="let t">
-    <mat-card-title class="flex">
-        <div class="card-name">{{data.docName}}</div>
-        <button 
-            mat-raised-button 
-            (click)="updateProductCagentProperties()"
-            [disabled]="!formBaseInformation.valid" 
-            matTooltip="{{'docs.tip.save' | transloco}}"
-            color="primary"
-            class="button small-button">
-            <i class="material-icons">save</i>
-        </button>
-        <button 
-            (click)="onNoClick()"
-            mat-raised-button 
-            color="accent"
-            matTooltip="{{'modules.tip.close_window' | transloco}}"
-            class="button small-button">
-            <i class="material-icons">close</i>
-        </button>
-    </mat-card-title>
+<mat-card appearance="outlined" style="width:100%" *transloco="let t">
+    <mat-card-header>  
+        <mat-card-title class="flex">
+            <div class="card-name">{{data.docName}}</div>
+            <button 
+                mat-raised-button 
+                (click)="updateProductCagentProperties()"
+                [disabled]="!formBaseInformation.valid" 
+                matTooltip="{{'docs.tip.save' | transloco}}"
+                color="primary"
+                class="button small-button">
+                <i class="material-icons">save</i>
+            </button>
+            <button 
+                (click)="onNoClick()"
+                mat-raised-button 
+                color="accent"
+                matTooltip="{{'modules.tip.close_window' | transloco}}"
+                class="button small-button">
+                <i class="material-icons">close</i>
+            </button>
+        </mat-card-title>
+    </mat-card-header>
     <mat-card-content > 
         <form [formGroup]="formBaseInformation">   
             <mat-form-field  [style.display]="'block'">
+                <mat-label>{{'modules.field.sku_supplier' | transloco}}</mat-label>
                 <input matInput
                         placeholder="{{t('docs.field.sku_supplier')}}"
                         formControlName="cagentArticle"/>
             </mat-form-field>
             <mat-form-field  [style.display]="'block'">
+                <mat-label>{{'modules.field.additional' | transloco}}</mat-label>
                 <textarea matInput
                         placeholder="{{t('docs.field.additional')}}"
                         formControlName="cagentAdditional"

@@ -1,15 +1,17 @@
 <mat-card appearance="outlined" class="card" *transloco="let t">
-    <mat-card-title class="flex">
-        <div class="card-name">{{t('modules.card.settings')}}</div>
-        <button 
-            (click)="onNoClick()"
-            matTooltip="{{t('modules.tip.cls_sttng_wnd')}}"
-            mat-raised-button 
-            color="accent"
-            class="button small-button">
-            <i class="material-icons">close</i>
-        </button>
-    </mat-card-title>
+    <mat-card-header>
+        <mat-card-title class="flex">
+            <div class="card-name">{{t('modules.card.settings')}}</div>
+            <button 
+                (click)="onNoClick()"
+                matTooltip="{{t('modules.tip.cls_sttng_wnd')}}"
+                mat-raised-button 
+                color="accent"
+                class="button small-button">
+                <i class="material-icons">close</i>
+            </button>
+        </mat-card-title>
+    </mat-card-header>
     <mat-card-content > 
         <div class="card">
             <mat-spinner 

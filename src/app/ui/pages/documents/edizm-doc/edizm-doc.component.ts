@@ -2,9 +2,9 @@ import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { Validators, UntypedFormGroup, UntypedFormControl} from '@angular/forms';
-import {HttpClient} from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import {MatSnackBar} from '@angular/material/snack-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { translate } from '@ngneat/transloco'; //+++
@@ -100,7 +100,7 @@ export class EdizmDocComponent implements OnInit {
       name: new UntypedFormControl      ('',[Validators.required]),
       short_name: new UntypedFormControl      ('',[Validators.required]),
       type_id: new UntypedFormControl      ('',[Validators.required]),
-      equals_si: new UntypedFormControl      ('1',[Validators.required]),
+      equals_si: new UntypedFormControl      ('1',[Validators.required,Validators.pattern('^[0-9]{1,8}(?:[.,][0-9]{0,3})?\r?$')]),
 
     });
     this.formAboutDocument = new UntypedFormGroup({
@@ -318,6 +318,9 @@ export class EdizmDocComponent implements OnInit {
       case 5:
         this.type_short_name=translate('docs.msg.one_qmeter');
         break;
+      case 6:
+        this.type_short_name=translate('docs.msg.one_second');
+        break;  
       default:
         {this.type_short_name='';
         this.formBaseInformation.get('equals_si').setValue('1');
@@ -340,4 +343,9 @@ export class EdizmDocComponent implements OnInit {
   getBaseData(data) {    //+++ emit data to parent component
     this.baseData.emit(data);
   }
+  
+  numberOnlyPlusDot(event): boolean {
+    const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
+    if (charCode > 31 && ((charCode < 48 || charCode > 57) && charCode!=46)) { return false; } return true;}
+
 }

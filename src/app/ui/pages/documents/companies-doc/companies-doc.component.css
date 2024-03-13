@@ -13,7 +13,6 @@ li {list-style: none;}
     width:100%;
 }
 .internal-card{
-    padding: 15px 0 15px;
     margin: 10px 0 10px 0;
 }
 .card-title{
@@ -48,7 +47,7 @@ border: 0px solid black;
 .add_circle {
     cursor: pointer;
     position: absolute;
-    top: 24px;
+    top: 42px;
     right: 0px;
     color: #585858;
     z-index: 1000;
@@ -116,22 +115,14 @@ flex: 1 1 auto;
 }
 /*------------------- ФАЙЛЫ -------------------------*/
 .filename-row {
-    /* border: 1px solid rgb(143, 143, 143);  */
    width:100%; 
    margin-bottom: 10px;
    height:25px;
-   /* background-color: #cfc; */
    display: flex;
    justify-content: space-between;
    padding-left: 10px;
 }
-.file-wrapper{
-    flex-grow: 1; 
-    max-width: 70%;
-    display: table-cell; 
-    vertical-align: middle;
-    height: 25px;border: 1px solid white;
-}
+ 
 .min-heigth{
     line-height: 22px;
     height: 22px;
@@ -152,35 +143,23 @@ flex: 1 1 auto;
 .open-file {
     cursor: pointer;
     position: absolute;
-    top: 0px;
     right: 30px;
     color: #585858;
     z-index: 1000;
+    top: 21px;
 }
 .del-file {
     cursor: pointer;
     position: absolute;
-    top: 0px;
+    top: 21px;
     right: -3px;
     color: #585858;
     z-index: 1000;
 }
 /*--------------- стили для статуса------------------*/
 /*для цветного круга в статусах*/
-.circle-wrapper {
-    width: 30px;
-    height: 100%;
-    vertical-align: middle;
-    text-align: center;
-    display: inline-block;
-}
-.circle-in-list {
-    width: 20px;
-    height: 20px;
-    -moz-border-radius: 10px;
-    -webkit-border-radius: 10px;
-    border-radius: 10px;
-} 
+ 
+  
 .circle-in-selected{
     width: 20px;
     height: 20px;

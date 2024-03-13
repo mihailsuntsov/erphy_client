@@ -145,6 +145,7 @@
                                                             </div>
                                                             <div class="col-lg-1 col-md-12" style="min-width: 110px;"> 
                                                                 <mat-form-field class="mat-form-field-100">
+                                                                    <mat-label>{{t('modules.field.count')}}</mat-label>
                                                                     <input  matInput 
                                                                             placeholder="{{t('modules.field.price')}}{{formSearch.get('edizm').value==''?'':' '+t('modules.field.for')+' 1'}}{{formSearch.get('edizm').value}}"
                                                                             formControlName="product_price"
@@ -163,6 +164,7 @@
                                                             </div>
                                                             <div class="col-lg-1  col-md-12" style="min-width: 110px;">
                                                                 <mat-form-field class="mat-form-field-100">
+                                                                    <mat-label>{{t('modules.field.available')}}</mat-label>
                                                                     <input  matInput 
                                                                             placeholder="{{t('modules.field.available')}}{{formSearch.get('edizm').value==''?'':', '}}{{formSearch.get('edizm').value}}"
                                                                             formControlName="available"
@@ -173,6 +175,7 @@
                                                             </div>
                                                             <div class="col-lg-1  col-md-12" style="min-width: 110px;">
                                                                 <mat-form-field class="mat-form-field-100">
+                                                                    <mat-label>{{t('modules.field.reserved')}}</mat-label>
                                                                     <input  matInput 
                                                                             placeholder="{{t('modules.field.reserved')}}{{formSearch.get('edizm').value==''?'':', '}}{{formSearch.get('edizm').value}}"
                                                                             formControlName="reserved"
@@ -183,6 +186,7 @@
                                                             </div>
                                                             <div class="col-lg-1  col-md-12" style="min-width: 110px;">
                                                                 <mat-form-field class="mat-form-field-100">
+                                                                    <mat-label>{{t('modules.field.remains')}}</mat-label>
                                                                     <input  matInput 
                                                                             placeholder="{{t('modules.field.remains')}}"
                                                                             formControlName="total"
@@ -203,6 +207,7 @@
                                                             </div>
                                                             <div class="col-lg-1  col-md-12" style="min-width: 110px;">
                                                                 <mat-form-field class="mat-form-field-100">
+                                                                    <mat-label>{{t('modules.field.sum')}}</mat-label>
                                                                     <input  matInput 
                                                                             placeholder="{{t('modules.field.sum')}}"
                                                                             formControlName="product_sumprice"
@@ -235,7 +240,7 @@
                                 [formGroup]="formBaseInformation" 
                                 [trackBy]="trackByIndex" 
                                 style="margin-top: 20px;" 
-                                class="mat-elevation-z8">
+                                class="mat-elevation-z8 product-table">
 
                                     <ng-container matColumnDef="select" [formArrayName]="'ordersupProductTable'">
                                         <th mat-header-cell *matHeaderCellDef class="checkbox-col">

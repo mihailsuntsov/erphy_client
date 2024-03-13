@@ -11,7 +11,7 @@ class="spinner"
             <div *ngIf="!displayingDeletedDocs" class="card-name">{{cu.cap(t('menu.docs.users'))}}</div>
             <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">{{t('menu.top.deleted')}}</span> {{t('menu.docs.users')}}</div>
             <div [style.display]="(visBtnAdd  && !displayingDeletedDocs)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
-                <a [routerLink]="['../usersdoc', '']">
+                <a [routerLink]="['../usersdoc']">
                     <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> {{t('menu.top.btn_create')}}</button>
                 </a>   
             </div>

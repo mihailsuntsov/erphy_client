@@ -354,13 +354,14 @@ export class InventoryProductsTableComponent implements OnInit {
 
   afterSelectProduct(){
     this.setPrice();
+    this.formSearch.get('actual_balance').setValue(String(this.getDefaultActualBalance('form')));
     if(this.autoAdd){
       setTimeout(() => {this.addProductRow();}, 100);
     }else {
       this.formSearchReadOnly=true;
       this.placeholderActualBalance=String(this.getDefaultActualBalance('form'));
       this.loadMainImage();
-    }
+    } 
     
     setTimeout(() => { this.actual_balance.nativeElement.focus(); }, 100);
   }

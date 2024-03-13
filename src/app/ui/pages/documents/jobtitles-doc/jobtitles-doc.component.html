@@ -1,0 +1,314 @@
+<mat-card appearance="outlined" class="card for-sticky-header" *transloco="let t">
+    <mat-card-header>
+        <mat-card-title class="top-bar container-fluid"> 
+            <div class="row" id="topBlock">
+                <div class="card-name">
+                    {{t('docs.docs.jobtitles')}} <span [ngClass]="{invisible: +id==0}"> "{{formBaseInformation.get('name').value}}"</span>
+                </div>
+                <div class="separator"></div><!-- !!! -->
+                <button 
+                    mat-button 
+                    [matMenuTriggerFor]="addDocMenu"
+                    mat-raised-button 
+                    matTooltip="{{t('docs.tip.create_docs')}}"
+                    [disabled]="!formBaseInformation.valid" 
+                    *ngIf="+id>0"
+                    color="primary"
+                    (submit)="false"
+                    type="button"
+                    class="button small-button">
+                    <i class="material-icons">add</i>
+                </button>
+                <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
+                    <button mat-menu-item (click)="goToNewDocument()">
+                        <span>{{t('docs.docs.jobtitles')}}</span>
+                    </button>
+                </mat-menu>
+                <button 
+                    mat-raised-button 
+                    [style.display]="id>0?'flex':'none'"
+                    (click)="updateDocument()"
+                    [disabled]="!formBaseInformation.valid||!formBaseInformationValid" 
+                    matTooltip="{{t('docs.tip.save')}}"
+                    color="primary"
+                    class="button small-button">
+                    <i class="material-icons">save</i>
+                </button>
+                <button 
+                    mat-raised-button 
+                    [style.display]="id>0?'none':'flex'"
+                    (click)="createNewDocument()" 
+                    matTooltip="{{t('docs.tip.create')}}"
+                    [disabled]="!formBaseInformation.valid" 
+                    color="primary"
+                    class="button small-button">
+                    <i class="material-icons">done</i>
+                </button>
+                <a routerLink="../{{+id>0?'../':''}}jobtitles">
+                    <button 
+                        mat-raised-button 
+                        [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
+                        color="accent"
+                        class="button small-button">
+                        <i class="material-icons">close</i>
+                    </button>
+                </a>
+            </div>
+        </mat-card-title>
+    </mat-card-header>
+    <!-- !!! -->
+    <mat-card-content *ngIf="rightsDefined && 
+    (
+        (!allowToView && +id>0) ||
+        (!allowToCreate && +id==0)
+    )"> 
+        <mat-card appearance="outlined" class="internal-card">
+            <mat-card-content style="font-size: 20px;font-weight: bold;color: red;text-align: center;height: 100px;padding: 38px 0;">
+                {{t('docs.msg.no_perm')}}
+            </mat-card-content>
+        </mat-card>
+    </mat-card-content>
+    <!-- !!! -->
+    <mat-card-content *ngIf="!rightsDefined || (rightsDefined && (( +id>0 && allowToView)||(+id==0 && allowToCreate)))">
+        <mat-tab-group>
+                <mat-tab label="{{t('docs.tab.info')}}">
+
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-lg-6  col-xl-6 col-md-12">  
+
+                                <mat-card appearance="outlined" class="internal-card">
+                                    <mat-card-header>
+                                        <mat-card-title class="card-title">{{t('docs.card.base_info')}}</mat-card-title>
+                                    </mat-card-header>
+                                    <mat-card-content class="input-form">
+                                        <form [formGroup]="formBaseInformation">
+                                            <!-- <div class="container-fluid"> -->
+                                                <div class="row">
+                                                    <div class="col-12">    
+                                                        <mat-form-field style="display: none">
+                                                            <input  matInput
+                                                                    placeholder="id"
+                                                                    formControlName="id"/>
+                                                        </mat-form-field>
+                                                        <mat-form-field style="display: none">
+                                                            <input  matInput
+                                                                    placeholder="id"
+                                                                    formControlName="id"/>
+                                                        </mat-form-field>
+                                                        <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: +id>0}">
+                                                            <mat-label>{{t('docs.field.company')}} <span *ngIf="formBaseInformation.get('company_id').value==''" class="star">*</span></mat-label>
+                                                            <mat-select formControlName="company_id"
+                                                                (selectionChange)="onCompanyChange()">                          
+                                                                <mat-option  *ngFor="let rt of receivedCompaniesList"
+                                                                [value]="rt.id">
+                                                                        {{rt.name}}
+                                                                </mat-option> 
+                                                            </mat-select>
+                                                        </mat-form-field>
+                                                        <mat-form-field class="mat-form-field-100" *ngIf="+id>0">
+                                                            <mat-label>{{t('docs.field.company')}}</mat-label>
+                                                            <input  matInput [readonly]="true"
+                                                                    [ngModel]="formAboutDocument.get('company').value" [ngModelOptions]="{standalone: true}"/>
+                                                        </mat-form-field>
+                                                        <mat-form-field class="mat-form-field-100">
+                                                            <mat-label>{{t('docs.field.name')}} <span *ngIf="formBaseInformation.get('name').value==''" class="star">*</span></mat-label>
+                                                            <input  matInput
+                                                                    [readonly]="!allowToUpdate"
+                                                                    formControlName="name"/>
+                                                        </mat-form-field>
+                                                        <div class="row">
+                                                            <div class="col-12">
+                                                                <mat-form-field  class="mat-form-field-100">
+                                                                    <mat-label>{{t('docs.field.additional')}}</mat-label>
+                                                                    <textarea   matInput
+                                                                                maxlength="2000"
+                                                                                [rows]="2"
+                                                                                [readonly]="!allowToUpdate"
+                                                                                #description
+                                                                                placeholder="{{t('docs.field.additional')}}"
+                                                                                formControlName="description">
+                                                                    </textarea>
+                                                                    <mat-hint align="end" *ngIf="description.value.length>500 && !allowToUpdate">{{description.value.length}} / 2000</mat-hint>
+                                                                </mat-form-field>
+                                                            </div> 
+                                                        </div> 
+                                                    </div>
+                                                </div>
+                                            <!-- </div>   -->
+                                        </form>
+                                    </mat-card-content>
+                                </mat-card>
+                            </div>
+                            <div class="col-lg-6  col-xl-6 col-md-12">
+                                <mat-card appearance="outlined" class="internal-card">
+                                    <mat-card-header>
+                                        <mat-card-title>
+                                            <div class="flex card">
+                                                <div style="width:100%;">
+                                                    {{t('docs.card.jobtitle_services')}}
+                                                </div>
+                                                <div>
+                                                    <!-- <button 
+                                                        mat-raised-button 
+                                                        (click)="
+                                                        showSearchFormFields=!showSearchFormFields;
+                                                        refreshTableColumns();"
+                                                        type="button"
+                                                        *ngIf="!showSearchFormFields && editability"
+                                                        color="primary"
+                                                        class="button">
+                                                        {{t('docs.tip.p_edit')}}
+                                                    </button> -->
+                                                    <!-- <button matTooltip="{{t('docs.tip.p_edit')}}" 
+                                                                mat-mini-fab 
+                                                                color="primary" 
+                                                                *ngIf="!showSearchFormFields && editability"
+                                                                (click)="
+                                                                showSearchFormFields=!showSearchFormFields;
+                                                                refreshTableColumns();">
+                                                            <mat-icon>edit</mat-icon>
+                                                    </button> -->
+                                                </div>
+                                            </div>
+                                        </mat-card-title>
+                                    </mat-card-header>
+                                    <mat-card-content class="input-form" style="padding: 15px;">
+
+                                        <div class="row" *ngIf="getControlTablefield().value.length>0 || gettingTableData" style="margin-right:0;margin-left:0;">
+                                            <mat-spinner 
+                                            strokeWidth="3" 
+                                            class="spinner"
+                                            [diameter]="44"
+                                            *ngIf="gettingTableData"
+                                            ></mat-spinner>
+                                            <table mat-table #_table  
+                                            [dataSource]="getControlTablefield().value" 
+                                            [formGroup]="formBaseInformation" 
+                                            [trackBy]="trackByIndex"
+                                            style="margin: 20px 0 30px;"
+                                            class="mat-elevation-z8 jobtitles-table product-table">
+            
+                                                <ng-container matColumnDef="select" [formArrayName]="'jobtitleProductsFormTable'">
+                                                    <th mat-header-cell *matHeaderCellDef class="checkbox-col">
+                                                        <!--mat-checkbox   (change)="masterToggle()"
+                                                                        
+                                                                        [checked]="selection.hasValue()"
+                                                                        [indeterminate]="selection.hasValue() && !isAllSelected()">
+                                                        </mat-checkbox-->
+                                                    </th>
+                                                    <td mat-cell class="checkbox-col" *matCellDef="let row; let i = index" [formGroupName]="i"> 
+                                                        <!--mat-checkbox   (click)="$event.stopPropagation()"
+                                                                        *ngIf="showCheckbox(row)"
+                                                                        
+                                                                        (change)="$event ? clickTableCheckbox(row) : null"
+                                                                        [checked]="selection.isSelected(row)">
+                                                        </mat-checkbox-->
+                                                    </td>
+                                                </ng-container>
+
+                                                <!-- Name of department part Column -->
+                                                <ng-container matColumnDef="name" [formArrayName]="'jobtitleProductsFormTable'">
+                                                    <th mat-header-cell *matHeaderCellDef>{{t('modules.col.name')}}</th>
+                                                    <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> 
+                                                        <span>{{row.name}}</span>
+                                                    </td>
+                                                </ng-container>
+                                                <!-- Delete Column -->
+                                                <ng-container matColumnDef="delete" [formArrayName]="'jobtitleProductsFormTable'">
+                                                    <th mat-header-cell *matHeaderCellDef style="width: 30px;"><mat-icon style="cursor: default" (click)="clearTable()" matTooltip="{{t('modules.tip.del_frm_tabl_')}}">close</mat-icon></th>
+                                                    <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i">
+                                                        <mat-icon style="cursor: default" (click)="deleteJobtitleRow(row,i)">delete_forever</mat-icon>
+                                                    </td>
+                                                </ng-container>
+
+                                                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                                                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+
+
+                                            </table> 
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-12" [style.display]="((allowToCreate && +id==0)||(allowToUpdate && id>0)) ?'block':'none'">
+                                                <div class="center hand" style="width:100%; height: 38px;">
+                                                    <button matTooltip="{{t('docs.tip.add_row')}}" 
+                                                            mat-mini-fab color="primary" 
+                                                            (click)="openDialogProductCategoriesSelect('products')" >
+                                                        <mat-icon>add</mat-icon>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- <div class="row">
+                                            <div class="col-12" [style.display]="((allowToCreate && +id==0)||(allowToUpdate && id>0)) ?'block':'none'">
+                                                <div class="center hand" style="width:100%; height: 38px;">
+                                                    <button matTooltip="{{t('docs.tip.add_row')}}" 
+                                                            mat-mini-fab color="primary" 
+                                                            (click)="sortBy('product_id')" >
+                                                        ID
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div><div class="row">
+                                            <div class="col-12" [style.display]="((allowToCreate && +id==0)||(allowToUpdate && id>0)) ?'block':'none'">
+                                                <div class="center hand" style="width:100%; height: 38px;">
+                                                    <button matTooltip="{{t('docs.tip.add_row')}}" 
+                                                            mat-mini-fab color="primary" 
+                                                            (click)="sortBy('name')" >
+                                                        Name
+                                                    </button>
+                                                </div>
+                                            </div> 
+                                        </div>-->
+                                        
+                                    </mat-card-content>
+                                </mat-card>
+
+                            </div>
+                        </div>  
+                    </div>  
+                </mat-tab>
+                
+                <mat-tab  *ngIf="+id>0"  label="{{t('docs.tab.about')}}">
+                    <form [formGroup]="formAboutDocument">
+                        <mat-card appearance="outlined" class="internal-card">
+                            <mat-card-content class="input-form">
+                                    <mat-form-field [ngClass]="{invisible: +id==0}">
+                                        <input  matInput
+                                                placeholder="{{t('docs.field.company')}}"
+                                                formControlName="company" [readonly]=true/>
+                                    </mat-form-field>
+                                    <mat-form-field [ngClass]="{invisible: +id==0}">
+                                        <input  matInput
+                                                placeholder="{{t('docs.field.creator')}}"
+                                                formControlName="creator" [readonly]=true/>
+                                    </mat-form-field>
+                                    <mat-form-field [ngClass]="{invisible: +id==0}">
+                                        <input  matInput
+                                                placeholder="{{t('docs.field.created')}}"
+                                                formControlName="date_time_created" [readonly]=true/>
+                                    </mat-form-field>
+                                    <mat-form-field [ngClass]="{invisible: +id==0}">
+                                        <input  matInput
+                                                placeholder="{{t('docs.field.changer')}}"
+                                                formControlName="changer" [readonly]=true/>
+                                    </mat-form-field>
+                                    <mat-form-field [ngClass]="{invisible: +id==0}">
+                                        <input  matInput
+                                                placeholder="{{t('docs.field.changed')}}"
+                                                formControlName="date_time_changed" [readonly]=true/>
+                                    </mat-form-field>
+                            </mat-card-content>
+                        </mat-card>  
+                    </form>  
+                </mat-tab>
+        </mat-tab-group>
+    </mat-card-content> 
+    <!-- <p>-------------------------------------------------</p> -->
+    <!-- <code><pre>{{formBaseInformation.value | json}}</pre></code> -->
+    <!-- <p>-------------------------------------------------</p> -->
+    <!-- <code><pre>{{formSearch.value | json}}</pre></code> -->
+
+</mat-card>
+

@@ -3,37 +3,40 @@
         <div class="col-12">
             <form #form="ngForm" [formGroup]="formSearch">
                 <mat-card appearance="outlined" class="internal-card">
-                    
-                    <div class="flex card" style="padding: 0px 15px; font-size: 20px;">
-                        <div class="card-name">
-                            {{readonly?t('modules.card.prod_fro_retc'):t('modules.card.srch_prodcts')}}
-                        </div>
-                        <div>
-                            <button 
-                                mat-raised-button 
-                                *ngIf="!readonly"
-                                matTooltip="{{t('modules.tip.selct_prodcts')}}"
-                                (click)="openDialogProductCategoriesSelect('products')" 
-                                style="margin-bottom: 10px;"
-                                color="primary"
-                                type="button"
-                                class="button">
-                                <i class="material-icons">local_grocery_store</i> {{t('modules.button.prods')}}
-                            </button>
-                            <button  
-                                mat-raised-button 
-                                (click)="addProductRow()" 
-                                *ngIf="!readonly"
-                                type="submit"
-                                style="margin-bottom: 10px;"
-                                [disabled]="(!formSearch.valid)||indivisibleErrorOfSearchForm"
-                                color="primary"
-                                matTooltip="{{t('modules.tip.to_list')}}"
-                                class="button">
-                                <i class="material-icons">playlist_add</i> {{t('modules.button.to_list')}}
-                            </button>
-                        </div>
-                    </div>
+                    <mat-card-header>
+                        <mat-card-title class="top-bar container-fluid">
+                            <div class="flex card">
+                                <div class="card-name">
+                                    {{readonly?t('modules.card.prod_fro_retc'):t('modules.card.srch_prodcts')}}
+                                </div>
+                                <div>
+                                    <button 
+                                        mat-raised-button 
+                                        *ngIf="!readonly"
+                                        matTooltip="{{t('modules.tip.selct_prodcts')}}"
+                                        (click)="openDialogProductCategoriesSelect('products')" 
+                                        style="margin-bottom: 10px;"
+                                        color="primary"
+                                        type="button"
+                                        class="button">
+                                        <i class="material-icons">local_grocery_store</i> {{t('modules.button.prods')}}
+                                    </button>
+                                    <button  
+                                        mat-raised-button 
+                                        (click)="addProductRow()" 
+                                        *ngIf="!readonly"
+                                        type="submit"
+                                        style="margin-bottom: 10px;"
+                                        [disabled]="(!formSearch.valid)||indivisibleErrorOfSearchForm"
+                                        color="primary"
+                                        matTooltip="{{t('modules.tip.to_list')}}"
+                                        class="button">
+                                        <i class="material-icons">playlist_add</i> {{t('modules.button.to_list')}}
+                                    </button>
+                                </div>
+                            </div>
+                        </mat-card-title>
+                    </mat-card-header>
                     <mat-card-content class="input-form">
                         <div class="container-fluid" [hidden]="readonly">
                             <div class="row">
@@ -238,7 +241,7 @@
                                 [formGroup]="formBaseInformation" 
                                 [trackBy]="trackByIndex" 
                                 style="margin-top: 20px;" 
-                                class="mat-elevation-z8">
+                                class="mat-elevation-z8 product-table">
 
                                     <ng-container matColumnDef="select" [formArrayName]="'returnProductTable'">
                                         <th mat-header-cell *matHeaderCellDef class="checkbox-col">

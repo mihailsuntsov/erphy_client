@@ -19,7 +19,6 @@ li {list-style: none;}
     /* margin-top: 10px; */
 }
 .internal-card{
-    padding: 15px 0 15px;
     margin: 10px 0 10px 0;
 }
 .invisible{display:none;}
@@ -70,27 +69,12 @@ tr.mat-mdc-footer-row {
 {
     cursor: pointer;
 }
-.file-wrapper{
-    flex-grow: 1; 
-    max-width: 70%;
-    display: table-cell; 
-    vertical-align: middle;
-    height: 25px;border: 1px solid white;
-}
+ 
 .center {
     display: flex;
     justify-content: center;
 }
-.filename-row {
-     /* border: 1px solid rgb(143, 143, 143);  */
-    width:100%; 
-    margin-bottom: 10px;
-    height:25px;
-    /* background-color: #cfc; */
-    display: flex;
-    justify-content: space-between;
-    padding-left: 10px;
-}
+ 
 .inactive{
     /* color:gray; */
     color: rgba(0,0,0,.54);

@@ -616,8 +616,7 @@ export class SubscriptionComponent implements OnInit {
       maxWidth: '95vw',
       // maxHeight: '95vh',
       // height: '680px',
-      width: '560px', 
-      minHeight: '650px',
+      width: '500px', 
       data:
       { //sending into dialog
         

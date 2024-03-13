@@ -79,7 +79,7 @@ li {list-style: none;}
     height: 20px !important;
     color: #585858;
     z-index: 1000;
-  }
+}
   .del-icon {
     cursor: default;
     position: absolute;
@@ -93,32 +93,21 @@ li {list-style: none;}
 .cdk-drag-placeholder {
     background: white;
     transition: transform 500ms ease;
-    padding: 20px;
+    /* padding: 20px; */
     border: 3px solid rgb(43, 43, 43);
     z-index: 999;
-  }
+}
+
+::ng-deep #toggle .mdc-line-ripple{
+    display: none!important;
+}
 
 .cdk-drag-animating {
 transition: transform 500ms cubic-bezier(0, 0, 0.2, 1);
 }
 /*------------------- ФАЙЛЫ -------------------------*/
-.filename-row {
-    /* border: 1px solid rgb(143, 143, 143);  */
-   width:100%; 
-   margin-bottom: 10px;
-   height:25px;
-   /* background-color: #cfc; */
-   display: flex;
-   justify-content: space-between;
-   padding-left: 10px;
-}
-.file-wrapper{
-    flex-grow: 1; 
-    max-width: 70%;
-    display: table-cell; 
-    vertical-align: middle;
-    height: 25px;border: 1px solid white;
-}
+ 
+ 
 .min-heigth{
     line-height: 22px;
     height: 22px;
@@ -139,8 +128,8 @@ transition: transform 500ms cubic-bezier(0, 0, 0.2, 1);
 .add_circle {
     cursor: pointer;
     position: absolute;
-    top: 25px;
-    right: -16px;
+    top: 44px;
+    right: 0px;
     color: #585858;
     z-index: 1000;
 }
@@ -155,14 +144,13 @@ transition: transform 500ms cubic-bezier(0, 0, 0.2, 1);
 .del-file {
     cursor: pointer;
     position: absolute;
-    top: -2px;
+    top: 17px;
     right: -4px;
     color: #585858;
     z-index: 1000;
 }
 
-/* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
-::ng-deep #toggle .mat-form-field-underline {
-        background-color: #f7f7f7 !important;
-    }
-    
+::ng-deep mat-slide-toggle[formcontrolname="is_show"] {
+    position: relative !important;
+    top: 15px !important;
+}

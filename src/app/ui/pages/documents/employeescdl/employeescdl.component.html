@@ -1,0 +1,200 @@
+<mat-card appearance="outlined" class="card for-sticky-header" *transloco="let t" style="min-height: 434px;">
+    <mat-card-header>
+        <mat-card-title class="top-bar container-fluid" style="height: 30px;">
+            <div class="row" id="topBlock">
+                <div class="card-name">
+                    {{cu.cap(t('menu.docs.employeescdl'))}}
+                </div>
+                    
+                <button 
+                    mat-raised-button 
+                    *ngIf="allowToUpdate"
+                    matTooltip="{{t('docs.tip.save')}}"
+                    (click)="updateDocument()"
+                    [disabled]="!formValid" 
+                    color="primary"
+                    type="button"
+                    class="button small-button">
+                    <i class="material-icons">save</i>
+                </button>
+            </div>
+        </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+        <div class="card  w-100" style="margin-top: 50px;">
+            <div class="card-body">
+                <form  class="form-horizontal" style="margin-bottom: 0px;">
+                    <div class="flex">
+                        
+                        <span  class="emptyspace"></span>
+                        <span  class="emptyspace" style="display: none"></span>
+                    </div>
+                </form>
+                <mat-spinner 
+                    strokeWidth="3" 
+                    class="spinner"
+                    [diameter]="50"
+                    *ngIf="gettingSceduleData"
+                ></mat-spinner>
+                <mat-tab-group>
+                    <mat-tab label="{{t('docs.tab.info')}}">
+                        <div  class="container-fluid" id="employeescdl_form"  style="margin-top:20px">
+                            <div class="row">
+                                <div class="col-12">
+                                    <mat-card appearance="outlined" style="margin-bottom:15px;">
+                                        <mat-card-header>
+                                            <!-- <mat-card-title class="card-title">{{t('docs.card.base_info')}}</mat-card-title> -->
+                                        </mat-card-header>
+                                        <mat-card-content class="input-form">
+                                            <form  class="form-horizontal" [formGroup]="queryForm">
+                                                <div class="flex">
+                                                    <mat-form-field class="company-select" style="max-width: 250px;">
+                                                        <mat-label>{{t('menu.top.company')}}</mat-label>
+                                                        <mat-select formControlName="companyId"
+                                                        (selectionChange)="onCompanySelection()">                          
+                                                            <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
+                                                                    {{rt.name}}
+                                                            </mat-option>
+                                                        </mat-select>
+                                                    </mat-form-field>
+                                                    
+                                                    <mat-form-field class="date-range" style="margin-left:20px;">
+                                                        <mat-label>{{t('menu.top.date_range')}}</mat-label>
+                                                        <mat-date-range-input [rangePicker]="picker">
+                                                          <input matStartDate (dateChange)="getData()" formControlName="dateFrom" placeholder="{{t('menu.top.date_from')}}">
+                                                          <input matEndDate (dateChange)="getData()" formControlName="dateTo" placeholder="{{t('menu.top.date_to')}}">
+                                                        </mat-date-range-input>
+                                                        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                                                        <mat-date-range-picker #picker></mat-date-range-picker>
+                                                          <mat-error *ngIf="queryForm.controls.dateFrom.touched && queryForm.controls.dateFrom.invalid"><i>{{t('menu.top.start_date')}}</i></mat-error>
+                                                          <mat-error *ngIf="queryForm.controls.dateTo.touched && queryForm.controls.dateTo.invalid"><i>{{t('docs.error.end_date')}}</i></mat-error>
+                                                    </mat-form-field>
+                                                    
+                                                    <button
+                                                        class="filter-button"
+                                                        matTooltip="{{t('docs.button.refresh')}}"
+                                                        (click)="clickApplyFilters()"  
+                                                        type="submit"
+                                                        matSuffix mat-icon-button>
+                                                        <mat-icon>refresh</mat-icon>
+                                                    </button>
+
+                                                </div>
+                                                <div class="flex">
+                                                    <mat-form-field style="width: 50%;">
+                                                        <mat-label>{{t('docs.card.jobtitles')}}</mat-label>
+                                                        <mat-select
+                                                            panelClass="department-list"
+                                                            formControlName="filterJobtitles"
+                                                            #select
+                                                            multiple>
+                                                            <div class="button-row">
+                                                                <button 
+                                                                    mat-icon-button 
+                                                                    matTooltip="{{t('docs.tip.select_all')}}" 
+                                                                    color="primary"
+                                                                    (click)="selectAllCheckList('filterJobtitles')"
+                                                                >
+                                                                  <mat-icon>fact_check</mat-icon>
+                                                                </button>
+                                                                <button 
+                                                                    mat-icon-button 
+                                                                    matTooltip="{{t('docs.tip.unselect_all')}}" 
+                                                                    color="primary"
+                                                                    (click)="unselectAllCheckList('filterJobtitles')">
+                                                                  <mat-icon>ballot</mat-icon>
+                                                                </button>
+                                                            </div>
+                                                            <mat-option
+                                                                *ngFor= "let jt of receivedJobtitlesList;"
+                                                                [value]="jt.jobtitle_id"
+                                                                [matTooltip]="jt.description"
+                                                                [matTooltipPosition]="'right'"
+                                                            >
+                                                                {{jt.name}}
+                                                            </mat-option>
+                                                        </mat-select>
+                                                    </mat-form-field>
+
+                                                    <mat-form-field style="margin-left:20px; width: 50%;">
+                                                        <mat-label>{{t('docs.card.dep_parts')}}</mat-label>
+                                                        <mat-select
+                                                            panelClass="department-list"
+                                                            formControlName="filterDepparts"
+                                                            #select
+                                                            multiple>
+                                                            <div class="button-row">
+                                                                <button 
+                                                                    mat-icon-button 
+                                                                    matTooltip="{{t('docs.tip.select_all')}}" 
+                                                                    color="primary"
+                                                                    (click)="selectAllCheckList('filterDepparts')"
+                                                                >
+                                                                  <mat-icon>fact_check</mat-icon>
+                                                                </button>
+                                                                <button 
+                                                                    mat-icon-button 
+                                                                    matTooltip="{{t('docs.tip.unselect_all')}}" 
+                                                                    color="primary"
+                                                                    (click)="unselectAllCheckList('filterDepparts')">
+                                                                  <mat-icon>ballot</mat-icon>
+                                                                </button>
+                                                            </div>
+                                                            <mat-optgroup 
+                                                                *ngFor="let department of receivedDepartmentsWithPartsList;"
+                                                                [label]="department.department_name"
+                                                            >
+                                                                <button 
+                                                                    mat-icon-button 
+                                                                    matTooltip="{{t('docs.tip.select_all_onedep')}}" 
+                                                                    color="primary"
+                                                                    (click)="selectAllDepPartsOneDep(department.department_id)"
+                                                                >
+                                                                  <mat-icon>fact_check</mat-icon>
+                                                                </button>
+                                                                <button 
+                                                                    mat-icon-button 
+                                                                    matTooltip="{{t('docs.tip.unselect_all_onedep')}}" 
+                                                                    color="primary" 
+                                                                    (click)="unselectAllDepPartsOneDep(department.department_id)">
+                                                                  <mat-icon>ballot</mat-icon>
+                                                                </button>
+                                                                <mat-option
+                                                                    *ngFor= "let part of department.parts;"
+                                                                    [value]="part.id"
+                                                                    [matTooltip]="part.description"
+                                                                    [matTooltipPosition]="'right'"
+                                                                >
+                                                                    {{part.name}}
+                                                                </mat-option>
+                                                            </mat-optgroup>
+                                                        </mat-select>
+                                                    </mat-form-field>
+
+
+                                                    <span  class="emptyspace"></span>
+                                                </div>
+                                            </form>
+                                        </mat-card-content>
+                                    </mat-card>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <mat-card appearance="outlined" style="margin-bottom:15px;">
+                                        <mat-card-header>
+                                            <mat-card-title class="card-title">{{t('docs.card.res_mngmnt')}}</mat-card-title>
+                                        </mat-card-header>
+                                        <mat-card-content class="input-form">
+                                            
+                                        </mat-card-content>
+                                    </mat-card>
+                                </div>
+                            </div>
+                        </div> 
+                    </mat-tab>
+                </mat-tab-group>
+            </div>  
+        </div>
+    </mat-card-content>
+</mat-card>

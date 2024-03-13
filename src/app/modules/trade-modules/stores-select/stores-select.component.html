@@ -1,24 +1,25 @@
 <mat-card appearance="outlined" class="card" *transloco="let t">
-
-    <mat-card-title class="flex">
-        <div class="card-name">{{('modules.card.str_select' | transloco)}}</div>
-        <button 
-            mat-raised-button 
-            (click)="applySelect()"
-            color="primary"
-            matTooltip="{{t('docs.tip.select')}}"
-            class="button small-button">
-            <i class="material-icons">done</i>
-        </button>
-        <button 
-            (click)="onNoClick()"
-            matTooltip="{{t('docs.tip.close')}}"
-            mat-raised-button 
-            color="accent"
-            class="button small-button">
-            <i class="material-icons">close</i>
-        </button>
-    </mat-card-title>
+    <mat-card-header>
+        <mat-card-title class="flex">
+            <div class="card-name">{{('modules.card.str_select' | transloco)}}</div>
+            <button 
+                mat-raised-button 
+                (click)="applySelect()"
+                color="primary"
+                matTooltip="{{t('docs.tip.select')}}"
+                class="button small-button">
+                <i class="material-icons">done</i>
+            </button>
+            <button 
+                (click)="onNoClick()"
+                matTooltip="{{t('docs.tip.close')}}"
+                mat-raised-button 
+                color="accent"
+                class="button small-button">
+                <i class="material-icons">close</i>
+            </button>
+        </mat-card-title>
+    </mat-card-header>
 
     <mat-drawer-container class="doc-container" autosize>
         <p *ngIf="!allowToView && showNotEnoughPermissionsMessage">{{'modules.err.ne_rght_prod' | transloco}}<br>-{{'modules.err._rght_all_com' | transloco}},<br>-{{'modules.err._rght_my_com' | transloco}}</p>
@@ -54,7 +55,7 @@
                 <div class="card-name" style="font-size: 20px;">{{('modules.card.str_selectd' | transloco)}}</div>
             </mat-card-title>
             <mat-card-content>
-                <mat-form-field class="chip-list" appearance="fill">
+                <div class="chip-list" appearance="fill">
                     <mat-chip-listbox #chipList aria-label="Selected objects">
                         <mat-chip-option
                         *ngFor="let object of selectedObjects"
@@ -65,7 +66,7 @@
                         <mat-icon matChipRemove *ngIf="removable">cancel</mat-icon>
                         </mat-chip-option>
                     </mat-chip-listbox>
-                </mat-form-field>
+                </div>
             </mat-card-content>
         </mat-card>
     </mat-drawer-container>

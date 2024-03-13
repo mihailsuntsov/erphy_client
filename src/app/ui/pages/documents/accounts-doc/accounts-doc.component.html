@@ -1,61 +1,62 @@
 <mat-card appearance="outlined" class="card for-sticky-header" *transloco="let t">
-  
-    <mat-card-title class="top-bar container-fluid"> 
-        <div class="row" id="topBlock">
-            <div class="card-name">
-                {{t('docs.docs.accounts')}} <span [ngClass]="{invisible: +id==0}"> "{{formBaseInformation.get('name').value}}"</span>
-            </div>
-            <div class="separator"></div><!-- !!! -->
-            <button 
-                mat-button 
-                [matMenuTriggerFor]="addDocMenu"
-                mat-raised-button 
-                matTooltip="{{t('docs.tip.create_docs')}}"
-                [disabled]="!formBaseInformation.valid" 
-                *ngIf="+id>0"
-                color="primary"
-                (submit)="false"
-                type="button"
-                class="button small-button">
-                <i class="material-icons">add</i>
-            </button>
-            <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
-                <button mat-menu-item (click)="goToNewDocument()">
-                    <span>{{t('docs.docs.accounts')}}</span>
+    <mat-card-header>
+
+        <mat-card-title class="top-bar container-fluid"> 
+            <div class="row" id="topBlock">
+                <div class="card-name">
+                    {{t('docs.docs.accounts')}} <span [ngClass]="{invisible: +id==0}"> "{{formBaseInformation.get('name').value}}"</span>
+                </div>
+                <div class="separator"></div><!-- !!! -->
+                <button 
+                    mat-button 
+                    [matMenuTriggerFor]="addDocMenu"
+                    mat-raised-button 
+                    matTooltip="{{t('docs.tip.create_docs')}}"
+                    [disabled]="!formBaseInformation.valid" 
+                    *ngIf="+id>0"
+                    color="primary"
+                    (submit)="false"
+                    type="button"
+                    class="button small-button">
+                    <i class="material-icons">add</i>
                 </button>
-            </mat-menu>
-            <button 
-                mat-raised-button 
-                [style.display]="id>0?'block':'none'"
-                (click)="updateDocument(false)"
-                [disabled]="!formBaseInformation.valid" 
-                matTooltip="{{t('docs.tip.save')}}"
-                color="primary"
-                class="button small-button">
-                <i class="material-icons">save</i>
-            </button>
-            <button 
-                mat-raised-button 
-                [style.display]="id>0?'none':'block'"
-                (click)="createNewDocument()" 
-                matTooltip="{{t('docs.tip.create')}}"
-                [disabled]="!formBaseInformation.valid" 
-                color="primary"
-                class="button small-button">
-                <i class="material-icons">done</i>
-            </button>
-            <a routerLink="../../accounts">
+                <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
+                    <button mat-menu-item (click)="goToNewDocument()">
+                        <span>{{t('docs.docs.accounts')}}</span>
+                    </button>
+                </mat-menu>
                 <button 
                     mat-raised-button 
-                    [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
-                    color="accent"
+                    [style.display]="id>0?'flex':'none'"
+                    (click)="updateDocument(false)"
+                    [disabled]="!formBaseInformation.valid" 
+                    matTooltip="{{t('docs.tip.save')}}"
+                    color="primary"
                     class="button small-button">
-                    <i class="material-icons">close</i>
+                    <i class="material-icons">save</i>
                 </button>
-            </a>
-        </div>
-    </mat-card-title>
-    <!-- !!! -->
+                <button 
+                    mat-raised-button 
+                    [style.display]="id>0?'none':'flex'"
+                    (click)="createNewDocument()" 
+                    matTooltip="{{t('docs.tip.create')}}"
+                    [disabled]="!formBaseInformation.valid" 
+                    color="primary"
+                    class="button small-button">
+                    <i class="material-icons">done</i>
+                </button>
+                <a routerLink="../{{+id>0?'../':''}}accounts">
+                    <button 
+                        mat-raised-button 
+                        [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
+                        color="accent"
+                        class="button small-button">
+                        <i class="material-icons">close</i>
+                    </button>
+                </a>
+            </div>
+        </mat-card-title>
+    </mat-card-header>
     <mat-card-content *ngIf="rightsDefined && 
     (
         (!allowToView && +id>0) ||
@@ -82,7 +83,7 @@
                                     </mat-card-header>
                                     <mat-card-content class="input-form">
                                         <form [formGroup]="formBaseInformation">
-                                            <div class="container-fluid">
+                                            <!-- <div class="container-fluid"> -->
                                                 <div class="row">
                                                     <div class="col-12">    
                                                         <mat-form-field style="display: none">
@@ -190,6 +191,7 @@
                                                         <div class="row">
                                                             <div class="col-12">
                                                                 <mat-form-field  class="mat-form-field-100">
+                                                                    <mat-label>{{t('docs.field.additional')}}</mat-label>
                                                                     <textarea   matInput
                                                                                 maxlength="2000"
                                                                                 [rows]="2"
@@ -204,7 +206,7 @@
                                                         </div> 
                                                     </div>
                                                 </div>
-                                            </div>  
+                                            <!-- </div>   -->
                                         </form>
                                     </mat-card-content>
                                 </mat-card>

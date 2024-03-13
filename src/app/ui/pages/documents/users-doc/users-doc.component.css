@@ -24,7 +24,10 @@ table {width: 100%;}
 .button{
     margin-left: 10px;
 }
-
+.center {
+    display: flex;
+    justify-content: center;
+}
 .input-form{
     display: flex;
     flex-direction: column;
@@ -32,4 +35,35 @@ table {width: 100%;}
 
 .form-invalid{
     color: red;
+}
+
+.add-file {/*добавление входящей услуги*/
+    cursor: hand;
+    position: absolute;
+    top: -21px;
+    right: 0px;
+    /* width: 20px; */
+    /* height: 20px; */
+    /* color: #585858; */
+    z-index: 1000;
+}
+.add_circle {
+    cursor: pointer;
+    position: absolute;
+    top: 44px;
+    right: 0px;
+    color: #585858;
+    z-index: 1000;
+}
+.del-file {
+    cursor: pointer;
+    position: absolute;
+    top: 23px;
+    right: 0px;
+    color: #585858;
+    z-index: 1000;
+}
+.button-row button,
+.button-row a {
+  margin-right: 8px;
 }

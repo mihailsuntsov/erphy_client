@@ -82,20 +82,8 @@ li {list-style: none;}
 }
 /*--------------- стили для статуса------------------*/
 /*для цветного круга в статусах*/
-.circle-wrapper {
-    width: 30px;
-    height: 100%;
-    vertical-align: middle;
-    text-align: center;
-    display: inline-block;
-}
-.circle-in-list {
-    width: 20px;
-    height: 20px;
-    -moz-border-radius: 10px;
-    -webkit-border-radius: 10px;
-    border-radius: 10px;
-} 
+ 
+  
 .circle-in-selected{
     width: 20px;
     height: 20px;
@@ -103,7 +91,7 @@ li {list-style: none;}
     -webkit-border-radius: 10px;
     border-radius: 10px;
     position: absolute;
-    top: 20px;
+    top: 30px;
 }
 /*название статуса*/
 .status-name {

@@ -1,42 +1,45 @@
 <mat-card appearance="outlined" class="card for-sticky-header" *transloco="let t">
-  
-    <mat-card-title class="top-bar container-fluid">
-        <div class="row" id="topBlock">
-            <div class="card-name">{{t('docs.docs.pricetype')}} {{formBaseInformation.get('name').value}}</div>
-            
-            <button 
-                mat-raised-button 
-                *ngIf="+id>0 && allowToUpdate"
-                matTooltip="{{t('docs.tip.save')}}"
-                (click)="updateDocument()"
-                [disabled]="!formBaseInformation.valid" 
-                color="primary"
-                type="button"
-                class="button small-button">
-                <i class="material-icons">save</i>
-            </button>
-            <button 
-                mat-raised-button 
-                matTooltip="{{t('docs.tip.create')}}"
-                (click)="createNewDocument()" 
-                *ngIf="allowToCreate && +id==0 "
-                [disabled]="!formBaseInformation.valid" 
-                color="primary"
-                type="submit"
-                class="button small-button">
-                <i class="material-icons">done</i>
-            </button>
-            <a routerLink="../../pricetypes">
+    <mat-card-header>
+
+        <mat-card-title class="top-bar container-fluid">
+            <div class="row" id="topBlock">
+                <div class="card-name">{{t('docs.docs.pricetype')}} "{{formBaseInformation.get('name').value}}"</div>
+                
                 <button 
-                    [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
                     mat-raised-button 
-                    color="accent"
+                    *ngIf="+id>0 && allowToUpdate"
+                    matTooltip="{{t('docs.tip.save')}}"
+                    (click)="updateDocument()"
+                    [disabled]="!formBaseInformation.valid" 
+                    color="primary"
+                    type="button"
                     class="button small-button">
-                    <i class="material-icons">close</i>
+                    <i class="material-icons">save</i>
                 </button>
-            </a>
-        </div>
-    </mat-card-title>
+                <button 
+                    mat-raised-button 
+                    matTooltip="{{t('docs.tip.create')}}"
+                    (click)="createNewDocument()" 
+                    *ngIf="allowToCreate && +id==0 "
+                    [disabled]="!formBaseInformation.valid" 
+                    color="primary"
+                    type="submit"
+                    class="button small-button">
+                    <i class="material-icons">done</i>
+                </button>
+                <a routerLink="../{{+id>0?'../':''}}pricetypes">
+                    <button 
+                        [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
+                        mat-raised-button 
+                        color="accent"
+                        class="button small-button">
+                        <i class="material-icons">close</i>
+                    </button>
+                </a>
+            </div>
+        </mat-card-title>    
+    </mat-card-header>
+
     <!-- !!! -->
     <mat-card-content *ngIf="rightsDefined && 
     (
@@ -80,6 +83,7 @@
                                                     [ngModel]="formAboutDocument.get('company').value" [ngModelOptions]="{standalone: true}"/>
                                         </mat-form-field>
                                         <mat-form-field>
+                                            <mat-label>{{t('docs.field.name')}}</mat-label>
                                             <input   matInput
                                                     placeholder="{{t('docs.field.name')}}"
                                                     formControlName="name"/>
@@ -88,6 +92,7 @@
                                             </mat-hint>
                                         </mat-form-field>
                                         <mat-form-field>
+                                            <mat-label>{{t('docs.field.description')}}</mat-label>
                                             <input   matInput
                                                     placeholder="{{t('docs.field.description')}}"
                                                     formControlName="description"/>

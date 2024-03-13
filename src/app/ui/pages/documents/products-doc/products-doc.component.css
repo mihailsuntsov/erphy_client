@@ -30,7 +30,7 @@ li {list-style: none;}
 }
 .slideWidth100{
     width:100%;
-    margin:-8.5px 0 0 0;
+    /* margin:-8.5px 0 0 0; */
 }
 
 .slideWidth50margin8{
@@ -134,9 +134,7 @@ flex: 1 1 auto;
     width:100%;
     transition: 0.3s ease;
 }
-.chip-list {
-    width: 100%;
-}
+ 
 .div-100{
     width:100%;
     text-align: center;

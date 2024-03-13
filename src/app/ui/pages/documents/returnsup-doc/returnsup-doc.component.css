@@ -46,14 +46,7 @@ li {list-style: none;}
     flex-direction: column;
 }
 
-.add-cagent {
-    cursor: pointer;
-    position: absolute;
-    top: 0px;
-    right: -1px;
-    color: #585858;
-    z-index: 1000;
-}
+ 
 .priceTypeName{
     position: absolute;
     left: 56px;
@@ -161,13 +154,7 @@ div#status {
 {
     cursor: pointer;
 }
-.file-wrapper{
-    flex-grow: 1; 
-    max-width: 70%;
-    display: table-cell; 
-    vertical-align: middle;
-    height: 25px;border: 1px solid white;
-}
+ 
 .center {
     display: flex;
     justify-content: center;
@@ -176,14 +163,7 @@ div#status {
     display: flex;
     justify-content: flex-end;
 }
-.filename-row {
-    width:100%; 
-    margin-bottom: 10px;
-    height:25px;
-    display: flex;
-    justify-content: space-between;
-    padding-left: 10px;
-}
+ 
 .inactive{
     color: rgba(0,0,0,.54);
     text-decoration: none;
@@ -242,31 +222,11 @@ div#costPrice input {
 }
 /*--------------- стили для статуса------------------*/
 /*для цветного круга в статусах*/
-.circle-wrapper {
-    width: 30px;
-    height: 100%;
-    vertical-align: middle;
-    text-align: center;
-    display: inline-block;
-}
+ 
 
-.circle-in-list {
-    width: 20px;
-    height: 20px;
-    -moz-border-radius: 10px;
-    -webkit-border-radius: 10px;
-    border-radius: 10px;
-} 
+  
 
-.circle-in-selected{
-    width: 20px;
-    height: 20px;
-    -moz-border-radius: 10px;
-    -webkit-border-radius: 10px;
-    border-radius: 10px;
-    position: relative;
-    top: 18px;
-}
+   
 
 /*название статуса*/
 .status-name {

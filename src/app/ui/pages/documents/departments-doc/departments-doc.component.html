@@ -1,40 +1,42 @@
 <mat-card appearance="outlined" class="card for-sticky-header" *transloco="let t">
-        <mat-card-title class="top-bar container-fluid"> 
-                <div class="row" id="topBlock">
-                        <div class="card-name">{{t('docs.docs.department')}}</div>
-                                <button 
-                                        mat-raised-button 
-                                        matTooltip="{{t('docs.tip.create')}}"
-                                        (click)="clickBtnCreateNewDocument()" 
-                                        *ngIf="allowToCreate && +id==0 "
-                                        [disabled]="!formBaseInformation.valid" 
-                                        color="primary"
-                                        type="submit"
-                                        class="button small-button">
-                                        <i class="material-icons">done</i>
-                                </button>
-                                <button 
-                                        mat-raised-button 
-                                        *ngIf="+id>0 && allowToUpdate && allowToView"
-                                        matTooltip="{{t('docs.tip.save')}}"
-                                        (click)="updateDocument()"
-                                        [disabled]="!formBaseInformation.valid" 
-                                        color="primary"
-                                        type="button"
-                                        class="button small-button">
-                                        <i class="material-icons">save</i>
-                                </button>
-                                <a routerLink="../../departments">
-                                <button 
-                                        [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
-                                        mat-raised-button 
-                                        color="accent"
-                                        class="button small-button">
-                                        <i class="material-icons">close</i>
-                                </button>
-                                </a>
-                </div>
-    </mat-card-title>
+        <mat-card-header>
+                <mat-card-title class="top-bar container-fluid"> 
+                        <div class="row" id="topBlock">
+                                <div class="card-name">{{t('docs.docs.department')}}</div>
+                                        <button 
+                                                mat-raised-button 
+                                                matTooltip="{{t('docs.tip.create')}}"
+                                                (click)="clickBtnCreateNewDocument()" 
+                                                *ngIf="allowToCreate && +id==0 "
+                                                [disabled]="!formBaseInformation.valid" 
+                                                color="primary"
+                                                type="submit"
+                                                class="button small-button">
+                                                <i class="material-icons">done</i>
+                                        </button>
+                                        <button 
+                                                mat-raised-button 
+                                                *ngIf="+id>0 && allowToUpdate && allowToView"
+                                                matTooltip="{{t('docs.tip.save')}}"
+                                                (click)="updateDocument()"
+                                                [disabled]="!formBaseInformation.valid" 
+                                                color="primary"
+                                                type="button"
+                                                class="button small-button">
+                                                <i class="material-icons">save</i>
+                                        </button>
+                                        <a routerLink="../{{+id>0?'../':''}}departments">
+                                        <button 
+                                                [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
+                                                mat-raised-button 
+                                                color="accent"
+                                                class="button small-button">
+                                                <i class="material-icons">close</i>
+                                        </button>
+                                        </a>
+                        </div>
+                </mat-card-title>
+        </mat-card-header>
     <!-- !!! -->
     <mat-card-content *ngIf="rightsDefined && 
     (
@@ -56,8 +58,12 @@
                                         <div class="row">
                                                 <div class=" col-xl-5 col-lg-7 col-md-12 col-12">  
                                                         <mat-card appearance="outlined" class="internal-card">
+                                                                <mat-card-header>
+                                                                    <mat-card-title class="card-title">{{t('docs.card.base_info')}}</mat-card-title>
+                                                                    <div class="separator"></div>
+                                                                </mat-card-header>
                                                                 <mat-card-content class="input-form">
-                                                                        <div class="container-fluid">
+                                                                        <!-- <div class="container-fluid"> -->
                                                                                 <div class="row">
                                                                                     <div class="col-12">
                                                                                                 <mat-form-field style="display: none">
@@ -100,6 +106,7 @@
                                                                                                         </mat-hint>
                                                                                                 </mat-form-field>
                                                                                                 <mat-form-field class="mat-form-field-100">
+                                                                                                        <mat-label>{{t('docs.field.address')}}</mat-label>
                                                                                                         <input  matInput
                                                                                                                 placeholder="{{t('docs.field.address')}}"
                                                                                                                 maxlength="500"
@@ -107,14 +114,14 @@
                                                                                                         <mat-hint *ngIf="formBaseInformation.get('address').value.length>400 && allowToView" align="end">{{formBaseInformation.get('address').value.length}} / 500</mat-hint>
                                                                                                 </mat-form-field>
                                                                                                 <mat-form-field class="mat-form-field-100">
+                                                                                                        <mat-label>{{t('docs.field.additional')}}</mat-label>
                                                                                                         <input  matInput
                                                                                                                 placeholder="{{t('docs.field.additional')}}"
                                                                                                                 maxlength="4000"
                                                                                                                 formControlName="additional"/>
                                                                                                         <mat-hint *ngIf="formBaseInformation.get('additional').value.length>3500 && allowToView" align="end">{{formBaseInformation.get('additional').value.length}} / 4000</mat-hint>                                                                
                                                                                                 </mat-form-field>
-                                                                                                <mat-form-field class="mat-form-field-100 company-select"> 
-                                                                                                
+                                                                                                <mat-form-field class="mat-form-field-100 company-select">                                                                                                 
                                                                                                         <mat-label>{{t('docs.field.dep_price_typ')}}</mat-label>
                                                                                                         <mat-select  formControlName="price_id">                          
                                                                                                         <mat-option  *ngFor="let rt of receivedPriceTypesList" [value]="rt.id">
@@ -155,7 +162,7 @@
                                                                                                 </mat-form-field>
                                                                                     </div>
                                                                                 </div>
-                                                                        </div>
+                                                                        <!-- </div> -->
                                                                 </mat-card-content>
                                                         </mat-card>
                                                 </div>

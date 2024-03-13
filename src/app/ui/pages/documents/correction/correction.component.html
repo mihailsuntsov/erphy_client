@@ -19,12 +19,11 @@ class="spinner"
                 class="button">
                 <i class="material-icons">settings</i>
             </button>
-            <button 
-                    mat-button      
+            <button      
                     [matMenuTriggerFor]="addDocMenu"
                     mat-raised-button 
                     matTooltip="{{t('menu.top.btn_new_corr')}}"
-                    [style.display]="(visBtnAdd==true&&!displayingDeletedDocs)?'block':'none'" 
+                    [style.display]="(visBtnAdd==true&&!displayingDeletedDocs)?'flex':'none'" 
                     class="col-sm-auto justify-content-center" 
                     style="margin: 0 10px; width: 129px;height: 36px;min-width: 38px;"
                     color="primary"

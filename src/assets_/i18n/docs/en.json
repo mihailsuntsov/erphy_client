@@ -643,7 +643,6 @@
         "edit_fgroup":  "Editing a group of fields",
         "add_fgroup":   "Creating a group of fields",
         "add_fld":      "Creating a field",
-        "multplr":      "Multiplier for reduction to the unit of the metric system",
         "abt_multplr":  "The multiplier tells the system the ratio of your and international units. For example, the international unit for mass is the kilogram. Then for a ton the multiplier is: 1000, for a kilogram: 1, for a gram: 0.001",
         "one_kg":       "1 kilogram",
         "one_meter":    "1 meter",

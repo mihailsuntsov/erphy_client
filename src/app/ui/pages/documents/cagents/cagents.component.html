@@ -116,7 +116,7 @@ class="spinner"
                             </button>
                         </div>
                         <div [style.display]="(visBtnAdd==true && mode=='standart' && !displayingDeletedDocs)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
-                            <a [routerLink]="['../cagentsdoc', '']">
+                            <a routerLink="../cagentsdoc">
                                 <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> {{t('menu.top.btn_create')}}</button>
                             </a>   
                         </div>

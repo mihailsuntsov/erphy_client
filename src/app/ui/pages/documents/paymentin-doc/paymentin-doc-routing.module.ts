@@ -4,7 +4,7 @@ import { PaymentinDocComponent } from './paymentin-doc.component';
 
 const routes: Routes = [
   { path: '', component: PaymentinDocComponent },
-  { path: ':id', component: PaymentinDocComponent },
+  { path: ':id', component: PaymentinDocComponent }
 ];
 
 @NgModule({

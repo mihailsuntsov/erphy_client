@@ -1,14 +1,17 @@
 <mat-card appearance="outlined" class="card" *transloco="let t">
-    <div class="icon-panel">
-        <mat-icon   matTooltip="{{'modules.kpi.reprt_settggs' | transloco}}"    
-                    (click)="onClickMenuIcon()"
-                    class="nav-icon">menu
-        </mat-icon>
-    </div>
-        <mat-card-title class="flex" style="height: 30px;">
-                <div class="emptyspace">{{'modules.kpi.prod_remains' | transloco}}</div>
-                
-            </mat-card-title>
+            <div class="icon-panel">
+                <mat-icon   matTooltip="{{'modules.kpi.reprt_settggs' | transloco}}"    
+                            (click)="onClickMenuIcon()"
+                            class="nav-icon">menu
+                </mat-icon>
+            </div>
+            
+            <mat-card-header>
+                <mat-card-title class="flex" style="height: 30px;">
+                    <div class="emptyspace">{{'modules.kpi.prod_remains' | transloco}}</div>
+                    
+                </mat-card-title>
+            </mat-card-header>
             <mat-card-content>
                 <div class="card  w-100">
                     <div class="card-body">

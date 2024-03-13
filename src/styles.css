@@ -94,9 +94,14 @@ body {
 .docnumber{
   width:70px; margin-top:-30px
 }
-#cardname .nowrap .docnumber .mdc-line-ripple, #status .mdc-line-ripple, #status .mat-mdc-select-arrow{
-  display: none;
+
+#cardname .nowrap .docnumber .mdc-line-ripple, 
+#status .mdc-line-ripple, 
+#status .mat-mdc-select-arrow,
+#toggle .mdc-line-ripple{
+  display: none!important;
 }
+
 #cardname input[formcontrolname="doc_number"]{
   border-bottom: 1px solid gray;
 }
@@ -112,12 +117,35 @@ body {
 mat-select[formcontrolname="status_id"] {
   padding: 0px 0px 0px 15px!important;
   position: relative!important;
-  top: -4px!important;
+  top: -6px!important;
 }
 mat-select[formcontrolname="status_id"] .mat-mdc-select-value{
   margin-left: 15px;
-}/* Status of document end*/
-
+}
+.circle-wrapper {
+  width: 30px;
+  height: 100%;
+  vertical-align: sub;
+  text-align: center;
+  display: inline-block;
+}
+.circle-in-list {
+  width: 20px;
+  height: 20px;
+  -moz-border-radius: 10px;
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+} 
+.circle-in-selected{
+  width: 20px;
+  height: 20px;
+  -moz-border-radius: 10px;
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+  position: relative;
+  top: 18px;
+}
+/* Status of document end*/
 /*спиннеры*/
 .field-spinner{
   position: absolute !important;
@@ -313,7 +341,7 @@ mat-datepicker-toggle .mat-mdc-icon-button {
   width: 24px!important;
   height: 24px!important;
   padding: 6px!important;
-  top: 7px!important;
+  top: 0px!important;
   left: 0!important;
 }
 mat-datepicker-toggle .mat-mdc-icon-button .mat-datepicker-toggle-default-icon{
@@ -330,12 +358,12 @@ mat-datepicker-toggle .mat-mdc-icon-button .mat-datepicker-toggle-default-icon{
   width: 100%!important;
   padding-left:10px;
 }
-.mat-mdc-option{
+/*.mat-mdc-option{
   padding: 0!important;
 }
 .mat-mdc-option .mat-pseudo-checkbox {
   display: none;
-}
+}*/
 
 /* Editable inputs in product tables */
 .table-field-editable {
@@ -359,3 +387,90 @@ table input[readonly="true"] {
   outline: none!important;
   border-width: 0 !important;
 }/* Editable inputs in product tables end */
+
+/* Fields in a search form of product table */
+.mat-mdc-form-field-icon-suffix {
+  margin-top: 13px;
+}
+/* Fields in a search form of product table */
+
+
+/* Table of files  */
+.filename-row {
+  width:100%; 
+  margin-bottom: 10px;
+  height:35px;
+  display: flex;
+  justify-content: space-between;
+  padding-left: 10px;
+}
+.file-wrapper{
+  margin-top: 8px;
+}/* Table of files end */
+
+/* Table of products */
+.product-table tr td:last-child, .product-table tr th:last-child, .resources-table tr td:last-child, .resources-table tr th:last-child{
+  padding: 0 10px !important;
+}/* Table of products end */
+
+
+/* FIELD */
+/* .mat-mdc-form-field .mat-mdc-floating-label.mdc-floating-label {
+  line-height: 30px !important;
+}
+.mat-mdc-text-field-wrapper .mat-mdc-form-field-flex .mat-mdc-floating-label {
+  top: 37px;
+} */
+.mat-mdc-text-field-wrapper{
+  height: 56px!important;
+}
+/* FIELD end */
+
+.add-cagent {
+  cursor: pointer;
+  position: absolute;
+  top: 25px;
+  right: 0px;
+  color: #585858;
+  z-index: 1000;
+}
+
+/*Products - linked products*/
+.chip-list {
+  width: 100%;
+  min-height: 100px;
+}
+.chip-list mat-label{
+  font-size: small;
+  color: gray;
+  line-height: 22px;
+}
+.chip-list .chip-name{
+  color: gray;
+  position:relative;
+  top:20px;
+}
+.chip-list mat-chip-listbox{
+  background-color: #eee;
+}
+/*Products - linked products end*/
+
+.mat-expansion-panel-header-title, .mat-expansion-panel-header-description {
+  flex-basis: unset !important;
+}
+
+.mat-expansion-panel-header-title{
+  font-size: 20px !important;
+}
+
+.mat-mdc-optgroup-label span{
+  color: gray!important;
+  font-weight: 600!important;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* legend (bar names in charts)*/
+.legend-title-text{
+  white-space: normal;
+}/* legend (bar names in charts) end*/

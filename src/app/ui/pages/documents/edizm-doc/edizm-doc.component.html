@@ -1,42 +1,44 @@
 <mat-card appearance="outlined" class="card for-sticky-header" *transloco="let t">
-  
-    <mat-card-title class="top-bar container-fluid">
-        <div class="row" id="topBlock">
-            <div class="card-name">{{formBaseInformation.get('name').value}}</div>
-            
-            <button 
-                mat-raised-button 
-                *ngIf="+id>0 && allowToUpdate"
-                matTooltip="{{t('docs.tip.save')}}"
-                (click)="updateDocument()"
-                [disabled]="!formBaseInformation.valid" 
-                color="primary"
-                type="button"
-                class="button small-button">
-                <i class="material-icons">save</i>
-            </button>
-            <button 
-                mat-raised-button 
-                matTooltip="{{t('docs.tip.create')}}"
-                (click)="clickBtnCreateNewDocument()" 
-                *ngIf="allowToCreate && +id==0 "
-                [disabled]="!formBaseInformation.valid" 
-                color="primary"
-                type="submit"
-                class="button small-button">
-                <i class="material-icons">done</i>
-            </button>
-            <a routerLink="../../edizm">
+    <mat-card-header>
+
+        <mat-card-title class="top-bar container-fluid">
+            <div class="row" id="topBlock">
+                <div class="card-name">{{formBaseInformation.get('name').value}}</div>
+                
                 <button 
-                    [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
                     mat-raised-button 
-                    color="accent"
+                    *ngIf="+id>0 && allowToUpdate"
+                    matTooltip="{{t('docs.tip.save')}}"
+                    (click)="updateDocument()"
+                    [disabled]="!formBaseInformation.valid" 
+                    color="primary"
+                    type="button"
                     class="button small-button">
-                    <i class="material-icons">close</i>
+                    <i class="material-icons">save</i>
                 </button>
-            </a>
-        </div>
-    </mat-card-title>
+                <button 
+                    mat-raised-button 
+                    matTooltip="{{t('docs.tip.create')}}"
+                    (click)="clickBtnCreateNewDocument()" 
+                    *ngIf="allowToCreate && +id==0 "
+                    [disabled]="!formBaseInformation.valid" 
+                    color="primary"
+                    type="submit"
+                    class="button small-button">
+                    <i class="material-icons">done</i>
+                </button>
+                <a routerLink="../{{+id>0?'../':''}}edizm">
+                    <button 
+                        [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
+                        mat-raised-button 
+                        color="accent"
+                        class="button small-button">
+                        <i class="material-icons">close</i>
+                    </button>
+                </a>
+            </div>
+        </mat-card-title>
+    </mat-card-header>
     <!-- !!! -->
     <mat-card-content *ngIf="rightsDefined && 
     (
@@ -60,7 +62,7 @@
         
                             <div class="container-fluid">
                                 <div class="row" style="padding: 10px">
-                                    <div class="col-lg-4  col-md-12">    
+                                    <div class="col-lg-6  col-md-12">    
         
                                         <mat-card appearance="outlined" class="card-block">
 
@@ -89,12 +91,16 @@
                                                                 [ngModel]="formAboutDocument.get('company').value" [ngModelOptions]="{standalone: true}"/>
                                                     </mat-form-field>
                                                     <mat-form-field>
-                                                        <input   matInput
+                                                        <mat-label>{{t('docs.field.name')}}</mat-label>
+                                                        <input  matInput
+                                                                maxlength="100"
                                                                 placeholder="{{t('docs.field.name')}}"
                                                                 formControlName="name"/>
                                                     </mat-form-field>
                                                     <mat-form-field>
+                                                        <mat-label>{{t('docs.field.shrt_unit_nme')}}</mat-label>
                                                         <input   matInput
+                                                                maxlength="20"
                                                                 placeholder="{{t('docs.field.shrt_unit_nme')}}"
                                                                 formControlName="short_name"/>
                                                     </mat-form-field>
@@ -108,15 +114,17 @@
                                                             <mat-option [value]="3">{{t('docs.list.length')}}</mat-option>
                                                             <mat-option [value]="4">{{t('docs.list.area')}}</mat-option>
                                                             <mat-option [value]="5">{{t('docs.list.volume')}}</mat-option>
+                                                            <mat-option [value]="6">{{t('docs.list.time')}}</mat-option>
                                                         </mat-select>
                                                     </mat-form-field>
                                                     <mat-form-field [ngClass]="{invisible: +formBaseInformation.get('type_id').value<2}"> 
-                                                        <input   matInput
-                                                            placeholder="{{t('docs.field.mltplyer_to')}} {{type_short_name}}"
-                                                            formControlName="equals_si"/>
-                                                            <button matSuffix mat-icon-button aria-label="search" style="font-size: 150%;color: gray;" (click)="aboutMultiplify()">
-                                                                <mat-icon>contact_support</mat-icon>
-                                                            </button>
+                                                        <mat-label>{{t('docs.field.mltplyer_to')}} {{type_short_name}}</mat-label>
+                                                        <input      matInput             
+                                                                    maxlength="11"                                           
+                                                                    (keypress)="numberOnlyPlusDot($event)"                                                      
+                                                                    matTooltip="{{t('docs.msg.abt_multplr')}}"
+                                                                    placeholder="{{t('docs.field.mltplyer_to')}} {{type_short_name}}"
+                                                                    formControlName="equals_si"/>
                                                     </mat-form-field>
 
                                             </mat-card-content>

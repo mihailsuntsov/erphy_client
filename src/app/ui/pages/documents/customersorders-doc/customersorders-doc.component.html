@@ -1,7 +1,6 @@
 
 <mat-card appearance="outlined" class="card for-sticky-header" *transloco="let t">
-    <mat-card-header class="card-header">
-        
+    <mat-card-header class="card-header">        
             <mat-card-title class="top-bar container-fluid"> 
                 <div class="row" id="topBlock">
                     <div id="cardname">
@@ -177,7 +176,7 @@
                         class="button small-button completed">
                         <i class="material-icons">playlist_add_check</i> 
                     </button>
-                    <a routerLink="../../customersorders">
+                    <a routerLink="../{{+id>0?'../':''}}customersorders">
                         <button 
                             mat-raised-button 
                             [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
@@ -221,11 +220,11 @@
                                         </mat-card-header>
                                         <mat-card-content class="input-form">
                                             
-                                            <div class="container-fluid">
+                                            <!-- <div class="container-fluid"> -->
                                                 <div class="row">
 
                                                     <div class="col-xl-6 col-sm-12">
-                                                        <div class="container-fluid">
+                                                        <!-- <div class="container-fluid"> -->
                                                             <div class="row">
 
                                                                 <div class="col-12">    
@@ -300,13 +299,14 @@
                                                                         </app-balance-cagent>
 
                                                                         <mat-autocomplete #auto4="matAutocomplete">
-                                                                        <ng-container *ngIf="!isCagentListLoading" style="width:320px;">
-                                                                            <mat-option style="padding:0px" *ngFor="let value of filteredCagents" [value]="value.name">
-                                                                            <div (click)="onSelectCagent(value.id,value.name)">
-                                                                                <span style="margin:10px;"><b>{{value.name}}</b></span>
-                                                                            </div>
-                                                                            </mat-option>
-                                                                        </ng-container>
+                                                                            <mat-label>{{t('docs.field.customer')}}</mat-label>
+                                                                            <ng-container *ngIf="!isCagentListLoading" style="width:320px;">
+                                                                                <mat-option style="padding:0px" *ngFor="let value of filteredCagents" [value]="value.name">
+                                                                                <div (click)="onSelectCagent(value.id,value.name)">
+                                                                                    <span style="margin:10px;"><b>{{value.name}}</b></span>
+                                                                                </div>
+                                                                                </mat-option>
+                                                                            </ng-container>
                                                                         </mat-autocomplete>
                                                                         <mat-hint  align="start" *ngIf="searchCagentCtrl.touched && formBaseInformation.get('cagent_id').invalid">
                                                                             <i class="form-invalid">{{t('docs.error.customer_nsel')}}</i>
@@ -314,6 +314,7 @@
                                                                     </mat-form-field>
                                                                     <mat-progress-bar *ngIf="isCagentListLoading" mode="indeterminate"></mat-progress-bar>
                                                                     <mat-form-field  class="mat-form-field-100" [ngClass]="{invisible: +id==0}">
+                                                                        <mat-label>{{t('docs.field.customer')}}</mat-label>
                                                                         <input  matInput
                                                                                 placeholder="{{t('docs.field.customer')}}"
                                                                                 formControlName="cagent" [readonly]=true/>
@@ -345,6 +346,7 @@
                                                                 </div>
                                                                 <div class="col-12"> 
                                                                     <mat-form-field   class="mat-form-field-100">
+                                                                        <mat-label>{{t('docs.field.order_name')}}</mat-label>
                                                                         <input   matInput
                                                                                 [readonly]="is_completed"
                                                                                 placeholder="{{t('docs.field.order_name')}}"
@@ -352,17 +354,18 @@
                                                                     </mat-form-field>
                                                                 </div>
                                                             </div>
-                                                        </div>
+                                                        <!-- </div> -->
                                                     </div>
 
                                                     <div class="col-xl-6 col-sm-12">
-                                                        <div class="container-fluid">
+                                                        <!-- <div class="container-fluid"> -->
                                                             <div class="row">
 
                                                                 <div class="col-12">
                                                                     <div class="row">
                                                                         <div class="col-lg-6  col-md-12"> 
                                                                             <mat-form-field  class="mat-form-field-100">
+                                                                                <mat-label>{{t('docs.field.ship_date')}}</mat-label>
                                                                                 <input  matInput 
                                                                                         placeholder="{{t('docs.field.ship_date')}}"
                                                                                         [readonly]=is_completed
@@ -378,6 +381,7 @@
                                                                         </div>
                                                                         <div class="col-lg-6  col-md-12"> 
                                                                             <mat-form-field  class="mat-form-field-100">
+                                                                                <mat-label>{{t('docs.field.ship_time')}}</mat-label>
                                                                                 <input  matInput 
                                                                                 placeholder="{{t('docs.field.ship_time')}}" 
                                                                                 formControlName="shipment_time" 
@@ -423,7 +427,7 @@
                                                             </div>
 
                                                             <div class="col-12" style="padding-right: 0px;padding-left: 0px;">
-                                                                <div class="flex" style="margin-top:-11px;">
+                                                                <div class="flex">
                                                                     <mat-form-field 
                                                                     [ngClass]="{slideWidth100: !formBaseInformation.get('nds').value,
                                                                                 slideWidth50left: formBaseInformation.get('nds').value}">
@@ -449,6 +453,7 @@
                                                             <div class="row">
                                                                 <div class="col-12">
                                                                     <mat-form-field  class="mat-form-field-100">
+                                                                        <mat-label>{{t('docs.field.additional')}}</mat-label>
                                                                         <textarea   matInput
                                                                                     [readonly]=is_completed
                                                                                     maxlength="2000"
@@ -476,10 +481,10 @@
                                                                     </div>  
                                                                 </div>  -->
                                                             </div>
-                                                        </div>
+                                                        <!-- </div> -->
                                                     </div>
                                                 </div>
-                                            </div>  
+                                            <!-- </div>   -->
                                         </mat-card-content>
                                     </mat-card>
 
@@ -553,6 +558,7 @@
                                             <div class="row">
                                                 <div class="col-lg-6  col-md-12">
                                                     <mat-form-field  class="mat-form-field-100">
+                                                        <mat-label>{{t('docs.field.telephone')}}</mat-label>
                                                         <input   matInput
                                                                 [readonly]=!editability
                                                                 placeholder="{{t('docs.field.telephone')}}"
@@ -564,6 +570,7 @@
                                                 <div class="col-lg-6  col-md-12">
                                                     <!-- e-mail -->
                                                     <mat-form-field  class="mat-form-field-100">
+                                                        <mat-label>{{t('docs.field.email')}}</mat-label>
                                                         <input   matInput
                                                                 [readonly]=!editability
                                                                 placeholder="{{t('docs.field.email')}}"
@@ -597,6 +604,7 @@
                                                 <div class="col-lg-6  col-md-12">
                                                     <!-- Индекс -->
                                                     <mat-form-field  class="mat-form-field-100">
+                                                        <mat-label>{{t('docs.field.zip_code')}}</mat-label>
                                                         <input   matInput
                                                                 placeholder="{{t('docs.field.zip_code')}}"
                                                                 [readonly]=!editability
@@ -658,6 +666,7 @@
                                             <mat-progress-bar *ngIf="isRegionListLoading" mode="indeterminate"></mat-progress-bar> -->
                                             
                                             <mat-form-field class="mat-form-field-100">
+                                                <mat-label>{{t('docs.field.region')}}</mat-label>
                                                 <input   matInput
                                                         placeholder="{{t('docs.field.region')}}"
                                                         [readonly]=!editability
@@ -693,6 +702,7 @@
                                             <mat-progress-bar *ngIf="isCityListLoading" mode="indeterminate"></mat-progress-bar> -->
 
                                             <mat-form-field class="mat-form-field-100">
+                                                <mat-label>{{t('docs.field.city_locality')}}</mat-label>
                                                 <input   matInput
                                                         placeholder="{{t('docs.field.city_locality')}}"
                                                         [readonly]=!editability
@@ -703,6 +713,7 @@
 
                                             <!-- Улица -->
                                             <mat-form-field  class="mat-form-field-100">
+                                                <mat-label>{{t('docs.field.street')}}</mat-label>
                                                 <input   matInput
                                                         placeholder="{{t('docs.field.street')}}"
                                                         [readonly]=!editability
@@ -714,6 +725,7 @@
                                                 <div class="col-lg-6  col-md-12">
                                                     <!-- Дом -->
                                                     <mat-form-field  class="mat-form-field-100">
+                                                        <mat-label>{{t('docs.field.house')}}</mat-label>
                                                         <input   matInput
                                                                 placeholder="{{t('docs.field.house')}}"
                                                                 [readonly]=!editability
@@ -725,6 +737,7 @@
                                                 <div class="col-lg-6  col-md-12">
                                                     <!-- Квартира -->
                                                     <mat-form-field  class="mat-form-field-100">
+                                                        <mat-label>{{t('docs.field.room')}}</mat-label>
                                                         <input   matInput
                                                                 placeholder="{{t('docs.field.room')}}"
                                                                 maxlength="8"
@@ -736,6 +749,7 @@
                                             </div>
                                             <!-- Дополнение к адресу -->
                                             <mat-form-field  class="mat-form-field-100">
+                                                <mat-label>{{t('docs.field.addr_addittnl')}}</mat-label>
                                                 <textarea   matInput
                                                         placeholder="{{t('docs.field.addr_addittnl')}}"
                                                         [readonly]=!editability
@@ -850,17 +864,15 @@
                                                             <span> {{ i.original_name }}</span>
                                                         </div>
                                                         <div style="min-width:70px;">
-                                                            <button mat-button 
-                                                            class="min-heigth"
+                                                            <button mat-icon-button
                                                                     type="button"
                                                                     (click)="openFileCard(i.id)"
                                                                     matTooltip="{{t('docs.tip.open_file')}}"
                                                                     matSuffix>
                                                                 <mat-icon>launch</mat-icon>
                                                             </button>
-                                                            <button mat-button 
+                                                            <button mat-icon-button
                                                                     *ngIf="!formBaseInformation.get('is_completed').value"
-                                                                    class="min-heigth"
                                                                     type="button"
                                                                     (click)="clickBtnDeleteFile(i.id)"
                                                                     matTooltip="{{t('docs.tip.del_file')}}"

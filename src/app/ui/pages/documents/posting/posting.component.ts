@@ -583,9 +583,7 @@ export class PostingComponent implements OnInit {
       const dialogSettings = this.settingsPostingDialogComponent.open(SettingsPostingDialogComponent, {
         maxWidth: '95vw',
         maxHeight: '95vh',
-        // height: '680px',
-        width: '400px', 
-        minHeight: '650px',
+        width: '400px',
         data:
         { //отправляем в диалог:
           receivedCompaniesList: this.receivedCompaniesList, //список предприятий

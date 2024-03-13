@@ -29,7 +29,7 @@
                 class="button small-button">
                 <i class="material-icons">done</i>
             </button>
-            <a routerLink="../../kassa">
+            <a routerLink="../{{+id>0?'../':''}}kassa">
                 <button 
                     mat-raised-button 
                     [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
@@ -188,9 +188,7 @@
                                                         <span> {{ i.original_name }}</span>
                                                     </div>
                                                     <div style="min-width:70px;">
-                                                        <button mat-button 
-                                                        class="min-heigth"
-                                                                type="button"
+                                                        <button mat-icon-button
                                                                 (click)="openFileCard(i.id)"
                                                                 matTooltip="{{t('docs.tip.open_file')}}"
                                                                 matSuffix>

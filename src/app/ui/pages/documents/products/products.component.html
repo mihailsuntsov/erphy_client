@@ -206,7 +206,7 @@ class="spinner"
                         <button mat-menu-item *ngIf="allowToDelete && selection.selected.length>0 && displayingDeletedDocs" (click)="clickBtnUndelete()" matTooltip="{{t('menu.tip.restore')}}" matTooltipPosition="left"><mat-icon>delete_forever</mat-icon><span>{{t('menu.menu.restore')}}</span></button>
                     </mat-menu>
                     <div [style.display]="visBtnAdd==true?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
-                        <a [routerLink]="['../productsdoc', '']">
+                        <a [routerLink]="['../productsdoc']">
                             <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> {{t('menu.top.btn_create')}}</button>
                         </a>   
                     </div>

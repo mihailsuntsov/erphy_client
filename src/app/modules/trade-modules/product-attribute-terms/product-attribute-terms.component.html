@@ -1,45 +1,46 @@
 <mat-card appearance="outlined" class="card" *transloco="let t">
-
-    <mat-card-title class="flex">
-        <div class="card-name">{{actionType=='create'?('modules.card.term_create' | transloco):('modules.card.term_edit' | transloco)}}</div>
-        <button 
-            *ngIf="formBaseInformation.get('storeTermTranslations').value.length>0"
-            (click)="changeTranslationMode()"
-            mat-raised-button 
-            matTooltip="{{'docs.tip.transl_mode' | transloco}}"
-            [color]="storeTranslationModeOn?'accent':'primary'"
-            class="button small-button">
-            <i class="material-icons">translate</i>
-        </button>
-        <button 
-            mat-raised-button 
-            *ngIf="+formBaseInformation.get('id').value==0"
-            (click)="insertProductAttributeTerm()"
-            color="primary"
-            [disabled]="!formBaseInformation.valid" 
-            matTooltip="{{t('docs.tip.create')}}"
-            class="button small-button">
-            <i class="material-icons">done</i>
-        </button>
-        <button 
-            mat-raised-button 
-            *ngIf="+formBaseInformation.get('id').value!=0"
-            (click)="updateProductAttributeTerm()"
-            color="primary"
-            [disabled]="!formBaseInformation.valid" 
-            matTooltip="{{t('docs.tip.save')}}"
-            class="button small-button">
-            <i class="material-icons">save</i>
-        </button>
-        <button 
-            (click)="onNoClick()"
-            matTooltip="{{t('docs.tip.close')}}"
-            mat-raised-button 
-            color="accent"
-            class="button small-button">
-            <i class="material-icons">close</i>
-        </button>
-    </mat-card-title>
+    <mat-card-header>
+        <mat-card-title class="flex">
+            <div class="card-name">{{actionType=='create'?('modules.card.term_create' | transloco):('modules.card.term_edit' | transloco)}}</div>
+            <button 
+                *ngIf="formBaseInformation.get('storeTermTranslations').value.length>0"
+                (click)="changeTranslationMode()"
+                mat-raised-button 
+                matTooltip="{{'docs.tip.transl_mode' | transloco}}"
+                [color]="storeTranslationModeOn?'accent':'primary'"
+                class="button small-button">
+                <i class="material-icons">translate</i>
+            </button>
+            <button 
+                mat-raised-button 
+                *ngIf="+formBaseInformation.get('id').value==0"
+                (click)="insertProductAttributeTerm()"
+                color="primary"
+                [disabled]="!formBaseInformation.valid" 
+                matTooltip="{{t('docs.tip.create')}}"
+                class="button small-button">
+                <i class="material-icons">done</i>
+            </button>
+            <button 
+                mat-raised-button 
+                *ngIf="+formBaseInformation.get('id').value!=0"
+                (click)="updateProductAttributeTerm()"
+                color="primary"
+                [disabled]="!formBaseInformation.valid" 
+                matTooltip="{{t('docs.tip.save')}}"
+                class="button small-button">
+                <i class="material-icons">save</i>
+            </button>
+            <button 
+                (click)="onNoClick()"
+                matTooltip="{{t('docs.tip.close')}}"
+                mat-raised-button 
+                color="accent"
+                class="button small-button">
+                <i class="material-icons">close</i>
+            </button>
+        </mat-card-title>
+    </mat-card-header>
 
     <mat-card-content>
         <form *ngIf="formBaseInformation" [formGroup]="formBaseInformation">   

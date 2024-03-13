@@ -1,26 +1,47 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 // Для получения параметров маршрута необходим специальный сервис ActivatedRoute. 
 // Он содержит информацию о маршруте, в частности, параметры маршрута, 
 // параметры строки запроса и прочее. Он внедряется в приложение через механизм dependency injection, 
 // поэтому в конструкторе мы можем получить его.
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
-import { Validators, UntypedFormGroup, UntypedFormControl } from '@angular/forms';
+import { Validators, UntypedFormGroup, UntypedFormControl, UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from './auth.service';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
+import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Observable } from 'rxjs';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
-import { map, startWith } from 'rxjs/operators';
+import { debounceTime, map, startWith, switchMap, tap } from 'rxjs/operators';
 import { translate } from '@ngneat/transloco'; //+++
 import { Cookie } from 'ng2-cookies/ng2-cookies';
+import { ProductCategoriesSelectComponent } from 'src/app/modules/trade-modules/product-categories-select/product-categories-select.component';
 import { MomentDefault } from 'src/app/services/moment-default';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+import { MatSlideToggleChange } from '@angular/material/slide-toggle';
+import { MatSelect } from '@angular/material/select';
+import { MatOption } from '@angular/material/core';
 const MY_FORMATS = MomentDefault.getMomentFormat();
 const moment = MomentDefault.getMomentDefault();
+
+interface ProductSearchResponse{  // интерфейс получения списка товаров во время поиска товара 
+  name: string;                   // наименование товара
+  product_id: number;             // id товара
+  // estimated_balance: number;      // остатки
+  filename: string;               // картинка товара
+  edizm: string;                  // наименование единицы измерения товара
+  total: number;                  // остатки 
+  nds_id: number;                 // ндс 
+  indivisible: boolean;           // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
+  priceOfTypePrice: number;       // цена по запрошенному id типа цены
+  avgCostPrice: number;           // средняя себестоимость
+  lastPurchasePrice: number;      // последняя закупочная цена
+  avgPurchasePrice : number;      // средняя закупочная цена
+  is_material: boolean;           // материален ли продукт (товар это или услуга)
+}
 
 interface docResponse {//интерфейс для получения ответа в методе getUserValuesById
 id: number;
@@ -55,6 +76,25 @@ status_employee_name: string;
 additional: string;
 languageId: number;
 localeId: number;
+is_employee: boolean; // Пользователь является сотрудником предприятия // User is employee of company
+is_currently_employed: boolean; // Это действующий сотрудник (не уволен) // Currently employed (not fired)
+job_title_id: number; // Должность // Job title
+job_title_name: number; // Должность // Job title
+counterparty_id: number; // Карточка контрагента // Counteparty card (ID)
+counterparty_name: string; // Карточка контрагента // Counteparty card
+incoming_service_id: number; //Принимаемая услуга - какую услугу сотрудник оказывает предприятию, для обоснования получения зп. // Incoming service from employee to company, when he working   for its salary
+incoming_service_name: string; 
+
+
+//describes set of services that employee (this user) can provide, and where (parts of departments) he can provide these services
+userProductsDepparts:UserProductsDepparts[];
+}
+
+interface UserProductsDepparts{
+  product_id: number;
+  product_name: string;
+  dep_parts_ids: number[];
+
 }
 interface IdAndName{ //универсалный интерфейс для выбора из справочников
   id: string;
@@ -65,7 +105,7 @@ interface IdAndName{ //универсалный интерфейс для выб
   selector: 'app-users-doc',
   templateUrl: './users-doc.component.html',
   styleUrls: ['./users-doc.component.css'],
-  providers: [LoadSpravService,
+  providers: [LoadSpravService,ProductCategoriesSelectComponent,
     { provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]}, //+++
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
   ]
@@ -76,8 +116,10 @@ export class UsersDocComponent implements OnInit {
   updateDocumentResponse: string;//массив для получения данных
   receivedCompaniesList: any [] = [];//массив для получения списка предприятий
   receivedDepartmentsList: any [];//массив для получения списка отеделний
-  receivedUserGroupList: any [];//для групп пользователей
-  spravSysLanguages: IdAndName[] = [];                // here will be loaded all languages
+  receivedDepartmentsWithPartsList: any [] = [];//массив для получения списка отделений с их частями
+  receivedJobtitlesList: any [] = [];//массив для получения списка наименований должностей
+  receivedUserGroupList: any [];//для групп пользователей`
+  spravSysLanguages: IdAndName[] = [];                // here will be loaded all languages`
   spravSysLocales  : IdAndName[] = [];                // here will be loaded all locales
   oneClickSaveControl:boolean=false;//блокировка кнопок Save и Complete для защиты от двойного клика
 
@@ -87,6 +129,10 @@ export class UsersDocComponent implements OnInit {
   id: number=0;// id документа
   myCompanyId:number=0;
   myId:number=0;
+  gettingTableData: boolean = false;//идет загрузка данных
+  displayedColumns:string[] = [];//отображаемые колонки таблицы
+  editability:boolean = false;//редактируемость. true если есть право на создание и документ содается, или есть право на редактирование и документ создан
+
 
   //Формы
   formBaseInformation:any;//форма основной информации и банк. реквизитов
@@ -122,19 +168,30 @@ export class UsersDocComponent implements OnInit {
   filteredSpravSysTimeZones: Observable<IdAndName[]>; // here will be filtered time zones for showing in select list
   filteredSpravSysLanguages: Observable<IdAndName[]>; // here will be filtered languages for showing in select list
   filteredSpravSysLocales:   Observable<IdAndName[]>; // here will be filtered locales for showing in select list
+  filteredJobtitles: Observable<IdAndName[]>; // here will be job titles for showing in select list
   
   suffix:string = "en"; // суффикс 
   locale:string = "en-uk"; // локаль 
 
+  resource_row_id:number=0;
+
+  //для поиска контрагента (получателя) по подстроке
+  searchCagentCtrl = new UntypedFormControl();//поле для поиска
+  isCagentListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
+  canCagentAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
+  filteredCagents: any;
+
   @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
-  
   constructor(
     private activateRoute: ActivatedRoute,
     private authService: AuthService,
     private http: HttpClient,
     private _router:Router,
+    public ConfirmDialog: MatDialog,
     private loadSpravService:   LoadSpravService,
+    private _fb: UntypedFormBuilder, //чтобы билдить группы форм productPricesTable и другие
     public MessageDialog: MatDialog,
+    private productCategoriesSelectComponent: MatDialog,
     public dialogCreateDepartment: MatDialog,
     private _snackBar: MatSnackBar,
     private _adapter: DateAdapter<any>
@@ -170,6 +227,17 @@ export class UsersDocComponent implements OnInit {
       languageId: new UntypedFormControl    (1,[Validators.required]),
       localeName: new UntypedFormControl      ('',[]),
       languageName: new UntypedFormControl    ('',[]),
+     
+      is_employee: new UntypedFormControl    ('',[]), // Пользователь является сотрудником предприятия // User is employee of company
+      is_currently_employed: new UntypedFormControl    ('',[]), // Это действующий сотрудник (не уволен) // Currently employed (not fired)
+      job_title_id:  new UntypedFormControl    (null,[]), // Должность // Job title
+      job_title_name:  new UntypedFormControl    ('',[]), // Должность // Job title
+      counterparty_id:  new UntypedFormControl    ('',[]), // Карточка контрагента // Counteparty card (ID)
+      // counterparty_name:  new UntypedFormControl    ('',[]), // Карточка контрагента // Counteparty card
+      incoming_service_name:  new UntypedFormControl    ('',[]), // Принимаемая услуга - какую услугу сотрудник оказывает предприятию, для обоснования получения зп. // Incoming service from employee to company, when he working   for its salary
+      incoming_service_id:  new UntypedFormControl    ('',[]), // Принимаемая услуга - какую услугу сотрудник оказывает предприятию, для обоснования получения зп. // Incoming service from employee to company, when he working   for its salary
+
+      userProductsDepparts: new UntypedFormArray([]), //describes set of services that employee can provide, and where (parts of departments) he can provide these services
     });
     this.formAboutDocument = new UntypedFormGroup({
       id: new UntypedFormControl           ('',[]),
@@ -202,7 +270,12 @@ export class UsersDocComponent implements OnInit {
       startWith(''),
       map((value:string) => this._filter(value,this.spravSysLanguages))
     );
-
+    // listener of Job title field change
+    this.filteredJobtitles = this.formBaseInformation.get('job_title_name').valueChanges
+    .pipe(
+      startWith(''),
+      map((value:string) => this._filter_jobtitles(value,this.receivedJobtitlesList))
+    );
     // listener of locale field change
     this.filteredSpravSysLocales = this.formBaseInformation.get('localeName').valueChanges
     .pipe(
@@ -213,6 +286,7 @@ export class UsersDocComponent implements OnInit {
     this.getSpravSysLanguages();
     this.getSpravSysLocales();
     this.getSetOfPermissions();
+    this.onCagentSearchValueChanges();//отслеживание изменений поля "Контрагент"
   }
 
   setBaseDataParameter(parameterName:string,parameterValue:any){
@@ -237,12 +311,43 @@ export class UsersDocComponent implements OnInit {
     .subscribe((data) => {this.spravSysTimeZones = data as any[];
     this.updateValues('timeZoneId','timeZoneName',this.spravSysTimeZones); },
     error => console.log(error));
+  }  
+  getDepartmentsWithPartsList(){ 
+    return this.http.get('/api/auth/getDepartmentsWithPartsList?company_id='+this.formBaseInformation.get('company_id').value)
+      .subscribe(
+          (data) => {   
+                      this.receivedDepartmentsWithPartsList=data as any [];
+      },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
+      );
+  }
+  getJobtitleList(){ 
+    return this.http.get('/api/auth/getJobtitlesList?company_id='+this.formBaseInformation.get('company_id').value)
+      .subscribe(
+          (data) => {   
+                      this.receivedJobtitlesList=data as any [];
+                      this.updateJobTitleValues('job_title_id','job_title_name');
+      },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
+      );
   }
   //set name into text field, that matched id in list IdAndName[] (if id is not null)
   updateValues(id:string,name:string,list:IdAndName[]){
     if(+this.formBaseInformation.get(id).value!=0){
       list.forEach(x => {
         if(x.id==this.formBaseInformation.get(id).value){
+          this.formBaseInformation.get(name).setValue(x.name);
+    }})} 
+    else{ // if id is null - setting '' into the field (if we don't do it - there will be no list of values, when place cursor into the field)
+      this.formBaseInformation.get(name).setValue('');
+      this.formBaseInformation.get(id).setValue('');
+    }
+  }
+  //set name into text field, that matched id in list IdAndName[] (if id is not null)
+  updateJobTitleValues(id:string,name:string){
+    if(+this.formBaseInformation.get(id).value!=0){
+      this.receivedJobtitlesList.forEach(x => {
+        if(x.jobtitle_id==this.formBaseInformation.get(id).value){
           this.formBaseInformation.get(name).setValue(x.name);
     }})} 
     else{ // if id is null - setting '' into the field (if we don't do it - there will be no list of values, when place cursor into the field)
@@ -343,6 +448,8 @@ export class UsersDocComponent implements OnInit {
     // console.log("allowToUpdate - "+this.allowToUpdate);
     // console.log("allowToCreate - "+this.allowToCreate);
     this.rightsDefined=true;//!!!
+    this.editability=((this.allowToCreate && +this.id==0)||(this.allowToUpdate && this.id>0));
+    this.refreshTableColumns();
   }
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
 
@@ -389,13 +496,19 @@ export class UsersDocComponent implements OnInit {
     this.getDepartmentsList(+this.formBaseInformation.get('company_id').value);
     this.getUserGroupList();
     this.refreshPermissions();
+    this.getDepartmentsWithPartsList();
+    this.getJobtitleList();
   }
   
   onCompanyChange(){
     this.formBaseInformation.get('selectedUserDepartments').setValue([]);
     this.getDepartmentsList(+this.formBaseInformation.get('company_id').value);
     this.getUserGroupList();
-    this.refreshPermissions();
+    this.refreshPermissions();    
+    this.getDepartmentsWithPartsList();
+    this.getJobtitleList();
+    this.searchCagentCtrl.setValue('');
+    this.formBaseInformation.get('counterparty_id').setValue(null);
   }
 
   openSnackBar(message: string, action: string) {
@@ -451,10 +564,21 @@ export class UsersDocComponent implements OnInit {
                   this.formBaseInformation.get('date_birthday').setValue(documentResponse.date_birthday ? moment(documentResponse.date_birthday,'DD.MM.YYYY'):"");
                   this.formBaseInformation.get('additional').setValue(documentResponse.additional);
                   this.formBaseInformation.get('userGroupList').setValue(documentResponse.userGroupsId);
+                  this.formBaseInformation.get('counterparty_id').setValue(documentResponse.counterparty_id);
+                  this.searchCagentCtrl.setValue(documentResponse.counterparty_name); //counterparty_name
+                  this.formBaseInformation.get('is_employee').setValue(documentResponse.is_employee);
+                  this.formBaseInformation.get('is_currently_employed').setValue(documentResponse.is_currently_employed);
+                  this.formBaseInformation.get('job_title_id').setValue(documentResponse.job_title_id);
+                  this.formBaseInformation.get('job_title_name').setValue(documentResponse.job_title_name);
+                  this.formBaseInformation.get('incoming_service_id').setValue(documentResponse.incoming_service_id);
+                  this.formBaseInformation.get('incoming_service_name').setValue(documentResponse.incoming_service_name);
+                  this.fillProductsListFromApiResponse(documentResponse.userProductsDepparts);
 
                   this.getDepartmentsList(this.formBaseInformation.get('company_id').value);  
                   this.getUserGroupList();
-
+                  this.getDepartmentsWithPartsList();
+                  this.getJobtitleList();
+                  
                 } else {this.oneClickSaveControl=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();
                 this.oneClickSaveControl=false;
@@ -523,7 +647,10 @@ export class UsersDocComponent implements OnInit {
     const filterValue = value.toLowerCase();
     return list.filter(option => option.name.toLowerCase().includes(filterValue));
   }
-
+  private _filter_jobtitles(value: string, list:any[]): any[] {
+    const filterValue = value.toLowerCase();
+    return list.filter(option => option.name.toLowerCase().includes(filterValue));
+  }
 
   numberOnly(event): boolean {
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
@@ -532,7 +659,286 @@ export class UsersDocComponent implements OnInit {
   getBaseData(data) {    //+++ emit data to parent component
     this.baseData.emit(data);
   }
+  getControl(formControlName){
+    const control = <UntypedFormArray>this.formBaseInformation.get(formControlName);
+    return control
+  }
+  fillProductsListFromApiResponse(productsArray:UserProductsDepparts[]){
+    this.getControl('userProductsDepparts').clear();
+    if(productsArray.length>0){
+      const control = <UntypedFormArray>this.formBaseInformation.get('userProductsDepparts');
+      productsArray.forEach(row=>{
+        control.push(this.formingProductResourceRow(row));            
+      });
+    }
+    // this.refreshProductsTableColumns();
+  }
+  
+  formingProductResourceRow(row: UserProductsDepparts) {
+    return this._fb.group({
+      row_id: [this.getResourceRowId()],// row_id нужен для идентифицирования строк у которых нет id (например из только что создали и не сохранили)
+      product_id:  new UntypedFormControl (row.product_id,[]),
+      product_name: new UntypedFormControl (row.product_name,[]),
+      dep_parts_ids: new UntypedFormControl (row.dep_parts_ids,[]),
+      // dep_parts_ids: new UntypedFormArray([]),
+    });
+  }
 
+  getResourceRowId():number{
+    let current_row_id:number=this.resource_row_id;
+    this.resource_row_id++;
+    return current_row_id;
+  }
+
+
+  // refreshProductsTableColumns(){
+  //   this.displayedResourcesColumns=[];
+  //   setTimeout(() => { 
+  //     this.formResourceTableColumns();
+  //   }, 1);
+  // }
+
+  
+  openDialogProductCategoriesSelect(selection:string, destination:string){
+    let reportOnIds:number[]=[];
+    const dialogSettings = this.productCategoriesSelectComponent.open(ProductCategoriesSelectComponent, {
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      width: '800px', 
+      minHeight: '650px',
+      data:
+      { //отправляем в диалог:
+        idTypes:    selection, // Что выбираем (Категории - categories, товары и услуги - products)
+        companyId:  this.formBaseInformation.get('company_id').value, //предприятие, по которому будут отображаться товары и категории
+      },
+    });
+    dialogSettings.afterClosed().subscribe(result => {
+      if(result){
+        result.map(i => {
+          reportOnIds.push(i.id);
+        });
+        if(reportOnIds.length>0)
+          this.getProductsInfoListByIds(selection,reportOnIds,destination);
+      }
+    });
+  }
+  
+  getProductsInfoListByIds(selection:string, ids: number[], destination:string){
+    const body =  {
+      companyId:this.formBaseInformation.get('company_id').value,         // предприятие, по которому идет запрос данных
+      departmentId:0,                    // id отделения
+      priceTypeId:0,                     // тип цены, по которому будут выданы цены
+      reportOn:selection,                // по категориям или по товарам/услугам (categories, products)
+      reportOnIds:ids                    // id категорий или товаров/услуг (того, что выбрано в reportOn)
+    };
+    this.http.post('/api/auth/getProductsInfoListByIds', body).subscribe(
+      (data) => {   
+        let filteredProducts=data as ProductSearchResponse[];
+        if(filteredProducts.length>0){//несмотря на то, что сами id, по ним может ничего не вернуться, т.к. товары по запрошенным id могут быть не материальны (услуги), либо категории пустые/с нематериальными товарами
+          if(destination=='employee_services')
+            filteredProducts.map(i=>{
+              this.addProductRow(i);
+          });
+          if(destination=='incoming_service'){
+            if(!filteredProducts[0].is_material){
+              this.formBaseInformation.get('incoming_service_id').setValue(filteredProducts[0].product_id);
+              this.formBaseInformation.get('incoming_service_name').setValue(filteredProducts[0].name);
+            } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.no_service')}});
+          }
+          setTimeout(() => {this.sortBy('product_name')},1);
+        }
+      },
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
+    );
+  }
+  
+  addProductRow(product:ProductSearchResponse){ 
+    let thereSame:boolean=false;
+    const control = <UntypedFormArray>this.formBaseInformation.get('userProductsDepparts');
+    this.formBaseInformation.value.userProductsDepparts.map(i => 
+    { // Существующий список не должен содержать одинаковые товары (услуги). Тут проверяем на это
+      // Existed list shouldn't contain the same products (services). Here is checking about it
+      if(+i['product_id'] == product.product_id)
+      {
+        thereSame=true;
+      }
+    });
+    if(!thereSame){//такого товара в списке ещё нет. Добавляем в таблицу 
+      control.push(this.formingJobtitleRowFromSearchForm(product.product_id,product.name));
+    } 
+  }  
+
+  formingJobtitleRowFromSearchForm(id:number,name:string){
+    return this._fb.group({
+      row_id: [this.getResourceRowId()],// row_id нужен для идентифицирования строк у которых нет id (например из только что создали и не сохранили)
+      product_id:  new UntypedFormControl (id,[]),
+      product_name: new UntypedFormControl (name,[]),
+      dep_parts_ids: new UntypedFormControl ([],[]),
+    });
+  }
+  trackByIndex(i: any) { return i; }
+  clearTable(): void {
+    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+      width: '400px',data:{head: translate('docs.msg.prod_list_cln'),warning: translate('docs.msg.prod_list_qry'),query: ''},});
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){
+        this.getControl('userProductsDepparts').clear();
+      }});  
+  }
+  formColumns(){
+    this.displayedColumns=[];
+    // if(this.editability)
+        // this.displayedColumns.push('select');
+    this.displayedColumns.push('name');
+    this.displayedColumns.push('dep_parts');
+    if(this.editability/* && this.showSearchFormFields*/)
+      this.displayedColumns.push('delete');
+  }
+  refreshTableColumns(){
+    this.displayedColumns=[];
+    setTimeout(() => { 
+      this.formColumns();
+    }, 1);
+  }
+
+  deleteTableRow(row: any,index:number) {
+    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {  
+      width: '400px',
+      data:
+      { 
+        head: translate('docs.msg.del_prod_item'),
+        warning: translate('docs.msg.del_prod_quer',{name:row.name})+'?',
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){
+        const control = <UntypedFormArray>this.formBaseInformation.get('userProductsDepparts');
+          control.removeAt(index);
+          this.refreshTableColumns();//чтобы глючные input-поля в таблице встали на свои места. Это у Ангуляра такой прикол
+      }
+    }); 
+  }
+
+  sortBy(FieldName: string) {
+    console.log(this.myItems.value, FieldName);
+    this.myItems.setValue(this.myItems.value.sort((a, b) => {
+      // alert(a[FieldName]+', '+b[FieldName])
+      const nameA = a[FieldName].toUpperCase(); // ignore upper and lowercase
+      const nameB = b[FieldName].toUpperCase(); // ignore upper and lowercase
+      if (nameA < nameB) {
+        return -1;
+      }
+      if (nameA > nameB) {
+        return 1;
+      }
+      // names must be equal
+      return 0;
+    }));
+  }
+  get myItems(): UntypedFormArray {
+    return this.formBaseInformation.get('userProductsDepparts') as UntypedFormArray;
+  }
+  onClickSelectIncomingService(){
+    this.openDialogProductCategoriesSelect('products','incoming_service');
+  }
+
+  onClickDeleteIncomingService(){
+    this.formBaseInformation.get('incoming_service_id').setValue(null);
+    this.formBaseInformation.get('incoming_service_name').setValue('');
+  }
+
+  //  ***************** Counterparty (cagent) ******************
+
+  onCagentSearchValueChanges(){
+    this.searchCagentCtrl.valueChanges
+    .pipe(
+      debounceTime(500),
+      tap(() => {
+        this.filteredCagents = [];}),       
+      switchMap(fieldObject =>  
+        this.getCagentsList()))
+    .subscribe(data => {
+      this.isCagentListLoading = false;
+      if (data == undefined) {
+        this.filteredCagents = [];
+      } else {
+        this.filteredCagents = data as any;
+  }});}
+  
+  onSelectCagent(id:number,name:string){
+    this.formBaseInformation.get('counterparty_id').setValue(+id);
+    // this.formBaseInformation.get('counterparty_name').setValue(name);
+  }
+  
+  checkEmptyCagentField(){
+    if(this.searchCagentCtrl.value.length==0){
+      this.formBaseInformation.get('counterparty_id').setValue(null);
+      // this.formBaseInformation.get('counterparty_name').setValue('');
+  }};     
+  
+  getCagentsList(){ //заполнение Autocomplete
+    try {
+      if(this.canCagentAutocompleteQuery && this.searchCagentCtrl.value.length>1){
+        const body = {
+          "searchString":this.searchCagentCtrl.value,
+          "companyId":this.formBaseInformation.get('company_id').value};
+        this.isCagentListLoading  = true;
+        return this.http.post('/api/auth/getCagentsList', body);
+      }else return [];
+    } catch (e) {
+      return [];}}
+
+  is_employee_toggle(event: MatSlideToggleChange) {
+    if(!event.checked){
+      this.formBaseInformation.get('is_currently_employed').setValue(false);
+      // this.formBaseInformation.get('incoming_service_id').setValue(null);
+      // this.formBaseInformation.get('incoming_service_name').setValue('');
+      // this.formBaseInformation.get('job_title_id').setValue(null);
+      // this.formBaseInformation.get('job_title_name').setValue('');
+      // this.formBaseInformation.get('counterparty_id').setValue(null);
+      // this.searchCagentCtrl.setValue('');
+    }
+  }
+  selectAllDepParts(row_id:number){
+    let depparts = this.getAllDeppartsIds();
+    const control = <UntypedFormArray>this.formBaseInformation.get('userProductsDepparts');
+    control.at(row_id).get('dep_parts_ids').setValue(depparts);
+  }
+  selectAllDepPartsOneDep(row_id:number,dep_id:number){
+    const depparts = this.getAllDeppartsIdsOfOneDep(dep_id);
+    const control = <UntypedFormArray>this.formBaseInformation.get('userProductsDepparts');
+    const ids_now = control.at(row_id).get('dep_parts_ids').value;
+    control.at(row_id).get('dep_parts_ids').setValue(depparts.concat(ids_now));
+  }
+  unselectAllDepParts(row_id:number){
+    const control = <UntypedFormArray>this.formBaseInformation.get('userProductsDepparts');
+    control.at(row_id).get('dep_parts_ids').setValue([]);
+  }
+  unselectAllDepPartsOneDep(row_id:number,dep_id:number){
+    const control = <UntypedFormArray>this.formBaseInformation.get('userProductsDepparts');
+    const ids_in_deppat = this.getAllDeppartsIdsOfOneDep(dep_id);
+    const ids_now = control.at(row_id).get('dep_parts_ids').value;
+    control.at(row_id).get('dep_parts_ids').setValue(ids_now.filter(e => !ids_in_deppat.includes(e)));
+  }
+  getAllDeppartsIds():number[]{
+    let depparts:number[]=[];
+    this.receivedDepartmentsWithPartsList.map(department=>{
+      department.parts.map(deppart=>{
+        depparts.push(deppart.id);
+      })
+    });
+    return depparts;
+  }  
+  getAllDeppartsIdsOfOneDep(dep_id:number):number[]{
+    let depparts:number[]=[];
+    this.receivedDepartmentsWithPartsList.map(department=>{
+      if(department.department_id==dep_id)
+        department.parts.map(deppart=>{
+          depparts.push(deppart.id);
+        })
+    });
+    return depparts;
+  }
 }
 
 

@@ -73,49 +73,51 @@
     </mat-drawer>
     <div class="categories-sidenav-content">
         <mat-card appearance="outlined" class="card for-sticky-header">
-        
-            <mat-card-title class="top-bar container-fluid">
-                <div class="row" id="topBlock">
-                <div class="card-name">{{t('docs.docs.file')}}</div>
-                    <button 
-                        mat-raised-button 
-                        (click)="downloadFile(formBaseInformation.get('name').value,formBaseInformation.get('original_name').value)"
-                        color="primary"
-                        matTooltip="{{t('docs.tip.download_file')}}"
-                        [style.display]="(allowToView)?'block':'none'"
-                        class="button small-button">
-                        <i class="material-icons">cloud_download</i>
-                    </button>
-                    <button 
-                        mat-raised-button 
-                        [style.display]="(allowToUpdate && allowToView)?'block':'none'"
-                        (click)="clickBtnUpdate()"
-                        [disabled]="!formBaseInformation.valid" 
-                        matTooltip="{{t('docs.tip.save')}}"
-                        color="primary"
-                        class="button small-button">
-                        <i class="material-icons">save</i>
-                    </button>
-                    <a routerLink="../../files">
+            <mat-card-header>
+
+                <mat-card-title class="top-bar container-fluid">
+                    <div class="row" id="topBlock">
+                    <div class="card-name">{{t('docs.docs.file')}}</div>
                         <button 
-                            [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
-                            [style.display]="(mode=='window')?'none':'block'"
                             mat-raised-button 
-                            color="accent"
+                            (click)="downloadFile(formBaseInformation.get('name').value,formBaseInformation.get('original_name').value)"
+                            color="primary"
+                            matTooltip="{{t('docs.tip.download_file')}}"
+                            [style.display]="(allowToView)?'flex':'none'"
                             class="button small-button">
-                            <i class="material-icons">close</i>
+                            <i class="material-icons">cloud_download</i>
                         </button>
-                    </a>
-                    <button [style.display]="(mode=='window')?'block':'none'"
-                            mat-raised-button
-                            class="button small-button"
-                            matTooltip="{{t('docs.tip.close')}}"
-                            matDialogClose 
-                            color="accent">
-                            <i class="material-icons">close</i>
-                    </button>
-                </div>
-            </mat-card-title>
+                        <button 
+                            mat-raised-button 
+                            [style.display]="(allowToUpdate && allowToView)?'flex':'none'"
+                            (click)="clickBtnUpdate()"
+                            [disabled]="!formBaseInformation.valid" 
+                            matTooltip="{{t('docs.tip.save')}}"
+                            color="primary"
+                            class="button small-button">
+                            <i class="material-icons">save</i>
+                        </button>
+                        <a routerLink="../{{+id>0?'../':''}}files" style="text-decoration: none;"> 
+                            <button 
+                                [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
+                                [style.display]="(mode=='window')?'none':'flex'"
+                                mat-raised-button 
+                                color="accent"
+                                class="button small-button">
+                                <i class="material-icons">close</i>
+                            </button>
+                        </a>
+                        <button [style.display]="(mode=='window')?'flex':'none'"
+                                mat-raised-button
+                                class="button small-button"
+                                matTooltip="{{t('docs.tip.close')}}"
+                                matDialogClose 
+                                color="accent">
+                                <i class="material-icons">close</i>
+                        </button>
+                    </div>
+                </mat-card-title>
+            </mat-card-header>
             <!-- !!! -->
             <mat-card-content *ngIf="rightsDefined && 
             (
@@ -207,6 +209,7 @@
                                                                             <mat-hint align="end" *ngIf="formBaseInformation.get('alt').value.length>100">{{formBaseInformation.get('alt').value.length}} / 120</mat-hint>
                                                                 </mat-form-field>
                                                                 <mat-form-field>
+                                                                    <mat-label>{{t('docs.field.description')}}</mat-label>
                                                                     <input   matInput
                                                                             placeholder="{{t('docs.field.description')}}"                                                                             
                                                                             maxlength="1000"

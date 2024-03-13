@@ -58,75 +58,76 @@
     <div class="categories-sidenav-content">
         <form [formGroup]="formBaseInformation" style="width:100%">
             <mat-card appearance="outlined" class="card for-sticky-header">
-                <mat-card-title class="top-bar container-fluid"> 
-                    <div class="row" id="topBlock">
-                        <div id="cardname">
-                            {{t('docs.docs.cparty')}}
-                        </div>
-                        <div  id="status" style=" font-size: 15px;"> 
-                            <div class = "circle-in-selected" *ngIf="+formBaseInformation.get('status_id').value>0" [style.background-color]="status_color"></div>
-                            <mat-form-field  class="mat-form-field-100" style="margin-top: -25px;">
-                                <mat-select     style="padding: 0px 0px 0px 23px" 
-                                                [disabled]=!editability
-                                                panelClass="statuseslist"
-                                                formControlName="status_id"
-                                                (selectionChange)="setStatusColor();">
-                                    <mat-option *ngFor="let status of receivedStatusesList" 
-                                                [value]="status.id"
-                                                matTooltip={{status.description}}>
-                                                <div style="display: inline;line-height: 20px;">
-                                                    <div class = "circle-wrapper">
-                                                        <div class = "circle-in-list" [style.background-color]="status.color"></div>
+                <mat-card-header>
+                    <mat-card-title class="top-bar container-fluid"> 
+                        <div class="row" id="topBlock">
+                            <div id="cardname">
+                                {{t('docs.docs.cparty')}}
+                            </div>
+                            <div  id="status" style=" font-size: 15px;"> 
+                                <div class = "circle-in-selected" *ngIf="+formBaseInformation.get('status_id').value>0" [style.background-color]="status_color"></div>
+                                <mat-form-field  class="mat-form-field-100" style="margin-top: -25px;">
+                                    <mat-select     style="padding: 0px 0px 0px 23px" 
+                                                    [disabled]=!editability
+                                                    panelClass="statuseslist"
+                                                    formControlName="status_id"
+                                                    (selectionChange)="setStatusColor();">
+                                        <mat-option *ngFor="let status of receivedStatusesList" 
+                                                    [value]="status.id"
+                                                    matTooltip={{status.description}}>
+                                                    <div style="display: inline;line-height: 20px;">
+                                                        <div class = "circle-wrapper">
+                                                            <div class = "circle-in-list" [style.background-color]="status.color"></div>
+                                                        </div>
+                                                        <div class = "status-name">{{status.name}}</div>
                                                     </div>
-                                                    <div class = "status-name">{{status.name}}</div>
-                                                </div>
-                                    </mat-option>
-                                </mat-select>
-                            </mat-form-field>
-                        </div>
-                        <div class="separator"></div><!-- !!! -->
-                        <button 
-                            mat-raised-button 
-                            [style.display]="allowToUpdate"
-                            (click)="clickBtnUpdate()"
-                            [style.display]="id>0?'block':'none'"
-                            [disabled]="!formBaseInformation.valid" 
-                            matTooltip="{{t('docs.tip.save')}}"
-                            color="primary"
-                            class="button small-button">
-                            <i class="material-icons">save</i>
-                        </button>
-                        <button 
-                            mat-raised-button 
-                            [style.display]="id>0?'none':'block'"
-                            (click)="clickBtnCreateNewDocument()" 
-                            [disabled]="!formBaseInformation.valid" 
-                            matTooltip="{{t('docs.tip.create')}}"
-                            *ngIf="allowToCreate"
-                            color="primary"
-                            class="button small-button">
-                            <i class="material-icons">done</i>
-                        </button>
-                        <a routerLink="../../cagents" style="text-decoration: none;" [style.display]="(mode=='standart')?'block':'none'" >
+                                        </mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                            </div>
+                            <div class="separator"></div><!-- !!! -->
                             <button 
                                 mat-raised-button 
-                                color="accent"
-                                [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
+                                [style.display]="allowToUpdate"
+                                (click)="clickBtnUpdate()"
+                                [style.display]="id>0?'flex':'none'"
+                                [disabled]="!formBaseInformation.valid" 
+                                matTooltip="{{t('docs.tip.save')}}"
+                                color="primary"
                                 class="button small-button">
-                                <i class="material-icons">close</i>
+                                <i class="material-icons">save</i>
                             </button>
-                        </a>
-                        <button [style.display]="(mode=='window')?'block':'none'"
-                        mat-raised-button
-                        style="margin-left:10px"
-                        class="button small-button"
-                        matDialogClose 
-                        color="accent">
-                        <i class="material-icons">close</i>
-                        </button>
-                    </div>
-                </mat-card-title>
-                <!-- !!! -->
+                            <button 
+                                mat-raised-button 
+                                [style.display]="id>0?'none':'flex'"
+                                (click)="clickBtnCreateNewDocument()" 
+                                [disabled]="!formBaseInformation.valid" 
+                                matTooltip="{{t('docs.tip.create')}}"
+                                *ngIf="allowToCreate"
+                                color="primary"
+                                class="button small-button">
+                                <i class="material-icons">done</i>
+                            </button>
+                            <a routerLink="../{{+id>0?'../':''}}cagents" style="text-decoration: none;" [style.display]="(mode=='standart')?'block':'none'" >
+                                <button 
+                                    mat-raised-button 
+                                    color="accent"
+                                    [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
+                                    class="button small-button">
+                                    <i class="material-icons">close</i>
+                                </button>
+                            </a>
+                            <button [style.display]="(mode=='window')?'block':'none'"
+                            mat-raised-button
+                            style="margin-left:10px"
+                            class="button small-button"
+                            matDialogClose 
+                            color="accent">
+                            <i class="material-icons">close</i>
+                            </button>
+                        </div>
+                    </mat-card-title>
+                </mat-card-header>
                 <mat-card-content *ngIf="rightsDefined && 
                 (
                     (!allowToView && +id>0) ||
@@ -232,6 +233,7 @@
                                                     <div class="col-lg-6  col-md-12">
                                                         <!-- Код -->
                                                         <mat-form-field  class="mat-form-field-100">
+                                                            <mat-label>{{t('docs.field.code')}}</mat-label>
                                                             <input   matInput
                                                                     placeholder="{{t('docs.field.code')}}"
                                                                     [readonly]=!editability
@@ -242,6 +244,7 @@
                                                     </div>
                                                 </div>
                                                 <mat-form-field>
+                                                    <mat-label>{{t('docs.field.description')}}</mat-label>
                                                     <textarea   matInput
                                                                 placeholder="{{t('docs.field.description')}}"
                                                                 [readonly]=!editability
@@ -280,6 +283,7 @@
                                             <mat-card-content class="input-form">
                                                 <!-- Полное наименование -->
                                                 <mat-form-field  *ngIf="formBaseInformation.get('type').value=='entity'">
+                                                    <mat-label>{{t('docs.field.name_full')}}</mat-label>
                                                     <textarea   matInput
                                                             placeholder="{{t('docs.field.name_full')}}"
                                                             [readonly]=!editability
@@ -290,6 +294,7 @@
                                                 </mat-form-field>
                                                 <!-- Фамилия -->
                                                 <mat-form-field *ngIf="formBaseInformation.get('type').value=='individual'">
+                                                    <mat-label>{{t('docs.field.surname')}}</mat-label>
                                                     <input   matInput
                                                             placeholder="{{t('docs.field.surname')}}"
                                                             [readonly]=!editability
@@ -299,6 +304,7 @@
                                                 </mat-form-field>
                                                 <!-- Имя -->
                                                 <mat-form-field *ngIf="formBaseInformation.get('type').value=='individual'">
+                                                    <mat-label>{{t('docs.field.person_name')}}</mat-label>
                                                     <input   matInput
                                                             placeholder="{{t('docs.field.person_name')}}"
                                                             [readonly]=!editability
@@ -308,6 +314,7 @@
                                                 </mat-form-field>
                                                 <!-- Отчество -->
                                                 <mat-form-field *ngIf="formBaseInformation.get('type').value=='individual' && +formBaseInformation.get('jr_country_id').value==1">
+                                                    <mat-label>{{t('docs.field.middle_name')}}</mat-label>
                                                     <input   matInput
                                                             placeholder="{{t('docs.field.middle_name')}}"
                                                             maxlength="120"
@@ -317,6 +324,7 @@
                                                 </mat-form-field>
                                                 <!-- Правовая форма -->
                                                 <mat-form-field *ngIf="formBaseInformation.get('type').value=='individual'">
+                                                    <mat-label>{{t('docs.field.legal_form')}}</mat-label>
                                                     <input  matInput
                                                             placeholder="{{t('docs.field.legal_form')}}"
                                                             maxlength="240"
@@ -326,6 +334,7 @@
                                                 </mat-form-field>
                                                 <!-- ИНН -->
                                                 <mat-form-field>
+                                                    <mat-label>{{t('docs.field.'+tinName)}}</mat-label>
                                                     <input  matInput
                                                             maxlength="12"
                                                             placeholder="{{t('docs.field.'+tinName)}}"
@@ -334,6 +343,7 @@
                                                 </mat-form-field>
                                                 <!-- VAT -->
                                                 <mat-form-field>
+                                                    <mat-label>{{t('docs.field.'+vatName)}}</mat-label>
                                                     <input  matInput
                                                             maxlength="100"
                                                             placeholder="{{t('docs.field.'+vatName)}}"
@@ -342,6 +352,7 @@
                                                 </mat-form-field>
                                                 <!-- КПП -->
                                                 <mat-form-field *ngIf="formBaseInformation.get('type').value=='entity' && +formBaseInformation.get('jr_country_id').value==1">
+                                                    <mat-label>{{t('docs.field.kpp')}}</mat-label>
                                                     <input  matInput
                                                             maxlength="9"
                                                             [readonly]=!editability
@@ -351,6 +362,7 @@
                                                 </mat-form-field>
                                                 <!-- ОГРН(ИП) / Registration number -->
                                                 <mat-form-field *ngIf="viz_jr_jur">
+                                                    <mat-label>{{t('docs.field.'+regNumberName)}}</mat-label>
                                                     <input  matInput
                                                             maxlength="13"
                                                             [readonly]=!editability
@@ -359,6 +371,7 @@
                                                 </mat-form-field>
                                                 <!-- ОКПО -->
                                                 <mat-form-field  *ngIf="formBaseInformation.get('type').value=='entity' && +formBaseInformation.get('jr_country_id').value==1">
+                                                    <mat-label>{{t('docs.field.okpo')}}</mat-label>
                                                     <input  matInput
                                                             maxlength="10"
                                                             [readonly]=!editability
@@ -368,6 +381,7 @@
                                                 </mat-form-field>
                                                 <!-- Номер свидетельства -->
                                                 <mat-form-field *ngIf="formBaseInformation.get('type').value=='individual' && +formBaseInformation.get('jr_country_id').value==1">
+                                                    <mat-label>{{t('docs.field.reg_doc_num')}}</mat-label>
                                                     <input   matInput
                                                             placeholder="{{t('docs.field.reg_doc_num')}}"
                                                             [readonly]=!editability
@@ -377,6 +391,7 @@
                                                 </mat-form-field>
                                                 <!-- Дата регистрации -->
                                                 <mat-form-field *ngIf="formBaseInformation.get('type').value=='individual' && +formBaseInformation.get('jr_country_id').value==1">
+                                                    <mat-label>{{t('docs.field.reg_date')}}</mat-label>
                                                     <input  matInput 
                                                             placeholder="{{t('docs.field.reg_date')}}"
                                                             [readonly]=!editability
@@ -409,6 +424,7 @@
                                                 <div class="row">
                                                     <div class="col-lg-6  col-md-12">
                                                         <mat-form-field  class="mat-form-field-100">
+                                                            <mat-label>{{t('docs.field.zip_code')}}</mat-label>
                                                             <input   matInput
                                                                     placeholder="{{t('docs.field.zip_code')}}"
                                                                     [readonly]=!editability
@@ -472,6 +488,7 @@
                                                  -->
                                                 
                                                 <mat-form-field>
+                                                    <mat-label>{{t('docs.field.region')}}</mat-label>
                                                     <input   matInput
                                                             placeholder="{{t('docs.field.region')}}"
                                                             [readonly]=!editability
@@ -508,6 +525,7 @@
                                                 <mat-progress-bar *ngIf="isJrCityListLoading" mode="indeterminate"></mat-progress-bar> -->
                                                 
                                                 <mat-form-field>
+                                                    <mat-label>{{t('docs.field.city_locality')}}</mat-label>
                                                     <input   matInput
                                                             placeholder="{{t('docs.field.city_locality')}}"
                                                             [readonly]=!editability
@@ -518,6 +536,7 @@
                                                 
                                                 <!-- Улица -->
                                                 <mat-form-field>
+                                                    <mat-label>{{t('docs.field.street')}}</mat-label>
                                                     <input   matInput
                                                             placeholder="{{t('docs.field.street')}}"
                                                             [readonly]=!editability
@@ -529,6 +548,7 @@
                                                 <div class="row">
                                                     <div class="col-lg-6  col-md-12">
                                                         <mat-form-field  class="mat-form-field-100">
+                                                            <mat-label>{{t('docs.field.house')}}</mat-label>
                                                             <input   matInput
                                                                     placeholder="{{t('docs.field.house')}}"
                                                                     [readonly]=!editability
@@ -540,6 +560,7 @@
                                                     <div class="col-lg-6  col-md-12">
                                                         <!-- Квартира -->
                                                         <mat-form-field  class="mat-form-field-100">
+                                                            <mat-label>{{t('docs.field.room')}}</mat-label>
                                                             <input   matInput
                                                                     placeholder="{{t('docs.field.room')}}"
                                                                     [readonly]=!editability
@@ -551,6 +572,7 @@
                                                 </div>
                                                 <!-- Дополнение к адресу -->
                                                 <mat-form-field>
+                                                    <mat-label>{{t('docs.field.addr_addittnl')}}</mat-label>
                                                     <textarea   matInput
                                                             placeholder="{{t('docs.field.addr_addittnl')}}"
                                                             [readonly]=!editability
@@ -579,6 +601,7 @@
                                                 <div class="row">
                                                     <div class="col-lg-6  col-md-12">
                                                         <mat-form-field  class="mat-form-field-100">
+                                                            <mat-label>{{t('docs.field.zip_code')}}</mat-label>
                                                             <input   matInput
                                                                     placeholder="{{t('docs.field.zip_code')}}"
                                                                     [readonly]=!editability
@@ -640,6 +663,7 @@
                                                 <mat-progress-bar *ngIf="isRegionListLoading" mode="indeterminate"></mat-progress-bar> -->
                                                 
                                                 <mat-form-field>
+                                                    <mat-label>{{t('docs.field.region')}}</mat-label>
                                                     <input   matInput
                                                             placeholder="{{t('docs.field.region')}}"
                                                             [readonly]=!editability
@@ -676,6 +700,7 @@
                                                 
                                                 
                                                 <mat-form-field>
+                                                    <mat-label>{{t('docs.field.city_locality')}}</mat-label>
                                                     <input   matInput
                                                             placeholder="{{t('docs.field.city_locality')}}"
                                                             [readonly]=!editability
@@ -686,6 +711,7 @@
                                                 
                                                 <!-- Улица -->
                                                 <mat-form-field>
+                                                    <mat-label>{{t('docs.field.street')}}</mat-label>
                                                     <input   matInput
                                                             placeholder="{{t('docs.field.street')}}"
                                                             [readonly]=!editability
@@ -697,6 +723,7 @@
                                                 <div class="row">
                                                     <div class="col-lg-6  col-md-12">
                                                         <mat-form-field  class="mat-form-field-100">
+                                                            <mat-label>{{t('docs.field.house')}}</mat-label>
                                                             <input   matInput
                                                                     placeholder="{{t('docs.field.house')}}"
                                                                     [readonly]=!editability
@@ -708,6 +735,7 @@
                                                     <div class="col-lg-6  col-md-12">
                                                         <!-- Квартира -->
                                                         <mat-form-field  class="mat-form-field-100">
+                                                            <mat-label>{{t('docs.field.room')}}</mat-label>
                                                             <input   matInput
                                                                     placeholder="{{t('docs.field.room')}}"
                                                                     maxlength="8"
@@ -719,6 +747,7 @@
                                                 </div>
                                                 <!-- Дополнение к адресу -->
                                                 <mat-form-field>
+                                                    <mat-label>{{t('docs.field.addr_addittnl')}}</mat-label>
                                                     <textarea   matInput
                                                             placeholder="{{t('docs.field.addr_addittnl')}}"
                                                             [readonly]=!editability
@@ -738,6 +767,7 @@
                                             <mat-card-content class="input-form">
                                                 <!-- Телефон -->
                                                 <mat-form-field>
+                                                    <mat-label>{{t('docs.field.telephone')}}</mat-label>
                                                     <input   matInput
                                                             [readonly]=!editability
                                                             placeholder="{{t('docs.field.telephone')}}"
@@ -747,6 +777,7 @@
                                                 </mat-form-field>
                                                 <!-- e-mail -->
                                                 <mat-form-field>
+                                                    <mat-label>e-mail</mat-label>
                                                     <input   matInput
                                                             [readonly]=!editability
                                                             placeholder="e-mail"
@@ -756,6 +787,7 @@
                                                 </mat-form-field>
                                                 <!-- Сайт -->
                                                 <mat-form-field>
+                                                    <mat-label>{{t('docs.field.site')}}</mat-label>
                                                     <input   matInput
                                                             [readonly]=!editability
                                                             placeholder="{{t('docs.field.site')}}"
@@ -790,6 +822,7 @@
                                                         </div>
                                                         <mat-card-content class="input-form" >
                                                             <mat-form-field>
+                                                                <mat-label>{{t('docs.field.person_name')}}</mat-label>
                                                                 <input   matInput
                                                                         placeholder="{{t('docs.field.person_name')}}"
                                                                         [readonly]=!editability
@@ -799,6 +832,7 @@
                                                                 <mat-hint align="end" *ngIf="fio.value.length>150">{{fio.value.length}} / 200</mat-hint>
                                                             </mat-form-field>
                                                             <mat-form-field>
+                                                                <mat-label>{{t('docs.field.position')}}</mat-label>
                                                                 <input   matInput
                                                                         placeholder="{{t('docs.field.position')}}"
                                                                         [readonly]=!editability
@@ -808,6 +842,7 @@
                                                                 <mat-hint align="end" *ngIf="position.value.length>150">{{position.value.length}} / 200</mat-hint>
                                                             </mat-form-field>
                                                             <mat-form-field>
+                                                                <mat-label>{{t('docs.field.telephone')}}</mat-label>
                                                                 <input   matInput
                                                                         placeholder="{{t('docs.field.telephone')}}"
                                                                         [readonly]=!editability
@@ -817,6 +852,7 @@
                                                                 <mat-hint align="end" *ngIf="telephone.value.length>50">{{telephone.value.length}} / 60</mat-hint>
                                                             </mat-form-field>
                                                             <mat-form-field>
+                                                                <mat-label>E-mail</mat-label>
                                                                 <input   matInput
                                                                         placeholder="E-mail"
                                                                         [readonly]=!editability
@@ -826,6 +862,7 @@
                                                                 <mat-hint align="end" *ngIf="email.value.length>200">{{email.value.length}} / 254</mat-hint>
                                                             </mat-form-field>
                                                             <mat-form-field>
+                                                                <mat-label>{{t('docs.field.additional')}}</mat-label>
                                                                 <textarea   matInput
                                                                         placeholder="{{t('docs.field.additional')}}"
                                                                         [readonly]=!editability

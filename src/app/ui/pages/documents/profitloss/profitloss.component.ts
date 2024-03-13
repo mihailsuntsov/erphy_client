@@ -152,9 +152,9 @@ export class ProfitlossComponent implements OnInit {
   get datesExistAndValid(){
     return(this.queryForm.controls.dateFrom.value!='' && !this.queryForm.controls.dateFrom.invalid && this.queryForm.controls.dateTo.value!='' && !this.queryForm.controls.dateTo.invalid) && this.queryForm.controls.dateFrom.value<=this.queryForm.controls.dateTo.value;
   }
-  getCRUD_rights(permissionsSet:any[]){
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==590)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==591)});
+  getCRUD_rights(){
+    this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==590)});
+    this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==591)});
     this.getData();
   }
 
@@ -259,7 +259,7 @@ export class ProfitlossComponent implements OnInit {
       this.queryForm.get('companyId').setValue(this.myCompanyId);
       Cookie.set('profitloss_companyId',this.queryForm.get('companyId').value);
     }
-    this.getCRUD_rights(this.permissionsSet);
+    this.getCRUD_rights();
   }
 
   doFilterCompaniesList(){

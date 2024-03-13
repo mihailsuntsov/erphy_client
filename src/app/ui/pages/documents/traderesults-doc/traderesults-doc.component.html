@@ -20,7 +20,7 @@
                     class="button">
                     <i class="material-icons">done</i> {{t('modules.button.save_n_close')}}
                 </button>
-                <a routerLink="../../traderesults">
+                <a routerLink="../{{+id>0?'../':''}}traderesults">
                     <button 
                         mat-raised-button 
                         color="accent"

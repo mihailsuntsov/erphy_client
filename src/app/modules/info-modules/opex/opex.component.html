@@ -5,11 +5,12 @@
                     class="nav-icon">menu
         </mat-icon>
     </div>
-    <mat-card-title class="flex">
-        <div class="card-name">{{'modules.card.opex' | transloco}}</div>
+    <mat-card-header>
+        <mat-card-title class="flex">
+            <div class="card-name">{{'modules.card.opex' | transloco}}</div>
 
-    </mat-card-title>
-    
+        </mat-card-title>
+    </mat-card-header>
     <mat-card-content class="input-form">
         <form [formGroup]="queryForm" *ngIf="showSettingsForm">
             <div class="container-fluid">

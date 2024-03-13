@@ -673,7 +673,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
 
   getSpravSysEdizm():void {    
     let companyId=this.company_id;
-    this.http.post('/api/auth/getSpravSysEdizm', {id1: companyId, string1:"(1,2,3,4,5)"})  // все типы ед. измерения
+    this.http.post('/api/auth/getSpravSysEdizm', {id1: companyId, string1:"(1,2,3,4,5,6)"})  // все типы ед. измерения
     .subscribe((data) => {this.spravSysEdizmOfProductAll = data as any[];
             },
     error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
@@ -803,9 +803,7 @@ export class ProductSearchAndTableComponent implements OnInit, OnChanges {
     const dialogPricing = this.PricingDialogComponent.open(PricingDialogComponent, {
       maxWidth: '95vw',
       maxHeight: '95vh',
-      height: '600px',
       width: '400px', 
-      minHeight: '600px',
       data:
       { //отправляем в диалог:
         companyId:        this.company_id, //id предприятия

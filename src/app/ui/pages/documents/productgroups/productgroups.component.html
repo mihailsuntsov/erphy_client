@@ -9,7 +9,7 @@ class="spinner"
         <div *ngIf="!displayingDeletedDocs" class="emptyspace">{{cu.cap(t('menu.docs.productgroups'))}}</div>
         <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">{{t('menu.top.deleted')}}</span> {{t('menu.docs.productgroups')}}</div>
         <div [style.display]="(allowToCreate&&!displayingDeletedDocs&&checkedList.length==0)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
-            <a [routerLink]="['../productgroupsdoc', '']">
+            <a [routerLink]="['../productgroupsdoc']">
                 <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> {{t('menu.top.btn_create')}}</button>
             </a>   
         </div>

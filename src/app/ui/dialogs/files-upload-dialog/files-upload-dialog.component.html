@@ -1,22 +1,24 @@
 <mat-card appearance="outlined" class="card">
-    <mat-card-title class="flex">
-        <div class="card-name">{{data.title}}</div>
-        
-        <button 
-            onclick="document.getElementById('fileToUpload').click()" matTooltip="{{'modules.tip.select_upl_fl' | transloco}}"
-            mat-raised-button 
-            color="primary"
-            class="button small-button">
-            <i class="material-icons">add_circle_outline</i>
-        </button>
-        <button 
-            (click)="onNoClick()"
-            mat-raised-button 
-            color="accent"
-            class="button small-button">
-            <i class="material-icons">close</i>
-        </button>
-    </mat-card-title>
+    <mat-card-header>
+        <mat-card-title class="flex">
+            <div class="card-name">{{data.title}}</div>
+            
+            <button 
+                onclick="document.getElementById('fileToUpload').click()" matTooltip="{{'modules.tip.select_upl_fl' | transloco}}"
+                mat-raised-button 
+                color="primary"
+                class="button small-button">
+                <i class="material-icons">add_circle_outline</i>
+            </button>
+            <button 
+                (click)="onNoClick()"
+                mat-raised-button 
+                color="accent"
+                class="button small-button">
+                <i class="material-icons">close</i>
+            </button>
+        </mat-card-title>
+    </mat-card-header>
     <mat-card-content > 
         <form [formGroup]="formBaseInformation">   
             <mat-form-field style="width: 100%">
@@ -26,11 +28,11 @@
                     <mat-option [value]="data.categoryId" *ngIf="+data.categoryId>0">{{data.categoryName}}</mat-option>
                 </mat-select>  
             </mat-form-field>
-            <mat-form-field  style="width: 100%">
+            <!-- <mat-form-field  style="width: 100%">
                 <input   matInput
                         placeholder="{{'docs.field.description' | transloco}}"
                         formControlName="description"/>
-            </mat-form-field>
+            </mat-form-field> -->
             <mat-form-field style="width: 100%">
                 <mat-slide-toggle formControlName="sharedFile" (change)="onAnonymeAccessChange()">{{'modules.field.shared_file' | transloco}}</mat-slide-toggle>
                 <!-- <mat-slide-toggle matInput 

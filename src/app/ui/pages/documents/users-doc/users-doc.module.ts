@@ -7,11 +7,13 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MaterialModule } from '../../../../modules/material.module';
 import { SharedModule } from '../../../../modules/shared.module';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import { ProductCategoriesSelectModule } from 'src/app/modules/trade-modules/product-categories-select/product-categories-select.module';
 
 @NgModule({
   declarations: [UsersDocComponent],
   imports: [
     CommonModule,
+    ProductCategoriesSelectModule,
     UsersDocRoutingModule,
     FormsModule,
     ReactiveFormsModule,

@@ -35,6 +35,7 @@ import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/materia
 // import { AngularEditorConfig } from '@kolkov/angular-editor';
 import { TemplatesDialogComponent } from 'src/app/modules/settings/templates-dialog/templates-dialog.component';
 import { LabelsPrintDialogComponent } from 'src/app/modules/settings/labelprint-dialog/labelprint-dialog.component';
+import { MatSlideToggleChange } from '@angular/material/slide-toggle';
 
 
 const MY_FORMATS = MomentDefault.getMomentFormat();
@@ -114,8 +115,17 @@ interface docResponse {//интерфейс для получения ответ
   defaultAttributes:DefaultAttribute[];
   productVariations:ProductVariation[];
   variation: boolean;
-  productResourcesTable:any[];
-  }
+  productResourcesTable: any[];                   // list of resources that service need ti be completed
+  is_srvc_by_appointment: boolean;                // this service is selling by appointments
+  scdl_is_only_on_start: boolean;                 // a service provider is needed only at the start
+  scdl_max_pers_on_same_time: number;             // the number of persons to whom a service can be provided at a time by one service provider (1 - dentist or hairdresser, 5-10 - yoga class)
+  scdl_srvc_duration: number;                     // time minimal duration of the service.
+  scdl_appointment_atleast_before_time: number;   // minimum time before the start of the service for which customers can make an appointment
+  scdl_appointment_atleast_before_unit_id: number;// the unit of measure of minimum time before the start of the service for which customers can make an appointment
+  scdl_customer_reminders: number[];              // describes set of ID of reminders for customer
+  scdl_employee_reminders: number[];              // describes set of ID of reminders for employee
+  scdl_assignments:        string[];              // describes set of assignment types for service ("customer", "manually")
+}
   interface SpravTaxesSet{
     id: number;
     name: string;
@@ -409,6 +419,8 @@ export class ProductsDocComponent implements OnInit {
   filteredSpravSysEdizmOfProductAll: Observable<IdAndName[]>; //массив для отфильтрованных единиц измерения
   spravSysEdizmOfProductWeight: any[]=[];// весовые единицы измерения товара
   spravSysEdizmOfProductVolume: any[]=[];// объёмные единицы измерения товара
+  spravSysEdizmOfProductTime: any[]=[];//  единицы измерения товара с временем
+  spravSysEdizmOfProductCurrent: any[]=[];// список единиц измерения товара актуальный на данный момент
   // переменные атрибутов
   productAttributes:ProductAttribute[];  
   productAttributesList:ProductAttributeForAttributesList[];
@@ -467,6 +479,8 @@ export class ProductsDocComponent implements OnInit {
   showSearchFormFields:boolean = false;
   displayedResourcesColumns: string[]=[];//массив отображаемых столбцов таблицы с ресурсами
 
+  assignmentsList: any[]=[];
+  remindersList: any[]=[];
 
   constructor(private activateRoute: ActivatedRoute,
     private http: HttpClient,
@@ -556,8 +570,6 @@ export class ProductsDocComponent implements OnInit {
       stock_status: new UntypedFormControl      ('instock',[]),
       backorders: new UntypedFormControl      ('no',[]),
       sold_individually: new UntypedFormControl (false,[]),
-      // reg_price: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
-      // sale_price: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       height: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
       width: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
       length: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),
@@ -581,6 +593,15 @@ export class ProductsDocComponent implements OnInit {
       short_description_type: new UntypedFormControl      ('editor',[]), // "editor" or "custom"
       storeProductTranslations: new UntypedFormArray ([]) ,
       productResourcesTable: new UntypedFormArray([]),//массив с формами ресурсов
+      is_srvc_by_appointment:  new UntypedFormControl(false,[]),                 // this service is selling by appointments
+      scdl_is_only_on_start:  new UntypedFormControl(false,[]),                  // a service provider is needed only at the start
+      scdl_max_pers_on_same_time: new UntypedFormControl(1,[Validators.required, Validators.pattern('^[0-9]{1,10}$'), Validators.min(1), Validators.max(2100000000)]),             // the number of persons to whom a service can be provided at a time by one service provider (1 - dentist or hairdresser, 5-10 - yoga class)
+      scdl_srvc_duration: new UntypedFormControl(1,[Validators.required, Validators.pattern('^[0-9]{1,10}$'), Validators.min(1), Validators.max(2100000000)]),  // time minimal duration of the service.
+      scdl_appointment_atleast_before_time: new UntypedFormControl(0,[Validators.required, Validators.pattern('^[0-9]{1,10}$'), Validators.min(0), Validators.max(2100000000)]),   // minimum time before the start of the service for which customers can make an appointment
+      scdl_appointment_atleast_before_unit_id: new UntypedFormControl(null,[]),// the unit of measure of minimum time before the start of the service for which customers can make an appointment
+      scdl_customer_reminders: new UntypedFormControl ([],[]),   // describes set of ID of reminders for customer
+      scdl_employee_reminders: new UntypedFormControl ([],[]),   // describes set of ID of reminders for employee
+      scdl_assignments:        new UntypedFormControl (['manually'],[]),   // describes set of assignment types for service
     });
     this.formAboutDocument = new UntypedFormGroup({
       id: new UntypedFormControl      ('',[]),
@@ -606,6 +627,8 @@ export class ProductsDocComponent implements OnInit {
     this.fillDocumentsList();
     this.documentsIds.forEach(z=>{this.selection.select(z);this.checkedChangesList.push(+z.id);});
     this.getSetOfPermissions();
+    this.getSetOfAssignments();
+    this.getSetOfReminders();
     // getting base data from parent component
     this.getBaseData('myCompanyId');  
     this.getBaseData('companiesList');  
@@ -923,6 +946,20 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
                   this.formBaseInformation.get('short_description_html').setValue(documentValues.short_description_html);  // custom HTML short description
                   this.formBaseInformation.get('description_type').setValue(documentValues.description_type);        // "editor" or "custom"
                   this.formBaseInformation.get('short_description_type').setValue(documentValues.short_description_type);  // "editor" or "custom"
+                  
+                  this.formBaseInformation.get('is_srvc_by_appointment').setValue(documentValues.is_srvc_by_appointment);
+                  this.formBaseInformation.get('scdl_is_only_on_start').setValue(documentValues.scdl_is_only_on_start);
+                  this.formBaseInformation.get('scdl_max_pers_on_same_time').setValue(documentValues.scdl_max_pers_on_same_time);
+                  this.formBaseInformation.get('scdl_srvc_duration').setValue(documentValues.scdl_srvc_duration);
+                  this.formBaseInformation.get('scdl_appointment_atleast_before_time').setValue(documentValues.scdl_appointment_atleast_before_time);
+                  this.formBaseInformation.get('scdl_appointment_atleast_before_unit_id').setValue(documentValues.scdl_appointment_atleast_before_unit_id);
+                  this.formBaseInformation.get('scdl_customer_reminders').setValue(documentValues.scdl_customer_reminders);
+                  this.formBaseInformation.get('scdl_employee_reminders').setValue(documentValues.scdl_employee_reminders);
+                  this.formBaseInformation.get('scdl_assignments').setValue(documentValues.scdl_assignments);
+                  
+                  
+                  
+                  
                   // this.formBaseInformation.get('defaultAttributes').setValue(documentValues.defaultAttributes);
                   this.loadedProductVariations=documentValues.productVariations;  
 
@@ -1022,7 +1059,7 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
     this.is_vat=false;
     this.is_vat_included=false;
     this.checkedList=[];
-    this.formBaseInformation.get('edizm_id').setValue('');
+    this.formBaseInformation.get('edizm_id').setValue(null);
     this.formBaseInformation.get('edizm_name').setValue('');
     this.formBaseInformation.get('indivisible').setValue(true);
     this.formBaseInformation.get('ppr_id').setValue(1);
@@ -1049,7 +1086,7 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
   //фильтрация при каждом изменении в поле наименования ед. измерения, создание нового массива и его возврат
   private _filter(value: string): IdAndName[] {
     const filterValue = !value||value==null?'':value.toLowerCase();
-    return this.spravSysEdizmOfProductAll.filter(option => option.name.toLowerCase().includes(filterValue));
+    return this.spravSysEdizmOfProductCurrent.filter(option => option.name.toLowerCase().includes(filterValue));
   }
   //Загрузка групп (сетов) полей
   // getSets(){
@@ -1356,44 +1393,72 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
             this.updateValuesSpravSysMarkableGroup()},
           error => console.log(error));}
   getSpravSysEdizm():void {    
+          this.spravSysEdizmOfProductWeight=[];
+          this.spravSysEdizmOfProductVolume=[];
+          this.spravSysEdizmOfProductTime=[];
           let companyId=this.formBaseInformation.get('company_id').value;
-          this.http.post('/api/auth/getSpravSysEdizm', {id1: companyId, string1:"(1,2,3,4,5)"})  // все типы ед. измерения
-          .subscribe((data) => {this.spravSysEdizmOfProductAll = data as any[];
-          this.updateValuesSpravSysEdizmOfProductAll();this.setDefaultEdizm()},
-          error => console.log(error));
-          this.http.post('/api/auth/getSpravSysEdizm', {id1: companyId, string1:"(2)"}) // все ед. измерения по типу: масса
-          .subscribe((data) => {this.spravSysEdizmOfProductWeight = data as any[];},
-          error => console.log(error));
-          this.http.post('/api/auth/getSpravSysEdizm', {id1: companyId, string1:"(5)"})  // все ед. измерения по типу: объём
-          .subscribe((data) => {this.spravSysEdizmOfProductVolume = data as any[];},
-          error => console.log(error));}
+          this.http.post('/api/auth/getSpravSysEdizm', {id1: companyId, string1:"(1,2,3,4,5,6)"})  // все типы ед. измерения
+          .subscribe((data) => {
+            this.spravSysEdizmOfProductAll = data as any[];
+            this.spravSysEdizmOfProductCurrent = data as any[];
+            
 
+            this.spravSysEdizmOfProductAll.forEach(a=>{
+              if(a.type_id==2)
+                this.spravSysEdizmOfProductWeight.push(a);
+              if(a.type_id==5)
+                this.spravSysEdizmOfProductVolume.push(a);
+              if(a.type_id==6)
+                this.spravSysEdizmOfProductTime.push(a);
+            });
+
+            this.updateValuesSpravSysEdizmOfProductField();
+            this.setDefaultEdizm();
+
+          },
+          error => console.log(error));
+          
+          
+
+          // this.http.post('/api/auth/getSpravSysEdizm', {id1: companyId, string1:"(2)"}) // все ед. измерения по типу: масса
+          // .subscribe((data) => {this.spravSysEdizmOfProductWeight = data as any[];},
+          // error => console.log(error));
+          // this.http.post('/api/auth/getSpravSysEdizm', {id1: companyId, string1:"(5)"})  // все ед. измерения по типу: объём
+          // .subscribe((data) => {this.spravSysEdizmOfProductVolume = data as any[];},
+          // error => console.log(error));}
+        }
   setDefaultEdizm(){
-    
-    if(+this.id==0 && this.spravSysEdizmOfProductAll.length>0)
+    if(+this.id==0 && this.spravSysEdizmOfProductCurrent.length>0)
     {
-      this.spravSysEdizmOfProductAll.forEach(a=>{
+      this.spravSysEdizmOfProductCurrent.forEach(a=>{
           if(a.is_default){
             this.formBaseInformation.get('edizm_id').setValue(a.id);
-            this.updateValuesSpravSysEdizmOfProductAll();
+            this.updateValuesSpravSysEdizmOfProductField();
           }
       });
     }
+    if(+this.formBaseInformation.get('edizm_id').value==0){
+      this.formBaseInformation.get('edizm_id').setValue(this.spravSysEdizmOfProductCurrent[0].id);
+      this.updateValuesSpravSysEdizmOfProductField();
+    }
+        
   }
 
-  updateValuesSpravSysEdizmOfProductAll(){                 // при загрузке загружается справочник и значение id единицы измерения.
+  updateValuesSpravSysEdizmOfProductField(){                 // при загрузке загружается справочник и значение id единицы измерения.
     if(+this.formBaseInformation.get('edizm_id').value!=0) //надо заполнить поле названия единицы измерения из справочника по загруженному id
       {
-        this.spravSysEdizmOfProductAll.forEach(x => {
+        this.spravSysEdizmOfProductCurrent.forEach(x => {
           if(x.id==this.formBaseInformation.get('edizm_id').value){
             this.formBaseInformation.get('edizm_name').setValue(x.name);
           }
-        })
+        });
+        if(this.formBaseInformation.get('edizm_name').value=='')
+          this.formBaseInformation.get('edizm_id').setValue(null);
       } 
       else 
       {
         this.formBaseInformation.get('edizm_name').setValue('');
-        this.formBaseInformation.get('edizm_id').setValue('');
+        this.formBaseInformation.get('edizm_id').setValue(null);
       }
   }
   //чтобы обнулить поле с id единицы измерения (оно невидимое) после стирания наименования ед. измерения
@@ -2071,29 +2136,24 @@ checkProductCodeFreeUnical() {
     this.getTable();
   }
   getTable(){
-    // let depIdHasChanged:boolean=false;
-    this.formProductHistory.productId=+this.id;
-    this.formProductHistory.docTypesIds=this.checkedChangesList;
-    this.gettingTableData=true;
-    // if(this.formProductHistory.departmentId==0){
-      // let ids:number[]=[];
-      // depIdHasChanged=true;
-      // this.receivedMyDepartmentsList.forEach(r=>{
-        // ids.push(+r.id);
-      // });
-      // this.formProductHistory.departmentId=(ids.length>1?0:);
-    // } // если нужно вывести по всем отделениям - отправляем 0, либо id отделения, если по выбранному
-    this.productHistoryService.getTable(this.formProductHistory)
-      .subscribe(
-          (data) => {
-            this.gettingTableData=false;
-            if(!data){
-              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('docs.msg.c_err_exe_qury')}})
-            }
-            this.dataSource.data=data as any []; 
-          },
-          error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //
-      );
+    if(this.datesExistAndValid){
+      this.formProductHistory.productId=+this.id;
+      this.formProductHistory.docTypesIds=this.checkedChangesList;
+      this.gettingTableData=true;
+      
+      this.productHistoryService.getTable(this.formProductHistory)
+        .subscribe(
+            (data) => {
+              this.gettingTableData=false;
+              if(!data){
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('docs.msg.c_err_exe_qury')}})
+              }
+              this.dataSource.data=data as any []; 
+            },
+            error => {console.log(error);this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //
+        );
+    }
+    
   }
   getTableHeaderTitles(){
     this.displayedColumns=[];
@@ -3006,4 +3066,61 @@ openPrintLabelsDialog(template:TemplatesList){
     this.resource_row_id++;
     return current_row_id;
   }
+  getMoment(date){
+    return moment(date);
+  }
+  get datesExistAndValid(){
+    return(this.getMoment(this.formProductHistory.dateFrom).isValid() && this.getMoment(this.formProductHistory.dateTo).isValid());
+  }
+  getSetOfReminders(){
+    return this.http.get('/api/auth/getSpravSysRemindersList')
+      .subscribe(
+          (data) => {this.remindersList=data as any[];},
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},);
+  }
+  getSetOfAssignments(){
+    return this.http.get('/api/auth/getSpravSysAssignmentsList')
+      .subscribe(
+          (data) => {this.assignmentsList=data as any[];},
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},);
+  }
+  onPprChange(){
+    switch(this.formBaseInformation.get('ppr_id').value){
+      case 1:{this.formBaseInformation.get('is_srvc_by_appointment').setValue(false) }
+      case 4:{}
+    }
+  }
+  srvc_appoint_toggle(event: MatSlideToggleChange) {
+    if(event.checked){
+      this.spravSysEdizmOfProductCurrent = this.spravSysEdizmOfProductTime;
+      this.formBaseInformation.get('edizm_name').setValue('');
+      // this.formBaseInformation.get('edizm_id').setValue(null);
+      this.updateValuesSpravSysEdizmOfProductField();
+      this.setDefaultEdizm();
+      //setting default "At least before" unit of measure
+      this.formBaseInformation.get('scdl_appointment_atleast_before_unit_id').setValue(this.spravSysEdizmOfProductTime[0].id);
+      // if this is a service by appointment - units of measurement should be only with time (minutes, hours etc.)
+      this.spravSysEdizmOfProductCurrent=this.spravSysEdizmOfProductTime;
+    } else {
+      this.spravSysEdizmOfProductCurrent=this.spravSysEdizmOfProductAll;
+    }
+  }
+
+  is_only_on_start_toggle(event: MatSlideToggleChange) {
+    if(event.checked){
+      if(this.formBaseInformation.get('scdl_max_pers_on_same_time').invalid)
+        this.formBaseInformation.get('scdl_max_pers_on_same_time').setValue(1);
+    }
+  }
+
+  get shortUnitName(){
+    let retVal='';
+    this.spravSysEdizmOfProductCurrent.forEach(x => {
+      if(x.id==this.formBaseInformation.get('edizm_id').value){
+        retVal=x.short_name;
+      }
+    });
+    return retVal;
+  }
+
 }
