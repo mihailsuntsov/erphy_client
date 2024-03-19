@@ -163,7 +163,7 @@ export class CustomersordersComponent implements OnInit {
     //+++ getting base data from parent component
     this.getBaseData('myId');    
     this.getBaseData('myCompanyId');  
-    this.getBaseData('companiesList');      
+    this.getBaseData('companiesList');
     this.getBaseData('myDepartmentsList');
   
     

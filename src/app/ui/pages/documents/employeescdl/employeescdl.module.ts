@@ -8,9 +8,11 @@ import { PaymentSelectModule } from '../../../../modules/payment-select/payment-
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MaterialModule } from '../../../../modules/material.module';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import {NgxMaterialTimepickerModule} from 'ngx-material-timepicker';
+import { ControlMessagesComponent } from './control-messages.component';
 
 @NgModule({
-  declarations: [EmployeeScdlComponent],
+  declarations: [EmployeeScdlComponent, ControlMessagesComponent],
   providers: [
     { provide: TRANSLOCO_SCOPE, useValue: 'menu' }
   ],
@@ -22,7 +24,8 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
     PaymentSelectModule,
     FormsModule,
     MaterialModule,
-    TranslocoModule
+    TranslocoModule,
+    NgxMaterialTimepickerModule
   ]
 })
 export class EmployeeScdlModule { }

@@ -17,7 +17,9 @@ table {width: 100%;}
     flex-grow: 1; 
     max-width: 400px;
 }
-
+.mat-form-field-100{
+    width:100%
+}
 .card-name{ flex-grow: 1; }
 
 .depatrment-select{flex-grow: 1;}
@@ -192,4 +194,63 @@ li {list-style: none;}
     margin-left: -25px;
     margin-top: 100px;
     z-index: 100;
+}
+
+.center {
+    display: flex;
+    justify-content: center;
+}
+
+.breaks{
+    width: 100%;
+    /* margin: 20px; */
+    padding: 20px;
+    text-align: center;
+    font-size: 20px;
+    font-weight: 600;
+    color: #555;
+}
+.table-cell-width{
+    width:80px; 
+    max-width:80px;
+}
+.table-cell-width-time{
+    width:110px; 
+    max-width:110px;
+}
+.button{
+    margin-left: 10px;
+}
+/* Timepicker in a table row*/
+::ng-deep .ngx-timepicker-control__arrows, ::ng-deep .ngx-timepicker__toggle{
+    display:none !important;
+}
+::ng-deep .ngx-timepicker__control--first{
+    width:16px !important;
+}
+::ng-deep .ngx-timepicker-control{
+    width:28px !important;
+}
+::ng-deep .ngx-timepicker-control__input{
+    padding:0 !important;
+}
+::ng-deep .ngx-timepicker__control--third .ngx-timepicker-control{
+    padding-left:0px !important;
+}
+::ng-deep .period-selector {
+    position: absolute !important;
+    top: calc(50% - 28px) !important;
+    right: calc(-50% + 32px) !important;
+    /* left:  -55px !important; */
+    max-width: 53px !important;
+    width: 70px !important;
+    padding: 0px !important;
+}
+::ng-deep .period-selector__button{
+    width: 100% !important;
+    height: 29px !important;
+    line-height: 32px !important;
+}
+::ng-deep .period-control__button:not(.period-control__button--disabled):focus:after {
+    background-color: transparent !important;
 }

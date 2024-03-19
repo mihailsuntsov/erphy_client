@@ -1,210 +1,209 @@
 
 <mat-card appearance="outlined" class="card for-sticky-header" *transloco="let t">
+    <form #formBI="ngForm" [formGroup]="formBaseInformation">
     <mat-card-header class="card-header">        
-            <mat-card-title class="top-bar container-fluid"> 
-                <div class="row" id="topBlock">
-                    <div id="cardname">
-                        <div class="nowrap">{{t('docs.docs.c_order')}} {{t('docs.top.number')}}
-                            <mat-form-field class="docnumber" *ngIf="doc_number_isReadOnly && +id==0 && (+formBaseInformation.get('company_id').value>0)">                                                               
-                                <input  matInput
-                                        (click)="EditDocNumber()"
-                                        formControlName="doc_number"
-                                        [readonly]=true/>
-                            </mat-form-field>
-                            <mat-form-field class="docnumber" *ngIf="!doc_number_isReadOnly && +id==0 && (+formBaseInformation.get('company_id').value>0)">
-                                <input  matInput
-                                        #doc_number 
-                                        maxlength="10"
-                                        (keypress)="numberOnly($event)"
-                                        (keyup)="checkDocNumberUnical('customersorders')"
-                                        formControlName="doc_number"/>
-                                <mat-hint  align="start" style="font-size: x-small;margin-top: -1px;" *ngIf="formBaseInformation.get('doc_number').touched && formBaseInformation.get('doc_number').invalid">
-                                    <i class="form-invalid" *ngIf="formBaseInformation.get('doc_number').errors.pattern" class="form-invalid">{{t('docs.error.num_only')}}</i>
-                                </mat-hint>
-                                <mat-hint align="end" *ngIf="doc_number.value.length>5 && !formBaseInformation.get('is_completed').value" style="font-size: x-small;margin-top: -1px;">{{doc_number.value.length}} / 10</mat-hint>
-                                <mat-progress-bar *ngIf="isDocNumberUnicalChecking" mode="indeterminate"></mat-progress-bar>
-                            </mat-form-field>
-                            <span [ngClass]="{invisible: +id==0}"> {{formBaseInformation.get('doc_number').value}}</span>
-                        </div>
-                    </div>
-                    <div  id="status" style=" font-size: 15px;"> 
-                        <div class = "circle-in-selected" *ngIf="+formBaseInformation.get('status_id').value>0" [style.background-color]="formBaseInformation.get('status_color').value"></div>
-                        <mat-form-field  class="mat-form-field-100" style="margin-top: -25px;">
-                            <mat-select     style="padding: 0px 0px 0px 23px" 
-                                            panelClass="statuseslist"
-                                            formControlName="status_id"
-                                            (selectionChange)="setStatusColor();">
-                                            <!-- !!! -->
-                                <mat-option *ngFor="let status of receivedStatusesList" 
-                                            [ngClass]="{invisible: !(allowToUpdate && !formBaseInformation.get('is_completed').value)}"
-                                            [value]="status.id"
-                                            matTooltip={{status.description}}>
-                                            <div style="display: inline;line-height: 20px;">
-                                                <div class = "circle-wrapper">
-                                                    <div class = "circle-in-list" [style.background-color]="status.color"></div>
-                                                </div>
-                                                <div class = "status-name">{{status.name}}</div>
-                                            </div>
-                                </mat-option>
-                            </mat-select>
-                            
+        <mat-card-title class="top-bar container-fluid"> 
+            <div class="row" id="topBlock">
+                <div id="cardname">
+                    <div class="nowrap">{{t('docs.docs.c_order')}} {{t('docs.top.number')}}
+                        <mat-form-field class="docnumber" *ngIf="doc_number_isReadOnly && +id==0 && (+formBaseInformation.get('company_id').value>0)">                                                               
+                            <input  matInput
+                                    (click)="EditDocNumber()"
+                                    formControlName="doc_number"
+                                    [readonly]=true/>
                         </mat-form-field>
+                        <mat-form-field class="docnumber" *ngIf="!doc_number_isReadOnly && +id==0 && (+formBaseInformation.get('company_id').value>0)">
+                            <input  matInput
+                                    #doc_number 
+                                    maxlength="10"
+                                    (keypress)="numberOnly($event)"
+                                    (keyup)="checkDocNumberUnical('customersorders')"
+                                    formControlName="doc_number"/>
+                            <mat-hint  align="start" style="font-size: x-small;margin-top: -1px;" *ngIf="formBaseInformation.get('doc_number').touched && formBaseInformation.get('doc_number').invalid">
+                                <i class="form-invalid" *ngIf="formBaseInformation.get('doc_number').errors.pattern" class="form-invalid">{{t('docs.error.num_only')}}</i>
+                            </mat-hint>
+                            <mat-hint align="end" *ngIf="doc_number.value.length>5 && !formBaseInformation.get('is_completed').value" style="font-size: x-small;margin-top: -1px;">{{doc_number.value.length}} / 10</mat-hint>
+                            <mat-progress-bar *ngIf="isDocNumberUnicalChecking" mode="indeterminate"></mat-progress-bar>
+                        </mat-form-field>
+                        <span [ngClass]="{invisible: +id==0}"> {{formBaseInformation.get('doc_number').value}}</span>
                     </div>
-                    <div class="separator"></div><!-- !!! -->
-                    <button 
-                        mat-raised-button 
-                        color="primary"
-                        matTooltip="{{t('docs.tip.user_settings')}}"
-                        (click)="openDialogSettings()"
-                        type="button"
-                        id="settings_btn"
-                        class="button small-button">
-                        <i class="material-icons">settings</i>
-                    </button>
-                    <button 
-                        mat-raised-button 
-                        [matMenuTriggerFor]="templatesMenu"
-                        *ngIf="+id>0"
-                        matTooltip="{{t('docs.tip.print')}}"
-                        color="primary"                
-                        (click)="printDocs()"
-                        type="button"
-                        id="print_btn"
-                        (submit)="false"
-                        class="button small-button">
-                        <i class="material-icons">print</i>
-                    </button>
-                    <mat-menu #templatesMenu="matMenu" yPosition="below" xPosition="before">
-                        <div *ngIf="gettingTemplatesData" style="width:240px; height: 125px;">
-                            <mat-spinner 
-                            strokeWidth="3" 
-                            class="spinner"
-                            style="position: relative;"
-                            [diameter]="50"
-                            *ngIf="gettingTemplatesData"
-                        ></mat-spinner>
-                        </div>                        
-                        <button mat-menu-item *ngFor="let template of templatesList">
-                            <div style="width:100%; height: 100%;" (click)="clickOnTemplate(template)">
-                                <span>{{template.name}}</span>                    
-                            </div>
-                        </button>
-                        <mat-divider></mat-divider>
-                        <button mat-menu-item id="menu_print_btn" (click)="openDialogTemplates()" >
-                            <span>{{t('docs.tip.set_prnt_menu')}}</span>
-                        </button>
-                    </mat-menu>
-                    <button 
-                        mat-button 
-                        [matMenuTriggerFor]="addDocMenu"
-                        mat-raised-button 
-                        matTooltip="{{t('docs.tip.create_docs')}}"
-                        [disabled]="!childFormValid||!formBaseInformation.valid||productSearchAndTableComponent.indivisibleErrorOfProductTable" 
-                        *ngIf="+id>0 && productSearchAndTableComponent"
-                        color="primary"
-                        (submit)="false"
-                        type="button"
-                        id="add_doc_btn"
-                        class="button small-button">
-                        <i class="material-icons">add</i>
-                    </button>
-                    <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
-                        <button mat-menu-item id="new_doc_btn" (click)="goToNewDocument()">
-                            <span>{{t('docs.docs.c_order')}}</span>
-                        </button>
-                        <button mat-menu-item id="paymentin_btn" (click)="createLinkedDoc('Invoiceout')">
-                            <span>{{t('docs.docs.paymentin')}}</span>
-                        </button>
-                        <button mat-menu-item id="orderin_btn" (click)="createLinkedDoc('Paymentin')">
-                            <span>{{t('docs.docs.orderin')}}</span>
-                        </button>
-                        <button mat-menu-item id="shipment_btn" (click)="createLinkedDoc('Shipment')">
-                            <span>{{t('docs.docs.shipment')}}</span>
-                        </button>
-                    </mat-menu>            
-                    <button 
-                        mat-raised-button 
-                        matTooltip="{{t('docs.tip.save')}}"
-                        *ngIf="!is_completed && allowToUpdate && canGetChilds && +id>0"
-                        (click)="updateDocument()"
-                        [disabled]="!childFormValid||!formBaseInformation.valid ||
-                                    (productSearchAndTableComponent && productSearchAndTableComponent.gettingTableData)||
-                                    oneClickSaveControl" 
-                        color="primary"
-                        type="button"
-                        id="save_btn"
-                        class="button small-button">
-                        <i class="material-icons">save</i>
-                    </button>        
-                    <button 
-                        mat-raised-button 
-                        matTooltip="{{t('docs.tip.create')}}"
-                        [style.display]="id>0?'none':'block'"
-                        (click)="createNewDocument()" 
-                        (submit)="false"
-                        *ngIf="allowToCreate && +id==0"
-                        [disabled]="!formBaseInformation.valid || !childFormValid" 
-                        color="primary"
-                        type="button"
-                        id="newdoc_btn"
-                        class="button small-button">
-                        <i class="material-icons">done</i>
-                    </button>
-                    <button 
-                        mat-raised-button 
-                        matTooltip="{{t('docs.tip.complete')}}"
-                        *ngIf=" +id>0 && allowToComplete&& canGetChilds && !is_completed && productSearchAndTableComponent"
-                        [disabled]="!childFormValid ||!formBaseInformation.valid||
-                                    productSearchAndTableComponent.indivisibleErrorOfProductTable ||
-                                    (productSearchAndTableComponent && productSearchAndTableComponent.gettingTableData)||
-                                    oneClickSaveControl" 
-                        (click)="completeDocument()" 
-                        type="button"
-                        id="complete_btn"
-                        color="primary"
-                        class="button small-button">
-                        <i class="material-icons">playlist_add_check</i>
-                    </button>
-                    <button 
-                        matTooltip="{{t('docs.tip.completed')}}"
-                        mat-raised-button 
-                        *ngIf=" +id>0 && is_completed && productSearchAndTableComponent"
-                        (click)="decompleteDocument()" 
-                        type="button"
-                        id="completed_btn"
-                        color="primary"
-                        class="button small-button completed">
-                        <i class="material-icons">playlist_add_check</i> 
-                    </button>
-                    <a routerLink="../{{+id>0?'../':''}}customersorders">
-                        <button 
-                            mat-raised-button 
-                            [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
-                            color="accent"
-                            id="cancel_btn"
-                            class="button small-button">
-                            <i class="material-icons">close</i>
-                        </button>
-                    </a>
                 </div>
-            </mat-card-title>
+                <div  id="status" style=" font-size: 15px;"> 
+                    <div class = "circle-in-selected" *ngIf="+formBaseInformation.get('status_id').value>0" [style.background-color]="formBaseInformation.get('status_color').value"></div>
+                    <mat-form-field  class="mat-form-field-100" style="margin-top: -25px;">
+                        <mat-select     style="padding: 0px 0px 0px 23px" 
+                                        panelClass="statuseslist"
+                                        formControlName="status_id"
+                                        (selectionChange)="setStatusColor();">
+                                        <!-- !!! -->
+                            <mat-option *ngFor="let status of receivedStatusesList" 
+                                        [ngClass]="{invisible: !(allowToUpdate && !formBaseInformation.get('is_completed').value)}"
+                                        [value]="status.id"
+                                        matTooltip={{status.description}}>
+                                        <div style="display: inline;line-height: 20px;">
+                                            <div class = "circle-wrapper">
+                                                <div class = "circle-in-list" [style.background-color]="status.color"></div>
+                                            </div>
+                                            <div class = "status-name">{{status.name}}</div>
+                                        </div>
+                            </mat-option>
+                        </mat-select>
+                        
+                    </mat-form-field>
+                </div>
+                <div class="separator"></div><!-- !!! -->
+                <button 
+                    mat-raised-button 
+                    color="primary"
+                    matTooltip="{{t('docs.tip.user_settings')}}"
+                    (click)="openDialogSettings()"
+                    type="button"
+                    id="settings_btn"
+                    class="button small-button">
+                    <i class="material-icons">settings</i>
+                </button>
+                <button 
+                    mat-raised-button 
+                    [matMenuTriggerFor]="templatesMenu"
+                    *ngIf="+id>0"
+                    matTooltip="{{t('docs.tip.print')}}"
+                    color="primary"                
+                    (click)="printDocs()"
+                    type="button"
+                    id="print_btn"
+                    (submit)="false"
+                    class="button small-button">
+                    <i class="material-icons">print</i>
+                </button>
+                <mat-menu #templatesMenu="matMenu" yPosition="below" xPosition="before">
+                    <div *ngIf="gettingTemplatesData" style="width:240px; height: 125px;">
+                        <mat-spinner 
+                        strokeWidth="3" 
+                        class="spinner"
+                        style="position: relative;"
+                        [diameter]="50"
+                        *ngIf="gettingTemplatesData"
+                    ></mat-spinner>
+                    </div>                        
+                    <button mat-menu-item *ngFor="let template of templatesList">
+                        <div style="width:100%; height: 100%;" (click)="clickOnTemplate(template)">
+                            <span>{{template.name}}</span>                    
+                        </div>
+                    </button>
+                    <mat-divider></mat-divider>
+                    <button mat-menu-item id="menu_print_btn" (click)="openDialogTemplates()" >
+                        <span>{{t('docs.tip.set_prnt_menu')}}</span>
+                    </button>
+                </mat-menu>
+                <button 
+                    mat-button 
+                    [matMenuTriggerFor]="addDocMenu"
+                    mat-raised-button 
+                    matTooltip="{{t('docs.tip.create_docs')}}"
+                    [disabled]="!childFormValid||!formBaseInformation.valid||productSearchAndTableComponent.indivisibleErrorOfProductTable" 
+                    *ngIf="+id>0 && productSearchAndTableComponent"
+                    color="primary"
+                    (submit)="false"
+                    type="button"
+                    id="add_doc_btn"
+                    class="button small-button">
+                    <i class="material-icons">add</i>
+                </button>
+                <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
+                    <button mat-menu-item id="new_doc_btn" (click)="goToNewDocument()">
+                        <span>{{t('docs.docs.c_order')}}</span>
+                    </button>
+                    <button mat-menu-item id="paymentin_btn" (click)="createLinkedDoc('Invoiceout')">
+                        <span>{{t('docs.docs.paymentin')}}</span>
+                    </button>
+                    <button mat-menu-item id="orderin_btn" (click)="createLinkedDoc('Paymentin')">
+                        <span>{{t('docs.docs.orderin')}}</span>
+                    </button>
+                    <button mat-menu-item id="shipment_btn" (click)="createLinkedDoc('Shipment')">
+                        <span>{{t('docs.docs.shipment')}}</span>
+                    </button>
+                </mat-menu>            
+                <button 
+                    mat-raised-button 
+                    matTooltip="{{t('docs.tip.save')}}"
+                    *ngIf="!is_completed && allowToUpdate && canGetChilds && +id>0"
+                    (click)="updateDocument()"
+                    [disabled]="!childFormValid||!formBaseInformation.valid ||
+                                (productSearchAndTableComponent && productSearchAndTableComponent.gettingTableData)||
+                                oneClickSaveControl" 
+                    color="primary"
+                    type="button"
+                    id="save_btn"
+                    class="button small-button">
+                    <i class="material-icons">save</i>
+                </button>        
+                <button 
+                    mat-raised-button 
+                    matTooltip="{{t('docs.tip.create')}}"
+                    [style.display]="id>0?'none':'block'"
+                    (click)="createNewDocument()" 
+                    (submit)="false"
+                    *ngIf="allowToCreate && +id==0"
+                    [disabled]="!formBaseInformation.valid || !childFormValid" 
+                    color="primary"
+                    type="button"
+                    id="newdoc_btn"
+                    class="button small-button">
+                    <i class="material-icons">done</i>
+                </button>
+                <button 
+                    mat-raised-button 
+                    matTooltip="{{t('docs.tip.complete')}}"
+                    *ngIf=" +id>0 && allowToComplete&& canGetChilds && !is_completed && productSearchAndTableComponent"
+                    [disabled]="!childFormValid ||!formBaseInformation.valid||
+                                productSearchAndTableComponent.indivisibleErrorOfProductTable ||
+                                (productSearchAndTableComponent && productSearchAndTableComponent.gettingTableData)||
+                                oneClickSaveControl" 
+                    (click)="completeDocument()" 
+                    type="button"
+                    id="complete_btn"
+                    color="primary"
+                    class="button small-button">
+                    <i class="material-icons">playlist_add_check</i>
+                </button>
+                <button 
+                    matTooltip="{{t('docs.tip.completed')}}"
+                    mat-raised-button 
+                    *ngIf=" +id>0 && is_completed && productSearchAndTableComponent"
+                    (click)="decompleteDocument()" 
+                    type="button"
+                    id="completed_btn"
+                    color="primary"
+                    class="button small-button completed">
+                    <i class="material-icons">playlist_add_check</i> 
+                </button>
+                <a routerLink="../{{+id>0?'../':''}}customersorders">
+                    <button 
+                        mat-raised-button 
+                        [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
+                        color="accent"
+                        id="cancel_btn"
+                        class="button small-button">
+                        <i class="material-icons">close</i>
+                    </button>
+                </a>
+            </div>
+        </mat-card-title>
         
     </mat-card-header>
-            <!-- !!! -->
-            <mat-card-content *ngIf="rightsDefined && 
-            (
-                (!allowToView && +id>0) ||
-                (!allowToCreate && +id==0)
-            )"> 
-                <mat-card appearance="outlined" class="internal-card">
-                    <mat-card-content style="font-size: 20px;font-weight: bold;color: red;text-align: center;height: 100px;padding: 38px 0;">
-                        {{t('docs.msg.no_perm')}}
-                    </mat-card-content>
-                </mat-card>
+    <mat-card-content *ngIf="rightsDefined && 
+    (
+        (!allowToView && +id>0) ||
+        (!allowToCreate && +id==0)
+    )"> 
+        <mat-card appearance="outlined" class="internal-card">
+            <mat-card-content style="font-size: 20px;font-weight: bold;color: red;text-align: center;height: 100px;padding: 38px 0;">
+                {{t('docs.msg.no_perm')}}
             </mat-card-content>
-            <!-- !!! -->
-            <mat-card-content *ngIf="!rightsDefined || (rightsDefined && (( +id>0 && allowToView)||(+id==0 && allowToCreate)))"> 
-                <form #formBI="ngForm" [formGroup]="formBaseInformation">
+        </mat-card>
+    </mat-card-content>
+    <mat-card-content *ngIf="!rightsDefined || (rightsDefined && (( +id>0 && allowToView)||(+id==0 && allowToCreate)))"> 
+
             <mat-tab-group
             (focusChange)="myTabFocusChange($event)"
             (selectedIndexChange)="myTabSelectedIndexChange($event)"  
@@ -930,10 +929,10 @@
                         </form>  
                     </mat-tab>
             </mat-tab-group>
-        </form>
+        
         </mat-card-content> 
-        <!-- <code><pre>{{receivedDepartmentsList | json}}</pre></code> -->
-    
+        <!-- <code><pre>{{formBaseInformation.value | json}}</pre></code> -->
+    </form>
 </mat-card>
 
 
