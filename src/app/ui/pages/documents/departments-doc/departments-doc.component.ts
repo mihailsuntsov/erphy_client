@@ -67,7 +67,7 @@ export class DepartmentsDocComponent implements OnInit {
   paymentAccounts:any[]=[];// список расчётных счетов предприятия
   boxoffices:any[]=[];// список касс предприятия (не путать с ККМ!)
   receivedPartsList:DepartmentPart[]=[];
-
+  editability:boolean=false;
   visBtnUpdate = false;
 
   id: number=0;// id документа
@@ -200,6 +200,8 @@ export class DepartmentsDocComponent implements OnInit {
     if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;}
     if(this.allowToViewAllCompanies){this.allowToViewMyCompany=true;}
     if(this.allowToUpdateAllCompanies){this.allowToUpdateMyCompany=true;}
+
+
     this.getData();
   }
 
@@ -227,7 +229,8 @@ export class DepartmentsDocComponent implements OnInit {
     // console.log("allowToView - "+this.allowToView);
     // console.log("allowToUpdate - "+this.allowToUpdate);
     // console.log("allowToCreate - "+this.allowToCreate);
-    this.rightsDefined=true;//!!!
+    this.rightsDefined=true;//!!!    
+    this.editability=((this.allowToCreate && +this.id==0)||(this.allowToUpdate && this.id>0));
   }
 
 
@@ -437,11 +440,16 @@ export class DepartmentsDocComponent implements OnInit {
 
   clickBtnAddPart(): void {
     const dialogRef = this.departmentPartsDialog.open(DepartmentPartsComponent, {
-      width: '800px', 
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      height: '95%',
+      width: '95%', 
       data:
       { 
         actionType: "create",
         department_id: this.id,
+        companyId: this.formBaseInformation.get('company_id').value,
+        editability: this.editability,
         menu_order: this.getMaxOrder(),
         partName: '', 
         partId:'',
@@ -457,11 +465,16 @@ export class DepartmentsDocComponent implements OnInit {
 
   clickBtnEditPart(part: any): void {
     const dialogRef = this.departmentPartsDialog.open(DepartmentPartsComponent, {
-      width: '800px', 
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      height: '95%',
+      width: '95%', 
       data:
       { 
         actionType:"update",
         department_id: this.id,
+        companyId: this.formBaseInformation.get('company_id').value,
+        editability: this.editability,
         partName: part.name, 
         partId:part.id,
         is_active:part.is_active,

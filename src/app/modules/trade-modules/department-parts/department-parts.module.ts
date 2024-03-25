@@ -4,11 +4,13 @@ import { DepartmentPartsComponent } from './department-parts.component';
 import { MaterialModule } from 'src/app/modules/material.module';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ProductCategoriesSelectModule } from 'src/app/modules/trade-modules/product-categories-select/product-categories-select.module';
 
 @NgModule({
   declarations: [DepartmentPartsComponent],
   imports: [
     CommonModule,
+    ProductCategoriesSelectModule,
     MaterialModule,
     FormsModule,
     TranslocoModule, 

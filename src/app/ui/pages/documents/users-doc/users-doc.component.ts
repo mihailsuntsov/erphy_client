@@ -69,7 +69,7 @@ sex: string;
 time_zone_id: string;
 vatin:string;
 date_birthday: string;
-status_account: string;
+status_account: number;
 status_account_name: string;
 status_employee: string;
 status_employee_name: string;
@@ -87,13 +87,13 @@ incoming_service_name: string;
 
 
 //describes set of services that employee (this user) can provide, and where (parts of departments) he can provide these services
-userProductsDepparts:UserProductsDepparts[];
+userProducts:UserProducts[];
 }
 
-interface UserProductsDepparts{
-  product_id: number;
-  product_name: string;
-  dep_parts_ids: number[];
+interface UserProducts{
+  id: number;
+  name: string;
+  // dep_parts_ids: number[];
 
 }
 interface IdAndName{ //универсалный интерфейс для выбора из справочников
@@ -216,7 +216,7 @@ export class UsersDocComponent implements OnInit {
       fio_otchestvo: new UntypedFormControl      ('',[]),
       sex: new UntypedFormControl      ('',[]),
       date_birthday: new UntypedFormControl      ('',[]),
-      status_account: new UntypedFormControl      ('2',[]),
+      status_account: new UntypedFormControl      (2,[]),
       status_employee: new UntypedFormControl      ('',[]),
       timeZoneName: new UntypedFormControl      ('',[]),
       vatin: new UntypedFormControl      ('',[Validators.maxLength(12), Validators.minLength(12),Validators.pattern('^[0-9]{12}$')]),
@@ -237,7 +237,7 @@ export class UsersDocComponent implements OnInit {
       incoming_service_name:  new UntypedFormControl    ('',[]), // Принимаемая услуга - какую услугу сотрудник оказывает предприятию, для обоснования получения зп. // Incoming service from employee to company, when he working   for its salary
       incoming_service_id:  new UntypedFormControl    ('',[]), // Принимаемая услуга - какую услугу сотрудник оказывает предприятию, для обоснования получения зп. // Incoming service from employee to company, when he working   for its salary
 
-      userProductsDepparts: new UntypedFormArray([]), //describes set of services that employee can provide, and where (parts of departments) he can provide these services
+      userProducts: new UntypedFormArray([]), //describes set of services that employee can provide, and where (parts of departments) he can provide these services
     });
     this.formAboutDocument = new UntypedFormGroup({
       id: new UntypedFormControl           ('',[]),
@@ -560,7 +560,7 @@ export class UsersDocComponent implements OnInit {
                   this.formBaseInformation.get('email').setValue(documentResponse.email);
                   this.formBaseInformation.get('selectedUserDepartments').setValue(documentResponse.userDepartmentsId);
                   this.formBaseInformation.get('sex').setValue(documentResponse.sex);
-                  this.formBaseInformation.get('status_account').setValue(documentResponse.status_account);
+                  this.formBaseInformation.get('status_account').setValue(+documentResponse.status_account);
                   this.formBaseInformation.get('date_birthday').setValue(documentResponse.date_birthday ? moment(documentResponse.date_birthday,'DD.MM.YYYY'):"");
                   this.formBaseInformation.get('additional').setValue(documentResponse.additional);
                   this.formBaseInformation.get('userGroupList').setValue(documentResponse.userGroupsId);
@@ -572,7 +572,7 @@ export class UsersDocComponent implements OnInit {
                   this.formBaseInformation.get('job_title_name').setValue(documentResponse.job_title_name);
                   this.formBaseInformation.get('incoming_service_id').setValue(documentResponse.incoming_service_id);
                   this.formBaseInformation.get('incoming_service_name').setValue(documentResponse.incoming_service_name);
-                  this.fillProductsListFromApiResponse(documentResponse.userProductsDepparts);
+                  this.fillProductsListFromApiResponse(documentResponse.userProducts);
 
                   this.getDepartmentsList(this.formBaseInformation.get('company_id').value);  
                   this.getUserGroupList();
@@ -663,10 +663,10 @@ export class UsersDocComponent implements OnInit {
     const control = <UntypedFormArray>this.formBaseInformation.get(formControlName);
     return control
   }
-  fillProductsListFromApiResponse(productsArray:UserProductsDepparts[]){
-    this.getControl('userProductsDepparts').clear();
+  fillProductsListFromApiResponse(productsArray:UserProducts[]){
+    this.getControl('userProducts').clear();
     if(productsArray.length>0){
-      const control = <UntypedFormArray>this.formBaseInformation.get('userProductsDepparts');
+      const control = <UntypedFormArray>this.formBaseInformation.get('userProducts');
       productsArray.forEach(row=>{
         control.push(this.formingProductResourceRow(row));            
       });
@@ -674,21 +674,20 @@ export class UsersDocComponent implements OnInit {
     // this.refreshProductsTableColumns();
   }
   
-  formingProductResourceRow(row: UserProductsDepparts) {
+  formingProductResourceRow(row: UserProducts) {
     return this._fb.group({
-      row_id: [this.getResourceRowId()],// row_id нужен для идентифицирования строк у которых нет id (например из только что создали и не сохранили)
-      product_id:  new UntypedFormControl (row.product_id,[]),
-      product_name: new UntypedFormControl (row.product_name,[]),
-      dep_parts_ids: new UntypedFormControl (row.dep_parts_ids,[]),
-      // dep_parts_ids: new UntypedFormArray([]),
+      // row_id: [this.getResourceRowId()],// row_id нужен для идентифицирования строк у которых нет id (например из только что создали и не сохранили)
+      id:  new UntypedFormControl (row.id,[]),
+      name: new UntypedFormControl (row.name,[]),
+      // dep_parts_ids: new UntypedFormControl (row.dep_parts_ids,[]),
     });
   }
 
-  getResourceRowId():number{
-    let current_row_id:number=this.resource_row_id;
-    this.resource_row_id++;
-    return current_row_id;
-  }
+  // getResourceRowId():number{
+  //   let current_row_id:number=this.resource_row_id;
+  //   this.resource_row_id++;
+  //   return current_row_id;
+  // }
 
 
   // refreshProductsTableColumns(){
@@ -745,7 +744,7 @@ export class UsersDocComponent implements OnInit {
               this.formBaseInformation.get('incoming_service_name').setValue(filteredProducts[0].name);
             } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.no_service')}});
           }
-          setTimeout(() => {this.sortBy('product_name')},1);
+          setTimeout(() => {this.sortBy('name')},1);
         }
       },
     error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
@@ -754,11 +753,11 @@ export class UsersDocComponent implements OnInit {
   
   addProductRow(product:ProductSearchResponse){ 
     let thereSame:boolean=false;
-    const control = <UntypedFormArray>this.formBaseInformation.get('userProductsDepparts');
-    this.formBaseInformation.value.userProductsDepparts.map(i => 
+    const control = <UntypedFormArray>this.formBaseInformation.get('userProducts');
+    this.formBaseInformation.value.userProducts.map(i => 
     { // Существующий список не должен содержать одинаковые товары (услуги). Тут проверяем на это
       // Existed list shouldn't contain the same products (services). Here is checking about it
-      if(+i['product_id'] == product.product_id)
+      if(+i['id'] == product.product_id)
       {
         thereSame=true;
       }
@@ -770,19 +769,19 @@ export class UsersDocComponent implements OnInit {
 
   formingJobtitleRowFromSearchForm(id:number,name:string){
     return this._fb.group({
-      row_id: [this.getResourceRowId()],// row_id нужен для идентифицирования строк у которых нет id (например из только что создали и не сохранили)
-      product_id:  new UntypedFormControl (id,[]),
-      product_name: new UntypedFormControl (name,[]),
-      dep_parts_ids: new UntypedFormControl ([],[]),
+      // row_id: [this.getResourceRowId()],// row_id нужен для идентифицирования строк у которых нет id (например из только что создали и не сохранили)
+      id:  new UntypedFormControl (id,[]),
+      name: new UntypedFormControl (name,[]),
+      // dep_parts_ids: new UntypedFormControl ([],[]),
     });
   }
   trackByIndex(i: any) { return i; }
   clearTable(): void {
     const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
-      width: '400px',data:{head: translate('docs.msg.prod_list_cln'),warning: translate('docs.msg.prod_list_qry'),query: ''},});
+      width: '400px',data:{head: translate('docs.msg.deleting'),warning: translate('docs.msg.delete_all_rows'),query: ''},});
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
-        this.getControl('userProductsDepparts').clear();
+        this.getControl('userProducts').clear();
       }});  
   }
   formColumns(){
@@ -790,7 +789,7 @@ export class UsersDocComponent implements OnInit {
     // if(this.editability)
         // this.displayedColumns.push('select');
     this.displayedColumns.push('name');
-    this.displayedColumns.push('dep_parts');
+    // this.displayedColumns.push('dep_parts');
     if(this.editability/* && this.showSearchFormFields*/)
       this.displayedColumns.push('delete');
   }
@@ -812,7 +811,7 @@ export class UsersDocComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
-        const control = <UntypedFormArray>this.formBaseInformation.get('userProductsDepparts');
+        const control = <UntypedFormArray>this.formBaseInformation.get('userProducts');
           control.removeAt(index);
           this.refreshTableColumns();//чтобы глючные input-поля в таблице встали на свои места. Это у Ангуляра такой прикол
       }
@@ -836,7 +835,7 @@ export class UsersDocComponent implements OnInit {
     }));
   }
   get myItems(): UntypedFormArray {
-    return this.formBaseInformation.get('userProductsDepparts') as UntypedFormArray;
+    return this.formBaseInformation.get('userProducts') as UntypedFormArray;
   }
   onClickSelectIncomingService(){
     this.openDialogProductCategoriesSelect('products','incoming_service');
@@ -899,46 +898,46 @@ export class UsersDocComponent implements OnInit {
       // this.searchCagentCtrl.setValue('');
     }
   }
-  selectAllDepParts(row_id:number){
-    let depparts = this.getAllDeppartsIds();
-    const control = <UntypedFormArray>this.formBaseInformation.get('userProductsDepparts');
-    control.at(row_id).get('dep_parts_ids').setValue(depparts);
-  }
-  selectAllDepPartsOneDep(row_id:number,dep_id:number){
-    const depparts = this.getAllDeppartsIdsOfOneDep(dep_id);
-    const control = <UntypedFormArray>this.formBaseInformation.get('userProductsDepparts');
-    const ids_now = control.at(row_id).get('dep_parts_ids').value;
-    control.at(row_id).get('dep_parts_ids').setValue(depparts.concat(ids_now));
-  }
-  unselectAllDepParts(row_id:number){
-    const control = <UntypedFormArray>this.formBaseInformation.get('userProductsDepparts');
-    control.at(row_id).get('dep_parts_ids').setValue([]);
-  }
-  unselectAllDepPartsOneDep(row_id:number,dep_id:number){
-    const control = <UntypedFormArray>this.formBaseInformation.get('userProductsDepparts');
-    const ids_in_deppat = this.getAllDeppartsIdsOfOneDep(dep_id);
-    const ids_now = control.at(row_id).get('dep_parts_ids').value;
-    control.at(row_id).get('dep_parts_ids').setValue(ids_now.filter(e => !ids_in_deppat.includes(e)));
-  }
-  getAllDeppartsIds():number[]{
-    let depparts:number[]=[];
-    this.receivedDepartmentsWithPartsList.map(department=>{
-      department.parts.map(deppart=>{
-        depparts.push(deppart.id);
-      })
-    });
-    return depparts;
-  }  
-  getAllDeppartsIdsOfOneDep(dep_id:number):number[]{
-    let depparts:number[]=[];
-    this.receivedDepartmentsWithPartsList.map(department=>{
-      if(department.department_id==dep_id)
-        department.parts.map(deppart=>{
-          depparts.push(deppart.id);
-        })
-    });
-    return depparts;
-  }
+  // selectAllDepParts(row_id:number){
+  //   let depparts = this.getAllDeppartsIds();
+  //   const control = <UntypedFormArray>this.formBaseInformation.get('userProducts');
+  //   control.at(row_id).get('dep_parts_ids').setValue(depparts);
+  // }
+  // selectAllDepPartsOneDep(row_id:number,dep_id:number){
+  //   const depparts = this.getAllDeppartsIdsOfOneDep(dep_id);
+  //   const control = <UntypedFormArray>this.formBaseInformation.get('userProducts');
+  //   const ids_now = control.at(row_id).get('dep_parts_ids').value;
+  //   control.at(row_id).get('dep_parts_ids').setValue(depparts.concat(ids_now));
+  // }
+  // unselectAllDepParts(row_id:number){
+  //   const control = <UntypedFormArray>this.formBaseInformation.get('userProducts');
+  //   control.at(row_id).get('dep_parts_ids').setValue([]);
+  // }
+  // unselectAllDepPartsOneDep(row_id:number,dep_id:number){
+  //   const control = <UntypedFormArray>this.formBaseInformation.get('userProducts');
+  //   const ids_in_deppat = this.getAllDeppartsIdsOfOneDep(dep_id);
+  //   const ids_now = control.at(row_id).get('dep_parts_ids').value;
+  //   control.at(row_id).get('dep_parts_ids').setValue(ids_now.filter(e => !ids_in_deppat.includes(e)));
+  // }
+  // getAllDeppartsIds():number[]{
+  //   let depparts:number[]=[];
+  //   this.receivedDepartmentsWithPartsList.map(department=>{
+  //     department.parts.map(deppart=>{
+  //       depparts.push(deppart.id);
+  //     })
+  //   });
+  //   return depparts;
+  // }  
+  // getAllDeppartsIdsOfOneDep(dep_id:number):number[]{
+  //   let depparts:number[]=[];
+  //   this.receivedDepartmentsWithPartsList.map(department=>{
+  //     if(department.department_id==dep_id)
+  //       department.parts.map(deppart=>{
+  //         depparts.push(deppart.id);
+  //       })
+  //   });
+  //   return depparts;
+  // }
 }
 
 

@@ -28,7 +28,7 @@
                     mat-raised-button 
                     [style.display]="id>0?'flex':'none'"
                     (click)="updateDocument()"
-                    [disabled]="!formBaseInformation.valid||!formBaseInformationValid" 
+                    [disabled]="!formBaseInformation.valid" 
                     matTooltip="{{t('docs.tip.save')}}"
                     color="primary"
                     class="button small-button">
@@ -136,34 +136,12 @@
                                 </mat-card>
                             </div>
                             <div class="col-lg-6  col-xl-6 col-md-12">
-                                <mat-card appearance="outlined" class="internal-card">
+                                <!-- <mat-card appearance="outlined" class="internal-card">
                                     <mat-card-header>
                                         <mat-card-title>
                                             <div class="flex card">
                                                 <div style="width:100%;">
                                                     {{t('docs.card.jobtitle_services')}}
-                                                </div>
-                                                <div>
-                                                    <!-- <button 
-                                                        mat-raised-button 
-                                                        (click)="
-                                                        showSearchFormFields=!showSearchFormFields;
-                                                        refreshTableColumns();"
-                                                        type="button"
-                                                        *ngIf="!showSearchFormFields && editability"
-                                                        color="primary"
-                                                        class="button">
-                                                        {{t('docs.tip.p_edit')}}
-                                                    </button> -->
-                                                    <!-- <button matTooltip="{{t('docs.tip.p_edit')}}" 
-                                                                mat-mini-fab 
-                                                                color="primary" 
-                                                                *ngIf="!showSearchFormFields && editability"
-                                                                (click)="
-                                                                showSearchFormFields=!showSearchFormFields;
-                                                                refreshTableColumns();">
-                                                            <mat-icon>edit</mat-icon>
-                                                    </button> -->
                                                 </div>
                                             </div>
                                         </mat-card-title>
@@ -184,32 +162,15 @@
                                             style="margin: 20px 0 30px;"
                                             class="mat-elevation-z8 jobtitles-table product-table">
             
-                                                <ng-container matColumnDef="select" [formArrayName]="'jobtitleProductsFormTable'">
-                                                    <th mat-header-cell *matHeaderCellDef class="checkbox-col">
-                                                        <!--mat-checkbox   (change)="masterToggle()"
-                                                                        
-                                                                        [checked]="selection.hasValue()"
-                                                                        [indeterminate]="selection.hasValue() && !isAllSelected()">
-                                                        </mat-checkbox-->
-                                                    </th>
-                                                    <td mat-cell class="checkbox-col" *matCellDef="let row; let i = index" [formGroupName]="i"> 
-                                                        <!--mat-checkbox   (click)="$event.stopPropagation()"
-                                                                        *ngIf="showCheckbox(row)"
-                                                                        
-                                                                        (change)="$event ? clickTableCheckbox(row) : null"
-                                                                        [checked]="selection.isSelected(row)">
-                                                        </mat-checkbox-->
-                                                    </td>
-                                                </ng-container>
 
-                                                <!-- Name of department part Column -->
+
+                                               
                                                 <ng-container matColumnDef="name" [formArrayName]="'jobtitleProductsFormTable'">
                                                     <th mat-header-cell *matHeaderCellDef>{{t('modules.col.name')}}</th>
                                                     <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> 
                                                         <span>{{row.name}}</span>
                                                     </td>
                                                 </ng-container>
-                                                <!-- Delete Column -->
                                                 <ng-container matColumnDef="delete" [formArrayName]="'jobtitleProductsFormTable'">
                                                     <th mat-header-cell *matHeaderCellDef style="width: 30px;"><mat-icon style="cursor: default" (click)="clearTable()" matTooltip="{{t('modules.tip.del_frm_tabl_')}}">close</mat-icon></th>
                                                     <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i">
@@ -235,30 +196,8 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <!-- <div class="row">
-                                            <div class="col-12" [style.display]="((allowToCreate && +id==0)||(allowToUpdate && id>0)) ?'block':'none'">
-                                                <div class="center hand" style="width:100%; height: 38px;">
-                                                    <button matTooltip="{{t('docs.tip.add_row')}}" 
-                                                            mat-mini-fab color="primary" 
-                                                            (click)="sortBy('product_id')" >
-                                                        ID
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div><div class="row">
-                                            <div class="col-12" [style.display]="((allowToCreate && +id==0)||(allowToUpdate && id>0)) ?'block':'none'">
-                                                <div class="center hand" style="width:100%; height: 38px;">
-                                                    <button matTooltip="{{t('docs.tip.add_row')}}" 
-                                                            mat-mini-fab color="primary" 
-                                                            (click)="sortBy('name')" >
-                                                        Name
-                                                    </button>
-                                                </div>
-                                            </div> 
-                                        </div>-->
-                                        
                                     </mat-card-content>
-                                </mat-card>
+                                </mat-card> -->
 
                             </div>
                         </div>  

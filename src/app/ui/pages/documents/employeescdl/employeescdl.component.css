@@ -183,17 +183,15 @@ li {list-style: none;}
 #settings_table th{
     padding: 5px 16px !important;
 }
-.date-range {
-    width: 268px !important;
-}
+
 /*Данные не найдены*/
 .spinner{
     position: absolute;
-    top: 20%;
+    top: 6%;
     left: 50%;
     margin-left: -25px;
     margin-top: 100px;
-    z-index: 100;
+    z-index: 10000;
 }
 
 .center {
@@ -204,7 +202,7 @@ li {list-style: none;}
 .breaks{
     width: 100%;
     /* margin: 20px; */
-    padding: 20px;
+    padding: 5px 0 20px;
     text-align: center;
     font-size: 20px;
     font-weight: 600;
@@ -254,3 +252,64 @@ li {list-style: none;}
 ::ng-deep .period-control__button:not(.period-control__button--disabled):focus:after {
     background-color: transparent !important;
 }
+
+/* TABLE OF SCEDULE DAYS */
+
+ .example-container {
+    max-height: 800px;
+    overflow: auto;
+  }
+  
+  #scedule_table .mat-mdc-table-sticky, #scedule_table .mat-mdc-header-row {
+    background: #dfdfdf;
+    opacity: 1;
+  }
+  
+  #scedule_table .example-sticky-toggle-group {
+    margin: 8px;
+  }
+  
+  #scedule_table .mat-column-filler {
+    padding: 0 8px;
+    font-size: 10px;
+    text-align: center;
+  }
+  
+  #scedule_table .mat-mdc-header-cell, #scedule_table .mat-mdc-footer-cell, #scedule_table .mat-mdc-cell {
+    min-width: 130px;
+    box-sizing: border-box;
+    border-left: 1px solid rgba(0, 0, 0, 0.12);
+  }
+  #scedule_table .mat-mdc-cell {
+    cursor:pointer;
+    padding:0px !important;
+  }
+  #scedule_table .mat-mdc-cell:first-child, #scedule_table .mat-mdc-header-cell:first-child{
+    border-right: 2px solid midnightblue!important;
+  }
+
+  #scedule_table .mat-mdc-table-sticky-border-elem-top {
+    border-bottom: 2px solid midnightblue;
+  }
+  
+  #scedule_table .mat-mdc-table-sticky-border-elem-right {
+    border-left: 2px solid midnightblue;
+  }
+
+  .example-ripple-container {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+  
+    -webkit-user-drag: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* .mat-mdc-table-sticky-border-elem-bottom {
+    border-top: 2px solid midnightblue;
+  }
+  
+  .mat-mdc-table-sticky-border-elem-left {
+    border-right: 2px solid midnightblue;
+  } */
+
+  /* END OF TABLE SCEDULE DAYS */

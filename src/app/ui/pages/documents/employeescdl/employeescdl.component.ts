@@ -20,15 +20,47 @@ const MY_FORMATS = MomentDefault.getMomentFormat();
 const moment = MomentDefault.getMomentDefault();
 import { LOCALE_ID, Inject } from '@angular/core';
 
-interface DocResponse {
-  
+
+interface EmployeeScedule {
+  name: string;       // Employee's name
+  photo_link: string; // link to the picture of employee
+  jobtitle: string;   // Job title of employee
+  days: SceduleDay[]; // days array
 }
-interface depparts{
-  product_id: number;
-  product_name: string;
-  dep_parts_ids: number[];
+
+interface SceduleDay {
+  id:   number;  
+  name: string;         // day name in format DDMMYYYY like '25042024'
+  date: string;         // day date in format DD.MM.YYYY like '25.04.2024'
+  is_changed: boolean;  // only days with is_changed = true will be saved in database
+  workshift: Workshift; // this object describes work shift
+  vacation: Vacation;   // this object describes any type of vacation
 }
-export interface idAndName {
+
+interface Workshift{
+  id:   number;  
+  depparts: IdAndName[]; // set of department parts  
+  time_from: string;  // time of work shift start
+  time_to: string;    // time of work shift end
+  breaks: Break[],    // breaks
+}
+
+interface Break{
+  id:   number;  
+  time_from: string;  // time of work shift start
+  time_to: string;    // time of work shift end
+  paid: boolean;      // is break paid by employer
+  precent: number;    // 1-100
+}
+
+interface Vacation{
+  id:   number;  
+  name: string;
+  is_paid: boolean;
+  payment_per_day: number;
+}
+
+export interface IdAndName {
   id: number;
   name:string;
 }
@@ -44,10 +76,10 @@ export interface idAndName {
 })
 export class EmployeeScdlComponent implements OnInit {
 
-  receivedCompaniesList: idAndName [] = [];//массив для получения списка предприятий
+  receivedCompaniesList: IdAndName [] = [];//массив для получения списка предприятий
   myCompanyId:number=0;//
   myId:number=0;
-  receivedDepartmentsList: idAndName [] = [];//массив для получения списка отделений
+  receivedDepartmentsList: IdAndName [] = [];//массив для получения списка отделений
   receivedDepartmentsWithPartsList: any [] = [];//массив для получения списка отделений с их частями
   receivedJobtitlesList: any [] = [];//массив для получения списка наименований должностей
   receivedWorkShiftsList: any[]=[]; // array of previously saved work shifts templates
@@ -57,23 +89,26 @@ export class EmployeeScdlComponent implements OnInit {
   selectedVacationTemplateId:  number = null;
   accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
   timeFormat:string='24';   //12 or 24
-  displayedColumns:string[] = [];//columnss of the table of work shift breaks
+  displayedColumnsBreaks:string[] = [];//columnss of the table of work shift breaks
+  displayedColumns:string[] = [];//columnss of the table with days of scedule
+  displayedColumnsDates:string[] = [];
+  displayedColumnsDayNames:string[] = [];
   gettingTableData: boolean = false;//идет загрузка товарных позиций
   shift_time_from_value: number=0; // start time of shift, time stamp like 946728000000
   shift_time_to_value: number=0; // end timof shift, time stamp like 946728000000
   shiftAndBreaksTimeArray: number[]=[];
-  workShiftDaysSelectingMode: boolean = false;//идет загрузка товарных позиций
-  vacationDaysSelectingMode: boolean = false;//идет загрузка товарных позиций
+  daysSelectingMode: boolean = false;//идет загрузка товарных позиций
   settingsGeneral:any;
   userSettings:any;
   dateFormat:string = 'YYYY-MM-DD'; // user's format of the date
   suffix:string = "en"; // language suffix 
   table_dates: string[] = [];       // array of dates (in format dateFormat) between date range dateFrom and dateTo
   table_dates_days: string[] = [];  // array of names of days of week in accordance of table_dates
-  
+
+
   //Формы
   queryForm:any;//форма для отправки запроса 
-  scheduleData: DocResponse;
+  scheduleData: EmployeeScedule[];
   gettingSceduleData:boolean=false;  
   workShiftForm: any; // form for work shift
   vacationForm: any;  // form for vacation
@@ -87,8 +122,8 @@ export class EmployeeScdlComponent implements OnInit {
   editability:boolean = false;//редактируемость. true если есть право на создание и документ содается, или есть право на редактирование и документ создан
 
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
-  // selectionFilterOptions = new SelectionModel<idAndName>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние
-  // optionsIds: idAndName [];
+  // selectionFilterOptions = new SelectionModel<IdAndName>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние
+  // optionsIds: IdAndName [];
   // displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
   //***********************************************************************************************************************/
   @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
@@ -125,8 +160,8 @@ export class EmployeeScdlComponent implements OnInit {
         depparts: new UntypedFormControl([],[Validators.required]), // set of department parts        
         time_from: new UntypedFormControl     ('',[Validators.required]),
         time_to: new UntypedFormControl     ('',[Validators.required]),
-        time_from_value: new UntypedFormControl     (0,[Validators.required]),
-        time_to_value: new UntypedFormControl     (0,[Validators.required]),
+        // time_from_value: new UntypedFormControl     (0,[Validators.required]),
+        // time_to_value: new UntypedFormControl     (0,[Validators.required]),
         breaks: new UntypedFormArray([]),
       });
 
@@ -199,10 +234,11 @@ export class EmployeeScdlComponent implements OnInit {
   }
 
   getData(){
-    if(this.datesExistAndValid)
+    console.log('datesExistAndValid',this.datesExistAndValid)
+    if(this.datesExistAndValid && this.queryForm.get('departments').value.length>0 && this.queryForm.get('jobtitles').value.length>0)
       if(this.allowToView)
       {
-        this.getEmployeeWorkSchedule();
+        this.getEmployeesWorkSchedule();
       } else {this.gettingSceduleData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})}
   }
  
@@ -255,7 +291,7 @@ export class EmployeeScdlComponent implements OnInit {
     this.getJobtitleList();
     this.getCRUD_rights();
     this.setDefaultTime();
-    this.formColumns();
+    this.formColumnsBreaks();
   }
 
   getDepartmentsList(){
@@ -263,7 +299,9 @@ export class EmployeeScdlComponent implements OnInit {
     this.loadSpravService.getDepartmentsListByCompanyId(+this.queryForm.get('companyId').value,false)
     .subscribe(
       (data) => {this.receivedDepartmentsList=data as any [];
-        this.selectAllDepartments();},
+        this.selectAllDepartments();
+        this.getData();
+      },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}, //+++
     );
   }
@@ -273,7 +311,7 @@ export class EmployeeScdlComponent implements OnInit {
       .subscribe(
           (data) => {   
                       this.receivedDepartmentsWithPartsList=data as any [];
-                      this.selectAllCheckList('depparts','queryForm');
+                      // this.selectAllCheckList('depparts','queryForm');
       },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
       );
@@ -285,6 +323,7 @@ export class EmployeeScdlComponent implements OnInit {
           (data) => {   
                       this.receivedJobtitlesList=data as any [];
                       this.selectAllCheckList('jobtitles','queryForm');
+                      this.getData();
       },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
       );
@@ -293,7 +332,7 @@ export class EmployeeScdlComponent implements OnInit {
   companyIdInList(id:any):boolean{let r=false;this.receivedCompaniesList.forEach(c=>{if(+id==c.id) r=true});return r}
 
   clickApplyFilters(){
-    // this.getData();
+    this.getData();
   }
 
   onCompanySelection(){
@@ -335,17 +374,19 @@ export class EmployeeScdlComponent implements OnInit {
   // }
 
  
-  getEmployeeWorkSchedule(){ 
-  this.http.post('/api/auth/getEmployeeWorkSchedule', this.queryForm)
-    .subscribe(
-        (data) => {
-          this.gettingSceduleData=false;
-          if(!data){
-            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('docs.msg.c_err_exe_qury')}})
-          }
-          this.scheduleData=data as DocResponse []; 
-        },
-        error => {console.log(error);this.gettingSceduleData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}
+  getEmployeesWorkSchedule(){ 
+    this.gettingSceduleData=true;
+    this.http.post('/api/auth/getEmployeesWorkSchedule', this.queryForm.value)
+      .subscribe(
+          (data) => {
+            this.gettingSceduleData=false;
+            if(!data){
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('docs.msg.c_err_exe_qury')}})
+            }
+            this.scheduleData=data as EmployeeScedule[];
+            this.formColumns();
+          },
+          error => {console.log(error);this.gettingSceduleData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}
     );
   }
   
@@ -362,6 +403,7 @@ export class EmployeeScdlComponent implements OnInit {
     let departments:number[]=[];
     this.receivedDepartmentsList.map(i=>{departments.push(i.id);});
     this.queryForm.get('departments').setValue(departments);
+    this.uncheckPlacesOfWork(); // deselect department parts that are not contained in the selected departments
   }
   // unselectAllDepartments(){
     // this.queryForm.get(field).setValue([])
@@ -369,16 +411,19 @@ export class EmployeeScdlComponent implements OnInit {
   selectAllCheckList(field:string, form:string){
     let depparts = field=='depparts'?this.getAllDeppartsIds():this.getAllJobtitlesIds();
     form=='queryForm'?this.queryForm.get(field).setValue(depparts):this.workShiftForm.get(field).setValue(depparts);
+    this.uncheckPlacesOfWork(); // deselect department parts that are not contained in the selected departments
   }
   
   selectAllDepPartsOneDep(dep_id:number, form:string){
     const depparts = this.getAllDeppartsIdsOfOneDep(dep_id);
     const ids_now = form=='queryForm'?this.queryForm.get('depparts').value:this.workShiftForm.get('depparts').value;
     form=='queryForm'?this.queryForm.get('depparts').setValue(depparts.concat(ids_now)):this.workShiftForm.get('depparts').setValue(depparts.concat(ids_now));
+    this.uncheckPlacesOfWork(); // deselect department parts that are not contained in the selected departments
   }
 
   unselectAllCheckList(field:string, form:string){
     form=='queryForm'?this.queryForm.get(field).setValue([]):this.workShiftForm.get(field).setValue([]);
+    this.uncheckPlacesOfWork(); // deselect department parts that are not contained in the selected departments
   }
 
   unselectAllDepPartsOneDep(dep_id:number, form:string){
@@ -408,11 +453,13 @@ export class EmployeeScdlComponent implements OnInit {
   getAllDeppartsIdsOfOneDep(dep_id:number):number[]{
     let depparts:number[]=[];
     this.receivedDepartmentsWithPartsList.map(department=>{
+      // console.log('department.department_id==dep_id',department.department_id==dep_id)
       if(department.department_id==dep_id)
         department.parts.map(deppart=>{
           depparts.push(deppart.id);
         })
     });
+    // console.log('depparts',depparts)
     return depparts;
   }
 
@@ -429,14 +476,31 @@ export class EmployeeScdlComponent implements OnInit {
     */
   }
 
-  formColumns(){
-    this.displayedColumns=[];
-    this.displayedColumns.push('time_from');
-    this.displayedColumns.push('time_to');
-    this.displayedColumns.push('paid');
-    this.displayedColumns.push('precent');
+  formColumnsBreaks(){
+    this.displayedColumnsBreaks=[];
+    this.displayedColumnsBreaks.push('time_from');
+    this.displayedColumnsBreaks.push('time_to');
+    this.displayedColumnsBreaks.push('paid');
+    this.displayedColumnsBreaks.push('precent');
     if(this.editability)
-      this.displayedColumns.push('delete');
+      this.displayedColumnsBreaks.push('delete');
+  }
+
+  formColumns(){
+    this.displayedColumns=['employee'];
+    this.displayedColumnsDates=[];
+    this.displayedColumnsDayNames=[];
+    const dates = this.getTextDateRange(this.queryForm.get('dateFrom').value.format(this.dateFormat), this.queryForm.get('dateTo').value.format(this.dateFormat));
+    const days = this.getTextDaysRange(this.queryForm.get('dateFrom').value.format(this.dateFormat), this.queryForm.get('dateTo').value.format(this.dateFormat));
+    let indx=0;
+    console.log('days',days);
+    dates.map(i=>{
+      this.displayedColumns.push(i);
+      this.displayedColumnsDates.push(i);
+      this.displayedColumnsDayNames.push(days[indx]);
+      indx++;
+    });
+    console.log(this.displayedColumns);
   }
 
   getControlTablefield(){ 
@@ -505,10 +569,19 @@ export class EmployeeScdlComponent implements OnInit {
       id: new UntypedFormControl (null,[]),
       time_from:  new UntypedFormControl (moment('12:00', 'hh:mm'). format('HH:mm'),[]),
       time_to:  new UntypedFormControl (moment('13:00', 'hh:mm'). format('HH:mm'),[]),
-      time_from_value: new UntypedFormControl     (0,[Validators.required]),
-      time_to_value: new UntypedFormControl     (0,[Validators.required]),
+      // time_from_value: new UntypedFormControl     (0,[Validators.required]),
+      // time_to_value: new UntypedFormControl     (0,[Validators.required]),
       paid: new UntypedFormControl (false,[]),
       precent: new UntypedFormControl (0,[Validators.required,Validators.pattern('^[0-9]{1,3}$'),Validators.max(100),Validators.min(0)]),
+    });
+  }
+  formingBreakRowFromTable(time_from:string, time_to:string, paid:boolean, precent:number) {
+    return this._fb.group({
+      id: new UntypedFormControl (null,[]),
+      time_from:  new UntypedFormControl (moment(this.timeTo24h(time_from), 'hh:mm'). format('HH:mm'),[]),
+      time_to:  new UntypedFormControl (moment(this.timeTo24h(time_to), 'hh:mm'). format('HH:mm'),[]),
+      paid: new UntypedFormControl (paid,[]),
+      precent: new UntypedFormControl (precent,[Validators.required,Validators.pattern('^[0-9]{1,3}$'),Validators.max(100),Validators.min(0)]),
     });
   }
   clearTable(): void {
@@ -521,9 +594,9 @@ export class EmployeeScdlComponent implements OnInit {
       }});  
   }
   refreshTableColumns(){
-    this.displayedColumns=[];
+    this.displayedColumnsBreaks=[];
     setTimeout(() => { 
-      this.formColumns();
+      this.formColumnsBreaks();
     }, 1);
   }
   deleteTableRow(row: any,index:number) {
@@ -705,7 +778,7 @@ export class EmployeeScdlComponent implements OnInit {
   }
   
   clearShiftForm(){
-    this.workShiftDaysSelectingMode=false;
+    this.daysSelectingMode=false;
     // this.workShiftForm.reset();
     this.workShiftForm.get('id').setValue(null);
     this.workShiftForm.get('name').setValue('');
@@ -723,7 +796,7 @@ export class EmployeeScdlComponent implements OnInit {
     // control1.clear();
   }
   onClickWorkShiftDayAddBtn(){
-    this.workShiftDaysSelectingMode=!this.workShiftDaysSelectingMode;
+    this.daysSelectingMode=!this.daysSelectingMode;
   }
   
   //при изменении поля Цена в таблице товаров
@@ -732,7 +805,7 @@ export class EmployeeScdlComponent implements OnInit {
   } 
 
   clearVacationForm(){
-    this.vacationDaysSelectingMode=false;
+    this.daysSelectingMode=false;
     // this.vacationForm.reset();
     this.vacationForm.get('id').setValue(null);
     this.vacationForm.get('name').setValue('');
@@ -748,7 +821,7 @@ export class EmployeeScdlComponent implements OnInit {
 
   }
   onClickVacationAddBtn(){
-    this.vacationDaysSelectingMode=!this.vacationDaysSelectingMode;
+    this.daysSelectingMode=!this.daysSelectingMode;
   }
   onWorkshiftTemplateSelection(){
 
@@ -758,26 +831,167 @@ export class EmployeeScdlComponent implements OnInit {
     
   }
 
-  getTextDateRange(firstDate:string, lastDate:string){
+  getTextDateRange(firstDate:string, lastDate:string):string[] {
     if (moment(firstDate, this.dateFormat).isSame(moment(lastDate, this.dateFormat), 'day'))
       return [lastDate];
     let date = firstDate;
-    const dates = [date+', '+moment(date, this.dateFormat).format('dddd')];
-    this.table_dates = [date];
-    this.table_dates_days = [moment(date, this.dateFormat).format('dddd')];
+    // const dates = [date+', '+moment(date, this.dateFormat).format('dddd')];
+    const dates = [date];
+    // this.table_dates = [date];
+    // this.table_dates_days = [moment(date, this.dateFormat).format('dddd')];
     do {
       date = moment(date, this.dateFormat).add(1, 'day').format(this.dateFormat);
-      dates.push(date+', '+moment(date, this.dateFormat).format('dddd'));
-      this.table_dates.push(date);
-      this.table_dates_days.push(moment(date, this.dateFormat).format('dddd'))
+      // dates.push(date+', '+moment(date, this.dateFormat).format('dddd'));
+      dates.push(date);
+      // this.table_dates.push(date);
+      // this.table_dates_days.push(moment(date, this.dateFormat).format('dddd'))
     } while (moment(date, this.dateFormat).isBefore(moment(lastDate, this.dateFormat)));
     return dates;
   };
+  getTextDaysRange(firstDate:string, lastDate:string):string[] {
+    if (moment(firstDate, this.dateFormat).isSame(moment(lastDate, this.dateFormat), 'day'))
+      return [moment(lastDate, this.dateFormat).format('dddd')];
+    let date = firstDate;
+    // const dates = [date+', '+moment(date, this.dateFormat).format('dddd')];
+    const dates = [date];
+    // this.table_dates = [date];
+    let table_dates_days = [moment(date, this.dateFormat).format('dddd')];
+    do {
+      date = moment(date, this.dateFormat).add(1, 'day').format(this.dateFormat);
+      table_dates_days.push(moment(date, this.dateFormat).format('dddd'))
+    } while (moment(date, this.dateFormat).isBefore(moment(lastDate, this.dateFormat)));
+    return table_dates_days;
+  };
   onGetTextDatesClick(){
     const dates = this.getTextDateRange(this.queryForm.get('dateFrom').value.format(this.dateFormat), this.queryForm.get('dateTo').value.format(this.dateFormat));
-    console.log('table_dates: ', this.table_dates);
-    console.log('table_dates_days: ', this.table_dates_days);
+    console.log('dates: ', dates);
+    // console.log('table_dates_days: ', this.table_dates_days);
   }
-  
+
+  uncheckPlacesOfWork(){
+    let allDeppartsOfSelectedDepartments:number[]=[];
+    // let selectedDepparts:number[]=[];
+    // let updatedDepparts:number[]=[];
+    // let selectedDepartments:number[]=[];
+    // selectedDepartments = this.queryForm.get('departments').value;
+    // selectedDepartments.map(department=>{
+    //   selectedDepartments.push(department)
+    // })
+    // console.log('queryForm.get(departments).value',this.queryForm.get('departments').value)
+    // console.log('selectedDepartments',selectedDepartments);
+    this.queryForm.get('departments').value.map(i=>{
+      // console.log('i.id',i.id);
+      allDeppartsOfSelectedDepartments=allDeppartsOfSelectedDepartments.concat(this.getAllDeppartsIdsOfOneDep(i));
+    });
+    // console.log('allDeppartsOfSelectedDepartments',allDeppartsOfSelectedDepartments);
+    // const selectedDepparts:number[] = this.workShiftForm.get('depparts').value;
+    // console.log('selectedDepparts',selectedDepparts)
+    // const updatedDepparts = selectedDepparts.filter(id => allDeppartsOfSelectedDepartments.includes(id));
+    // console.log('updatedDepparts',updatedDepparts)
+    // this.workShiftForm.get('depparts').setValue(updatedDepparts);
+    this.workShiftForm.get('depparts').setValue(this.workShiftForm.get('depparts').value.filter(
+      id => allDeppartsOfSelectedDepartments.includes(id)
+    ));
+  }
+
+
+  isDeppartBelongsToSelectedDepartments(deppartId:number){
+    let allDeppartsOfSelectedDepartments:number[]=[];
+    this.queryForm.get('departments').value.map(i=>{
+      allDeppartsOfSelectedDepartments=allDeppartsOfSelectedDepartments.concat(this.getAllDeppartsIdsOfOneDep(i));
+    });
+    return(allDeppartsOfSelectedDepartments.includes(deppartId));
+  }
+
+  // workshift, vacation, both, undefined
+  getDayType(row_index:number, col_index:number):string{
+    let result = 'undefined';
+    const sceduleDay: SceduleDay = this.scheduleData[row_index].days[col_index];
+    if(sceduleDay.workshift && sceduleDay.vacation)
+      result = 'both';
+    if(sceduleDay.workshift && !sceduleDay.vacation)
+      result = 'workshift';
+    if(!sceduleDay.workshift && sceduleDay.vacation)
+      result = 'vacation';
+    return result;
+  }
+
+  deleteRecord(row_index:number, col_index:number, data_type:string){
+    const sceduleDay: SceduleDay = this.scheduleData[row_index].days[col_index];
+    if(data_type=='workshift')  
+      sceduleDay.workshift = null;
+    else
+      sceduleDay.vacation = null;
+  }
+
+        // data type can be: workshift, vacation, undefined
+  onDayClick(row_index:number, col_index:number, data_type:string){
+    console.log('row_index',row_index);
+    console.log('col_index',col_index);
+
+    if(this.daysSelectingMode)
+      this.addInfoToSceduleDay(row_index, col_index);
+    else
+      this.editSceduleDay(row_index, col_index, data_type)
+  }
+
+  addInfoToSceduleDay(row_index:number, col_index:number){
+    const sceduleDay: SceduleDay = this.scheduleData[row_index].days[col_index];
+    sceduleDay.is_changed=true; // mark this day as changed to update it in the data base on backend
+    if(this.day_type=='workshift'){
+      let workshiftInForm: Workshift = this.workShiftForm.value as Workshift;
+      sceduleDay.workshift = workshiftInForm;
+      sceduleDay.workshift.id=null; // because this id belongs to templates table
+    }
+    if(this.day_type=='vacation'){
+      let vacationInForm: Vacation = this.vacationForm.value as Vacation;
+      sceduleDay.vacation = vacationInForm;
+      sceduleDay.vacation.id=null; // because this id belongs to templates table
+    }
+
+
+  }
+
+  editSceduleDay(row_index:number, col_index:number, data_type:string){
+    const sceduleDay: SceduleDay = this.scheduleData[row_index].days[col_index];
+    if(sceduleDay.workshift && data_type=='workshift'){
+      this.day_type='workshift';
+      this.clearShiftForm();      
+      this.workShiftForm.get('id').setValue(null); // because id in form is id of templates table
+      this.workShiftForm.get('time_from').setValue(sceduleDay.workshift.time_from);
+      this.workShiftForm.get('time_to').setValue(sceduleDay.workshift.time_to);
+      this.workShiftForm.get('depparts').setValue(sceduleDay.workshift.depparts);
+      setTimeout(() => {
+        const controlBreak = this.getControlTablefield();
+        sceduleDay.workshift.breaks.map(brk => {
+          controlBreak.push(this.formingBreakRowFromTable(brk.time_from, brk.time_to, brk.paid, brk.precent));
+        });    
+      }, 1);
+        
+    }
+    if(sceduleDay.vacation && data_type=='vacation'){
+      this.day_type='vacation';
+      this.vacationForm.get('id').setValue(null);
+      this.vacationForm.get('name').setValue(sceduleDay.vacation.name);
+      this.vacationForm.get('is_paid').setValue(sceduleDay.vacation.is_paid);
+      this.vacationForm.get('payment_per_day').setValue(sceduleDay.vacation.payment_per_day);
+    }
+  }
+
+// data type can be: workshift, vacation
+  getDayData(row_index:number, col_index:number, data_type:string):string{
+    let returnText='';
+    const sceduleDay: SceduleDay = this.scheduleData[row_index].days[col_index];
+    if(sceduleDay.workshift && data_type=='workshift'){
+      returnText = returnText + sceduleDay.workshift.time_from + ' - ' + sceduleDay.workshift.time_to;
+    }
+    if(sceduleDay.vacation && data_type=='vacation'){
+      returnText = returnText + sceduleDay.vacation.name;
+    }
+
+
+    return returnText;
+
+  }
 
 }

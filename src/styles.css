@@ -413,6 +413,14 @@ table input[readonly="true"] {
   padding: 0 10px !important;
 }/* Table of products end */
 
+/* All tables - last row with line in bottom */
+.mdc-data-table__row:last-child .mdc-data-table__cell {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;;
+}
+/* All tables - last row with line in bottom END*/
+
+
+
 
 /* FIELD */
 /* .mat-mdc-form-field .mat-mdc-floating-label.mdc-floating-label {

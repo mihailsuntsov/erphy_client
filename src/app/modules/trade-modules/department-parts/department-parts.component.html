@@ -34,42 +34,117 @@
     </mat-card-header>
     <mat-card-content>
         <form *ngIf="formBaseInformation" [formGroup]="formBaseInformation">   
-            <div>   
-                <mat-form-field style="width: 100%">
-                    <mat-label>{{'docs.field.name' | transloco}} <span *ngIf="formBaseInformation.get('name').value==''||formBaseInformation.get('name').value==null" class="star">*</span></mat-label>
-                    <input  matInput
-                            maxlength="120"
-                            #name
-                            formControlName="name"/>  
-                            <mat-hint  align="start" *ngIf="formBaseInformation.get('name').touched && formBaseInformation.get('name').invalid">
-                                <i class="form-invalid">{{t('modules.error.field_miss')}}</i>
-                            </mat-hint>
-                            <mat-hint align="end" *ngIf="name.value.length>100">{{name.value.length}} / 120</mat-hint>
-                </mat-form-field>
-                
-                <mat-form-field style="width: 100%">
-                    <mat-label>{{'docs.field.description' | transloco}} </mat-label>
-                    <input  matInput
-                            maxlength="1000"
-                            formControlName="description"/>  
-                            <mat-hint align="end" *ngIf="formBaseInformation.get('description').value.length>900">{{formBaseInformation.get('description').value.length}} / 1000</mat-hint>
-                </mat-form-field>
-                
-                <mat-form-field style="width: 100%; margin-top: -5px;">
-                    <mat-slide-toggle 
-                    formControlName="is_active"
-                    >{{t('docs.field.is_active')}}</mat-slide-toggle>
-                    <input matInput hidden/>
-                </mat-form-field>
+            
+            
+            <mat-tab-group>
+                <mat-tab label="{{t('docs.tab.info')}}">
+                    <div class="container-fluid" style="margin-top: 20px;">
+                        <div class="row">
+                            <div class="col-lg-6 col-xl-6 col-md-6 col-12">  
+                                <mat-card appearance="outlined" class="internal-card">
+                                    <mat-card-header>
+                                        <mat-card-title class="card-title">{{t('docs.card.base_info')}}</mat-card-title>
+                                    </mat-card-header>
+                                    <mat-card-content class="input-form">
+            
+                                        <mat-form-field style="width: 100%">
+                                            <mat-label>{{'docs.field.name' | transloco}} <span *ngIf="formBaseInformation.get('name').value==''||formBaseInformation.get('name').value==null" class="star">*</span></mat-label>
+                                            <input  matInput
+                                                    maxlength="120"
+                                                    #name
+                                                    formControlName="name"/>  
+                                                    <mat-hint  align="start" *ngIf="formBaseInformation.get('name').touched && formBaseInformation.get('name').invalid">
+                                                        <i class="form-invalid">{{t('modules.error.field_miss')}}</i>
+                                                    </mat-hint>
+                                                    <mat-hint align="end" *ngIf="name.value.length>100">{{name.value.length}} / 120</mat-hint>
+                                        </mat-form-field>
+                                        
+                                        <mat-form-field style="width: 100%">
+                                            <mat-label>{{'docs.field.description' | transloco}} </mat-label>
+                                            <input  matInput
+                                                    maxlength="1000"
+                                                    formControlName="description"/>  
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('description').value.length>900">{{formBaseInformation.get('description').value.length}} / 1000</mat-hint>
+                                        </mat-form-field>
+                                        
+                                        <mat-form-field style="width: 100%; margin-top: -5px;">
+                                            <mat-slide-toggle 
+                                            formControlName="is_active"
+                                            >{{t('docs.field.is_active')}}</mat-slide-toggle>
+                                            <input matInput hidden/>
+                                        </mat-form-field>
+                                    </mat-card-content>
+                                </mat-card>
+                            </div>
+                            <div class="col-lg-6 col-xl-6 col-md-6 col-12">  
+                                <mat-card appearance="outlined" class="internal-card">
+                                    <mat-card-header>
+                                        <mat-card-title>
+                                            <div class="flex card">
+                                                <div style="width:100%;">
+                                                    {{t('docs.card.employee_services')}}
+                                                </div>
+                                            </div>
+                                        </mat-card-title>
+                                    </mat-card-header>
+                                    <mat-card-content class="input-form" style="padding: 15px;">
 
-            </div>
+                                        <div class="row" *ngIf="getControl('deppartProducts').value.length>0 || gettingTableData" style="margin-right:0;margin-left:0;">
+                                            <mat-spinner 
+                                            strokeWidth="3" 
+                                            class="spinner"
+                                            [diameter]="44"
+                                            *ngIf="gettingTableData"
+                                            ></mat-spinner>
+                                            <table mat-table #_table  
+                                            [dataSource]="getControl('deppartProducts').value" 
+                                            [formGroup]="formBaseInformation" 
+                                            [trackBy]="trackByIndex"
+                                            style="margin: 20px 0 30px;"
+                                            class="mat-elevation-z8 jobtitles-table product-table">
+            
+                                                <!-- Name -->
+                                                <ng-container matColumnDef="name" [formArrayName]="'deppartProducts'">
+                                                    <th mat-header-cell *matHeaderCellDef style="width: 100%;">{{t('modules.col.service_name')}}</th>
+                                                    <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> 
+                                                        <span>{{row.name}}</span>
+                                                    </td>
+                                                </ng-container>
+                                                
+                                                <!-- Delete Column -->
+                                                <ng-container matColumnDef="delete" [formArrayName]="'deppartProducts'">
+                                                    <th mat-header-cell *matHeaderCellDef style="width: 30px;"><mat-icon style="cursor: default" (click)="clearTable()" matTooltip="{{t('docs.tip.delete_all_rows')}}">close</mat-icon></th>
+                                                    <td mat-cell style="width: 30px;" *matCellDef="let row; let i = index" [formGroupName]="i">
+                                                        <mat-icon style="cursor: default" (click)="deleteTableRow(row,i)">delete_forever</mat-icon>
+                                                    </td>
+                                                </ng-container>
+
+                                                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                                                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                                            </table>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-12" [style.display]="editability?'block':'none'">
+                                                <div style="text-align:center; width:100%; height: 38px;">
+                                                    <button matTooltip="{{t('docs.tip.add_row')}}" 
+                                                            mat-mini-fab color="primary" 
+                                                            (click)="openDialogProductCategoriesSelect('products','employee_services')" >
+                                                        <mat-icon>add</mat-icon>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                    </mat-card-content>
+                                </mat-card>
+                            </div>
+                        </div>
+                    </div>
+                </mat-tab>
+            </mat-tab-group>
+
 
         </form>
-
-
-
     </mat-card-content>
-
     <!-- <code><pre>{{formBaseInformation.value | json}}</pre></code> -->
-
 </mat-card>
