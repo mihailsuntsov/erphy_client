@@ -472,9 +472,9 @@ table input[readonly="true"] {
 }
 
 .mat-mdc-optgroup-label span{
-  color: gray!important;
-  font-weight: 600!important;
-  display: inline-flex;
+  /* color: #444!important; */
+  /* font-weight: 300!important; */
+  display: inline-block;
   align-items: center;
 }
 
@@ -485,4 +485,10 @@ table input[readonly="true"] {
 
 .btn-gray-color{
  color:rgba(0, 0, 0, 0.54)!important;
+}
+/* Name of optgroup in select lists */
+.optgroup-name{
+  top: -5px;
+  position: relative;
+  font-size: 20px;
 }

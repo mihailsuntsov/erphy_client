@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output} from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, ViewChild} from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -19,6 +19,7 @@ import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/materia
 const MY_FORMATS = MomentDefault.getMomentFormat();
 const moment = MomentDefault.getMomentDefault();
 import { LOCALE_ID, Inject } from '@angular/core';
+import { MatSelect } from '@angular/material/select';
 
 
 interface EmployeeScedule {
@@ -26,8 +27,9 @@ interface EmployeeScedule {
   photo_link: string; // link to the picture of employee
   jobtitle: string;   // Job title of employee
   days: SceduleDay[]; // days array
+  departments:  IdAndName[]; 
+  employee_services: IdAndName[];
 }
-
 interface SceduleDay {
   id:   number;  
   name: string;         // day name in format DDMMYYYY like '25042024'
@@ -36,15 +38,13 @@ interface SceduleDay {
   workshift: Workshift; // this object describes work shift
   vacation: Vacation;   // this object describes any type of vacation
 }
-
 interface Workshift{
   id:   number;  
-  depparts: IdAndName[]; // set of department parts  
+  depparts: number[]; // set of department parts  
   time_from: string;  // time of work shift start
   time_to: string;    // time of work shift end
   breaks: Break[],    // breaks
 }
-
 interface Break{
   id:   number;  
   time_from: string;  // time of work shift start
@@ -52,7 +52,6 @@ interface Break{
   paid: boolean;      // is break paid by employer
   precent: number;    // 1-100
 }
-
 interface Vacation{
   id:   number;  
   name: string;
@@ -60,7 +59,19 @@ interface Vacation{
   payment_per_day: number;
 }
 
-export interface IdAndName {
+interface Department{
+  department_id: number;
+  department_name: string;
+  parts: Deppart[];
+}
+interface Deppart{
+  id:number;
+  name: string;
+  description: string;
+  is_active: boolean;
+  deppartProducts:IdAndName[];
+}
+interface IdAndName {
   id: number;
   name:string;
 }
@@ -80,7 +91,7 @@ export class EmployeeScdlComponent implements OnInit {
   myCompanyId:number=0;//
   myId:number=0;
   receivedDepartmentsList: IdAndName [] = [];//массив для получения списка отделений
-  receivedDepartmentsWithPartsList: any [] = [];//массив для получения списка отделений с их частями
+  receivedDepartmentsWithPartsList: Department [] = [];//массив для получения списка отделений с их частями
   receivedJobtitlesList: any [] = [];//массив для получения списка наименований должностей
   receivedWorkShiftsList: any[]=[]; // array of previously saved work shifts templates
   receivedVacationsList: any[]=[]; // array of previously saved vacations templates
@@ -97,15 +108,19 @@ export class EmployeeScdlComponent implements OnInit {
   shift_time_from_value: number=0; // start time of shift, time stamp like 946728000000
   shift_time_to_value: number=0; // end timof shift, time stamp like 946728000000
   shiftAndBreaksTimeArray: number[]=[];
-  daysSelectingMode: boolean = false;//идет загрузка товарных позиций
+  // daysSelectingMode: boolean = false;//идет загрузка товарных позиций
   settingsGeneral:any;
   userSettings:any;
   dateFormat:string = 'YYYY-MM-DD'; // user's format of the date
   suffix:string = "en"; // language suffix 
   table_dates: string[] = [];       // array of dates (in format dateFormat) between date range dateFrom and dateTo
   table_dates_days: string[] = [];  // array of names of days of week in accordance of table_dates
-
-
+  servicesList: string[] = []; // list of services that will be shown in an information panel of employee or department part
+  departmentsList: string[] = []; // list of departments that will be shown in an information panel of employee
+  colorsDataBase:string[]=['DarkMagenta','DarkCyan','Chocolate','ForestGreen','Navy','MediumOrchid','Brown','MediumVioletRed','Olive','Indigo','DarkRed','SlateBlue','DarkOliveGreen','Crimson','SteelBlue','SteelBlue','DarkMagenta','DarkCyan','Chocolate','ForestGreen','Navy','MediumOrchid','Brown','MediumVioletRed','Olive','Indigo','DarkRed','SlateBlue','DarkOliveGreen','Crimson','SteelBlue','SteelBlue','DarkMagenta','DarkCyan','Chocolate','ForestGreen','Navy','MediumOrchid','Brown','MediumVioletRed','Olive','Indigo','DarkRed','SlateBlue','DarkOliveGreen','Crimson','SteelBlue','SteelBlue']
+  colors:string[]=[];
+  maxSceduleDays:number=366;
+  sceduleChanged:boolean=false;
   //Формы
   queryForm:any;//форма для отправки запроса 
   scheduleData: EmployeeScedule[];
@@ -128,6 +143,10 @@ export class EmployeeScdlComponent implements OnInit {
   //***********************************************************************************************************************/
   @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
   
+  @ViewChild(MatSelect, { static: false }) mySelect: MatSelect;
+
+  private scrollTopBeforeSelection: number;
+
   constructor(
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
@@ -141,56 +160,81 @@ export class EmployeeScdlComponent implements OnInit {
     private service: TranslocoService,
     private _adapter: DateAdapter<any>,
     @Inject(LOCALE_ID) public locale: string,
-    ) { }
+  ) { }
+  ngOnInit() {
 
-    ngOnInit() {
+    this.queryForm = new UntypedFormGroup({ //форма для отправки запроса 
+      companyId: new UntypedFormControl(0,[]), // предприятие, по которому идет запрос данных
+      dateFrom: new UntypedFormControl(moment().startOf('month'),[]),   // дата С
+      dateTo: new UntypedFormControl(moment().endOf('month'),[]),     // дата По
+      // depparts: new UntypedFormControl([],[]), // set of department parts
+      departments: new UntypedFormControl([],[]), // set of departments IDs
+      jobtitles: new UntypedFormControl([],[]), // set of job titles
+    });
 
-      this.queryForm = new UntypedFormGroup({ //форма для отправки запроса 
-        companyId: new UntypedFormControl(0,[]), // предприятие, по которому идет запрос данных
-        dateFrom: new UntypedFormControl(moment().startOf('month'),[]),   // дата С
-        dateTo: new UntypedFormControl(moment().endOf('month'),[]),     // дата По
-        // depparts: new UntypedFormControl([],[]), // set of department parts
-        departments: new UntypedFormControl([],[]), // set of departments IDs
-        jobtitles: new UntypedFormControl([],[]), // set of job titles
-      });
+    this.workShiftForm = new UntypedFormGroup({ // form for working with work shift
+      id: new UntypedFormControl      (null,[]),
+      name: new UntypedFormControl ('',[Validators.minLength(1),Validators.maxLength(1000)]),
+      depparts: new UntypedFormControl([],[Validators.required]), // set of department parts        
+      time_from: new UntypedFormControl     ('',[Validators.required]),
+      time_to: new UntypedFormControl     ('',[Validators.required]),
+      // time_from_value: new UntypedFormControl     (0,[Validators.required]),
+      // time_to_value: new UntypedFormControl     (0,[Validators.required]),
+      breaks: new UntypedFormArray([]),
+    });
 
-      this.workShiftForm = new UntypedFormGroup({ // form for working with work shift
-        id: new UntypedFormControl      (null,[]),
-        name: new UntypedFormControl ('',[Validators.minLength(1),Validators.maxLength(1000)]),
-        depparts: new UntypedFormControl([],[Validators.required]), // set of department parts        
-        time_from: new UntypedFormControl     ('',[Validators.required]),
-        time_to: new UntypedFormControl     ('',[Validators.required]),
-        // time_from_value: new UntypedFormControl     (0,[Validators.required]),
-        // time_to_value: new UntypedFormControl     (0,[Validators.required]),
-        breaks: new UntypedFormArray([]),
-      });
+    this.vacationForm = new UntypedFormGroup({ // form for working with vacations
+      id: new UntypedFormControl      (null,[]),
+      name: new UntypedFormControl ('',[Validators.required, Validators.minLength(1), Validators.maxLength(1000)]),
+      is_paid: new UntypedFormControl     (false,[]),
+      payment_per_day:  new UntypedFormControl (this.numToPrice(0,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+    });
 
-      this.vacationForm = new UntypedFormGroup({ // form for working with vacations
-        id: new UntypedFormControl      (null,[]),
-        name: new UntypedFormControl ('',[Validators.required, Validators.minLength(1), Validators.maxLength(1000)]),
-        is_paid: new UntypedFormControl     (false,[]),
-        payment_per_day:  new UntypedFormControl (this.numToPrice(0,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
-      });
+    if(Cookie.get('employeescdl_companyId')=='undefined' || Cookie.get('employeescdl_companyId')==null)     
+    Cookie.set('employeescdl_companyId',this.queryForm.get('companyId').value); else this.queryForm.get('companyId').setValue(Cookie.get('employeescdl_companyId')=="0"?"0":+Cookie.get('employeescdl_companyId'));
 
-      if(Cookie.get('employeescdl_companyId')=='undefined' || Cookie.get('employeescdl_companyId')==null)     
-      Cookie.set('employeescdl_companyId',this.queryForm.get('companyId').value); else this.queryForm.get('companyId').setValue(Cookie.get('employeescdl_companyId')=="0"?"0":+Cookie.get('employeescdl_companyId'));
+    this.getBaseData('myId');    
+    this.getBaseData('myCompanyId');  
+    this.getBaseData('companiesList');      
+    this.getBaseData('accountingCurrency');  
+    this.getBaseData('dateFormat');     
+    this.getBaseData('timeFormat');    
+    this.getBaseData('suffix');
+    this.getBaseData('locale');
+    this.getCompaniesList();
+    this.getSettingsGeneral();
+    this.dateFormat=this.dateFormat.replace('FMDD','DD').replace('FMMM','MM'),//FMDD. FMMM. YYYY. is a PostgreSQL format for Serbian language. If not to replace -> Invalid date error
+    moment.locale(this.locale);
+    // this.getSettings();
+    // this._adapter.get
+    this.mixColors()
+  }
+  // ngAfterViewInit(): void {
+  //   setTimeout(() => { 
+      
+  //     // this.mySelect.openedChange.subscribe((open) => {
+  //     //   if (open) {
+  //     //     alert(111)
+  //     //     this.mySelect.panel.nativeElement.addEventListener(
+  //     //       'scroll',
+  //     //       (event) => (this.scrollTopBeforeSelection = event.target.scrollTop)
+  //     //     );
+  //     //   }
+  //     // });
+    
+  //     // this.mySelect.optionSelectionChanges.subscribe(() => {
+  //     //   this.mySelect.panel.nativeElement.scrollTop = this.scrollTopBeforeSelection;
+  //     // });
 
-      this.getBaseData('myId');    
-      this.getBaseData('myCompanyId');  
-      this.getBaseData('companiesList');      
-      this.getBaseData('accountingCurrency');  
-      this.getBaseData('dateFormat');     
-      this.getBaseData('timeFormat');    
-      this.getBaseData('suffix');
-      this.getBaseData('locale');
-      this.getCompaniesList();
-      this.getSettingsGeneral();
-      this.dateFormat=this.dateFormat.replace('FMDD','DD').replace('FMMM','MM'),//FMDD. FMMM. YYYY. is a PostgreSQL format for Serbian language. If not to replace -> Invalid date error
-      moment.locale(this.locale);
-      // this.getSettings();
-      // this._adapter.get
-    }
-  
+  //     (<any>this.mySelect).baseonselect = (<any>this.mySelect)._onSelect;
+  //     (<any>this.mySelect)._onSelect = (ev, isUserInput) => {
+  //       alert(111);
+  //        (<any>this.mySelect).baseonselect(ev, false);
+  //     };
+  //   }, 3000);
+    
+
+  // }
   get formValid() {
     if(this.queryForm!=undefined)
       return (this.queryForm.valid);
@@ -332,7 +376,43 @@ export class EmployeeScdlComponent implements OnInit {
   companyIdInList(id:any):boolean{let r=false;this.receivedCompaniesList.forEach(c=>{if(+id==c.id) r=true});return r}
 
   clickApplyFilters(){
-    this.getData();
+
+    if(this.sceduleChanged){
+      const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+          width: '400px',
+          data:
+          { 
+            head: translate('docs.msg.there_unsaved_cngs'),
+            query: translate('docs.msg.want_to_contnue_q'),
+            warning: '',
+          },
+      });
+      dialogRef.afterClosed().subscribe(result => {
+        if(result==1){
+
+          let diff = this.queryForm.get('dateTo').value.diff(this.queryForm.get('dateFrom').value, 'days');
+          // console.log('diff',diff)
+          if((diff+1)>this.maxSceduleDays){
+            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.warning'),message:translate('docs.msg.too_many_days',{cnt:this.maxSceduleDays})}});
+            this.queryForm.get('dateTo').setValue(moment(this.queryForm.get('dateFrom').value, "DD.MM.YYYY").add(this.maxSceduleDays-1, 'days'));
+          }
+      
+          // if date to less than date from
+          if(diff < 0) this.queryForm.get('dateTo').setValue(this.queryForm.get('dateFrom').value);
+      
+          this.getData();
+
+          this.sceduleChanged=false;
+        }
+      });       
+    } else this.getData();
+
+
+    
+    
+
+
+
   }
 
   onCompanySelection(){
@@ -347,33 +427,52 @@ export class EmployeeScdlComponent implements OnInit {
     this.baseData.emit(data);
   }
 
-  // updateDocument(){ 
-  //   return this.http.post('/api/auth/updateEmployeeWorkSchedule', this.queryForm.value)
-  //     .subscribe(
-  //         (data) => 
-  //         {   
-  //           let result:number=data as number;
-  //           switch(result){
-  //             case null:{// null возвращает если не удалось сохранить документ из-за ошибки
-  //               this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_of') + (translate('docs.msg._of_save')) + translate('docs.msg._of_doc',{name:translate('docs.docs.company')})}});
-  //               break;
-  //             }
-  //             case -1:{// недостаточно прав
-  //                      // not enought permissions
-  //               this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});
-  //               break;
-  //             }
-  //             default:{// Успешно
-  //               this.getData();
-  //               this.openSnackBar(translate('docs.msg.doc_sved_suc'),translate('docs.msg.close'));
-  //             }
-  //           }                  
-  //         },
-  //         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
-  //     );
-  // }
+  updateDocument(){ 
+    this.normalizeDatesTimes();
+    this.http.post('/api/auth/updateEmployeeWorkSchedule', this.scheduleData)
+      .subscribe(
+          (data) => 
+          {   
+            let result:number=data as number;
+            this.sceduleChanged=false;
+            switch(result){
+              case null:{// null возвращает если не удалось сохранить документ из-за ошибки
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_of') + (translate('docs.msg._of_save'))}});
+                this.getData();
+                break;
+              }
+              case -1:{// недостаточно прав
+                       // not enought permissions
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});
+                break;
+              }
+              default:{// Успешно
+                this.getData();
+                this.openSnackBar(translate('docs.msg.doc_sved_suc'),translate('docs.msg.close'));
+              }
+            }                  
+          },
+          error => {this.sceduleChanged=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
+      );
+  }
 
- 
+  normalizeDatesTimes(){
+    this.scheduleData.map(employeeScedule =>{
+      employeeScedule.days.map(sceduleDay => {
+        if(sceduleDay.workshift){
+          sceduleDay.workshift.time_from = this.timeTo24h(sceduleDay.workshift.time_from);
+          sceduleDay.workshift.time_to = this.timeTo24h(sceduleDay.workshift.time_to);
+          if(sceduleDay.workshift.breaks && sceduleDay.workshift.breaks.length>0){
+            sceduleDay.workshift.breaks.map(break_ => {
+              break_.time_from = this.timeTo24h(break_.time_from);
+              break_.time_to = this.timeTo24h(break_.time_to);
+            });
+          }
+        }
+      });
+    });
+  }
+
   getEmployeesWorkSchedule(){ 
     this.gettingSceduleData=true;
     this.http.post('/api/auth/getEmployeesWorkSchedule', this.queryForm.value)
@@ -550,15 +649,15 @@ export class EmployeeScdlComponent implements OnInit {
 
   addBreakRow(){
     let thereOverlapping:boolean=false;
-    this.workShiftForm.value.breaks.map(i => 
-    { // Cписок не должен содержать пересекающиеся временные отрезки
-      // The list should not contain overlapping time periods
-      if(false)
-      {
-        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('modules.msg.record_in_list'),}});
-        thereOverlapping=true; 
-      }
-    });
+    // this.workShiftForm.value.breaks.map(i => 
+    // { // Cписок не должен содержать пересекающиеся временные отрезки
+    //   // The list should not contain overlapping time periods
+    //   if(false)
+    //   {
+    //     this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('modules.msg.record_in_list'),}});
+    //     thereOverlapping=true; 
+    //   }
+    // });
     if(!thereOverlapping){
       const control = this.getControlTablefield();
       control.push(this.formingBreakRowFromInterface());
@@ -645,11 +744,18 @@ export class EmployeeScdlComponent implements OnInit {
   }
 
   isTimeFormatAmPm(time:string){
-    return((time.includes("AM") || time.includes("PM")));
+    return((time.includes("AM") || time.includes("PM") || time.includes("утра") || time.includes("вечера")));
   }
 
   timeTo24h(time:string){
+    // In ru locale MomentJs has 'утра' and 'вечера' instead of AM and PM
+    // if current locale is ru - moment to convert string to time format needs to have string contained 'утра','вечера' instead of AM PM  
+    if(this.locale=='ru') time=time.replace('PM','вечера').replace('AM','утра');
     return(this.isTimeFormatAmPm(time)?moment(time, 'hh:mm A').format('HH:mm'):time);
+  }
+  timeToAmPm(time:string){
+    // in russian language momentJs returns 'утра' and 'вечера' instead of AM and PM
+    return(this.isTimeFormatAmPm(time)?time:moment(time, 'HH:mm').format('hh:mm A').replace('утра','AM').replace('вечера','PM'));
   }
 
   //isBreakIntervalsHaveErrors():boolean{
@@ -778,7 +884,7 @@ export class EmployeeScdlComponent implements OnInit {
   }
   
   clearShiftForm(){
-    this.daysSelectingMode=false;
+    // this.daysSelectingMode=false;
     // this.workShiftForm.reset();
     this.workShiftForm.get('id').setValue(null);
     this.workShiftForm.get('name').setValue('');
@@ -795,9 +901,9 @@ export class EmployeeScdlComponent implements OnInit {
     // const control1 = <UntypedFormArray>this.workShiftForm;
     // control1.clear();
   }
-  onClickWorkShiftDayAddBtn(){
-    this.daysSelectingMode=!this.daysSelectingMode;
-  }
+  // onClickWorkShiftDayAddBtn(){
+  //   this.daysSelectingMode=!this.daysSelectingMode;
+  // }
   
   //при изменении поля Цена в таблице товаров
   onChangePaymentOneDay(){
@@ -805,7 +911,7 @@ export class EmployeeScdlComponent implements OnInit {
   } 
 
   clearVacationForm(){
-    this.daysSelectingMode=false;
+    // this.daysSelectingMode=false;
     // this.vacationForm.reset();
     this.vacationForm.get('id').setValue(null);
     this.vacationForm.get('name').setValue('');
@@ -820,9 +926,9 @@ export class EmployeeScdlComponent implements OnInit {
   updateVacation(){
 
   }
-  onClickVacationAddBtn(){
-    this.daysSelectingMode=!this.daysSelectingMode;
-  }
+  // onClickVacationAddBtn(){
+  //   this.daysSelectingMode=!this.daysSelectingMode;
+  // }
   onWorkshiftTemplateSelection(){
 
   }
@@ -902,7 +1008,16 @@ export class EmployeeScdlComponent implements OnInit {
     });
     return(allDeppartsOfSelectedDepartments.includes(deppartId));
   }
-
+  // isSelectedDeppartsBelongToEmployeeDepartments(employeeScedule:EmployeeScedule):boolean{
+  //   let allEmployeeDepparts = 
+  // }
+  getAllEmployeeDepparts(employeeScedule:EmployeeScedule): number[]{
+    let allEmployeeDepparts:number[]=[];
+    employeeScedule.departments.map(department=>{
+      allEmployeeDepparts=allEmployeeDepparts.concat(this.getAllDeppartsIdsOfOneDep(department.id));
+    });
+    return allEmployeeDepparts;
+  }
   // workshift, vacation, both, undefined
   getDayType(row_index:number, col_index:number):string{
     let result = 'undefined';
@@ -922,31 +1037,125 @@ export class EmployeeScdlComponent implements OnInit {
       sceduleDay.workshift = null;
     else
       sceduleDay.vacation = null;
+    //mark day as changed for backend
+    sceduleDay.is_changed=true;
+    //mark scedule as changed
+    this.sceduleChanged=true;
   }
 
         // data type can be: workshift, vacation, undefined
   onDayClick(row_index:number, col_index:number, data_type:string){
     console.log('row_index',row_index);
     console.log('col_index',col_index);
+    const sceduleDay: SceduleDay = this.scheduleData[row_index].days[col_index];
 
-    if(this.daysSelectingMode)
-      this.addInfoToSceduleDay(row_index, col_index);
+    if((this.day_type=='workshift' && !this.workShiftForm.valid && (data_type=='undefined')) || (this.day_type=='vacation' && !this.vacationForm.valid && (data_type=='undefined')))
+      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.form_has_errors')}})
+    else if (this.day_type=='workshift' && this.getControlTablefield().controls.length>0 && this.isOverlaps && data_type=='undefined')
+      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.error.overlap_time')}})
     else
-      this.editSceduleDay(row_index, col_index, data_type)
+      if(data_type=='undefined'){ //  day is empty and user wants to add information into this day
+          this.addInfoToSceduleDay(row_index, col_index);
+      }else{ // if clicked day is vacation or work shift
+        // const sceduleDay: SceduleDay = this.scheduleData[row_index].days[col_index];     
+        this.editSceduleDay(row_index, col_index, data_type)
+      }
+  }
+  isArrayIncludesAllElementsOfAnotherArray(arr, arr2){
+    return arr2.every(i => arr.includes(i));
   }
 
+  // return: 
+  // 'each'    If each part of the department to which an employee is assigned has services that the employee can provide
+  //           Если каждая часть отделения, в которую назначается сотрудник, имеет услуги, которые сотрудник может предоставить
+  // 'some_of' If not all parts of the departments to which the employee is assigned have services that the employee can provide
+  //           Если не во всех частях отделений, в которые назначается сотрудник, оказываются услуги, которые сотрудник может оказывать
+  // 'none'    If none of the parts of the departments to which the employee is assigned provide services that the employee can provide
+  //           Если ни в одной из частей отделений, куда назначают сотрудника, не оказывается услуг, которые умеет оказывать сотрудник 
+  statusOfSelectedDepparts(employeeServices:IdAndName[]):string{
+    let result:string = '';
+    let selectedDepparts:number[] = this.workShiftForm.get('depparts').value;
+    let servicesIdsOfDeppart:number[]=[];
+    let employeeServicesIds:number[]=[];
+
+    //collect employee's services IDs
+    employeeServices.map(employeeService=>{employeeServicesIds.push(employeeService.id)})
+
+    this.receivedDepartmentsWithPartsList.map(department=>{
+      // console.log('department.department_id==dep_id',department.department_id==dep_id)
+      department.parts.map(deppart => {
+        //checking that this department part is selected for employee's' assigning in it
+        //проверка того, что данная часть отделения выбрана для назначения в нее сотрудника
+        if(selectedDepparts.includes(deppart.id)){
+          // collecting services IDs of this department part
+          servicesIdsOfDeppart=[];
+          deppart.deppartProducts.map(deppartProduct=>{
+            servicesIdsOfDeppart.push(deppartProduct.id);
+          });
+          // Оставляем в данной коллекции только ID тех услуг, которе совпадают с услугами оказываемыми сотрудником
+          // It is necessary to leave in this collection the IDs of only those services that coincide with the IDs of the services provided by the employee
+          let ln = servicesIdsOfDeppart.filter(v1 => employeeServicesIds.includes(v1)).length;
+          // Calculating current result based on its previous values
+          // Расчет текущего результата на основе его предыдущих значений
+          if(ln==0){// if the length of resulted collection is 0 then in this part of department to which the employee is assigned, no services that the employee can provide
+                    // Если длина результирующей коллекции равна 0, то в этой части отделения, к которой назначен сотрудник, нет услуг, которые сотрудник может предоставить
+            if (result == '') result = 'none';
+            if (result == 'each') result = 'some_of';
+            // if result is 'none'    then not changing
+            // if result is 'some_of' then not changing
+          } else {
+            if (result == 'none') result = 'some_of';
+            if (result == '') result = 'each';
+            // if result is 'each'    then not changing
+            // if result is 'some_of' then not changing
+          }
+        }
+      })
+    });
+    return result;
+  }
+
+
+
   addInfoToSceduleDay(row_index:number, col_index:number){
+    let employeeDepparts:number[] = [];
+    let selectedDepparts:number[] = [];
+    let statusOfSelectedDepparts:string='';
+    
+
     const sceduleDay: SceduleDay = this.scheduleData[row_index].days[col_index];
     sceduleDay.is_changed=true; // mark this day as changed to update it in the data base on backend
     if(this.day_type=='workshift'){
-      let workshiftInForm: Workshift = this.workShiftForm.value as Workshift;
-      sceduleDay.workshift = workshiftInForm;
-      sceduleDay.workshift.id=null; // because this id belongs to templates table
+      // checking that not trying to assign an employee to departments that employee does not belong to
+      const employeeScedule: EmployeeScedule = this.scheduleData[row_index];
+      employeeDepparts = this.getAllEmployeeDepparts(employeeScedule);
+      selectedDepparts = this.workShiftForm.get('depparts').value;
+      if(this.isArrayIncludesAllElementsOfAnotherArray(employeeDepparts,selectedDepparts)){
+        let workshiftInForm: Workshift = this.workShiftForm.value as Workshift;
+        sceduleDay.workshift = workshiftInForm;
+        sceduleDay.workshift.id=null; // because this id belongs to templates table
+        this.sceduleChanged=true;
+        // Проверка насколько услуги предоставляеые сотрудником соответствуют услугам частей отделений, куда его назначают
+        // Checking to what extent the services provided by the employee correspond to the services of the departments parts where he is assigned
+        statusOfSelectedDepparts=this.statusOfSelectedDepparts(this.scheduleData[row_index].employee_services);
+        switch (statusOfSelectedDepparts) {
+          case 'some_of': {
+            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.warning'),message:translate('docs.msg.some_of_depparts')}})
+            break;}
+          case 'none': {
+            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.warning'),message:translate('docs.msg.none_of_depparts')}})
+            break;}
+        }
+      } else {
+        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.try_empl_dep')}})
+      }
+      
     }
     if(this.day_type=='vacation'){
       let vacationInForm: Vacation = this.vacationForm.value as Vacation;
       sceduleDay.vacation = vacationInForm;
       sceduleDay.vacation.id=null; // because this id belongs to templates table
+      this.sceduleChanged=true;
     }
 
 
@@ -954,27 +1163,36 @@ export class EmployeeScdlComponent implements OnInit {
 
   editSceduleDay(row_index:number, col_index:number, data_type:string){
     const sceduleDay: SceduleDay = this.scheduleData[row_index].days[col_index];
-    if(sceduleDay.workshift && data_type=='workshift'){
-      this.day_type='workshift';
-      this.clearShiftForm();      
-      this.workShiftForm.get('id').setValue(null); // because id in form is id of templates table
-      this.workShiftForm.get('time_from').setValue(sceduleDay.workshift.time_from);
-      this.workShiftForm.get('time_to').setValue(sceduleDay.workshift.time_to);
-      this.workShiftForm.get('depparts').setValue(sceduleDay.workshift.depparts);
-      setTimeout(() => {
-        const controlBreak = this.getControlTablefield();
-        sceduleDay.workshift.breaks.map(brk => {
-          controlBreak.push(this.formingBreakRowFromTable(brk.time_from, brk.time_to, brk.paid, brk.precent));
-        });    
-      }, 1);
-        
-    }
-    if(sceduleDay.vacation && data_type=='vacation'){
-      this.day_type='vacation';
-      this.vacationForm.get('id').setValue(null);
-      this.vacationForm.get('name').setValue(sceduleDay.vacation.name);
-      this.vacationForm.get('is_paid').setValue(sceduleDay.vacation.is_paid);
-      this.vacationForm.get('payment_per_day').setValue(sceduleDay.vacation.payment_per_day);
+    if(data_type=='workshift'){ // clicked day is workshift
+      if(this.day_type=='workshift' || (this.day_type=='vacation' && sceduleDay.vacation) || (this.day_type=='vacation' && !this.vacationForm.valid)){ // radio button is workshift OR radio button is vacation but already there is vacation in this day
+        // edit workshift
+        this.day_type='workshift';
+        this.clearShiftForm();      
+        this.workShiftForm.get('id').setValue(null); // because id in form is id of templates table
+        this.workShiftForm.get('time_from').setValue(sceduleDay.workshift.time_from);
+        this.workShiftForm.get('time_to').setValue(sceduleDay.workshift.time_to);
+        this.workShiftForm.get('depparts').setValue(sceduleDay.workshift.depparts);
+        setTimeout(() => {
+          const controlBreak = this.getControlTablefield();
+          sceduleDay.workshift.breaks.map(brk => {
+            controlBreak.push(this.formingBreakRowFromTable(brk.time_from, brk.time_to, brk.paid, brk.precent));
+          });    
+        }, 1);
+      } else { // radio button is 'vacation' but clicked day is workshift
+        // adding vacation into this day
+        this.addInfoToSceduleDay(row_index, col_index);
+      }
+    } else { // clicked day is vacation
+      if(this.day_type=='vacation' || (this.day_type=='workshift' && sceduleDay.workshift) || (this.day_type=='workshift' && !this.workShiftForm.valid)){ // radio button is vacation OR radio button is workshift but already there is workshift in this day
+        // edit vacation
+        this.day_type='vacation';
+        this.vacationForm.get('id').setValue(null);
+        this.vacationForm.get('name').setValue(sceduleDay.vacation.name);
+        this.vacationForm.get('is_paid').setValue(sceduleDay.vacation.is_paid);
+        this.vacationForm.get('payment_per_day').setValue(sceduleDay.vacation.payment_per_day);
+      } else {// adding workshift into this day
+        this.addInfoToSceduleDay(row_index, col_index);     
+      }
     }
   }
 
@@ -983,15 +1201,58 @@ export class EmployeeScdlComponent implements OnInit {
     let returnText='';
     const sceduleDay: SceduleDay = this.scheduleData[row_index].days[col_index];
     if(sceduleDay.workshift && data_type=='workshift'){
-      returnText = returnText + sceduleDay.workshift.time_from + ' - ' + sceduleDay.workshift.time_to;
+      // alert(this.timeToAmPm(sceduleDay.workshift.time_from))
+      let time_from = this.timeFormat=='24'?sceduleDay.workshift.time_from:this.timeToAmPm(sceduleDay.workshift.time_from);
+      let time_to =   this.timeFormat=='24'?sceduleDay.workshift.time_to:this.timeToAmPm(sceduleDay.workshift.time_to);
+      returnText = time_from + ' - ' + time_to;
     }
     if(sceduleDay.vacation && data_type=='vacation'){
       returnText = returnText + sceduleDay.vacation.name;
     }
-
-
     return returnText;
-
   }
 
+  getDeppartServicesNamesList(partId){    
+    let currentDepparts:number[]=this.workShiftForm.get('depparts').value;
+    this.servicesList=[];
+    this.receivedDepartmentsWithPartsList.map(department=>{
+      department.parts.map(deppart=>{
+        if(deppart.id==partId){
+          deppart.deppartProducts.map(service=>{
+            this.servicesList.push(service.name);
+          });
+        }
+      });
+    });
+    // Clicking on anything inside <mat-option> tag will affected on its value. Need to change previous value
+    setTimeout(() => { 
+      this.workShiftForm.get('depparts').setValue(currentDepparts);
+    }, 1);
+  }
+
+  clearEmployeeScedule(rowIndex){
+    const employeeScedule: EmployeeScedule = this.scheduleData[rowIndex];
+    employeeScedule.days.map(day=>{
+      day.is_changed=true;
+      day.workshift=null;
+      day.vacation=null;
+    });
+    this.sceduleChanged=true;
+  }
+  fillEmployeeInfo(rowIndex){
+    this.servicesList=[];
+    const employeeScedule: EmployeeScedule = this.scheduleData[rowIndex];
+    employeeScedule.employee_services.map(service=>{
+      this.servicesList.push(service.name);
+    });
+    this.departmentsList=[];
+    employeeScedule.departments.map(dep=>{
+      this.departmentsList.push(dep.name);
+    });
+  }
+  mixColors(){
+    for (var i = 0; i < this.colorsDataBase.length; i++) {
+      this.colors.push(this.colorsDataBase[Math.floor(Math.random()*this.colorsDataBase.length)])
+    }
+  }
 }

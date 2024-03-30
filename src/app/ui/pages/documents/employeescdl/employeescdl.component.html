@@ -5,6 +5,16 @@
                 <div class="card-name">
                     {{cu.cap(t('menu.docs.employeescdl'))}}
                 </div>
+                <div class="separator"></div>
+                <button 
+                    mat-raised-button 
+                    [style.display]="(sceduleChanged&&editability)?'flex':'none'"
+                    (click)="updateDocument()"
+                    matTooltip="{{t('docs.tip.save')}}"
+                    color="primary"
+                    class="button small-button">
+                    <i class="material-icons">save</i>
+                </button>
             </div>
         </mat-card-title>
     </mat-card-header>
@@ -21,558 +31,608 @@
                 <mat-tab-group>
                     <mat-tab label="{{t('docs.tab.info')}}">
                         <div  class="container-fluid" id="employeescdl_form"  style="margin-top:20px">
-                            <div class="row">
-                                <div class="col-lg-6 col-xl-6 col-md-12">
-                                    
-                                    
-                                    
-                                    
-                                    <mat-card appearance="outlined" style="margin-bottom:15px;">
-                                        <mat-card-header>
-                                            <mat-card-title class="card-title">{{t('docs.card.res_mngmnt')}}</mat-card-title>
-                                        </mat-card-header>
-                                        <mat-card-content class="input-form">       
-                                                <mat-radio-group
-                                                    style="margin-left: -10px; display:block;"
-                                                    [(ngModel)]="day_type"
-                                                    [disabled]="daysSelectingMode||!editability"
-                                                    [ngModelOptions]="{standalone: true}"
-                                                    >
-                                                    <mat-radio-button class="e-radio-button" [value]="'workshift'">{{t('docs.card.work_shift')}}</mat-radio-button>
-                                                    <mat-radio-button class="e-radio-button" [value]="'vacation'">{{t('docs.card.vacation')}}</mat-radio-button>
-                                                </mat-radio-group>                                                
-                                                <mat-form-field *ngIf="day_type=='workshift'" class="mat-form-field-100" style="display:none">
-                                                    <mat-label id="work_shifts_list_label">{{t('docs.card.work_shifts_list')}}</mat-label>
-                                                    <mat-select 
-                                                    [(ngModel)]="selectedWorkShiftTemplateId"
-                                                    [disabled]="!editability||daysSelectingMode"
-                                                    aria-labelledby="work_shifts_list_label"
-                                                    [ngModelOptions]="{standalone: true}"
-                                                    (selectionChange)="onWorkshiftTemplateSelection()">                          
-                                                        <mat-option  *ngFor="let rt of receivedWorkShiftsList" [value]="rt.id">
-                                                                {{rt.name}}
-                                                        </mat-option>
-                                                    </mat-select>
-                                                    <input matInput hidden/>
-                                                </mat-form-field>
-
-                                                <mat-form-field *ngIf="day_type=='vacation'" class="mat-form-field-100" style="display:none">
-                                                    <mat-label id="vacations_list_label">{{t('docs.card.vacations_list')}}</mat-label>
-                                                    <mat-select 
-                                                    [(ngModel)]="selectedWorkShiftTemplateId"
-                                                    aria-labelledby="vacations_list_label"
-                                                    [disabled]="!editability||daysSelectingMode"
-                                                    [ngModelOptions]="{standalone: true}"
-                                                    (selectionChange)="onVacationsSelection()">                          
-                                                        <mat-option  *ngFor="let rt of receivedVacationsList" [value]="rt.id">
-                                                                {{rt.name}}
-                                                        </mat-option>
-                                                    </mat-select>
-                                                    <input matInput hidden/>
-                                                </mat-form-field>
-
-                                        </mat-card-content>
-                                    </mat-card>  
-                                </div> <!-- col -->
 
 
-                                
-                                <div class="col-lg-6 col-xl-6 col-md-12">
-                                        
-                                
-                                    <mat-card appearance="outlined" style="margin-bottom:15px;" id="card_work_shift" *ngIf="day_type=='workshift'">
-                                        <mat-card-header>
-                                            <mat-card-title class="card-title">{{t('docs.card.work_shift')}}</mat-card-title>
-                                            <div class="separator"></div>                                   
-                                            <button
-                                                mat-raised-button 
-                                                matTooltip="{{t('docs.tip.clear_form')}}"
-                                                *ngIf="editability"
-                                                color="primary"
-                                                (submit)="false"
-                                                [disabled]="daysSelectingMode"
-                                                (click)="clearShiftForm()"
-                                                type="button"
-                                                id="clear_shift_form_btn"
-                                                class="button small-button">
-                                                <i class="material-icons">close</i>
-                                            </button>
-                                            <button
-                                                (click)="onClickWorkShiftDayAddBtn()"
-                                                mat-raised-button 
-                                                [disabled]="isOverlaps||!workShiftForm.valid||!editability"
-                                                matTooltip="{{t('docs.tip.'+(daysSelectingMode?'add_wrkshft_to_days_end':'add_wrkshft_to_days_start'))}}"
-                                                [color]="daysSelectingMode?'accent':'primary'"
-                                                class="button small-button">
-                                                <i class="material-icons">event_available</i>
-                                            </button>
-                                            <!-- <button 
-                                                mat-raised-button 
-                                                matTooltip="{{t('docs.tip.save')}}"
-                                                *ngIf="+workShiftForm.get('id').value>0 && editability"
-                                                (click)="updateShift()"
-                                                [disabled]="isOverlaps||!workShiftForm.valid||daysSelectingMode" 
-                                                color="primary"
-                                                type="button"
-                                                id="save_btn"
-                                                class="button small-button">
-                                                <i class="material-icons">save</i>
-                                            </button>                             
-                                            <button
-                                                mat-raised-button 
-                                                matTooltip="{{t('docs.tip.add_to_templates')}}"
-                                                [disabled]="isOverlaps||!workShiftForm.valid||workShiftForm.get('name').value==''||daysSelectingMode" 
-                                                *ngIf="+workShiftForm.get('id').value==0 && editability"
-                                                color="primary"
-                                                (submit)="false"
-                                                (click)="createNewShift()"
-                                                type="button"
-                                                id="add_doc_btn"
-                                                class="button small-button">
-                                                <i class="material-icons">format_list_bulleted_add</i>
-                                            </button> -->
-                                        </mat-card-header>
-                                        <mat-card-content class="input-form">
-                                            <form [formGroup]="workShiftForm">
 
-                                                <div class="row">
-                                                    <div class="col-12">
 
-                                                        <mat-form-field style="display: none">
-                                                            <input  matInput
-                                                                    placeholder="id"
-                                                                    formControlName="id"/>
-                                                        </mat-form-field>
-                                                        
-                                                        <mat-form-field class="mat-form-field-100" style="display:none;">
-                                                            <mat-label>{{t('docs.field.name')}} <span *ngIf="workShiftForm.get('name').value==''" class="star">*</span></mat-label>
-                                                            <input  matInput
-                                                                    [readonly]="!allowToUpdate||daysSelectingMode"
-                                                                    formControlName="name"/>
-                                                        </mat-form-field>
 
-                                                        <mat-form-field class="mat-form-field-100">
-                                                            <mat-label>{{t('docs.field.places_of_work')}} <span *ngIf="workShiftForm.get('depparts').value.length==0" class="star">*</span></mat-label>
-                                                            <mat-select
-                                                                panelClass="department-list"
-                                                                formControlName="depparts"
-                                                                [disabled]="daysSelectingMode"
-                                                                #select
-                                                                multiple>
-                                                                <div class="button-row">
-                                                                    <button 
-                                                                        mat-icon-button 
-                                                                        [disabled]="!editability"
-                                                                        matTooltip="{{t('docs.tip.select_all')}}" 
-                                                                        class="btn-gray-color"
-                                                                        (click)="selectAllCheckList('depparts','workShiftForm')"
-                                                                    >
-                                                                      <mat-icon>fact_check</mat-icon>
-                                                                    </button>
-                                                                    <button 
-                                                                        mat-icon-button 
-                                                                        [disabled]="!editability"
-                                                                        matTooltip="{{t('docs.tip.unselect_all')}}" 
-                                                                        class="btn-gray-color"
-                                                                        (click)="unselectAllCheckList('depparts','workShiftForm')">
-                                                                      <mat-icon>ballot</mat-icon>
-                                                                    </button>
-                                                                </div>
-                                                                <mat-optgroup 
-                                                                    *ngFor="let department of receivedDepartmentsWithPartsList;"
-                                                                    [label]="department.department_name"
-                                                                >
-                                                                    <button 
-                                                                        mat-icon-button 
-                                                                        [disabled]="!editability"
-                                                                        matTooltip="{{t('docs.tip.select_all_onedep')}}" 
-                                                                        class="btn-gray-color"
-                                                                        (click)="selectAllDepPartsOneDep(department.department_id,'workShiftForm')"
-                                                                    >
-                                                                      <mat-icon>fact_check</mat-icon>
-                                                                    </button>
-                                                                    <button 
-                                                                        mat-icon-button 
-                                                                        [disabled]="!editability"
-                                                                        matTooltip="{{t('docs.tip.unselect_all_onedep')}}" 
-                                                                        class="btn-gray-color" 
-                                                                        (click)="unselectAllDepPartsOneDep(department.department_id,'workShiftForm')">
-                                                                      <mat-icon>ballot</mat-icon>
-                                                                    </button>
-                                                                    <mat-option
-                                                                        *ngFor= "let part of department.parts;"
-                                                                        [value]="part.id"
-                                                                        [disabled]="!editability||!isDeppartBelongsToSelectedDepartments(part.id)"
-                                                                        [matTooltip]="part.description"
-                                                                        [matTooltipPosition]="'right'"
-                                                                    >
-                                                                        {{part.name}}
+
+
+                            <mat-card appearance="outlined" style="margin-bottom:15px;">
+                                <mat-card-header *ngIf="day_type=='workshift'">
+                                    <mat-card-title class="card-title">{{t('docs.card.work_shift')}}</mat-card-title>
+                                    <div class="separator"></div>                                   
+                                    <button
+                                        mat-raised-button 
+                                        matTooltip="{{t('docs.tip.clear_form')}}"
+                                        color="primary"
+                                        *ngIf="editability && day_type=='workshift'"
+                                        (submit)="false"
+                                        (click)="clearShiftForm()"
+                                        type="button"
+                                        id="clear_shift_form_btn"
+                                        class="button small-button">
+                                        <i class="material-icons">close</i>
+                                    </button>
+                                </mat-card-header>
+                                <mat-card-header *ngIf="day_type=='vacation'">
+                                    <mat-card-title class="card-title">{{t('docs.card.vacation')}}</mat-card-title>
+                                    <div class="separator"></div>                                   
+                                    <button
+                                        mat-raised-button 
+                                        matTooltip="{{t('docs.tip.clear_form')}}"
+                                        *ngIf="editability && day_type=='vacation'"
+                                        color="primary"
+                                        (submit)="false"
+                                        (click)="clearVacationForm()"
+                                        type="button"
+                                        id="clear_shift_form_btn"
+                                        class="button small-button">
+                                        <i class="material-icons">close</i>
+                                    </button>
+                                </mat-card-header>
+
+                                <mat-card-content class="input-form">   
+
+
+
+
+
+
+
+
+
+                                    <div class="row">
+
+
+
+
+                                        <div class="col-lg-6 col-xl-6 col-md-12">
+                                            
+                                            
+                                            
+
+
+
+
+                                            
+                                            
+                                                    
+                                                    <div class="row">
+                                                        <div class="col-12">
+
+                                                            <mat-radio-group
+                                                                style="margin-left: -10px; display:block;"
+                                                                [(ngModel)]="day_type"
+                                                                [disabled]="!editability"
+                                                                [ngModelOptions]="{standalone: true}"
+                                                            >
+                                                                <mat-radio-button class="e-radio-button" [value]="'workshift'">{{t('docs.card.work_shift')}}</mat-radio-button>
+                                                                <mat-radio-button class="e-radio-button" [value]="'vacation'">{{t('docs.card.vacation')}}</mat-radio-button>
+                                                            </mat-radio-group>  
+                                                            
+                                                            
+
+
+
+                                                            <!-- <mat-form-field *ngIf="day_type=='workshift'" class="mat-form-field-100" style="display:none">
+                                                                <mat-label id="work_shifts_list_label">{{t('docs.card.work_shifts_list')}}</mat-label>
+                                                                <mat-select 
+                                                                [(ngModel)]="selectedWorkShiftTemplateId"
+                                                                [disabled]="!editability"
+                                                                aria-labelledby="work_shifts_list_label"
+                                                                [ngModelOptions]="{standalone: true}"
+                                                                (selectionChange)="onWorkshiftTemplateSelection()">                          
+                                                                    <mat-option  *ngFor="let rt of receivedWorkShiftsList" [value]="rt.id">
+                                                                            {{rt.name}}
                                                                     </mat-option>
-                                                                </mat-optgroup>
-                                                            </mat-select>
-                                                        </mat-form-field>
-                                                        <div class="row">
-                                                            <div class="col-lg-6 col-xl-6 col-md-12">
-                                                                <mat-form-field  class="mat-form-field-100">
-                                                                    <mat-label>{{t('docs.field.time_from')}}</mat-label>
-                                                                    <input  matInput 
-                                                                        formControlName="time_from" 
-                                                                        [ngxTimepicker]="time_from_picker"
-                                                                        [format]="+timeFormat"
-                                                                        readonly>
-                                                                    <ngx-material-timepicker 
-                                                                        #time_from_picker  
-                                                                        [cancelBtnTmpl]="cancelBtn"
-                                                                        [confirmBtnTmpl]="confirmBtn"
-                                                                    ></ngx-material-timepicker>
+                                                                </mat-select>
+                                                                <input matInput hidden/>
+                                                            </mat-form-field>
+
+                                                            <mat-form-field *ngIf="day_type=='vacation'" class="mat-form-field-100" style="display:none">
+                                                                <mat-label id="vacations_list_label">{{t('docs.card.vacations_list')}}</mat-label>
+                                                                <mat-select 
+                                                                [(ngModel)]="selectedWorkShiftTemplateId"
+                                                                aria-labelledby="vacations_list_label"
+                                                                [disabled]="!editability"
+                                                                [ngModelOptions]="{standalone: true}"
+                                                                (selectionChange)="onVacationsSelection()">                          
+                                                                    <mat-option  *ngFor="let rt of receivedVacationsList" [value]="rt.id">
+                                                                            {{rt.name}}
+                                                                    </mat-option>
+                                                                </mat-select>
+                                                                <input matInput hidden/>
+                                                            </mat-form-field> -->
+
+                                                            <form [formGroup]="workShiftForm" *ngIf="day_type=='workshift'">
+
+
+
+                                                                <mat-form-field style="display: none">
+                                                                    <input  matInput
+                                                                            placeholder="id"
+                                                                            formControlName="id"/>
                                                                 </mat-form-field>
-                                                                <!-- <br>
-                                                                {{serviceDateFrom}}
-                                                                <br>
-                                                                {{shift_time_from_value}} -->
-                                                            </div>
-                                                            <div class="col-lg-6 col-xl-6 col-md-12">
-                                                                <mat-form-field  class="mat-form-field-100">
-                                                                    <mat-label>{{t('docs.field.time_to')}}</mat-label>
-                                                                    <input  matInput 
-                                                                        formControlName="time_to" 
-                                                                        [ngxTimepicker]="time_to_picker"
-                                                                        [format]="+timeFormat"
-                                                                        readonly>
-                                                                    <ngx-material-timepicker 
-                                                                        #time_to_picker  
-                                                                        [cancelBtnTmpl]="cancelBtn"
-                                                                        [confirmBtnTmpl]="confirmBtn"
-                                                                    ></ngx-material-timepicker>
-                                                                    <mat-hint align="start" *ngIf="isDateToNextDay">
-                                                                        {{t('docs.msg.next_day')}}
-                                                                    </mat-hint>
+                                                                
+                                                                <mat-form-field class="mat-form-field-100" style="display:none;">
+                                                                    <mat-label>{{t('docs.field.name')}} <span *ngIf="workShiftForm.get('name').value==''" class="star">*</span></mat-label>
+                                                                    <input  matInput
+                                                                            [readonly]="!allowToUpdate"
+                                                                            formControlName="name"/>
                                                                 </mat-form-field>
-                                                                <!-- <br>
-                                                                {{serviceDateTo}}
-                                                                <br>
-                                                                {{shift_time_to_value}}
-                                                                <br>
-                                                                next day: {{isDateToNextDay}} -->
-                                                                <ng-template #cancelBtn>
-                                                                    <button style="min-width: 88px;
-                                                                    line-height: 36px;
-                                                                    cursor: pointer;
-                                                                    border: 12px;
-                                                                    border-radius: 4px;
-                                                                    background-color: #673ab7;
-                                                                    color: white;
-                                                                    font-size: 14px;
-                                                                    text-transform: uppercase;
-                                                                    margin: 0 5px;
-                                                                    text-align: center;">{{'modules.button.cancel' | transloco}}</button>
-                                                                </ng-template>
-                                                                <ng-template #confirmBtn>
-                                                                    <button style="min-width: 88px;
-                                                                    line-height: 36px;
-                                                                    cursor: pointer;
-                                                                    border: 12px;
-                                                                    border-radius: 4px;
-                                                                    background-color: #673ab7;
-                                                                    color: white;
-                                                                    font-size: 14px;
-                                                                    text-transform: uppercase;
-                                                                    margin: 0 5px;
-                                                                    text-align: center;">Ok</button>
-                                                                </ng-template>
-                                                            </div>
-                                                        </div>
-                                                        <div class="breaks">{{t('docs.field.breaks')}}</div>
-                                                        <div class="row" *ngIf="getControlTablefield().controls.length>0 && isOverlaps">
-                                                            <div class="col-12" style="color:#f44336; text-align: center; margin-bottom:30px">
-                                                                <b>{{t('docs.error.overlap_time')}}</b>
-                                                            </div>
-                                                        </div>
-                                                        <div class="row" *ngIf="getControlTablefield().value.length>0 || gettingTableData" style="margin-right:0;margin-left:0;">
-                                                            <table mat-table #_table 
-                                                            [dataSource]="getControlTablefield().value"
-                                                            [formGroup]="workShiftForm"
-                                                            [trackBy]="trackByIndex"
-                                                            style="margin: -10px 0 15px;"
-                                                            class="mat-elevation-z8 jobtitles-table product-table">                
-                                                                <!-- time_from -->
-                                                                <ng-container matColumnDef="time_from" [formArrayName]="'breaks'">
-                                                                    <th mat-header-cell *matHeaderCellDef class="table-cell-width-time">{{t('modules.col.time_from')}}</th>
-                                                                    <td mat-cell *matCellDef="let row; let i = index" class="table-cell-width-time" [formGroupName]="i"> 
-                                                                        <ngx-timepicker-field 
-                                                                        class="quantity-field"
-                                                                        [defaultTime]="'12:00'"
-                                                                        [disabled]="!editability||daysSelectingMode"
-                                                                        [ngClass]="{'table-field-editable':editability}"
-                                                                        [format]="+timeFormat"
-                                                                        formControlName="time_from"
-                                                                    >
-                                                                    </ngx-timepicker-field>
-                                                                    <!-- <mat-hint align="start" >*{{i}}*{{getControl('productResourcesTable').controls[i].get('resource_qtt').value}}*</mat-hint> -->
-                                                                    <!-- <control-messages  class="table-form-invalid" [control]="getControl('productResourcesTable').controls[i].get('resource_qtt')"></control-messages>
-                                                                    <mat-hint align="start" >
-                                                                        <i *ngIf="  getControl('productResourcesTable').controls[i].get('resource_qtt').value !='' && 
-                                                                                    !isInteger(parseFloat(getControl('productResourcesTable').controls[i].get('resource_qtt').value))"  class="table-form-invalid">
-                                                                                    {{t('modules.error.mst_be_integr')}}
-                                                                        </i>
-                                                                        <i *ngIf="getControl('productResourcesTable').controls[i].get('resource_qtt').invalid && getControl('productResourcesTable').controls[i].get('resource_qtt').errors.pattern" class="table-form-invalid">{{t('modules.error.price_format',{int:5,fract:0})}}</i>
-                                                                    </mat-hint> -->
-                                                                    </td>
-                                                                </ng-container>             
-                                                                <!-- time_to -->
-                                                                <ng-container matColumnDef="time_to" [formArrayName]="'breaks'">
-                                                                    <th mat-header-cell *matHeaderCellDef class="table-cell-width-time">{{t('modules.col.time_to')}}</th>
-                                                                    <td mat-cell *matCellDef="let row; let i = index" class="table-cell-width-time" [formGroupName]="i"> 
-                                                                        <ngx-timepicker-field 
-                                                                        class="quantity-field"
-                                                                        [defaultTime]="'13:00'"
-                                                                        [disabled]="!editability||daysSelectingMode"
-                                                                        [ngClass]="{'table-field-editable':editability}"
-                                                                        [format]="+timeFormat"
-                                                                        formControlName="time_to"
-                                                                    >
-                                                                    </ngx-timepicker-field>
-                                                                    <!-- <mat-hint align="start" >*{{i}}*{{getControl('productResourcesTable').controls[i].get('resource_qtt').value}}*</mat-hint> -->
-                                                                    <!-- <control-messages  class="table-form-invalid" [control]="getControl('productResourcesTable').controls[i].get('resource_qtt')"></control-messages>
-                                                                    <mat-hint align="start" >
-                                                                        <i *ngIf="  getControl('productResourcesTable').controls[i].get('resource_qtt').value !='' && 
-                                                                                    !isInteger(parseFloat(getControl('productResourcesTable').controls[i].get('resource_qtt').value))"  class="table-form-invalid">
-                                                                                    {{t('modules.error.mst_be_integr')}}
-                                                                        </i>
-                                                                        <i *ngIf="getControl('productResourcesTable').controls[i].get('resource_qtt').invalid && getControl('productResourcesTable').controls[i].get('resource_qtt').errors.pattern" class="table-form-invalid">{{t('modules.error.price_format',{int:5,fract:0})}}</i>
-                                                                    </mat-hint> -->
-                                                                    </td>
-                                                                </ng-container>             
-                                                                <!-- paid -->
-                                                                <ng-container matColumnDef="paid" [formArrayName]="'breaks'">
-                                                                    <th mat-header-cell *matHeaderCellDef class="table-cell-width">{{t('modules.col.paid')}}</th>
-                                                                    <td mat-cell *matCellDef="let row; let i = index"  class="table-cell-width" [formGroupName]="i"> 
-                                                                        <mat-form-field id="toggle"
-                                                                            class="mat-form-field-100" 
-                                                                            style="margin-top:-9px">
+
+                                                                <mat-form-field class="mat-form-field-100">
+                                                                    <mat-label>{{t('docs.field.places_of_work')}} <span *ngIf="workShiftForm.get('depparts').value.length==0" class="star">*</span></mat-label>
+                                                                    <mat-select
+                                                                        panelClass="department-list"
+                                                                        formControlName="depparts"
+                                                                        #mySelect
+                                                                        multiple>
+                                                                        <div class="button-row">
+                                                                            <button 
+                                                                                mat-icon-button 
+                                                                                [disabled]="!editability"
+                                                                                matTooltip="{{t('docs.tip.select_all')}}" 
+                                                                                class="btn-gray-color"
+                                                                                (click)="selectAllCheckList('depparts','workShiftForm')"
+                                                                            >
+                                                                            <mat-icon>fact_check</mat-icon>
+                                                                            </button>
+                                                                            <button 
+                                                                                mat-icon-button 
+                                                                                [disabled]="!editability"
+                                                                                matTooltip="{{t('docs.tip.unselect_all')}}" 
+                                                                                class="btn-gray-color"
+                                                                                (click)="unselectAllCheckList('depparts','workShiftForm')">
+                                                                            <mat-icon>ballot</mat-icon>
+                                                                            </button>
+                                                                        </div>
+                                                                        <mat-optgroup 
+                                                                            *ngFor="let department of receivedDepartmentsWithPartsList;"
+                                                                        >
+                                                                            <span class="optgroup-name">{{department.department_name}}</span>
+                                                                            <button 
+                                                                                mat-icon-button 
+                                                                                [disabled]="!editability"
+                                                                                matTooltip="{{t('docs.tip.select_all_onedep')}}" 
+                                                                                class="btn-gray-color"
+                                                                                (click)="selectAllDepPartsOneDep(department.department_id,'workShiftForm')"
+                                                                            >
+                                                                            <mat-icon>fact_check</mat-icon>
+                                                                            </button>
+                                                                            <button 
+                                                                                mat-icon-button 
+                                                                                [disabled]="!editability"
+                                                                                matTooltip="{{t('docs.tip.unselect_all_onedep')}}" 
+                                                                                class="btn-gray-color" 
+                                                                                (click)="unselectAllDepPartsOneDep(department.department_id,'workShiftForm')">
+                                                                            <mat-icon>ballot</mat-icon>
+                                                                            </button>
+                                                                                <mat-option *ngFor= "let part of department.parts;"
+                                                                                    style="width: 100%;"
+                                                                                    [value]="part.id"
+                                                                                    [disabled]="!editability||!isDeppartBelongsToSelectedDepartments(part.id)"
+                                                                                    [matTooltip]="part.description"
+                                                                                    [matTooltipPosition]="'right'"
+                                                                                >
+                                                                                    {{part.name}}
+                                                                                    <button
+                                                                                        mat-icon-button 
+                                                                                        [disabled]="!editability"
+                                                                                        [matMenuTriggerFor]="deppart_info"
+                                                                                        class="btn-gray-color btn-option-info"
+                                                                                        (click)="getDeppartServicesNamesList(part.id)"
+                                                                                    > 
+                                                                                    <mat-icon
+                                                                                        style="border-radius: 50%;
+                                                                                        background-image: url(/assets_/images/other/info_icon.png);
+                                                                                        background-position: center top;
+                                                                                        background-size: 100% auto;"
+                                                                                    ></mat-icon>
+                                                                                    </button>
+                                                                                </mat-option>
+                                                                                
+                                                                                
+                                                                            <!-- </span> -->
+                                                                        </mat-optgroup>
+                                                                    </mat-select>
+                                                                    <mat-menu #deppart_info="matMenu" xPosition="after">
+                                                                        <div style="width: 300px;">
+                                                                            <ul  style="margin: 0px; padding: 12px;">
+                                                                                <li *ngFor="let name of servicesList">
+                                                                                    <span style="position: relative; top: -6px;left: 3px;">{{name}}</span>
+                                                                                </li>
+                                                                            </ul>
+                                                                            <span *ngIf="servicesList.length==0" style="position: relative;top:-8px;left:10px;">{{t('docs.msg.no_srvcs_this_part')}}</span>
+                                                                        </div>
+                                                                    </mat-menu>
+                                                                </mat-form-field>
+                                                                <div class="row">
+                                                                    <div class="col-lg-6 col-xl-6 col-md-12">
+                                                                        <mat-form-field  class="mat-form-field-100">
+                                                                            <mat-label>{{t('docs.field.time_from')}}</mat-label>
+                                                                            <input  matInput 
+                                                                                formControlName="time_from" 
+                                                                                [ngxTimepicker]="time_from_picker"
+                                                                                [format]="+timeFormat"
+                                                                                readonly>
+                                                                            <ngx-material-timepicker
+                                                                                #time_from_picker  
+                                                                                [cancelBtnTmpl]="cancelBtn"
+                                                                                [confirmBtnTmpl]="confirmBtn"
+                                                                            ></ngx-material-timepicker>
+                                                                        </mat-form-field>
+                                                                    </div>
+                                                                    <div class="col-lg-6 col-xl-6 col-md-12">
+                                                                        <mat-form-field  class="mat-form-field-100">
+                                                                            <mat-label>{{t('docs.field.time_to')}}</mat-label>
+                                                                            <input  matInput 
+                                                                                formControlName="time_to" 
+                                                                                [ngxTimepicker]="time_to_picker"
+                                                                                [format]="+timeFormat"
+                                                                                readonly>
+                                                                            <ngx-material-timepicker 
+                                                                                #time_to_picker  
+                                                                                [cancelBtnTmpl]="cancelBtn"
+                                                                                [confirmBtnTmpl]="confirmBtn"
+                                                                            ></ngx-material-timepicker>
+                                                                            <mat-hint align="start" *ngIf="isDateToNextDay">
+                                                                                {{t('docs.msg.next_day')}}
+                                                                            </mat-hint>
+                                                                        </mat-form-field>
+                                                                        <ng-template #cancelBtn>
+                                                                            <button style="min-width: 88px;
+                                                                            line-height: 36px;
+                                                                            cursor: pointer;
+                                                                            border: 12px;
+                                                                            border-radius: 4px;
+                                                                            background-color: #673ab7;
+                                                                            color: white;
+                                                                            font-size: 14px;
+                                                                            text-transform: uppercase;
+                                                                            margin: 0 5px;
+                                                                            text-align: center;">{{'modules.button.cancel' | transloco}}</button>
+                                                                        </ng-template>
+                                                                        <ng-template #confirmBtn>
+                                                                            <button style="min-width: 88px;
+                                                                            line-height: 36px;
+                                                                            cursor: pointer;
+                                                                            border: 12px;
+                                                                            border-radius: 4px;
+                                                                            background-color: #673ab7;
+                                                                            color: white;
+                                                                            font-size: 14px;
+                                                                            text-transform: uppercase;
+                                                                            margin: 0 5px;
+                                                                            text-align: center;">Ok</button>
+                                                                        </ng-template>
+                                                                    </div>
+                                                                </div>
+                                                                
+                                                            </form>
+
+
+
+
+                                                            <form [formGroup]="vacationForm" *ngIf="day_type=='vacation'">
+
+                                                                <div class="row">
+                                                                    <div class="col-12">
+                
+                                                                        <mat-form-field style="display: none">
+                                                                            <input  matInput
+                                                                                    placeholder="id"
+                                                                                    formControlName="id"/>
+                                                                        </mat-form-field>
+                                                                        
+                                                                        <mat-form-field class="mat-form-field-100">
+                                                                            <mat-label>{{t('docs.field.name')}} <span *ngIf="vacationForm.get('name').value==''" class="star">*</span></mat-label>
+                                                                            <input  matInput
+                                                                                    [readonly]="!editability"   
+                                                                                    formControlName="name"/>
+                                                                        </mat-form-field>
+                
+                                                                    </div>
+                                                                </div>
+                                                                <div class="row">
+                                                                    <div class="col-lg-6 col-xl-6 col-md-12">
+                                                                        <mat-form-field class="mat-form-field-100">
                                                                             <mat-slide-toggle 
-                                                                                formControlName="paid"
-                                                                                [disabled]="!editability||daysSelectingMode"
-                                                                                style="margin-top: 10px "
-                                                                                matTooltip="{{t('modules.tip.paid_break')}}">
-                                                                            </mat-slide-toggle>
+                                                                            formControlName="is_paid"
+                                                                            [disabled]="!editability"
+                                                                            >{{t('docs.field.is_paid')}}</mat-slide-toggle>
                                                                             <input matInput hidden/>
                                                                         </mat-form-field>
-                                                                    </td>
-                                                                </ng-container>             
-                                                                <!-- precent -->
-                                                                <ng-container matColumnDef="precent" [formArrayName]="'breaks'">
-                                                                    <th mat-header-cell *matHeaderCellDef class="table-cell-width">Break payment, %</th>
-                                                                    <td mat-cell *matCellDef="let row; let i = index"
-                                                                    class="table-cell-width"
-                                                                    [formGroupName]="i"
-                                                                    matTooltip="{{t('modules.tip.precent_work')}}">
-                                                                    <input matInput 
-                                                                        class="quantity-field"
-                                                                        [ngStyle]="(!getControlTablefield().controls[i].get('paid').value)?{'color': 'lightgray'}:{}"
-                                                                        [ngClass]="{'table-field-editable':(editability && getControlTablefield().controls[i].get('paid').value)}"
-                                                                        [readonly]="!editability || daysSelectingMode || !getControlTablefield().controls[i].get('paid').value"
-                                                                        (keypress)="numberOnlyPlusDotAndComma($event)"
-                                                                        style="width: 60px !important; font-size: 1rem;"
-                                                                        type="number" min="0" max="100"
-                                                                        formControlName="precent"
-                                                                    />
-                                                                    <!-- <mat-hint align="start" >**{{getControlTablefield().controls[i].get('precent').value}}*</mat-hint> -->
-                                                                    <control-messages  class="table-form-invalid" [control]="getControlTablefield().controls[i].get('precent')"></control-messages>
-                                                                    <mat-hint align="start" >
-                                                                        <i *ngIf="  getControlTablefield().controls[i].get('precent').value !='' && 
-                                                                                    !isInteger(parseFloat(getControlTablefield().controls[i].get('precent').value))"  class="table-form-invalid">
-                                                                                    <br>{{t('modules.error.mst_be_integr')}}
-                                                                        </i>
-                                                                        <i *ngIf="getControlTablefield().controls[i].get('precent').invalid && getControlTablefield().controls[i].get('precent').errors.pattern" class="table-form-invalid"><br>{{t('modules.error.price_format',{int:3,fract:0})}}</i>
-                                                                        <i *ngIf="getControlTablefield().controls[i].get('precent').invalid && (getControlTablefield().controls[i].get('precent').value >100 || getControlTablefield().controls[i].get('precent').value<0)" class="table-form-invalid"><br>{{t('docs.error.k_accept_nimber',{num1:0,num2:100})}}</i>
-                                                                    </mat-hint>
-                                                                    </td>
-                                                                </ng-container>
-                                                                <!-- Delete Column -->
-                                                                <ng-container matColumnDef="delete" [formArrayName]="'breaks'">
-                                                                    <th mat-header-cell 
-                                                                    *matHeaderCellDef 
-                                                                    style="width: 30px; max-width: 30px; text-align: end;">
-                                                                        <mat-icon   style="cursor: default" 
-                                                                                    (click)="clearTable()" 
-                                                                                    matTooltip="{{t('modules.tip.del_frm_tabl_')}}"
-                                                                                    *ngIf=!(!editability||daysSelectingMode)>
-                                                                            close
-                                                                        </mat-icon></th>
-                                                                    <td mat-cell *matCellDef="let row; let i = index" style="width: 30px; max-width: 30px; text-align: end;" [formGroupName]="i">
-                                                                        <mat-icon *ngIf=!(!editability||daysSelectingMode) style="cursor: default" (click)="deleteTableRow(row,i)">delete_forever</mat-icon>
-                                                                    </td>
-                                                                </ng-container>
-                
-                                                                <tr mat-header-row *matHeaderRowDef="displayedColumnsBreaks"></tr>
-                                                                <tr mat-row *matRowDef="let row; columns: displayedColumnsBreaks;" style="height: 70px !important;"></tr>
-                
-                                                            </table>
-                                                        </div>
-                                                        <div class="row">
-                                                            <div class="col-12" [style.display]="(editability ?'block':'none')">
-                                                                <div class="center hand" style="width:100%; height: 38px;">
-                                                                    <button matTooltip="{{t('docs.tip.add_row')}}" 
-                                                                            mat-mini-fab color="primary" 
-                                                                            type="button"
-                                                                            [disabled]="!editability||daysSelectingMode"
-                                                                            (submit)="false"
-                                                                            (click)="addBreakRow()" >
-                                                                        <mat-icon>add</mat-icon>
-                                                                    </button>
-                                                                    <!-- <button matTooltip="{{t('docs.tip.add_row')}}" 
-                                                                            mat-mini-fab color="primary" 
-                                                                            (click)="onGetTextDatesClick()" >
-                                                                        <mat-icon>event_available</mat-icon>
-                                                                    </button>
-                                                                    <button matTooltip="{{t('docs.tip.add_row')}}" 
-                                                                            mat-mini-fab color="primary" 
-                                                                            (click)="uncheckPlacesOfWork()" >
-                                                                        <mat-icon>filter_alt</mat-icon>
-                                                                    </button> -->
-                                                                    <!-- --{{locale}}--{{suffix}}-- -->
-                                                                    <!-- <button matTooltip="{{t('docs.tip.add_row')}}" 
-                                                                            mat-mini-fab color="primary" 
-                                                                            (click)="onGetMomentDatesClick()" >
-                                                                        <mat-icon>save</mat-icon>
-                                                                    </button> -->   
-                                                                    
+                                                                    </div>
+                                                                    <div class="col-lg-6 col-xl-6 col-md-12">
+                                                                        <mat-form-field class="mat-form-field-100">
+                                                                            <mat-label>{{t('docs.field.payment_one_day')}}, {{accountingCurrency}} <span *ngIf="vacationForm.get('payment_per_day').value==''" class="star">*</span></mat-label>
+                                                                            <input matInput 
+                                                                                [ngStyle]="(!vacationForm.get('is_paid').value)?{'color': 'lightgray'}:{}"
+                                                                                [readonly]="!editability || !vacationForm.get('is_paid').value"
+                                                                                maxlength="10"
+                                                                                (keyup)="onChangePaymentOneDay();"
+                                                                                (keypress)="numberOnlyPlusDotAndComma($event)"
+                                                                                formControlName="payment_per_day"
+                                                                            />
+                                                                            <control-messages  class="table-form-invalid" [control]="vacationForm.get('payment_per_day')"></control-messages>
+                                                                            <mat-hint align="start" >
+                                                                                <i *ngIf="vacationForm.get('payment_per_day').invalid && vacationForm.get('payment_per_day').errors.pattern" class="table-form-invalid">{{t('modules.error.price_format',{int:7,fract:2})}}</i>
+                                                                            </mat-hint>
+                                                                        </mat-form-field>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
+                                                            </form>
+
+
+
+
+
+
+                                                        </div>
+                                                    </div>
+                                        </div> <!-- col -->
+
+
+                                        
+
+
+
+
+
+
+                                        <div class="col-lg-6 col-xl-6 col-md-12" id="breaks">
+                                                
+                                        
+                                            <form [formGroup]="workShiftForm" *ngIf="day_type=='workshift'">
+
+
+                                                <div class="breaks">{{t('docs.field.breaks')}}</div>
+                                                <div class="row" *ngIf="getControlTablefield().controls.length>0 && isOverlaps">
+                                                    <div class="col-12" style="color:#f44336; text-align: center; margin-bottom:30px">
+                                                        <b>{{t('docs.error.overlap_time')}}</b>
+                                                    </div>
+                                                </div>
+                                                <div class="row" *ngIf="getControlTablefield().value.length>0 || gettingTableData" style="margin-right:0;margin-left:0;">
+                                                    <table mat-table #_table 
+                                                    [dataSource]="getControlTablefield().value"
+                                                    [formGroup]="workShiftForm"
+                                                    [trackBy]="trackByIndex"
+                                                    style="margin: -10px 0 15px;"
+                                                    class="mat-elevation-z8 jobtitles-table product-table">                
+                                                        <!-- time_from -->
+                                                        <ng-container matColumnDef="time_from" [formArrayName]="'breaks'">
+                                                            <th mat-header-cell *matHeaderCellDef class="table-cell-width-time">{{t('modules.col.time_from')}}</th>
+                                                            <td mat-cell *matCellDef="let row; let i = index" class="table-cell-width-time" [formGroupName]="i"> 
+                                                                <ngx-timepicker-field 
+                                                                class="quantity-field"
+                                                                [defaultTime]="'12:00'"
+                                                                [disabled]="!editability"
+                                                                [ngClass]="{'table-field-editable':editability}"
+                                                                [format]="+timeFormat"
+                                                                formControlName="time_from"
+                                                            >
+                                                            </ngx-timepicker-field>
+                                                            </td>
+                                                        </ng-container>             
+                                                        <!-- time_to -->
+                                                        <ng-container matColumnDef="time_to" [formArrayName]="'breaks'">
+                                                            <th mat-header-cell *matHeaderCellDef class="table-cell-width-time">{{t('modules.col.time_to')}}</th>
+                                                            <td mat-cell *matCellDef="let row; let i = index" class="table-cell-width-time" [formGroupName]="i"> 
+                                                                <ngx-timepicker-field 
+                                                                class="quantity-field"
+                                                                [defaultTime]="'13:00'"
+                                                                [disabled]="!editability"
+                                                                [ngClass]="{'table-field-editable':editability}"
+                                                                [format]="+timeFormat"
+                                                                formControlName="time_to"
+                                                            >
+                                                            </ngx-timepicker-field>
+                                                            </td>
+                                                        </ng-container>             
+                                                        <!-- paid -->
+                                                        <ng-container matColumnDef="paid" [formArrayName]="'breaks'">
+                                                            <th mat-header-cell *matHeaderCellDef class="table-cell-width">{{t('modules.col.paid')}}</th>
+                                                            <td mat-cell *matCellDef="let row; let i = index"  class="table-cell-width" [formGroupName]="i"> 
+                                                                <mat-form-field id="toggle"
+                                                                    class="mat-form-field-100" 
+                                                                    style="margin-top:-9px">
+                                                                    <mat-slide-toggle 
+                                                                        formControlName="paid"
+                                                                        [disabled]="!editability"
+                                                                        style="margin-top: 10px "
+                                                                        matTooltip="{{t('modules.tip.paid_break')}}">
+                                                                    </mat-slide-toggle>
+                                                                    <input matInput hidden/>
+                                                                </mat-form-field>
+                                                            </td>
+                                                        </ng-container>             
+                                                        <!-- precent -->
+                                                        <ng-container matColumnDef="precent" [formArrayName]="'breaks'">
+                                                            <th mat-header-cell *matHeaderCellDef class="table-cell-width">Break payment, %</th>
+                                                            <td mat-cell *matCellDef="let row; let i = index"
+                                                            class="table-cell-width"
+                                                            [formGroupName]="i"
+                                                            matTooltip="{{t('modules.tip.precent_work')}}">
+                                                            <input matInput 
+                                                                class="quantity-field"
+                                                                [ngStyle]="(!getControlTablefield().controls[i].get('paid').value)?{'color': 'lightgray'}:{}"
+                                                                [ngClass]="{'table-field-editable':(editability && getControlTablefield().controls[i].get('paid').value)}"
+                                                                [readonly]="!editability || !getControlTablefield().controls[i].get('paid').value"
+                                                                (keypress)="numberOnlyPlusDotAndComma($event)"
+                                                                style="width: 60px !important; font-size: 1rem;"
+                                                                type="number" min="0" max="100"
+                                                                formControlName="precent"
+                                                            />
+                                                            <!-- <mat-hint align="start" >**{{getControlTablefield().controls[i].get('precent').value}}*</mat-hint> -->
+                                                            <control-messages  class="table-form-invalid" [control]="getControlTablefield().controls[i].get('precent')"></control-messages>
+                                                            <mat-hint align="start" >
+                                                                <i *ngIf="  getControlTablefield().controls[i].get('precent').value !='' && 
+                                                                            !isInteger(parseFloat(getControlTablefield().controls[i].get('precent').value))"  class="table-form-invalid">
+                                                                            <br>{{t('modules.error.mst_be_integr')}}
+                                                                </i>
+                                                                <i *ngIf="getControlTablefield().controls[i].get('precent').invalid && getControlTablefield().controls[i].get('precent').errors.pattern" class="table-form-invalid"><br>{{t('modules.error.price_format',{int:3,fract:0})}}</i>
+                                                                <i *ngIf="getControlTablefield().controls[i].get('precent').invalid && (getControlTablefield().controls[i].get('precent').value >100 || getControlTablefield().controls[i].get('precent').value<0)" class="table-form-invalid"><br>{{t('docs.error.k_accept_nimber',{num1:0,num2:100})}}</i>
+                                                            </mat-hint>
+                                                            </td>
+                                                        </ng-container>
+                                                        <!-- Delete Column -->
+                                                        <ng-container matColumnDef="delete" [formArrayName]="'breaks'">
+                                                            <th mat-header-cell 
+                                                            *matHeaderCellDef 
+                                                            style="width: 30px; max-width: 30px; text-align: end;">
+                                                                <mat-icon   style="cursor: default" 
+                                                                            (click)="clearTable()" 
+                                                                            matTooltip="{{t('docs.tip.delete_all_rows')}}"
+                                                                            *ngIf=!(!editability)>
+                                                                    close
+                                                                </mat-icon></th>
+                                                            <td mat-cell *matCellDef="let row; let i = index" style="width: 30px; max-width: 30px; text-align: end;" [formGroupName]="i">
+                                                                <mat-icon *ngIf=!(!editability) style="cursor: default" (click)="deleteTableRow(row,i)">delete_forever</mat-icon>
+                                                            </td>
+                                                        </ng-container>
+
+                                                        <tr mat-header-row *matHeaderRowDef="displayedColumnsBreaks"></tr>
+                                                        <tr mat-row *matRowDef="let row; columns: displayedColumnsBreaks;" style="height:60px !important;"></tr>
+
+                                                    </table>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-12" [style.display]="(editability ?'block':'none')">
+                                                        <div class="center hand" style="width:100%; height: 38px;">
+                                                            <button matTooltip="{{t('docs.tip.add_row')}}" 
+                                                                    mat-mini-fab color="primary" 
+                                                                    type="button"
+                                                                    [disabled]="!editability"
+                                                                    (submit)="false"
+                                                                    (click)="addBreakRow()" >
+                                                                <mat-icon>add</mat-icon>
+                                                            </button>                                                                    
                                                         </div>
                                                     </div>
                                                 </div>
+
                                             </form>
-                                        </mat-card-content>
-                                    </mat-card>
+                                        
+                                        
+                                        </div><!-- col -->
 
-                                    <mat-card appearance="outlined" style="margin-bottom:15px;" id="card_vacation" *ngIf="day_type=='vacation'">
-                                        <mat-card-header>
-                                            <mat-card-title class="card-title">{{t('docs.card.vacation')}}</mat-card-title>
-                                            <div class="separator"></div>                                   
-                                            <button
-                                                mat-raised-button 
-                                                matTooltip="{{t('docs.tip.clear_form')}}"
-                                                *ngIf="editability"
-                                                color="primary"
-                                                (submit)="false"
-                                                (click)="clearVacationForm()"
-                                                type="button"
-                                                id="clear_shift_form_btn"
-                                                class="button small-button">
-                                                <i class="material-icons">close</i>
-                                            </button>
-                                            <button
-                                                (click)="onClickVacationAddBtn()"
-                                                mat-raised-button 
-                                                [disabled]="isOverlaps||!vacationForm.valid"
-                                                matTooltip="{{t('docs.tip.'+(daysSelectingMode?'add_wrkshft_to_days_end':'add_wrkshft_to_days_start'))}}"
-                                                [color]="daysSelectingMode?'accent':'primary'"
-                                                class="button small-button">
-                                                <i class="material-icons">event_available</i>
-                                            </button>
-                                            <!-- <button 
-                                                mat-raised-button 
-                                                matTooltip="{{t('docs.tip.save')}}"
-                                                *ngIf="+vacationForm.get('id').value>0 && editability"
-                                                (click)="updateVacation()"
-                                                [disabled]="isOverlaps||!vacationForm.valid" 
-                                                color="primary"
-                                                type="button"
-                                                id="save_btn"
-                                                class="button small-button">
-                                                <i class="material-icons">save</i>
-                                            </button>                                            
-                                            <button
-                                                mat-raised-button 
-                                                matTooltip="{{t('docs.tip.add_to_templates')}}"
-                                                [disabled]="isOverlaps||!vacationForm.valid||vacationForm.get('name').value==''" 
-                                                *ngIf="+vacationForm.get('id').value==0 && editability"
-                                                color="primary"
-                                                (submit)="false"
-                                                (click)="createNewVacation()"
-                                                type="button"
-                                                id="add_doc_btn"
-                                                class="button small-button">
-                                                <i class="material-icons">format_list_bulleted_add</i>
-                                            </button> -->
-                                        </mat-card-header>
-                                        <mat-card-content class="input-form">
-                                            <form [formGroup]="vacationForm">
 
-                                                <div class="row">
-                                                    <div class="col-12">
+                                    </div><!-- row -->
 
-                                                        <mat-form-field style="display: none">
-                                                            <input  matInput
-                                                                    placeholder="id"
-                                                                    formControlName="id"/>
-                                                        </mat-form-field>
-                                                        
-                                                        <mat-form-field class="mat-form-field-100">
-                                                            <mat-label>{{t('docs.field.name')}} <span *ngIf="vacationForm.get('name').value==''" class="star">*</span></mat-label>
-                                                            <input  matInput
-                                                                    [readonly]="!editability||daysSelectingMode"   
-                                                                    formControlName="name"/>
-                                                        </mat-form-field>
 
-                                                    </div>
-                                                </div>
-                                                <div class="row">
-                                                    <div class="col-lg-6 col-xl-6 col-md-12">
-                                                        <mat-form-field class="mat-form-field-100">
-                                                            <mat-slide-toggle 
-                                                            formControlName="is_paid"
-                                                            [disabled]="daysSelectingMode || !editability"
-                                                            >{{t('docs.field.is_paid')}}</mat-slide-toggle>
-                                                            <input matInput hidden/>
-                                                        </mat-form-field>
-                                                    </div>
-                                                    <div class="col-lg-6 col-xl-6 col-md-12">
-                                                        <mat-form-field class="mat-form-field-100">
-                                                            <mat-label>{{t('docs.field.payment_one_day')}}, {{accountingCurrency}} <span *ngIf="vacationForm.get('payment_per_day').value==''" class="star">*</span></mat-label>
-                                                            <input matInput 
-                                                                [ngStyle]="(!vacationForm.get('is_paid').value)?{'color': 'lightgray'}:{}"
-                                                                [readonly]="daysSelectingMode || !editability || !vacationForm.get('is_paid').value"
-                                                                maxlength="10"
-                                                                (keyup)="onChangePaymentOneDay();"
-                                                                (keypress)="numberOnlyPlusDotAndComma($event)"
-                                                                formControlName="payment_per_day"
-                                                            />
-                                                            <control-messages  class="table-form-invalid" [control]="vacationForm.get('payment_per_day')"></control-messages>
-                                                            <mat-hint align="start" >
-                                                                <i *ngIf="vacationForm.get('payment_per_day').invalid && vacationForm.get('payment_per_day').errors.pattern" class="table-form-invalid">{{t('modules.error.price_format',{int:7,fract:2})}}</i>
-                                                            </mat-hint>
-                                                        </mat-form-field>
-                                                    </div>
-                                                </div>
-                                            </form>
-                                        </mat-card-content>
-                                    </mat-card>
-                                
-                                
-                                </div><!-- col -->
-                            </div><!-- row -->
+
+
+                                </mat-card-content>
+                            </mat-card>  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                             <div class="row">
                                 <div class="col-12" style="padding: 20px 10px 20px;">
-<!-- 1--{{displayedColumns}}--1 -->
 
 
                                     <mat-card appearance="outlined">
-                                        <!-- <mat-card-header>
-                                            <mat-card-title class="card-title">{{t('docs.card.filters')}}</mat-card-title>
-                                            
-                                        </mat-card-header> -->
                                         <mat-card-content class="input-form">
-                                            
                                             <form  class="form-horizontal" [formGroup]="queryForm">
                                                 <div class="row">
                                                     <div class="col-xl-2 col-lg-6 col-md-12">
                                                         <mat-form-field class="company-select mat-form-field-100">
                                                             <mat-label>{{t('menu.top.company')}}</mat-label>
                                                             <mat-select formControlName="companyId"
-                                                            [disabled]="!editability||daysSelectingMode"
+                                                            [disabled]="!editability"
                                                             (selectionChange)="onCompanySelection()">                          
                                                                 <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
                                                                         {{rt.name}}
@@ -583,11 +643,11 @@
                                                     <div class="col-xl-3 col-lg-6 col-md-12">
                                                         <mat-form-field class="date-range mat-form-field-100">
                                                             <mat-label>{{t('menu.top.date_range')}}</mat-label>
-                                                            <mat-date-range-input [rangePicker]="picker" [disabled]="daysSelectingMode">
+                                                            <mat-date-range-input [rangePicker]="picker">
                                                                 <input  
-                                                                    matStartDate (dateChange)="getData()" formControlName="dateFrom" placeholder="{{t('menu.top.date_from')}}">
+                                                                    matStartDate formControlName="dateFrom" placeholder="{{t('menu.top.date_from')}}">
                                                                 <input  
-                                                                    matEndDate (dateChange)="getData()" formControlName="dateTo" placeholder="{{t('menu.top.date_to')}}">
+                                                                    matEndDate formControlName="dateTo" placeholder="{{t('menu.top.date_to')}}">
                                                             </mat-date-range-input>
                                                             <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
                                                             <mat-date-range-picker #picker></mat-date-range-picker>
@@ -597,14 +657,12 @@
                                                             
                                                         </mat-form-field>
                                                     </div>
-                                                <!-- </div>
-                                                <div class="row"> -->
                                                     <div class="col-xl-3 col-lg-6 col-md-12">
                                                         <mat-form-field class="mat-form-field-100">
-                                                            <mat-label>{{t('menu.top.department')}}</mat-label>
+                                                            <mat-label>{{t('docs.field.dep_empl')}}</mat-label>
                                                             <mat-select  
                                                             formControlName="departments"
-                                                            [disabled]="!editability||daysSelectingMode"
+                                                            [disabled]="!editability"
                                                             (selectionChange)="uncheckPlacesOfWork()"
                                                             multiple>
                                                             <div class="button-row">
@@ -637,7 +695,7 @@
                                                             <mat-select
                                                                 panelClass="department-list"
                                                                 formControlName="jobtitles"
-                                                                [disabled]="!editability||daysSelectingMode"
+                                                                [disabled]="!editability"
                                                                 #select
                                                                 multiple>
                                                                 <div class="button-row">
@@ -676,21 +734,19 @@
                                                             matTooltip="{{t('menu.tip.apply_filters')}}"
                                                             (click)="clickApplyFilters()"  
                                                             type="submit"
-                                                            [disabled]="daysSelectingMode"
                                                             matSuffix mat-icon-button>
                                                             <mat-icon>refresh</mat-icon>
                                                         </button>
-
                                                     </div>          
-
-
                                                 </div>
                                             </form>
 
 
+                                            <section *ngIf="(scheduleData&&scheduleData.length==0)" class="data-not-found example-container mat-elevation-z8" tabindex="0">
+                                                {{t('menu.msg.dt_not_fnd')}}
+                                            </section>
 
-
-                                            <section class="example-container mat-elevation-z8" tabindex="0" style="margin: 20px 0 20px;" *ngIf="scheduleData && scheduleData.length>0 || gettingSceduleData">
+                                            <section *ngIf="gettingSceduleData||(scheduleData&&scheduleData.length>0)" class="example-container mat-elevation-z8" tabindex="0" style="margin: 20px 0 20px;">
                                                 <mat-spinner 
                                                 strokeWidth="3" 
                                                 class="spinner"
@@ -702,7 +758,69 @@
                                                     <ng-container matColumnDef="employee" [sticky]="true">
                                                         <th mat-header-cell *matHeaderCellDef> Employee </th>
                                                         
-                                                        <td mat-cell *matCellDef="let row"> {{row.name}}, {{row.jobtitle}} </td>
+                                                        <td mat-cell *matCellDef="let row; let i = index">
+                                                            
+                                                            <div class="user-wrapper">
+                                                                <div    class="user-additional" >
+                                                                    <mat-icon   
+                                                                        matTooltip="{{t('docs.tip.clr_empl_scdl')}}"
+                                                                        class="del-file"
+                                                                        style="right: -7px;"
+                                                                        (click)="clearEmployeeScedule(i);"
+                                                                        matTooltip="{{t('docs.tip.clr_empl_scdl')}}"      >
+                                                                        close
+                                                                    </mat-icon>
+                                                                    <mat-icon   
+                                                                        matTooltip="{{t('docs.card.employee_info')}}"
+                                                                        class="del-file"
+                                                                        [matMenuTriggerFor]="user_info"
+                                                                        style="top:2px; left: 3px;"
+                                                                        (click)="fillEmployeeInfo(i);"    >
+                                                                        info
+                                                                    </mat-icon>
+                                                                </div>
+                                                                <div    class="user-foto">
+                                                                    <a target="_blank" href="/ui/usersdoc/{{row.id}}">
+                                                                        <div class="circular_image" [style]="'background-color:'+((i<=colors.length-1)?colors[i]:colors[colors.length-1])">
+                                                                            <span class="name-letter">{{(row.name).substring(0, 1)}}</span>
+                                                                            <!-- <img src="http://yoursite.com/500/500"/> -->
+                                                                        </div>
+                                                                    </a>
+                                                                </div>
+                                                                <div    class="user-fio-container">
+                                                                    <div class="user-fio-text">
+                                                                        {{row.name}}
+                                                                    </div>
+                                                                </div>
+                                                                <div    class="user-jobtitle">
+                                                                    {{row.jobtitle}}
+                                                                </div>
+
+                                                            </div>
+                                                            
+                                                        </td>
+                                                        
+                                                        <mat-menu #user_info="matMenu" xPosition="after">
+                                                            <div style="width: 350px;">
+                                                                <span style="margin-left:10px; margin-top:20px; font-size: 18px; font-weight: 600;">
+                                                                    {{t('docs.card.employee_services')}}
+                                                                </span>
+                                                                <ul  style="margin: 0px; padding: 12px;">
+                                                                    <li *ngFor="let serviceName of servicesList">
+                                                                        <span style="position: relative; top: -6px;left: 3px;">{{serviceName}}</span>
+                                                                    </li>
+                                                                </ul> 
+                                                                <span style="margin-left:10px; margin-top:20px; font-size: 18px; font-weight: 600;">
+                                                                    {{t('docs.field.dep_empl')}}
+                                                                </span>
+                                                                <ul  style="margin: 0px; padding: 12px;">
+                                                                    <li *ngFor="let depName of departmentsList">
+                                                                        <span style="position: relative; top: -6px;left: 3px;">{{depName}}</span>
+                                                                    </li>
+                                                                </ul> 
+                                                            </div>
+                                                        </mat-menu>
+
                                                     </ng-container>
         
                                                     
@@ -713,16 +831,16 @@
                                                         <td mat-cell 
                                                             *matCellDef="let row; let i = index">
                                                             <div    *ngIf="getDayType(i,col_index)=='undefined'" 
-                                                                    style="width:100%; height: 70px;"
+                                                                    style="width:100%; height: 140px;"
                                                                     (click)="onDayClick(i,col_index,'undefined')">
                                                             </div>
-                                                            <div *ngIf="getDayType(i,col_index)!='undefined'" style="width:100%; height: 70px;">
+                                                            <div *ngIf="getDayType(i,col_index)!='undefined'" style="width:100%; height: 140px;">
                                                                 <div    *ngIf="getDayType(i,col_index)=='workshift' || getDayType(i,col_index)=='both'"
                                                                         class="example-ripple-container mat-elevation-z4"
                                                                         matRipple
-                                                                        [style]="'text-align:center;display: table;position: relative; width:100%; height: '+(getDayType(i,col_index)=='workshift'?'70px;':'35px;')+' background-color:lightblue'"
+                                                                        [style]="'text-align:center;display: table;position: relative; width:100%; height: '+(getDayType(i,col_index)=='workshift'?'140px;':'70px;')+' background-color:lightblue'"
                                                                         (click)="onDayClick(i,col_index,'workshift')">
-                                                                    <mat-icon   style="cursor: pointer; position: absolute; top:0px; right: -4px; font-size: 16px;" 
+                                                                    <mat-icon       class="table-cell-icon"
                                                                                     (click)="deleteRecord(i,col_index,'workshift')" 
                                                                                     matTooltip="{{t('menu.top.btn_delete')}}"
                                                                                     *ngIf=(editability)>
@@ -733,9 +851,9 @@
                                                                 <div    *ngIf="getDayType(i,col_index)=='vacation' || getDayType(i,col_index)=='both'" 
                                                                         class="example-ripple-container mat-elevation-z4"
                                                                         matRipple
-                                                                        [style]="'text-align:center;display: table;position: relative; width:100%; height: '+(getDayType(i,col_index)=='vacation'?'70px;':'35px;')+' background-color:antiquewhite'"
+                                                                        [style]="'text-align:center;display: table;position: relative; width:100%; height: '+(getDayType(i,col_index)=='vacation'?'140px;':'70px;')+' background-color:antiquewhite'"
                                                                         (click)="onDayClick(i,col_index,'vacation')">
-                                                                    <mat-icon   style="cursor: pointer; position: absolute; top:0px; right: -4px; font-size: 16px;" 
+                                                                    <mat-icon       class="table-cell-icon"  
                                                                                     (click)="deleteRecord(i,col_index,'vacation')" 
                                                                                     matTooltip="{{t('menu.top.btn_delete')}}"
                                                                                     *ngIf=(editability)>
@@ -746,23 +864,16 @@
                                                             </div>
 
                                                         </td>
-                                                        <!-- {{row.days[i].name}}  -->
                                                     </ng-container>                                            
                                               
                                                     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky:true;"></tr>
-                                                    <tr mat-row *matRowDef="let row; columns: displayedColumns;" style="height: 70px !important;"></tr>
-                                              
+                                                    <tr mat-row *matRowDef="let row; columns: displayedColumns;" style="height: 140px !important;"></tr>
                                                 </table>
                                             </section>
 
 
-
-
                                         </mat-card-content>
                                     </mat-card>
-
-
-
 
                                     
 
@@ -776,6 +887,6 @@
     </mat-card-content>
     <!-- <code><pre>{{queryForm.value | json}}</pre></code> -->
     <!-- <code><pre>{{workShiftForm.value | json}}</pre></code> -->
-    <code><pre>{{scheduleData | json}}</pre></code>
+    <!-- <code><pre>{{scheduleData | json}}</pre></code> -->
     
 </mat-card>
