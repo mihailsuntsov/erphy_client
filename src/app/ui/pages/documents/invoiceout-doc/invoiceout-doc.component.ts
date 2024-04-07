@@ -418,7 +418,7 @@ export class InvoiceoutDocComponent implements OnInit {
     this.getBaseData('myCompanyId');  
     this.getBaseData('companiesList');  
     this.getBaseData('myDepartmentsList');    
-    this.getBaseData('accountingCurrency');  
+    this.getBaseData('accountingCurrency');
     this.getBaseData('timeFormat');
   }
   //чтобы не было ExpressionChangedAfterItHasBeenCheckedError

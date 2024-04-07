@@ -1175,6 +1175,52 @@
                                                 </mat-hint>
                                             </mat-form-field>
                                         </div>
+                                        <mat-form-field  class="mat-form-field-100">
+                                            <mat-label>{{t('docs.field.bkng_doc_name_var')}}</mat-label>
+                                            <mat-select  
+                                                formControlName="booking_doc_name_variation_id"
+                                                [disabled]=!editability
+                                            >                          
+                                                <mat-option 
+                                                    [value]=1 
+                                                >
+                                                        {{t('docs.list.appointment')}}
+                                                </mat-option>                     
+                                                <mat-option 
+                                                    [value]=2
+                                                >
+                                                        {{t('docs.list.reservation')}}
+                                                </mat-option>                                                 
+                                            </mat-select>
+                                        </mat-form-field>
+                                        
+                                        <mat-form-field>
+                                            <mat-label>{{t('docs.field.time_zone')}} <span *ngIf="formBaseInformation.get('timeZoneName').value==0||formBaseInformation.get('timeZoneName').value==null" class="star">*</span></mat-label>
+                                            <input matInput
+                                            type="text"
+                                            formControlName="timeZoneName" 
+                                            [matAutocomplete]="auto" 
+                                            (input)="checkEmptyFields('time_zone_id','timeZoneName');"
+                                            (change)="checkEmptyFields('time_zone_id','timeZoneName');">
+                                            
+                                            <mat-icon 
+                                                matTooltip="{{t('docs.tip.clear_field')}}" 
+                                                class="add_circle"
+                                                (click)="clearField('timeZoneName');checkEmptyFields('time_zone_id','timeZoneName');" >
+                                                close
+                                            </mat-icon>
+                                            <mat-autocomplete #auto="matAutocomplete">
+                                            <mat-option *ngFor="let option of filteredSpravSysTimeZones | async" [value]="option.name">
+                                                <div (click)="formBaseInformation.get('time_zone_id').setValue(option.id)">
+                                                    <span style="margin:10px;">{{option.name}}</span>
+                                                </div>
+                                            </mat-option>
+                                            </mat-autocomplete>
+                                            <mat-hint  align="start" *ngIf="formBaseInformation.get('timeZoneName').touched && formBaseInformation.get('time_zone_id').invalid">
+                                                <i class="form-invalid">{{t('docs.error.field_miss')}}</i>
+                                            </mat-hint>
+                                        </mat-form-field>
+
                                     </mat-card-content>
                                 </mat-card>
                             </div>

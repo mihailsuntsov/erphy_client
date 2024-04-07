@@ -1080,8 +1080,13 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
       );
   }
   setDefaultCompany(){
-    if(+this.formBaseInformation.get('company_id').value==0)//если в настройках не было предприятия - ставим своё по дефолту
-      this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
+    this.formBaseInformation.get('company_id').setValue(
+      Cookie.get('customersorders_companyId')=="0"? // если нет информации о выбранном предприятии
+      //если в настройках не было предприятия - ставим своё по дефолту
+      (+this.formBaseInformation.get('company_id').value==0?this.myCompanyId:this.formBaseInformation.get('company_id').value)
+      :+Cookie.get('customersorders_companyId')
+    );
+      
     this.getDepartmentsList(); 
     this.getPriceTypesList();
     this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов

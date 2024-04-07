@@ -1,0 +1,168 @@
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12" style="padding-right:0;padding-left:0;">
+            <mat-toolbar style="background: #fff; border-bottom: solid 1px #e1e1e1;">
+                
+                <div class="toolbar-left toolbar-inner-space">
+                    <button (click)="drawercalendar.toggle()" mat-icon-button class="example-icon" aria-label="Example icon-button with menu icon">
+                    <mat-icon>menu</mat-icon>
+                    </button>
+                    <span>{{'menu.docs.calendar' | transloco}}</span>
+                </div>
+
+                <div class="toolbar-center toolbar-inner-space">
+                    
+                    <div class="toolbar-center-start">
+
+                        <div style="margin-right:15px">
+                            <button 
+                                mat-stroked-button 
+                                color="primary"
+                                mwlCalendarToday
+                                [(viewDate)]="viewDate"
+                                matTooltip="{{day_today}}"
+                                >{{'menu.top.btn_today' | transloco}}
+                            </button>
+                        </div>
+
+                        <button 
+                        mat-icon-button
+                        type="button" 
+                        class="mat-calendar-previous-button mdc-icon-button mat-mdc-icon-button mat-unthemed mat-mdc-button-base" 
+                        style="width: 40px; height: 40px; padding: 8px;"
+                        ng-reflect-disabled="false" 
+                        mwlCalendarPreviousView
+                        [view]="view"
+                        [(viewDate)]="viewDate"
+                        aria-label="Previous day">
+                            <span class="mat-mdc-button-persistent-ripple mdc-icon-button__ripple">
+
+                            </span>
+                            <span class="mat-mdc-focus-indicator">
+
+                            </span>
+                            <span matripple="" 
+                            class="mat-ripple 
+                            mat-mdc-button-ripple"
+                            ng-reflect-disabled="false" 
+                            ng-reflect-centered="true" 
+                            >
+                            </span>
+                            <span class="mat-mdc-button-touch-target">
+
+                            </span>
+                        </button>
+                        <button 
+                        mat-icon-button
+                        type="button" 
+                        class="mat-calendar-next-button mdc-icon-button mat-mdc-icon-button mat-unthemed mat-mdc-button-base" 
+                        style="width: 40px; height: 40px; padding: 8px;"
+                        ng-reflect-disabled="false" 
+                        mwlCalendarNextView
+                        [view]="view"
+                        [(viewDate)]="viewDate"
+                        aria-label="Previous day">
+                            <span class="mat-mdc-button-persistent-ripple mdc-icon-button__ripple">
+
+                            </span>
+                            <span class="mat-mdc-focus-indicator">
+
+                            </span>
+                            <span matripple="" 
+                            class="mat-ripple 
+                            mat-mdc-button-ripple"
+                            ng-reflect-disabled="false" 
+                            ng-reflect-centered="true" 
+                            >
+                            </span>
+                            <span class="mat-mdc-button-touch-target">
+
+                            </span>
+                        </button>
+                        <span style="line-height: 40px;margin-left: 20px;">
+                            {{wordsToUpperCase( viewDate | calendarDate:(view + 'ViewTitle'):locale )}}
+                        </span>
+                    </div>
+                    <div class="toolbar-center-delimitter">
+                    </div>
+                    <div class="toolbar-center-end">
+
+                        <button      
+                            [matMenuTriggerFor]="addDocMenu"
+                            mat-stroked-button 
+                            style="margin: 0 10px; width: 129px;height: 36px;min-width: 38px;"
+                            color="primary"
+                            (submit)="false"
+                            type="button">
+                            <span>
+                                {{'menu.top.'+view | transloco}}
+                            </span>
+                            <i class="material-icons">arrow_drop_down</i>
+                        </button>
+                    <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before" style="min-width: 240px;">
+                        <button mat-menu-item (click)="setView(CalendarView.Day)">
+                            <span>{{'menu.top.day' | transloco}}</span>
+                        </button>
+                        <button mat-menu-item (click)="setView(CalendarView.Week)">
+                            <span>{{'menu.top.week' | transloco}}</span>
+                        </button>
+                        <button mat-menu-item (click)="setView(CalendarView.Month)">
+                            <span>{{'menu.top.month' | transloco}}</span>
+                        </button>
+                    </mat-menu>
+                    </div>
+                </div>
+<div>
+    <!-- <span>locale:{{locale}}</span> -->
+</div>
+
+
+
+            </mat-toolbar>
+
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12" style="padding-right:0;padding-left:0;">
+            <mat-drawer-container class="doc-container" style="min-height: 700px;background-color: white;" autosize *transloco="let t">
+                <mat-drawer #drawercalendar class="categories-sidenav" mode="side" opened style="width:230px;">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-12" style="padding-right:0;padding-left:0;">
+                                <mat-calendar [(selected)]="selected"></mat-calendar>
+                            </div>
+                        </div>
+                    </div>
+                </mat-drawer>
+                <div class="categories-sidenav-content">
+                    <!-- weekStartsOn:{{weekStartsOn}} -->
+                    <div [ngSwitch]="view">
+                        <mwl-calendar-month-view
+                          *ngSwitchCase="'month'"
+                          [viewDate]="viewDate"
+                          [events]="events"
+                          [locale]="localeAngular"
+                        >
+                        </mwl-calendar-month-view>
+                        <mwl-calendar-week-view
+                          *ngSwitchCase="'week'"
+                          [viewDate]="viewDate"
+                          [events]="events"
+                          [locale]="localeAngular"
+                        >
+                        </mwl-calendar-week-view>
+                        <mwl-calendar-day-view
+                          *ngSwitchCase="'day'"
+                          [viewDate]="viewDate"
+                          [events]="events"
+                          [locale]="localeAngular" 
+                        >
+                        </mwl-calendar-day-view>
+                      </div>
+                </div>
+            </mat-drawer-container>
+        </div>
+    </div>
+</div>
+
+

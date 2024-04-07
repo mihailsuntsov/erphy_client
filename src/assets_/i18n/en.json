@@ -77,6 +77,7 @@
                 "registries":"Registries",
                 "docs":"Documents",
                 "reports":"Reports",
+                "scdling":"Scheduling",
                 "settings":"Settings"
             },
             "items":{
@@ -107,6 +108,8 @@
                 "posting":"Postings",
                 "moving":"Movings",
 
+                "calendar":"Calendar",
+
                 "paymentin":"Incoming payments",
                 "paymentout":"Outgoing payments",
                 "orderin":"Credit slips",
@@ -125,6 +128,9 @@
                 "expenditure":"Expenditures",
                 "pricetypes":"Price types",
                 "currencies":"Currencies",
+                "resources":"Resources",
+                "jobtitles":"Job titles",
+                "employeescdl":"Work schedule of employees",
 
                 "files":"Files",
 

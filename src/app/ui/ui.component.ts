@@ -334,9 +334,13 @@ export class UiComponent implements OnInit {
                 (data) => {   
                           this.getSettings(true);
                           this.openSnackBar(translate('docs.msg.settngs_saved'), translate('docs.msg.close'));
+                          this.refresh();
                         },
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
             );
+  }
+  refresh(): void {
+    window.location.reload();
   }
   getMyId(){
     this.loadSpravService.getMyId()

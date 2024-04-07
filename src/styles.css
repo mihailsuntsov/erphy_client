@@ -3,7 +3,7 @@
 /* @import '@angular/material/legacy-prebuilt-themes/legacy-deeppurple-amber.css'; */
 @import '@angular/material/prebuilt-themes/deeppurple-amber.css';
 /* @import '@angular/material/prebuilt-themes/pink-bluegrey.css'; */
-
+@import "../node_modules/angular-calendar/css/angular-calendar.css";
 
 
 body { 
@@ -364,7 +364,16 @@ mat-datepicker-toggle .mat-mdc-icon-button .mat-datepicker-toggle-default-icon{
 .mat-mdc-option .mat-pseudo-checkbox {
   display: none;
 }*/
-
+.mat-mdc-option{
+  padding-left: 0!important;
+  padding-right: 10px!important;
+}
+.mat-mdc-optgroup .mat-mdc-option {
+  padding-left: 32px!important;
+}
+.mat-mdc-option .mat-pseudo-checkbox-full {
+  margin: 8px 8px 8px 12px!important;
+}
 /* Editable inputs in product tables */
 .table-field-editable {
   border-bottom: 1px lightgray dotted!important;

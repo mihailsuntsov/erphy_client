@@ -105,9 +105,9 @@ interface docResponse {//интерфейс для получения ответ
   st_prefix_barcode_pieced: number;// prefix of barcode for pieced product
   st_prefix_barcode_packed: number;// prefix of barcode for packed product
   st_netcost_policy: string;       // policy of netcost calculation by all company or by each department separately
-
+  booking_doc_name_variation_id:number; // variation's id of name of booking document: 1-appointment, 2-reservation
   nds_included: boolean;                // used with nds_payer as default values for Customers orders fields "Tax" and "Tax included"
-
+  time_zone_id: number;                 // id of company's time zone
   // E-commerce integration
   /*
   is_store: boolean;                // on off the store
@@ -213,21 +213,23 @@ export class CompaniesDocComponent implements OnInit {
   searchRegionCtrl = new UntypedFormControl();//поле для поиска
   isRegionListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canRegionAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
-  filteredRegions: Region[];//массив для загрузки найденных по подстроке регионов
+  // filteredRegions: Region[];//массив для загрузки найденных по подстроке регионов
   searchJrRegionCtrl = new UntypedFormControl();//поле для поиска
   isJrRegionListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canJrRegionAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
-  filteredJrRegions: Region[];//массив для загрузки найденных по подстроке регионов
+  // filteredJrRegions: Region[];//массив для загрузки найденных по подстроке регионов
   // Города
   //для поиска района по подстроке
   searchCityCtrl = new UntypedFormControl();//поле для поиска
   isCityListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canCityAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
-  filteredCities: City[];//массив для загрузки найденных по подстроке городов
+  // filteredCities: City[];//массив для загрузки найденных по подстроке городов
   searchJrCityCtrl = new UntypedFormControl();//поле для поиска
   isJrCityListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canJrCityAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
-  filteredJrCities: City[];//массив для загрузки найденных по подстроке городов
+  // filteredJrCities: City[];//массив для загрузки найденных по подстроке городов
+  spravSysTimeZones: IdAndName[] = [];// массив, куда будут грузиться все зоны
+  filteredSpravSysTimeZones: Observable<IdAndName[]>; // here will be filtered time zones for showing in select list
   // Районы 
   area:string = '';
   jr_area:string = '';
@@ -244,7 +246,7 @@ export class CompaniesDocComponent implements OnInit {
   accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
   countryId:number;    // id of user's company country of jurisdiction
   organization = '';    // organization of country of jurisdiction(e.g. EU)
-
+  suffix:string = "en"; // суффикс 
   //Формы
   formBaseInformation:any;//форма для основной информации, содержащейся в документе
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
@@ -364,6 +366,11 @@ constructor(private activateRoute: ActivatedRoute,
       st_prefix_barcode_pieced: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{2}$')]), // prefix of barcode for pieced product
       st_prefix_barcode_packed: new UntypedFormControl      ('',[Validators.pattern('^[0-9]{2}$')]), // prefix of barcode for packed product
       st_netcost_policy:        new UntypedFormControl      ('all',[]), // policy of netcost calculation by "all" company or by "each" department separately
+      booking_doc_name_variation_id:  new UntypedFormControl      (1,[]),
+      time_zone_id:  new UntypedFormControl       (21,[]), // 21 is UTC (GMT+0) time zone
+      timeZoneName: new UntypedFormControl      ('',[]),
+
+
       
       // E-commerce integration
       /*
@@ -408,6 +415,13 @@ constructor(private activateRoute: ActivatedRoute,
     this.getBaseData('accountingCurrency');   
     this.getBaseData('countryId');   
     this.getBaseData('organization');  
+    this.getBaseData('suffix'); 
+    // listener of time zones field change
+    this.filteredSpravSysTimeZones = this.formBaseInformation.get('timeZoneName').valueChanges
+    .pipe(
+      startWith(''),
+      map((value:string) => this._filter(value,this.spravSysTimeZones))
+    );
 
     if(this.data)//если документ вызывается в окне из другого документа
     {
@@ -422,6 +436,8 @@ constructor(private activateRoute: ActivatedRoute,
     // this.onJrRegionSearchValueChanges();
     // this.onCitySearchValueChanges();
     // this.onJrCitySearchValueChanges();
+    this.getSpravSysTimeZones();
+
   }
 
   get regNumberName(){
@@ -561,23 +577,6 @@ onDefaultCreatorSearchValueChanges(){
         this.refreshPermissions();
       }
   }
-  // getCurrencyList(){
-  //   // console.log("getCurrencyList");
-  //   this.receivedCurrencyList=null;
-  //   this.http.get('/api/auth/getSpravSysCurrency')
-  //           .subscribe(
-  //               (data) => {this.receivedCurrencyList=data as any [];
-  //                 // console.log("receivedCurrencyList-"+this.receivedCurrencyList);
-  //                 this.setDefaultCurrency()},
-  //               error => console.log(error)
-  //           );
-  // }
-  // setDefaultCurrency(){
-  //   if(this.receivedCurrencyList.length>0 && +this.id==0)
-  //   {
-  //     this.formBaseInformation.get('currency_id').setValue(this.receivedCurrencyList[0].id);
-  //   }
-  // }
 
   getMyCompanyId(){ //+++
     if(+this.myCompanyId==0)
@@ -677,27 +676,9 @@ onDefaultCreatorSearchValueChanges(){
                   this.formBaseInformation.get('type').setValue(documentValues.type);
                   this.formBaseInformation.get('legal_form').setValue(documentValues.legal_form);                   
                   this.formBaseInformation.get('nds_included').setValue(documentValues.nds_included);
-                  /*                 
-                  this.formBaseInformation.get('is_store').setValue(documentValues.is_store);
-                  this.formBaseInformation.get('store_site_address').setValue(documentValues.store_site_address);
-                  this.formBaseInformation.get('store_key').setValue(documentValues.store_key);
-                  this.formBaseInformation.get('store_secret').setValue(documentValues.store_secret);
-                  this.formBaseInformation.get('store_type').setValue(documentValues.store_type);
-                  this.formBaseInformation.get('store_api_version').setValue(documentValues.store_api_version);
-                  this.formBaseInformation.get('crm_secret_key').setValue(documentValues.crm_secret_key);
-                  this.formBaseInformation.get('store_price_type_regular').setValue(documentValues.store_price_type_regular);
-                  this.formBaseInformation.get('store_price_type_sale').setValue(documentValues.store_price_type_sale);
-                  this.formBaseInformation.get('store_orders_department_id').setValue(documentValues.store_orders_department_id);
-                  this.formBaseInformation.get('store_if_customer_not_found').setValue(documentValues.store_if_customer_not_found);
-                  this.formBaseInformation.get('store_default_creator_id').setValue(documentValues.store_default_creator_id);
-                  this.formBaseInformation.get('store_days_for_esd').setValue(documentValues.store_days_for_esd);         
-                  this.formBaseInformation.get('store_auto_reserve').setValue(documentValues.store_auto_reserve);    
-                  this.formBaseInformation.get('companyStoreDepartments').setValue(documentValues.companyStoreDepartments);    
-                  this.formBaseInformation.get('store_ip').setValue(documentValues.store_ip);       
-                  this.searchCagentCtrl.setValue(documentValues.cagent);       
-                  this.searchDefaultCreatorCtrl.setValue(documentValues.store_default_creator);
-                  */
+                  this.formBaseInformation.get('booking_doc_name_variation_id').setValue(documentValues.booking_doc_name_variation_id);
                   this.formBaseInformation.get('store_default_lang_code').setValue(documentValues.store_default_lang_code); 
+                  this.formBaseInformation.get('time_zone_id').setValue(documentValues.time_zone_id);
 
                   
 
@@ -707,7 +688,7 @@ onDefaultCreatorSearchValueChanges(){
                   this.jr_area=documentValues.jr_area;
                   this.searchCityCtrl.setValue(this.area!=''?(documentValues.city+' ('+this.area+')'):documentValues.city);
                   this.searchJrCityCtrl.setValue(this.jr_area!=''?(documentValues.jr_city+' ('+this.jr_area+')'):documentValues.jr_city);
-                  
+                  this.updateValues('time_zone_id','timeZoneName',this.spravSysTimeZones);
                   // this.getStatusesList();
                   this.getCompaniesPaymentAccounts();
                   this.loadFilesInfo();
@@ -723,7 +704,38 @@ onDefaultCreatorSearchValueChanges(){
   clickBtnCreateNewDocument(){// Нажатие кнопки Записать
     this.createNewDocument();
   }
+  getSpravSysTimeZones():void {    
+    this.http.get('/api/auth/getSpravSysTimeZones?suffix='+this.suffix)  // 
+    .subscribe((data) => {this.spravSysTimeZones = data as any[];
+    this.updateValues('time_zone_id','timeZoneName',this.spravSysTimeZones); },
+    error => console.log(error));
+  }
+  //set name into text field, that matched id in list IdAndName[] (if id is not null)
+  updateValues(id:string,name:string,list:IdAndName[]){
+    if(+this.formBaseInformation.get(id).value!=0){
+      list.forEach(x => {
+        if(x.id==this.formBaseInformation.get(id).value){
+          this.formBaseInformation.get(name).setValue(x.name);
+    }})} 
+    else{ // if id is null - setting '' into the field (if we don't do it - there will be no list of values, when place cursor into the field)
+      this.formBaseInformation.get(name).setValue('');
+      this.formBaseInformation.get(id).setValue('');
+    }
+  }
   
+  // set id of field value into null when field search value is '' 
+  checkEmptyFields(id:string,name:string){
+    if( this.formBaseInformation.get(name).value.length==0){
+      this.formBaseInformation.get(id).setValue(null);
+    }
+  }
+  clearField(field:string){
+    this.formBaseInformation.get(field).setValue('');
+  }
+  private _filter(value: string, list:IdAndName[]): IdAndName[] {
+    const filterValue = value.toLowerCase();
+    return list.filter(option => option.name.toLowerCase().includes(filterValue));
+  }
   createNewDocument(){
     this.oneClickSaveControl=true;
     this.http.post('/api/auth/insertCompany', this.formBaseInformation.value)

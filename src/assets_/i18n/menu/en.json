@@ -41,7 +41,11 @@
         "cashier":      "Cashier",
         "sales_regstr": "Sales register",
         "all_av_c_regs":"All available sales registers",
-        "all_av_cashrs":"All available cashiers"
+        "all_av_cashrs":"All available cashiers",
+        "btn_today":    "Today",
+        "day":          "Day",
+        "week":         "Week",
+        "month":        "Month"
     },
     "tip":{
         "select_opt":   "Select options for the filter",
@@ -390,7 +394,8 @@
         "stores":       "online-stores (connections)",
         "ch_cat_stores":"Сhange online stores",
         "subscription": "subscription",
-        "del_ctgrs":    "Delete categories"
+        "del_ctgrs":    "Delete categories",
+        "calendar":     "Сalendar"
     },
     "indicators":{
         "revenue":      "Revenue",

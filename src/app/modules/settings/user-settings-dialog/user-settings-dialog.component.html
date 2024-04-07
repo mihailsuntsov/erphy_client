@@ -38,14 +38,20 @@
                                     [matAutocomplete]="lg" 
                                     (input)="checkEmptyFields('languageId','languageName');"
                                     (change)="checkEmptyFields('languageId','languageName');">
-                                <button
+                                <!-- <button
                                     type="button"
                                     class="clear-button"
                                     (click)="clearField('languageName');checkEmptyFields('languageId','languageName');"
                                     matTooltip="{{t('modules.tip.clr_srch')}}"
                                     matSuffix mat-icon-button>
                                     <mat-icon>close</mat-icon>
-                                </button>
+                                </button> -->
+                                <mat-icon 
+                                    matTooltip="{{t('docs.tip.clr_srch')}}" 
+                                    class="add_circle"
+                                    (click)="clearField('languageName');checkEmptyFields('languageId','languageName');">
+                                    close
+                                </mat-icon>
                                 <mat-autocomplete #lg="matAutocomplete">
                                 <mat-option *ngFor="let option of filteredSpravSysLanguages | async" [value]="option.name">
                                     <div (click)="settingsForm.get('languageId').setValue(option.id)">
@@ -71,14 +77,20 @@
                                     [matAutocomplete]="lc" 
                                     (input)="checkEmptyFields('localeId','localeName');"
                                     (change)="checkEmptyFields('localeId','localeName');">
-                                <button
+                                <!-- <button
                                     type="button"
                                     class="clear-button"
                                     (click)="clearField('localeName');checkEmptyFields('localeId','localeName');"
                                     matTooltip="{{t('modules.tip.clr_srch')}}"
                                     matSuffix mat-icon-button>
                                     <mat-icon>close</mat-icon>
-                                </button>
+                                </button> -->
+                                <mat-icon 
+                                    matTooltip="{{t('docs.tip.clr_srch')}}" 
+                                    class="add_circle"
+                                    (click)="clearField('localeName');checkEmptyFields('localeId','localeName');">
+                                    close
+                                </mat-icon>
                                 <mat-autocomplete #lc="matAutocomplete">
                                 <mat-option *ngFor="let option of filteredSpravSysLocales | async" [value]="option.name">
                                     <div (click)="settingsForm.get('localeId').setValue(option.id)">
@@ -120,14 +132,20 @@
                                     [matAutocomplete]="tz" 
                                     (input)="checkEmptyFields('timeZoneId','timeZoneName');"
                                     (change)="checkEmptyFields('timeZoneId','timeZoneName');">
-                                <button 
+                                <!-- <button 
                                     type="button"
                                     class="clear-button"
                                     (click)="clearField('timeZoneName'); checkEmptyFields('timeZoneId','timeZoneName');"
                                     matTooltip="{{t('modules.tip.clr_srch')}}"
                                     matSuffix mat-icon-button>
                                     <mat-icon>close</mat-icon>
-                                </button>
+                                </button> -->
+                                <mat-icon 
+                                    matTooltip="{{t('docs.tip.clr_srch')}}" 
+                                    class="add_circle"
+                                    (click)="clearField('timeZoneName'); checkEmptyFields('timeZoneId','timeZoneName');">
+                                    close
+                                </mat-icon>
                                 <mat-autocomplete #tz="matAutocomplete">
                                 <mat-option *ngFor="let option of filteredSpravSysTimeZones | async" [value]="option.name">
                                     <div (click)="settingsForm.get('timeZoneId').setValue(option.id)">

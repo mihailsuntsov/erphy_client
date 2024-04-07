@@ -20,14 +20,6 @@ li {list-style: none;}
     display: flex;
     flex-direction: column;
 }
-.add_circle {
-    cursor: pointer;
-    position: absolute;
-    top: 36px;
-    right: -5px;
-    color: #585858;
-    z-index: 1000;
-}
 .field-box{
     padding: 3px;
     margin: 5px;
@@ -88,12 +80,22 @@ li {list-style: none;}
     line-height:0 !important;
     vertical-align: middle;
 }
-.clear-button{
-    position: relative;
-    right: 0px;
-    top: 6px;
-    flex: 0 0 0%;
-    color: black;
-    z-index: 1000;
-    line-height: 34px !important;
+/*--------------- стили для статуса------------------*/
+/*для цветного круга в статусах*/
+ 
+  
+.circle-in-selected{
+    width: 20px;
+    height: 20px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    position:absolute;
+    top: 30px;
+	left:9px
 }
+/*название статуса*/
+.status-name {
+    display: inline-block;
+    line-height: 20px;
+} 

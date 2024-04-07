@@ -22,7 +22,14 @@ li {list-style: none;}
     display: flex;
     flex-direction: column;
 }
-
+.add_circle {
+    cursor: pointer;
+    position: absolute;
+    top: 24px;
+    right: -5px;
+    color: #585858;
+    z-index: 1000;
+}
 .invisible{display:none;}
 
 .card-name{ flex-grow: 1; }
@@ -42,15 +49,6 @@ top: 0;
 height: 100%;
 width:100%;
 border: 0px solid black;
-}
-
-.add_circle {
-    cursor: pointer;
-    position: absolute;
-    top: 42px;
-    right: 0px;
-    color: #585858;
-    z-index: 1000;
 }
 /*--------------категории-------------------*/
 .showchilds{
