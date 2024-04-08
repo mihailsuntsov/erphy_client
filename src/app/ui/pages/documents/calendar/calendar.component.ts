@@ -8,8 +8,8 @@ import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
 import { translate, TranslocoService } from '@ngneat/transloco';
 import { SelectionModel } from '@angular/cdk/collections';
-import { CalendarEvent, CalendarView, DAYS_OF_WEEK } from 'angular-calendar';
-import moment from 'moment';
+import { CalendarEvent, CalendarView, CalendarDateFormatter, DAYS_OF_WEEK } from 'angular-calendar';
+import moment, { Moment } from 'moment';
 import { MatDrawer } from '@angular/material/sidenav';
 import { MomentDefault } from 'src/app/services/moment-default';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
@@ -17,7 +17,8 @@ import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/materia
 import { CommonUtilitesService } from 'src/app/services/common_utilites.serviсe';
 const MY_FORMATS = MomentDefault.getMomentFormat();
 // const moment = MomentDefault.getMomentDefault();
-
+import { CustomDateFormatter } from './custom-date-formatter.provider';
+import { DataService } from './data.service';
 
 export interface IdAndName {
   id: number;
@@ -29,9 +30,13 @@ export interface IdAndName {
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [LoadSpravService,CommonUtilitesService,
+  providers: [LoadSpravService,CommonUtilitesService,CustomDateFormatter,
     { provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]},
-    {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},] 
+    {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
+    {
+      provide: CalendarDateFormatter,
+      useClass: CustomDateFormatter,
+    },] 
 })
 export class CalendarComponent implements OnInit {
 
@@ -43,6 +48,7 @@ export class CalendarComponent implements OnInit {
   today = moment();
   receivedCompaniesList: any [] = [];
   myCompanyId:number=0;//
+  timeFormat:string='';
   selected: Date | null;
   @ViewChild('drawercalendar') public drawercalendar: MatDrawer;
   CalendarView = CalendarView;
@@ -51,7 +57,6 @@ export class CalendarComponent implements OnInit {
     this.view = view;
   }
   locale:string='en-us';// locale (for dates, calendar etc.)
-
   //переменные прав
   permissionsSet: any[];//сет прав на документ
   // allowToViewAllCompanies:boolean = false;
@@ -97,15 +102,19 @@ export class CalendarComponent implements OnInit {
     public deleteDialog: MatDialog,
     private _adapter: DateAdapter<any>,
     public cu: CommonUtilitesService, 
+    private dataService: DataService,
+    public cdf: CustomDateFormatter,
     private service: TranslocoService,) {
       
     }
 
     ngOnInit() {
+      this.cdf.timeFormat="HH:mm";
       this.getBaseData('myId');    
       this.getBaseData('myCompanyId');  
       this.getBaseData('companiesList');
       this.getBaseData('myDepartmentsList');
+      this.getBaseData('timeFormat');
 
       // this.getBaseData('timeFormat');
       moment.updateLocale(this.locale, {
@@ -114,8 +123,21 @@ export class CalendarComponent implements OnInit {
           doy: 0,
         },
       });
+      //sending time formaf of user to injectable provider where it need to format time
+      this.dataService.setData(this.timeFormat=='24'?'HH:mm':'h:mm a');
     }
-    
+
+
+    matCalendarChangedValue(event:Moment): void {
+      this.changeDay(event.toDate());
+    }
+
+    changeDay(date: Date) {
+      this.viewDate = date;
+      // this.view = CalendarView.Day;
+    }
+
+
     get day_today(){
       this.today.locale(this.locale);
       // var d2 = moment(today).add(2, 'days').format('ddd').toUpperCase();

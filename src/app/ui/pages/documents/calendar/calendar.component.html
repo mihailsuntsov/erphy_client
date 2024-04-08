@@ -79,8 +79,11 @@
 
                             </span>
                         </button>
+                        <!-- <span style="line-height: 40px;margin-left: 20px; font-size: 14px;"> -->
                         <span style="line-height: 40px;margin-left: 20px;">
-                            {{wordsToUpperCase( viewDate | calendarDate:(view + 'ViewTitle'):locale )}}
+                            <!-- viewDate-{{viewDate}}, 
+                            selected-{{selected}}<br> -->
+                            {{wordsToUpperCase( viewDate | calendarDate:(view + 'ViewTitle'):locale:weekStartsOn )}}
                         </span>
                     </div>
                     <div class="toolbar-center-delimitter">
@@ -114,6 +117,9 @@
                 </div>
 <div>
     <!-- <span>locale:{{locale}}</span> -->
+    <!-- <span>timeFormat:{{timeFormat}}</span><br>
+    
+    <span>timeFormatCdf:{{cdf.timeFormat}}</span> -->
 </div>
 
 
@@ -129,7 +135,10 @@
                     <div class="container-fluid">
                         <div class="row">
                             <div class="col-12" style="padding-right:0;padding-left:0;">
-                                <mat-calendar [(selected)]="selected"></mat-calendar>
+                                <mat-calendar 
+                                [(selected)]="selected" 
+                                (selectedChange)="matCalendarChangedValue($event)">
+                            </mat-calendar>
                             </div>
                         </div>
                     </div>
