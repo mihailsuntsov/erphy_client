@@ -45,6 +45,9 @@ li {list-style: none;}
     height: 0;
 }
 ::ng-deep .mat-calendar-body-label{
+    opacity: 0;
+}
+::ng-deep .mat-calendar-body-label[colspan="7"]{
     display: none;
 }
 ::ng-deep .mat-calendar-table-header-divider::after {
@@ -93,4 +96,14 @@ li {list-style: none;}
     display: -webkit-flex;
     display: flex;
     -webkit-user-select: none;
+}
+/* calendar */
+::ng-deep .cal-day-headers{
+    position: fixed;
+    top: 64px;
+    z-index: 1000;
+    width: -webkit-fill-available;  /* Mozilla-based browsers will ignore this. */
+    width: -moz-available;          /* WebKit-based browsers will ignore this. */
+    /* width: fill-available; */
+    background-color: white;
 }

@@ -19,6 +19,7 @@ const MY_FORMATS = MomentDefault.getMomentFormat();
 // const moment = MomentDefault.getMomentDefault();
 import { CustomDateFormatter } from './custom-date-formatter.provider';
 import { DataService } from './data.service';
+import { MatCalendar } from '@angular/material/datepicker';
 
 export interface IdAndName {
   id: number;
@@ -88,7 +89,8 @@ export class CalendarComponent implements OnInit {
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
   //***********************************************************************************************************************/
   @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
-
+  @ViewChild('calendar', {static: false}) calendar: MatCalendar<Date>;
+  
   constructor(
     private httpService:   LoadSpravService,
     private loadSpravService:   LoadSpravService,
@@ -127,14 +129,30 @@ export class CalendarComponent implements OnInit {
       this.dataService.setData(this.timeFormat=='24'?'HH:mm':'h:mm a');
     }
 
-
-    matCalendarChangedValue(event:Moment): void {
-      this.changeDay(event.toDate());
+    onClickTodayButton(){
+      this.changeDateMatCalendar(this.viewDate)
+    }
+    onClickNextButton(){
+      if(this.view=='day') this.changeDateMatCalendar(this.viewDate);
+    }
+    
+    onClickPreviousButton(){
+      if(this.view=='day') this.changeDateMatCalendar(this.viewDate);
+    }
+    matCalendarOnclickDay(event:Moment): void {
+      this.changeDateAngularCalendar(event.toDate());
+      console.log('event1',event.toDate());
+    }
+    angularCalendarOnClickDay(event:any): void {
+      this.changeDateMatCalendar(new Date(event))
     }
 
-    changeDay(date: Date) {
+    changeDateAngularCalendar(date: Date) {
       this.viewDate = date;
-      // this.view = CalendarView.Day;
+    }
+    changeDateMatCalendar(date: Date) {
+      let date_ = this._adapter.parse(moment(date).format('YYYY-MM-DD'), 'YYYY-MM-DD');
+      this.calendar._goToDateInView(this._adapter.getValidDateOrNull(date_), 'month');
     }
 
 

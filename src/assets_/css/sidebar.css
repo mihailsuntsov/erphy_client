@@ -47,6 +47,9 @@
     opacity: 0;
     pointer-events: none;
 }
+.sidebar.close .logo-details a{
+    display: none;
+}
 .sidebar .nav-links{
     height: 89%;
     padding: 30px 0 0 0;
@@ -205,7 +208,7 @@
     height: 100%;
     min-height: 100vh;
     transition: all 0.5s ease;
-    overflow-x: hidden;/*чтобы не возникала горизонтальная полоса прокрутки*/
+    /*overflow-x: hidden;чтобы не возникала горизонтальная полоса прокрутки*/
 }
 .sidebar.close ~ .home-section{
     left:78px;
