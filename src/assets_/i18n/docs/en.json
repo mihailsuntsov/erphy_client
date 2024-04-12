@@ -355,7 +355,14 @@
         "wroff_date":"Date",
         "oper_type":"Operation type",
         "oper_sum":"Operation sum",
-        "is_let_sync":  "Connection allowed"
+        "is_let_sync":  "Connection allowed",
+        "dep_parts":"Department parts",
+        "job_titles":"Job titles",
+        "is_paid":"Paid",
+        "payment_per_day":"Payment in one day",
+        "dep_empl":"Departments of employee",
+        "bkng_doc_name_var":"Name of the booking document",
+        "documents":"Documents"
     },
     "error":{ 
         "-- COMMON":"--",
@@ -775,7 +782,11 @@
         "gen_variation":"Generate all possible variations",
         "del_variation":"Delete all variations",
         "like_estmtd":"Like estimated",
-        "another":"Another"
+        "another":"Another",
+        "appointment":"Appointment",
+        "reservation":"Reservation",
+        "appointments":"Appointments",
+        "reservations":"Reservations"
     },
     "docs":{            
         "role":         "Role",

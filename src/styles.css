@@ -354,9 +354,22 @@ mat-datepicker-toggle .mat-mdc-icon-button .mat-datepicker-toggle-default-icon{
 
 /* Select list - user can't select if clicking not on the <SPAN> tag */
 .mat-mdc-option .mdc-list-item__primary-text {
-  line-height: 48px!important;
+  line-height: 26px!important;
   width: 100%!important;
   padding-left:10px;
+}
+/* Select list width will be in accordance with its content 
+need to add into providers:
+    {
+        provide: MAT_SELECT_CONFIG,
+        useValue: { overlayPanelClass: 'expandable-overlay-panel' }
+    }
+*/
+.expandable-overlay-panel
+{
+  min-width: min-content !important;
+  /* width: 100% !important; */
+  width: unset !important;
 }
 /*.mat-mdc-option{
   padding: 0!important;

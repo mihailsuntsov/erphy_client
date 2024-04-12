@@ -8,6 +8,8 @@
                     <mat-icon>menu</mat-icon>
                     </button>
                     <span>{{'menu.docs.calendar' | transloco}}</span>
+                    <!-- -{{showDocumntsField}}- -->
+                    -{{calendarDayHeight}}-{{dayEventClicked}}
                 </div>
 
                 <div class="toolbar-center toolbar-inner-space">
@@ -35,6 +37,7 @@
                         mwlCalendarPreviousView
                         [view]="view"
                         [(viewDate)]="viewDate"
+                        (viewDateChange)="closeOpenMonthViewDay()"
                         (click)="onClickPreviousButton()"
                         aria-label="Previous day">
                             <span class="mat-mdc-button-persistent-ripple mdc-icon-button__ripple">
@@ -63,6 +66,7 @@
                         mwlCalendarNextView
                         [view]="view"
                         [(viewDate)]="viewDate"
+                        (viewDateChange)="closeOpenMonthViewDay()"
                         (click)="onClickNextButton()"
                         aria-label="Next day">
                             <span class="mat-mdc-button-persistent-ripple mdc-icon-button__ripple">
@@ -134,7 +138,7 @@
     <div class="row">
         <div class="col-12" style="padding-right:0;padding-left:0;">
             <mat-drawer-container class="doc-container" style="min-height: 700px;background-color: white;" autosize *transloco="let t">
-                <mat-drawer #drawercalendar class="categories-sidenav" mode="side" opened style="width:230px;position: fixed; top: 65px;">
+                <mat-drawer #drawercalendar class="categories-sidenav" mode="side" opened style="width:280px;position: fixed; top: 65px;">
                     <div class="container-fluid">
                         <div class="row">
                             <div class="col-12" style="padding-right:0;padding-left:0;">
@@ -144,34 +148,229 @@
                             </mat-calendar>
                             </div>
                         </div>
+                        <form class="form-horizontal" [formGroup]="queryForm">
+                            <div class="row">
+                                <div class="col-12">
+                                    <mat-form-field id="docs" class="mat-form-field-100" *ngIf="showDocumntsField">
+                                        <mat-label>{{t('docs.field.documents')}}</mat-label>
+                                        <mat-select  
+                                            formControlName="documents"
+                                            [disabled]=!editability
+                                            multiple
+                                        >                          
+                                            <mat-option style="width: 259px;"
+                                                [value]=59
+                                            >
+                                                    <span>{{t('docs.list.'+companySettings.booking_doc_name_variation+'s')}}</span><!-- like 'appointmentS'-->
+                                            </mat-option>                                            
+                                        </mat-select>
+                                    </mat-form-field>
+                                    <mat-form-field class="mat-form-field-100">
+                                        <mat-label>{{t('docs.field.job_titles')}}</mat-label>
+                                        <mat-select
+                                            panelClass="department-list"
+                                            formControlName="jobtitles"
+                                            [disabled]="!editability"
+                                            #select
+                                            multiple>
+                                            <div class="button-row">
+                                                <button 
+                                                    mat-icon-button 
+                                                    matTooltip="{{t('docs.tip.select_all')}}" 
+                                                    class="btn-gray-color"
+                                                    (click)="selectAllCheckList('jobtitles','queryForm')"
+                                                >
+                                                    <mat-icon>fact_check</mat-icon>
+                                                </button>
+                                                <button 
+                                                    mat-icon-button 
+                                                    matTooltip="{{t('docs.tip.unselect_all')}}" 
+                                                    class="btn-gray-color"
+                                                    (click)="unselectAllCheckList('jobtitles','queryForm')">
+                                                    <mat-icon>ballot</mat-icon>
+                                                </button>
+                                            </div>
+                                            <mat-option
+                                                *ngFor= "let jt of receivedJobtitlesList;"
+                                                [value]="jt.jobtitle_id"
+                                                [matTooltip]="jt.description"
+                                                [matTooltipPosition]="'right'"
+                                            >
+                                                {{jt.name}}
+                                            </mat-option>
+                                        </mat-select>
+                                    </mat-form-field>
+                                    <mat-form-field class="mat-form-field-100">
+                                        <mat-label>{{t('docs.field.dep_parts')}} <span *ngIf="queryForm.get('depparts').value.length==0" class="star">*</span></mat-label>
+                                        <mat-select
+                                            panelClass="department-list"
+                                            formControlName="depparts"
+                                            #mySelect
+                                            multiple>
+                                            <div class="button-row">
+                                                <button 
+                                                    mat-icon-button 
+                                                    [disabled]="!editability"
+                                                    matTooltip="{{t('docs.tip.select_all')}}" 
+                                                    class="btn-gray-color"
+                                                    (click)="selectAllCheckList('depparts','queryForm')"
+                                                >
+                                                <mat-icon>fact_check</mat-icon>
+                                                </button>
+                                                <button 
+                                                    mat-icon-button 
+                                                    [disabled]="!editability"
+                                                    matTooltip="{{t('docs.tip.unselect_all')}}" 
+                                                    class="btn-gray-color"
+                                                    (click)="unselectAllCheckList('depparts','queryForm')">
+                                                <mat-icon>ballot</mat-icon>
+                                                </button>
+                                            </div>
+                                            <mat-optgroup 
+                                                *ngFor="let department of receivedDepartmentsWithPartsList;"
+                                            >
+                                                <span class="optgroup-name">{{department.department_name}}</span>
+                                                <button 
+                                                    mat-icon-button 
+                                                    [disabled]="!editability"
+                                                    matTooltip="{{t('docs.tip.select_all_onedep')}}" 
+                                                    class="btn-gray-color"
+                                                    (click)="selectAllDepPartsOneDep(department.department_id,'queryForm')"
+                                                >
+                                                <mat-icon>fact_check</mat-icon>
+                                                </button>
+                                                <button 
+                                                    mat-icon-button 
+                                                    [disabled]="!editability"
+                                                    matTooltip="{{t('docs.tip.unselect_all_onedep')}}" 
+                                                    class="btn-gray-color" 
+                                                    (click)="unselectAllDepPartsOneDep(department.department_id,'queryForm')">
+                                                <mat-icon>ballot</mat-icon>
+                                                </button>
+                                                    <mat-option *ngFor= "let part of department.parts;"
+                                                        style="width: 100%;"
+                                                        [value]="part.id"
+                                                        [matTooltip]="part.description"
+                                                        [matTooltipPosition]="'right'"
+                                                    >
+                                                        {{part.name}}
+                                                        <button
+                                                            mat-icon-button 
+                                                            [disabled]="!editability"
+                                                            [matMenuTriggerFor]="deppart_info"
+                                                            class="btn-gray-color btn-option-info"
+                                                            (click)="getDeppartServicesNamesList(part.id)"
+                                                        > 
+                                                        <mat-icon
+                                                            style="border-radius: 50%;
+                                                            background-image: url(/assets_/images/other/info_icon.png);
+                                                            background-position: center top;
+                                                            background-size: 100% auto;"
+                                                        ></mat-icon>
+                                                        </button>
+                                                    </mat-option>
+                                                    
+                                                    
+                                                <!-- </span> -->
+                                            </mat-optgroup>
+                                        </mat-select>
+                                        <mat-menu #deppart_info="matMenu" xPosition="after">
+                                            <div style="width: 300px;">
+                                                <ul  style="margin: 0px; padding: 12px;">
+                                                    <li *ngFor="let name of servicesList">
+                                                        <span style="position: relative; top: -6px;left: 3px;">{{name}}</span>
+                                                    </li>
+                                                </ul>
+                                                <span *ngIf="servicesList.length==0" style="position: relative;top:-8px;left:10px;">{{t('docs.msg.no_srvcs_this_part')}}</span>
+                                            </div>
+                                        </mat-menu>
+                                    </mat-form-field>
+                                    <mat-accordion style="margin-top:30px;">
+                                        <mat-expansion-panel style="border:0px solid white; box-shadow: unset;margin-top: 20px;">
+                                            <mat-expansion-panel-header style="height: 20px;padding: 2px;">
+                                                <mat-panel-title>
+                                                Additional
+                                                </mat-panel-title>
+                                            </mat-expansion-panel-header>
+                                            <mat-form-field class="mat-form-field-100">
+                                                <mat-label>{{t('menu.top.company')}}</mat-label>
+                                                <mat-select formControlName="companyId"
+                                                [disabled]="!editability"
+                                                (selectionChange)="onCompanySelection()">                          
+                                                    <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
+                                                            {{rt.name}}
+                                                    </mat-option>
+                                                </mat-select>
+                                            </mat-form-field>
+                                        </mat-expansion-panel>
+                                    </mat-accordion>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </mat-drawer>
-                <div class="categories-sidenav-content">
+                <ng-template #customCellTemplate let-day="day" let-locale="locale">
+                    <div class="cal-cell-top" [style]="'min-height: '+calendarDayHeight+'px; position: relative;overflow:hidden;'">
+                      <span class="cal-day-badge" 
+                      *ngIf="day.badgeTotal > 0"
+                        >{{ day.badgeTotal }}</span
+                      >
+                      <span class="cal-day-number"
+                        >{{ day.date | calendarDate:'monthViewDayNumber':locale }}</span
+                      >
+
+                        <div [style]="'height: '+(calendarDayHeight-dayHeaderHeight)+'px;'" class="day-events-container">
+                            <div  *ngFor="let ev of day.events; let i = index"
+                                    [style]="'width: '+(calendar_area.offsetWidth/7-2)+'px;'"
+                                    class="day-event"
+                                    [ngStyle]="((i+1)>maxNumberDayDisplayedEvents)?{'display':'none'}:{}"
+                                    (click)="onEventClick()">
+                                       {{ev.title}}
+                            </div>
+                        </div>
+                        <div class="day-bottom" *ngIf="day.badgeTotal>maxNumberDayDisplayedEvents">
+                            <span>... и ещё {{day.badgeTotal-maxNumberDayDisplayedEvents}}</span>
+                        </div>
+
+                    </div>
+                    <!-- <small style="margin: 5px"
+                      >There are {{ day.events.length }} events on this day</small
+                    > -->
+                </ng-template>
+                <div #calendar_area class="categories-sidenav-content">
                     <!-- weekStartsOn:{{weekStartsOn}} -->
                     <div [ngSwitch]="view">
                         <mwl-calendar-month-view
                           *ngSwitchCase="'month'"
                           [viewDate]="viewDate"
+                          [refresh]="refresh"
                           [events]="events"
                           [locale]="localeAngular"
-                          (dayClicked)="angularCalendarOnClickDay($event.day.date)"
+                          [activeDayIsOpen]="activeDayIsOpen"
+                          (dayClicked)=" angularCalendarOnClickDay($event.day.date); dayClicked($event.day)"
+                          (eventClicked)="handleEvent('Clicked', $event.event)"
+                          [cellTemplate]="customCellTemplate"
                         >
                         </mwl-calendar-month-view>
                         <mwl-calendar-week-view
                           *ngSwitchCase="'week'"
                           [viewDate]="viewDate"
+                          [refresh]="refresh"
                           [events]="events"
                           [locale]="localeAngular"
-                          (dayHeaderClicked)="angularCalendarOnClickDay($event.day.date)"
-                          (hourSegmentClicked)="angularCalendarOnClickDay($event.date)"                      
+                          (dayHeaderClicked)="angularCalendarOnClickDay($event.day.date);"
+                          (hourSegmentClicked)="angularCalendarOnClickDay($event.date)"
+                          (eventClicked)="handleEvent('Clicked', $event.event)"
                         >
                         </mwl-calendar-week-view>
                         <mwl-calendar-day-view
                           *ngSwitchCase="'day'"
                           [viewDate]="viewDate"
+                          [refresh]="refresh"
                           [events]="events"
                           [locale]="localeAngular" 
                           (hourSegmentClicked)="angularCalendarOnClickDay($event.date)"
+                          (eventClicked)="handleEvent('Clicked', $event.event)"
                         >
                         </mwl-calendar-day-view>
                       </div>
@@ -179,6 +378,7 @@
             </mat-drawer-container>
         </div>
     </div>
+    <!-- <code><pre>{{queryForm.value | json}}</pre></code> -->
 </div>
 
 

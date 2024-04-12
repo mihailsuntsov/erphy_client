@@ -97,3 +97,7 @@ li {list-style: none;}
     z-index: 1000;
     line-height: 34px !important;
 }
+/* Select list - user can't select if clicking not on the <SPAN> tag */
+::ng-deep .mat-mdc-option .mdc-list-item__primary-text {
+    line-height: 46px!important;
+}

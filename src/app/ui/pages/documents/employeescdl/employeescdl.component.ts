@@ -19,7 +19,7 @@ import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/materia
 const MY_FORMATS = MomentDefault.getMomentFormat();
 const moment = MomentDefault.getMomentDefault();
 import { LOCALE_ID, Inject } from '@angular/core';
-import { MatSelect } from '@angular/material/select';
+// import { MatSelect } from '@angular/material/select';
 
 
 interface EmployeeScedule {
@@ -143,7 +143,7 @@ export class EmployeeScdlComponent implements OnInit {
   //***********************************************************************************************************************/
   @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
   
-  @ViewChild(MatSelect, { static: false }) mySelect: MatSelect;
+  // @ViewChild(MatSelect, { static: false }) mySelect: MatSelect;
 
   private scrollTopBeforeSelection: number;
 
@@ -207,7 +207,7 @@ export class EmployeeScdlComponent implements OnInit {
     moment.locale(this.locale);
     // this.getSettings();
     // this._adapter.get
-    this.mixColors()
+    this.mixColors();
   }
   // ngAfterViewInit(): void {
   //   setTimeout(() => { 
