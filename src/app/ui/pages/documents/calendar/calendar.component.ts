@@ -21,6 +21,7 @@ import { DataService } from './data.service';
 import { MatCalendar } from '@angular/material/datepicker';
 import { UntypedFormGroup, UntypedFormControl, UntypedFormArray, UntypedFormBuilder, Validators } from '@angular/forms';
 import { MAT_SELECT_CONFIG } from '@angular/material/select';
+import { AppointmentsDocComponent } from '../appointments-doc/appointments-doc.component';
 const  MY_FORMATS = MomentDefault.getMomentFormat();
 const  moment = MomentDefault.getMomentDefault();
 
@@ -94,6 +95,7 @@ export class CalendarComponent implements OnInit {
   booking_doc_name_variation: string = 'appointment';
   dayHeaderHeight=43; // heigth of day header, that contained date and badge
   dayEventClicked=false;
+  dayAddEventBtnClicked=false;
   documntsList: IdAndName[] = [
     {
       id: 60,
@@ -133,6 +135,7 @@ export class CalendarComponent implements OnInit {
     public ConfirmDialog: MatDialog,
     private http: HttpClient,
     public deleteDialog: MatDialog,
+    public dialogDocumentCard: MatDialog,
     private _adapter: DateAdapter<any>,
     public cu: CommonUtilitesService, 
     private dataService: DataService,
@@ -266,16 +269,23 @@ export class CalendarComponent implements OnInit {
         if(!data){
           this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('docs.msg.c_err_exe_qury')}})
         }
-        events=data as any[];
+        events=data as CalendarEvent[];
         events.map(event=>{
           this.events.push({
+            "id": event.id,
             "start": new Date(event.start),
             "end": new Date(event.end),
             "title": event.title,
             "color": {
                 "primary": event.color.primary?event.color.primary:"#673ab7",
                 "secondary": event.color.primary?event.color.primary:"#ece9fb"
-            }
+            },
+            resizable: {
+              beforeStart: true,
+              afterEnd: true,
+          },
+          draggable:true,
+            "meta": event.meta,
           })
         })
     this.refreshView();
@@ -333,8 +343,8 @@ export class CalendarComponent implements OnInit {
       this.calendar.selected=this._adapter.getValidDateOrNull(date_);
     }
     dayClicked({ date, events }: { date: Date; events: CalendarEvent[] }): void {
-      console.log('same month',(moment(date).isSame(this.viewDate, "month")));
-      console.log('same day',(moment(this.viewDate).isSame(date, "day")));
+      // console.log('same month',(moment(date).isSame(this.viewDate, "month")));
+      // console.log('same day',(moment(this.viewDate).isSame(date, "day")));
       if (moment(date).isSame(this.viewDate, "month")) {
         if (
           (moment(this.viewDate).isSame(date, "day") && this.activeDayIsOpen === true)  ||
@@ -342,15 +352,21 @@ export class CalendarComponent implements OnInit {
         ) {
           this.activeDayIsOpen = false;
         } else {
-          if(!this.dayEventClicked) this.activeDayIsOpen = true;
+          if(!this.dayEventClicked && !this.dayAddEventBtnClicked) this.activeDayIsOpen = true;
         }
         this.viewDate = date;
         this.dayEventClicked = false;
+        this.dayAddEventBtnClicked = false;
       }
     }
-    onEventClick(){
-      this.dayEventClicked=true;
-      console.log('onEventClick') 
+    onEventClick(event: CalendarEvent): void{
+      console.log('event',event);
+      // this.dayEventClicked=true;
+      // console.log('onEventClick') 
+    }
+    onDayAddEventBtnClick(date: Date){
+      console.log('Will be added event at ' + date);
+      this.openAppointmentCard(null, date);
     }
     handleEvent(action: string, event: CalendarEvent): void {
       console.log('action',action)
@@ -511,6 +527,28 @@ export class CalendarComponent implements OnInit {
       // console.log('depparts',depparts)
       return depparts;
     }
+
+    openAppointmentCard(docId: number, date?: Date){
+      const dialogRef = this.dialogDocumentCard.open(AppointmentsDocComponent, {
+        maxWidth: '95vw',
+        maxHeight: '95vh',
+        height: '95%',
+        width: '95%',
+        data:
+        { 
+          mode:       'window',
+          companyId:  this.queryForm.get('companyId').value,
+          id:         docId,
+          date:       date
+        },
+      });
+      dialogRef.afterClosed().subscribe(result => {
+        console.log(`Dialog result: ${result}`);
+        // if(result)
+        //   this.addFilesToappointments(result);
+      });
+    }
+
     // uncheckPlacesOfWork(){
     //   let allDeppartsOfSelectedDepartments:number[]=[];
     //   this.queryForm.get('departments').value.map(i=>{

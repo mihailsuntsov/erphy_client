@@ -9,7 +9,7 @@
                     </button>
                     <span>{{'menu.docs.calendar' | transloco}}</span>
                     <!-- -{{showDocumntsField}}- -->
-                    -{{calendarDayHeight}}-{{dayEventClicked}}
+                    <!-- -{{calendarDayHeight}}-{{dayEventClicked}} -->
                 </div>
 
                 <div class="toolbar-center toolbar-inner-space">
@@ -287,7 +287,7 @@
                                     </mat-form-field>
                                     <mat-accordion style="margin-top:30px;">
                                         <mat-expansion-panel style="border:0px solid white; box-shadow: unset;margin-top: 20px;">
-                                            <mat-expansion-panel-header style="height: 20px;padding: 2px;">
+                                            <mat-expansion-panel-header style="/*height: 20px;*/padding: 2px;">
                                                 <mat-panel-title>
                                                 Additional
                                                 </mat-panel-title>
@@ -318,13 +318,19 @@
                       <span class="cal-day-number"
                         >{{ day.date | calendarDate:'monthViewDayNumber':locale }}</span
                       >
-
-                        <div [style]="'height: '+(calendarDayHeight-dayHeaderHeight)+'px;'" class="day-events-container">
+                        <div class="add-event-day-area" [style]="'height: '+(day.badgeTotal > 0?dayHeaderHeight:calendarDayHeight)+'px;'">
+                            <button mat-stroked-button class="add-event-day-button" (click)="dayEventClicked=true; onDayAddEventBtnClick(day.date)">
+                                <span class="material-icons">
+                                    add
+                                </span>
+                            </button>
+                        </div>
+                        <div *ngIf="day.events.length > 0" [style]="'height: '+(calendarDayHeight-dayHeaderHeight)+'px;'" class="day-events-container">
                             <div  *ngFor="let ev of day.events; let i = index"
                                     [style]="'width: '+(calendar_area.offsetWidth/7-2)+'px;'"
                                     class="day-event"
                                     [ngStyle]="((i+1)>maxNumberDayDisplayedEvents)?{'display':'none'}:{}"
-                                    (click)="onEventClick()">
+                                    (click)="dayAddEventBtnClicked=true; onEventClick(ev)">
                                        {{ev.title}}
                             </div>
                         </div>

@@ -138,17 +138,24 @@ li {list-style: none;}
 ::ng-deep .cal-month-view .cal-day-cell.cal-today .cal-day-number {
     font-size: 1.2em;
     background-color: #673ab7;
-    padding: 8px;
+    padding: 2px 4px 1px 1px;
     opacity: 1 !important;
     color: white;
-    border-radius: 50%;
-    margin-top: 0px;
+    border-radius: 56%;
+    /* margin-top: 0px; */
     display: inline-block;
-    letter-spacing: 0.3px;
-    margin: 2px!important;
+    letter-spacing: -0.6px;
+    margin: 1px !important;
 }
 ::ng-deep .cal-month-view .cal-day-cell.cal-today {
     background-color: unset;
+}
+
+/* ::ng-deep .cal-month-view .cal-cell-row .cal-cell:hover {
+    background-color: unset !important;
+} */
+.cal-cell-top:hover > .add-event-day-area {
+    display: flex;
 }
 .day-event{
     white-space: nowrap;
@@ -178,3 +185,26 @@ li {list-style: none;}
     opacity: 0.8;
     font-size: 13px;
 }
+.add-event-day-area{
+    width:100%;
+    /* border: 1px dotted red; */
+    /* text-align:center;     */
+    position: absolute;
+    top: 0;
+    background-color: unset;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.add-event-day-button{
+    padding: 0;
+    min-width: 36px!important;
+    width: 36px!important;
+    height: 36px;
+    color: rgba(76, 76, 76, 0.3)!important;
+    border-radius: 50%;
+    border: 1px solid rgba(76, 76, 76, 0.3);
+}
+/* .add-event-day-area:hover {
+    background-color: #ededed !important;
+} */

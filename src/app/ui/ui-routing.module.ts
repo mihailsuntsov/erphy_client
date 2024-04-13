@@ -106,8 +106,10 @@ const routes: Routes = [
       { path: 'jobtitlesdoc', loadChildren: () => import('./pages/documents/jobtitles-doc/jobtitles-doc.module').then(m => m.JobtitlesDocModule) },
       { path: 'employeescdl', loadChildren: () => import('./pages/documents/employeescdl/employeescdl.module').then(m => m.EmployeeScdlModule) },
       { path: 'calendar', loadChildren: () => import('./pages/documents/calendar/calendar.module').then(m => m.Calendar_Module) },
-      { path: 'appointments', loadChildren: () => import('./pages/documents/appointments/appointments.module').then(m => m.AppointmentsModule) },
-      // { path: 'Appointmentsdoc', loadChildren: () => import('./pages/documents/Appointments-doc/Appointments-doc.module').then(m => m.AppointmentsDocModule) },
+      // { path: 'appointments', loadChildren: () => import('./pages/documents/appointments/appointments.module').then(m => m.AppointmentsModule) },
+      { path: 'appointmentdoc', loadChildren: () => import('./pages/documents/appointments-doc/appointments-doc.module').then(m => m.AppointmentsDocModule) },
+      // { path: 'bookingdoc', loadChildren: () => import('./pages/documents/appointments-doc/appointments-doc.module').then(m => m.AppointmentsDocModule) },
+
 
       { path: '', redirectTo: 'dashboard',pathMatch: 'full' },
       { path: '**', redirectTo: 'dashboard',pathMatch: 'full' },

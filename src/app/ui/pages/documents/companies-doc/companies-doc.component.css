@@ -203,3 +203,7 @@ flex: 1 1 auto;
 .cdk-drag-animating {
 transition: transform 500ms cubic-bezier(0, 0, 0.2, 1);
 }
+/* Select list - user can't select if clicking not on the <SPAN> tag */
+::ng-deep .mat-mdc-option .mdc-list-item__primary-text {
+    line-height: 46px!important;
+}
