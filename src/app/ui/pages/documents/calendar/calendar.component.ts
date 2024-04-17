@@ -26,18 +26,18 @@ import { AppointmentsDocComponent } from '../appointments-doc/appointments-doc.c
 const  MY_FORMATS = MomentDefault.getMomentFormat();
 const  moment = MomentDefault.getMomentDefault();
 import { User } from 'src/app/modules/calendar/day-view-scheduler/day-view-scheduler.component';
-const users: User[] = [
-  {
-    id: 0,
-    name: 'John smith',
-    color: {primary: 'black', secondary: '#fdf1ba'},
-  },
-  {
-    id: 1,
-    name: 'Jane Doe',
-    color: {primary: 'black', secondary: '#d1e8ff'},
-  },
-];
+// const users: User[] = [
+//   {
+//     id: 0,
+//     name: 'John smith',
+//     color: {primary: 'black', secondary: '#fdf1ba'},
+//   },
+//   {
+//     id: 1,
+//     name: 'Jane Doe',
+//     color: {primary: 'black', secondary: '#d1e8ff'},
+//   },
+// ];
 enum CalendarView {
   Month = "month",
   Week = "week",
@@ -146,7 +146,7 @@ export class CalendarComponent implements OnInit {
 
 
 
-  users = users;
+   users: User[] = []; 
 
 
   constructor(
@@ -271,6 +271,7 @@ export class CalendarComponent implements OnInit {
           (data) => {   
                       this.receivedDepartmentsWithPartsList=data as any [];
                       this.selectAllCheckList('depparts','queryForm');
+                      this.refreshView();
       },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
       );
@@ -282,6 +283,7 @@ export class CalendarComponent implements OnInit {
           (data) => {   
                       this.receivedJobtitlesList=data as any [];
                       this.selectAllCheckList('jobtitles','queryForm');
+                      this.refreshView();
                       this.getData();
       },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
@@ -295,93 +297,109 @@ export class CalendarComponent implements OnInit {
           this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('docs.msg.c_err_exe_qury')}})
         }
         events=data as CalendarEvent[];
-        // events.map(event=>{
-        //   this.events.push({
-        //     "id": event.id,
-        //     "start": new Date(event.start),
-        //     "end": new Date(event.end),
-        //     "title": event.title,
-        //     "color": {
-        //         "primary": event.color.primary?event.color.primary:"#673ab7",
-        //         "secondary": event.color.primary?event.color.primary:"#ece9fb"
-        //     },
-        //     resizable: {
-        //       beforeStart: true,
-        //       afterEnd: true,
+        events.map(event=>{
+          this.events.push({
+            "id": event.id,
+            "start": new Date(event.start),
+            "end": new Date(event.end),
+            "title": event.title,
+            "color": {
+                "primary": event.meta.user.color.primary,
+                "secondary": event.meta.user.color.secondary
+            },
+            meta: {
+              user: event.meta.user,
+            },
+            resizable: {
+              beforeStart: true,
+              afterEnd: true,
+          },
+          draggable:true,
+          });
+          
+          const objectList = [
+            { id: 10, name: "Jane" },
+            { id: 36, name: "Steven" }
+          ];
+          
+
+
+          if(this.users.find((obj) => obj.id === event.meta.user.id) == undefined)
+            this.users.push( event.meta.user);
+          
+
+          
+        });
+        console.log("this.events",this.events)
+        // this.events.push({
+        //   title: 'An event',
+        //   color: users[0].color,
+        //   start: moment().startOf('day').add(5,'hours').toDate(),
+        //   meta: {
+        //     user: users[0],
         //   },
-        //   draggable:true,
-        //     "meta": event.meta,
-        //   })
-        // });
-        this.events.push({
-          title: 'An event',
-          color: users[0].color,
-          start: moment().startOf('day').add(5,'hours').toDate(),
-          meta: {
-            user: users[0],
-          },
-          resizable: {
-            beforeStart: true,
-            afterEnd: true,
-          },
-          draggable: true,
-        },
-        {
-          title: 'Another event',
-          color: users[1].color,
-          start: moment().startOf('day').add(2,'hours').toDate(),
-          meta: {
-            user: users[1],
-          },
-          resizable: {
-            beforeStart: true,
-            afterEnd: true,
-          },
-          draggable: true,
-        },
-        {
-          title: 'A 3rd event',
-          color: users[0].color,
-          start: moment().startOf('day').add(7,'hours').toDate(),
-          meta: {
-            user: users[0],
-          },
-          resizable: {
-            beforeStart: true,
-            afterEnd: true,
-          },
-          draggable: true,
-        },
-        {
-          title: 'An all day event',
-          color: users[0].color,
-          start: new Date(),
-          meta: {
-            user: users[0],
-          },
-          draggable: true,
-          allDay: true,
-        },
-        {
-          title: 'Another all day event',
-          color: users[1].color,
-          start: new Date(),
-          meta: {
-            user: users[1],
-          },
-          draggable: true,
-          allDay: true,
-        },
-        {
-          title: 'A 3rd all day event',
-          color: users[0].color,
-          start: new Date(),
-          meta: {
-            user: users[0],
-          },
-          draggable: true,
-          allDay: true,
-        },)
+        //   resizable: {
+        //     beforeStart: true,
+        //     afterEnd: true,
+        //   },
+        //   draggable: true,
+        // },
+        // {
+        //   title: 'Another event',
+        //   color: users[1].color,
+        //   start: moment().startOf('day').add(2,'hours').toDate(),
+        //   meta: {
+        //     user: users[1],
+        //   },
+        //   resizable: {
+        //     beforeStart: true,
+        //     afterEnd: true,
+        //   },
+        //   draggable: true,
+        // },
+        // {
+        //   title: 'A 3rd event',
+        //   color: users[0].color,
+        //   start: moment().startOf('day').add(7,'hours').toDate(),
+        //   meta: {
+        //     user: users[0],
+        //   },
+        //   resizable: {
+        //     beforeStart: true,
+        //     afterEnd: true,
+        //   },
+        //   draggable: true,
+        // },
+        // {
+        //   title: 'An all day event',
+        //   color: users[0].color,
+        //   start: new Date(),
+        //   meta: {
+        //     user: users[0],
+        //   },
+        //   draggable: true,
+        //   allDay: true,
+        // },
+        // {
+        //   title: 'Another all day event',
+        //   color: users[1].color,
+        //   start: new Date(),
+        //   meta: {
+        //     user: users[1],
+        //   },
+        //   draggable: true,
+        //   allDay: true,
+        // },
+        // {
+        //   title: 'A 3rd all day event',
+        //   color: users[0].color,
+        //   start: new Date(),
+        //   meta: {
+        //     user: users[0],
+        //   },
+        //   draggable: true,
+        //   allDay: true,
+        // },)
     this.refreshView();
       },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}
@@ -402,6 +420,7 @@ export class CalendarComponent implements OnInit {
     newStart,
     newEnd,
   }: CalendarEventTimesChangedEvent): void {
+    console.log('eventTimesChanged')
     event.start = newStart;
     event.end = newEnd;
     this.events = [...this.events];

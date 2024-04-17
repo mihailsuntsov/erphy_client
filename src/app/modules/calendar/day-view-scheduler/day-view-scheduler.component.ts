@@ -45,6 +45,7 @@ interface GetWeekViewArgsWithUsers extends GetWeekViewArgs {
 @Injectable()
 export class DayViewSchedulerCalendarUtils extends CalendarUtils {
   getWeekView(args: GetWeekViewArgsWithUsers): DayViewScheduler {
+    // console.log("injectable events",args.events);
     const { period } = super.getWeekView(args);
     const view: DayViewScheduler = {
       period,
@@ -52,12 +53,22 @@ export class DayViewSchedulerCalendarUtils extends CalendarUtils {
       hourColumns: [],
       users: [...args.users],
     };
-    console.log('view',view);
-    console.log('args.events',args.events)
+    // console.log('view',view);
     view.users.forEach((user, columnIndex) => {
-      const events = args.events.filter(
-        (event) => event.meta.user.id === user.id
+      // console.log('events before"',args.events)
+
+      const events = args.events.filter(function(event) 
+        {return event.meta.user.id === user.id}
+        // (event) =>  event.meta.user.id === user.id
+        // (event) => {
+        //   console.log('event',event);
+        //   console.log('event.meta.user.id',event.meta.user.id);
+        //   console.log('user.id',user.id);
+
+        //   event.meta.user.id === user.id
+        // }
       );
+      // console.log("events after",events);
       const columnView = super.getWeekView({
         ...args,
         events,
@@ -74,11 +85,13 @@ export class DayViewSchedulerCalendarUtils extends CalendarUtils {
         });
       });
     });
-
+    // console.log('main view',view)
     return view;
   }
 }
-
+function checkAdult(age) {
+  return age >= 18;
+}
 @Component({
   selector: 'mwl-day-view-scheduler',
   templateUrl: 'day-view-scheduler.component.html',
@@ -124,6 +137,9 @@ export class DayViewSchedulerComponent
   dragMove(dayEvent: WeekViewTimeEvent, dragEvent: DragMoveEvent) {
     if (this.snapDraggedEvents) {
       const newUser = this.getDraggedUserColumn(dayEvent, dragEvent.x);
+      
+      // console.log('newUser',newUser)
+
       const newEventTimes = this.getDragMovedEventTimes(
         dayEvent,
         { ...dragEvent, x: 0 },
@@ -137,7 +153,7 @@ export class DayViewSchedulerComponent
         meta: { ...originalEvent.meta, user: newUser },
       };
       const tempEvents = this.events.map((event) => {
-        if (event === originalEvent) {
+        if (event.id === originalEvent.id) {
           return adjustedEvent;
         }
         return event;
@@ -172,6 +188,7 @@ export class DayViewSchedulerComponent
   }
 
   protected getWeekView(events: CalendarEvent[]) {
+    // console.log('protected events',events);
     return this.utils.getWeekView({
       events,
       users: this.users,
@@ -207,9 +224,23 @@ export class DayViewSchedulerComponent
   ) {
     const columnsMoved = Math.round(xPixels / this.dayColumnWidth);
     const currentColumnIndex = this.view.users.findIndex(
-      (user) => user === dayEvent.event.meta.user
+      (user) => user.id === dayEvent.event.meta.user.id
     );
+    // console.log('xPixels',xPixels)
+    // console.log('columnsMoved',columnsMoved)
+    // console.log('currentColumnIndex',currentColumnIndex)
     const newIndex = currentColumnIndex + columnsMoved;
     return this.view.users[newIndex];
   }
+  // private getDraggedUserColumn(
+  //   dayEvent: WeekViewTimeEvent | WeekViewAllDayEvent,
+  //   xPixels: number
+  // ) {
+  //   const columnsMoved = Math.round(xPixels / this.dayColumnWidth);
+  //   const currentColumnIndex = this.view.users.findIndex(
+  //     (user) => user === dayEvent.event.meta.user
+  //   );
+  //   const newIndex = currentColumnIndex + columnsMoved;
+  //   return this.view.users[newIndex];
+  // }
 }
