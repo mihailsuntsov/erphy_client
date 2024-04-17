@@ -192,13 +192,13 @@ li {list-style: none;}
     position: absolute;
     top: 0;
     background-color: unset;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
 }
 .add-event-day-button{
     padding: 0;
-    min-width: 36px!important;
+    min-width: 36px;
     width: 36px!important;
     height: 36px;
     color: rgba(76, 76, 76, 0.3)!important;

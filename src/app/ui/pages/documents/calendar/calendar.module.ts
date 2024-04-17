@@ -12,6 +12,7 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 // import { TemplatesDialogModule } from '../../../../modules/settings/templates-dialog/templates-dialog.module';
 import { LabelsPrintDialogModule } from '../../../../modules/settings/labelprint-dialog/labelprint-dialog.module';
 import { CalendarModule } from 'angular-calendar';
+import { DayViewSchedulerModule } from 'src/app/modules/calendar/day-view-scheduler/day-view-scheduler.module';
 import {
   CalendarDateFormatter,
   CalendarMomentDateFormatter,
@@ -75,6 +76,7 @@ registerLocaleData(localeHr);
         },
       }
     ),
+    DayViewSchedulerModule,
     CalendarRoutingModule,
     ProductCategoriesSelectModule,
     StoresSelectModule,

@@ -119,6 +119,9 @@
                         <button mat-menu-item (click)="setView(CalendarView.Month)">
                             <span>{{'menu.top.month' | transloco}}</span>
                         </button>
+                        <button mat-menu-item (click)="setView(CalendarView.Scheduler)">
+                            <span>{{'menu.top.scheduler' | transloco}}</span>
+                        </button>
                     </mat-menu>
                     </div>
                 </div>
@@ -345,9 +348,17 @@
                 </ng-template>
                 <div #calendar_area class="categories-sidenav-content">
                     <!-- weekStartsOn:{{weekStartsOn}} -->
-                    <div [ngSwitch]="view">
+                    <!-- <mwl-day-view-scheduler
+                            [viewDate]="viewDate"
+                            [events]="events"
+                            [users]="users"
+                            (eventTimesChanged)="eventTimesChanged($event)"
+                            (userChanged)="userChanged($event)"
+                        >
+                        </mwl-day-view-scheduler> -->
+                    <!-- <div [ngSwitch]="view"> -->
                         <mwl-calendar-month-view
-                          *ngSwitchCase="'month'"
+                          *ngIf="view=='month'"
                           [viewDate]="viewDate"
                           [refresh]="refresh"
                           [events]="events"
@@ -359,7 +370,7 @@
                         >
                         </mwl-calendar-month-view>
                         <mwl-calendar-week-view
-                          *ngSwitchCase="'week'"
+                          *ngIf="view=='week'"
                           [viewDate]="viewDate"
                           [refresh]="refresh"
                           [events]="events"
@@ -369,8 +380,17 @@
                           (eventClicked)="handleEvent('Clicked', $event.event)"
                         >
                         </mwl-calendar-week-view>
+                        <mwl-day-view-scheduler
+                            *ngIf="view=='scheduler'"
+                            [viewDate]="viewDate"
+                            [events]="events"
+                            [users]="users"
+                            (eventTimesChanged)="eventTimesChanged($event)"
+                            (userChanged)="userChanged($event)"
+                        >
+                        </mwl-day-view-scheduler>
                         <mwl-calendar-day-view
-                          *ngSwitchCase="'day'"
+                          *ngIf="view=='day'"
                           [viewDate]="viewDate"
                           [refresh]="refresh"
                           [events]="events"
@@ -379,7 +399,18 @@
                           (eventClicked)="handleEvent('Clicked', $event.event)"
                         >
                         </mwl-calendar-day-view>
-                      </div>
+                        <!-- <mwl-calendar-day-view
+                          *ngSwitchCase="'day'"
+                          [viewDate]="addDays(viewDate, 1)"
+                          [refresh]="refresh"
+                          [events]="events"
+                          [locale]="localeAngular" 
+                          (hourSegmentClicked)="angularCalendarOnClickDay($event.date)"
+                          (eventClicked)="handleEvent('Clicked', $event.event)"
+                        >
+                        </mwl-calendar-day-view> -->
+                        
+                      <!-- </div> -->
                 </div>
             </mat-drawer-container>
         </div>

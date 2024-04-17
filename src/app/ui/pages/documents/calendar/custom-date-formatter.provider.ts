@@ -56,7 +56,13 @@ export class CustomDateFormatter extends CalendarDateFormatter {
         // console.log('converted locale',this.getLocaleAngular(locale));
         return formatDate(date, this.dayTitleFormat, this.getLocaleAngular(locale)); // ru
     }
-
+    public schedulerViewTitle({ date, locale }: DateFormatterParams): string {
+        console.log('date',date);
+        console.log('locale',locale);
+        // console.log('locale',locale);
+        // console.log('converted locale',this.getLocaleAngular(locale));
+        return formatDate(date, this.dayTitleFormat, this.getLocaleAngular(locale)); // ru
+    }
 // *********************************  HOUR FORMAT  ************************************
 
     public dayViewHour({ date, locale }: DateFormatterParams): string {

@@ -8,7 +8,7 @@ import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
 import { translate, TranslocoService } from '@ngneat/transloco';
 import { SelectionModel } from '@angular/cdk/collections';
-import { CalendarEvent, CalendarView, CalendarDateFormatter, DAYS_OF_WEEK } from 'angular-calendar';
+import { CalendarEvent, CalendarDateFormatter, DAYS_OF_WEEK, CalendarEventTimesChangedEvent } from 'angular-calendar';
 import { Moment } from 'moment';
 import { MatDrawer } from '@angular/material/sidenav';
 import { Subject } from 'rxjs';
@@ -22,8 +22,28 @@ import { MatCalendar } from '@angular/material/datepicker';
 import { UntypedFormGroup, UntypedFormControl, UntypedFormArray, UntypedFormBuilder, Validators } from '@angular/forms';
 import { MAT_SELECT_CONFIG } from '@angular/material/select';
 import { AppointmentsDocComponent } from '../appointments-doc/appointments-doc.component';
+// import { DayViewSchedulerComponent } from 'src/app/modules/calendar/day-view-scheduler/day-view-scheduler.component';
 const  MY_FORMATS = MomentDefault.getMomentFormat();
 const  moment = MomentDefault.getMomentDefault();
+import { User } from 'src/app/modules/calendar/day-view-scheduler/day-view-scheduler.component';
+const users: User[] = [
+  {
+    id: 0,
+    name: 'John smith',
+    color: {primary: 'black', secondary: '#fdf1ba'},
+  },
+  {
+    id: 1,
+    name: 'Jane Doe',
+    color: {primary: 'black', secondary: '#d1e8ff'},
+  },
+];
+enum CalendarView {
+  Month = "month",
+  Week = "week",
+  Day = "day",
+  Scheduler = "scheduler"
+}
 
 interface IdAndName {
   id: number;
@@ -74,7 +94,7 @@ interface CompanySettings{
 export class CalendarComponent implements OnInit {
 
   // Angular Calendar
-  view: CalendarView = CalendarView.Month;
+  view: CalendarView = CalendarView.Scheduler;
   viewDate: Date = new Date();
   events: CalendarEvent[] = [];
   // weekStartsOn: number = DAYS_OF_WEEK.MONDAY;
@@ -123,6 +143,11 @@ export class CalendarComponent implements OnInit {
   @ViewChild('calendar', {static: false}) calendar: MatCalendar<Date>;
   // Forms
   queryForm:any;// form for sending query / форма для отправки запроса 
+
+
+
+  users = users;
+
 
   constructor(
     private httpService:   LoadSpravService,
@@ -235,7 +260,7 @@ export class CalendarComponent implements OnInit {
             this.showDocumntsField=true;
             console.log("this.showDocumntsField",this.showDocumntsField);
             this.refreshView();
-          // this.booking_doc_name_variation=this.companySettings.booking_doc_name_variation;
+            this.booking_doc_name_variation=this.companySettings.booking_doc_name_variation;
         },
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
@@ -270,24 +295,93 @@ export class CalendarComponent implements OnInit {
           this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('docs.msg.c_err_exe_qury')}})
         }
         events=data as CalendarEvent[];
-        events.map(event=>{
-          this.events.push({
-            "id": event.id,
-            "start": new Date(event.start),
-            "end": new Date(event.end),
-            "title": event.title,
-            "color": {
-                "primary": event.color.primary?event.color.primary:"#673ab7",
-                "secondary": event.color.primary?event.color.primary:"#ece9fb"
-            },
-            resizable: {
-              beforeStart: true,
-              afterEnd: true,
+        // events.map(event=>{
+        //   this.events.push({
+        //     "id": event.id,
+        //     "start": new Date(event.start),
+        //     "end": new Date(event.end),
+        //     "title": event.title,
+        //     "color": {
+        //         "primary": event.color.primary?event.color.primary:"#673ab7",
+        //         "secondary": event.color.primary?event.color.primary:"#ece9fb"
+        //     },
+        //     resizable: {
+        //       beforeStart: true,
+        //       afterEnd: true,
+        //   },
+        //   draggable:true,
+        //     "meta": event.meta,
+        //   })
+        // });
+        this.events.push({
+          title: 'An event',
+          color: users[0].color,
+          start: moment().startOf('day').add(5,'hours').toDate(),
+          meta: {
+            user: users[0],
           },
-          draggable:true,
-            "meta": event.meta,
-          })
-        })
+          resizable: {
+            beforeStart: true,
+            afterEnd: true,
+          },
+          draggable: true,
+        },
+        {
+          title: 'Another event',
+          color: users[1].color,
+          start: moment().startOf('day').add(2,'hours').toDate(),
+          meta: {
+            user: users[1],
+          },
+          resizable: {
+            beforeStart: true,
+            afterEnd: true,
+          },
+          draggable: true,
+        },
+        {
+          title: 'A 3rd event',
+          color: users[0].color,
+          start: moment().startOf('day').add(7,'hours').toDate(),
+          meta: {
+            user: users[0],
+          },
+          resizable: {
+            beforeStart: true,
+            afterEnd: true,
+          },
+          draggable: true,
+        },
+        {
+          title: 'An all day event',
+          color: users[0].color,
+          start: new Date(),
+          meta: {
+            user: users[0],
+          },
+          draggable: true,
+          allDay: true,
+        },
+        {
+          title: 'Another all day event',
+          color: users[1].color,
+          start: new Date(),
+          meta: {
+            user: users[1],
+          },
+          draggable: true,
+          allDay: true,
+        },
+        {
+          title: 'A 3rd all day event',
+          color: users[0].color,
+          start: new Date(),
+          meta: {
+            user: users[0],
+          },
+          draggable: true,
+          allDay: true,
+        },)
     this.refreshView();
       },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}
@@ -303,7 +397,21 @@ export class CalendarComponent implements OnInit {
     this.refresh.next();
   }
 
+  eventTimesChanged({
+    event,
+    newStart,
+    newEnd,
+  }: CalendarEventTimesChangedEvent): void {
+    event.start = newStart;
+    event.end = newEnd;
+    this.events = [...this.events];
+  }
 
+  userChanged({ event, newUser }) {
+    event.color = newUser.color;
+    event.meta.user = newUser;
+    this.events = [...this.events];
+  }
 
 
 
@@ -398,7 +506,12 @@ export class CalendarComponent implements OnInit {
     }
 
     wordsToUpperCase(str:string){
-      return(str.split(/\ s+/).map(word => word[0].toUpperCase() + word.substring(1)).join(' '))
+      // console.log(str)
+      return (str);
+      // return(str.split(/\ s+/).map(word =>{
+        
+      //   word[0].toUpperCase() + word.substring(1);
+      // }).join(' '))
     }
 
     getBaseData(data) {    //+++ emit data to parent component
@@ -538,8 +651,11 @@ export class CalendarComponent implements OnInit {
         { 
           mode:       'window',
           companyId:  this.queryForm.get('companyId').value,
-          id:         docId,
-          date:       date
+          docId:         docId,
+          date:       date,
+          company:    this.getCompanyNameById(this.queryForm.get('companyId').value),
+          booking_doc_name_variation: this.booking_doc_name_variation,
+
         },
       });
       dialogRef.afterClosed().subscribe(result => {
@@ -548,7 +664,20 @@ export class CalendarComponent implements OnInit {
         //   this.addFilesToappointments(result);
       });
     }
-
+    getCompanyNameById(id:number):string{
+      let name:string;
+      if(this.receivedCompaniesList){
+        this.receivedCompaniesList.forEach(a=>{
+          if(a.id==id) name=a.name;
+        })
+      }
+      return(name);
+    }
+    addDays(date, days) {
+      var result = new Date(date);
+      result.setDate(result.getDate() + days);
+      return result;
+    }
     // uncheckPlacesOfWork(){
     //   let allDeppartsOfSelectedDepartments:number[]=[];
     //   this.queryForm.get('departments').value.map(i=>{

@@ -1,21 +1,18 @@
-import { ChangeDetectorRef, Component, OnInit, ViewChild, Output, EventEmitter } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ViewChild, Output, EventEmitter, Optional, Inject } from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
-// import { KkmAtolService } from '../../../../services/kkm_atol';
-// import { KkmAtolChequesService } from '../../../../services/kkm_atol_cheques';
 import { UntypedFormGroup, UntypedFormArray,  UntypedFormBuilder,  Validators, UntypedFormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Observable } from 'rxjs';
 import { map, startWith, debounceTime, tap, switchMap, mergeMap, concatMap  } from 'rxjs/operators';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
-import { MatDialog } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { ValidationService } from './validation.service';
 import { v4 as uuidv4 } from 'uuid';
 import { CommonUtilitesService } from 'src/app/services/common_utilites.serviсe';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { graphviz }  from 'd3-graphviz';
-// import { SettingsAppointmentsDialogComponent } from 'src/app/modules/settings/settings-appointments-dialog/settings-appointments-dialog.component';
 import { ProductSearchAndTableComponent } from 'src/app/modules/trade-modules/product-search-and-table/product-search-and-table.component';
 import { BalanceCagentComponent } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.component';
 import { TemplatesDialogComponent } from 'src/app/modules/settings/templates-dialog/templates-dialog.component';
@@ -135,7 +132,6 @@ interface docResponse {//интерфейс для получения ответ
   date_time_changed: string;
   date_time_created: string;
   description : string;
-  // overhead: string;
   is_archive: boolean;
   department_type_price_id: number;
   cagent_type_price_id: number;
@@ -164,16 +160,27 @@ interface docResponse {//интерфейс для получения ответ
   flat: string;
   shipment_time:string;
 }
-
 interface filesInfo {
   id: string;
   name: string;
   original_name: string;
   date_time_created: string;
 }
-interface idAndName{ //универсалный интерфейс для выбора из справочников
+interface IdAndName{
   id: number;
   name: string;
+}
+interface Department{
+  department_id: number;
+  department_name: string;
+  parts: Deppart[];
+}
+interface Deppart{
+  id:number;
+  name: string;
+  description: string;
+  is_active: boolean;
+  deppartProducts:IdAndName[];
 }
 interface idNameDescription{
   id: number;
@@ -185,7 +192,6 @@ interface idAndNameAndShorname{ //универсалный интерфейс д
   name: string;
   short_name: string;
 }
-
 interface SecondaryDepartment{
   id: number;
   name: string;
@@ -265,7 +271,11 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   priceUpDownFieldName:string = translate('modules.field.markup'); // Наименование поля с наценкой-скидкой
   priceTypeId_temp:number; // id типа цены. Нужна для временного хранения типа цены на время сброса формы поиска товара
   companyId_temp:number; // id предприятия. Нужна для временного хранения предприятия на время сброса формы formBaseInformation
-
+  telephone: string='';
+  email: string = '';
+  company:string='';
+  booking_doc_name_variation= 'appointment';
+  mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра карточки документа
   department_type_price_id: number; //id тип цены в отделении (Складе), для которого создавался данный документ. Нужен для изменения поля Тип цены
   cagent_type_price_id: number; //id типа цены покупателя, для которого создавался данный документ.  Нужен для изменения поля Тип цены
   default_type_price_id: number; //id типа цены, установленный по умолчанию.  Нужен для изменения поля Тип цены
@@ -275,29 +285,12 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   receivedPriceTypesList: idNameDescription [] = [];//массив для получения списка типов цен
   accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
   timeFormat:string='24';   //12 or 24
-
+  receivedDepartmentsWithPartsList: Department [] = [];//массив для получения списка отделений с их частями
+  receivedJobtitlesList: any [] = [];//массив для получения списка наименований должностей
+  servicesList: string[] = []; // list of services that will be shown in an information panel of employee or department part
   //печать документов
   gettingTemplatesData: boolean = false; // идёт загрузка шаблонов
   templatesList:TemplatesList[]=[]; // список загруженных шаблонов
-
-  //поиск адреса и юр. адреса (Страна, Район, Город):
-  // Страны 
-  spravSysCountries: IdAndName_ru[] = [];// массив, куда будут грузиться все страны 
-  filteredSpravSysCountries: Observable<IdAndName_ru[]>; //массив для отфильтрованных Страна 
-  // Регионы
-  //для поиска района по подстроке
-  searchRegionCtrl = new UntypedFormControl();//поле для поиска
-  isRegionListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
-  canRegionAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
-  filteredRegions: Region[];//массив для загрузки найденных по подстроке регионов
-  // Города
-  //для поиска района по подстроке
-  searchCityCtrl = new UntypedFormControl();//поле для поиска
-  isCityListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
-  canCityAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
-  filteredCities: City[];//массив для загрузки найденных по подстроке городов
-  // Районы 
-  area:string = '';
 
   // Формы
   formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
@@ -305,14 +298,6 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   settingsForm: any; // форма с настройками
   globalSettingsForm: any; // форма с общими настройками
   formLinkedDocs:any// Форма для отправки при создании Возврата покупателя
-
-  //переменные для управления динамическим отображением элементов
-  visBeforeCreatingBlocks = true; //блоки, отображаемые ДО создания документа (до получения id)
-  visAfterCreatingBlocks = true; //блоки, отображаемые ПОСЛЕ создания документа (id >0)
-  visBtnUpdate = false;
-  visBtnAdd:boolean;
-  visBtnCopy = false;
-  visBtnDelete = false;
 
   //для построения диаграмм связанности
   tabIndex=0;// индекс текущего отображаемого таба (вкладки)
@@ -356,15 +341,10 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   @ViewChild("nameInput", {static: false}) nameInput; 
   @ViewChild("doc_number", {static: false}) doc_number; 
   @ViewChild("form", {static: false}) form; 
-  @ViewChild("formCashierLogin", {static: false}) formCashierLogin; 
   @ViewChild("formBI", {static: false}) formBI; 
-  @ViewChild(MatAccordion) accordion: MatAccordion;
   @ViewChild(ProductSearchAndTableComponent, {static: false}) public productSearchAndTableComponent:ProductSearchAndTableComponent;
-  // @ViewChild(KkmComponent, {static: false}) public kkmComponent:KkmComponent;
   @ViewChild(BalanceCagentComponent, {static: false}) public balanceCagentComponent:BalanceCagentComponent;
   @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
-  
-  @Input() authorized: boolean;
 
   isDocNumberUnicalChecking = false;//идёт ли проверка на уникальность номера
   doc_number_isReadOnly=true;
@@ -384,14 +364,12 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     public ShowImageDialog: MatDialog,
     public ConfirmDialog: MatDialog,
     private templatesDialogComponent: MatDialog,
+    @Optional() @Inject(MAT_DIALOG_DATA) public data: any,
     public commonUtilites: CommonUtilitesService,
     public dialogAddFiles: MatDialog,
-    public ProductReservesDialogComponent: MatDialog,
-    public PricingDialogComponent: MatDialog,
     public SettingsAppointmentsDialogComponent: MatDialog,
-    public dialogCreateProduct: MatDialog,
     public MessageDialog: MatDialog,
-    private loadSpravService:   LoadSpravService,
+    private loadSpravService: LoadSpravService,
     private _snackBar: MatSnackBar,
     private _router:Router,
     private _adapter: DateAdapter<any>) 
@@ -402,43 +380,30 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
 
   ngOnInit() {
     this.formBaseInformation = new UntypedFormGroup({
-      id: new UntypedFormControl                 (this.id,[]),
-      company_id: new UntypedFormControl         (null,[Validators.required]),
-      department_id: new UntypedFormControl      (null,[Validators.required]),
-      doc_number: new UntypedFormControl         ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
-      cagent_id: new UntypedFormControl          ({disabled: false, value: '' },[Validators.required]),
-      cagent: new UntypedFormControl             ('',[]),
-      shipment_date: new UntypedFormControl      ('',[Validators.required]),
-      description: new UntypedFormControl        ('',[]),
-      department: new UntypedFormControl         ('',[]),
-      is_completed: new UntypedFormControl       (false,[]),
+      id: new UntypedFormControl                    (this.id,[]),
+      company_id: new UntypedFormControl            (null,[Validators.required]),
+      department_id: new UntypedFormControl         (null,[Validators.required]),
+      dep_part_id: new UntypedFormControl           (null,[Validators.required]),
+      doc_number: new UntypedFormControl            ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
+      // cagent_id: new UntypedFormControl          ({disabled: false, value: '' },[Validators.required]),
+      cagent: new UntypedFormControl                ('',[]),
+      shipment_date: new UntypedFormControl         ('',[Validators.required]),
+      description: new UntypedFormControl           ('',[]),
+      department: new UntypedFormControl            ('',[]),
+      is_completed: new UntypedFormControl          (false,[]),
       appointmentsProductTable: new UntypedFormArray([]),
-      nds: new UntypedFormControl                (false,[]),
-      nds_included: new UntypedFormControl       (true,[]),
-      name: new UntypedFormControl               ('',[]),
-      status_id: new UntypedFormControl          ('',[]),
-      status_name: new UntypedFormControl        ('',[]),
-      status_color: new UntypedFormControl       ('',[]),
-      status_description: new UntypedFormControl ('',[]),
-      fio: new UntypedFormControl                ('',[]),
-      email: new UntypedFormControl              ('',[]),
-      telephone: new UntypedFormControl          ('',[]),
-      zip_code: new UntypedFormControl           ('',[]),
-      country_id: new UntypedFormControl         ('',[]),
-      // region_id: new FormControl          ('',[]),
-      // city_id: new FormControl            ('',[]),
-      additional_address: new UntypedFormControl ('',[]),
-      track_number: new UntypedFormControl       ('',[]),
-      country: new UntypedFormControl            ('',[]),
-      region: new UntypedFormControl             ('',[]),
-      city: new UntypedFormControl               ('',[]),
-      new_cagent: new UntypedFormControl          ({disabled: true, value: '' },[Validators.required]),
-      street:  new UntypedFormControl            ('',[Validators.maxLength(120)]),
-      home:  new UntypedFormControl              ('',[Validators.maxLength(16)]),
-      flat:  new UntypedFormControl              ('',[Validators.maxLength(8)]),
-      discount_card:   new UntypedFormControl    ('',[Validators.maxLength(30)]),
-      uid: new UntypedFormControl                ('',[]),// uuid идентификатор для создаваемой отгрузки
-      shipment_time: new UntypedFormControl     ('',[Validators.required]),
+      customersTable: new UntypedFormArray          ([]),
+      nds: new UntypedFormControl                   (false,[]),
+      nds_included: new UntypedFormControl          (true,[]),
+      name: new UntypedFormControl                  ('',[]),
+      status_id: new UntypedFormControl             ('',[]),
+      status_name: new UntypedFormControl           ('',[]),
+      status_color: new UntypedFormControl          ('',[]),
+      status_description: new UntypedFormControl    ('',[]),
+      // new_cagent: new UntypedFormControl         ({disabled: true, value: '' },[Validators.required]),
+      // discount_card:   new UntypedFormControl    ('',[Validators.maxLength(30)]),
+      uid: new UntypedFormControl                   ('',[]),// uuid идентификатор для создаваемой отгрузки
+      shipment_time: new UntypedFormControl         ('',[Validators.required]),
     });
     // Форма для отправки при создании связанных документов
     this.formLinkedDocs = new UntypedFormGroup({
@@ -476,13 +441,6 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       date_time_created: new UntypedFormControl        ('',[]),
       date_time_changed: new UntypedFormControl        ('',[]),
     });
-
-    // // Форма настроек
-    // this.settingsForm = new FormGroup({
-    //   // Валюта (краткое наименование)
-    //   currShortName: new FormControl             (null,[]),
-    // });
-
 
     // Форма настроек
     this.settingsForm = new UntypedFormGroup({
@@ -523,33 +481,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       statusIdOnAutocreateOnCheque: new UntypedFormControl(null,[]),
     });
 
-    //формы по кассе :
-    //форма настроек кассира
-    /*this.kassaSettingsForm = new FormGroup({
-      selected_kassa_id: new FormControl             (null,[Validators.required]), // id кассы
-      cashier_value_id: new FormControl         ('current',[Validators.required]), //кассир: 'current'-текущая учетная запись, 'another'-другая учетная запись, 'custom' произвольные ФИО
-      customCashierFio: new FormControl         ('',[Validators.required]), // значение поля ФИО при выборе пункта "Произвольное ФИО"
-      customCashierVatin: new FormControl       ('',[Validators.required,Validators.pattern('^[0-9]{12}$'),Validators.maxLength(12),Validators.minLength(12)]),// значение поля ИНН при выборе пункта "Произвольное ФИО"
-      billing_address: new FormControl           ('settings',[]),// id адреса места расчётов. 'settings' - как в настройках кассы, 'customer' - брать из адреса заказчика, 'custom' произвольный адрес. Если 2 или 3 нет но один из них выбран - печатается settings
-      custom_billing_address: new FormControl     ('',[Validators.required]),// адрес места расчетов типа г.Такой-то, ул.... и т.д.
-    });
-    //логин другого кассира
-    this.loginform = new FormGroup({
-      username: new FormControl ('',[Validators.required,Validators.minLength(6)]),
-      password: new FormControl ('',[Validators.required]),
-    });
-    if(Cookie.get('anotherCashierVatin')=='undefined' || Cookie.get('anotherCashierVatin')==null)    
-      Cookie.set('anotherCashierVatin',''); else this.anotherCashierVatin=Cookie.get('anotherCashierVatin');
-
-    if(Cookie.get('anotherCashierFio')=='undefined' || Cookie.get('anotherCashierFio')==null)    
-      Cookie.set('anotherCashierFio',''); else this.anotherCashierFio=Cookie.get('anotherCashierFio');
-
-    this.kassaSettingsForm.get("customCashierFio").disable();
-    this.kassaSettingsForm.get("customCashierVatin").disable();
-*/
-
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Покупатель"
-    this.getSetOfPermissions();//
     //+++ getting base data from parent component
     this.getBaseData('myId');    
     this.getBaseData('myCompanyId');  
@@ -557,18 +489,31 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     this.getBaseData('myDepartmentsList');    
     this.getBaseData('accountingCurrency');  
     this.getBaseData('timeFormat');
+    console.log("Appointment ID = ",this.id);
 
-    //слушалки на изменение полей адреса
-    this.filteredSpravSysCountries=this.formBaseInformation.get('country').valueChanges.pipe(startWith(''),map((value:string) => this.filter_country(value)));
-    // this.onRegionSearchValueChanges();
-    // this.onCitySearchValueChanges();
+    if(this.data)//если документ вызывается в окне из другого документа
+    {
+      this.mode=this.data.mode;
+      if(this.mode=='window'){this.id=this.data.docId; this.formBaseInformation.get('id').setValue(this.id);}
+      this.formBaseInformation.get('company_id').setValue(this.data.companyId);
+      this.company=this.data.company;
+      this.booking_doc_name_variation=this.data.booking_doc_name_variation;
+      this.id = +this.data.docId;
+    }
 
+
+
+    this.getSetOfPermissions();//
+    this.getMyId();
+    this.getMyCompanyId();
+    
+    
   }
-  ngAfterContentChecked() {
+  // ngAfterContentChecked() {
 
-    this.cdRef.detectChanges();
+  //   this.cdRef.detectChanges();
 
-  }
+  // }
   get childFormValid() {
     if(this.productSearchAndTableComponent!=undefined)
     //если нет ошибок в форме, включая отсутствие дробного количества у неделимых товаров
@@ -590,32 +535,32 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   //---------------------------------------------------------------------------------------------------------------------------------------
 
   getSetOfPermissions(){
-    return this.http.get('/api/auth/getMyPermissions?id=23')
+    return this.http.get('/api/auth/getMyPermissions?id=59')
       .subscribe(
           (data) => {   
                       this.permissionsSet=data as any [];
-                      this.getMyId();
+                      this.necessaryActionsBeforeGetChilds();
       },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
       );
   }
 
   getCRUD_rights(){
-    this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==280)});
-    this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==281)});
-    this.allowToCreateMyDepartments = this.permissionsSet.some(        function(e){return(e==282)});
-    this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==287)});
-    this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==288)});
-    this.allowToViewMyDepartments = this.permissionsSet.some(          function(e){return(e==289)});
-    this.allowToViewMyDocs = this.permissionsSet.some(                 function(e){return(e==290)});
-    this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==291)});
-    this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==292)});
-    this.allowToUpdateMyDepartments = this.permissionsSet.some(        function(e){return(e==293)});
-    this.allowToUpdateMyDocs = this.permissionsSet.some(               function(e){return(e==294)});
-    this.allowToCompleteAllCompanies = this.permissionsSet.some(       function(e){return(e==400)});
-    this.allowToCompleteMyCompany = this.permissionsSet.some(          function(e){return(e==401)});
-    this.allowToCompleteMyDepartments = this.permissionsSet.some(      function(e){return(e==402)});
-    this.allowToCompleteMyDocs = this.permissionsSet.some(             function(e){return(e==403)});
+    this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==705)});
+    this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==706)});
+    this.allowToCreateMyDepartments = this.permissionsSet.some(        function(e){return(e==707)});
+    this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==708)});
+    this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==709)});
+    this.allowToViewMyDepartments = this.permissionsSet.some(          function(e){return(e==710)});
+    this.allowToViewMyDocs = this.permissionsSet.some(                 function(e){return(e==711)});
+    this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==712)});
+    this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==713)});
+    this.allowToUpdateMyDepartments = this.permissionsSet.some(        function(e){return(e==714)});
+    this.allowToUpdateMyDocs = this.permissionsSet.some(               function(e){return(e==715)});
+    this.allowToCompleteAllCompanies = this.permissionsSet.some(       function(e){return(e==720)});
+    this.allowToCompleteMyCompany = this.permissionsSet.some(          function(e){return(e==721)});
+    this.allowToCompleteMyDepartments = this.permissionsSet.some(      function(e){return(e==722)});
+    this.allowToCompleteMyDocs = this.permissionsSet.some(             function(e){return(e==723)});
     if(this.allowToCreateAllCompanies){this.allowToCreateMyCompany=true;this.allowToCreateMyDepartments=true}
     if(this.allowToCreateMyCompany)this.allowToCreateMyDepartments=true;
     if(this.allowToViewAllCompanies){this.allowToViewMyCompany=true;this.allowToViewMyDepartments=true;this.allowToViewMyDocs=true}
@@ -654,14 +599,6 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     )?true:false;
     this.allowToCreate=(this.allowToCreateAllCompanies || this.allowToCreateMyCompany||this.allowToCreateMyDepartments)?true:false;
     
-    if(this.id>0){//если в документе есть id
-      this.visAfterCreatingBlocks = true;
-      this.visBeforeCreatingBlocks = false;
-      this.visBtnUpdate = this.allowToUpdate;
-    }else{
-      this.visAfterCreatingBlocks = false;
-      this.visBeforeCreatingBlocks = true;
-    }
     this.editability=((this.allowToCreate && +this.id==0)||(this.allowToUpdate && this.id>0));
     // console.log("myCompanyId - "+this.myCompanyId);
     // console.log("documentOfMyCompany - "+documentOfMyCompany);
@@ -678,10 +615,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     if(+this.id>0){
       this.getDocumentValuesById();
     }else {
-      this.getCompaniesList(); 
       this.setDefaultDate();
-      this.accordion.openAll();
-      this.getSpravSysCountries();
     }
   }
   getCompanySettings(){
@@ -716,130 +650,62 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       }
     }
   }
-  //нужно загруить всю необходимую информацию, прежде чем вызывать детей (Поиск и добавление товара, Кассовый модуль), иначе их ngOnInit выполнится быстрее, чем загрузится вся информация в родителе
-  //вызовы из:
-  //getDocumentValuesById()-> getPriceTypesList()*
-  //getDocumentValuesById()-> refreshPermissions()
-  //getDocumentValuesById()-> getSettings()*
-  //getDocumentValuesById()-> getSpravTaxes()
-  //getDocumentValuesById()-> getSetOfTypePrices() 
+
   necessaryActionsBeforeGetChilds(){
     this.actionsBeforeGetChilds++;
-    //Если набрано необходимое кол-во действий
-    if(this.actionsBeforeGetChilds==5){
-      // console.log("company - "+this.formAboutDocument.get('company').value);
-      // console.log("default_type_price_id - "+this.default_type_price_id);
-      // console.log("priorityTypePriceSide - "+this.settingsForm.get('priorityTypePriceSide').value);
+    // Если набрано необходимое кол-во действий - все остальные справочники загружаем тут, т.к. 
+    // нужно чтобы сначала определилось предприятие, его id нужен для загрузки
+    if(this.actionsBeforeGetChilds==3){
+      console.log("Can get second part!")
       this.canGetChilds=true;
-    }
-  }
-  
-  refreshShowAllTabs(){
-    if(this.id>0){//если в документе есть id
-      this.visAfterCreatingBlocks = true;
-      this.visBeforeCreatingBlocks = false;
-      this.visBtnUpdate = this.allowToUpdate;
-    }else{
-      this.visAfterCreatingBlocks = false;
-      this.visBeforeCreatingBlocks = true;
+      this.getDepartmentsList(); 
+      this.getPriceTypesList();
+      this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
+      this.getSetOfTypePrices();//загрузка типов цен для покупателя, склада и по умолчанию  
+      this.getStatusesList(); 
+      this.getCRUD_rights();  
+      if(+this.id==0) this.getCompanySettings(); // because at this time companySettings loads only the info that needs on creation document stage (when document id=0)
+      this.getDepartmentsWithPartsList();
+      this.getJobtitleList();
+      this.getSpravSysEdizm(); //загрузка единиц измерения. 
+
+      
     }
   }
 
-  
-  getCompaniesList(){ //+++
-    if(this.receivedCompaniesList.length==0)
-      this.loadSpravService.getCompaniesList()
-        .subscribe(
-            (data) => 
-            {
-              this.receivedCompaniesList=data as any [];
-              this.doFilterCompaniesList();
-            },                      
-            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
-        );
-    else this.doFilterCompaniesList();
-  }
-  getMyId(){ //+++
+  getMyId(){
     if(+this.myId==0)
       this.loadSpravService.getMyId()
             .subscribe(
                 (data) => {this.myId=data as any;
-                  this.getMyCompanyId();},
+                  this.necessaryActionsBeforeGetChilds();},
                 error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
             );
-    else this.getMyCompanyId();
   }
-  getMyCompanyId(){ //+++
+  getMyCompanyId(){
     if(+this.myCompanyId==0)
       this.loadSpravService.getMyCompanyId().subscribe(
         (data) => {
           this.myCompanyId=data as number;
+          this.necessaryActionsBeforeGetChilds();
           this.getMyDepartmentsList();
         }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
-    else this.getMyDepartmentsList();
   }
-  getMyDepartmentsList(){ //+++
+  getMyDepartmentsList(){
     if(this.receivedMyDepartmentsList.length==0)
     this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
-            .subscribe(
-                (data) => {this.receivedMyDepartmentsList=data as any [];
-                  this.getCRUD_rights();},
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
-            );
-    else this.getCRUD_rights();
-  }
-
-  onCompanyChange(){
-    this.formBaseInformation.get('department_id').setValue(null);
-    this.formBaseInformation.get('cagent_id').setValue(null);
-    this.formBaseInformation.get('cagent').setValue('');
-    
-    this.resetAddressForm();
-    this.resetContactsForm();
-    this.formBaseInformation.get('status_id').setValue(null);
-    this.searchCagentCtrl.setValue('');
-    this.actionsBeforeGetChilds=0;
-
-    this.formAboutDocument.get('company').setValue(this.getCompanyNameById(this.formBaseInformation.get('company_id').value));
-
-    this.getDepartmentsList();
-    this.getPriceTypesList();
-    this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
-    this.formExpansionPanelsString();
-    this.getCompanySettings();
+      .subscribe(
+          (data) => {this.receivedMyDepartmentsList=data as any [];},
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+      );
   }
 
   onDepartmentChange(){
       this.getSetOfTypePrices();
       this.formBaseInformation.get('department').setValue(this.getDepartmentNameById(this.formBaseInformation.get('department_id').value));
       this.productSearchAndTableComponent.formSearch.get('secondaryDepartmentId').setValue(this.formBaseInformation.get('department_id').value);
-      // if(this.kkmComponent){
-      //   this.kkmComponent.department_id=this.formBaseInformation.get('department_id').value;
-      //   this.kkmComponent.getKassaListByDepId();
-      // }
   }
 
-
-  resetAddressForm(){
-    this.formBaseInformation.get('zip_code').setValue('');         
-    this.formBaseInformation.get('country_id').setValue('');          
-    // this.formBaseInformation.get('region_id').setValue('');           
-    // this.formBaseInformation.get('city_id').setValue('');             
-    this.formBaseInformation.get('additional_address').setValue('');   
-    this.formBaseInformation.get('track_number').setValue('');        
-    this.formBaseInformation.get('country').setValue('');             
-    this.formBaseInformation.get('region').setValue('');              
-    this.formBaseInformation.get('city').setValue('');  
-    this.formBaseInformation.get('street').setValue('');
-    this.formBaseInformation.get('home').setValue('');
-    this.formBaseInformation.get('flat').setValue('');
-    this.searchRegionCtrl.setValue('');              
-    this.searchCityCtrl.setValue('');              
-  }
-  resetContactsForm(){
-    this.formBaseInformation.get('email').setValue('');               
-    this.formBaseInformation.get('telephone').setValue('');           
-  }
   getDepartmentsList(){
     this.receivedDepartmentsList=null;
     // this.formBaseInformation.get('department_id').setValue('');
@@ -847,34 +713,30 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       .subscribe(
           (data) => {this.receivedDepartmentsList=data as any [];
             this.doFilterDepartmentsList();
-            if(+this.id==0) this.setDefaultDepartment();
           },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
   }
 
-
-  setDefaultDepartment(){
-    //если в настройках не было предприятия, и в списке предприятий только одно предприятие - ставим его по дефолту
-    if(+this.formBaseInformation.get('department_id').value==0 && this.receivedDepartmentsList.length>0){
-      this.formBaseInformation.get('department_id').setValue(this.receivedDepartmentsList[0].id);
-      //Если дочерние компоненты уже загружены - устанавливаем данный склад как склад в форме поиска и добавления товара
-      if(this.canGetChilds){
-        this.productSearchAndTableComponent.formSearch.get('secondaryDepartmentId').setValue(this.formBaseInformation.get('department_id').value);  
-        this.productSearchAndTableComponent.setCurrentTypePrice();//если сменили отделение - нужно проверить, есть ли у него тип цены. И если нет - в вызываемом методе выведется предупреждение для пользователя
-      }
-    }
-    //если отделение было выбрано (через настройки или же в этом методе) - определяем его наименование (оно будет отправляться в дочерние компоненты)
-    if(+this.formBaseInformation.get('department_id').value>0)
-    this.formBaseInformation.get('department').setValue(this.getDepartmentNameById(this.formBaseInformation.get('department_id').value));
-    
-    //загрузка типов цен для покупателя, склада и по умолчанию  
-    this.getSetOfTypePrices();
-    //различные проверки
-    this.checkAnyCases();
-    this.getStatusesList();    
+  getDepartmentsWithPartsList(){ 
+    return this.http.get('/api/auth/getDepartmentsWithPartsList?company_id='+this.formBaseInformation.get('company_id').value)
+      .subscribe(
+          (data) => {   
+                      this.receivedDepartmentsWithPartsList=data as any [];
+      },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
+      );
   }
 
+  getJobtitleList(){ 
+    this.http.get('/api/auth/getJobtitlesList?company_id='+this.formBaseInformation.get('company_id').value)
+      .subscribe(
+          (data) => {   
+                      this.receivedJobtitlesList=data as any [];
+      },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
+      );
+  }
   // проверки на различные случаи
   checkAnyCases(){
     //проверка на то, что отделение все еще числится в отделениях предприятия (не было удалено и т.д.)
@@ -892,7 +754,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
 
   getStatusesList(){
     this.receivedStatusesList=null;
-    this.loadSpravService.getStatusList(this.formBaseInformation.get('company_id').value,23) //23 - id предприятия из таблицы documents
+    this.loadSpravService.getStatusList(this.formBaseInformation.get('company_id').value,59)
             .subscribe(
                 (data) => {this.receivedStatusesList=data as statusInterface[];
                   if(+this.id==0){this.setDefaultStatus();}},
@@ -910,7 +772,6 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       });
     }
     this.setStatusColor();
-    this.getSpravSysEdizm(); //загрузка единиц измерения. Загружаем тут, т.к. нужно чтобы сначала определилось предприятие, его id нужен для загрузки
     this.refreshPermissions();
   }
 
@@ -926,17 +787,6 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     this.formBaseInformation.get('shipment_date').setValue(moment());
     this.formBaseInformation.get('shipment_time').setValue(moment().format("HH:mm"));
     this.necessaryActionsBeforeAutoCreateNewDoc();
-  }
-  doFilterCompaniesList(){
-    let myCompany:idAndName;
-    if(!this.allowToCreateAllCompanies){
-      this.receivedCompaniesList.forEach(company=>{
-      if(this.myCompanyId==company.id) myCompany={id:company.id, name:company.name}});
-      this.receivedCompaniesList=[];
-      this.receivedCompaniesList.push(myCompany);
-    }
-    // if(+this.id==0)//!!!!! отсюда загружаем настройки только если документ новый. Если уже создан - настройки грузятся из get<Document>ValuesById
-      // this.getSettings(); // настройки документа Заказ покупателя
   }
   doFilterDepartmentsList(){
     // console.log('doFilterDepartmentsList');
@@ -1003,30 +853,8 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     this.http.post('/api/auth/getCagentValues', body).subscribe(
         data => { 
             let documentValues: docResponse=data as any;
-
-            this.formBaseInformation.get('telephone').setValue(documentValues.telephone==null?'':documentValues.telephone);
-            this.formBaseInformation.get('email').setValue(documentValues.email==null?'':documentValues.email);
-            this.formBaseInformation.get('zip_code').setValue(documentValues.zip_code==null?'':documentValues.zip_code);
-            this.formBaseInformation.get('country_id').setValue(documentValues.country_id);
-            // this.formBaseInformation.get('region_id').setValue(documentValues.region_id);
-            // this.formBaseInformation.get('city_id').setValue(documentValues.city_id);            
-            this.formBaseInformation.get('region').setValue(documentValues.region);
-            this.formBaseInformation.get('city').setValue(documentValues.city);
-            this.formBaseInformation.get('street').setValue(documentValues.street==null?'':documentValues.street);
-            this.formBaseInformation.get('home').setValue(documentValues.home==null?'':documentValues.home);
-            this.formBaseInformation.get('flat').setValue(documentValues.flat==null?'':documentValues.flat);
-            this.formBaseInformation.get('additional_address').setValue(documentValues.additional_address==null?'':documentValues.additional_address);
-            this.searchRegionCtrl.setValue(documentValues.region==null?'':documentValues.region);
-            this.area=documentValues.area==null?'':documentValues.area;
-            this.searchCityCtrl.setValue(this.area!=''?(documentValues.city+' ('+this.area+')'):documentValues.city);
-            if(+this.formBaseInformation.get('country_id').value!=0)
-            {
-              this.spravSysCountries.forEach(x => {
-                if(x.id==this.formBaseInformation.get('country_id').value){
-                  this.formBaseInformation.get('country').setValue(x.name_ru);
-                }
-              })
-            }
+            // this.formBaseInformation.get('telephone').setValue(documentValues.telephone==null?'':documentValues.telephone);
+            // this.formBaseInformation.get('email').setValue(documentValues.email==null?'':documentValues.email);
             this.formExpansionPanelsString();
             this.necessaryActionsBeforeAutoCreateNewDoc();
         },
@@ -1070,7 +898,6 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
               }
                 //вставляем Отделение и Покупателя (вставится только если новый документ)
               this.setDefaultInfoOnStart(+result.departmentId,+result.customerId,result.customer,result.name?result.name:'');
-              this.setDefaultCompany();
             }
             
             
@@ -1078,19 +905,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
   }
-  setDefaultCompany(){
-    this.formBaseInformation.get('company_id').setValue(
-      Cookie.get('appointments_companyId')=="0"? // если нет информации о выбранном предприятии
-      //если в настройках не было предприятия - ставим своё по дефолту
-      (+this.formBaseInformation.get('company_id').value==0?this.myCompanyId:this.formBaseInformation.get('company_id').value)
-      :+Cookie.get('appointments_companyId')
-    );
-      
-    this.getDepartmentsList(); 
-    this.getPriceTypesList();
-    this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
-    if(+this.id==0) this.getCompanySettings(); // because at this time companySettings loads only the info that needs on creation document stage (when document id=0)
-  }
+
   //если новый документ - вставляем Отделение и Покупателя (но только если они принадлежат выбранному предприятию, т.е. предприятие в Основной информации и предприятие, для которого были сохранены настройки совпадают)
   setDefaultInfoOnStart(departmentId:number, customerId:number, customer:string, name:string){
     if(+this.id==0){//документ новый
@@ -1123,8 +938,6 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   checkEmptyCagentField(){
     if(this.searchCagentCtrl.value.length==0){
       this.formBaseInformation.get('cagent_id').setValue(null);
-      this.resetAddressForm();
-      this.resetContactsForm();
       this.formExpansionPanelsString();
   }};     
   getCagentsList(){ //заполнение Autocomplete
@@ -1155,12 +968,8 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
                   this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
                   this.formBaseInformation.get('id').setValue(+documentValues.id);
                   this.formBaseInformation.get('company_id').setValue(documentValues.company_id);
-                  this.formBaseInformation.get('cagent_id').setValue(documentValues.cagent_id);
-                  this.formBaseInformation.get('cagent').setValue(documentValues.cagent);
                   this.formBaseInformation.get('department_id').setValue(documentValues.department_id);
                   this.formBaseInformation.get('department').setValue(documentValues.department);
-                  this.formBaseInformation.get('shipment_date').setValue(documentValues.shipment_date?moment(documentValues.shipment_date,'DD.MM.YYYY'):"");
-                  this.formBaseInformation.get('shipment_time').setValue(documentValues.shipment_time);
                   this.formBaseInformation.get('doc_number').setValue(documentValues.doc_number);
                   this.formBaseInformation.get('description').setValue(documentValues.description);
                   this.formBaseInformation.get('nds').setValue(documentValues.nds);
@@ -1170,31 +979,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
                   this.formBaseInformation.get('status_name').setValue(documentValues.status_name);
                   this.formBaseInformation.get('status_color').setValue(documentValues.status_color);
                   this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
-                  this.formBaseInformation.get('fio').setValue(documentValues.fio);
-                  this.formBaseInformation.get('email').setValue(documentValues.email);
-                  this.formBaseInformation.get('telephone').setValue(documentValues.telephone);
-                  this.formBaseInformation.get('zip_code').setValue(documentValues.zip_code);
-                  this.formBaseInformation.get('country_id').setValue(documentValues.country_id);
-                  this.formBaseInformation.get('street').setValue(documentValues.street);
-                  this.formBaseInformation.get('home').setValue(documentValues.home);
-                  this.formBaseInformation.get('flat').setValue(documentValues.flat);
-                  this.formBaseInformation.get('additional_address').setValue(documentValues.additional_address);
-                  this.formBaseInformation.get('track_number').setValue(documentValues.track_number);
-                  this.formBaseInformation.get('country').setValue(documentValues.country);
-                  this.formBaseInformation.get('region').setValue(documentValues.region);
-                  this.formBaseInformation.get('city').setValue(documentValues.city);
                   this.formBaseInformation.get('uid').setValue(documentValues.uid);
-                  this.searchRegionCtrl.setValue(documentValues.region);
-                  this.area=documentValues.area;
-                  this.searchCityCtrl.setValue(this.area!=''?(documentValues.city+' ('+this.area+')'):documentValues.city);
-                  if(+this.formBaseInformation.get('country_id').value!=0)
-                  {
-                    this.spravSysCountries.forEach(x => {
-                      if(x.id==this.formBaseInformation.get('country_id').value){
-                        this.formBaseInformation.get('country').setValue(x.name_ru);
-                      }
-                    })
-                  }
                   this.department_type_price_id=documentValues.department_type_price_id;
                   this.cagent_type_price_id=documentValues.cagent_type_price_id;
                   this.default_type_price_id=documentValues.default_type_price_id;
@@ -1203,20 +988,16 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
                   this.is_completed=documentValues.is_completed;
                   this.getSpravSysEdizm();//справочник единиц измерения
                   this.getSetOfTypePrices(); //загрузка цен по типам цен для выбранных значений (предприятие, отделение, контрагент)
-                  this.getCompaniesList(); // загрузка списка предприятий (здесь это нужно для передачи его в настройки)
                   this.formExpansionPanelsString();
                   this.getPriceTypesList();
                   this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                   this.getDepartmentsList();//отделения
                   this.getStatusesList();//статусы документа Заказ покупателя
-                  this.getSpravSysCountries();//Страны
                   this.hideOrShowNdsColumn();//расчет прятать или показывать колонку НДС
-                  // this.getSettings(); // настройки документа Заказ покупателя
                   this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
                   this.loadFilesInfo();
                   this.cheque_nds=documentValues.nds;//нужно ли передавать в кассу (в чек) данные об НДС 
                   this.oneClickSaveControl=false;
-                  //!!!
                 } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();
             },
@@ -1663,136 +1444,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
   }
 
-//******************************************************************************************************************************************/
-//*******************************           В Ы Б О Р  С Т Р А Н Ы,  Р А Й О Н А,  Г О Р О Д А       ***************************************/
-//******************************************************************************************************************************************/
-  //фильтрация при каждом изменении в поле Страна
-  private filter_country(value: string): IdAndName_ru[] {
-    const filterValue = value.toLowerCase();
-    return this.spravSysCountries.filter(option => option.name_ru.toLowerCase().includes(filterValue));
-  }  
-  getSpravSysCountries():void {    
-    this.http.post('/api/auth/getSpravSysCountries', {})  // 
-    .subscribe((data) => {
-      this.spravSysCountries = data as IdAndName_ru[];
-      // this.spravSysJrCountries = data as IdAndName[];
-    this.updateValuesSpravSysCountries(); },
-    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
-    }
-  //если значение уже выбрано (id загрузилось), надо из массива объектов найти имя, соответствующее этому id 
-  updateValuesSpravSysCountries(){
-    if(+this.formBaseInformation.get('country_id').value!=0)
-      {
-        this.spravSysCountries.forEach(x => {
-          if(x.id==this.formBaseInformation.get('country_id').value){
-            this.formBaseInformation.get('country').setValue(x.name_ru);
-          }
-        })
-      } 
-      else //иначе обнулить поля id и имени. Без этого при установке курсора в поле список выскакивать не будет (х.з. почему так)
-      {
-        this.formBaseInformation.get('country').setValue('');
-        this.formBaseInformation.get('country_id').setValue('');
-      }
-      this.necessaryActionsBeforeAutoCreateNewDoc();
-  }
-  //вызывается из html. необходима для сброса уже имеющегося значения. когда имя стирается, в id установится 0 
-  checkEmptyCountryField(){
-    if( this.formBaseInformation.get('country').value.length==0){
-      this.formBaseInformation.get('country_id').setValue('');
-    }
-  }
-  
-  //  -----------------------     ***** поиск по подстроке для Региона  ***    --------------------------
-  // onRegionSearchValueChanges(){
-  //   this.searchRegionCtrl.valueChanges
-  //   .pipe( 
-  //     debounceTime(500),
-  //     tap(() => {
-  //       this.filteredRegions = [];}),       
-  //     switchMap(fieldObject =>  
-  //       this.getSpravSysRegions()))
-  //   .subscribe(data => {
-  //     this.isRegionListLoading = false;
-  //     if (data == undefined) {
-  //       this.filteredRegions = [];
-  //     } else {
-  //       this.filteredRegions = data as Region[];
-  // }});}
-  // onSelectRegion(id:number,country_id:number,country:string){
-  //   this.formBaseInformation.get('region_id').setValue(+id);
-  //   //если выбрали регион, а страна не выбрана
-  //   if((this.formBaseInformation.get('country_id').value==null || this.formBaseInformation.get('country_id').value=='') && country_id>0){
-  //     this.formBaseInformation.get('country_id').setValue(country_id);
-  //     this.formBaseInformation.get('country').setValue(country);
-  //   }
-  // }
-  // checkEmptyRegionField(){
-  //   if(this.searchRegionCtrl.value.length==0){
-  //     this.formBaseInformation.get('region_id').setValue(null);
-  // }};     
-  // getSpravSysRegions(){ //заполнение Autocomplete
-  //   try {
-  //     if(this.canRegionAutocompleteQuery && this.searchRegionCtrl.value.length>1){
-  //       const body = {
-  //         "searchString":this.searchRegionCtrl.value,
-  //         "id":this.formBaseInformation.get('country_id').value};
-  //       this.isRegionListLoading  = true;
-  //       return this.http.post('/api/auth/getSpravSysRegions', body);
-  //     }else return [];
-  //   } catch (e) {
-  //     return [];}}
-  //---------------------------------------------------------------------------------------------------
-  //---------------     ***** поиск по подстроке для Города  ***    -----------------------------------
-  // onCitySearchValueChanges(){
-  //   this.searchCityCtrl.valueChanges
-  //   .pipe( 
-  //     debounceTime(500),
-  //     tap(() => {
-  //       this.filteredCities = [];}),       
-  //     switchMap(fieldObject =>  
-  //       this.getSpravSysCities()))
-  //   .subscribe(data => {
-  //     this.isCityListLoading = false;
-  //     if (data == undefined) {
-  //       this.filteredCities = [];
-  //     } else {
-  //       this.filteredCities = data as City[];
-  // }});}
-  // onSelectCity(id:any,area:string,region_id:number,region:string,country_id:number,country:string){
-  //   this.formBaseInformation.get('city_id').setValue(+id);
-  //   this.area=area;
-  //   if(area!=''){
-  //     setTimeout(()=> {
-  //       this.searchCityCtrl.setValue(this.searchCityCtrl.value+' ('+area+')'); 
-  //     },200); 
-  //   }//если выбрали город, а регион не выбран
-  //   if((this.formBaseInformation.get('region_id').value==null || this.formBaseInformation.get('region_id').value=='') && region_id>0){//если у города есть регион и он не выбран - устанавливаем регион
-  //     this.formBaseInformation.get('region_id').setValue(region_id);
-  //     this.searchRegionCtrl.setValue(region);
-  //   }//если выбрали регион, а страна не выбрана
-  //   if((this.formBaseInformation.get('country_id').value==null || this.formBaseInformation.get('country_id').value=='') && country_id>0){//если у города есть страна и она не выбрана - устанавливаем страну
-  //     this.formBaseInformation.get('country_id').setValue(country_id);
-  //     this.formBaseInformation.get('country').setValue(country);
-  //   }
-  // }
-  // checkEmptyCityField(){
-  //   if(this.searchCityCtrl.value.length==0){
-  //     this.formBaseInformation.get('city_id').setValue(null);
-  //     this.area='';
-  // }};     
-  // getSpravSysCities(){ //заполнение Autocomplete
-  //   try {
-  //     if(this.canCityAutocompleteQuery && this.searchCityCtrl.value.length>1){
-  //       const body = {
-  //         "searchString":this.searchCityCtrl.value,
-  //         "id":this.formBaseInformation.get('country_id').value,
-  //         "id2":this.formBaseInformation.get('region_id').value}
-  //       this.isCityListLoading  = true;
-  //       return this.http.post('/api/auth/getSpravSysCities', body);
-  //     }else return [];
-  //   } catch (e) {
-  //     return [];}}    
+
 
 //*****************************************************************************************************************************************/
 //***************************************************    добавление файлов          *******************************************************/
@@ -1926,7 +1578,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   }
 
   getSetOfTypePrices(){
-    // alert(5)
+    /*
     return this.http.get('/api/auth/getSetOfTypePrices?company_id='+this.formBaseInformation.get('company_id').value+
     '&department_id='+(+this.formBaseInformation.get('department_id').value)+'&cagent_id='+(+this.formBaseInformation.get('cagent_id').value))
       .subscribe(
@@ -1950,6 +1602,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
                   },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
       );
+    */
   }
 
   //создание нового документа Заказ покупателя
@@ -1968,12 +1621,9 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     this.actionsBeforeGetChilds=0;
     this.actionsBeforeCreateNewDoc=0;
     this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
-    this.resetAddressForm();
     this.resetStatus();
-    this.resetContactsForm();
     this.formExpansionPanelsString();
     this.is_completed=false;
-    this.refreshShowAllTabs();
     this.getData();
   }
   clearFormSearchAndProductTable(){

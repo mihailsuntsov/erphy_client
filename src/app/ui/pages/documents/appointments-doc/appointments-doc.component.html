@@ -5,7 +5,7 @@
         <mat-card-title class="top-bar container-fluid"> 
             <div class="row" id="topBlock">
                 <div id="cardname">
-                    <div class="nowrap">{{t('docs.docs.c_order')}} {{t('docs.top.number')}}
+                    <div class="nowrap">{{t('docs.list.'+data.booking_doc_name_variation)}} {{t('docs.top.number')}}
                         <mat-form-field class="docnumber" *ngIf="doc_number_isReadOnly && +id==0 && (+formBaseInformation.get('company_id').value>0)">                                                               
                             <input  matInput
                                     (click)="EditDocNumber()"
@@ -17,7 +17,7 @@
                                     #doc_number 
                                     maxlength="10"
                                     (keypress)="numberOnly($event)"
-                                    (keyup)="checkDocNumberUnical('customersorders')"
+                                    (keyup)="checkDocNumberUnical('scdl_appointments')"
                                     formControlName="doc_number"/>
                             <mat-hint  align="start" style="font-size: x-small;margin-top: -1px;" *ngIf="formBaseInformation.get('doc_number').touched && formBaseInformation.get('doc_number').invalid">
                                 <i class="form-invalid" *ngIf="formBaseInformation.get('doc_number').errors.pattern" class="form-invalid">{{t('docs.error.num_only')}}</i>
@@ -232,47 +232,24 @@
                                                                                 placeholder="id"
                                                                                 formControlName="id"/>
                                                                     </mat-form-field>
-                                                                    <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: visAfterCreatingBlocks}">
-                                                                        <mat-label>{{t('docs.field.company')}} <span *ngIf="formBaseInformation.get('company_id').value==''" class="star">*</span></mat-label>
-                                                                        <mat-select  formControlName="company_id" (selectionChange)="onCompanyChange()">                          
-                                                                            <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
-                                                                                    {{rt.name}}
-                                                                            </mat-option> 
-                                                                        </mat-select>
+                                                                    <mat-form-field class="mat-form-field-100">                                                                       
+                                                                        <input  matInput
+                                                                                placeholder="company_id"
+                                                                                formControlName="company_id"/>
                                                                     </mat-form-field>
-                                                                    <mat-form-field class="mat-form-field-100" *ngIf="+id>0">
+                                                                    <mat-form-field class="mat-form-field-100">
                                                                         <mat-label>{{t('docs.field.company')}}</mat-label>
                                                                         <input  matInput [readonly]="true"
-                                                                                [ngModel]="formAboutDocument.get('company').value" [ngModelOptions]="{standalone: true}"/>
+                                                                                [ngModel]="company" [ngModelOptions]="{standalone: true}"/>
                                                                     </mat-form-field>
                                                                 </div>
-                                                                <div class="col-12"> 
-                                                                    <mat-form-field  class="mat-form-field-100" [ngClass]="{invisible: visAfterCreatingBlocks}"
-                                                                    >
-                                                                        <mat-label>{{t('docs.field.department')}} <span *ngIf="formBaseInformation.get('department_id').value==null" class="star">*</span></mat-label>
-                                                                        <mat-select formControlName="department_id" (selectionChange)="onDepartmentChange()">
-                                                                            <mat-option *ngFor="let department of receivedDepartmentsList" 
-                                                                                        [value]="department.id">
-                                                                                        {{department.name}}
-                                                                            </mat-option>
-                                                                        </mat-select>
-                                                                        <mat-hint  align="start" *ngIf="formBaseInformation.get('department_id').touched && formBaseInformation.get('department_id').invalid">
-                                                                            <i class="form-invalid">{{t('docs.error.depart_not_se')}}</i>
-                                                                        </mat-hint>
-                                                                    </mat-form-field>
-                                                                    <mat-form-field class="mat-form-field-100" *ngIf="+id>0">
-                                                                        <mat-label>{{t('docs.field.department')}}</mat-label>
-                                                                        <input  matInput [readonly]="true"
-                                                                                [ngModel]="formBaseInformation.get('department').value" [ngModelOptions]="{standalone: true}"/>
-                                                                    </mat-form-field>
-                                                                </div>
-                                                                <div class="col-12">
+                                                                <!-- <div class="col-12">
                                                                     <mat-form-field style="display: none">
                                                                         <input  matInput
                                                                                 placeholder="cagent_id"
                                                                                 formControlName="cagent_id"/>
                                                                     </mat-form-field>
-                                                                    <mat-form-field *ngIf="id==0 && !is_addingNewCagent" class="mat-form-field-100" [ngClass]="{invisible: visAfterCreatingBlocks}"> 
+                                                                    <mat-form-field *ngIf="id==0 && !is_addingNewCagent" class="mat-form-field-100"> 
                                                                         <div style="min-width:70px;">
                                                                             <mat-icon 
                                                                                 class="add-cagent"
@@ -342,7 +319,7 @@
                                                                             <i class="form-invalid">{{t('docs.error.no_cust_name')}}</i>
                                                                         </mat-hint>
                                                                     </mat-form-field>
-                                                                </div>
+                                                                </div> -->
                                                                 <div class="col-12"> 
                                                                     <mat-form-field   class="mat-form-field-100">
                                                                         <mat-label>{{t('docs.field.order_name')}}</mat-label>
@@ -357,7 +334,6 @@
                                                     </div>
 
                                                     <div class="col-xl-6 col-sm-12">
-                                                        <!-- <div class="container-fluid"> -->
                                                             <div class="row">
 
                                                                 <div class="col-12">
@@ -464,325 +440,47 @@
                                                                         <mat-hint align="end" *ngIf="description.value.length>500">{{description.value.length}} / 2000</mat-hint>
                                                                     </mat-form-field>
                                                                 </div>  
-                                                                <!-- <div class="row"  [ngClass]="{invisible: !visBeforeCreatingBlocks}">
-                                                                    <div class="col-12 center-align">
-                                                                        <button 
-                                                                            mat-raised-button 
-                                                                            [style.display]="visAfterCreatingBlocks==true?'none':'block'"
-                                                                            (click)="createNewDocument()" 
-                                                                            *ngIf="allowToCreate"
-                                                                            [disabled]="!formBaseInformation.valid || !canCreateNewDoc" 
-                                                                            color="primary"
-                                                                            type="submit"
-                                                                            class="button">
-                                                                            <i class="material-icons">play_circle_outline</i> Создать заказ
-                                                                        </button>
-                                                                    </div>  
-                                                                </div>  -->
                                                             </div>
-                                                        <!-- </div> -->
                                                     </div>
                                                 </div>
-                                            <!-- </div>   -->
                                         </mat-card-content>
                                     </mat-card>
-
-                                    <!--mat-card class="internal-card"  [ngClass]="{invisible: visBeforeCreatingBlocks}">
-                                        <mat-card-header>
-                                            <mat-card-title class="card-title">{{t('docs.card.files')}}</mat-card-title>
-                                        </mat-card-header>
-                                        <mat-card-content class="input-form">
-                                            <div class="box-list">
-                                                <ng-container *ngFor="let i of filesInfo">
-                                                    <div class="filename-row">
-                                                        <div class="file-wrapper">
-                                                            <span> {{ i.original_name }}</span>
-                                                        </div>
-                                                        <div style="min-width:70px;">
-                                                            
-                                                            <button mat-button 
-                                                            class="min-heigth"
-                                                                    type="button"
-                                                                    (click)="openFileCard(i.id)"
-                                                                    matTooltip="{{t('docs.tip.open_file')}}"
-                                                                    matSuffix>
-                                                                <mat-icon>launch</mat-icon>
-                                                            </button>
-                                                            
-                                                            
-                                                            <button mat-button 
-                                                                    *ngIf="!is_completed"
-                                                                    class="min-heigth"
-                                                                    type="button"
-                                                                    (click)="clickBtnDeleteFile(i.id)"
-                                                                    matTooltip="{{t('docs.tip.del_file')}}"
-                                                                    matSuffix>
-                                                                <mat-icon>delete_forever</mat-icon>
-                                                            </button>
-                                                        </div>
-
-
-                                                    </div>
-                                                </ng-container>
-                                            </div>
-                                            <div class="div-100" [style.display]="(visBtnUpdate==true && !is_completed) ?'block':'none'"> 
-                                                <div class="center hand" style="width:100%; height: 38px;">
-                                                    <button matTooltip="{{t('docs.tip.add_file')}}" mat-mini-fab color="primary" (click)="openDialogAddFiles()" matTooltip="{{t('docs.tip.file_upload')}}">
-                                                        <mat-icon>add</mat-icon>
-                                                    </button>
-                                                </div>
-                                            </div> 
-                                        </mat-card-content>
-                                    </mat-card--> 
                                 </div>  
                                 <div class="col-lg-4 col-xl-4 col-md-12" style="padding-top: 10px;">
 
-                                    <mat-accordion class="headers-align" >
-                                        <mat-expansion-panel 
-                                        (opened)="panelContactsOpenState = true"
-                                        (closed)="panelContactsOpenState = false"
-                                        [expanded]="panelContactsOpenState">
-                                            <mat-expansion-panel-header>
-                                                <mat-panel-title>
-                                                    {{t('docs.card.contacts')}}
-                                                </mat-panel-title>
-                                                <mat-panel-description *ngIf="!panelContactsOpenState">
-                                                    <div style="display: flex; flex-flow: column;">
-                                                        <p style="margin: 2px 0;" *ngIf="this.formBaseInformation.get('telephone').value!='' ">{{t('docs.field.telephone')}}: {{this.formBaseInformation.get('telephone').value}}</p>
-                                                        <p style="margin: 2px 0;" *ngIf="this.formBaseInformation.get('email').value!='' ">{{t('docs.field.email')}}: {{this.formBaseInformation.get('email').value}}</p>
-                                                    </div>
-                                                </mat-panel-description>
-                                            </mat-expansion-panel-header>
-                                            <!-- Телефон -->
-                                            <div class="row">
-                                                <div class="col-lg-6  col-md-12">
-                                                    <mat-form-field  class="mat-form-field-100">
-                                                        <mat-label>{{t('docs.field.telephone')}}</mat-label>
-                                                        <input   matInput
-                                                                [readonly]=!editability
-                                                                placeholder="{{t('docs.field.telephone')}}"
-                                                                maxlength="60"
-                                                                formControlName="telephone"/>
-                                                        <mat-hint align="end" *ngIf="formBaseInformation.get('telephone').value.length>50">{{formBaseInformation.get('telephone').value.length}} / 60</mat-hint>
-                                                    </mat-form-field>
-                                                </div>
-                                                <div class="col-lg-6  col-md-12">
-                                                    <!-- e-mail -->
-                                                    <mat-form-field  class="mat-form-field-100">
-                                                        <mat-label>{{t('docs.field.email')}}</mat-label>
-                                                        <input   matInput
-                                                                [readonly]=!editability
-                                                                placeholder="{{t('docs.field.email')}}"
-                                                                maxlength="254"
-                                                                formControlName="email"/>
-                                                        <mat-hint align="end" *ngIf="formBaseInformation.get('email').value.length>200">{{formBaseInformation.get('email').value.length}} / 254</mat-hint>
-                                                    </mat-form-field>
-                                                </div>
-                                            </div>
-                                        </mat-expansion-panel>
-
-
-
-
-
-                                    
-                                        <mat-expansion-panel 
-                                        class="expansion-card"
-                                        (opened)="panelAddressOpenState = true"
-                                        (closed)="panelAddressOpenState = false"
-                                        [expanded]="panelAddressOpenState">
-                                            <mat-expansion-panel-header>
-                                                <mat-panel-title>
-                                                    {{t('docs.card.address')}} 
-                                                </mat-panel-title>
-                                                <mat-panel-description *ngIf="!panelAddressOpenState">
-                                                    {{addressString}}
-                                                </mat-panel-description>
-                                            </mat-expansion-panel-header>
-                                            <div class="row">
-                                                <div class="col-lg-6  col-md-12">
-                                                    <!-- Индекс -->
-                                                    <mat-form-field  class="mat-form-field-100">
-                                                        <mat-label>{{t('docs.field.zip_code')}}</mat-label>
-                                                        <input   matInput
-                                                                placeholder="{{t('docs.field.zip_code')}}"
-                                                                [readonly]=!editability
-                                                                maxlength="40"
-                                                                formControlName="zip_code"/>
-                                                        <mat-hint align="end" *ngIf="formBaseInformation.get('zip_code').value.length>30">{{formBaseInformation.get('zip_code').value.length}} / 40</mat-hint>
-                                                    </mat-form-field>
-                                                </div>
-                                                <div class="col-lg-6  col-md-12">
-                                                    <!-- Страна -->
-                                                    <mat-form-field  style="display: none;" >
-                                                        <input   matInput
-                                                                placeholder="{{t('docs.field.country')}}"
-                                                                formControlName="country_id"/>
-                                                    </mat-form-field>
-                                                    <mat-form-field  class="mat-form-field-100">
-                                                        <mat-label>{{t('docs.field.country')}}</mat-label>
-                                                        <input matInput
-                                                        type="text"
-                                                        formControlName="country" 
-                                                        [readonly]=!editability
-                                                        [matAutocomplete]="auto1" 
-                                                        (input)="checkEmptyCountryField();"
-                                                        (change)="checkEmptyCountryField();">
-                                                        <mat-autocomplete #auto1="matAutocomplete">
-                                                            <mat-option *ngFor="let option of filteredSpravSysCountries | async" [value]="option.name_ru">
-                                                                <div (click)="formBaseInformation.get('country_id').setValue(option.id)">
-                                                                    <span style="margin:10px;">{{option.name_ru}}</span>
-                                                                </div>
-                                                            </mat-option>
-                                                        </mat-autocomplete>
-                                                    </mat-form-field>
-                                                </div>
-                                            </div>
-                                            <!-- Регион -->
-                                            <!-- <mat-form-field style="display: none">
-                                                <input  matInput
-                                                        placeholder="region_id"
-                                                        formControlName="region_id"/>
-                                            </mat-form-field>
-                                            <mat-form-field class="mat-form-field-100" > 
-                                                <input  matInput 
-                                                placeholder="{{t('docs.field.region')}}"
-                                                [matAutocomplete]="auto4" 
-                                                [readonly]=!editability
-                                                [formControl]="searchRegionCtrl"
-                                                (input)="canRegionAutocompleteQuery=true; checkEmptyRegionField();"
-                                                (change)="canRegionAutocompleteQuery=false; checkEmptyRegionField();">
-                                                <mat-autocomplete #auto4="matAutocomplete">
-                                                <ng-container *ngIf="!isRegionListLoading" style="width:320px;">
-                                                    <mat-option style="padding:0px" *ngFor="let value of filteredRegions" [value]="value.name_ru">
-                                                    <div (click)="onSelectRegion(value.id,value.country_id,value.country_name_ru)">
-                                                        <span style="margin:10px;"><b>{{value.name_ru}}</b></span>
-                                                    </div>
-                                                    </mat-option>
-                                                </ng-container>
-                                                </mat-autocomplete>
-                                            </mat-form-field>
-                                            <mat-progress-bar *ngIf="isRegionListLoading" mode="indeterminate"></mat-progress-bar> -->
-                                            
-                                            <mat-form-field class="mat-form-field-100">
-                                                <mat-label>{{t('docs.field.region')}}</mat-label>
-                                                <input   matInput
-                                                        placeholder="{{t('docs.field.region')}}"
-                                                        [readonly]=!editability
-                                                        maxlength="120"
-                                                        formControlName="region"/>
-                                                <mat-hint align="end" *ngIf="formBaseInformation.get('region').value.length>100">{{formBaseInformation.get('region').value.length}} / 120</mat-hint>
-                                            </mat-form-field>
-                                            
-                                            <!-- Город -->
-                                            <!-- <mat-form-field style="display: none">
-                                                <input  matInput
-                                                        placeholder="city_id"
-                                                        formControlName="city_id"/>
-                                            </mat-form-field>
-                                            <mat-form-field class="mat-form-field-100" > 
-                                                <mat-label>{{(+formBaseInformation.get('city_id').value==0)?t('docs.field.city_locality'):(area!=''?t('docs.field.locality'):t('docs.field.city'))}}</mat-label>
-                                                <input  matInput 
-                                                [matAutocomplete]="auto6" 
-                                                [formControl]="searchCityCtrl"
-                                                [readonly]=!editability
-                                                (input)="canCityAutocompleteQuery=true; checkEmptyCityField();"
-                                                (change)="canCityAutocompleteQuery=false; checkEmptyCityField();">
-                                                <mat-autocomplete #auto6="matAutocomplete">
-                                                <ng-container *ngIf="!isCityListLoading" style="width:320px;">
-                                                    <mat-option style="padding:0px" *ngFor="let value of filteredCities" [value]="value.name_ru">
-                                                    <div (click)="onSelectCity(value.id,value.area_ru,value.region_id,value.region_name_ru,value.country_id,value.country_name_ru)">
-                                                        <span style="margin:10px;"><b>{{value.name_ru}}</b> <i> {{value.area_ru}}</i></span>
-                                                    </div>
-                                                    </mat-option>
-                                                </ng-container>
-                                                </mat-autocomplete>
-                                            </mat-form-field>
-                                            <mat-progress-bar *ngIf="isCityListLoading" mode="indeterminate"></mat-progress-bar> -->
-
-                                            <mat-form-field class="mat-form-field-100">
-                                                <mat-label>{{t('docs.field.city_locality')}}</mat-label>
-                                                <input   matInput
-                                                        placeholder="{{t('docs.field.city_locality')}}"
-                                                        [readonly]=!editability
-                                                        maxlength="120"
-                                                        formControlName="city"/>
-                                                <mat-hint align="end" *ngIf="formBaseInformation.get('city').value.length>100">{{formBaseInformation.get('city').value.length}} / 120</mat-hint>
-                                            </mat-form-field>
-
-                                            <!-- Улица -->
+                                    <div class="row">
+                                        <div class="col-lg-6  col-md-12">
                                             <mat-form-field  class="mat-form-field-100">
-                                                <mat-label>{{t('docs.field.street')}}</mat-label>
+                                                <mat-label>{{t('docs.field.telephone')}}</mat-label>
                                                 <input   matInput
-                                                        placeholder="{{t('docs.field.street')}}"
                                                         [readonly]=!editability
-                                                        maxlength="120"
-                                                        formControlName="street"/>
-                                                <mat-hint align="end" *ngIf="formBaseInformation.get('street').value.length>100">{{formBaseInformation.get('street').value.length}} / 120</mat-hint>
+                                                        placeholder="{{t('docs.field.telephone')}}"
+                                                        maxlength="60"
+                                                        [ngModel]="telephone"
+                                                        [ngModelOptions]="{standalone: true}"
+                                                        />
+                                                <mat-hint align="end" *ngIf="telephone.length>50">{{telephone.length}} / 60</mat-hint>
                                             </mat-form-field>
-                                            <div class="row">
-                                                <div class="col-lg-6  col-md-12">
-                                                    <!-- Дом -->
-                                                    <mat-form-field  class="mat-form-field-100">
-                                                        <mat-label>{{t('docs.field.house')}}</mat-label>
-                                                        <input   matInput
-                                                                placeholder="{{t('docs.field.house')}}"
-                                                                [readonly]=!editability
-                                                                maxlength="16"
-                                                                formControlName="home"/>
-                                                        <mat-hint align="end" *ngIf="formBaseInformation.get('home').value.length>12">{{formBaseInformation.get('home').value.length}} / 16</mat-hint>
-                                                    </mat-form-field>
-                                                </div>
-                                                <div class="col-lg-6  col-md-12">
-                                                    <!-- Квартира -->
-                                                    <mat-form-field  class="mat-form-field-100">
-                                                        <mat-label>{{t('docs.field.room')}}</mat-label>
-                                                        <input   matInput
-                                                                placeholder="{{t('docs.field.room')}}"
-                                                                maxlength="8"
-                                                                [readonly]=!editability
-                                                                formControlName="flat"/>
-                                                        <mat-hint align="end" *ngIf="formBaseInformation.get('flat').value.length>6">{{formBaseInformation.get('flat').value.length}} / 8</mat-hint>
-                                                    </mat-form-field>
-                                                </div>
-                                            </div>
-                                            <!-- Дополнение к адресу -->
+                                        </div>
+                                        <div class="col-lg-6  col-md-12">
+                                            <!-- e-mail -->
                                             <mat-form-field  class="mat-form-field-100">
-                                                <mat-label>{{t('docs.field.addr_addittnl')}}</mat-label>
-                                                <textarea   matInput
-                                                        placeholder="{{t('docs.field.addr_addittnl')}}"
+                                                <mat-label>{{t('docs.field.email')}}</mat-label>
+                                                <input   matInput
                                                         [readonly]=!editability
-                                                        maxlength="240"
-                                                        formControlName="additional_address">
-                                                </textarea>
-                                                <mat-hint align="end" *ngIf="formBaseInformation.get('additional_address').value.length>200">{{formBaseInformation.get('additional_address').value.length}} / 240</mat-hint>
+                                                        placeholder="{{t('docs.field.email')}}"
+                                                        maxlength="254"
+                                                        [ngModel]="email"
+                                                        [ngModelOptions]="{standalone: true}"/>
+                                                <mat-hint align="end" *ngIf="email.length>200">{{email.length}} / 254</mat-hint>
                                             </mat-form-field>
-                                        </mat-expansion-panel>
-                                    </mat-accordion>
-
-
-
+                                        </div>
+                                    </div>
+                                       
                                 </div>
-                                <!-- <div class="col-lg-4 col-xl-4 col-md-12">  
-                                    <app-kkm 
-                                         *ngIf="canGetChilds && +id>0"
-                                        (sendingProductsTableEvent)="sendingProductsTableHandler()"
-                                        (succesfulChequePrinting)="onSuccesfulChequePrintingHandler()"
-                                        [autocreateOnCheque] = "settingsForm.get('autocreateOnCheque').value"
-                                        [addressString] = "addressString"
-                                        [department_id] = "this.formBaseInformation.get('department_id').value"
-                                        [selectedPaymentType] = "settingsForm.get('selectedPaymentType').value"
-                                        [productTableIsValid] = "childFormValid"
-                                        [cheque_nds] = "cheque_nds"
-                                        [company]="formAboutDocument.get('company').value"
-                                        [department]="formBaseInformation.get('department').value"
-                                    >
-                                    </app-kkm>
-                                </div> -->
+                               
                             </div>  
-<!-- nds_included Parent - {{this.formBaseInformation.get('nds_included').value}}, -->
-<!-- Child form valid: {{ childFormValid }} -->
-                            <div class="row">
+                            <!-- <div class="row">
                                 <div class="col-12" style="padding-right: 0px; padding-left: 0px;">
                                     <app-product-search-and-table 
                                         *ngIf="canGetChilds"
@@ -814,7 +512,7 @@
                                         [accountingCurrency]="accountingCurrency"
                                     ></app-product-search-and-table>
                                 </div>
-                            </div>
+                            </div> -->
                         </div>  
                     </mat-tab>
                     <mat-tab *ngIf="+id>0">
@@ -895,31 +593,31 @@
                             </div>
                         </div>
                     </mat-tab>
-                    <mat-tab  *ngIf="visAfterCreatingBlocks"  label="{{t('docs.tab.about')}}">
+                    <mat-tab  *ngIf="+id>0"  label="{{t('docs.tab.about')}}">
                         <form [formGroup]="formAboutDocument">
                             <mat-card appearance="outlined" class="internal-card">
                                 <mat-card-content class="input-form">
-                                        <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                        <mat-form-field [ngClass]="{invisible: +id>0}">
                                             <input  matInput
                                                     placeholder="{{t('docs.field.company')}}"
                                                     formControlName="company" [readonly]=true/>
                                         </mat-form-field>
-                                        <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                        <mat-form-field [ngClass]="{invisible: +id>0}">
                                             <input  matInput
                                                     placeholder="{{t('docs.field.creator')}}"
                                                     formControlName="creator" [readonly]=true/>
                                         </mat-form-field>
-                                        <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                        <mat-form-field [ngClass]="{invisible: +id>0}">
                                             <input  matInput
                                                     placeholder="{{t('docs.field.created')}}"
                                                     formControlName="date_time_created" [readonly]=true/>
                                         </mat-form-field>
-                                        <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                        <mat-form-field [ngClass]="{invisible: +id>0}">
                                             <input  matInput
                                                     placeholder="{{t('docs.field.changer')}}"
                                                     formControlName="changer" [readonly]=true/>
                                         </mat-form-field>
-                                        <mat-form-field [ngClass]="{invisible: visBeforeCreatingBlocks}">
+                                        <mat-form-field [ngClass]="{invisible: +id>0}">
                                             <input  matInput
                                                     placeholder="{{t('docs.field.changed')}}"
                                                     formControlName="date_time_changed" [readonly]=true/>
