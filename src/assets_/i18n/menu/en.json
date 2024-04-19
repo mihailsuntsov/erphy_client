@@ -45,7 +45,8 @@
         "btn_today":    "Today",
         "day":          "Day",
         "week":         "Week",
-        "month":        "Month"
+        "month":        "Month",
+        "scheduler":    "Employees"
     },
     "tip":{
         "select_opt":   "Select options for the filter",

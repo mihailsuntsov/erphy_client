@@ -15,11 +15,12 @@ export class CustomDateFormatter extends CalendarDateFormatter {
     public datepipe: DatePipe;
     locale:string;
     timeFormat:string;
-    // protected dateAdapter: DateAdapter;
     constructor(
         private dataService: DataService, 
-        dateAdapter: DateAdapter) {
+        dateAdapter: DateAdapter
+    ) {
         super(dateAdapter);
+        
         this.subscription = this.dataService.data$.subscribe(data => {
           this.timeFormat = data;
         });
@@ -32,8 +33,8 @@ export class CustomDateFormatter extends CalendarDateFormatter {
 
     // title in a month view
     public monthViewTitle({ date, locale }: DateFormatterParams): string {
-        console.log('date',date);
-        console.log('locale',locale);
+        // console.log('date',date);
+        // console.log('locale',locale);
         // console.log('locale',locale);
         // console.log('converted locale',this.getLocaleAngular(locale));
         return formatDate(date, 'LLLL y', this.getLocaleAngular(locale));
@@ -41,36 +42,41 @@ export class CustomDateFormatter extends CalendarDateFormatter {
     // title in a week view
     public weekViewTitle({ date, locale}: DateFormatterParams): string {
         
-        console.log('date',date);
-        console.log('locale',locale);
-        // const year: string = new DatePipe(locale).transform(date, 'y', locale);
+        // console.log('date',date);
+        // console.log('locale',locale);
+        this.getLocaleAngular(locale); // this.locale в этом классе должна принять формат Angular, а не Moment
+                                       // она изменяется только 1 раз, далее класс её "помнит"
         const startdateofweek= new DatePipe(locale).transform(this.startOfWeek(date),this.weekTitleFormat, locale);
         const enddateofweek= new DatePipe(locale).transform(this.endOfWeek(date),this.weekTitleFormat+', y', locale);
+        console.log('enddateofweek',enddateofweek)
         return `${startdateofweek} — ${enddateofweek}`;
     }
     // title in a day view
     public dayViewTitle({ date, locale }: DateFormatterParams): string {
-        console.log('date',date);
-        console.log('locale',locale);
-        // console.log('locale',locale);
+        // console.log('date',date);
+        // console.log('this.locale',this.locale);
+        this.getLocaleAngular(locale); // this.locale в этом классе должна принять формат Angular, а не Moment
+                                       // она изменяется только 1 раз, далее класс её "помнит"
+        // console.log('locale',locale);    
         // console.log('converted locale',this.getLocaleAngular(locale));
         return formatDate(date, this.dayTitleFormat, this.getLocaleAngular(locale)); // ru
     }
-    public schedulerViewTitle({ date, locale }: DateFormatterParams): string {
-        console.log('date',date);
-        console.log('locale',locale);
-        // console.log('locale',locale);
-        // console.log('converted locale',this.getLocaleAngular(locale));
-        return formatDate(date, this.dayTitleFormat, this.getLocaleAngular(locale)); // ru
-    }
+
+    // public schedulerViewTitle({ date, locale }: DateFormatterParams): string {
+    //     console.log('date',date);
+    //     console.log('locale',locale);
+    //     // console.log('locale',locale);
+    //     // console.log('converted locale',this.getLocaleAngular(locale));
+    //     return formatDate(date, this.dayTitleFormat, this.getLocaleAngular(locale)); // ru
+    // }
 // *********************************  HOUR FORMAT  ************************************
 
     public dayViewHour({ date, locale }: DateFormatterParams): string {
-        return formatDate(date, this.timeFormat, this.getLocaleAngular(locale));
+        return formatDate(date, this.getTimeFormat(), this.getLocaleAngular(locale));
     }
     
     public weekViewHour({ date, locale }: DateFormatterParams): string {
-        return formatDate(date, this.timeFormat, this.getLocaleAngular(locale));
+        return formatDate(date, this.getTimeFormat(), this.getLocaleAngular(locale));
     }
 
 // *********************************  COLUMN HEADERS  **********************************
@@ -86,10 +92,10 @@ export class CustomDateFormatter extends CalendarDateFormatter {
 
 // *********************************  Common utilites  **********************************
     startOfWeek(date) {  
-        console.log("date.getDate()", date.getDate());
-        console.log("date.getDay()",  date.getDay());
-        console.log("this.locale",this.locale)
-        console.log("this.weekStartsOn", this.weekStartsOn);
+        // console.log("date.getDate()", date.getDate());
+        // console.log("date.getDay()",  date.getDay());
+        // console.log("this.locale",this.locale)
+        // console.log("this.weekStartsOn", this.weekStartsOn);
         var diff = date.getDate() - date.getDay() + (date.getDay() === 0 ? -6 : 1);
         return new Date(date.setDate(diff-(this.weekStartsOn==0?1:0)));  
     }  
@@ -174,24 +180,24 @@ export class CustomDateFormatter extends CalendarDateFormatter {
         'hr':           'd MMMM'
         })[this.locale]
     }
-    // get timeFormat(){
-    //     return ({
-    //     'ru':         'HH:mm',
-    //     'sr-Cyrl':    'HH:mm',
-    //     'sr-Latn-ME': 'HH:mm',
-    //     'en-AU':      'h:mm a',
-    //     'en-CA':      'h:mm a',
-    //     'en-US':      'h:mm a',
-    //     'en':         'h:mm a',
-    //     'en-GB':      'h:mm a',
-    //     'en-IE':      'h:mm a',
-    //     'en-IL':      'h:mm a',
-    //     'en-IN':      'h:mm a',
-    //     'en-NZ':      'h:mm a',
-    //     'en-SG':      'h:mm a',
-    //     'bs-Latn':    'HH:mm',
-    //     'hr':         'HH:mm'  
-    //     })[this.locale]
-    // }
+    getTimeFormat(){
+        return ({
+        'ru':         'HH:mm',
+        'sr-Cyrl':    'HH:mm',
+        'sr-Latn-ME': 'HH:mm',
+        'en-AU':      'h:mm a',
+        'en-CA':      'h:mm a',
+        'en-US':      'h:mm a',
+        'en':         'h:mm a',
+        'en-GB':      'h:mm a',
+        'en-IE':      'h:mm a',
+        'en-IL':      'h:mm a',
+        'en-IN':      'h:mm a',
+        'en-NZ':      'h:mm a',
+        'en-SG':      'h:mm a',
+        'bs-Latn':    'HH:mm',
+        'hr':         'HH:mm'  
+        })[this.locale]
+    }
 
 }

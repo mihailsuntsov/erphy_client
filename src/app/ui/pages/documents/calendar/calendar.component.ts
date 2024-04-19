@@ -26,18 +26,7 @@ import { AppointmentsDocComponent } from '../appointments-doc/appointments-doc.c
 const  MY_FORMATS = MomentDefault.getMomentFormat();
 const  moment = MomentDefault.getMomentDefault();
 import { User } from 'src/app/modules/calendar/day-view-scheduler/day-view-scheduler.component';
-// const users: User[] = [
-//   {
-//     id: 0,
-//     name: 'John smith',
-//     color: {primary: 'black', secondary: '#fdf1ba'},
-//   },
-//   {
-//     id: 1,
-//     name: 'Jane Doe',
-//     color: {primary: 'black', secondary: '#d1e8ff'},
-//   },
-// ];
+
 enum CalendarView {
   Month = "month",
   Week = "week",
@@ -94,8 +83,9 @@ interface CompanySettings{
 export class CalendarComponent implements OnInit {
 
   // Angular Calendar
-  view: CalendarView = CalendarView.Scheduler;
+  view: CalendarView = CalendarView.Month;
   viewDate: Date = new Date();
+  viewDate_: Date = new Date(); // current date for a week view because pipe changes original viewDate (I do not know why)
   events: CalendarEvent[] = [];
   // weekStartsOn: number = DAYS_OF_WEEK.MONDAY;
   today = moment();
@@ -124,9 +114,6 @@ export class CalendarComponent implements OnInit {
   ]
   companySettings: CompanySettings = null;
   activeDayIsOpen: boolean = false;
-  setView(view: CalendarView) {
-    this.view = view;
-  }
   trackByIndex = (i) => i;
   locale:string='en-us';// locale (for dates, calendar etc.)
   //переменные прав
@@ -143,7 +130,7 @@ export class CalendarComponent implements OnInit {
   @ViewChild('calendar', {static: false}) calendar: MatCalendar<Date>;
   // Forms
   queryForm:any;// form for sending query / форма для отправки запроса 
-
+  canDrawView=true;
 
 
    users: User[] = []; 
@@ -155,8 +142,6 @@ export class CalendarComponent implements OnInit {
     private _snackBar: MatSnackBar,
     public productCategoriesDialog: MatDialog,
     public MessageDialog: MatDialog,
-    private productCategoriesSelectComponent: MatDialog,
-    private storesSelectComponent: MatDialog,
     public ConfirmDialog: MatDialog,
     private http: HttpClient,
     public deleteDialog: MatDialog,
@@ -168,6 +153,7 @@ export class CalendarComponent implements OnInit {
     private service: TranslocoService,) {}
 
     ngOnInit() {
+      // this.dataService.setData('HH:mm');
       this.queryForm = new UntypedFormGroup({ //форма для отправки запроса 
         companyId: new UntypedFormControl(0,[]), // предприятие, по которому идет запрос данных
         dateFrom: new UntypedFormControl(moment().startOf('month'),[]),   // дата С
@@ -178,21 +164,35 @@ export class CalendarComponent implements OnInit {
         documents: new UntypedFormControl([59],[]), // set of documents to show in calendar
       });
       
-      this.cdf.timeFormat="HH:mm";
+      // this.cdf.timeFormat="HH:mm";
       this.getBaseData('myId');    
       this.getBaseData('myCompanyId');  
       this.getBaseData('companiesList');
       this.getBaseData('myDepartmentsList');
       this.getBaseData('timeFormat');
+      // this.getBaseData('locale');
+      // this.onClickTodayButton();
       this.getCompaniesList();
       moment.updateLocale(this.locale, {week: {
           dow: this.weekStartsOn, // set start of week to monday instead
           doy: 0,
       },});
 
+
       //sending time formaf of user to injectable provider where it need to format time
       this.dataService.setData(this.timeFormat=='24'?'HH:mm':'h:mm a');
+      console.log("Parent timeFormat", this.timeFormat=='24'?'HH:mm':'h:mm a');
+      // setTimeout(() => { 
+      //   console.log('Now let show view...');
+      //   this.canDrawView=true;
+      //   this.changeDateMatCalendar(new Date());
+      //   this.refreshView();
+      // }, 1);
     }
+
+  getAlternateDay(date:Date){
+    return new Date(date);
+  }  
   // -------------------------------------- *** ПРАВА *** ------------------------------------
   getSetOfPermissions(){
     return this.http.get('/api/auth/getMyPermissions?id=60').subscribe(
@@ -317,90 +317,19 @@ export class CalendarComponent implements OnInit {
           draggable:true,
           });
           
-          const objectList = [
-            { id: 10, name: "Jane" },
-            { id: 36, name: "Steven" }
-          ];
-          
-
-
+          // Creating array of User
           if(this.users.find((obj) => obj.id === event.meta.user.id) == undefined)
             this.users.push( event.meta.user);
           
 
           
         });
-        console.log("this.events",this.events)
-        // this.events.push({
-        //   title: 'An event',
-        //   color: users[0].color,
-        //   start: moment().startOf('day').add(5,'hours').toDate(),
-        //   meta: {
-        //     user: users[0],
-        //   },
-        //   resizable: {
-        //     beforeStart: true,
-        //     afterEnd: true,
-        //   },
-        //   draggable: true,
-        // },
-        // {
-        //   title: 'Another event',
-        //   color: users[1].color,
-        //   start: moment().startOf('day').add(2,'hours').toDate(),
-        //   meta: {
-        //     user: users[1],
-        //   },
-        //   resizable: {
-        //     beforeStart: true,
-        //     afterEnd: true,
-        //   },
-        //   draggable: true,
-        // },
-        // {
-        //   title: 'A 3rd event',
-        //   color: users[0].color,
-        //   start: moment().startOf('day').add(7,'hours').toDate(),
-        //   meta: {
-        //     user: users[0],
-        //   },
-        //   resizable: {
-        //     beforeStart: true,
-        //     afterEnd: true,
-        //   },
-        //   draggable: true,
-        // },
-        // {
-        //   title: 'An all day event',
-        //   color: users[0].color,
-        //   start: new Date(),
-        //   meta: {
-        //     user: users[0],
-        //   },
-        //   draggable: true,
-        //   allDay: true,
-        // },
-        // {
-        //   title: 'Another all day event',
-        //   color: users[1].color,
-        //   start: new Date(),
-        //   meta: {
-        //     user: users[1],
-        //   },
-        //   draggable: true,
-        //   allDay: true,
-        // },
-        // {
-        //   title: 'A 3rd all day event',
-        //   color: users[0].color,
-        //   start: new Date(),
-        //   meta: {
-        //     user: users[0],
-        //   },
-        //   draggable: true,
-        //   allDay: true,
-        // },)
-    this.refreshView();
+        setTimeout(() => { 
+          console.log('refreshing view');
+          this.changeDateMatCalendar(new Date());
+          this.refreshView();
+        }, 100);
+      
       },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}
     );
@@ -441,15 +370,17 @@ export class CalendarComponent implements OnInit {
 
 
     onClickTodayButton(){
-      this.changeDateMatCalendar(this.viewDate);
+      this.changeDateMatCalendar(new Date());
+      if(this.view=='week') this.viewDate_=this.viewDate;
       // if(this.view=='month') this.activeDayIsOpen = true;
     }
     onClickNextButton(){
       if(this.view=='day') this.changeDateMatCalendar(this.viewDate);
+      if(this.view=='week') this.viewDate_=this.viewDate;
     }
-    
     onClickPreviousButton(){
       if(this.view=='day') this.changeDateMatCalendar(this.viewDate);
+      if(this.view=='week') this.viewDate_=this.viewDate;
     }
     matCalendarOnclickDay(event:Moment): void {
       this.changeDateAngularCalendar(event.toDate());
@@ -462,6 +393,7 @@ export class CalendarComponent implements OnInit {
 
     changeDateAngularCalendar(date: Date) {
       this.viewDate = date;
+      this.viewDate_=this.viewDate;
     }
     changeDateMatCalendar(date: Date) {
       let date_ = this._adapter.parse(moment(date).format('YYYY-MM-DD'), 'YYYY-MM-DD');
@@ -482,6 +414,7 @@ export class CalendarComponent implements OnInit {
           if(!this.dayEventClicked && !this.dayAddEventBtnClicked) this.activeDayIsOpen = true;
         }
         this.viewDate = date;
+        this.viewDate_=date;
         this.dayEventClicked = false;
         this.dayAddEventBtnClicked = false;
       }
@@ -523,12 +456,16 @@ export class CalendarComponent implements OnInit {
       var d0 = this.today.format('dddd, D MMMM');
       return(this.wordsToUpperCase(d0));
     }
-
+    get nextPrevButtonView(){
+      return this.getNextPrevButtonView();
+    }
+    getNextPrevButtonView(){
+      return this.view!='scheduler'?this.view:'day';
+    }
     wordsToUpperCase(str:string){
       // console.log(str)
       return (str);
-      // return(str.split(/\ s+/).map(word =>{
-        
+      // return (str.split(/\ s+/).map(word =>{
       //   word[0].toUpperCase() + word.substring(1);
       // }).join(' '))
     }
@@ -576,10 +513,10 @@ export class CalendarComponent implements OnInit {
     // get viewBtnName(){
     //   this.view.
     // }
-    // setView(view: CalendarView) {
-    //   console.log('this.view - ',this.view)
-    //   this.view = view;
-    // }
+    setView(view: CalendarView) {
+      this.view = view;
+      console.log('viewDate - ', this.viewDate);
+    }
 
     // getSettings(){
     //   let result:any;
