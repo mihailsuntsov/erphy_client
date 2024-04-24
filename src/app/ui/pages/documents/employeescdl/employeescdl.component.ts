@@ -17,9 +17,9 @@ import { MomentDefault } from 'src/app/services/moment-default';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 const MY_FORMATS = MomentDefault.getMomentFormat();
-const moment = MomentDefault.getMomentDefault();
 import { LOCALE_ID, Inject } from '@angular/core';
-// import { MatSelect } from '@angular/material/select';
+// import moment from 'moment';
+const moment = MomentDefault.getMomentDefault();
 
 
 interface EmployeeScedule {
@@ -475,7 +475,14 @@ export class EmployeeScdlComponent implements OnInit {
 
   getEmployeesWorkSchedule(){ 
     this.gettingSceduleData=true;
-    this.http.post('/api/auth/getEmployeesWorkSchedule', this.queryForm.value)
+    const querydata = {
+                        companyId:    this.queryForm.get('companyId').value,
+                        dateFrom:     moment(this.queryForm.get('dateFrom').value, 'DD.MM.YYYY').add(-1,'day').format('DD.MM.YYYY'),
+                        dateTo:       moment(this.queryForm.get('dateTo').value, 'DD.MM.YYYY').add(1,'day').format('DD.MM.YYYY'),
+                        departments:  this.queryForm.get('departments').value,
+                        jobtitles:    this.queryForm.get('jobtitles').value,
+    }
+    this.http.post('/api/auth/getEmployeesWorkSchedule', querydata)
       .subscribe(
           (data) => {
             this.gettingSceduleData=false;
@@ -589,8 +596,8 @@ export class EmployeeScdlComponent implements OnInit {
     this.displayedColumns=['employee'];
     this.displayedColumnsDates=[];
     this.displayedColumnsDayNames=[];
-    const dates = this.getTextDateRange(this.queryForm.get('dateFrom').value.format(this.dateFormat), this.queryForm.get('dateTo').value.format(this.dateFormat));
-    const days = this.getTextDaysRange(this.queryForm.get('dateFrom').value.format(this.dateFormat), this.queryForm.get('dateTo').value.format(this.dateFormat));
+    const dates = this.getTextDateRange(moment(this.queryForm.get('dateFrom').value, 'DD.MM.YYYY').add(-1,'day').format(this.dateFormat), moment(this.queryForm.get('dateTo').value, 'DD.MM.YYYY').add(1,'day').format(this.dateFormat));
+    const days =  this.getTextDaysRange(moment(this.queryForm.get('dateFrom').value, 'DD.MM.YYYY').add(-1,'day').format(this.dateFormat), moment(this.queryForm.get('dateTo').value, 'DD.MM.YYYY').add(1,'day').format(this.dateFormat));
     let indx=0;
     console.log('days',days);
     dates.map(i=>{
@@ -968,11 +975,11 @@ export class EmployeeScdlComponent implements OnInit {
     } while (moment(date, this.dateFormat).isBefore(moment(lastDate, this.dateFormat)));
     return table_dates_days;
   };
-  onGetTextDatesClick(){
-    const dates = this.getTextDateRange(this.queryForm.get('dateFrom').value.format(this.dateFormat), this.queryForm.get('dateTo').value.format(this.dateFormat));
-    console.log('dates: ', dates);
-    // console.log('table_dates_days: ', this.table_dates_days);
-  }
+  // onGetTextDatesClick(){
+  //   const dates = this.getTextDateRange(this.queryForm.get('dateFrom').value.format(this.dateFormat), this.queryForm.get('dateTo').value.format(this.dateFormat));
+  //   console.log('dates: ', dates);
+  //   // console.log('table_dates_days: ', this.table_dates_days);
+  // }
 
   uncheckPlacesOfWork(){
     let allDeppartsOfSelectedDepartments:number[]=[];
@@ -1045,14 +1052,24 @@ export class EmployeeScdlComponent implements OnInit {
 
         // data type can be: workshift, vacation, undefined
   onDayClick(row_index:number, col_index:number, data_type:string){
+
     console.log('row_index',row_index);
     console.log('col_index',col_index);
+    console.log('data_type',data_type);
+    console.log('isOverlaps',this.isOverlaps);
+
     const sceduleDay: SceduleDay = this.scheduleData[row_index].days[col_index];
 
-    if((this.day_type=='workshift' && !this.workShiftForm.valid && (data_type=='undefined')) || (this.day_type=='vacation' && !this.vacationForm.valid && (data_type=='undefined')))
+    if((this.day_type=='workshift' && !this.workShiftForm.valid && (data_type=='undefined' || data_type=='vacation')) || (this.day_type=='vacation' && !this.vacationForm.valid && (data_type=='undefined')))
       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.form_has_errors')}})
-    else if (this.day_type=='workshift' && this.getControlTablefield().controls.length>0 && this.isOverlaps && data_type=='undefined')
-      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.error.overlap_time')}})
+    else if ((data_type=='undefined'|| data_type=='vacation') && this.day_type=='workshift' && this.getControlTablefield().controls.length>0 && this.isOverlaps)
+      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.error.overlap_breaks_time')}})
+    else if (
+      (data_type=='undefined'|| data_type=='vacation') && 
+      this.day_type=='workshift' && 
+      this.isTimeOfShiftsOverlap(row_index, col_index, moment(this.timeTo24h(this.workShiftForm.get('time_from').value),'HH:mm'), moment(this.timeTo24h(this.workShiftForm.get('time_to').value),'HH:mm'))
+    )
+        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.error.overlap_shifts_time')}})
     else
       if(data_type=='undefined'){ //  day is empty and user wants to add information into this day
           this.addInfoToSceduleDay(row_index, col_index);
@@ -1061,6 +1078,27 @@ export class EmployeeScdlComponent implements OnInit {
         this.editSceduleDay(row_index, col_index, data_type)
       }
   }
+
+  // сравнивает время начала и окончания смены текущего дня с соседними днями на предмет наложения смены текущего дня на время смен соседних дней
+  // compares the start and end times of the current day's work shift with neighboring days to see if the current day's shift overlaps with the shift time of neighboring days
+  isTimeOfShiftsOverlap(cur_day_row_index, cur_day_col_index,startShiftTimeCurrDay:moment.Moment,endShiftTimeCurrDay:moment.Moment):boolean{
+    const prevSceduleDay: SceduleDay = this.scheduleData[cur_day_row_index].days[cur_day_col_index-1];
+    const nextSceduleDay: SceduleDay = this.scheduleData[cur_day_row_index].days[cur_day_col_index+1];
+    console.log('prevSceduleDay',prevSceduleDay);
+    console.log('nextSceduleDay',nextSceduleDay);
+    const startShiftTimePrevDay = prevSceduleDay.workshift==null?null:moment(this.timeTo24h(prevSceduleDay.workshift.time_from), 'HH:mm');
+    const endShiftTimePrevDay = prevSceduleDay.workshift==null?null:moment(this.timeTo24h(prevSceduleDay.workshift.time_to), 'HH:mm');
+    const startShiftTimeNextDay = nextSceduleDay.workshift==null?null:moment(this.timeTo24h(nextSceduleDay.workshift.time_from), 'HH:mm');
+    return(
+      // yesterday's work shift ending in a current day, and current day work shift starting before ending yesterday's work shift          
+      (endShiftTimePrevDay==null?false:(endShiftTimePrevDay<=startShiftTimePrevDay && startShiftTimeCurrDay<endShiftTimePrevDay))
+      ||
+      // current day's work shift ending in a tomorrow day, and tomorrow day work shift starting before ending current day's work shift          
+      (startShiftTimeNextDay==null?false:(endShiftTimeCurrDay<=startShiftTimeCurrDay && startShiftTimeNextDay<endShiftTimeCurrDay))
+    )
+  }
+
+
   isArrayIncludesAllElementsOfAnotherArray(arr, arr2){
     return arr2.every(i => arr.includes(i));
   }

@@ -11,6 +11,9 @@ import {
   Output,
   SimpleChanges,
 } from '@angular/core';
+// import {
+//   addDaysWithExclusions
+// } from 'angular-calendar/modules/common/util/util'
 import {
   CalendarUtils,
   CalendarWeekViewComponent,
@@ -25,6 +28,7 @@ import {
   CalendarEvent,
   WeekViewAllDayEventRow,
   WeekViewAllDayEvent,
+  WeekViewHourColumn
 } from 'calendar-utils';
 import { DragEndEvent, DragMoveEvent } from 'angular-draggable-droppable';
 
@@ -33,65 +37,173 @@ export interface User {
   name: string;
   color: EventColor;
 }
-
+export interface Break {
+  user :    User;
+  start:    string;
+  end:      string;
+}
 interface DayViewScheduler extends WeekView {
   users: User[];
+  hourColumns_: WeekViewHourColumn_[];
 }
-
 interface GetWeekViewArgsWithUsers extends GetWeekViewArgs {
   users: User[];
+  breaks:any[];
 }
+interface WeekViewHourColumn_ extends WeekViewHourColumn{
+  // breaks:any[];
+}
+export interface WeekViewHour {
+  segments: WeekViewHourSegment[];
+}
+export interface WeekViewHourSegment {
+  isStart: boolean;
+  date: Date;
+  displayDate: Date;
+  cssClass?: string;
+}
+const MINUTES_IN_HOUR = 60;
 
 @Injectable()
 export class DayViewSchedulerCalendarUtils extends CalendarUtils {
-  getWeekView(args: GetWeekViewArgsWithUsers): DayViewScheduler {
-    // console.log("injectable events",args.events);
+
+
+
+            
+
+
+          //   GetWeekViewArgs {
+          //     events?: CalendarEvent[];
+          //     viewDate: Date;
+          //     weekStartsOn: number;
+          //     excluded?: number[];
+          //     precision?: 'minutes' | 'days';
+          //     absolutePositionedEvents?: boolean;
+          //     hourSegments?: number;
+          //     hourDuration?: number;
+          //     dayStart: Time;
+          //     dayEnd: Time;
+          //     weekendDays?: number[];
+          //     segmentHeight: number;
+          //     viewStart?: Date;
+          //     viewEnd?: Date;
+          //     minimumEventHeight?: number; }
+        
+
+              //GetWeekViewArgs+User+Break     WeekView+User+Break
+  getWeekView_(args: GetWeekViewArgsWithUsers): DayViewScheduler {
+    console.log("injectable args",args);
+
+    //   WeekView {
+    //    period: ViewPeriod;
+    //    allDayEventRows: WeekViewAllDayEventRow[];
+    //    hourColumns: WeekViewHourColumn[];}
+
+    //   ViewPeriod {
+    //    start: Date;
+    //    end: Date;
+    //    events: CalendarEvent[];}
+
+    console.log('calling super...');
     const { period } = super.getWeekView(args);
-    const view: DayViewScheduler = {
+    // { period } is the object of WeekView that contains only period, without other objects like allDayEventRows, hourColumns 
+    // period is this day with no events (object of ViewPeriod)
+
+
+    //  console.log("{ period }",{ period });
+    // console.log("period",period);
+
+
+                //  WeekView + users + breaks 
+    const weekView_: DayViewScheduler = {
       period,
       allDayEventRows: [],
       hourColumns: [],
       users: [...args.users],
+      hourColumns_: []
     };
+
+
+
+
+
     // console.log('view',view);
-    view.users.forEach((user, columnIndex) => {
+    weekView_.users.forEach((user, columnIndex) => {
       // console.log('events before"',args.events)
 
       const events = args.events.filter(function(event) 
         {return event.meta.user.id === user.id}
-        // (event) =>  event.meta.user.id === user.id
-        // (event) => {
-        //   console.log('event',event);
-        //   console.log('event.meta.user.id',event.meta.user.id);
-        //   console.log('user.id',user.id);
-
-        //   event.meta.user.id === user.id
-        // }
       );
-      // console.log("events after",events);
-      const columnView = super.getWeekView({
+      // console.log("breaks before - ",args.breaks);
+      const breaks = args.breaks.filter(function(break_) 
+      {return break_.user.id === user.id}
+      );
+      // console.log("breaks after - ",breaks);
+
+      let breaks_events: CalendarEvent[] = [];
+      breaks.map(break_=>{
+        breaks_events.push({
+          'start': new Date(break_.start),
+          'end': new Date(break_.end),
+          'title': ''
+        })
+      })
+
+      let breaksView: WeekView = super.getWeekView({
+        ...args,
+        events: breaks_events,
+      });
+      console.log("breaksView - ",breaksView);
+
+      // columnView is the object of WeekView that contains hourColumns, period is this day period with no events (object of ViewPeriod)
+
+      console.log('calling super (columnView) ...');
+      let columnView: WeekView = super.getWeekView({
         ...args,
         events,
       });
-      view.hourColumns.push(columnView.hourColumns[0]);
+      console.log("columnView - ",columnView);
+
+      // columnView = { ...columnView,
+      //   breaks:breaks
+      // }
+      
+
+      // columnView.hourColumns[0] = { ...columnView.hourColumns[0],
+      //   breaks:breaks
+      // }
+            // WeekViewHourColumn
+      weekView_.hourColumns.push (columnView.hourColumns[0]);
+
+      
+      weekView_.hourColumns_.push({
+        date:   breaksView.hourColumns[0].date,
+        events: breaksView.hourColumns[0].events,
+        hours:  breaksView.hourColumns[0].hours
+      });
+
+      console.log("weekView_ - ",weekView_);
       columnView.allDayEventRows.forEach(({ row }, rowIndex) => {
-        view.allDayEventRows[rowIndex] = view.allDayEventRows[rowIndex] || {
+        weekView_.allDayEventRows[rowIndex] = weekView_.allDayEventRows[rowIndex] || {
           row: [],
         };
-        view.allDayEventRows[rowIndex].row.push({
+        weekView_.allDayEventRows[rowIndex].row.push({
           ...row[0],
           offset: columnIndex,
           span: 1,
         });
       });
+
+
+
+
     });
     // console.log('main view',view)
-    return view;
+    return weekView_;
   }
+
 }
-function checkAdult(age) {
-  return age >= 18;
-}
+
 @Component({
   selector: 'mwl-day-view-scheduler',
   templateUrl: 'day-view-scheduler.component.html',
@@ -102,8 +214,10 @@ export class DayViewSchedulerComponent
   implements OnChanges
 {
   @Input() users: User[] = [];
+  @Input() breaks: Break[] = [];
 
   @Output() userChanged = new EventEmitter();
+  @Output() refreshView = new EventEmitter();
 
   view: DayViewScheduler; //extends WeekView with users: User[];
 
@@ -120,6 +234,7 @@ export class DayViewSchedulerComponent
   }
 
   trackByUserId = (index: number, row: User) => row.id;
+  trackByWeekTimeBreak(i: any) { return i; }
 
   ngOnChanges(changes: SimpleChanges): void {
     super.ngOnChanges(changes);
@@ -130,8 +245,20 @@ export class DayViewSchedulerComponent
     }
   }
 
+  // refresh(): void{
+  //   this.refreshView;
+  // }
+
   getDayColumnWidth(eventRowContainer: HTMLElement): number {
     return Math.floor(eventRowContainer.offsetWidth / this.users.length);
+  }
+  
+  getPixelAmountInMinutes(
+    hourSegments: number,
+    hourSegmentHeight: number,
+    hourDuration?: number
+  ) {
+    return (hourDuration || MINUTES_IN_HOUR) / (hourSegments * hourSegmentHeight);
   }
 
   dragMove(dayEvent: WeekViewTimeEvent, dragEvent: DragMoveEvent) {
@@ -187,11 +314,14 @@ export class DayViewSchedulerComponent
     }
   }
 
-  protected getWeekView(events: CalendarEvent[]) {
-    // console.log('protected events',events);
-    return this.utils.getWeekView({
-      events,
+
+  protected getWeekView(events: CalendarEvent[]):WeekView {
+    console.log ('Inside super')
+    
+    return this.utils.getWeekView_({
+      events, //CalendarEvent[]
       users: this.users,
+      breaks: this.breaks,
       viewDate: this.viewDate,
       weekStartsOn: this.weekStartsOn,
       excluded: this.excludeDays,

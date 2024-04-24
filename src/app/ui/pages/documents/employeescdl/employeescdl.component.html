@@ -111,39 +111,6 @@
                                                                 <mat-radio-button class="e-radio-button" [value]="'vacation'">{{t('docs.card.vacation')}}</mat-radio-button>
                                                             </mat-radio-group>  
                                                             
-                                                            
-
-
-
-                                                            <!-- <mat-form-field *ngIf="day_type=='workshift'" class="mat-form-field-100" style="display:none">
-                                                                <mat-label id="work_shifts_list_label">{{t('docs.card.work_shifts_list')}}</mat-label>
-                                                                <mat-select 
-                                                                [(ngModel)]="selectedWorkShiftTemplateId"
-                                                                [disabled]="!editability"
-                                                                aria-labelledby="work_shifts_list_label"
-                                                                [ngModelOptions]="{standalone: true}"
-                                                                (selectionChange)="onWorkshiftTemplateSelection()">                          
-                                                                    <mat-option  *ngFor="let rt of receivedWorkShiftsList" [value]="rt.id">
-                                                                            {{rt.name}}
-                                                                    </mat-option>
-                                                                </mat-select>
-                                                                <input matInput hidden/>
-                                                            </mat-form-field>
-
-                                                            <mat-form-field *ngIf="day_type=='vacation'" class="mat-form-field-100" style="display:none">
-                                                                <mat-label id="vacations_list_label">{{t('docs.card.vacations_list')}}</mat-label>
-                                                                <mat-select 
-                                                                [(ngModel)]="selectedWorkShiftTemplateId"
-                                                                aria-labelledby="vacations_list_label"
-                                                                [disabled]="!editability"
-                                                                [ngModelOptions]="{standalone: true}"
-                                                                (selectionChange)="onVacationsSelection()">                          
-                                                                    <mat-option  *ngFor="let rt of receivedVacationsList" [value]="rt.id">
-                                                                            {{rt.name}}
-                                                                    </mat-option>
-                                                                </mat-select>
-                                                                <input matInput hidden/>
-                                                            </mat-form-field> -->
 
                                                             <form [formGroup]="workShiftForm" *ngIf="day_type=='workshift'">
 
@@ -887,6 +854,6 @@
     </mat-card-content>
     <!-- <code><pre>{{queryForm.value | json}}</pre></code> -->
     <!-- <code><pre>{{workShiftForm.value | json}}</pre></code> -->
-    <!-- <code><pre>{{scheduleData | json}}</pre></code> -->
+    <code><pre>{{scheduleData | json}}</pre></code>
     
 </mat-card>

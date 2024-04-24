@@ -302,7 +302,11 @@ li {list-style: none;}
   #scedule_table .mat-mdc-table-sticky-border-elem-right {
     border-left: 1px solid rgba(85, 85, 85, 0.12);
   }
-
+  
+  #scedule_table th:nth-child(2), #scedule_table td:nth-child(2), #scedule_table th:last-child, #scedule_table td:last-child {
+      display: none;
+  }
+  
   .example-ripple-container {
     user-select: none;
     -webkit-user-select: none;

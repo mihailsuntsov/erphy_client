@@ -157,6 +157,9 @@ li {list-style: none;}
 .cal-cell-top:hover > .add-event-day-area {
     display: flex;
 }
+/* ::ng-deep .cal-event-container{
+    z-index: 1000!important;
+} */
 .day-event{
     white-space: nowrap;
     background-color: cadetblue;
@@ -208,3 +211,15 @@ li {list-style: none;}
 /* .add-event-day-area:hover {
     background-color: #ededed !important;
 } */
+::ng-deep .break-container .cal-event{
+    background: linear-gradient(45deg, rgba(0, 0, 0, 0) 48%, rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0) 52%)!important;
+    background-size: 1em 1em!important;
+    background-color: #fff!important;
+    background-attachment: fixed!important;
+    opacity: 50%!important;
+    border-radius: 0!important;
+    border: 1px solid gray!important;
+}
+::ng-deep .break-container{
+    z-index: 0!important;
+}

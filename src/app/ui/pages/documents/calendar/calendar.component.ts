@@ -25,7 +25,7 @@ import { AppointmentsDocComponent } from '../appointments-doc/appointments-doc.c
 // import { DayViewSchedulerComponent } from 'src/app/modules/calendar/day-view-scheduler/day-view-scheduler.component';
 const  MY_FORMATS = MomentDefault.getMomentFormat();
 const  moment = MomentDefault.getMomentDefault();
-import { User } from 'src/app/modules/calendar/day-view-scheduler/day-view-scheduler.component';
+import { User,Break } from 'src/app/modules/calendar/day-view-scheduler/day-view-scheduler.component';
 
 enum CalendarView {
   Month = "month",
@@ -83,7 +83,7 @@ interface CompanySettings{
 export class CalendarComponent implements OnInit {
 
   // Angular Calendar
-  view: CalendarView = CalendarView.Month;
+  view: CalendarView = CalendarView.Scheduler;
   viewDate: Date = new Date();
   viewDate_: Date = new Date(); // current date for a week view because pipe changes original viewDate (I do not know why)
   events: CalendarEvent[] = [];
@@ -106,6 +106,7 @@ export class CalendarComponent implements OnInit {
   dayHeaderHeight=43; // heigth of day header, that contained date and badge
   dayEventClicked=false;
   dayAddEventBtnClicked=false;
+  actionsBeforeGetChilds:number=0;// количество выполненных действий, необходимых чтобы загрузить дочерние модули (форму товаров)
   documntsList: IdAndName[] = [
     {
       id: 60,
@@ -133,8 +134,10 @@ export class CalendarComponent implements OnInit {
   canDrawView=true;
 
 
-   users: User[] = []; 
-
+  usersOfEvents:  User[]  = [];
+  usersOfBreaks:  User[]  = [];
+  users:  User[]  = []; 
+  breaks: Break[] = [];
 
   constructor(
     private httpService:   LoadSpravService,
@@ -211,7 +214,8 @@ export class CalendarComponent implements OnInit {
   getData(){
       if(this.allowToView)
       {
-
+        this.getCalendarUsersBreaksList();
+        this.getCalendarEventsList();
       } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})}
   }
   getCompaniesList(){ //+++
@@ -249,16 +253,56 @@ export class CalendarComponent implements OnInit {
     this.getJobtitleList();
     this.getCompanySettings();
     this.getCRUD_rights();
-    this.getCalendarEventsList();
   }
+  necessaryActionsBeforeGetChilds(){
+    this.actionsBeforeGetChilds++;
+    // Если набрано необходимое кол-во действий - все остальные справочники загружаем тут, т.к. 
+    // нужно чтобы сначала определилось предприятие, его id нужен для загрузки
+    if(this.actionsBeforeGetChilds==2){
+      this.getData();
+    }
+    if(this.actionsBeforeGetChilds==4){
+      setTimeout(() => {
+        this.changeDateMatCalendar(new Date());
 
+        this.usersOfEvents.map(user=>{
+          if(this.users.find((obj) => obj.id === user.id) == undefined)
+            this.users.push(user);
+        })
+        this.usersOfBreaks.map(user=>{
+          if(this.users.find((obj) => obj.id === user.id) == undefined)
+            this.users.push(user);
+        })
+
+
+
+
+        // if user has no scedule of its work shifts, but he there is in a list because he has an appointments - need to add to him the break for the full time from the start to the end of data range
+        // если у пользователя нет расписания его рабочих смен, но он есть в списке, потому что у него есть записи - нужно добавить ему перерыв на все время от начала до конца диапазона данных. 
+        this.users.map(user=>{
+          if(this.breaks.find((obj) => obj.user.id === user.id) == undefined)
+            this.breaks.push({
+              "user": {
+                  "id": user.id,
+                  "name": user.name,
+                  "color": user.color
+              },
+              "start": moment(this.queryForm.get('dateFrom').value, 'DD.MM.YYYY').format('YYYY-MM-DD')+"T00:00:00Z",
+              "end": moment(this.queryForm.get('dateTo').value, 'DD.MM.YYYY').format('YYYY-MM-DD')+"T23:59:59Z",
+            });
+        })
+
+        this.refreshView();}, 1);
+    }
+
+  }
   getCompanySettings(){
     this.http.get('/api/auth/getCompanySettings?id='+this.queryForm.get('companyId').value)
       .subscribe(
         (data) => {   
           this.companySettings=data as CompanySettings;
             this.showDocumntsField=true;
-            console.log("this.showDocumntsField",this.showDocumntsField);
+            // console.log("this.showDocumntsField",this.showDocumntsField);
             this.refreshView();
             this.booking_doc_name_variation=this.companySettings.booking_doc_name_variation;
         },
@@ -271,7 +315,7 @@ export class CalendarComponent implements OnInit {
           (data) => {   
                       this.receivedDepartmentsWithPartsList=data as any [];
                       this.selectAllCheckList('depparts','queryForm');
-                      this.refreshView();
+                      this.necessaryActionsBeforeGetChilds();
       },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
       );
@@ -283,8 +327,7 @@ export class CalendarComponent implements OnInit {
           (data) => {   
                       this.receivedJobtitlesList=data as any [];
                       this.selectAllCheckList('jobtitles','queryForm');
-                      this.refreshView();
-                      this.getData();
+                      this.necessaryActionsBeforeGetChilds();
       },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
       );
@@ -318,22 +361,44 @@ export class CalendarComponent implements OnInit {
           });
           
           // Creating array of User
-          if(this.users.find((obj) => obj.id === event.meta.user.id) == undefined)
-            this.users.push( event.meta.user);
-          
-
-          
+          if(this.usersOfEvents.find((obj) => obj.id === event.meta.user.id) == undefined)
+            this.usersOfEvents.push( event.meta.user);
         });
-        setTimeout(() => { 
-          console.log('refreshing view');
-          this.changeDateMatCalendar(new Date());
-          this.refreshView();
-        }, 100);
-      
+        // setTimeout(() => { 
+        //   this.changeDateMatCalendar(new Date());
+        //   this.refreshView();
+        // }, 1);
+        
+        this.necessaryActionsBeforeGetChilds();
       },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}
     );
   }
+
+  getCalendarUsersBreaksList(){
+    this.http.post('/api/auth/getCalendarUsersBreaksList', this.queryForm.value).subscribe(
+      (data) => {
+        if(!data){
+          this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('docs.msg.c_err_exe_qury')}})
+        }
+        this.breaks=data as Break[];
+        this.breaks.map(break_=>{
+          if(this.usersOfBreaks.find((obj) => obj.id === break_.user.id) == undefined)
+            this.usersOfBreaks.push(break_.user);
+        });
+
+        this.necessaryActionsBeforeGetChilds();
+        // setTimeout(() => { 
+        //   console.log('refreshing view');
+        //   this.changeDateMatCalendar(new Date());
+        //   this.refreshView();
+        // }, 1000);
+        
+      },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}
+    );
+  }
+
   onCompanySelection(){
     this.getDepartmentsWithPartsList();
     this.getJobtitleList();
@@ -341,6 +406,8 @@ export class CalendarComponent implements OnInit {
   }
 
   refreshView(): void {
+    this.events = [...this.events];
+    this.breaks = [...this.breaks];
     this.refresh.next();
   }
 
@@ -361,7 +428,7 @@ export class CalendarComponent implements OnInit {
     this.events = [...this.events];
   }
 
-
+  
 
 
 
