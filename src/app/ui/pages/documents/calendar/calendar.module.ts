@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { CommonModule, registerLocaleData } from '@angular/common';
-
 import { CalendarRoutingModule } from './calendar-routing.module';
 import { CalendarComponent } from './calendar.component';
 import { ProductCategoriesSelectModule } from 'src/app/modules/trade-modules/product-categories-select/product-categories-select.module';
@@ -13,6 +12,7 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 import { LabelsPrintDialogModule } from '../../../../modules/settings/labelprint-dialog/labelprint-dialog.module';
 import { CalendarModule } from 'angular-calendar';
 import { DayViewSchedulerModule } from 'src/app/modules/calendar/day-view-scheduler/day-view-scheduler.module';
+import { DeppartsAndResourcesModule } from 'src/app/modules/calendar/depparts-and-resources/depparts-and-resources.module';
 import {
   CalendarDateFormatter,
   CalendarMomentDateFormatter,
@@ -77,6 +77,7 @@ registerLocaleData(localeHr);
       }
     ),
     DayViewSchedulerModule,
+    DeppartsAndResourcesModule,
     CalendarRoutingModule,
     ProductCategoriesSelectModule,
     StoresSelectModule,

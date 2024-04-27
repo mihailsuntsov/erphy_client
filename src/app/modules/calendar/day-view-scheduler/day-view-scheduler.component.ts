@@ -92,7 +92,7 @@ export class DayViewSchedulerCalendarUtils extends CalendarUtils {
 
               //GetWeekViewArgs+User+Break     WeekView+User+Break
   getWeekView_(args: GetWeekViewArgsWithUsers): DayViewScheduler {
-    console.log("injectable args",args);
+    // console.log("injectable args",args);
 
     //   WeekView {
     //    period: ViewPeriod;
@@ -104,7 +104,7 @@ export class DayViewSchedulerCalendarUtils extends CalendarUtils {
     //    end: Date;
     //    events: CalendarEvent[];}
 
-    console.log('calling super...');
+    // console.log('calling super...');
     const { period } = super.getWeekView(args);
     // { period } is the object of WeekView that contains only period, without other objects like allDayEventRows, hourColumns 
     // period is this day with no events (object of ViewPeriod)
@@ -153,16 +153,16 @@ export class DayViewSchedulerCalendarUtils extends CalendarUtils {
         ...args,
         events: breaks_events,
       });
-      console.log("breaksView - ",breaksView);
+      // console.log("breaksView - ",breaksView);
 
       // columnView is the object of WeekView that contains hourColumns, period is this day period with no events (object of ViewPeriod)
 
-      console.log('calling super (columnView) ...');
+      // console.log('calling super (columnView) ...');
       let columnView: WeekView = super.getWeekView({
         ...args,
         events,
       });
-      console.log("columnView - ",columnView);
+      // console.log("columnView - ",columnView);
 
       // columnView = { ...columnView,
       //   breaks:breaks
@@ -182,7 +182,7 @@ export class DayViewSchedulerCalendarUtils extends CalendarUtils {
         hours:  breaksView.hourColumns[0].hours
       });
 
-      console.log("weekView_ - ",weekView_);
+      // console.log("weekView_ - ",weekView_);
       columnView.allDayEventRows.forEach(({ row }, rowIndex) => {
         weekView_.allDayEventRows[rowIndex] = weekView_.allDayEventRows[rowIndex] || {
           row: [],
@@ -314,9 +314,8 @@ export class DayViewSchedulerComponent
     }
   }
 
-
   protected getWeekView(events: CalendarEvent[]):WeekView {
-    console.log ('Inside super')
+    // console.log ('Inside super')
     
     return this.utils.getWeekView_({
       events, //CalendarEvent[]
@@ -362,15 +361,4 @@ export class DayViewSchedulerComponent
     const newIndex = currentColumnIndex + columnsMoved;
     return this.view.users[newIndex];
   }
-  // private getDraggedUserColumn(
-  //   dayEvent: WeekViewTimeEvent | WeekViewAllDayEvent,
-  //   xPixels: number
-  // ) {
-  //   const columnsMoved = Math.round(xPixels / this.dayColumnWidth);
-  //   const currentColumnIndex = this.view.users.findIndex(
-  //     (user) => user === dayEvent.event.meta.user
-  //   );
-  //   const newIndex = currentColumnIndex + columnsMoved;
-  //   return this.view.users[newIndex];
-  // }
 }

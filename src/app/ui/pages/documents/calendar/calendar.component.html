@@ -91,7 +91,7 @@
                             <!-- viewDate-{{viewDate}}, -->
                             <!-- locale-{{locale}}<br> -->
                             <!-- weekStartsOn-{{weekStartsOn}} -->
-                            {{wordsToUpperCase( viewDate_ | calendarDate:('weekViewTitle'):locale:weekStartsOn )}}
+                           {{wordsToUpperCase( viewDate_ | calendarDate:('weekViewTitle'):locale:weekStartsOn )}}
                             <!-- {{viewDate | calendarDate:('dayViewTitle'):locale}} -->
 
                         </span>
@@ -115,8 +115,13 @@
                             </span>
                             <i class="material-icons">arrow_drop_down</i>
                         </button>
+                        <!-- <button mat-menu-item (click)="console('viewDate on click button', viewDate);">1</button> -->
                     <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before" style="min-width: 240px;">
-                        <button mat-menu-item (click)="setView(CalendarView.Day);refreshView()">
+                        <button mat-menu-item (click)="
+                        console('viewDate before change view', viewDate);
+                        setView(CalendarView.Day);
+                        console('viewDate after change view', viewDate);
+                        refreshView()">
                             <span>{{'menu.top.day' | transloco}}</span>
                         </button>
                         <button mat-menu-item (click)="viewDate_ = getAlternateDay(viewDate); setView(CalendarView.Week)">
@@ -127,6 +132,9 @@
                         </button>
                         <button mat-menu-item (click)="setView(CalendarView.Scheduler);refreshView()">
                             <span>{{'menu.top.scheduler' | transloco}}</span>
+                        </button>
+                        <button mat-menu-item (click)="setView(CalendarView.Resources);refreshView()">
+                            <span>{{'menu.top.resources' | transloco}}</span>
                         </button>
                     </mat-menu>
                     </div>
@@ -440,6 +448,16 @@
                                 (hourSegmentClicked)="angularCalendarOnClickDay($event.date)"
                                 (eventClicked)="handleEvent('Clicked', $event.event)"
                             ></mwl-day-view-scheduler>
+                            
+                            <mwl-depparts-and-resources
+                                *ngIf="view=='resources'"
+                                (eventTimesChanged)="eventTimesChanged($event)"
+                                (userChanged)="userChanged($event)"
+                                (hourSegmentClicked)="angularCalendarOnClickDay($event.date)"
+                                (eventClicked)="handleEvent('Clicked', $event.event)"
+                                [days]="currentMonthDaysArray"
+                                [allDayEventRows]="allDayEventRows"
+                            ></mwl-depparts-and-resources>
                     
 
                         <!-- <div [ngSwitch]="view">

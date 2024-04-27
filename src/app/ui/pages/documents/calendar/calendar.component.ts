@@ -6,6 +6,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
+import { ResizeEvent } from 'angular-resizable-element';
 import { translate, TranslocoService } from '@ngneat/transloco';
 import { SelectionModel } from '@angular/cdk/collections';
 import { CalendarEvent, CalendarDateFormatter, DAYS_OF_WEEK, CalendarEventTimesChangedEvent } from 'angular-calendar';
@@ -31,9 +32,25 @@ enum CalendarView {
   Month = "month",
   Week = "week",
   Day = "day",
-  Scheduler = "scheduler"
+  Scheduler = "scheduler",
+  Resources = "resources"
 }
-
+export interface Day {
+  dayOfMonth:  string;
+  weekDayName: string;
+  monthName:   string;
+}
+interface WeekViewAllDayEvent {
+  event: CalendarEvent;
+  offset: number;
+  span: number;
+  startsBeforeWeek: boolean;
+  endsAfterWeek: boolean;
+}
+interface WeekViewAllDayEventRow {
+  id?: string;
+  row: WeekViewAllDayEvent[];
+}
 interface IdAndName {
   id: number;
   name:string;
@@ -106,6 +123,7 @@ export class CalendarComponent implements OnInit {
   dayHeaderHeight=43; // heigth of day header, that contained date and badge
   dayEventClicked=false;
   dayAddEventBtnClicked=false;
+  allDayEventRows: WeekViewAllDayEventRow[]=[];
   actionsBeforeGetChilds:number=0;// количество выполненных действий, необходимых чтобы загрузить дочерние модули (форму товаров)
   documntsList: IdAndName[] = [
     {
@@ -132,12 +150,15 @@ export class CalendarComponent implements OnInit {
   // Forms
   queryForm:any;// form for sending query / форма для отправки запроса 
   canDrawView=true;
+  // dataLoadedFrom:string = ''; // dates to monitoring when need to refresh data
+  // dataLoadedTo:string = '';
 
 
   usersOfEvents:  User[]  = [];
   usersOfBreaks:  User[]  = [];
   users:  User[]  = []; 
   breaks: Break[] = [];
+  currentMonthDaysArray: Day[] = []; // days in the head of table to construct view for depparts-and-resources component
 
   constructor(
     private httpService:   LoadSpravService,
@@ -185,6 +206,7 @@ export class CalendarComponent implements OnInit {
       //sending time formaf of user to injectable provider where it need to format time
       this.dataService.setData(this.timeFormat=='24'?'HH:mm':'h:mm a');
       console.log("Parent timeFormat", this.timeFormat=='24'?'HH:mm':'h:mm a');
+      this.setCurrentMonthDaysArray(moment(new Date()).startOf('month'), moment(new Date()).endOf('month'));
       // setTimeout(() => { 
       //   console.log('Now let show view...');
       //   this.canDrawView=true;
@@ -216,6 +238,7 @@ export class CalendarComponent implements OnInit {
       {
         this.getCalendarUsersBreaksList();
         this.getCalendarEventsList();
+
       } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})}
   }
   getCompaniesList(){ //+++
@@ -263,8 +286,15 @@ export class CalendarComponent implements OnInit {
     }
     if(this.actionsBeforeGetChilds==4){
       setTimeout(() => {
-        this.changeDateMatCalendar(new Date());
-
+        this.afterLoadData();
+        this.refreshView();
+        this.changeDateMatCalendar(this.viewDate);
+      }, 1);
+    }
+  }
+  afterLoadData(){
+    // составляем объединенный список пользователей, которые присутствуют в списке записей и перерывов
+        // create a combined list of users who are present in the list of appointments and breaks
         this.usersOfEvents.map(user=>{
           if(this.users.find((obj) => obj.id === user.id) == undefined)
             this.users.push(user);
@@ -274,11 +304,8 @@ export class CalendarComponent implements OnInit {
             this.users.push(user);
         })
 
-
-
-
         // if user has no scedule of its work shifts, but he there is in a list because he has an appointments - need to add to him the break for the full time from the start to the end of data range
-        // если у пользователя нет расписания его рабочих смен, но он есть в списке, потому что у него есть записи - нужно добавить ему перерыв на все время от начала до конца диапазона данных. 
+        // если у пользователя нет расписания его рабочих смен (перерывов), но он есть в списке, потому что у него есть записи - нужно добавить ему перерыв на все время от начала до конца диапазона данных. 
         this.users.map(user=>{
           if(this.breaks.find((obj) => obj.user.id === user.id) == undefined)
             this.breaks.push({
@@ -291,10 +318,6 @@ export class CalendarComponent implements OnInit {
               "end": moment(this.queryForm.get('dateTo').value, 'DD.MM.YYYY').format('YYYY-MM-DD')+"T23:59:59Z",
             });
         })
-
-        this.refreshView();}, 1);
-    }
-
   }
   getCompanySettings(){
     this.http.get('/api/auth/getCompanySettings?id='+this.queryForm.get('companyId').value)
@@ -339,6 +362,8 @@ export class CalendarComponent implements OnInit {
         if(!data){
           this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('docs.msg.c_err_exe_qury')}})
         }
+        this.usersOfEvents=[];
+        this.events=[];
         events=data as CalendarEvent[];
         events.map(event=>{
           this.events.push({
@@ -347,11 +372,15 @@ export class CalendarComponent implements OnInit {
             "end": new Date(event.end),
             "title": event.title,
             "color": {
-                "primary": event.meta.user.color.primary,
-                "secondary": event.meta.user.color.secondary
+                // "primary": event.meta.user.color.primary,
+                // "secondary": event.meta.user.color.secondary
+                "primary": event.color.primary,
+                "secondary": event.color.secondary
             },
             meta: {
               user: event.meta.user,
+              itemResources: event.meta.itemResources?event.meta.itemResources:[],
+              departmentPartId:event.meta.departmentPartId?event.meta.departmentPartId:null,
             },
             resizable: {
               beforeStart: true,
@@ -369,6 +398,7 @@ export class CalendarComponent implements OnInit {
         //   this.refreshView();
         // }, 1);
         
+        this.getAllDayEventRows();
         this.necessaryActionsBeforeGetChilds();
       },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}
@@ -381,6 +411,7 @@ export class CalendarComponent implements OnInit {
         if(!data){
           this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('docs.msg.c_err_exe_qury')}})
         }
+        this.breaks=[];
         this.breaks=data as Break[];
         this.breaks.map(break_=>{
           if(this.usersOfBreaks.find((obj) => obj.id === break_.user.id) == undefined)
@@ -410,7 +441,9 @@ export class CalendarComponent implements OnInit {
     this.breaks = [...this.breaks];
     this.refresh.next();
   }
-
+  console(name:string, value:any){
+    console.log(name,value);
+  }
   eventTimesChanged({
     event,
     newStart,
@@ -438,29 +471,41 @@ export class CalendarComponent implements OnInit {
 
     onClickTodayButton(){
       this.changeDateMatCalendar(new Date());
-      if(this.view=='week') this.viewDate_=this.viewDate;
+      if(this.view=='week') this.viewDate_=new Date(this.viewDate);
+      this.checkIsNeedToLoadData();
       // if(this.view=='month') this.activeDayIsOpen = true;
     }
     onClickNextButton(){
-      if(this.view=='day') this.changeDateMatCalendar(this.viewDate);
-      if(this.view=='week') this.viewDate_=this.viewDate;
+      if(this.view=='day'||this.view=='scheduler') this.changeDateMatCalendar(this.viewDate);
+      if(this.view=='week') this.viewDate_=new Date(this.viewDate);
+      console.log('this.viewDate',this.viewDate);
+      this.checkIsNeedToLoadData();
     }
     onClickPreviousButton(){
-      if(this.view=='day') this.changeDateMatCalendar(this.viewDate);
-      if(this.view=='week') this.viewDate_=this.viewDate;
+      if(this.view=='day'||this.view=='scheduler') this.changeDateMatCalendar(this.viewDate);
+      if(this.view=='week') this.viewDate_=new Date(this.viewDate);
+      this.checkIsNeedToLoadData();
     }
     matCalendarOnclickDay(event:Moment): void {
       this.changeDateAngularCalendar(event.toDate());
       this.activeDayIsOpen = false;
-      console.log('event1',event.toDate());
+      this.checkIsNeedToLoadData();
+      // console.log('event1',event.toDate());
     }
     angularCalendarOnClickDay(event:any): void {
-      this.changeDateMatCalendar(new Date(event))
+      this.changeDateMatCalendar(new Date(event));
+      // console.log("event", event)
+      this.viewDate=new Date(event);
+      // console.log("this.viewDate1", this.viewDate)
+      if(this.view=='week') this.viewDate_=new Date(this.viewDate);
+      // console.log("this.viewDate2", this.viewDate)
+      // this.checkIsNeedToLoadData();
+      // console.log("this.viewDate3", this.viewDate)
     }
 
     changeDateAngularCalendar(date: Date) {
       this.viewDate = date;
-      this.viewDate_=this.viewDate;
+      this.viewDate_=new Date(this.viewDate);
     }
     changeDateMatCalendar(date: Date) {
       let date_ = this._adapter.parse(moment(date).format('YYYY-MM-DD'), 'YYYY-MM-DD');
@@ -468,6 +513,57 @@ export class CalendarComponent implements OnInit {
       // this.calendar.activeDate=this._adapter.getValidDateOrNull(date_);
       this.calendar.selected=this._adapter.getValidDateOrNull(date_);
     }
+
+
+
+
+
+
+
+
+
+    checkIsNeedToLoadData(){
+      if(this.isMonthChanged()){
+        const startOfMonth = moment(this.viewDate).startOf('month');
+        const endOfMonth = moment(this.viewDate).endOf('month');
+        this.queryForm.get('dateFrom').setValue(startOfMonth.format('DD.MM.YYYY'));
+        this.queryForm.get('dateTo').setValue(endOfMonth.format('DD.MM.YYYY'));
+        this.actionsBeforeGetChilds=2;
+        this.setCurrentMonthDaysArray(startOfMonth, endOfMonth);
+        this.getData();   
+      }
+    }
+   
+    // forming array of dates for displaying the table header of "depparts-and-resources" view
+    setCurrentMonthDaysArray(startOfPeriod:moment.Moment, endOfPeriod:moment.Moment){
+      this.currentMonthDaysArray = [];
+      var day = startOfPeriod;
+      while (day <= endOfPeriod) {
+        this.currentMonthDaysArray.push({
+          dayOfMonth:  day.date().toString(),
+          weekDayName: day.format('ddd'),
+          monthName:   day.format('MMM'),
+        });
+        day = day.clone().add(1, 'd');
+      }
+      console.log(' this.currentMonthDaysArray - ', this.currentMonthDaysArray);
+    }
+
+
+    isMonthChanged(){
+      var currDate = moment(this.viewDate);
+      var startDate   = moment(this.queryForm.get('dateFrom').value, 'DD.MM.YYYY');
+      var endDate     = moment(this.queryForm.get('dateTo').value, 'DD.MM.YYYY');
+      console.log('currDate',currDate)
+      console.log('startDate',startDate)
+      console.log('endDate',endDate)
+      console.log('isMonthChanged',!currDate.isBetween(startDate, endDate, 'days', '[]'))
+
+      return !currDate.isBetween(startDate, endDate, 'days', '[]');// ()-default exclusive, (],[),[] - right, left and all inclusive
+    }
+    
+
+
     dayClicked({ date, events }: { date: Date; events: CalendarEvent[] }): void {
       // console.log('same month',(moment(date).isSame(this.viewDate, "month")));
       // console.log('same day',(moment(this.viewDate).isSame(date, "day")));
@@ -480,8 +576,8 @@ export class CalendarComponent implements OnInit {
         } else {
           if(!this.dayEventClicked && !this.dayAddEventBtnClicked) this.activeDayIsOpen = true;
         }
-        this.viewDate = date;
-        this.viewDate_=date;
+        this.viewDate = new Date(date);
+        this.viewDate_= new Date(date);
         this.dayEventClicked = false;
         this.dayAddEventBtnClicked = false;
       }
@@ -526,9 +622,15 @@ export class CalendarComponent implements OnInit {
     get nextPrevButtonView(){
       return this.getNextPrevButtonView();
     }
+
     getNextPrevButtonView(){
-      return this.view!='scheduler'?this.view:'day';
+      switch (this.view){
+        case 'scheduler': return 'day';
+        case 'resources': return 'month';
+        default: return this.view;
+      }
     }
+
     wordsToUpperCase(str:string){
       // console.log(str)
       return (str);
@@ -701,13 +803,55 @@ export class CalendarComponent implements OnInit {
       result.setDate(result.getDate() + days);
       return result;
     }
-    // uncheckPlacesOfWork(){
-    //   let allDeppartsOfSelectedDepartments:number[]=[];
-    //   this.queryForm.get('departments').value.map(i=>{
-    //     allDeppartsOfSelectedDepartments=allDeppartsOfSelectedDepartments.concat(this.getAllDeppartsIdsOfOneDep(i));
-    //   });
-    //   this.workShiftForm.get('depparts').setValue(this.workShiftForm.get('depparts').value.filter(
-    //     id => allDeppartsOfSelectedDepartments.includes(id)
-    //   ));
+
+
+    // interface WeekViewAllDayEvent {
+    //   event: CalendarEvent;
+    //   offset: number;
+    //   span: number;
+    //   startsBeforeWeek: boolean;
+    //   endsAfterWeek: boolean;
     // }
+    // interface WeekViewAllDayEventRow {
+    //   id?: string;
+    //   row: WeekViewAllDayEvent[]; // Cтрока (Часть отделения или ресурс) содержит ivents, которые к ней относятся (услуга использует ресурсы, которые находятся в этой части отделения).
+    // }
+
+
+
+
+    getAllDayEventRows(){
+      this.allDayEventRows=[];
+      let events: WeekViewAllDayEvent[]=[];
+      this.events.map(event=>{
+        // console.log('event - ', event);
+
+        // getting only events that use resources
+        if(event.meta.itemResources.length>0){
+          console.log('event.meta.itemResources')
+          events.push({
+            event,
+            offset:1,
+            span:1,
+            startsBeforeWeek: false,
+            endsAfterWeek: false
+          });
+        }
+      });
+
+      this.allDayEventRows.push({
+        row:events
+      });
+      this.allDayEventRows.length
+      // console.log("allDayEventRows",this.allDayEventRows);
+
+
+    }
+
+
+
+
+
+
+
 }

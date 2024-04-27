@@ -1,0 +1,19 @@
+<div class="cal-week-view" role="grid">
+
+    <!-- Table header with Days -->
+    <div class="cal-day-headers" role="row">
+      <div
+        class="cal-header"
+        *ngFor="let day of days; trackBy: trackByDay"
+        tabindex="0"
+      >
+        <b>{{ day.dayOfMonth }}</b>
+      </div>
+    </div>
+    <!-- End of Table header with Days -->
+
+
+    <code><pre>{{allDayEventRows | json}}</pre></code>
+
+
+</div>
