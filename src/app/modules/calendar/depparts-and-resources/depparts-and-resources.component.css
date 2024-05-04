@@ -1,0 +1,53 @@
+.cal-time-events{
+    margin-top: 30px;
+}
+.deppart-block{
+    border-bottom: 1px solid lightgray;
+}
+.department-name-row{
+    border-bottom: 1px solid #e1e1e1;
+    text-align: center;
+    background-color: oldlace;
+    padding: 5px;
+}
+.deppart-name-row{
+    border-bottom: 2px solid #e1e1e1;
+    text-align: center;
+    text-decoration: none;
+    padding: 14px 0 1px;
+    font-size: 14px;
+}
+.cal-events-row{
+    margin-left: 100px!important;
+}
+.cal-all-day-events{
+    min-height: 35px;
+    border-bottom: solid 1px #e1e1e1;
+    border-top: 0!important;
+    /* border-left: 0!important; */
+    /* border-right: 0!important; */
+    padding-top: 3px!important;
+    position: relative!important;
+}
+
+.not-enought-resources{
+    background-color:#ffeeed;
+    border: 2px solid darkred !important;
+}
+.cal-week-view .cal-all-day-events .cal-day-columns {
+    border-left: 1px solid lightgray;
+    border-right: 2px solid lightgray;
+}
+
+.cal-drag-over {
+    background-color: rgb(239, 239, 239) !important;
+  }
+.cal-today {
+    background-color: #e8fde7;
+}
+.cal-week-view .cal-day-headers {
+    padding-left: 100px !important;
+}
+.cal-week-view .cal-time-label-column {
+    width: 100px !important;
+}

@@ -452,11 +452,19 @@
                             <mwl-depparts-and-resources
                                 *ngIf="view=='resources'"
                                 (eventTimesChanged)="eventTimesChanged($event)"
-                                (userChanged)="userChanged($event)"
-                                (hourSegmentClicked)="angularCalendarOnClickDay($event.date)"
+                                (refreshView)="refreshView()"
+                                (changeDateByHeaderDayClick) = "angularCalendarOnClickDay($event)"
                                 (eventClicked)="handleEvent('Clicked', $event.event)"
-                                [days]="currentMonthDaysArray"
-                                [allDayEventRows]="allDayEventRows"
+                                [weekDays]="currentMonthDaysArray"
+                                [events]="events"
+                                [viewDate]="viewDate"
+                                [startOfPeriod]="startOfPeriod"
+                                [endOfPeriod]="endOfPeriod"
+                                [snapDraggedEvents]="false"
+                                [refresh]="refresh"
+                                precision="minutes"
+                                [departmentsWithParts]="receivedDepartmentsWithPartsList"
+                                [selectedDepparts]="queryForm.get('depparts').value"
                             ></mwl-depparts-and-resources>
                     
 

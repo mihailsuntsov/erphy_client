@@ -39,6 +39,7 @@ export interface Day {
   dayOfMonth:  string;
   weekDayName: string;
   monthName:   string;
+  date:        Date;
 }
 interface WeekViewAllDayEvent {
   event: CalendarEvent;
@@ -56,16 +57,25 @@ interface IdAndName {
   name:string;
 }
 interface Department{
-  department_id: number;
-  department_name: string;
-  parts: Deppart[];
+  department_id:  number;
+  department_name:string;
+  parts:          Deppart[];
 }
 interface Deppart{
-  id:number;
-  name: string;
-  description: string;
-  is_active: boolean;
+  id:             number;
+  name:           string;
+  description:    string;
+  is_active:      boolean;
   deppartProducts:IdAndName[];
+  resources:      Resource[];
+}
+interface Resource{
+  active:         boolean;
+  dep_part_id:    number;
+  description:    string;
+  name:           string;
+  resource_id:    number;
+  resource_qtt:   number;
 }
 interface CompanySettings{
   booking_doc_name_variation: string; 
@@ -100,8 +110,10 @@ interface CompanySettings{
 export class CalendarComponent implements OnInit {
 
   // Angular Calendar
-  view: CalendarView = CalendarView.Scheduler;
+  view: CalendarView = CalendarView.Resources;
   viewDate: Date = new Date();
+  startOfPeriod = moment(new Date()).startOf('month');
+  endOfPeriod = moment(new Date()).endOf('month');
   viewDate_: Date = new Date(); // current date for a week view because pipe changes original viewDate (I do not know why)
   events: CalendarEvent[] = [];
   // weekStartsOn: number = DAYS_OF_WEEK.MONDAY;
@@ -206,7 +218,7 @@ export class CalendarComponent implements OnInit {
       //sending time formaf of user to injectable provider where it need to format time
       this.dataService.setData(this.timeFormat=='24'?'HH:mm':'h:mm a');
       console.log("Parent timeFormat", this.timeFormat=='24'?'HH:mm':'h:mm a');
-      this.setCurrentMonthDaysArray(moment(new Date()).startOf('month'), moment(new Date()).endOf('month'));
+      this.setCurrentMonthDaysArray();
       // setTimeout(() => { 
       //   console.log('Now let show view...');
       //   this.canDrawView=true;
@@ -377,16 +389,17 @@ export class CalendarComponent implements OnInit {
                 "primary": event.color.primary,
                 "secondary": event.color.secondary
             },
-            meta: {
-              user: event.meta.user,
-              itemResources: event.meta.itemResources?event.meta.itemResources:[],
-              departmentPartId:event.meta.departmentPartId?event.meta.departmentPartId:null,
+            "allDay":false,
+            "meta": {
+              "user": event.meta.user,
+              "itemResources": event.meta.itemResources?event.meta.itemResources:[],
+              "departmentPartId":event.meta.departmentPartId?event.meta.departmentPartId:null,
             },
-            resizable: {
-              beforeStart: true,
-              afterEnd: true,
-          },
-          draggable:true,
+            "resizable": {
+              "beforeStart": true,
+              "afterEnd": true,
+            },
+            "draggable":true,
           });
           
           // Creating array of User
@@ -449,7 +462,7 @@ export class CalendarComponent implements OnInit {
     newStart,
     newEnd,
   }: CalendarEventTimesChangedEvent): void {
-    console.log('eventTimesChanged')
+    // console.log('eventTimesChanged')
     event.start = newStart;
     event.end = newEnd;
     this.events = [...this.events];
@@ -518,31 +531,46 @@ export class CalendarComponent implements OnInit {
 
 
 
-
+    // validateEventTimesChanged = (
+    //   { event, newStart, newEnd, allDay }: CalendarEventTimesChangedEvent,
+    //   addCssClass = true
+    // ) => {
+    //   if (event.allDay) {
+    //     console.log('event',event);
+    //     console.log('newStart',newStart);
+    //     console.log('newEnd',newEnd);
+    //     console.log('allDay',allDay);
+  
+  
+  
+    //     return true;
+    //   }
+    // }
 
 
 
     checkIsNeedToLoadData(){
       if(this.isMonthChanged()){
-        const startOfMonth = moment(this.viewDate).startOf('month');
-        const endOfMonth = moment(this.viewDate).endOf('month');
-        this.queryForm.get('dateFrom').setValue(startOfMonth.format('DD.MM.YYYY'));
-        this.queryForm.get('dateTo').setValue(endOfMonth.format('DD.MM.YYYY'));
+        this.startOfPeriod = moment(this.viewDate).startOf('month');
+        this.endOfPeriod = moment(this.viewDate).endOf('month');
+        this.queryForm.get('dateFrom').setValue(this.startOfPeriod.format('DD.MM.YYYY'));
+        this.queryForm.get('dateTo').setValue(this.endOfPeriod.format('DD.MM.YYYY'));
         this.actionsBeforeGetChilds=2;
-        this.setCurrentMonthDaysArray(startOfMonth, endOfMonth);
+        this.setCurrentMonthDaysArray();
         this.getData();   
       }
     }
    
     // forming array of dates for displaying the table header of "depparts-and-resources" view
-    setCurrentMonthDaysArray(startOfPeriod:moment.Moment, endOfPeriod:moment.Moment){
+    setCurrentMonthDaysArray(){
       this.currentMonthDaysArray = [];
-      var day = startOfPeriod;
-      while (day <= endOfPeriod) {
+      var day = this.startOfPeriod;
+      while (day <= this.endOfPeriod) {
         this.currentMonthDaysArray.push({
           dayOfMonth:  day.date().toString(),
           weekDayName: day.format('ddd'),
           monthName:   day.format('MMM'),
+          date:        new Date(day.format('YYYY-MM-DD'))
         });
         day = day.clone().add(1, 'd');
       }
@@ -828,7 +856,7 @@ export class CalendarComponent implements OnInit {
 
         // getting only events that use resources
         if(event.meta.itemResources.length>0){
-          console.log('event.meta.itemResources')
+          // console.log('event.meta.itemResources')
           events.push({
             event,
             offset:1,
@@ -842,7 +870,7 @@ export class CalendarComponent implements OnInit {
       this.allDayEventRows.push({
         row:events
       });
-      this.allDayEventRows.length
+      // this.allDayEventRows.length
       // console.log("allDayEventRows",this.allDayEventRows);
 
 

@@ -138,14 +138,16 @@ li {list-style: none;}
 ::ng-deep .cal-month-view .cal-day-cell.cal-today .cal-day-number {
     font-size: 1.2em;
     background-color: #673ab7;
-    padding: 2px 4px 1px 1px;
+    padding: 3px 2px 0;
     opacity: 1 !important;
     color: white;
     border-radius: 56%;
-    /* margin-top: 0px; */
     display: inline-block;
     letter-spacing: -0.6px;
     margin: 1px !important;
+    width: 26px;
+    text-align: center;
+    height: 26px;
 }
 ::ng-deep .cal-month-view .cal-day-cell.cal-today {
     background-color: unset;

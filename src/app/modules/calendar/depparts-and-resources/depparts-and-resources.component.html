@@ -1,19 +1,175 @@
 <div class="cal-week-view" role="grid">
 
-    <!-- Table header with Days -->
-    <div class="cal-day-headers" role="row">
-      <div
-        class="cal-header"
-        *ngFor="let day of days; trackBy: trackByDay"
-        tabindex="0"
-      >
-        <b>{{ day.dayOfMonth }}</b>
+  <!-- Table header with Days -->
+  <div class="cal-day-headers">
+    <div
+      class="cal-header"
+      [class.cal-today]="isDayToday(day)"
+      (click)="onClickHeaderDay(day.date);"
+      *ngFor="let day of weekDays; trackBy: trackByDay"
+      tabindex="0"
+      style="cursor: pointer;"
+    >
+      <b>{{ day.dayOfMonth }}</b>
+    </div>
+  </div>
+
+
+  <div class="cal-time-events"></div>
+
+  <div
+    *ngFor="let department of departmentsWithParts; trackBy: trackByDepartment"
+  >
+    <div
+      class="cal-header department-name-row"
+    >
+  
+      <b>{{ department.department_name }}</b>
+
+    </div>
+    <div class="deppart-block" *ngFor="let deppart of department.parts; trackBy: trackByDepPart">
+      <div class="cal-header deppart-name-row">
+          {{deppart.name}}
+      </div>
+      
+
+      <div mwldroppable="" class="cal-all-day-events" *ngFor="let resource of deppart.resources; trackBy: trackByResource.bind(this, deppart.id)" [ngClass]="{'not-enought-resources': (isNotEnoughtResources(deppart.id+'_'+resource.resource_id,resource.resource_qtt))}">
+        <div class="cal-day-columns" >
+          <div class="cal-time-label-column" 
+          style="justify-content: start;" 
+          matTooltip="{{resource.name}} ({{resource.resource_qtt}}) {{resource.description}}" >
+              <span>{{resource.name}}</span>&nbsp;<span style="white-space: nowrap;">x {{resource.resource_qtt}}</span>
+          </div>
+          <div
+            class="cal-day-column"
+            *ngFor="let day of days; trackBy: trackByResourceDay.bind(this, resource.resource_id)"
+            mwlDroppable
+            dragOverClass="cal-drag-over"
+            (drop)="eventDropped_($event, day.date, true, deppart.id)"
+            (dragEnter)="dateDragEnter(day.date)"
+          ></div>
+        </div>
+        
+
+        <!-- <span *ngIf="allDayEventRowsByDeppartsAndResourcesId.size>0">{{allDayEventRowsByDeppartsAndResourcesId.get(deppart.id+'_'+resource.resource_id).length}}</span> -->
+
+
+        <div
+        *ngFor="let eventRow of allDayEventRowsByDeppartsAndResourcesId.get(deppart.id+'_'+resource.resource_id); trackBy: trackByRowId"
+        #eventRowContainer
+        class="cal-events-row"
+        >
+        <div
+          *ngFor="
+            let allDayEvent of eventRow.row;
+            trackBy: trackByWeekAllDayEvent
+          "
+          #event
+          class="cal-event-container"
+          [class.cal-draggable]="
+            allDayEvent.event.draggable && allDayEventResizes.size === 0
+          "
+          [class.cal-starts-within-week]="!allDayEvent.startsBeforeWeek"
+          [class.cal-ends-within-week]="!allDayEvent.endsAfterWeek"
+          [ngClass]="allDayEvent.event?.cssClass"
+          [style.width.%]="(100 / days.length) * allDayEvent.span"
+          [style.marginLeft.%]="
+            rtl ? null : (100 / days.length) * allDayEvent.offset
+          "
+          [style.marginRight.%]="
+            rtl ? (100 / days.length) * allDayEvent.offset : null
+          "
+
+
+
+
+          mwlResizable
+          [resizeCursors]="resizeCursors"
+          [resizeSnapGrid]="{ left: dayColumnWidth, right: dayColumnWidth }"
+          [validateResize]="validateResize"
+          (resizeStart)="
+            allDayEventResizeStarted(eventRowContainer, allDayEvent, $event)
+          "
+          (resizing)="
+            allDayEventResizing(allDayEvent, $event, dayColumnWidth)
+          "
+          (resizeEnd)="allDayEventResizeEnded(allDayEvent)"
+
+
+
+          mwlDraggable
+          dragActiveClass="cal-drag-active"
+          [dropData]="{ event: allDayEvent.event, calendarId: calendarId }"
+          [dragAxis]="{
+            x: allDayEvent.event.draggable && allDayEventResizes.size === 0,
+            y:
+              !snapDraggedEvents &&
+              allDayEvent.event.draggable &&
+              allDayEventResizes.size === 0
+          }"
+          [dragSnapGrid]="snapDraggedEvents ? { x: dayColumnWidth } : {}"
+          [validateDrag]="validateDrag"
+          [touchStartLongPress]="{ delay: 300, delta: 30 }"
+          (dragStart)="
+            dragStarted(eventRowContainer, event, allDayEvent, false)
+          "
+          (dragging)="allDayEventDragMove()"
+          (dragEnd)="dragEnded(allDayEvent, $event, dayColumnWidth)"
+        >
+
+
+
+
+          <div
+            class="cal-resize-handle cal-resize-handle-before-start"
+            *ngIf="
+              allDayEvent.event?.resizable?.beforeStart &&
+              !allDayEvent.startsBeforeWeek
+            "
+            mwlResizeHandle
+            [resizeEdges]="{ left: true }"
+          ></div>
+          <mwl-calendar-week-view-event
+            [locale]="locale"
+            [weekEvent]="allDayEvent"
+            [tooltipPlacement]="tooltipPlacement"
+            [tooltipTemplate]="tooltipTemplate"
+            [tooltipAppendToBody]="tooltipAppendToBody"
+            [tooltipDelay]="tooltipDelay"
+            [customTemplate]="eventTemplate"
+            [eventTitleTemplate]="eventTitleTemplate"
+            [eventActionsTemplate]="eventActionsTemplate"
+            [daysInWeek]="daysInWeek"
+            (eventClicked)="
+              eventClicked.emit({
+                event: allDayEvent.event,
+                sourceEvent: $event.sourceEvent
+              })
+            "
+          >
+          </mwl-calendar-week-view-event>
+          <div
+            class="cal-resize-handle cal-resize-handle-after-end"
+            *ngIf="
+              allDayEvent.event?.resizable?.afterEnd &&
+              !allDayEvent.endsAfterWeek
+            "
+            mwlResizeHandle
+            [resizeEdges]="{ right: true }"
+          ></div>
+        </div>
       </div>
     </div>
-    <!-- End of Table header with Days -->
+  </div>
+</div>
 
+<!-- 1--<code><pre>{{getResourceEventsRows(1)}}</pre></code>--1 -->
+  <!-- <code><pre>{{allDayEventRows | json}}</pre></code> -->
+  <!-- daysInWeek - {{daysInWeek}}<br> -->
+  <!-- dayColumnWidth - {{dayColumnWidth}}<br> -->
+  <!-- snapDraggedEvents - {{snapDraggedEvents}}<br> -->
+  <!-- <code><pre>{{departmentsWithParts | json}}</pre></code> -->
 
-    <code><pre>{{allDayEventRows | json}}</pre></code>
-
-
+  <!-- <code><pre>{{days | json}}</pre></code>  -->
+  <!-- <code><pre>{{events | json}}</pre></code> -->
 </div>

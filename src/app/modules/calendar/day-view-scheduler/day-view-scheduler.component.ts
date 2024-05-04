@@ -114,7 +114,7 @@ export class DayViewSchedulerCalendarUtils extends CalendarUtils {
     // console.log("period",period);
 
 
-                //  WeekView + users + breaks 
+                //  WeekView + users
     const weekView_: DayViewScheduler = {
       period,
       allDayEventRows: [],
@@ -148,7 +148,7 @@ export class DayViewSchedulerCalendarUtils extends CalendarUtils {
           'title': ''
         })
       })
-
+      
       let breaksView: WeekView = super.getWeekView({
         ...args,
         events: breaks_events,
@@ -198,7 +198,7 @@ export class DayViewSchedulerCalendarUtils extends CalendarUtils {
 
 
     });
-    // console.log('main view',view)
+    // console.log('main view',this.view)
     return weekView_;
   }
 
@@ -207,6 +207,7 @@ export class DayViewSchedulerCalendarUtils extends CalendarUtils {
 @Component({
   selector: 'mwl-day-view-scheduler',
   templateUrl: 'day-view-scheduler.component.html',
+  styleUrls: ['./day-view-scheduler.component.css'],
   providers: [DayViewSchedulerCalendarUtils],
 })
 export class DayViewSchedulerComponent

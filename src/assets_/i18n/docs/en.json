@@ -706,7 +706,8 @@
         "no_money":"You can not change the plan to a paid one with a zero or negative balance",
         "out_limits":"Cannot be saved if the used resources will exceed the total limits",
         "del_qry_suc":"Delete request sent successfully",
-        "site_name_n_allwd":"This site name is not allowed"
+        "site_name_n_allwd":"This site name is not allowed",
+        "no_resources_in_deppart":"This part of the department does not have the resources necessary to perform the services of a moving document"
     },
     "button":{        
         "test_connct":  "Connection test",
