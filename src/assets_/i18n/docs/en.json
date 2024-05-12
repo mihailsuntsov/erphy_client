@@ -362,7 +362,11 @@
         "payment_per_day":"Payment in one day",
         "dep_empl":"Departments of employee",
         "bkng_doc_name_var":"Name of the booking document",
-        "documents":"Documents"
+        "documents":"Documents",
+        "only_on_start":"An employee is needed only at the initial stage",
+        "max_pers_on_same_time":"Maximum one-time number of clients",
+        "srvc_min_duration":"Minimum service duration",
+        "scedule_appntmnt_before":"Minimum time before start service"
     },
     "error":{ 
         "-- COMMON":"--",
@@ -377,6 +381,7 @@
         "price_format1":    "Incorrect format. Up to {{cnt}} digits are allowed",
         "customer_nsel":    "The customer is not selected",
         "no_cust_name":     "Customer's name not entered",
+        "customer_n_fnd":   "No Customer found. A new customer will be created",
         "crg_rec_notsl":    "Cargo receiver not selected",
         "k_accept_nimber":  "Only a number from {{num1}} to {{num2}} is allowed",
         "sum_less_zero":    "Mustn't be less than 0",
@@ -511,7 +516,14 @@
         "stop_trial":"Stop trial period",
         "wp_sites":"Wordpress sites with a WooCommerce online store hosted on CRM servers and provided to you. 1 connection needs to be ordered with each site.",
         "connecton":"Connection is a module responsible for interaction with the online store (sending, receiving and processing data from the online store)",
-        "add_money":"Refill your account"
+        "add_money":"Refill your account",
+        "scedule_appntmnt_before":"Minimum time before the start of service provision when the client places an application online",
+        "month":"Month view",
+        "sceduler":"Sceduler",
+        "res_usg":"Resource usage",
+        "res_day":"Resource usage during the day",
+        "res_week":"Resource usage during the week",
+        "res_month":"Resource usage during the month"
     },
     "msg":{
         "error":        "Error!",
@@ -788,6 +800,7 @@
         "reservation":"Reservation",
         "appointments":"Appointments",
         "reservations":"Reservations"
+
     },
     "docs":{            
         "role":         "Role",

@@ -40,7 +40,7 @@ body {
     margin-top: -16px;
     z-index: 999;
     
-    height: 65px;
+    height: 38px;
     top: 0;
     padding-top: 20px;
     /* background: white; */
@@ -513,4 +513,10 @@ table input[readonly="true"] {
   top: -5px;
   position: relative;
   font-size: 20px;
+}
+.timepicker-overlay {
+  z-index: 10000000 !important;
+}
+.timepicker-backdrop-overlay {
+z-index: 10000000 !important;
 }

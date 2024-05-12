@@ -151,6 +151,10 @@ export class UiComponent implements OnInit {
         case 'timeFormat':{
           component.timeFormat=this.settingsForm.get('timeFormat').value;
         }
+        case 'locale':{
+          // console.log("locale in UI = ",this.locale);
+          component.locale = this.locale;
+        }
       }
     })
     

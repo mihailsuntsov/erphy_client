@@ -42,13 +42,13 @@ export class CustomDateFormatter extends CalendarDateFormatter {
     // title in a week view
     public weekViewTitle({ date, locale}: DateFormatterParams): string {
         
-        // console.log('date',date);
-        // console.log('locale',locale);
+        console.log('date',date);
+        console.log('locale',locale);
         this.getLocaleAngular(locale); // this.locale в этом классе должна принять формат Angular, а не Moment
                                        // она изменяется только 1 раз, далее класс её "помнит"
         const startdateofweek= new DatePipe(locale).transform(this.startOfWeek(date),this.weekTitleFormat, locale);
         const enddateofweek= new DatePipe(locale).transform(this.endOfWeek(date),this.weekTitleFormat+', y', locale);
-        console.log('enddateofweek',enddateofweek)
+        // console.log('enddateofweek',enddateofweek)
         return `${startdateofweek} — ${enddateofweek}`;
     }
     // title in a day view

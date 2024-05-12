@@ -46,7 +46,10 @@
         "day":          "Дан",
         "week":         "Седмица",
         "month":        "Месец",
-        "scheduler":    "Запослени"
+        "scheduler":    "Запослени",
+        "resources_month":"Месец",
+        "resources_week":"Седмица",
+        "resources_day":"Дан"
     },
     "tip":{
         "select_opt":   "Изаберите опције филтера",

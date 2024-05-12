@@ -4,13 +4,15 @@
   <div class="cal-day-headers">
     <div
       class="cal-header"
-      [class.cal-today]="isDayToday(day)"
+      [class.cal-today]="(viewPeriodName!='resources_day')?isDayToday(day):isDayOfHourToday() && isHourNow(getHeaderTime(i, true))"
       (click)="onClickHeaderDay(day.date);"
-      *ngFor="let day of weekDays; trackBy: trackByDay"
+      *ngFor="let day of weekDays; let i = index; trackBy: trackByDay"
       tabindex="0"
       style="cursor: pointer;"
     >
-      <b>{{ day.dayOfMonth }}</b>
+      <b *ngIf="viewPeriodName!='resources_day'">{{ day.dayOfMonth }}</b>
+      <b *ngIf="viewPeriodName=='resources_day'">{{ getHeaderTime(i, false) }}</b> 
+      <b *ngIf="viewPeriodName=='resources_day' && timeFormat=='12'" style="font-size: x-small;">&nbsp;{{getAmPm(i)}}</b>
     </div>
   </div>
 

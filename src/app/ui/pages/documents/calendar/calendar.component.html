@@ -87,7 +87,7 @@
                             </span>
                         </button>
                         <!-- <span style="line-height: 40px;margin-left: 20px; font-size: 14px;"> -->
-                        <span style="line-height: 40px;margin-left: 20px;" *ngIf="locale!=undefined && weekStartsOn!=undefined && view=='week'">
+                        <span style="line-height: 40px;margin-left: 20px;" *ngIf="locale!=undefined && weekStartsOn!=undefined && (view=='week' || view=='resources_week')">
                             <!-- viewDate-{{viewDate}}, -->
                             <!-- locale-{{locale}}<br> -->
                             <!-- weekStartsOn-{{weekStartsOn}} -->
@@ -95,26 +95,53 @@
                             <!-- {{viewDate | calendarDate:('dayViewTitle'):locale}} -->
 
                         </span>
-                        <span style="line-height: 40px;margin-left: 20px;" *ngIf="locale!=undefined && weekStartsOn!=undefined && view!='week'">
+                        <span style="line-height: 40px;margin-left: 20px;" *ngIf="locale!=undefined && weekStartsOn!=undefined && view!='week' && view!='resources_week'">
                             {{wordsToUpperCase( viewDate | calendarDate:(getNextPrevButtonView() + 'ViewTitle'):locale )}}
                         </span>
                     </div>
                     <div class="toolbar-center-delimitter">
                     </div>
                     <div class="toolbar-center-end">
-
-                        <button      
-                            [matMenuTriggerFor]="addDocMenu"
-                            mat-stroked-button 
-                            style="margin: 0 10px; width: 129px;height: 36px;min-width: 38px;"
-                            color="primary"
-                            (submit)="false"
-                            type="button">
-                            <span>
-                                {{'menu.top.'+view | transloco}}
-                            </span>
-                            <i class="material-icons">arrow_drop_down</i>
-                        </button>
+                    <mat-button-toggle-group>
+                        <mat-button-toggle (click)="setView(CalendarView.Month)" [ngStyle]="(view=='month')?{'background-color':'#e0e0e0'}:{}" matTooltip="{{'docs.tip.month' | transloco}}">
+                            <mat-icon>view_comfy</mat-icon>
+                        </mat-button-toggle>
+                        <mat-button-toggle (click)="setView(CalendarView.Scheduler);refreshView()" [ngStyle]="(view=='scheduler')?{'background-color':'#e0e0e0'}:{}" matTooltip="{{'docs.tip.sceduler' | transloco}}">
+                            <mat-icon>view_week</mat-icon>
+                        </mat-button-toggle>
+                        <mat-button-toggle (click)="onResourcesButtonClick()" [ngStyle]="(view=='resources_month'||view=='resources_day'||view=='resources_week')?{'background-color':'#e0e0e0'}:{}" matTooltip="{{'docs.tip.res_usg' | transloco}}">
+                            <mat-icon>segment</mat-icon>
+                        </mat-button-toggle>
+                        <!-- <mat-button-toggle value="justify" disabled aria-label="Text align justify">
+                            <mat-icon>format_align_justify</mat-icon>
+                        </mat-button-toggle> -->
+                    </mat-button-toggle-group>
+                    <mat-button-toggle-group style="margin-left: 15px;">
+                        <mat-button-toggle [disabled]="view=='month'||view=='scheduler'" (click)="onSelectResourcesViewode('month')" [class.gray]="view=='month'||view=='scheduler'" [ngStyle]="(view=='resources_month')?{'background-color':'#e0e0e0'}:{'background-color':'#fff'}" matTooltip="{{'docs.tip.res_month' | transloco}}">
+                            <mat-icon>calendar_month</mat-icon>
+                        </mat-button-toggle>
+                        <mat-button-toggle [disabled]="view=='month'||view=='scheduler'" (click)="onSelectResourcesViewode('week')" [class.gray]="view=='month'||view=='scheduler'" [ngStyle]="(view=='resources_week')?{'background-color':'#e0e0e0'}:{'background-color':'#fff'}" matTooltip="{{'docs.tip.res_week' | transloco}}">
+                            <mat-icon>date_range</mat-icon>
+                        </mat-button-toggle>
+                        <mat-button-toggle [disabled]="view=='month'||view=='scheduler'" (click)="onSelectResourcesViewode('day')" [class.gray]="view=='month'||view=='scheduler'" [ngStyle]="(view=='resources_day')?{'background-color':'#e0e0e0'}:{'background-color':'#fff'}" matTooltip="{{'docs.tip.res_day' | transloco}}">
+                            <mat-icon>today</mat-icon>
+                        </mat-button-toggle>
+                        <!-- <mat-button-toggle value="justify" disabled aria-label="Text align justify">
+                            <mat-icon>format_align_justify</mat-icon>
+                        </mat-button-toggle> -->
+                    </mat-button-toggle-group>
+                    <!-- <button      
+                        [matMenuTriggerFor]="addDocMenu"
+                        mat-stroked-button 
+                        style="margin: 0 10px; width: 129px;height: 36px;min-width: 38px;"
+                        color="primary"
+                        (submit)="false"
+                        type="button">
+                        <span>
+                            {{'menu.top.'+view | transloco}}
+                        </span>
+                        <i class="material-icons">arrow_drop_down</i>
+                    </button> -->
                         <!-- <button mat-menu-item (click)="console('viewDate on click button', viewDate);">1</button> -->
                     <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before" style="min-width: 240px;">
                         <button mat-menu-item (click)="
@@ -133,8 +160,14 @@
                         <button mat-menu-item (click)="setView(CalendarView.Scheduler);refreshView()">
                             <span>{{'menu.top.scheduler' | transloco}}</span>
                         </button>
-                        <button mat-menu-item (click)="setView(CalendarView.Resources);refreshView()">
-                            <span>{{'menu.top.resources' | transloco}}</span>
+                        <button mat-menu-item (click)="setView(CalendarView.ResourcesDay); checkIsNeedToLoadData(); refreshView()">
+                            <span>{{'menu.top.day' | transloco}}</span>
+                        </button>
+                        <button mat-menu-item (click)="setView(CalendarView.ResourcesWeek); checkIsNeedToLoadData(); viewDate_ = getAlternateDay(viewDate); refreshView()">
+                            <span>{{'menu.top.week' | transloco}}</span>
+                        </button>
+                        <button mat-menu-item (click)="setView(CalendarView.ResourcesMonth); checkIsNeedToLoadData(); refreshView()">
+                            <span>{{'menu.top.month' | transloco}}</span>
                         </button>
                     </mat-menu>
                     </div>
@@ -361,7 +394,7 @@
                         >There are {{ day.events.length }} events on this day</small
                         > -->
                     </ng-template>
-                    <div #calendar_area class="categories-sidenav-content">
+                    <div #calendar_area class="categories-sidenav-content" style="overflow: hidden;">
                         <!-- weekStartsOn:{{weekStartsOn}} -->
                             <!-- <mwl-day-view-scheduler
                                 [viewDate]="viewDate"
@@ -450,18 +483,20 @@
                             ></mwl-day-view-scheduler>
                             
                             <mwl-depparts-and-resources
-                                *ngIf="view=='resources'"
+                                *ngIf="view=='resources_week' || view=='resources_month' || view=='resources_day'"
                                 (eventTimesChanged)="eventTimesChanged($event)"
                                 (refreshView)="refreshView()"
                                 (changeDateByHeaderDayClick) = "angularCalendarOnClickDay($event)"
                                 (eventClicked)="handleEvent('Clicked', $event.event)"
                                 [weekDays]="currentMonthDaysArray"
                                 [events]="events"
+                                [viewPeriodName]="view"
                                 [viewDate]="viewDate"
                                 [startOfPeriod]="startOfPeriod"
                                 [endOfPeriod]="endOfPeriod"
                                 [snapDraggedEvents]="false"
                                 [refresh]="refresh"
+                                [timeFormat]="timeFormat"
                                 precision="minutes"
                                 [departmentsWithParts]="receivedDepartmentsWithPartsList"
                                 [selectedDepparts]="queryForm.get('depparts').value"
@@ -522,6 +557,8 @@
     </div>
     <!-- <code><pre>{{queryForm.value | json}}</pre></code> -->
     <!-- 1--<code><pre>{{breaks | json}}</pre></code>--1 -->
+    <!-- <code><pre>startOfPeriod-{{startOfPeriod}}</pre></code> -->
+    <!-- <code><pre>endOfPeriod-{{endOfPeriod}}</pre></code> -->
 </div>
 
 

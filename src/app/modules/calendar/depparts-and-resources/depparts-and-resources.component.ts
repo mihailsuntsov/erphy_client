@@ -46,7 +46,7 @@ import { WeekViewAllDayEventResize } from 'angular-calendar/modules/week/calenda
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { translate, TranslocoService } from '@ngneat/transloco';
-
+import { CalendarView } from '../../../ui/pages/documents/calendar/calendar.component';
 interface WeekViewAllDayEvent {
   event: CalendarEvent;
   offset: number;
@@ -99,7 +99,7 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
   // @Output() userChanged = new EventEmitter();
   @Output() refreshView = new EventEmitter();
   @Output() changeDateByHeaderDayClick = new EventEmitter<Date>();
-  view: WeekView; //extends WeekView with users: User[];
+  view: WeekView; //extends WeekView
   allDayEventRows: WeekViewAllDayEventRow[]=[];
   __spreadArray:any;
   __assign:any;
@@ -112,6 +112,8 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
   @Input()  startOfPeriod;
   @Input()  endOfPeriod;
   @Input()  viewDate;
+  @Input()  viewPeriodName: CalendarView;
+  @Input()  timeFormat: string;
   eventRowsFilledAtStart = false;
   rollbackEvent:CalendarEvent;
   lastDragEnterDate_: Date;
@@ -151,7 +153,7 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
 
   getDays(){
     this.days = this.getWeekViewHeader(this.dateAdapter,
-      {      
+      {
         viewDate: this.viewDate,
         weekStartsOn: 0, 
         excluded: [],
@@ -633,12 +635,18 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
     var addDays = dateAdapter.addDays, getDay = dateAdapter.getDay;
     var days = [];
     var date = viewStart;
+
+
     while (date < viewEnd) {
         if (!excluded.some(function (e) { return getDay(date) === e; })) {
             days.push(this.getWeekDay(dateAdapter, { date: date, weekendDays: weekendDays }));
         }
         date = addDays(date, 1);
     }
+
+
+
+    
     // console.log('days',days);
     return days;
   }
@@ -692,19 +700,19 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
       allDay: 0,
       time: 0,
     };
-    if (!this.snapDraggedEvents && useY) {
-      this.view.hourColumns.forEach((column) => {
-        const linkedEvent = column.events.find(
-          (columnEvent) =>
-            columnEvent.event === event.event && columnEvent !== event
-        );
-        // hide any linked events while dragging
-        if (linkedEvent) {
-          linkedEvent.width = 0;
-          linkedEvent.height = 0;
-        }
-      });
-    }
+    // if (!this.snapDraggedEvents && useY) {
+    //   this.view.hourColumns.forEach((column) => {
+    //     const linkedEvent = column.events.find(
+    //       (columnEvent) =>
+    //         columnEvent.event === event.event && columnEvent !== event
+    //     );
+    //     // hide any linked events while dragging
+    //     if (linkedEvent) {
+    //       linkedEvent.width = 0;
+    //       linkedEvent.height = 0;
+    //     }
+    //   });
+    // }
     this.cdr.markForCheck();
   }
 
@@ -808,6 +816,7 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
     event: WeekViewTimeEvent | WeekViewAllDayEvent,
     dayWidth?: number
   ) {
+    // console.log('resizeStarted')
     this.dayColumnWidth = this.getDayColumnWidth(eventsContainer);
     const resizeHelper = new CalendarResizeHelper(
       eventsContainer,
@@ -874,19 +883,37 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
     // console.log('typeof resizeEvent.edges.right', +resizeEvent.edges.right)
     if (typeof resizeEvent.edges.left !== 'undefined') {
       // console.log('Left side resizing')
+
+
       const diff: number =
         Math.round(+resizeEvent.edges.left / dayWidth) * modifier;
-      allDayEvent.offset = currentResize.originalOffset + diff;
-      allDayEvent.span = currentResize.originalSpan - diff;
+      if(currentResize.originalSpan - diff >0){// если span отрицательный - item может вывернуть в другую сторону
+        allDayEvent.offset = currentResize.originalOffset + diff;
+        allDayEvent.span = currentResize.originalSpan - diff;
+      }
+
+      // console.log('allDayEvent.offset - ',allDayEvent.offset)
+      // console.log('allDayEvent.span - ',allDayEvent.span) 
+
+
+      // console.log('diff - ',diff)
+      // console.log('allDayEvent.offset - ',allDayEvent.offset)
     } 
     else 
     if (typeof resizeEvent.edges.right !== 'undefined') {
       // console.log('Right side resizing')
+
+
       const diff: number =
         Math.round(+resizeEvent.edges.right / dayWidth) * modifier;
         // console.log('diff - ',diff)
 
-      allDayEvent.span = currentResize.originalSpan + diff;
+      if(currentResize.originalSpan + diff >0){
+        allDayEvent.span = currentResize.originalSpan + diff;
+      }
+
+
+
       // console.log('allDayEvent.span = ',allDayEvent.span)
 
     }
@@ -903,10 +930,13 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
 
       let daysDiff: number;
       if (allDayEventResizingBeforeStart) {
-        daysDiff = allDayEvent.offset - currentResize.originalOffset;
+        daysDiff = Math.round(allDayEvent.offset - currentResize.originalOffset);
+        console.log('daysDiff 1 = ',daysDiff);
+
       } else {
 
         daysDiff = Math.round(allDayEvent.span - currentResize.originalSpan);
+        console.log('daysDiff 2 = ',daysDiff);
         // console.log('then here...')
         // console.log('allDayEvent.span - currentResize.originalSpan = ',allDayEvent.span - currentResize.originalSpan);
         // console.log('allDayEvent.span = ',allDayEvent.span);
@@ -919,19 +949,35 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
       // console.log('originalOffset = ',currentResize.originalOffset)
       // console.log('originalSpan = ',currentResize.originalSpan)
 
-      const newDates = this.getAllDayEventResizedDates(
-        allDayEvent.event,
+      // иначе без этой проверки событие может исчезать
+      let testEvent={...allDayEvent.event};
+      let testNewDates = this.getAllDayEventResizedDates(
+        testEvent,
         daysDiff,
         allDayEventResizingBeforeStart
       );
 
-      this.eventTimesChanged.emit({
-        newStart: newDates.start,
-        newEnd: newDates.end,
-        event: allDayEvent.event,
-        type: CalendarEventTimesChangedEventType.Resize,
-      });
-      this.allDayEventResizes.delete(allDayEvent);
+      if(testNewDates.start >= testNewDates.end){
+        daysDiff=daysDiff+(currentResize.edge === 'left'?-1:1);
+      }
+
+        const newDates = this.getAllDayEventResizedDates(
+          allDayEvent.event,
+          daysDiff,
+          allDayEventResizingBeforeStart
+        );
+        console.log('newDates = ',newDates)
+      
+        this.eventTimesChanged.emit({
+          newStart: newDates.start,
+          newEnd: newDates.end,
+          event: allDayEvent.event,
+          type: CalendarEventTimesChangedEventType.Resize,
+        });
+        this.allDayEventResizes.delete(allDayEvent);
+      
+        
+      // console.log('allDayEvent.event = ',allDayEvent.event)
     }
   }
   dateDragEnter(date: Date) {
@@ -979,8 +1025,8 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
     });
     if(newDepPartResourcesIds.length==0) 
       result=false;
-    console.log('newDepPartResourcesIds',newDepPartResourcesIds)
-    console.log('event.meta.itemResources',event.meta.itemResources)
+    // console.log('newDepPartResourcesIds',newDepPartResourcesIds)
+    // console.log('event.meta.itemResources',event.meta.itemResources)
     event.meta.itemResources.map(resource=>{
       if(newDepPartResourcesIds.indexOf(resource.id) === -1) result=false; 
     });
@@ -1004,9 +1050,38 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
       // console.log('green date is for',this.getFormattedDate(day.date)) 
     return (this.getFormattedDate(day.date)==this.getFormattedDate(this.viewDate))
   }
+  isDayOfHourToday(){
+    return (this.getFormattedDate(new Date())==this.getFormattedDate(this.viewDate))
+  }
+  isHourNow(hourInHead:string){
+    return (new Date().getHours().toString().padStart(2, '0')) == hourInHead;
+  }
   onClickHeaderDay(date:Date){
     this.changeDateByHeaderDayClick.emit(date);
     this.refreshView.emit();
+  }
+  getHeaderTime(index, only24:boolean){
+    let result='';
+    let date=this.weekDays[index].date;
+    if(this.timeFormat=='24' || only24){
+      result=date.toTimeString().substring(0, 2);
+    } else {
+      var hours = date.getHours();
+      // var minutes = date.getMinutes();
+      // var minutesString = '';
+      // var ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12; // the hour '0' should be '12'
+      // minutesString = minutes < 10 ? '0'+minutes.toString() : minutes.toString();
+      // result = hours + ':' + minutesString + ' ' + ampm;
+      result = hours.toString();
+    }
+    return result;
+  }
+  getAmPm(index){
+    let date=this.weekDays[index].date;
+    var hours = date.getHours();
+    return hours >= 12 ? 'PM' : 'AM';;
   }
   // shouldFireDroppedEvent(
   //   dropEvent: { dropData?: { event?: CalendarEvent; calendarId?: symbol } },

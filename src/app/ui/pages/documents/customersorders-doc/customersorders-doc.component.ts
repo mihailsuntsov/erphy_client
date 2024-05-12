@@ -395,7 +395,8 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
     private _router:Router,
-    private _adapter: DateAdapter<any>) 
+    private _adapter: DateAdapter<any>
+  ) 
     { 
       if(activateRoute.snapshot.params['id'])
         this.id = +activateRoute.snapshot.params['id'];

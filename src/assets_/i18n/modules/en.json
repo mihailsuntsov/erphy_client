@@ -28,7 +28,8 @@
         "description":  "Description",
         "ship_date":    "ESD",  "Estimated shipping date":"",
         "status":       "Status",
-        "n_shipd_resrv":"Non-shipped reserves"
+        "n_shipd_resrv":"Non-shipped reserves",
+        "child":        "Child"
     },
     "tip":{
         "delete":       "Delete",

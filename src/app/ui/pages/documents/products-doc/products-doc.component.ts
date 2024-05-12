@@ -115,7 +115,7 @@ interface docResponse {//интерфейс для получения ответ
   defaultAttributes:DefaultAttribute[];
   productVariations:ProductVariation[];
   variation: boolean;
-  productResourcesTable: any[];                   // list of resources that service need ti be completed
+  productResourcesTable: any[];                   // list of resources that service need to be completed
   is_srvc_by_appointment: boolean;                // this service is selling by appointments
   scdl_is_only_on_start: boolean;                 // a service provider is needed only at the start
   scdl_max_pers_on_same_time: number;             // the number of persons to whom a service can be provided at a time by one service provider (1 - dentist or hairdresser, 5-10 - yoga class)

@@ -28,7 +28,8 @@
         "description":  "Опис",
         "ship_date":    "Претпостављени датум отпремити",  "ESD, Estimated shipping date":"",
         "status":       "Status",
-        "n_shipd_resrv":"Неотпремљене резерве"
+        "n_shipd_resrv":"Неотпремљене резерве",
+        "child":        "Дете"
     },
     "tip":{
         "delete":       "Избрисати",

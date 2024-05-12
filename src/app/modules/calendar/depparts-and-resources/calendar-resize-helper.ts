@@ -21,28 +21,41 @@ export class CalendarResizeHelper {
       }
       rectangle.width = rectangle.right - rectangle.left;
     }
-
+    let koef=1; //2.4
     // console.log('Out. minWidth',this.minWidth);
     // console.log('Out. Math.ceil(this.minWidth)',Math.ceil(this.minWidth))
-    // console.log('Out. Math.ceil(rectangle.width)',Math.ceil(rectangle.width * (1 + 0.9)))
+    // console.log('Out. Math.ceil(rectangle.width)',Math.ceil(rectangle.width * koef))
 
-
+    // console.log('rectangle.width', rectangle.width)
 
     // console.log('rectangle.width < this.minWidth', Math.ccurrentResize = eil(rectangle.width) < Math.ceil(this.minWidth))
-    // console.log('if minWidth &...',(this.minWidth && (Math.ceil(rectangle.width * (1 + 0.9)) < Math.ceil(this.minWidth))))
-    if (this.minWidth && (Math.ceil(rectangle.width * (1 + 0.9))) < Math.ceil(this.minWidth)) {
-      // console.log('In. minWidth',this.minWidth);
-      // console.log('In. Math.ceil(this.minWidth)',Math.ceil(this.minWidth))
-      // console.log('In. Math.ceil(rectangle.width)',Math.ceil(rectangle.width * (1 + 0.9)))
+    // console.log('if minWidth &...',(this.minWidth && (Math.ceil(rectangle.width * koef) < Math.ceil(this.minWidth))))
+    // if (this.minWidth && (Math.ceil(rectangle.width * koef)) < Math.ceil(this.minWidth)) {
 
-      // console.log('first return')
+    if (this.minWidth && (Math.ceil(rectangle.width * koef)) < 1) {
+
+
+      // console.log('FALSE minWidth',this.minWidth);
+
+      // console.log('FALSE minWidth',Math.ceil(this.minWidth))
+      // console.log('FALSE rectangle',Math.ceil(rectangle.width * koef))
+
+      // console.log('FALSE');
       return false;
+    } else {
+      
+      // console.log('TRUE minWidth',Math.ceil(this.minWidth))
+      // console.log('TRUE rectangle',Math.ceil(rectangle.width * koef))
     }
     // console.log('isInside',isInside(
     //   this.resizeContainerElement.getBoundingClientRect(),
     //   rectangle
     // ))
-
+    // console.log('rectangle: ',rectangle);
+    // console.log('isInside: ',isInside(
+      // this.resizeContainerElement.getBoundingClientRect(),
+      // rectangle
+    // ))
     return isInside(
       this.resizeContainerElement.getBoundingClientRect(),
       rectangle

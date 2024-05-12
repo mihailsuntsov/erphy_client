@@ -51,3 +51,6 @@
 .cal-week-view .cal-time-label-column {
     width: 100px !important;
 }
+.cal-week-view .cal-day-headers .cal-header {
+    padding:5px 0 !important;
+}

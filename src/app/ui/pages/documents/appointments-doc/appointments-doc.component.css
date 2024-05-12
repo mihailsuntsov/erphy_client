@@ -386,3 +386,10 @@ div#costPrice input {
     --clock-face-background-color: #f0f0f0;
     --clock-hand-color: #673ab7 !important;
   }
+::ng-deep #customers_table div.mat-mdc-form-field-infix{
+    width:100%;
+}
+
+#customers_table th:last-child, #customers_table td:last-child{
+    padding: 0 8px !important;
+}

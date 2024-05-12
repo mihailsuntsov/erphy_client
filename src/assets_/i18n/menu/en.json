@@ -46,7 +46,10 @@
         "day":          "Day",
         "week":         "Week",
         "month":        "Month",
-        "scheduler":    "Employees"
+        "scheduler":    "Employees",
+        "resources_month":"Month",
+        "resources_week":"Week",
+        "resources_day":"Day"
     },
     "tip":{
         "select_opt":   "Select options for the filter",

@@ -28,12 +28,19 @@ const  MY_FORMATS = MomentDefault.getMomentFormat();
 const  moment = MomentDefault.getMomentDefault();
 import { User,Break } from 'src/app/modules/calendar/day-view-scheduler/day-view-scheduler.component';
 
-enum CalendarView {
+export enum CalendarView {
   Month = "month",
   Week = "week",
   Day = "day",
   Scheduler = "scheduler",
-  Resources = "resources"
+  ResourcesMonth = "resources_month",
+  ResourcesWeek = "resources_week",
+  ResourcesDay = "resources_day"
+}
+export enum ResourceView {
+  Month = "month",
+  Week = "week",
+  Day = "day"
 }
 export interface Day {
   dayOfMonth:  string;
@@ -110,10 +117,11 @@ interface CompanySettings{
 export class CalendarComponent implements OnInit {
 
   // Angular Calendar
-  view: CalendarView = CalendarView.Resources;
+  view: CalendarView = CalendarView.Month;
+  resourceView: ResourceView = ResourceView.Month; // resource view by default or last selected
   viewDate: Date = new Date();
-  startOfPeriod = moment(new Date()).startOf('month');
-  endOfPeriod = moment(new Date()).endOf('month');
+  startOfPeriod = moment(new Date()).startOf(this.view=='resources_month'?'month':(this.view=='resources_week'?'week':'day'));
+  endOfPeriod = moment(new Date()).endOf(this.view=='resources_month'?'month':(this.view=='resources_week'?'week':'day'));
   viewDate_: Date = new Date(); // current date for a week view because pipe changes original viewDate (I do not know why)
   events: CalendarEvent[] = [];
   // weekStartsOn: number = DAYS_OF_WEEK.MONDAY;
@@ -218,7 +226,7 @@ export class CalendarComponent implements OnInit {
       //sending time formaf of user to injectable provider where it need to format time
       this.dataService.setData(this.timeFormat=='24'?'HH:mm':'h:mm a');
       console.log("Parent timeFormat", this.timeFormat=='24'?'HH:mm':'h:mm a');
-      this.setCurrentMonthDaysArray();
+      // this.setResourcesDaysArray();
       // setTimeout(() => { 
       //   console.log('Now let show view...');
       //   this.canDrawView=true;
@@ -299,8 +307,11 @@ export class CalendarComponent implements OnInit {
     if(this.actionsBeforeGetChilds==4){
       setTimeout(() => {
         this.afterLoadData();
+        this.setResourcesPeriod();
+        this.setResourcesDaysArray();
         this.refreshView();
         this.changeDateMatCalendar(this.viewDate);
+        this.onDayAddEventBtnClick(new Date())
       }, 1);
     }
   }
@@ -482,89 +493,107 @@ export class CalendarComponent implements OnInit {
 
 
 
-    onClickTodayButton(){
-      this.changeDateMatCalendar(new Date());
-      if(this.view=='week') this.viewDate_=new Date(this.viewDate);
-      this.checkIsNeedToLoadData();
-      // if(this.view=='month') this.activeDayIsOpen = true;
-    }
-    onClickNextButton(){
-      if(this.view=='day'||this.view=='scheduler') this.changeDateMatCalendar(this.viewDate);
-      if(this.view=='week') this.viewDate_=new Date(this.viewDate);
-      console.log('this.viewDate',this.viewDate);
-      this.checkIsNeedToLoadData();
-    }
-    onClickPreviousButton(){
-      if(this.view=='day'||this.view=='scheduler') this.changeDateMatCalendar(this.viewDate);
-      if(this.view=='week') this.viewDate_=new Date(this.viewDate);
-      this.checkIsNeedToLoadData();
-    }
-    matCalendarOnclickDay(event:Moment): void {
-      this.changeDateAngularCalendar(event.toDate());
-      this.activeDayIsOpen = false;
-      this.checkIsNeedToLoadData();
-      // console.log('event1',event.toDate());
-    }
-    angularCalendarOnClickDay(event:any): void {
-      this.changeDateMatCalendar(new Date(event));
-      // console.log("event", event)
-      this.viewDate=new Date(event);
-      // console.log("this.viewDate1", this.viewDate)
-      if(this.view=='week') this.viewDate_=new Date(this.viewDate);
-      // console.log("this.viewDate2", this.viewDate)
-      // this.checkIsNeedToLoadData();
-      // console.log("this.viewDate3", this.viewDate)
-    }
+  onClickTodayButton(){
+    this.changeDateMatCalendar(new Date());
+    if(this.view=='week'||this.view=='resources_week') this.viewDate_=new Date(this.viewDate);
+    this.checkIsNeedToLoadData();
+    // if(this.view=='month') this.activeDayIsOpen = true;
+  }
+  onClickNextButton(){
+    if(this.view=='day'||this.view=='resources_day'||this.view=='scheduler') this.changeDateMatCalendar(this.viewDate);
+    if(this.view=='week'||this.view=='resources_week') this.viewDate_=new Date(this.viewDate);
+    // console.log('this.viewDate',this.viewDate);
+    this.checkIsNeedToLoadData();
+  }
+  onClickPreviousButton(){
+    if(this.view=='day'||this.view=='resources_day'||this.view=='scheduler') this.changeDateMatCalendar(this.viewDate);
+    if(this.view=='week'||this.view=='resources_week') this.viewDate_=new Date(this.viewDate);
+    this.checkIsNeedToLoadData();
+  }
+  matCalendarOnclickDay(event:Moment): void {
+    this.changeDateAngularCalendar(event.toDate());
+    this.activeDayIsOpen = false;
+    this.checkIsNeedToLoadData();
+    // console.log('event1',event.toDate());
+  }
+  angularCalendarOnClickDay(event:any): void {
+    this.changeDateMatCalendar(new Date(event));
+    // console.log("event", event)
+    this.viewDate=new Date(event);
+    // console.log("this.viewDate1", this.viewDate)
+    if(this.view=='week'||this.view=='resources_week') this.viewDate_=new Date(this.viewDate);
+    // console.log("this.viewDate2", this.viewDate)
+    // this.checkIsNeedToLoadData();
+    // console.log("this.viewDate3", this.viewDate)
+  }
 
-    changeDateAngularCalendar(date: Date) {
-      this.viewDate = date;
-      this.viewDate_=new Date(this.viewDate);
-    }
-    changeDateMatCalendar(date: Date) {
-      let date_ = this._adapter.parse(moment(date).format('YYYY-MM-DD'), 'YYYY-MM-DD');
-      this.calendar._goToDateInView(this._adapter.getValidDateOrNull(date_), 'month');
-      // this.calendar.activeDate=this._adapter.getValidDateOrNull(date_);
-      this.calendar.selected=this._adapter.getValidDateOrNull(date_);
-    }
-
-
+  changeDateAngularCalendar(date: Date) {
+    this.viewDate = date;
+    this.viewDate_=new Date(this.viewDate);
+  }
+  changeDateMatCalendar(date: Date) {
+    let date_ = this._adapter.parse(moment(date).format('YYYY-MM-DD'), 'YYYY-MM-DD');
+    this.calendar._goToDateInView(this._adapter.getValidDateOrNull(date_), 'month');
+    // this.calendar.activeDate=this._adapter.getValidDateOrNull(date_);
+    this.calendar.selected=this._adapter.getValidDateOrNull(date_);
+  }
 
 
 
-    // validateEventTimesChanged = (
-    //   { event, newStart, newEnd, allDay }: CalendarEventTimesChangedEvent,
-    //   addCssClass = true
-    // ) => {
-    //   if (event.allDay) {
-    //     console.log('event',event);
-    //     console.log('newStart',newStart);
-    //     console.log('newEnd',newEnd);
-    //     console.log('allDay',allDay);
+
+
+  // validateEventTimesChanged = (
+  //   { event, newStart, newEnd, allDay }: CalendarEventTimesChangedEvent,
+  //   addCssClass = true
+  // ) => {
+  //   if (event.allDay) {
+  //     console.log('event',event);
+  //     console.log('newStart',newStart);
+  //     console.log('newEnd',newEnd);
+  //     console.log('allDay',allDay);
+
+
+
+  //     return true;
+  //   }
+  // }
+
+
+
+  checkIsNeedToLoadData(){
+    this.setResourcesPeriod();
+    this.setResourcesDaysArray();
+    if(this.isMonthChanged()){
+      this.queryForm.get('dateFrom').setValue(this.startOfPeriod.format('DD.MM.YYYY'));
+      this.queryForm.get('dateTo').setValue(this.endOfPeriod.format('DD.MM.YYYY'));
+      this.actionsBeforeGetChilds=2;
+      this.getData();   
+    }
+  }
   
-  
-  
-    //     return true;
-    //   }
-    // }
-
-
-
-    checkIsNeedToLoadData(){
-      if(this.isMonthChanged()){
+  setResourcesPeriod(){
+    console.log('startOf(week) = ',moment(this.viewDate).startOf('week'))
+    switch (this.view) {
+      case 'resources_week': {
+        this.startOfPeriod = moment(this.viewDate).startOf('week');
+        this.endOfPeriod = moment(this.viewDate).endOf('week');
+        break;}
+      case 'resources_day': {
+        this.startOfPeriod = moment(this.viewDate).startOf('day');
+        this.endOfPeriod = moment(this.viewDate).endOf('day');
+        break;}
+      default: {
         this.startOfPeriod = moment(this.viewDate).startOf('month');
-        this.endOfPeriod = moment(this.viewDate).endOf('month');
-        this.queryForm.get('dateFrom').setValue(this.startOfPeriod.format('DD.MM.YYYY'));
-        this.queryForm.get('dateTo').setValue(this.endOfPeriod.format('DD.MM.YYYY'));
-        this.actionsBeforeGetChilds=2;
-        this.setCurrentMonthDaysArray();
-        this.getData();   
+        this.endOfPeriod = moment(this.viewDate).endOf('month');          
       }
-    }
-   
-    // forming array of dates for displaying the table header of "depparts-and-resources" view
-    setCurrentMonthDaysArray(){
-      this.currentMonthDaysArray = [];
-      var day = this.startOfPeriod;
+    }      
+  }
+
+  // forming array of dates for displaying the table header of "depparts-and-resources" view
+  setResourcesDaysArray(){
+    this.currentMonthDaysArray = [];
+    var day = this.startOfPeriod;
+    if(this.view != 'resources_day'){
       while (day <= this.endOfPeriod) {
         this.currentMonthDaysArray.push({
           dayOfMonth:  day.date().toString(),
@@ -574,310 +603,359 @@ export class CalendarComponent implements OnInit {
         });
         day = day.clone().add(1, 'd');
       }
-      console.log(' this.currentMonthDaysArray - ', this.currentMonthDaysArray);
-    }
-
-
-    isMonthChanged(){
-      var currDate = moment(this.viewDate);
-      var startDate   = moment(this.queryForm.get('dateFrom').value, 'DD.MM.YYYY');
-      var endDate     = moment(this.queryForm.get('dateTo').value, 'DD.MM.YYYY');
-      console.log('currDate',currDate)
-      console.log('startDate',startDate)
-      console.log('endDate',endDate)
-      console.log('isMonthChanged',!currDate.isBetween(startDate, endDate, 'days', '[]'))
-
-      return !currDate.isBetween(startDate, endDate, 'days', '[]');// ()-default exclusive, (],[),[] - right, left and all inclusive
-    }
-    
-
-
-    dayClicked({ date, events }: { date: Date; events: CalendarEvent[] }): void {
-      // console.log('same month',(moment(date).isSame(this.viewDate, "month")));
-      // console.log('same day',(moment(this.viewDate).isSame(date, "day")));
-      if (moment(date).isSame(this.viewDate, "month")) {
-        if (
-          (moment(this.viewDate).isSame(date, "day") && this.activeDayIsOpen === true)  ||
-          events.length === 0
-        ) {
-          this.activeDayIsOpen = false;
-        } else {
-          if(!this.dayEventClicked && !this.dayAddEventBtnClicked) this.activeDayIsOpen = true;
-        }
-        this.viewDate = new Date(date);
-        this.viewDate_= new Date(date);
-        this.dayEventClicked = false;
-        this.dayAddEventBtnClicked = false;
-      }
-    }
-    onEventClick(event: CalendarEvent): void{
-      console.log('event',event);
-      // this.dayEventClicked=true;
-      // console.log('onEventClick') 
-    }
-    onDayAddEventBtnClick(date: Date){
-      console.log('Will be added event at ' + date);
-      this.openAppointmentCard(null, date);
-    }
-    handleEvent(action: string, event: CalendarEvent): void {
-      console.log('action',action)
-      console.log('event',event)
-    }
-    closeOpenMonthViewDay() {
-      this.activeDayIsOpen = false;
-    }
-    @HostListener('window:resize', ['$event'])
-    onWindowResize() {
-      this.refreshView();
-    }
-    // get eventDayMaxWidth(){
-    //   categories-sidenav-content
-    // }
-    get calendarDayHeight(){
-      var calculated=(window.innerHeight-98)/5;
-      return calculated>100?calculated:100;
-    }
-    get maxNumberDayDisplayedEvents(){
-      return Math.round((this.calendarDayHeight-this.dayHeaderHeight)/21.4)-1;
-    }
-    get day_today(){
-      this.today.locale(this.locale);
-      // var d2 = moment(today).add(2, 'days').format('ddd').toUpperCase();
-      // var d3 = moment(today).add(3, 'days').format('ddd').toUpperCase();
-      var d0 = this.today.format('dddd, D MMMM');
-      return(this.wordsToUpperCase(d0));
-    }
-    get nextPrevButtonView(){
-      return this.getNextPrevButtonView();
-    }
-
-    getNextPrevButtonView(){
-      switch (this.view){
-        case 'scheduler': return 'day';
-        case 'resources': return 'month';
-        default: return this.view;
-      }
-    }
-
-    wordsToUpperCase(str:string){
-      // console.log(str)
-      return (str);
-      // return (str.split(/\ s+/).map(word =>{
-      //   word[0].toUpperCase() + word.substring(1);
-      // }).join(' '))
-    }
-
-    getBaseData(data) {    //+++ emit data to parent component
-      this.baseData.emit(data);
-    }
-
-    get localeAngular(){
-      return ({
-        'ru':       'ru',
-        'sr-cyrl':  'sr-Cyrl',
-        'me':       'sr-Latn-ME',
-        'en-au':    'en-AU',
-        'en-ca':    'en-CA',
-        'en-us':    'en',
-        'en-gb':    'en-GB',
-        'en-ie':    'en-IE',
-        'en-il':    'en-IL',
-        'en-in':    'en-IN',
-        'en-nz':    'en-NZ',
-        'en-sg':    'en-SG',
-        'bs':       'bs-Latn',
-        'hr':       'hr'
-      })[this.locale]
-    }    
-    get weekStartsOn(){
-      return ({
-        'ru':       DAYS_OF_WEEK.MONDAY,
-        'sr-cyrl':  DAYS_OF_WEEK.MONDAY,
-        'me':       DAYS_OF_WEEK.MONDAY,
-        'en-au':    DAYS_OF_WEEK.SUNDAY,
-        'en-ca':    DAYS_OF_WEEK.SUNDAY,
-        'en-us':    DAYS_OF_WEEK.SUNDAY,
-        'en-gb':    DAYS_OF_WEEK.MONDAY,
-        'en-ie':    DAYS_OF_WEEK.SUNDAY,
-        'en-il':    DAYS_OF_WEEK.MONDAY,
-        'en-in':    DAYS_OF_WEEK.SUNDAY,
-        'en-nz':    DAYS_OF_WEEK.MONDAY,
-        'en-sg':    DAYS_OF_WEEK.MONDAY,
-        'bs':       DAYS_OF_WEEK.MONDAY,
-        'hr':       DAYS_OF_WEEK.MONDAY
-      })[this.locale]
-    }
-    // get viewBtnName(){
-    //   this.view.
-    // }
-    setView(view: CalendarView) {
-      this.view = view;
-      console.log('viewDate - ', this.viewDate);
-    }
-
-    // getSettings(){
-    //   let result:any;
-    //   this.http.get('/api/auth/getMySettings')
-    //     .subscribe(
-    //         data => { 
-    //           result=data as any;
-    //           this._adapter.setLocale(result.locale?result.locale:'en-gb')        // setting locale in moment.js
-    //         },
-    //         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
-    //     );
-    // }
-    selectAllCheckList(field:string, form:string){
-      let depparts = field=='depparts'?this.getAllDeppartsIds():this.getAllJobtitlesIds();
-      this.queryForm.get(field).setValue(depparts);
-    }
-    
-    selectAllDepPartsOneDep(dep_id:number, form:string){
-      const depparts = this.getAllDeppartsIdsOfOneDep(dep_id);
-      const ids_now = this.queryForm.get('depparts').value;
-      this.queryForm.get('depparts').setValue(depparts.concat(ids_now));
-    }
-  
-    unselectAllCheckList(field:string, form:string){
-      this.queryForm.get(field).setValue([]);
-    }
-  
-    unselectAllDepPartsOneDep(dep_id:number, form:string){
-      const ids_in_deppat = this.getAllDeppartsIdsOfOneDep(dep_id);
-      const ids_now = this.queryForm.get('depparts').value;
-      this.queryForm.get('depparts').setValue(ids_now.filter(e => !ids_in_deppat.includes(e)));
-    }
-    getDeppartServicesNamesList(partId){    
-      let currentDepparts:number[]=this.queryForm.get('depparts').value;
-      this.servicesList=[];
-      this.receivedDepartmentsWithPartsList.map(department=>{
-        department.parts.map(deppart=>{
-          if(deppart.id==partId){
-            deppart.deppartProducts.map(service=>{
-              this.servicesList.push(service.name);
-            });
-          }
+    } else {
+      while (day <= this.endOfPeriod) {
+        this.currentMonthDaysArray.push({
+          dayOfMonth:  day.date().toString(),
+          weekDayName: day.format('ddd'),
+          monthName:   day.format('MMM'),
+          date:        new Date(day.format('YYYY-MM-DD HH:mm'))
         });
-      });
-      // Clicking on anything inside <mat-option> tag will affected on its value. Need to change previous value
-      setTimeout(() => { 
-        this.queryForm.get('depparts').setValue(currentDepparts);
-      }, 1);
-    }
-    getAllDeppartsIds():number[]{
-      let depparts:number[]=[];
-      this.receivedDepartmentsWithPartsList.map(department=>{
-        department.parts.map(deppart=>{
-          depparts.push(deppart.id);
-        })
-      });
-      return depparts;
-    }  
-  
-    getAllJobtitlesIds():number[]{
-      let jt:number[]=[];
-      this.receivedJobtitlesList.map(jobtitle=>{
-        jt.push(jobtitle.jobtitle_id);
-      });
-      return jt;
-    }  
-  
-    getAllDeppartsIdsOfOneDep(dep_id:number):number[]{
-      let depparts:number[]=[];
-      this.receivedDepartmentsWithPartsList.map(department=>{
-        // console.log('department.department_id==dep_id',department.department_id==dep_id)
-        if(department.department_id==dep_id)
-          department.parts.map(deppart=>{
-            depparts.push(deppart.id);
-          })
-      });
-      // console.log('depparts',depparts)
-      return depparts;
-    }
-
-    openAppointmentCard(docId: number, date?: Date){
-      const dialogRef = this.dialogDocumentCard.open(AppointmentsDocComponent, {
-        maxWidth: '95vw',
-        maxHeight: '95vh',
-        height: '95%',
-        width: '95%',
-        data:
-        { 
-          mode:       'window',
-          companyId:  this.queryForm.get('companyId').value,
-          docId:         docId,
-          date:       date,
-          company:    this.getCompanyNameById(this.queryForm.get('companyId').value),
-          booking_doc_name_variation: this.booking_doc_name_variation,
-
-        },
-      });
-      dialogRef.afterClosed().subscribe(result => {
-        console.log(`Dialog result: ${result}`);
-        // if(result)
-        //   this.addFilesToappointments(result);
-      });
-    }
-    getCompanyNameById(id:number):string{
-      let name:string;
-      if(this.receivedCompaniesList){
-        this.receivedCompaniesList.forEach(a=>{
-          if(a.id==id) name=a.name;
-        })
+        day = day.clone().add(1, 'h');
       }
-      return(name);
     }
-    addDays(date, days) {
-      var result = new Date(date);
-      result.setDate(result.getDate() + days);
-      return result;
+    console.log(' this.currentMonthDaysArray - ', this.currentMonthDaysArray);
+  }
+
+
+  isMonthChanged(){
+    var currDate = moment(this.viewDate);
+    var startDate   = moment(this.queryForm.get('dateFrom').value, 'DD.MM.YYYY');
+    var endDate     = moment(this.queryForm.get('dateTo').value, 'DD.MM.YYYY');
+    // console.log('currDate',currDate)
+    // console.log('startDate',startDate)
+    // console.log('endDate',endDate)
+    // console.log('isMonthChanged',!currDate.isBetween(startDate, endDate, 'days', '[]'))
+
+    return !currDate.isBetween(startDate, endDate, 'days', '[]');// ()-default exclusive, (],[),[] - right, left and all inclusive
+  }
+  
+
+
+  dayClicked({ date, events }: { date: Date; events: CalendarEvent[] }): void {
+    // console.log('same month',(moment(date).isSame(this.viewDate, "month")));
+    // console.log('same day',(moment(this.viewDate).isSame(date, "day")));
+    if (moment(date).isSame(this.viewDate, "month")) {
+      if (
+        (moment(this.viewDate).isSame(date, "day") && this.activeDayIsOpen === true)  ||
+        events.length === 0
+      ) {
+        this.activeDayIsOpen = false;
+      } else {
+        if(!this.dayEventClicked && !this.dayAddEventBtnClicked) this.activeDayIsOpen = true;
+      }
+      this.viewDate = new Date(date);
+      this.viewDate_= new Date(date);
+      this.dayEventClicked = false;
+      this.dayAddEventBtnClicked = false;
     }
+  }
+  onEventClick(event: CalendarEvent): void{
+    console.log('event',event);
+    // this.dayEventClicked=true;
+    // console.log('onEventClick') 
+  }
+  onDayAddEventBtnClick(date: Date){
+    // console.log('Will be added event at ' + date);
+    this.openAppointmentCard(null, date);
+  }
+  handleEvent(action: string, event: CalendarEvent): void {
+    console.log('action',action)
+    console.log('event',event)
+  }
+  closeOpenMonthViewDay() {
+    this.activeDayIsOpen = false;
+  }
+  @HostListener('window:resize', ['$event'])
+  onWindowResize() {
+    this.refreshView();
+  }
+  // get eventDayMaxWidth(){
+  //   categories-sidenav-content
+  // }
+  get calendarDayHeight(){
+    var calculated=(window.innerHeight-98)/5;
+    return calculated>100?calculated:100;
+  }
+  get maxNumberDayDisplayedEvents(){
+    return Math.round((this.calendarDayHeight-this.dayHeaderHeight)/21.4)-1;
+  }
+  get day_today(){
+    this.today.locale(this.locale);
+    // var d2 = moment(today).add(2, 'days').format('ddd').toUpperCase();
+    // var d3 = moment(today).add(3, 'days').format('ddd').toUpperCase();
+    var d0 = this.today.format('dddd, D MMMM');
+    return(this.wordsToUpperCase(d0));
+  }
+  get nextPrevButtonView(){
+    return this.getNextPrevButtonView();
+  }
 
+  getNextPrevButtonView(){
+    switch (this.view){
+      case 'scheduler': return 'day';
+      case 'resources_month': return 'month';
+      case 'resources_week': return 'week';
+      case 'resources_day': return 'day';
+      default: return this.view;
+    }
+  }
 
-    // interface WeekViewAllDayEvent {
-    //   event: CalendarEvent;
-    //   offset: number;
-    //   span: number;
-    //   startsBeforeWeek: boolean;
-    //   endsAfterWeek: boolean;
-    // }
-    // interface WeekViewAllDayEventRow {
-    //   id?: string;
-    //   row: WeekViewAllDayEvent[]; // Cтрока (Часть отделения или ресурс) содержит ivents, которые к ней относятся (услуга использует ресурсы, которые находятся в этой части отделения).
-    // }
+  wordsToUpperCase(str:string){
+    // console.log(str)
+    return (str);
+    // return (str.split(/\ s+/).map(word =>{
+    //   word[0].toUpperCase() + word.substring(1);
+    // }).join(' '))
+  }
 
+  getBaseData(data) {    //+++ emit data to parent component
+    this.baseData.emit(data);
+  }
 
+  get localeAngular(){
+    return ({
+      'ru':       'ru',
+      'sr-cyrl':  'sr-Cyrl',
+      'me':       'sr-Latn-ME',
+      'en-au':    'en-AU',
+      'en-ca':    'en-CA',
+      'en-us':    'en',
+      'en-gb':    'en-GB',
+      'en-ie':    'en-IE',
+      'en-il':    'en-IL',
+      'en-in':    'en-IN',
+      'en-nz':    'en-NZ',
+      'en-sg':    'en-SG',
+      'bs':       'bs-Latn',
+      'hr':       'hr'
+    })[this.locale]
+  }    
+  get weekStartsOn(){
+    return ({
+      'ru':       DAYS_OF_WEEK.MONDAY,
+      'sr-cyrl':  DAYS_OF_WEEK.MONDAY,
+      'me':       DAYS_OF_WEEK.MONDAY,
+      'en-au':    DAYS_OF_WEEK.SUNDAY,
+      'en-ca':    DAYS_OF_WEEK.SUNDAY,
+      'en-us':    DAYS_OF_WEEK.SUNDAY,
+      'en-gb':    DAYS_OF_WEEK.MONDAY,
+      'en-ie':    DAYS_OF_WEEK.SUNDAY,
+      'en-il':    DAYS_OF_WEEK.MONDAY,
+      'en-in':    DAYS_OF_WEEK.SUNDAY,
+      'en-nz':    DAYS_OF_WEEK.MONDAY,
+      'en-sg':    DAYS_OF_WEEK.MONDAY,
+      'bs':       DAYS_OF_WEEK.MONDAY,
+      'hr':       DAYS_OF_WEEK.MONDAY
+    })[this.locale]
+  }
+  // get viewBtnName(){
+  //   this.view.
+  // }
+  setView(view: CalendarView) {
+    this.view = view;
+    console.log('viewDate - ', this.viewDate);
+  }
 
+  // getSettings(){
+  //   let result:any;
+  //   this.http.get('/api/auth/getMySettings')
+  //     .subscribe(
+  //         data => { 
+  //           result=data as any;
+  //           this._adapter.setLocale(result.locale?result.locale:'en-gb')        // setting locale in moment.js
+  //         },
+  //         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+  //     );
+  // }
+  selectAllCheckList(field:string, form:string){
+    let depparts = field=='depparts'?this.getAllDeppartsIds():this.getAllJobtitlesIds();
+    this.queryForm.get(field).setValue(depparts);
+  }
+  
+  selectAllDepPartsOneDep(dep_id:number, form:string){
+    const depparts = this.getAllDeppartsIdsOfOneDep(dep_id);
+    const ids_now = this.queryForm.get('depparts').value;
+    this.queryForm.get('depparts').setValue(depparts.concat(ids_now));
+  }
 
-    getAllDayEventRows(){
-      this.allDayEventRows=[];
-      let events: WeekViewAllDayEvent[]=[];
-      this.events.map(event=>{
-        // console.log('event - ', event);
+  unselectAllCheckList(field:string, form:string){
+    this.queryForm.get(field).setValue([]);
+  }
 
-        // getting only events that use resources
-        if(event.meta.itemResources.length>0){
-          // console.log('event.meta.itemResources')
-          events.push({
-            event,
-            offset:1,
-            span:1,
-            startsBeforeWeek: false,
-            endsAfterWeek: false
+  unselectAllDepPartsOneDep(dep_id:number, form:string){
+    const ids_in_deppat = this.getAllDeppartsIdsOfOneDep(dep_id);
+    const ids_now = this.queryForm.get('depparts').value;
+    this.queryForm.get('depparts').setValue(ids_now.filter(e => !ids_in_deppat.includes(e)));
+  }
+  getDeppartServicesNamesList(partId){    
+    let currentDepparts:number[]=this.queryForm.get('depparts').value;
+    this.servicesList=[];
+    this.receivedDepartmentsWithPartsList.map(department=>{
+      department.parts.map(deppart=>{
+        if(deppart.id==partId){
+          deppart.deppartProducts.map(service=>{
+            this.servicesList.push(service.name);
           });
         }
       });
+    });
+    // Clicking on anything inside <mat-option> tag will affected on its value. Need to change previous value
+    setTimeout(() => { 
+      this.queryForm.get('depparts').setValue(currentDepparts);
+    }, 1);
+  }
+  getAllDeppartsIds():number[]{
+    let depparts:number[]=[];
+    this.receivedDepartmentsWithPartsList.map(department=>{
+      department.parts.map(deppart=>{
+        depparts.push(deppart.id);
+      })
+    });
+    return depparts;
+  }  
 
-      this.allDayEventRows.push({
-        row:events
-      });
-      // this.allDayEventRows.length
-      // console.log("allDayEventRows",this.allDayEventRows);
+  getAllJobtitlesIds():number[]{
+    let jt:number[]=[];
+    this.receivedJobtitlesList.map(jobtitle=>{
+      jt.push(jobtitle.jobtitle_id);
+    });
+    return jt;
+  }  
 
+  getAllDeppartsIdsOfOneDep(dep_id:number):number[]{
+    let depparts:number[]=[];
+    this.receivedDepartmentsWithPartsList.map(department=>{
+      // console.log('department.department_id==dep_id',department.department_id==dep_id)
+      if(department.department_id==dep_id)
+        department.parts.map(deppart=>{
+          depparts.push(deppart.id);
+        })
+    });
+    // console.log('depparts',depparts)
+    return depparts;
+  }
 
+  openAppointmentCard(docId: number, date?: Date){
+    // console.log("locale in calendar = ",this.locale);
+    const dialogRef = this.dialogDocumentCard.open(AppointmentsDocComponent, {
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      height: '95%',
+      width: '95%',
+      data:
+      { 
+        mode:       'window',
+        companyId:  this.queryForm.get('companyId').value,
+        docId:         docId,
+        date:       date,
+        company:    this.getCompanyNameById(this.queryForm.get('companyId').value),
+        booking_doc_name_variation: this.booking_doc_name_variation,
+        locale:     this.locale
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      console.log(`Dialog result: ${result}`);
+      // if(result)
+      //   this.addFilesToappointments(result);
+    });
+  }
+  getCompanyNameById(id:number):string{
+    let name:string;
+    if(this.receivedCompaniesList){
+      this.receivedCompaniesList.forEach(a=>{
+        if(a.id==id) name=a.name;
+      })
     }
+    return(name);
+  }
+  addDays(date, days) {
+    var result = new Date(date);
+    result.setDate(result.getDate() + days);
+    return result;
+  }
+
+
+  // interface WeekViewAllDayEvent {
+  //   event: CalendarEvent;
+  //   offset: number;
+  //   span: number;
+  //   startsBeforeWeek: boolean;
+  //   endsAfterWeek: boolean;
+  // }
+  // interface WeekViewAllDayEventRow {
+  //   id?: string;
+  //   row: WeekViewAllDayEvent[]; // Cтрока (Часть отделения или ресурс) содержит ivents, которые к ней относятся (услуга использует ресурсы, которые находятся в этой части отделения).
+  // }
 
 
 
+
+  getAllDayEventRows(){
+    this.allDayEventRows=[];
+    let events: WeekViewAllDayEvent[]=[];
+    this.events.map(event=>{
+      // console.log('event - ', event);
+
+      // getting only events that use resources
+      if(event.meta.itemResources.length>0){
+        // console.log('event.meta.itemResources')
+        events.push({
+          event,
+          offset:1,
+          span:1,
+          startsBeforeWeek: false,
+          endsAfterWeek: false
+        });
+      }
+    });
+
+    this.allDayEventRows.push({
+      row:events
+    });
+    // this.allDayEventRows.length
+    // console.log("allDayEventRows",this.allDayEventRows);
+
+
+  }
+
+  onResourcesButtonClick(){
+    switch (this.resourceView) {
+      case 'week': {
+        this.setView(CalendarView.ResourcesWeek); 
+        this.viewDate_ = this.getAlternateDay(this.viewDate);
+        break;}
+      case 'day': {
+        this.setView(CalendarView.ResourcesDay); 
+        this.refreshView()
+        break;}
+      default: {
+        this.setView(CalendarView.ResourcesMonth); 
+      }
+    }
+    this.checkIsNeedToLoadData(); 
+    this.refreshView();
+  }
+ 
+  onSelectResourcesViewode(mode:string){
+    switch (mode) {
+      case 'week': {
+        this.setView(CalendarView.ResourcesWeek); 
+        this.resourceView = ResourceView.Week;
+        this.viewDate_ = this.getAlternateDay(this.viewDate); 
+        break;}
+      case 'day': {
+        this.setView(CalendarView.ResourcesDay); 
+        this.resourceView = ResourceView.Day; 
+        break;}
+      default: {
+        this.setView(CalendarView.ResourcesMonth); 
+        this.resourceView = ResourceView.Month; 
+      }
+    }
+    this.checkIsNeedToLoadData(); 
+    this.refreshView();
+  }
 
 
 
