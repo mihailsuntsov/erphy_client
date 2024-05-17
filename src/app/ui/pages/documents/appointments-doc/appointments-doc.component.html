@@ -106,8 +106,8 @@
                     [matMenuTriggerFor]="addDocMenu"
                     mat-raised-button 
                     matTooltip="{{t('docs.tip.create_docs')}}"
-                    [disabled]="!childFormValid||!formBaseInformation.valid||productSearchAndTableComponent.indivisibleErrorOfProductTable" 
-                    *ngIf="+id>0 && productSearchAndTableComponent"
+                    [disabled]="!childFormValid||!formBaseInformation.valid||productSearchAndTableByCustomersComponent.indivisibleErrorOfProductTable" 
+                    *ngIf="+id>0 && productSearchAndTableByCustomersComponent"
                     color="primary"
                     (submit)="false"
                     type="button"
@@ -135,7 +135,7 @@
                     *ngIf="!is_completed && allowToUpdate && canGetChilds && +id>0"
                     (click)="updateDocument()"
                     [disabled]="!childFormValid||!formBaseInformation.valid ||
-                                (productSearchAndTableComponent && productSearchAndTableComponent.gettingTableData)||
+                                (productSearchAndTableByCustomersComponent && productSearchAndTableByCustomersComponent.gettingTableData)||
                                 oneClickSaveControl" 
                     color="primary"
                     type="button"
@@ -160,10 +160,10 @@
                 <button 
                     mat-raised-button 
                     matTooltip="{{t('docs.tip.complete')}}"
-                    *ngIf=" +id>0 && allowToComplete&& canGetChilds && !is_completed && productSearchAndTableComponent"
+                    *ngIf=" +id>0 && allowToComplete&& canGetChilds && !is_completed && productSearchAndTableByCustomersComponent"
                     [disabled]="!childFormValid ||!formBaseInformation.valid||
-                                productSearchAndTableComponent.indivisibleErrorOfProductTable ||
-                                (productSearchAndTableComponent && productSearchAndTableComponent.gettingTableData)||
+                                productSearchAndTableByCustomersComponent.indivisibleErrorOfProductTable ||
+                                (productSearchAndTableByCustomersComponent && productSearchAndTableByCustomersComponent.gettingTableData)||
                                 oneClickSaveControl" 
                     (click)="completeDocument()" 
                     type="button"
@@ -175,7 +175,7 @@
                 <button 
                     matTooltip="{{t('docs.tip.completed')}}"
                     mat-raised-button 
-                    *ngIf=" +id>0 && is_completed && productSearchAndTableComponent"
+                    *ngIf=" +id>0 && is_completed && productSearchAndTableByCustomersComponent"
                     (click)="decompleteDocument()" 
                     type="button"
                     id="completed_btn"
@@ -249,7 +249,7 @@
                                                                                 [ngModel]="company" [ngModelOptions]="{standalone: true}"/>
                                                                     </mat-form-field>
                                                                 </div>
-                                                                <div class="col-xl-6 col-md-12"> 
+                                                                <div class="col-12"> 
                                                                     <mat-form-field   class="mat-form-field-100">
                                                                         <mat-label>{{t('docs.field.order_name')}}</mat-label>
                                                                         <input   matInput
@@ -259,8 +259,106 @@
                                                                     </mat-form-field>
                                                                 </div>
                                                                 
+
+
+
+
+
+
+
+
+
+                                                                <div class="col-12">    
+                                                                    <mat-form-field  style="display: none">
+                                                                        <input  matInput
+                                                                        placeholder="product_id"
+                                                                        #product_id
+                                                                        formControlName="product_id" [readonly]=true/>
+                                                                    </mat-form-field>
+                                                                    <mat-form-field  class="mat-form-field-100">
+                                                                        <mat-label>{{t('modules.field.prod_srch')}}</mat-label>
+                                                                        <input  matInput 
+                                                                        #productSearchFieldValue
+                                                                        placeholder="{{t('modules.field.input_name')}}" 
+                                                                        [matAutocomplete]="auto3" 
+                                                                        [formControl]="searchProductCtrl"
+                                                                        [readonly]="!editability || is_completed || isProductListLoading"
+                                                                        (input)="canAutocompleteQuery=true; checkEmptyProductField();"
+                                                                        (change)="canAutocompleteQuery=false; checkEmptyProductField();">
+                                                                        
+                                                                        <button
+                                                                        type="button"
+                                                                        (click)="openProductCard(formBaseInformation.get('product_id').value)"
+                                                                        *ngIf="+formBaseInformation.get('product_id').value>0" 
+                                                                        matTooltip="{{t('modules.tip.opn_prod_card')}}"
+                                                                        matSuffix mat-icon-button >
+                                                                            <mat-icon>launch</mat-icon>
+                                                                        </button>
+                
+                                                                        <button
+                                                                        type="button"
+                                                                        *ngIf="+formBaseInformation.get('product_id').value>0 && editability && !is_completed" 
+                                                                        matTooltip="{{t('modules.tip.clr_srch_form')}}"
+                                                                        matSuffix mat-icon-button 
+                                                                        (click)="resetProductFormSearch();">
+                                                                            <mat-icon>close</mat-icon>
+                                                                        </button>
+                                                                        <mat-autocomplete #auto3="matAutocomplete">
+                                                                            <ng-container *ngIf="!isProductListLoading && filteredProducts.length>1" style="width:320px;">
+                                                                                <span  *ngFor="let value of filteredProducts"  class="flex" style="border: 0px solid ;margin: 4px 0;">
+                                                                                    <mat-option style="padding:0px 5px; flex-grow: 1;" [value]="value.name">
+                                                                                        <div (click)="onSelectProduct(value)">
+                                                                                            <span class="internal-card">{{value.name}}</span>
+                                                                                        </div>
+                                                                                    </mat-option>
+                                                                                    <mat-chip-listbox class="mat-chip-list">
+                                                                                        <mat-chip-option 
+                                                                                            *ngIf="(value.total-value.reserved)>0" 
+                                                                                            matTooltip="{{t('modules.tip.instock_th_dp')}}"
+                                                                                            style="margin:12px 5px;flex-grow: 0;">
+                                                                                            <span style="color:green; font-weight: bold">{{value.total-value.reserved}}</span>
+                                                                                        </mat-chip-option>
+                                                                                        <mat-chip-option 
+                                                                                            *ngIf="(value.total-value.reserved)==0" 
+                                                                                            [matTooltip]="(value.total_in_all_my_depths-value.reserved_in_all_my_depths)>0?t('modules.tip.no_prod_but'):t('modules.tip.no_prod_nowhr')"
+                                                                                            [ngStyle]="(value.total_in_all_my_depths-value.reserved_in_all_my_depths)>0?{'background-color': 'LightGreen'}:{'background-color': '#e0e0e0'}"
+                                                                                            style="margin:12px 5px;flex-grow: 0;">
+                                                                                            <span style="color:rgb(122, 0, 0); font-weight: bold">{{value.total-value.reserved}}</span>
+                                                                                        </mat-chip-option>
+                                                                                    </mat-chip-listbox>
+                                                                                </span>
+                                                                            </ng-container>
+                                                                        </mat-autocomplete>
+                                                                    </mat-form-field>
+                                                                    <mat-progress-bar *ngIf="isProductListLoading" mode="indeterminate"></mat-progress-bar>
+                                                                </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                                                                 <div class="col-xl-6 col-md-12">
-                                                                    <mat-form-field  class="mat-form-field-100" [ngClass]="{invisible: +id>0}"
+                                                                    <!-- <mat-form-field  class="mat-form-field-100" [ngClass]="{invisible: +id>0}"
                                                                     >
                                                                         <mat-label>{{t('docs.field.department')}} <span *ngIf="formBaseInformation.get('department_id').value==null" class="star">*</span></mat-label>
                                                                         <mat-select formControlName="department_id" (selectionChange)="onDepartmentChange()">
@@ -277,133 +375,145 @@
                                                                         <mat-label>{{t('docs.field.department')}}</mat-label>
                                                                         <input  matInput [readonly]="true"
                                                                                 [ngModel]="formBaseInformation.get('department').value" [ngModelOptions]="{standalone: true}"/>
+                                                                    </mat-form-field> -->
+                                                                    <mat-form-field  class="mat-form-field-100">
+                                                                        <mat-label>{{t('docs.field.dep_part')}}</mat-label>
+                                                                        <mat-select
+                                                                        panelClass="department-list"
+                                                                        formControlName="department_part_id">
+                                                                            
+                                                                            <mat-option [value]="0" selected>---</mat-option>
+                                                                            
+                                                                            <mat-optgroup 
+                                                                                *ngFor="let department of receivedDepartmentsWithPartsList;"
+                                                                                [label]="department.department_name"
+                                                                            >
+    
+                                                                                <!-- <ng-container *ngFor="let department of receivedDepartmentsWithPartsList;"> -->
+                                                                                    <!-- <ng-container *ngIf="department.department_id == department_id"> -->
+                                                                                        <mat-option 
+                                                                                        *ngFor= "let part of department.parts"
+                                                                                        [value]="part.id"
+                                                                                        (click)="onDepartmentPartSelect(part.id, department.department_id)"            
+                                                                                        [matTooltip]="part.description"
+                                                                                        [matTooltipPosition]="'right'"
+                                                                                        >
+                                                                                            {{part.name}}
+                                                                                        </mat-option>
+                                                                                    <!-- </ng-container>                                                                             -->
+                                                                                <!-- </ng-container> -->
+
+                                                                            </mat-optgroup>
+            
+            
+                                                                        </mat-select>
                                                                     </mat-form-field>
                                                                 </div>
+
+
+                                                                <div class="col-xl-6 col-md-12"> 
+                                                                    <mat-form-field class="mat-form-field-100">
+                                                                        <mat-label>{{t('docs.field.job_title')}}</mat-label>
+                                                                        <mat-select
+                                                                            panelClass="department-list"
+                                                                            formControlName="jobtitle"
+                                                                            [disabled]="!editability"
+                                                                            #selectjt
+                                                                            >
+                                                                            <mat-option [value]="0" selected>---</mat-option>
+                                                                            <mat-option
+                                                                                *ngFor= "let jt of receivedJobtitlesList;"
+                                                                                [value]="jt.jobtitle_id"
+                                                                                [matTooltip]="jt.description"
+                                                                                [matTooltipPosition]="'right'"
+                                                                            >
+                                                                                {{jt.name}}
+                                                                            </mat-option>
+                                                                        </mat-select>
+                                                                    </mat-form-field>
+                                                                </div>
+                                                                
+                                                                <div class="col-xl-6 col-md-12">
+
+
+
+                                                                </div>
+                                                                
                                                             </div>
 
                                                             <div class="row">
 
                                                                 <div class="col-12">
                                                                     <div class="row">
-                                                                        <div class="col-lg-6  col-md-12"> 
-                                                                            <mat-form-field  class="mat-form-field-100">
-                                                                                <mat-label>{{t('docs.field.date_start')}}</mat-label>
-                                                                                <input  matInput 
-                                                                                        placeholder="{{t('docs.field.date_start')}}"
-                                                                                        [readonly]=is_completed
-                                                                                        formControlName="date_start"
-                                                                                        [ngClass]="{'is-invalid':formBaseInformation.get('date_start').touched && formBaseInformation.get('date_start').invalid}"
-                                                                                        [matDatepicker]="dp"/>
-                                                                                        <mat-datepicker-toggle matSuffix [for]="dp" *ngIf="!is_completed"></mat-datepicker-toggle>
-                                                                                <mat-datepicker #dp></mat-datepicker>
-                                                                                <mat-hint *ngIf="formBaseInformation.get('date_start').touched && formBaseInformation.get('date_start').invalid" class="invalid-feedback">
-                                                                                    <i class="form-invalid">{{t('docs.error.date_format')}}</i>
-                                                                                </mat-hint>
-                                                                            </mat-form-field>
+                                                                        <div class="col-xl-6 col-lg-12 col-md-6 col-sm-12"> 
+                                                                            <div class="row">
+                                                                                <div class="col-xl-8 col-lg-12 col-md-6 col-sm-6" id="date_from"> 
+                                                                                    <mat-form-field  class="mat-form-field-100">
+                                                                                        <mat-label>{{t('docs.field.dt_tm_start')}}</mat-label>
+                                                                                        <input  matInput 
+                                                                                                [readonly]=is_completed
+                                                                                                formControlName="date_start"
+                                                                                                [ngClass]="{'is-invalid':formBaseInformation.get('date_start').touched && formBaseInformation.get('date_start').invalid}"
+                                                                                                [matDatepicker]="dp"/>
+                                                                                                <mat-datepicker-toggle matSuffix [for]="dp" *ngIf="!is_completed"></mat-datepicker-toggle>
+                                                                                        <mat-datepicker #dp></mat-datepicker>
+                                                                                        <mat-hint *ngIf="formBaseInformation.get('date_start').touched && formBaseInformation.get('date_start').invalid" class="invalid-feedback">
+                                                                                            <i class="form-invalid">{{t('docs.error.date_format')}}</i>
+                                                                                        </mat-hint>
+                                                                                    </mat-form-field>
+                                                                                </div>
+                                                                                <div class="col-xl-4 col-lg-12 col-md-6 col-sm-6" id="time_from">
+                                                                                    <mat-form-field  class="mat-form-field-100">
+                                                                                        <mat-label>&nbsp;</mat-label>
+                                                                                        <input  matInput 
+                                                                                        formControlName="time_start" 
+                                                                                        [ngxTimepicker]="picker1"
+                                                                                        [format]="+timeFormat"
+                                                                                        readonly>
+                                                                                        <ngx-material-timepicker 
+                                                                                        #picker1  
+                                                                                        style="z-index: 10000;"
+                                                                                        [cancelBtnTmpl]="cancelBtn"
+                                                                                        [confirmBtnTmpl]="confirmBtn"
+                                                                                        ></ngx-material-timepicker>
+                                                                                    </mat-form-field>
+                                                                                </div>
+                                                                            </div>
                                                                         </div>
-                                                                        <div class="col-lg-6  col-md-12"> 
-                                                                            <mat-form-field  class="mat-form-field-100">
-                                                                                <mat-label>{{t('docs.field.time_start')}}</mat-label>
-                                                                                <input  matInput 
-                                                                                placeholder="{{t('docs.field.time_start')}}" 
-                                                                                formControlName="time_start" 
-                                                                                [ngxTimepicker]="picker1"
-                                                                                [format]="+timeFormat"
-                                                                                readonly>
-                                                                                <ngx-material-timepicker 
-                                                                                #picker1  
-                                                                                style="z-index: 10000;"
-                                                                                [cancelBtnTmpl]="cancelBtn"
-                                                                                [confirmBtnTmpl]="confirmBtn"
-                                                                                ></ngx-material-timepicker>
-                                                                                <ng-template #cancelBtn>
-                                                                                    <button style="min-width: 88px;
-                                                                                    line-height: 36px;
-                                                                                    cursor: pointer;
-                                                                                    border: 12px;
-                                                                                    border-radius: 4px;
-                                                                                    background-color: #673ab7;
-                                                                                    color: white;
-                                                                                    font-size: 14px;
-                                                                                    text-transform: uppercase;
-                                                                                    margin: 0 5px;
-                                                                                    text-align: center;">{{'modules.button.cancel' | transloco}}</button>
-                                                                                </ng-template>
-                                                                                <ng-template #confirmBtn>
-                                                                                    <button style="min-width: 88px;
-                                                                                    line-height: 36px;
-                                                                                    cursor: pointer;
-                                                                                    border: 12px;
-                                                                                    border-radius: 4px;
-                                                                                    background-color: #673ab7;
-                                                                                    color: white;
-                                                                                    font-size: 14px;
-                                                                                    text-transform: uppercase;
-                                                                                    margin: 0 5px;
-                                                                                    text-align: center;">Ok</button>
-                                                                                </ng-template>
-                                                                            </mat-form-field>
-                                                                        </div>  
-                                                                    </div>
-                                                                    <div class="row">
-                                                                        <div class="col-lg-6  col-md-12">
-                                                                            <mat-form-field  class="mat-form-field-100">
-                                                                                <mat-label>{{t('docs.field.date_end')}}</mat-label>
-                                                                                <input  matInput 
-                                                                                        placeholder="{{t('docs.field.date_end')}}"
-                                                                                        [readonly]=is_completed
-                                                                                        formControlName="date_end"
-                                                                                        [ngClass]="{'is-invalid':formBaseInformation.get('date_end').touched && formBaseInformation.get('date_end').invalid}"
-                                                                                        [matDatepicker]="dp1"/>
-                                                                                        <mat-datepicker-toggle matSuffix [for]="dp" *ngIf="!is_completed"></mat-datepicker-toggle>
-                                                                                <mat-datepicker #dp1></mat-datepicker>
-                                                                                <mat-hint *ngIf="formBaseInformation.get('date_end').touched && formBaseInformation.get('date_end').invalid" class="invalid-feedback">
-                                                                                    <i class="form-invalid">{{t('docs.error.date_format')}}</i>
-                                                                                </mat-hint>
-                                                                            </mat-form-field>
-                                                                        </div>
-                                                                        <div class="col-lg-6  col-md-12"> 
-                                                                            <mat-form-field  class="mat-form-field-100">
-                                                                                <mat-label>{{t('docs.field.time_end')}}</mat-label>
-                                                                                <input  matInput 
-                                                                                placeholder="{{t('docs.field.time_end')}}" 
-                                                                                formControlName="time_end" 
-                                                                                [ngxTimepicker]="picker2"
-                                                                                [format]="+timeFormat"
-                                                                                readonly>
-                                                                                <ngx-material-timepicker 
-                                                                                #picker2  
-                                                                                style="z-index: 10000;"
-                                                                                [cancelBtnTmpl]="cancelBtn"
-                                                                                [confirmBtnTmpl]="confirmBtn"
-                                                                                ></ngx-material-timepicker>
-                                                                                <!-- <ng-template #cancelBtn>
-                                                                                    <button style="min-width: 88px;
-                                                                                    line-height: 36px;
-                                                                                    cursor: pointer;
-                                                                                    border: 12px;
-                                                                                    border-radius: 4px;
-                                                                                    background-color: #673ab7;
-                                                                                    color: white;
-                                                                                    font-size: 14px;
-                                                                                    text-transform: uppercase;
-                                                                                    margin: 0 5px;
-                                                                                    text-align: center;">{{'modules.button.cancel' | transloco}}</button>
-                                                                                </ng-template>
-                                                                                <ng-template #confirmBtn>
-                                                                                    <button style="min-width: 88px;
-                                                                                    line-height: 36px;
-                                                                                    cursor: pointer;
-                                                                                    border: 12px;
-                                                                                    border-radius: 4px;
-                                                                                    background-color: #673ab7;
-                                                                                    color: white;
-                                                                                    font-size: 14px;
-                                                                                    text-transform: uppercase;
-                                                                                    margin: 0 5px;
-                                                                                    text-align: center;">Ok</button>
-                                                                                </ng-template> -->
-                                                                            </mat-form-field>
+                                                                        <div class="col-xl-6 col-lg-12 col-md-6 col-sm-12"> 
+                                                                            <div class="row">
+                                                                                <div class="col-xl-8 col-lg-12 col-md-6 col-sm-6" id="date_to"> 
+                                                                                    <mat-form-field  class="mat-form-field-100">
+                                                                                        <mat-label>{{t('docs.field.dt_tm_end')}}</mat-label>
+                                                                                        <input  matInput 
+                                                                                                [readonly]=is_completed
+                                                                                                formControlName="date_end"
+                                                                                                [ngClass]="{'is-invalid':formBaseInformation.get('date_end').touched && formBaseInformation.get('date_end').invalid}"
+                                                                                                [matDatepicker]="dp1"/>
+                                                                                                <mat-datepicker-toggle matSuffix [for]="dp" *ngIf="!is_completed"></mat-datepicker-toggle>
+                                                                                        <mat-datepicker #dp1></mat-datepicker>
+                                                                                        <mat-hint *ngIf="formBaseInformation.get('date_end').touched && formBaseInformation.get('date_end').invalid" class="invalid-feedback">
+                                                                                            <i class="form-invalid">{{t('docs.error.date_format')}}</i>
+                                                                                        </mat-hint>
+                                                                                    </mat-form-field>
+                                                                                </div>
+                                                                                <div class="col-xl-4 col-lg-12 col-md-6 col-sm-6" id="time_to"> 
+                                                                                    <mat-form-field  class="mat-form-field-100">
+                                                                                        <mat-label>&nbsp;</mat-label>
+                                                                                        <input  matInput 
+                                                                                        formControlName="time_end" 
+                                                                                        [ngxTimepicker]="picker2"
+                                                                                        [format]="+timeFormat"
+                                                                                        readonly>
+                                                                                        <ngx-material-timepicker 
+                                                                                        #picker2  
+                                                                                        style="z-index: 10000;"
+                                                                                        [cancelBtnTmpl]="cancelBtn"
+                                                                                        [confirmBtnTmpl]="confirmBtn"
+                                                                                        ></ngx-material-timepicker>
+                                                                                    </mat-form-field>
+                                                                                </div>
+                                                                            </div>
                                                                         </div>  
                                                                     </div>
                                                                 </div>
@@ -418,7 +528,7 @@
                                                                             <mat-slide-toggle 
                                                                             formControlName="nds"
                                                                             [disabled]="is_completed"
-                                                                            (change)="productSearchAndTableComponent.onChangeNds(formBaseInformation.get('nds_included').value)"
+                                                                            (change)="productSearchAndTableByCustomersComponent.onChangeNds(formBaseInformation.get('nds_included').value)"
                                                                             matTooltip="{{t('docs.tip.tax')}}"
                                                                             >{{t('docs.field.tax')}}</mat-slide-toggle>
                                                                             <input matInput hidden/>
@@ -427,7 +537,7 @@
                                                                             <mat-slide-toggle 
                                                                                 formControlName="nds_included"
                                                                                 [disabled]="is_completed"
-                                                                                (change)="productSearchAndTableComponent.onChangeNdsIncluded(formBaseInformation.get('nds_included').value)"
+                                                                                (change)="productSearchAndTableByCustomersComponent.onChangeNdsIncluded(formBaseInformation.get('nds_included').value)"
                                                                                 matTooltip="{{t('docs.tip.tax_included')}}"
                                                                             >{{t('docs.field.tax_included')}}</mat-slide-toggle>
                                                                             <input matInput hidden/>
@@ -498,8 +608,8 @@
 
                                                                     <mat-form-field style="display: none">
                                                                         <input  matInput
-                                                                                placeholder="customer_id"
-                                                                                formControlName="customer_id"/>
+                                                                                placeholder="id"
+                                                                                formControlName="id"/>
                                                                     </mat-form-field>
                                                                     <mat-form-field *ngIf="id==0 && !is_addingNewCustomer" class="mat-form-field-100"> 
                                                                         <mat-label [ngClass]="{'form-invalid':searchCustomerCtrl.touched && ((searchCustomerCtrl.value==null || searchCustomerCtrl.value==''))}">{{t('docs.field.customer')}}<span *ngIf="!searchCustomerCtrl.value || (searchCustomerCtrl.value && searchCustomerCtrl.value.length==0)" class="star"> *</span></mat-label>
@@ -511,7 +621,7 @@
                                                                         (change)="canCagentAutocompleteQuery=false; customerHasBeenSearched=false; checkEmptyCagentField();">
                                                                         <app-balance-cagent 
                                                                         [company_id]="formBaseInformation.get('company_id').value"
-                                                                        [cagent_id]="formCustomerSearch.get('customer_id').value"
+                                                                        [cagent_id]="formCustomerSearch.get('id').value"
                                                                         [currency]="accountingCurrency">
                                                                         </app-balance-cagent>
                                                                         <mat-autocomplete #auto4="matAutocomplete">
@@ -585,53 +695,53 @@
                                                 
                                             </form>
 
-
-                                            <div class="row" *ngIf="getControl('productCustomersTable').value.length>0 || gettingCustomersTableData" style="margin-right:0;margin-left:0;">
+                                            <!-- [dataSource]="getControl('customersTable').value"  -->
+                                            <div class="row" *ngIf="getControl('customersTable').value.length>0 || gettingCustomersTableData" style="margin-right:0;margin-left:0;">
                                                 <mat-spinner 
                                                 strokeWidth="3" 
                                                 class="spinner"
                                                 [diameter]="44"
                                                 *ngIf="gettingCustomersTableData"
                                                 ></mat-spinner>
-                                                <table mat-table #customers_table
-                                                [dataSource]="getControl('productCustomersTable').value" 
+                                                <table mat-table #customers_table 
+                                                [dataSource]="getControl('customersTable').value" multiTemplateDataRows
                                                 [formGroup]="formBaseInformation" 
                                                 [trackBy]="trackByIndex" 
                                                 style="margin-top: 20px;" 
                                                 id="customers_table"
                                                 class="mat-elevation-z8 customers-table">
                                                     <!-- Customer Id -->
-                                                    <ng-container matColumnDef="customer_id" [formArrayName]="'productCustomersTable'">
+                                                    <ng-container matColumnDef="id" [formArrayName]="'customersTable'">
                                                         <th mat-header-cell *matHeaderCellDef>id</th>
-                                                        <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> 
-                                                            <span>{{row.customer_id}}</span>
+                                                        <td mat-cell *matCellDef="let row; let i = dataIndex" [formGroupName]="i"> 
+                                                            <span>{{row.id}}</span>
                                                         </td>
                                                     </ng-container>
                                                     <!-- Email -->
-                                                    <ng-container matColumnDef="email" [formArrayName]="'productCustomersTable'">
+                                                    <ng-container matColumnDef="email" [formArrayName]="'customersTable'">
                                                         <th mat-header-cell *matHeaderCellDef>Email</th>
-                                                        <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> 
+                                                        <td mat-cell *matCellDef="let row; let i = dataIndex" [formGroupName]="i"> 
                                                             <span>{{row.email}}</span>
                                                         </td>
                                                     </ng-container>
                                                     <!-- Telephone -->
-                                                    <ng-container matColumnDef="telephone" [formArrayName]="'productCustomersTable'">
+                                                    <ng-container matColumnDef="telephone" [formArrayName]="'customersTable'">
                                                         <th mat-header-cell *matHeaderCellDef>{{t('docs.field.telephone')}}</th>
-                                                        <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> 
+                                                        <td mat-cell *matCellDef="let row; let i = dataIndex" [formGroupName]="i"> 
                                                             <span>{{row.telephone}}</span>
                                                         </td>
                                                     </ng-container>
                                                     <!-- Name -->
-                                                    <ng-container matColumnDef="name" [formArrayName]="'productCustomersTable'">
+                                                    <ng-container matColumnDef="name" [formArrayName]="'customersTable'">
                                                         <th mat-header-cell *matHeaderCellDef>{{t('modules.col.name')}}</th>
-                                                        <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> 
+                                                        <td mat-cell *matCellDef="let row; let i = dataIndex" [formGroupName]="i"> 
                                                             <span>{{row.name}}</span>
                                                         </td>
                                                     </ng-container>
                                                     <!-- Child -->
-                                                    <ng-container matColumnDef="child" [formArrayName]="'productCustomersTable'">
+                                                    <ng-container matColumnDef="child" [formArrayName]="'customersTable'">
                                                         <th mat-header-cell *matHeaderCellDef style="width:30px">{{t('modules.col.child')}}</th>
-                                                        <td mat-cell style="width:30px" *matCellDef="let row; let i = index"[formGroupName]="i"> 
+                                                        <td mat-cell style="width:30px" *matCellDef="let row; let i = dataIndex"[formGroupName]="i"> 
                                                             <mat-form-field id="toggle"
                                                                 class="mat-form-field-100" 
                                                                 style="margin-top:-9px">
@@ -645,7 +755,7 @@
                                                         </td>
                                                     </ng-container>
                                                     <!-- Is Payer (checkbox) -->
-                                                    <ng-container matColumnDef="is_payer" [formArrayName]="'productCustomersTable'">
+                                                    <ng-container matColumnDef="is_payer" [formArrayName]="'customersTable'">
                                                         <th mat-header-cell *matHeaderCellDef style="width:30px">
                                                             <mat-icon 
                                                             style="cursor: pointer"                                                            
@@ -654,30 +764,68 @@
                                                             account_balance_wallet
                                                             </mat-icon>
                                                         </th>
-                                                        <td mat-cell style="width:30px" *matCellDef="let row; let i = index"[formGroupName]="i"> 
+                                                        <td mat-cell style="width:30px" *matCellDef="let row; let i = dataIndex"[formGroupName]="i"> 
                                                                 <!-- <mat-slide-toggle formControlName="is_payer" [disabled]="true">Enable Wifi</mat-slide-toggle> -->
                                                                 <!-- <mat-slide-toggle  disabled="{{true}}" formControlName="is_payer"></mat-slide-toggle> -->
-                                                                <mat-slide-toggle 
-                                                                    [checked]="row.is_payer"
-                                                                    (toggleChange) = "setIsPayerValue(i, !row.is_payer)"
-                                                                    [disabled]="!editability || (row.is_payer && payersCnt==1)"
-                                                                    style="margin-top: 10px ">
-                                                                </mat-slide-toggle>
+                                                                <div class="mat-mdc-form-field mat-form-field-100">
+                                                                    <mat-slide-toggle 
+                                                                        [checked]="row.is_payer"
+                                                                        (toggleChange) = "setIsPayerValue(i, !row.is_payer)"
+                                                                        [disabled]="!editability || (row.is_payer && payersCnt==1)"
+                                                                        style="margin-top:-9px"
+                                                                        >
+                                                                    </mat-slide-toggle>
+                                                                </div>
                                                             <!-- {{!editability || (row.is_payer && payersCnt==1)}} -->
                                                             <!-- <mat-slide-toggle [disabled]="true"></mat-slide-toggle> -->
                                                         </td>
                                                     </ng-container>
                                                     <!-- Delete Column -->
-                                                    <ng-container matColumnDef="delete" [formArrayName]="'productCustomersTable'">
+                                                    <ng-container matColumnDef="delete" [formArrayName]="'customersTable'">
                                                         <th mat-header-cell *matHeaderCellDef style="width: 30px;"><mat-icon style="cursor: default" (click)="clearCustomersTable()" matTooltip="{{t('modules.tip.del_frm_tabl_')}}">close</mat-icon></th>
-                                                        <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i">
+                                                        <td mat-cell *matCellDef="let row; let i = dataIndex" [formGroupName]="i">
                                                             <mat-icon style="cursor: default" (click)="deleteCustomerRow(row,i)">delete_forever</mat-icon>
                                                         </td>
                                                     </ng-container>
     
+
+                                                    <ng-container matColumnDef="expandedDetail" [formArrayName]="'customersTable'">
+                                                        <td mat-cell *matCellDef="let row; let i = dataIndex" [formGroupName]="i" [attr.colspan]="displayedCustomersColumns.length">
+                                                            <div class="example-element-detail"
+                                                                [@detailExpand]="row == expandedElement ? 'expanded' : 'collapsed'">
+
+
+                                                                <table  mat-table #_table_inside  
+                                                                        [dataSource]="getControl('appointmentsProductTable').value" 
+                                                                        [formGroup]="formBaseInformation" 
+                                                                        [trackBy]="trackByCustomerProductsIndex" 
+                                                                        style="margin-top: 20px;" 
+                                                                        class="mat-elevation-z8 product-table">
+                                                                    <!-- Name -->
+                                                                    <ng-container matColumnDef="name" [formArrayName]="'customersTable'">
+                                                                        <th mat-header-cell *matHeaderCellDef>{{t('modules.col.name')}}</th>
+                                                                        <td mat-cell *matCellDef="let row1; let i = dataIndex" [formGroupName]="i"> 
+                                                                            <span>{{row1.name}}</span>
+                                                                        </td>
+                                                                    </ng-container>
+                                                                    <tr mat-header-row *matHeaderRowDef="displayedCustomerProductsColumns"></tr>
+                                                                    <tr mat-row *matRowDef="let row1; columns: displayedCustomerProductsColumns;"></tr>
+                                                                </table>
+
+
+                                                            </div>
+                                                        </td>
+                                                    </ng-container>
+
+
                                                     <tr mat-header-row *matHeaderRowDef="displayedCustomersColumns"></tr>
-                                                    <tr mat-row *matRowDef="let row; columns: displayedCustomersColumns;"></tr>
-                                                    
+                                                    <!-- <tr mat-row *matRowDef="let row; columns: displayedCustomersColumns;"></tr> -->
+                                                    <tr mat-row *matRowDef="let row; columns: displayedCustomersColumns;"
+                                                        class="example-element-row"
+                                                        [class.example-expanded-row]="expandedElement === row"
+                                                        (click)="expandedElement = expandedElement === row ? null : row">
+                                                    </tr>
+                                                    <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="example-detail-row"></tr>
     
                                                 </table> 
                                             </div>
@@ -688,7 +836,40 @@
                                        
                                 </div>
                                
-                            </div>  
+                            </div>
+                            <!-- <div class="row">
+                                <div class="col-12" style="padding-right: 0px; padding-left: 0px;">
+                                    <app-product-search-and-table-by-customers 
+                                        *ngIf="canGetChilds"
+                                        [parentDocId]="id" 
+                                        [parentDocName]="'Appointments'"
+                                        [nds]="formBaseInformation.get('nds').value"
+                                        [nds_included]="formBaseInformation.get('nds_included').value"
+                                        [company_id]="formBaseInformation.get('company_id').value"
+                                        [department_id]="formBaseInformation.get('department_id').value"
+                                        [company]="formAboutDocument.get('company').value"
+                                        [department]="formBaseInformation.get('department').value"
+                                        [department_type_price_id]="department_type_price_id"
+                                        [cagent_type_price_id]="cagent_type_price_id"
+                                        [default_type_price_id]="default_type_price_id"
+                                        [cagents]="formBaseInformation.get('customersTable').value"
+                                        [secondaryDepartments]="receivedDepartmentsList"
+                                        [pricingType]="settingsForm.get('pricingType').value"
+                                        [plusMinus]="settingsForm.get('plusMinus').value"
+                                        [priorityTypePriceSide]="settingsForm.get('priorityTypePriceSide').value"
+                                        [hideTenths]="settingsForm.get('hideTenths').value"
+                                        [changePrice]="settingsForm.get('changePrice').value"
+                                        [changePriceType]="settingsForm.get('changePriceType').value"
+                                        [saveSettings]="settingsForm.get('saveSettings').value"
+                                        [receivedPriceTypesList]="receivedPriceTypesList"
+                                        [spravTaxesSet]="spravTaxesSet"
+                                        [priceTypeId]="settingsForm.get('priceTypeId').value"
+                                        [readonly]="is_completed"
+                                        [accountingCurrency]="accountingCurrency"
+                                        [receivedDepartmentsWithPartsList]="receivedDepartmentsWithPartsList"
+                                    ></app-product-search-and-table-by-customers>
+                                </div>
+                            </div>   -->
                             <!-- <div class="row">
                                 <div class="col-12" style="padding-right: 0px; padding-left: 0px;">
                                     <app-product-search-and-table 
@@ -839,9 +1020,33 @@
         
         </mat-card-content> 
         <code><pre>{{formBaseInformation.value | json}}</pre></code>
-        <!-- <code><pre>{{displayedCustomersColumns | json}}</pre></code> -->
+        <code><pre>{{receivedPriceTypesList | json}}</pre></code>
     </form>
 </mat-card>
 
-
-
+<ng-template #cancelBtn>
+    <button style="min-width: 88px;
+    line-height: 36px;
+    cursor: pointer;
+    border: 12px;
+    border-radius: 4px;
+    background-color: #673ab7;
+    color: white;
+    font-size: 14px;
+    text-transform: uppercase;
+    margin: 0 5px;
+    text-align: center;">{{'modules.button.cancel' | transloco}}</button>
+</ng-template>
+<ng-template #confirmBtn>
+    <button style="min-width: 88px;
+    line-height: 36px;
+    cursor: pointer;
+    border: 12px;
+    border-radius: 4px;
+    background-color: #673ab7;
+    color: white;
+    font-size: 14px;
+    text-transform: uppercase;
+    margin: 0 5px;
+    text-align: center;">Ok</button>
+</ng-template>

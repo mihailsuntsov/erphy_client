@@ -552,6 +552,60 @@
                         </div> -->
                     </div>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <!-- <table mat-table #customers_table
+	[dataSource]="getControl('customersTable').value" 
+	[formGroup]="formBaseInformation" 
+	[trackBy]="trackByIndex" 
+	>
+			<ng-container matColumnDef="id" [formArrayName]="'customersTable'">
+				<th mat-header-cell *matHeaderCellDef>id</th>
+				<td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> 
+						<span>{{row.customer_id}}</span>
+				</td>
+		</ng-container>
+		
+		<ng-container matColumnDef="name" [formArrayName]="'customersTable'">
+				<th mat-header-cell *matHeaderCellDef>name</th>
+				<td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> 
+						<span>{{row.name}}</span>
+				</td>
+		</ng-container>
+		
+		<ng-container matColumnDef="is_payer" [formArrayName]="'customersTable'">
+				<th mat-header-cell *matHeaderCellDef style="width:30px">
+						is_payer
+				</th>
+				<td mat-cell style="width:30px" *matCellDef="let row; let i = index"[formGroupName]="i"> 
+								<mat-slide-toggle 
+                formControlName="is_payer"
+                [disabled]="(row.is_payer && payersCnt==1)"
+										style="margin-top: 10px ">
+								</mat-slide-toggle>
+				</td>
+		</ng-container>
+			<tr mat-header-row *matHeaderRowDef="displayedCustomersColumns"></tr>
+			<tr mat-row *matRowDef="let row; columns: displayedCustomersColumns;"></tr>
+			
+
+	</table>  -->
+
+    
             </mat-drawer-container>
         </div>
     </div>

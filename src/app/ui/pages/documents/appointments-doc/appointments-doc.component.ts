@@ -5,7 +5,8 @@ import { UntypedFormGroup, UntypedFormArray,  UntypedFormBuilder,  Validators, U
 import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { SelectionModel } from '@angular/cdk/collections';
-import { Observable, Subject } from 'rxjs';
+import {animate, state, style, transition, trigger} from '@angular/animations';
+// import { Observable, Subject } from 'rxjs';
 import { map, startWith, debounceTime, tap, switchMap, mergeMap, concatMap  } from 'rxjs/operators';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
@@ -14,24 +15,45 @@ import { v4 as uuidv4 } from 'uuid';
 import { CommonUtilitesService } from 'src/app/services/common_utilites.serviсe';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { graphviz }  from 'd3-graphviz';
-import { ProductSearchAndTableComponent } from 'src/app/modules/trade-modules/product-search-and-table/product-search-and-table.component';
+import { ProductSearchAndTableByCustomersComponent } from 'src/app/modules/trade-modules/product-search-and-table-by-customers/product-search-and-table-by-customers.component';
 import { BalanceCagentComponent } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.component';
 import { TemplatesDialogComponent } from 'src/app/modules/settings/templates-dialog/templates-dialog.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
-import { MatAccordion } from '@angular/material/expansion';
+// import { MatAccordion } from '@angular/material/expansion';
 import { DelCookiesService } from './del-cookies.service';
 import { Router, NavigationExtras  } from '@angular/router';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
-import { Input } from '@angular/core';
+// import { Input } from '@angular/core';
 import { translate } from '@ngneat/transloco'; //+++
+import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component';
 import { FilesComponent } from '../files/files.component';
 import { FilesDocComponent } from '../files-doc/files-doc.component';
 import { MomentDefault } from 'src/app/services/moment-default';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+import { Observable } from 'rxjs';
 const MY_FORMATS = MomentDefault.getMomentFormat();
 const moment = MomentDefault.getMomentDefault();
 
+interface ProductSearchResponse{//интерфейс получения данных из бд 
+  id:number;
+  name: string;
+  edizm_id:number;
+  edizm: string;
+  edizm_type_id: number;
+  edizm_multiplier:number;
+  filename:string;
+  nds_id:number;
+  priceOfTypePrice:number;// цена по запрошенному id типа цены
+  reserved:number;// сколько зарезервировано в других Заказах покупателя
+  total:number; // всего единиц товара в отделении (складе):
+  reserved_in_all_my_depths:number; //зарезервировано в моих отделениях
+  total_in_all_my_depths:number; //всего в моих отделениях
+  ppr_name_api_atol:string; //Признак предмета расчета в системе Атол. Невидимое поле. Нужно для передачи в таблицу товаров в качестве тега для чека на ккм Атол
+  is_material:boolean; //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
+  reserved_current:number;// зарезервировано единиц товара в отделении (складе) в ЭТОМ (текущем) Заказе покупателя:
+  indivisible: boolean; // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
+}
 interface RetailSalesProductTable {
   product_id: any,
   department_id: any,
@@ -80,10 +102,10 @@ interface appointmentsProductTable { //интерфейс для формы, м�
   ppr_name_api_atol: string; //Признак предмета расчета в системе Атол. Невидимое поле. Нужно для передачи в таблицу товаров в качестве тега для чека на ккм Атол
   is_material: boolean; //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)            
 }
-interface IdAndName_ru{
-  id: number;
-  name_ru: string;
-}
+// interface IdAndName_ru{
+//   id: number;
+//   name_ru: string;
+// }
 interface SpravTaxesSet{
   id: number;
   name: string;
@@ -96,27 +118,28 @@ interface CanCreateLinkedDoc{//интерфейс ответа на запрос
   can:boolean;
   reason:string;
 }
-interface Region{
-  id: number;
-  name_ru: string;
-  country_id: number;
-  country_name_ru: string;
-}
-interface City{
-  id: number;
-  name_ru: string;
-  country_id: number;
-  country_name_ru: string;
-  region_id: number;
-  region_name_ru: string;
-  area_ru: string;
-}
+// interface Region{
+//   id: number;
+//   name_ru: string;
+//   country_id: number;
+//   country_name_ru: string;
+// }
+// interface City{
+//   id: number;
+//   name_ru: string;
+//   country_id: number;
+//   country_name_ru: string;
+//   region_id: number;
+//   region_name_ru: string;
+//   area_ru: string;
+// }
 interface docResponse {//интерфейс для получения ответа в методе getappointmentsValuesById
   id: number;
   company: string;
   company_id: number;
   department: string;
   department_id: number;
+  department_part_id: number;
   creator: string;
   creator_id: number;
   master: string;
@@ -145,8 +168,6 @@ interface docResponse {//интерфейс для получения ответ
   status_description: string;
   uid:string;
   fio: string;
-  // email: string;
-  // telephone: string;
   zip_code: string;
   country_id: string;
   region_id: string;
@@ -163,6 +184,38 @@ interface docResponse {//интерфейс для получения ответ
   time_start:string;
   time_end:string;
   customersTable:any[];
+  main_service_id:number;
+  main_service_name:string;
+  product_id: number; // ID of main service
+}
+interface CustomerProduct { 
+  id: number;
+  row_id: number;
+  product_id: number;
+  appointment_id:number;
+  is_main:boolean; //can be only one main product in whole appointment.
+  name: string;
+  product_count: number;
+  edizm: string;
+  edizm_id: number;
+  product_price: number;
+  product_price_of_type_price: number;//цена товара по типу цены. Т.к. цену можно редактировать в таблице товаров, при несовпадении новой цены с ценой типа цены нужно будет сбросить тип цены в 0 (не выбран), т.к. это уже будет не цена типа цены
+  product_sumprice: number;
+  price_type: string;
+  price_type_id: number;
+  available: number; 
+  nds: string;
+  nds_id: number;
+  priority_type_price: string;// приоритет типа цены: Склад (sklad) Покупатель (cagent) Цена по-умолчанию (defprice)  (formSearch.priorityTypePriceSide)
+  department_id: number; // склад с которого будет производиться отгрузка товара.     
+  department: string; // склад с которого будет производиться отгрузка товара.                                   (secondaryDepartmentId)
+  shipped:number; //отгружено        
+  total: number; //всего на складе
+  reserved: number; // сколько зарезервировано в других Заказах покупателя
+  reserved_current: number; // сколько зарезервировано в данном заказе покупателя  
+  ppr_name_api_atol: string; //Признак предмета расчета в системе Атол. Невидимое поле. Нужно для передачи в таблицу товаров в качестве тега для чека на ккм Атол
+  is_material: boolean; //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)            
+  indivisible: boolean; // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
 }
 interface filesInfo {
   id: string;
@@ -235,10 +288,17 @@ interface CompanySettings{
   templateUrl: './appointments-doc.component.html',
   styleUrls: ['./appointments-doc.component.css'],
   changeDetection: ChangeDetectionStrategy.Default,
+  animations: [
+    trigger('detailExpand', [
+      state('collapsed,void', style({height: '0px', minHeight: '0'})),
+      state('expanded', style({height: '*'})),
+      transition('expanded <=> collapsed', animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)')),
+    ]),
+  ],
   providers: [LoadSpravService,
     // KkmAtolService,
     // KkmAtolChequesService,
-    Cookie,DelCookiesService,ProductSearchAndTableComponent,BalanceCagentComponent,
+    Cookie,DelCookiesService,ProductSearchAndTableByCustomersComponent,BalanceCagentComponent,
     // KkmComponent,
     CommonUtilitesService,
     { provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]}, //+++
@@ -276,8 +336,6 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   priceUpDownFieldName:string = translate('modules.field.markup'); // Наименование поля с наценкой-скидкой
   priceTypeId_temp:number; // id типа цены. Нужна для временного хранения типа цены на время сброса формы поиска товара
   companyId_temp:number; // id предприятия. Нужна для временного хранения предприятия на время сброса формы formBaseInformation
-  // telephone: string='';
-  // email: string = '';
   company:string='';
   booking_doc_name_variation= 'appointment';
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, window - оконный режим просмотра карточки документа
@@ -303,6 +361,9 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   settingsForm: any; // форма с настройками
   globalSettingsForm: any; // форма с общими настройками
   formLinkedDocs:any// Форма для отправки при создании Возврата покупателя
+  expandedElement: any | null;
+
+
 
   //для построения диаграмм связанности
   tabIndex=0;// индекс текущего отображаемого таба (вкладки)
@@ -326,6 +387,8 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   showCustomerSearchFormFields:boolean = false;
   showSearchCustomerFormFields:boolean = true;
   displayedCustomersColumns: string[]=[];//массив отображаемых столбцов таблицы с ресурсами
+  displayedCustomerProductsColumns: string[]=[];//массив отображаемых столбцов таблицы с ресурсами
+
   customerHasBeenSearched: boolean=false; // чтобы не показывало сразу что клиент не найден, а только после первого поиска
   isCustomerListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canCagentAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
@@ -333,7 +396,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   searchCustomerCtrl = new UntypedFormControl();//поле для поиска клиентов
   guests:any[]=[
     {
-      "customer_id": null,
+      "id": null,
       "row_id": 0,
       "is_payer": true,
       "name": "Попов Анатолий Игоревич",
@@ -342,7 +405,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       "child": false
     },
     {
-      "customer_id": null,
+      "id": null,
       "row_id": 1,
       "is_payer": false,
       "name": "Попова Евгения Васильевна",
@@ -351,7 +414,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       "child": false
     },
     {
-      "customer_id": null,
+      "id": null,
       "row_id": 2,
       "is_payer": false,
       "name": "Попова Варя Анатольевна",
@@ -360,7 +423,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       "child": true
     },
     {
-      "customer_id": null,
+      "id": null,
       "row_id": 3,
       "is_payer": false,
       "name": "Попова Ксения Анатольевна",
@@ -369,7 +432,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       "child": true
     },
     {
-      "customer_id": null,
+      "id": null,
       "row_id": 4,
       "is_payer": false,
       "name": "Попова Александра Анатольевна",
@@ -414,13 +477,23 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   @ViewChild("doc_number", {static: false}) doc_number; 
   @ViewChild("form", {static: false}) form; 
   @ViewChild("formBI", {static: false}) formBI; 
-  @ViewChild(ProductSearchAndTableComponent, {static: false}) public productSearchAndTableComponent:ProductSearchAndTableComponent;
+  @ViewChild(ProductSearchAndTableByCustomersComponent, {static: false}) public productSearchAndTableByCustomersComponent:ProductSearchAndTableByCustomersComponent;
   @ViewChild(BalanceCagentComponent, {static: false}) public balanceCagentComponent:BalanceCagentComponent;
   @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
 
   isDocNumberUnicalChecking = false;//идёт ли проверка на уникальность номера
   doc_number_isReadOnly=true;
   is_completed=false;
+
+    //для Autocomplete по поиску товаров
+    searchProductCtrl = new UntypedFormControl();//поле для поиска товаров
+    isProductListLoading  = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
+    canAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
+    filteredProducts: ProductSearchResponse[] = [];
+    productImageName:string = null;
+    mainImageAddress:string = 'assets_/images/no_foto.jpg';
+    thumbImageAddress:string = 'assets_/images/no_foto.jpg';
+    imageToShow:any; // переменная в которую будет подгружаться картинка товара (если он jpg или png)
 
   // refresh = new Subject<void>();
 
@@ -453,7 +526,9 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       id: new UntypedFormControl                    (this.id,[]),
       company_id: new UntypedFormControl            (null,[Validators.required]),
       department_id: new UntypedFormControl         (null,[Validators.required]),
-      dep_part_id: new UntypedFormControl           (null,[Validators.required]),
+      product_id: new UntypedFormControl            (null,[Validators.required]),
+      department_part_id: new UntypedFormControl    (0,[Validators.required]),
+      jobtitle: new UntypedFormControl              (0,[]),
       doc_number: new UntypedFormControl            ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
       cagent_id: new UntypedFormControl             ({disabled: false, value: '' },[Validators.required]),
       cagent: new UntypedFormControl                ('',[]),
@@ -463,7 +538,6 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       department: new UntypedFormControl            ('',[]),
       is_completed: new UntypedFormControl          (false,[]),
       appointmentsProductTable: new UntypedFormArray([]),
-      customersTable: new UntypedFormArray          ([]),
       nds: new UntypedFormControl                   (false,[]),
       nds_included: new UntypedFormControl          (true,[]),
       name: new UntypedFormControl                  ('',[]),
@@ -471,12 +545,11 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       status_name: new UntypedFormControl           ('',[]),
       status_color: new UntypedFormControl          ('',[]),
       status_description: new UntypedFormControl    ('',[]),
-      // new_cagent: new UntypedFormControl         ({disabled: true, value: '' },[Validators.required]),
       // discount_card:   new UntypedFormControl    ('',[Validators.maxLength(30)]),
       uid: new UntypedFormControl                   ('',[]),// uuid идентификатор для создаваемой отгрузки
       time_start: new UntypedFormControl            ('',[Validators.required]),
       time_end:  new UntypedFormControl             ('',[Validators.required]),
-      productCustomersTable: new UntypedFormArray   ([]),//массив с клиентами / array uf customers
+      customersTable: new UntypedFormArray   ([]),//массив с клиентами / array uf customers
     });
     // Форма для отправки при создании связанных документов
     this.formLinkedDocs = new UntypedFormGroup({
@@ -515,7 +588,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       date_time_changed: new UntypedFormControl        ('',[]),
     });
     this.formCustomerSearch = new UntypedFormGroup({
-      customer_id: new UntypedFormControl ('' ,[]),
+      id: new UntypedFormControl ('' ,[]),
       email: new UntypedFormControl ('' ,[Validators.maxLength(254)]),
       telephone: new UntypedFormControl ('' ,[Validators.maxLength(60)]),
       // description: new UntypedFormControl ('' ,[]),      
@@ -561,6 +634,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     });
 
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Покупатель"
+    this.onProductSearchValueChanges();//отслеживание изменений поля "Услуга"
     //+++ getting base data from parent component
     this.getBaseData('myId');    
     this.getBaseData('myCompanyId');  
@@ -580,16 +654,21 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       this.booking_doc_name_variation=this.data.booking_doc_name_variation;
       this.id = +this.data.docId;
       this.locale=this.data.locale;
+      this.receivedJobtitlesList=this.data.jobtitles;
+      this.receivedDepartmentsWithPartsList=this.data.departmentsWithParts;
       this._adapter.setLocale(this.locale);
       // console.log("locale = ",this.locale);
     }
 
 
 
+    this.hideOrShowNdsColumn();//формирование столбцов для таблицы товаров
     this.getSetOfPermissions();//
     this.getMyId();
     this.getMyCompanyId();
-    
+    this.getPriceTypesList();
+    this.getSpravTaxes();
+    this.getSetOfTypePrices();//загрузка типов цен для покупателя, склада и по умолчанию  
   }
   // ngAfterContentChecked() {
 
@@ -597,19 +676,19 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
 
   // }
   get childFormValid() {
-    if(this.productSearchAndTableComponent!=undefined)
+    if(this.productSearchAndTableByCustomersComponent!=undefined)
     //если нет ошибок в форме, включая отсутствие дробного количества у неделимых товаров
-      return (this.productSearchAndTableComponent.getControlTablefield().valid && !this.productSearchAndTableComponent.indivisibleErrorOfProductTable);
+      return (this.productSearchAndTableByCustomersComponent.getControlTablefield().valid && !this.productSearchAndTableByCustomersComponent.indivisibleErrorOfProductTable);
     else return true;    //чтобы не было ExpressionChangedAfterItHasBeenCheckedError. Т.к. форма создается пустая и с .valid=true, а потом уже при заполнении проверяется еще раз.
   }
   get sumPrice() {
-    if(this.productSearchAndTableComponent!=undefined){
-      return this.productSearchAndTableComponent.totalProductSumm;
+    if(this.productSearchAndTableByCustomersComponent!=undefined){
+      return this.productSearchAndTableByCustomersComponent.totalProductSumm;
     } else return 0;
   }
   get sumNds() {
-    if(this.productSearchAndTableComponent!=undefined){
-      return this.productSearchAndTableComponent.getTotalNds();
+    if(this.productSearchAndTableByCustomersComponent!=undefined){
+      return this.productSearchAndTableByCustomersComponent.getTotalNds();
     } else return 0;
   }
   //---------------------------------------------------------------------------------------------------------------------------------------                            
@@ -739,18 +818,15 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     this.actionsBeforeGetChilds++;
     // Если набрано необходимое кол-во действий - все остальные справочники загружаем тут, т.к. 
     // нужно чтобы сначала определилось предприятие, его id нужен для загрузки
-    if(this.actionsBeforeGetChilds==3){
+    if(this.actionsBeforeGetChilds==6){
       console.log("Can get second part!")
       this.canGetChilds=true;
-      this.getDepartmentsList(); 
-      this.getPriceTypesList();
-      this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
-      this.getSetOfTypePrices();//загрузка типов цен для покупателя, склада и по умолчанию  
+      this.getDepartmentsList();
       this.getStatusesList(); 
       this.getCRUD_rights();  
       if(+this.id==0) this.getCompanySettings(); // because at this time companySettings loads only the info that needs on creation document stage (when document id=0)
-      this.getDepartmentsWithPartsList();
-      this.getJobtitleList();
+      // this.getDepartmentsWithPartsList();
+      // this.getJobtitleList();
       this.getSpravSysEdizm(); //загрузка единиц измерения. 
     }
   }
@@ -782,11 +858,11 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       );
   }
 
-  onDepartmentChange(){
-      this.getSetOfTypePrices();
-      this.formBaseInformation.get('department').setValue(this.getDepartmentNameById(this.formBaseInformation.get('department_id').value));
-      this.productSearchAndTableComponent.formSearch.get('secondaryDepartmentId').setValue(this.formBaseInformation.get('department_id').value);
-  }
+  // onDepartmentChange(){
+  //     this.getSetOfTypePrices();
+  //     this.formBaseInformation.get('department').setValue(this.getDepartmentNameById(this.formBaseInformation.get('department_id').value));
+  //     this.productSearchAndTableByCustomersComponent.formSearch.get('secondaryDepartmentId').setValue(this.formBaseInformation.get('department_id').value);
+  // }
 
   getDepartmentsList(){
     this.receivedDepartmentsList=null;
@@ -806,9 +882,9 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     if(+this.formBaseInformation.get('department_id').value==0 && this.receivedDepartmentsList.length>0){
       this.formBaseInformation.get('department_id').setValue(this.receivedDepartmentsList[0].id);
       //Если дочерние компоненты уже загружены - устанавливаем данный склад как склад в форме поиска и добавления товара
-      if(this.canGetChilds){
-        // this.productSearchAndTableComponent.formSearch.get('secondaryDepartmentId').setValue(this.formBaseInformation.get('department_id').value);  
-        // this.productSearchAndTableComponent.setCurrentTypePrice();//если сменили отделение - нужно проверить, есть ли у него тип цены. И если нет - в вызываемом методе выведется предупреждение для пользователя
+      if(this.canGetChilds && this.productSearchAndTableByCustomersComponent){
+        this.productSearchAndTableByCustomersComponent.formSearch.get('secondaryDepartmentId').setValue(this.formBaseInformation.get('department_id').value);  
+        this.productSearchAndTableByCustomersComponent.setCurrentTypePrice();//если сменили отделение - нужно проверить, есть ли у него тип цены. И если нет - в вызываемом методе выведется предупреждение для пользователя
       }
     }
     //если отделение было выбрано (через настройки или же в этом методе) - определяем его наименование (оно будет отправляться в дочерние компоненты)
@@ -822,15 +898,15 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     // this.getStatusesList();    
   }
 
-  getDepartmentsWithPartsList(){ 
-    return this.http.get('/api/auth/getDepartmentsWithPartsList?company_id='+this.formBaseInformation.get('company_id').value)
-      .subscribe(
-          (data) => {   
-                      this.receivedDepartmentsWithPartsList=data as any [];
-      },
-      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
-      );
-  }
+  // getDepartmentsWithPartsList(){ 
+  //   return this.http.get('/api/auth/getDepartmentsWithPartsList?company_id='+this.formBaseInformation.get('company_id').value)
+  //     .subscribe(
+  //         (data) => {   
+  //                     this.receivedDepartmentsWithPartsList=data as any [];
+  //     },
+  //     error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
+  //     );
+  // }
 
   getJobtitleList(){ 
     this.http.get('/api/auth/getJobtitlesList?company_id='+this.formBaseInformation.get('company_id').value)
@@ -947,7 +1023,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
 
 
   onSelectCustomer(id:number,name:string){
-    this.formCustomerSearch.get('customer_id').setValue(+id);
+    this.formCustomerSearch.get('id').setValue(+id);
     // this.formCustomerSearch.get('customer').setValue(name);
     this.getCagentValuesById(id);
     //Загрузим тип цены для этого Покупателя, и 
@@ -959,16 +1035,219 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     const body = {"id": id};
     this.http.post('/api/auth/getCagentValues', body).subscribe(
         data => { 
-            let documentValues: docResponse=data as any;
-            // this.formBaseInformation.get('telephone').setValue(documentValues.telephone==null?'':documentValues.telephone);
-            // this.formBaseInformation.get('email').setValue(documentValues.email==null?'':documentValues.email);
-            // this.formExpansionPanelsString();
+            let documentValues: any = data as any;
+            this.formCustomerSearch.get('telephone').setValue(documentValues.telephone==null?'':documentValues.telephone);
+            this.formCustomerSearch.get('email').setValue(documentValues.email==null?'':documentValues.email);
             this.necessaryActionsBeforeAutoCreateNewDoc();
         },
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
+  //--------------------------------------- **** поиск по подстроке для товара  ***** ------------------------------------
+  onProductSearchValueChanges(){
+    this.searchProductCtrl.valueChanges
+    .pipe(
+      debounceTime(500),
+      tap(() => {
+        this.filteredProducts = [];
+        if(+this.formBaseInformation.get('product_id').value==0) this.canAutocompleteQuery=true;
+        console.log(this.searchProductCtrl.value)
+      }),      
+      
+      switchMap(fieldObject => 
+        this.getProductsList()),
+
+    ).subscribe(data => {
+      this.isProductListLoading = false;
+      if (data == undefined) {
+        this.filteredProducts = [];
+      } else {
+        this.filteredProducts = data as any;
+        // if(this.filteredProducts.length==1){
+          // this.onAutoselectProduct();
+        // }
+    }}
+      ,error => {this.isProductListLoading = false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+      );
+  }
+  resetProductFormSearch(){
+    this.searchProductCtrl.reset();
+    this.formBaseInformation.get('product_id').setValue(null);
+  }
+  getEdizmNameBySelectedId(srchId:number):string {
+    let name='';
+    this.spravSysEdizmOfProductAll.forEach(a=>{
+      if(+a.id == srchId) {name=a.short_name}
+    }); return name;}
+
+  getProductsList(){ //заполнение Autocomplete для поля Товар
+    if(!this.isProductListLoading){// смысла долбить сервер, пока он формирует ответ, нет. Плюс иногда onProductSearchValueChanges отрабатывает дуплетом, что приводит к двойному добавлению товара
+      try 
+      {
+        if(this.canAutocompleteQuery && this.searchProductCtrl.value.length>1)
+        {
+          this.isProductListLoading  = true;
+          return this.http.get(
+            '/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.formBaseInformation.get('company_id').value+'&departmentId='+this.formBaseInformation.get('department_id').value+'&document_id=0&priceTypeId='+(+this.default_type_price_id)+'&showRemovedFromSale=false&showNotPurchased=true&showServices=true'
+            );
+        }else return [];
+      } catch (e) {
+        return [];
+      }
+    } else return [];
+  }
+  checkEmptyProductField(){
+    if(this.searchProductCtrl.value.length==0){
+      this.resetProductFormSearch();
+    }
+  }; 
+  openProductCard(docId:number) {
+    this.productSearchAndTableByCustomersComponent.openProductCard(docId)
+  } 
+  /*
+  onAutoselectProduct(){
+    this.canAutocompleteQuery=false;
+    this.formSearch.get('product_count').setValue('1');
+    this.formSearch.get('available').setValue(this.filteredProducts[0].total-this.filteredProducts[0].reserved); //Поле "Доступно" = "Всего" - "В резервах"
+    this.formSearch.get('total').setValue(this.filteredProducts[0].total); //Поле "Всего" - всего единиц товара в отделении (складе)
+    this.formSearch.get('reserved').setValue(this.filteredProducts[0].reserved);//Поле "В резервах" - зарезервировано в этом отделении в других Заказах покупателя
+    this.formSearch.get('product_id').setValue(+this.filteredProducts[0].id);
+    this.searchProductCtrl.setValue(this.filteredProducts[0].name);
+    this.formSearch.get('nds_id').setValue(+this.filteredProducts[0].nds_id);
+    this.formSearch.get('edizm_id').setValue(+this.filteredProducts[0].edizm_id);
+    this.productImageName = this.filteredProducts[0].filename;
+    this.formSearch.get('ppr_name_api_atol').setValue(this.filteredProducts[0].ppr_name_api_atol);
+    this.formSearch.get('is_material').setValue(this.filteredProducts[0].is_material);
+    this.formSearch.get('reserved_current').setValue(this.filteredProducts[0].reserved_current);
+    this.formSearch.get('indivisible').setValue(this.filteredProducts[0].indivisible);              // неделимость (необходимо для проверки правильности ввода кол-ва товара)
+    this.afterSelectProduct();
+  }
+  onPriceTypeSelection(){
+    this.selected_type_price_id = +this.formSearch.get('price_type_id').value;
+    if(this.priorityTypePriceId!=this.selected_type_price_id && +this.priorityTypePriceId!=0){//если тип цены, выбранный через поле "Приоритет типа цены" отличен от типа цены, выбранного через поле "Тип цены"
+      //показываем предупреждение
+      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('modules.msg.diff_pricetyp')+" ("+this.getPriceTypesNameById(this.priorityTypePriceId)+")"}});
+    }
+    if(+this.formSearch.get('product_id').value>0){//если товар в форме поиска выбран
+      this.getProductsPriceAndRemains();
+    }
+  }*/
+  onSelectProduct(product:ProductSearchResponse){
+    // this.formSearch.get('product_count').setValue('1');
+    this.formBaseInformation.get('product_id').setValue(+product.id);
+    // this.formSearch.get('edizm_id').setValue(+product.edizm_id);
+    // this.formSearch.get('nds_id').setValue(+this.filteredProducts[0].nds_id);
+    // this.formSearch.get('available').setValue(product.total-product.reserved);
+    // this.formSearch.get('total').setValue(product.total);
+    // this.formSearch.get('reserved').setValue(product.reserved);
+    // this.formSearch.get('ppr_name_api_atol').setValue(product.ppr_name_api_atol);
+    // this.formSearch.get('is_material').setValue(product.is_material);
+    // this.formSearch.get('reserved_current').setValue(product.reserved_current);
+    // this.formSearch.get('indivisible').setValue(product.indivisible);              // неделимость (необходимо для проверки правильности ввода кол-ва товара)
+    this.productImageName = product.filename;
+    this.addMainProductToPayingCustomers(product);
+    this.afterSelectProduct();
+  }
   
+  
+  
+  afterSelectProduct(){
+      // this.edizmName=this.getEdizmNameBySelectedId(+this.formSearch.get('edizm_id').value);
+      // this.formSearchReadOnly=true;
+      // if(!this.autoAdd)this.loadMainImage();//если автодобавление, то картинку грузить ни к чему
+      // this.getProductsPriceAndRemains();
+  }
+
+  addMainProductToPayingCustomers(product:ProductSearchResponse){
+    // this.getControl('customersTable').controls[index].get('is_payer').setValue(value);
+  
+    // const controlCustomers = this.getControl('customersTable');
+
+
+
+
+
+    // this.getControl('customersTable').value.map(customer=>{
+    //   const control = <UntypedFormArray>customer.products;
+    //   if(customer.is_payer){
+    //     console.log('Payer: ', customer.name);
+    //     control.push(this.formingProductRowFromMainBlock(product));
+    //   }
+    // });
+
+    this.formBaseInformation.get('customersTable').value.map(customer=>{
+      // const control = <UntypedFormArray>customer.products;
+      if(customer.is_payer){
+        console.log('Payer: ', customer.name);
+        // customer.products.push(this.formingProductRowFromMainBlock(product,customer.row_id));
+        const control = <UntypedFormArray>this.formBaseInformation.get('appointmentsProductTable');
+        control.push(this.formingProductRowFromMainBlock(product,customer.row_id));
+      }
+    });
+    
+
+  }
+
+  
+  formingProductRowFromMainBlock(product: ProductSearchResponse, customerRowId:number) {
+    return this._fb.group({
+      customerRowId:customerRowId,
+      id: new UntypedFormControl (product.id,[]),
+      appointment_id: new UntypedFormControl (+this.id,[]),
+      name: new UntypedFormControl (product.name,[]),
+      product_count: new UntypedFormControl (1,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$'), ValidationService.countMoreThanZero]),
+      edizm: new UntypedFormControl (product.edizm,[]),
+      edizm_id:  new UntypedFormControl (product.edizm_id,[]),
+      product_price:  new UntypedFormControl (this.numToPrice(product.priceOfTypePrice,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')/*,ValidationService.priceMoreThanZero*/]),
+      product_price_of_type_price: new UntypedFormControl (product.priceOfTypePrice,[]),
+      product_sumprice: new UntypedFormControl (this.numToPrice(product.priceOfTypePrice,2),[]),
+      available:  new UntypedFormControl ((product.total)-(product.reserved),[]),
+      price_type_id: [this.default_type_price_id],
+      nds_id: new UntypedFormControl (product.nds_id,[]),
+      total: new UntypedFormControl (product.total,[]),
+      department_id: new UntypedFormControl (this.formBaseInformation.get('department_id').value,[]), //id отделения, выбранного в форме поиска 
+      is_material:  new UntypedFormControl (product.is_material,[]), //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
+      //---------------------------------
+      // department: new UntypedFormControl (product.department,[]), //имя отделения, выбранного в форме поиска 
+      // shipped:  new UntypedFormControl (product.shipped,[]),
+      // ppr_name_api_atol:  new UntypedFormControl (product.ppr_name_api_atol,[]), //Признак предмета расчета в системе Атол
+      // price_type:  new UntypedFormControl (product.price_type,[]),
+      // edizm_type_id: new UntypedFormControl (product.edizm_type_id,[]),
+      // edizm_multiplier:new UntypedFormControl (product.edizm_multiplier,[]),
+    });
+  }
+
+  loadMainImage(){
+    if(this.productImageName!=null){
+      this.getImageService('/api/auth/getFileImageThumb/' + this.productImageName).subscribe(blob => {
+        this.createImageFromBlob(blob);
+      });
+    } 
+  }
+  showImage(name:string){
+    if(this.productImageName!=null){
+      // console.log("productImageName - "+this.productImageName);
+      const dialogRef = this.ShowImageDialog.open(ShowImageDialog, {
+        data:
+        { 
+          link: name,
+        },
+      });
+    }
+  }
+  getImageService(imageUrl: string): Observable<Blob> {
+    return this.http.get(imageUrl, {responseType: 'blob'});
+  }
+  createImageFromBlob(image: Blob) {
+    let reader = new FileReader();
+    reader.addEventListener("load", () => {
+        this.imageToShow = reader.result;
+    }, false);
+    if (image) {
+        reader.readAsDataURL(image);
+    }
+  }
+  //--------------------------------------- **** Конец поиска по подстроке для товара  ***** ------------------------------------
   //загрузка настроек
   getSettings(){
     // alert(3)
@@ -1044,7 +1323,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   //при стирании наименования полностью нужно удалить id покупателя в скрытьм поле cagent_id 
   checkEmptyCagentField(){
     // if(this.searchCustomerCtrl.value.length==0){
-      this.formCustomerSearch.get('customer_id').setValue(null);
+      this.formCustomerSearch.get('id').setValue(null);
       // this.formExpansionPanelsString();
   // }
   };     
@@ -1092,7 +1371,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
                   this.getDepartmentsList();//отделения
                   this.getStatusesList();//статусы документа Заказ покупателя
                   this.hideOrShowNdsColumn();//расчет прятать или показывать колонку НДС
-                  this.getSpravTaxes(this.formBaseInformation.get('company_id').value);//загрузка налогов
+                  this.getSpravTaxes();//загрузка налогов
                   this.fillCustomersObjectListFromApiResponse(documentValues.customersTable);
                   this.loadFilesInfo();
                   this.cheque_nds=documentValues.nds;//нужно ли передавать в кассу (в чек) данные об НДС 
@@ -1193,13 +1472,13 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     return b > 0 ? (a + "0".repeat(b)) : a;
   }
 
-  hideOrShowNdsColumn(){
-    if(this.formBaseInformation.get('nds').value){
-      this.displayedColumns = ['select','name','product_count','edizm','product_price','product_sumprice','reserved_current','available','total','reserved','shipped','price_type','nds','department',/*'id','row_id','indx',*/'delete'];
-    } else {
-      this.displayedColumns = ['select','name','product_count','edizm','product_price','product_sumprice','reserved_current','available','total','reserved','shipped','price_type','department',/*'id','row_id','indx',*/'delete'];
-    }
-  }
+  // hideOrShowNdsColumn(){
+  //   if(this.formBaseInformation.get('nds').value){
+  //     this.displayedColumns = ['select','name','product_count','edizm','product_price','product_sumprice','reserved_current','available','total','reserved','shipped','price_type','nds','department',/*'id','row_id','indx',*/'delete'];
+  //   } else {
+  //     this.displayedColumns = ['select','name','product_count','edizm','product_price','product_sumprice','reserved_current','available','total','reserved','shipped','price_type','department',/*'id','row_id','indx',*/'delete'];
+  //   }
+  // }
 
   getControlTablefield(){
     const control = <UntypedFormArray>this.formBaseInformation.get('appointmentsProductTable');
@@ -1271,8 +1550,8 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
           if(response.fail_to_reserve>0){//если у 1 или нескольких позиций резервы при сохранении были отменены
             this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.res_not_saved')}});
           }
-          this.productSearchAndTableComponent.parentDocId=response.id;
-          this.productSearchAndTableComponent.getProductsTable();
+          this.productSearchAndTableByCustomersComponent.parentDocId=response.id;
+          this.productSearchAndTableByCustomersComponent.getProductsTable();
           this.rightsDefined=false; //!!!
           this.getData();        
         //создание документа было не успешным
@@ -1354,9 +1633,9 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
                 this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                 this.formBaseInformation.get('is_completed').setValue(false);
                 this.is_completed=false;
-                if(this.productSearchAndTableComponent){
-                  this.productSearchAndTableComponent.hideOrShowNdsColumn(); //чтобы показать столбцы после отмены проведения 
-                  this.productSearchAndTableComponent.getProductsTable();
+                if(this.productSearchAndTableByCustomersComponent){
+                  this.productSearchAndTableByCustomersComponent.hideOrShowNdsColumn(); //чтобы показать столбцы после отмены проведения 
+                  this.productSearchAndTableByCustomersComponent.getProductsTable();
                 }
               }
             }
@@ -1371,7 +1650,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     this.getProductsTable();    
     let currentStatus:number=this.formBaseInformation.get('status_id').value;
     if(complete){
-      if(this.productSearchAndTableComponent.getProductTable().length==0){
+      if(this.productSearchAndTableByCustomersComponent.getProductTable().length==0){
         this.oneClickSaveControl=false;
         this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.no_prods')}});      
         return;
@@ -1406,16 +1685,16 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
               if(complete) {
                 this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с завершением - окончательно устанавливаем признак завершенности = true
                 this.is_completed=true;
-                if(this.productSearchAndTableComponent){
-                  this.productSearchAndTableComponent.readonly=true;// иначе эта переменная не успеет измениться через @Input и следующие 2 строки не выполнятся                  
-                  this.productSearchAndTableComponent.hideOrShowNdsColumn(); //чтобы спрятать столбцы чекбоксов и удаления строк в таблице товаров
-                  this.productSearchAndTableComponent.tableNdsRecount();
+                if(this.productSearchAndTableByCustomersComponent){
+                  this.productSearchAndTableByCustomersComponent.readonly=true;// иначе эта переменная не успеет измениться через @Input и следующие 2 строки не выполнятся                  
+                  this.productSearchAndTableByCustomersComponent.hideOrShowNdsColumn(); //чтобы спрятать столбцы чекбоксов и удаления строк в таблице товаров
+                  this.productSearchAndTableByCustomersComponent.tableNdsRecount();
                 }
                 if(this.settingsForm.get('statusIdOnAutocreateOnCheque').value){// если в настройках есть "Статус при завершении" - выставим его
                   this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnAutocreateOnCheque').value);}
                 this.setStatusColor();//чтобы обновился цвет статуса
               }
-              this.productSearchAndTableComponent.getProductsTable();
+              this.productSearchAndTableByCustomersComponent.getProductsTable();
               this.getData();            
             //сохранение было не успешным
             } else {
@@ -1447,8 +1726,8 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   getProductsTable(){
     const control = <UntypedFormArray>this.formBaseInformation.get('appointmentsProductTable');
     control.clear();
-    if(this.productSearchAndTableComponent)// т.к. может стоять опция "Автосоздание", и при начальном создании таблицы с товарами еще не будет
-      this.productSearchAndTableComponent.getProductTable().forEach(row=>{
+    if(this.productSearchAndTableByCustomersComponent)// т.к. может стоять опция "Автосоздание", и при начальном создании таблицы с товарами еще не будет
+      this.productSearchAndTableByCustomersComponent.getProductTable().forEach(row=>{
         control.push(this.formingProductRowFromApiResponse(row));
       });
   }
@@ -1511,14 +1790,14 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     //     this.saveSettingsappointments();
  
     //     // если это новый документ, и ещё нет выбранных товаров - применяем настройки 
-    //     if(+this.id==0 && this.productSearchAndTableComponent.getProductTable().length==0)  {
+    //     if(+this.id==0 && this.productSearchAndTableByCustomersComponent.getProductTable().length==0)  {
     //         //если в настройках сменили предприятие - нужно сбросить статусы, чтобы статус от предыдущего предприятия не прописался в актуальное
     //         if(+this.settingsForm.get('companyId').value!= +this.formBaseInformation.get('company_id').value) 
     //         this.resetStatus();
     //       this.getData();
     //     }
     //     //чтобы настройки применились к модулю Поиск и добавление товара"
-    //     this.productSearchAndTableComponent.applySettings(result);
+    //     this.productSearchAndTableByCustomersComponent.applySettings(result);
     //   }
     // });
   }
@@ -1544,9 +1823,9 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
-  getSpravTaxes(companyId:number){
+  getSpravTaxes(){
     // alert(4)
-      this.loadSpravService.getSpravTaxes(companyId)
+      this.loadSpravService.getSpravTaxes(this.formBaseInformation.get('company_id').value)
         .subscribe((data) => {
           this.spravTaxesSet=data as any[];
           this.necessaryActionsBeforeGetChilds();
@@ -1660,10 +1939,10 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
 
   // sendingProductsTableHandler() {
     // this.kkmComponent.productsTable=[];
-    // this.productSearchAndTableComponent.getProductTable().forEach(row=>{
+    // this.productSearchAndTableByCustomersComponent.getProductTable().forEach(row=>{
     //   this.kkmComponent.productsTable.push(row);
     // });
-    // this.kkmComponent.productsTable=this.productSearchAndTableComponent.getProductTable();
+    // this.kkmComponent.productsTable=this.productSearchAndTableByCustomersComponent.getProductTable();
   // }
 
   
@@ -1696,23 +1975,54 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
                       this.department_type_price_id=setOfTypePrices.department_type_price_id;
                       this.cagent_type_price_id=setOfTypePrices.cagent_type_price_id;
                       this.default_type_price_id=setOfTypePrices.default_type_price_id;
-                      if(this.canGetChilds){
-                        // this.productSearchAndTableComponent.department_type_price_id=setOfTypePrices.department_type_price_id;
-                        // this.productSearchAndTableComponent.cagent_type_price_id=setOfTypePrices.cagent_type_price_id;
-                        // this.productSearchAndTableComponent.default_type_price_id=setOfTypePrices.default_type_price_id;
-                        // this.productSearchAndTableComponent.setCurrentTypePrice();//если сменили отделение - нужно проверить, есть ли у него тип цены. И если нет - в вызываемом методе выведется предупреждение для пользователя
+                      if(this.canGetChilds && this.productSearchAndTableByCustomersComponent){
+                        this.productSearchAndTableByCustomersComponent.department_type_price_id=setOfTypePrices.department_type_price_id;
+                        this.productSearchAndTableByCustomersComponent.cagent_type_price_id=setOfTypePrices.cagent_type_price_id;
+                        this.productSearchAndTableByCustomersComponent.default_type_price_id=setOfTypePrices.default_type_price_id;
+                        this.productSearchAndTableByCustomersComponent.setCurrentTypePrice();//если сменили отделение - нужно проверить, есть ли у него тип цены. И если нет - в вызываемом методе выведется предупреждение для пользователя
                       } 
                         
                       if(!this.canGetChilds && this.id==0) 
                         this.checkAnyCases();
 
-                      // this.necessaryActionsBeforeGetChilds(); 
+                      this.necessaryActionsBeforeGetChilds(); 
                   },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
       );
 
   }
+  getCustomersListForAppointment(){
+    return this.http.get('/api/auth/getCustomersListForAppointment?'+
+    'company_id='+this.formBaseInformation.get('company_id').value+
+    '&department_part_id='+(+this.formBaseInformation.get('department_part_id').value)+
+    '&jobtitle_id='+(+this.formBaseInformation.get('department_part_id').value)+
+    'date_start='+this.formBaseInformation.get('date_start').value+
+    'date_end='+this.formBaseInformation.get('date_end').value+
+    'time_start='+this.formBaseInformation.get('time_start').value+
+    'time_end='+this.formBaseInformation.get('time_end').value  
+  )
+      .subscribe(
+          (data) => {   
+                      const setOfTypePrices=data as any;
+                      this.department_type_price_id=setOfTypePrices.department_type_price_id;
+                      this.cagent_type_price_id=setOfTypePrices.cagent_type_price_id;
+                      this.default_type_price_id=setOfTypePrices.default_type_price_id;
+                      if(this.canGetChilds && this.productSearchAndTableByCustomersComponent){
+                        this.productSearchAndTableByCustomersComponent.department_type_price_id=setOfTypePrices.department_type_price_id;
+                        this.productSearchAndTableByCustomersComponent.cagent_type_price_id=setOfTypePrices.cagent_type_price_id;
+                        this.productSearchAndTableByCustomersComponent.default_type_price_id=setOfTypePrices.default_type_price_id;
+                        this.productSearchAndTableByCustomersComponent.setCurrentTypePrice();//если сменили отделение - нужно проверить, есть ли у него тип цены. И если нет - в вызываемом методе выведется предупреждение для пользователя
+                      } 
+                        
+                      if(!this.canGetChilds && this.id==0) 
+                        this.checkAnyCases();
 
+                      this.necessaryActionsBeforeGetChilds(); 
+                  },
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
+      );
+
+  }
   //создание нового документа Заказ покупателя
   goToNewDocument(){
     this._router.navigate(['ui/appointmentsdoc',0]);
@@ -1735,8 +2045,8 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     this.getData();
   }
   clearFormSearchAndProductTable(){
-    this.productSearchAndTableComponent.resetFormSearch();
-    this.productSearchAndTableComponent.getControlTablefield().clear();
+    this.productSearchAndTableByCustomersComponent.resetFormSearch();
+    this.productSearchAndTableByCustomersComponent.getControlTablefield().clear();
   }
   resetStatus(){
     this.formBaseInformation.get('status_id').setValue(null);
@@ -1762,6 +2072,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   }
   
   trackByIndex(i) { return i; }
+  trackByCustomerProductsIndex(i) { return i; }
   // getCustomersList(){ 
   //   return this.http.get('/api/auth/getCustomersList?company_id='+this.formBaseInformation.get('company_id').value)
   //     .subscribe(
@@ -1776,7 +2087,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     this.displayedCustomersColumns=[];
     // if(this.editability)
         // this.displayedCustomersColumns.push('select');
-        this.displayedCustomersColumns.push('customer_id');
+        this.displayedCustomersColumns.push('id');
         // this.displayedCustomersColumns.push('row_id');
         this.displayedCustomersColumns.push('name');
         this.displayedCustomersColumns.push('email');
@@ -1787,13 +2098,29 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       this.displayedCustomersColumns.push('delete');
   }
 
+  hideOrShowNdsColumn(){
+    this.displayedCustomerProductsColumns=[];
+    // if(this.editability)
+    //     this.displayedCustomerProductsColumns.push('select');
+    this.displayedCustomerProductsColumns.push('name'/*,'product_count','product_price','product_sumprice'*/);
+    // this.displayedCustomerProductsColumns.push('reserved_current');
+    // this.displayedCustomerProductsColumns.push('available','total','reserved');
+    // this.displayedCustomerProductsColumns.push('shipped');
+    // this.displayedCustomerProductsColumns.push('price_type');
+    // if(this.formBaseInformation.get('nds').value)
+    //   this.displayedCustomerProductsColumns.push('nds');
+    // this.displayedCustomerProductsColumns.push('department');
+    // if(this.editability)
+    //   this.displayedCustomerProductsColumns.push('delete');
+  }
+
   clearCustomersTable(): void {
     const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
       width: '400px',data:{head: translate('docs.msg.prod_list_cln'),warning: translate('docs.msg.prod_list_qry'),query: ''},});
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
-        this.getControl('productCustomersTable').clear();
-        // this.formBaseInformation.get('productCustomersTable').clear();
+        this.getControl('customersTable').clear();
+        // this.formBaseInformation.get('customersTable').clear();
       }});  
   }
   refreshCustomerTableColumns(){
@@ -1814,7 +2141,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     });
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
-        const control = <UntypedFormArray>this.formBaseInformation.get('productCustomersTable');
+        const control = <UntypedFormArray>this.formBaseInformation.get('customersTable');
           control.removeAt(index);
           this.refreshCustomerTableColumns();//чтобы глючные input-поля в таблице встали на свои места. Это у Ангуляра такой прикол
       }
@@ -1823,9 +2150,9 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
 
 
   addExampleInfo(){
-    const control = <UntypedFormArray>this.formBaseInformation.get('productCustomersTable');
+    const control = <UntypedFormArray>this.formBaseInformation.get('customersTable');
     this.guests.map(guest=>{
-      control.push(this.formingCustomerRowFromExample(guest));
+      control.push(this.formingCustomerRow(guest));
     });
 
     // setTimeout(() => { 
@@ -1833,32 +2160,33 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     // }, 10);
   }
 
-  formingCustomerRowFromExample(guest:any) {
+  formingCustomerRow(guest:any) {
     return this._fb.group({
-      customer_id: new UntypedFormControl (guest.customer_id,[]),
+      id: new UntypedFormControl (guest.id,[]),
       row_id:     [this.getCustomerRowId()],
       is_payer:   new UntypedFormControl (guest.is_payer,[]),
       name:       new UntypedFormControl (guest.name,[]),
       email:      new UntypedFormControl (guest.email,[]),
       telephone:  new UntypedFormControl (guest.telephone,[]),
       child:      new UntypedFormControl (guest.child,[]),
+      // products:   new UntypedFormArray   ([]),//массив с услугами клиента / array of customer's services
     });
   }
 
   addCustomerRow() 
   { 
     // let thereSamePart:boolean=false;
-    // this.formBaseInformation.value.productCustomersTable.map(i => 
+    // this.formBaseInformation.value.customersTable.map(i => 
     // { // Cписок не должен содержать одинаковые ресурсы. Тут проверяем на это
       // Table shouldn't contain the same customers. Here is checking about it
-      // if(+i['customer_id']==this.formCustomerSearch.get('customer_id').value)
+      // if(+i['id']==this.formCustomerSearch.get('id').value)
       // {
         // this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('modules.msg.record_in_list'),}});
         // thereSamePart=true; 
       // }
     // });
     // if(!thereSamePart){
-      const control = <UntypedFormArray>this.formBaseInformation.get('productCustomersTable');
+      const control = <UntypedFormArray>this.formBaseInformation.get('customersTable');
       control.push(this.formingCustomerRowFromSearchForm());
     // }
      this.resetFormCustomerSearch();//подготовка формы поиска к дальнейшему вводу товара
@@ -1866,20 +2194,21 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
 
   formingCustomerRowFromSearchForm() {
     return this._fb.group({
-      customer_id: new UntypedFormControl (this.formCustomerSearch.get('customer_id').value,[]),
+      id: new UntypedFormControl (this.formCustomerSearch.get('id').value,[]),
       row_id:     [this.getCustomerRowId()],
-      is_payer:   new UntypedFormControl (this.formBaseInformation.get('productCustomersTable').value.length>0?false:true),
+      is_payer:   new UntypedFormControl (this.formBaseInformation.get('customersTable').value.length>0?false:true),
       name:       new UntypedFormControl (this.searchCustomerCtrl.value,[]),
       email:      new UntypedFormControl (this.formCustomerSearch.get('email').value,[]),
       telephone:  new UntypedFormControl (this.formCustomerSearch.get('telephone').value,[]),
       child:      new UntypedFormControl (false,[]),
+      products:   new UntypedFormControl ([],[])
     });
   }
 
   fillCustomersObjectListFromApiResponse(customersArray:any[]){
-    this.getControl('productCustomersTable').clear();
+    this.getControl('customersTable').clear();
     if(customersArray.length>0){
-      const control = <UntypedFormArray>this.formBaseInformation.get('productCustomersTable');
+      const control = <UntypedFormArray>this.formBaseInformation.get('customersTable');
       customersArray.forEach(row=>{
         control.push(this.formingProductCustomerRow(row));
       });
@@ -1890,13 +2219,13 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   formingProductCustomerRow(row: any) {
     return this._fb.group({
       row_id: [this.getCustomerRowId()],// row_id нужен для идентифицирования строк у которых нет id (например из только что создали и не сохранили)
-      customer_id: new UntypedFormControl (row.customer_id,[]),
+      id: new UntypedFormControl (row.id,[]),
       name: new UntypedFormControl (row.name,[]),
       description: new UntypedFormControl (row.description,[]),      
     });
   }
   resetFormCustomerSearch(){
-    this.formCustomerSearch.get('customer_id').setValue(null);
+    this.formCustomerSearch.get('id').setValue(null);
     this.formCustomerSearch.get('telephone').setValue('');
     this.formCustomerSearch.get('email').setValue('');
     this.searchCustomerCtrl.reset();
@@ -2020,8 +2349,8 @@ deleteFile(id:number){ //+++
       if(docname=='Paymentin'||docname=='Orderin'){
         this.formLinkedDocs.get('payment_account_id').setValue(null);//id расчтёного счёта      
         this.formLinkedDocs.get('boxoffice_id').setValue(null);
-        this.formLinkedDocs.get('summ').setValue(this.productSearchAndTableComponent.totalProductSumm)
-        this.formLinkedDocs.get('nds').setValue(this.productSearchAndTableComponent.getTotalNds());
+        this.formLinkedDocs.get('summ').setValue(this.productSearchAndTableByCustomersComponent.totalProductSumm)
+        this.formLinkedDocs.get('nds').setValue(this.productSearchAndTableByCustomersComponent.getTotalNds());
       }
 
       if(docname!=='Paymentin'&&docname!=='Orderin')// для данных документов таблица с товарами не нужна
@@ -2097,8 +2426,8 @@ deleteFile(id:number){ //+++
   getRetailSalesProductsTable(){
     let retailSalesProductTable: Array <RetailSalesProductTable> =[];
     let canAddRow: boolean;
-    this.productSearchAndTableComponent.getProductTable().forEach(row=>{
-      if(this.productSearchAndTableComponent.checkedList.length>0){  //если есть выделенные чекбоксами позиции - надо взять только их, иначе берем все позиции
+    this.productSearchAndTableByCustomersComponent.getProductTable().forEach(row=>{
+      if(this.productSearchAndTableByCustomersComponent.checkedList.length>0){  //если есть выделенные чекбоксами позиции - надо взять только их, иначе берем все позиции
         canAddRow=this.isRowInCheckedList(row.row_id)
       }
       else canAddRow=true;
@@ -2128,7 +2457,7 @@ deleteFile(id:number){ //+++
   }
   isRowInCheckedList(rowId):boolean{
     let result:boolean = false;
-    this.productSearchAndTableComponent.checkedList.forEach(i=>{
+    this.productSearchAndTableByCustomersComponent.checkedList.forEach(i=>{
       if(i==rowId)
         result=true;
     });
@@ -2142,8 +2471,8 @@ deleteFile(id:number){ //+++
     methodNameProductTable=this.commonUtilites.getMethodNameByDocAlias(docname);
     const control = <UntypedFormArray>this.formLinkedDocs.get(methodNameProductTable);
     control.clear();
-    this.productSearchAndTableComponent.getProductTable().forEach(row=>{
-      if(this.productSearchAndTableComponent.checkedList.length>0){  //если есть выделенные чекбоксами позиции - надо взять только их, иначе берем все позиции
+    this.productSearchAndTableByCustomersComponent.getProductTable().forEach(row=>{
+      if(this.productSearchAndTableByCustomersComponent.checkedList.length>0){  //если есть выделенные чекбоксами позиции - надо взять только их, иначе берем все позиции
         canAddRow=this.isRowInCheckedList(row.row_id)
       }
       else canAddRow=true;
@@ -2166,7 +2495,7 @@ deleteFile(id:number){ //+++
   }
   // можно ли создать связанный документ (да - если есть товары, подходящие для этого)
   canCreateLinkedDoc(docname:string):CanCreateLinkedDoc{
-    if(!(this.productSearchAndTableComponent && this.productSearchAndTableComponent.getProductTable().length>0)){
+    if(!(this.productSearchAndTableByCustomersComponent && this.productSearchAndTableByCustomersComponent.getProductTable().length>0)){
       return {can:false, reason:translate('docs.msg.cnt_crt_items',{name:translate('docs.docs.'+this.commonUtilites.getDocNameByDocAlias(docname))})};
     }else
       return {can:true, reason:''};
@@ -2321,7 +2650,7 @@ deleteFile(id:number){ //+++
 
   get payersCnt(){
     let result = 0;
-    this.formBaseInformation.controls.productCustomersTable.value.map(row=>{
+    this.formBaseInformation.controls.customersTable.value.map(row=>{
       if(row.is_payer)
         result++;
     })
@@ -2330,12 +2659,12 @@ deleteFile(id:number){ //+++
   
   // refreshView(): void {
   //   setTimeout(() => { 
-  //     const control = this.getControl('productCustomersTable');
+  //     const control = this.getControl('customersTable');
   //     control.controls[0].get('is_payer').setValue(!control.controls[0].get('is_payer').value);
 
   //   }, 1);
   //   setTimeout(() => { 
-  //     const control = this.getControl('productCustomersTable');
+  //     const control = this.getControl('customersTable');
   //     control.controls[0].get('is_payer').setValue(!control.controls[0].get('is_payer').value);
   //   }, 2);
   // }
@@ -2343,7 +2672,14 @@ deleteFile(id:number){ //+++
   // [disabled] of slide toggle is not working in FormArray with formControlName. Possibility it is a bug.
   // so, I am setting it manually
   setIsPayerValue(index:number, value:boolean){
-    this.getControl('productCustomersTable').controls[index].get('is_payer').setValue(value);
+    this.getControl('customersTable').controls[index].get('is_payer').setValue(value);
+  }
+
+  onDepartmentPartSelect(part_id:number, department_id:number){
+    this.formBaseInformation.get('department_id').setValue(department_id);
+    this.formBaseInformation.get('department').setValue(this.getDepartmentNameById(this.formBaseInformation.get('department_id').value));
+    this.productSearchAndTableByCustomersComponent.formSearch.get('secondaryDepartmentId').setValue(department_id);
+    this.getSetOfTypePrices();
   }
 
 

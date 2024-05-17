@@ -393,3 +393,62 @@ div#costPrice input {
 #customers_table th:last-child, #customers_table td:last-child{
     padding: 0 8px !important;
 }
+
+@media (min-width: 1200px) {
+    #time_from, #time_to {
+        padding-left: 0px;
+    }
+  }
+  ::ng-deep #date_from .mat-mdc-text-field-wrapper, ::ng-deep  #date_to .mat-mdc-text-field-wrapper{
+    overflow: visible !important; /* for Start and End date field name not be cutted*/
+}
+
+table {
+    width: 100%;
+  }
+  
+  tr.example-detail-row {
+    height: 0;
+  }
+  
+  tr.example-element-row:not(.example-expanded-row):hover {
+    background: whitesmoke;
+  }
+  
+  tr.example-element-row:not(.example-expanded-row):active {
+    background: #efefef;
+  }
+  
+  .example-element-row td {
+    border-bottom-width: 0;
+  }
+  
+  .example-element-detail {
+    overflow: hidden;
+    display: flex;
+  }
+  
+  .example-element-diagram {
+    min-width: 80px;
+    border: 2px solid black;
+    padding: 8px;
+    font-weight: lighter;
+    margin: 8px 0;
+    height: 104px;
+  }
+  
+  .example-element-symbol {
+    font-weight: bold;
+    font-size: 40px;
+    line-height: normal;
+  }
+  
+  .example-element-description {
+    padding: 16px;
+  }
+  
+  .example-element-description-attribution {
+    opacity: 0.5;
+  }
+
+  

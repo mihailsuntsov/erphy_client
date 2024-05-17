@@ -520,3 +520,17 @@ table input[readonly="true"] {
 .timepicker-backdrop-overlay {
 z-index: 10000000 !important;
 }
+/* 
+.mat-mdc-slide-toggle {
+  --mdc-switch-selected-handle-color: #ffbb1c !important;
+  --mdc-switch-selected-pressed-handle-color: #ffbb1c !important;
+  --mdc-switch-selected-pressed-state-layer-color: #ffbb1c !important;
+  --mdc-switch-selected-hover-state-layer-color: #ffbb1c !important;
+  --mdc-switch-selected-hover-handle-color: #ffbb1c !important;
+  --mdc-switch-selected-focus-state-layer-color: #ffbb1c !important;
+  --mdc-switch-selected-focus-handle-color: #ffbb1c !important;
+  --mdc-switch-selected-track-color: #e0e0e0 !important;
+  --mdc-switch-selected-pressed-track-color: #e0e0e0 !important;
+  --mdc-switch-selected-hover-track-color: #e0e0e0 !important;
+  --mdc-switch-selected-focus-track-color: #e0e0e0 !important;
+} */

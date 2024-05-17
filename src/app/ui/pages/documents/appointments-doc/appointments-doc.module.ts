@@ -8,7 +8,7 @@ import { TemplatesDialogModule } from '../../../../modules/settings/templates-di
 import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 // import { SettingsAppointmentsDialogModule } from '../../../../modules/settings/settings-customersorders-dialog/settings-customersorders-dialog.module';
-import { ProductSearchAndTableModule } from 'src/app/modules/trade-modules/product-search-and-table/product-search-and-table.module';
+import { ProductSearchAndTableByCustomersModule } from 'src/app/modules/trade-modules/product-search-and-table-by-customers/product-search-and-table-by-customers.module';
 import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.module';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 // import { KkmModule } from 'src/app/modules/trade-modules/kkm/kkm.module';
@@ -21,7 +21,7 @@ import {NgxMaterialTimepickerModule} from 'ngx-material-timepicker';
     AppointmentsDocRoutingModule,
     TemplatesDialogModule,
     // SettingsAppointmentsDialogModule,
-    ProductSearchAndTableModule,
+    ProductSearchAndTableByCustomersModule,
     BalanceCagentModule,
     // KkmModule,
   //

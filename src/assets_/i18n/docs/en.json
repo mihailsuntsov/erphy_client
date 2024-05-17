@@ -59,7 +59,8 @@
         "agreement":    "Agreement",
         "str_ordr_taken":"Online store order accepted",
         "str_ordr_done":"Your online store is ready!",
-        "ready":"Ready"
+        "ready":"Ready",
+        "resource_parts_qtt":"Quantity of resource in parts of departments"
     },
     "field":{ 
         "-- COMMON":"--",
@@ -244,6 +245,9 @@
         "lv_extd_sites":"Language version of existed site",
         "preparing":"Preparing",
         "d_fact_qtt":   "Default actual in-stock balance",
+        "dt_tm_start":"Start date and time",
+        "dt_tm_end":"End date and time",
+        "dep_part":"Part of the department",
 
         "-- SELL REGICTERS ":"--",
 
@@ -358,6 +362,7 @@
         "is_let_sync":  "Connection allowed",
         "dep_parts":"Department parts",
         "job_titles":"Job titles",
+        "job_title":"Job title",
         "is_paid":"Paid",
         "payment_per_day":"Payment in one day",
         "dep_empl":"Departments of employee",

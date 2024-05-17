@@ -180,7 +180,31 @@ export class CalendarComponent implements OnInit {
   breaks: Break[] = [];
   currentMonthDaysArray: Day[] = []; // days in the head of table to construct view for depparts-and-resources component
 
+
+
+
+
+
+
+
+
+
+
+
+
+  // formBaseInformation: UntypedFormGroup;
+  // guests = [
+  //   { id: 1, name: "John", is_payer: true },
+  //   { id: 2, name: "Alisa", is_payer: false },
+  //   { id: 3, name: "Bob", is_payer: false }
+  // ];
+  // displayedCustomersColumns:string[] = ['id', 'name', 'is_payer'];
+
+
+
+
   constructor(
+    private _fb: UntypedFormBuilder,
     private httpService:   LoadSpravService,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
@@ -233,6 +257,22 @@ export class CalendarComponent implements OnInit {
       //   this.changeDateMatCalendar(new Date());
       //   this.refreshView();
       // }, 1);
+
+
+
+
+
+
+
+
+
+
+
+
+      // this.formBaseInformation = new UntypedFormGroup({
+      //   customersTable: new UntypedFormArray   ([])
+      // });
+      // this.addExampleInfo();
     }
 
   getAlternateDay(date:Date){
@@ -851,7 +891,9 @@ export class CalendarComponent implements OnInit {
         date:       date,
         company:    this.getCompanyNameById(this.queryForm.get('companyId').value),
         booking_doc_name_variation: this.booking_doc_name_variation,
-        locale:     this.locale
+        locale:     this.locale,
+        jobtitles:            this.receivedJobtitlesList,
+        departmentsWithParts: this.receivedDepartmentsWithPartsList,
       },
     });
     dialogRef.afterClosed().subscribe(result => {
@@ -960,4 +1002,47 @@ export class CalendarComponent implements OnInit {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+  /*
+  addExampleInfo(){
+    const control = <UntypedFormArray>this.formBaseInformation.get('customersTable');
+    this.guests.map(guest=>{
+      control.push(this.formingCustomerRow(guest));
+    });
+  }
+
+  formingCustomerRow(guest:any) {
+    return this._fb.group({
+      customer_id: new UntypedFormControl (guest.customer_id,[]),
+      name:       new UntypedFormControl (guest.name,[]),
+      is_payer:   new UntypedFormControl (guest.is_payer,[]),
+    });
+  }
+
+  // trackByIndex(i:number) { return i; }
+
+  getControl(formControlName:string){
+    const control = <UntypedFormArray>this.formBaseInformation.get(formControlName);
+    return control;
+  }
+
+  get payersCnt(){
+    let result = 0;
+    this.formBaseInformation.controls.customersTable.value.map(row=>{
+      if(row.is_payer)
+        result++;
+    })
+    return result;
+  }*/
 }
