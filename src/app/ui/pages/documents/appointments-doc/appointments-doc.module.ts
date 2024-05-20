@@ -14,7 +14,7 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 // import { KkmModule } from 'src/app/modules/trade-modules/kkm/kkm.module';
 import {NgxMaterialTimepickerModule} from 'ngx-material-timepicker';
 
-@NgModule({
+@NgModule({ 
   declarations: [AppointmentsDocComponent, ControlMessagesComponent],
   imports: [
     CommonModule,

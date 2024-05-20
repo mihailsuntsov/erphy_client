@@ -179,6 +179,7 @@
         "tax":          "Tax",
         "sku":          "SKU",
         "prod_srch":    "Product search",
+        "srvc_srch":    "Service search",
         "input_name":   "Enter part of the product name, SKU or barcode",
         "count":        "Qty",
         "price":        "Price",

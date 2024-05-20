@@ -426,6 +426,7 @@ table {
   .example-element-detail {
     overflow: hidden;
     display: flex;
+    padding: 20px 10px 20px;
   }
   
   .example-element-diagram {
@@ -450,5 +451,7 @@ table {
   .example-element-description-attribution {
     opacity: 0.5;
   }
-
+  .hidden {
+    display: none;
+  }
   

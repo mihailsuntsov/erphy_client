@@ -405,11 +405,14 @@ need to add into providers:
   font-style: italic;
   margin-top: 2px;
 }
+table input {
+  font-family: Roboto, sans-serif;
+  font-size: 14px;
+}/* Editable inputs in product tables end */
 table input[readonly="true"] {
   outline: none!important;
   border-width: 0 !important;
 }/* Editable inputs in product tables end */
-
 /* Fields in a search form of product table */
 .mat-mdc-form-field-icon-suffix {
   margin-top: 13px;

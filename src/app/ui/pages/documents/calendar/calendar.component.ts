@@ -172,6 +172,7 @@ export class CalendarComponent implements OnInit {
   canDrawView=true;
   // dataLoadedFrom:string = ''; // dates to monitoring when need to refresh data
   // dataLoadedTo:string = '';
+  accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
 
 
   usersOfEvents:  User[]  = [];
@@ -238,6 +239,7 @@ export class CalendarComponent implements OnInit {
       this.getBaseData('companiesList');
       this.getBaseData('myDepartmentsList');
       this.getBaseData('timeFormat');
+      this.getBaseData('accountingCurrency');  
       // this.getBaseData('locale');
       // this.onClickTodayButton();
       this.getCompaniesList();
@@ -895,6 +897,26 @@ export class CalendarComponent implements OnInit {
         jobtitles:            this.receivedJobtitlesList,
         departmentsWithParts: this.receivedDepartmentsWithPartsList,
       },
+    });
+    dialogRef.componentInstance.baseData.subscribe((data) => {
+      let query=data as string;
+      switch (query) {
+      //   case 'myId': {
+      //     dialogRef.componentInstance.myId=this.myId;;
+      //     break;}
+      //   case 'myCompanyId': {
+      //     dialogRef.componentInstance.myCompanyId=this.myCompanyId;
+      //     break;}          
+      //   case 'companiesList': {
+      //     dialogRef.componentInstance.receivedCompaniesList=this.receivedCompaniesList;
+      //     break;}
+        case 'accountingCurrency':{
+          dialogRef.componentInstance.accountingCurrency=this.accountingCurrency;
+          break;}
+        case 'timeFormat':{
+          dialogRef.componentInstance.timeFormat=this.timeFormat;
+          break;}
+      }
     });
     dialogRef.afterClosed().subscribe(result => {
       console.log(`Dialog result: ${result}`);

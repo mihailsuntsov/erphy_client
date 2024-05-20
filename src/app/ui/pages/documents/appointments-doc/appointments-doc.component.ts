@@ -111,8 +111,10 @@ interface SpravTaxesSet{
   name: string;
   description: string;
   name_api_atol: string;
-  is_active: string;
-  calculated: string;
+  is_active: boolean;
+  calculated: boolean;
+  value:number;
+  multiplier:number;
 }
 interface CanCreateLinkedDoc{//интерфейс ответа на запрос о возможности создания связанного документа
   can:boolean;
@@ -362,7 +364,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   globalSettingsForm: any; // форма с общими настройками
   formLinkedDocs:any// Форма для отправки при создании Возврата покупателя
   expandedElement: any | null;
-
+  indivisibleErrorOfProductTable:boolean;// дробное кол-во товара при неделимом товаре в таблице товаров
 
 
   //для построения диаграмм связанности
@@ -394,6 +396,9 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   canCagentAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredCustomers: any;
   searchCustomerCtrl = new UntypedFormControl();//поле для поиска клиентов
+  totalNds = new Map(); //  total Tax for each client in format "row_id - tax"
+  totalProductSumm = new Map(); //  total sum for each client in format "row_id - tax"
+  mainProduct: ProductSearchResponse; // хранение инфориации о главной услуге
   guests:any[]=[
     {
       "id": null,
@@ -639,10 +644,9 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     this.getBaseData('myId');    
     this.getBaseData('myCompanyId');  
     this.getBaseData('companiesList');  
-    this.getBaseData('myDepartmentsList');    
+    // this.getBaseData('myDepartmentsList');
     this.getBaseData('accountingCurrency');  
     this.getBaseData('timeFormat');
-
     console.log("locale = ",this.locale);
 
     if(this.data)//если документ вызывается в окне из другого документа
@@ -662,7 +666,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
 
 
 
-    this.hideOrShowNdsColumn();//формирование столбцов для таблицы товаров
+    
     this.getSetOfPermissions();//
     this.getMyId();
     this.getMyCompanyId();
@@ -789,6 +793,8 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
           result=data as CompanySettings;
           this.formBaseInformation.get('nds').setValue(result.vat);
           this.formBaseInformation.get('nds_included').setValue(result.vat_included);
+          this.hideOrShowNdsColumn();//формирование столбцов для таблицы товаров уже после того как определилось, есть ли налоги в предприятии
+                                     //forming of columns for the table of services and products after it has been determined whether there are taxes in the enterprise
         },
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
@@ -1000,7 +1006,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   //     this.formBaseInformation.get('cagent_id').enable();
   //     this.formBaseInformation.get('new_cagent').disable();
   //   }
-  //   this.searchCustomerCtrl.setValue('');
+    // this.searchCustomerCtrl.setValue('');
   //   this.formBaseInformation.get('new_cagent').setValue('');
   //   this.checkEmptyCagentField();
   // }
@@ -1073,6 +1079,67 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   resetProductFormSearch(){
     this.searchProductCtrl.reset();
     this.formBaseInformation.get('product_id').setValue(null);
+    this.deleteAllCustomersProducts(true);
+    this.getTotalSumPrice();
+  }
+  deleteAllCustomerProductsByRowId(row_id:number){
+    const control = this.getControlTablefield();
+    var i = control.controls.length;
+    while (i > 0) { 
+      i--;
+        if (control.at(i).get('customerRowId').value==row_id) {
+          control.removeAt(i);
+        }
+    }
+  }
+  deleteAllCustomersProducts(onlyMain:boolean){
+    const control = this.getControlTablefield();
+    var i = control.controls.length;
+    while (i > 0) { 
+      i--;
+      // console.log('i1',i)
+        if (!onlyMain || control.at(i).get('is_main').value) {
+          control.removeAt(i);
+        }
+      // console.log('i2',i)
+    }
+  }
+  deleteProductRow(row: RetailSalesProductTable,index:number) {
+    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {  
+      width: '400px',
+      data:
+      { 
+        head: translate('docs.msg.del_prod_item'),
+        warning: translate('docs.msg.del_prod_quer',{name:row.name})+'?',
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){
+        const control = this.getControlTablefield();
+        // console.log('Trying remove at ',index)
+        control.removeAt(index);
+        this.getTotalSumPrice();//чтобы пересчиталась сумма в чеке
+        this.refreshTableColumns();//чтобы глючные input-поля в таблице встали на свои места. Это у Ангуляра такой прикол
+        this.finishRecount(); // подсчёт тоталов в таблице
+      }
+    }); 
+  }
+  refreshTableColumns(){
+    this.displayedCustomerProductsColumns=[];
+    setTimeout(() => { 
+      this.hideOrShowNdsColumn();
+    }, 1);
+  }
+  clearCustomerProductsTable(row:any): void {
+    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+      width: '400px',data:{head: translate('docs.msg.prod_list_cln'),warning: translate('docs.msg.prod_list_qry'),query: ''},});
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){
+        // this.getControlTablefield().clear();
+        this.deleteAllCustomerProductsByRowId(row.row_id)
+        // console.log(console.log('row: ',JSON.stringify(row)));
+        this.getTotalSumPrice();//чтобы пересчиталась сумма в чеке
+      }});  
   }
   getEdizmNameBySelectedId(srchId:number):string {
     let name='';
@@ -1097,7 +1164,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     } else return [];
   }
   checkEmptyProductField(){
-    if(this.searchProductCtrl.value.length==0){
+    if(!this.searchProductCtrl.value || this.searchProductCtrl.value.length==0){
       this.resetProductFormSearch();
     }
   }; 
@@ -1144,8 +1211,9 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     // this.formSearch.get('is_material').setValue(product.is_material);
     // this.formSearch.get('reserved_current').setValue(product.reserved_current);
     // this.formSearch.get('indivisible').setValue(product.indivisible);              // неделимость (необходимо для проверки правильности ввода кол-ва товара)
+    this.mainProduct=product;
     this.productImageName = product.filename;
-    this.addMainProductToPayingCustomers(product);
+    this.addMainProductToPayingCustomers();
     this.afterSelectProduct();
   }
   
@@ -1158,7 +1226,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       // this.getProductsPriceAndRemains();
   }
 
-  addMainProductToPayingCustomers(product:ProductSearchResponse){
+  addMainProductToPayingCustomers(){
     // this.getControl('customersTable').controls[index].get('is_payer').setValue(value);
   
     // const controlCustomers = this.getControl('customersTable');
@@ -1174,39 +1242,56 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     //     control.push(this.formingProductRowFromMainBlock(product));
     //   }
     // });
-
-    this.formBaseInformation.get('customersTable').value.map(customer=>{
-      // const control = <UntypedFormArray>customer.products;
-      if(customer.is_payer){
-        console.log('Payer: ', customer.name);
-        // customer.products.push(this.formingProductRowFromMainBlock(product,customer.row_id));
-        const control = <UntypedFormArray>this.formBaseInformation.get('appointmentsProductTable');
-        control.push(this.formingProductRowFromMainBlock(product,customer.row_id));
-      }
-    });
-    
-
+    if(+this.formBaseInformation.get('product_id').value>0){
+      this.formBaseInformation.get('customersTable').value.map(customer=>{
+        if(customer.is_payer && !this.customerHasMainProduct(customer.row_id)){
+          console.log('Payer: ', customer.name);
+          const control = <UntypedFormArray>this.formBaseInformation.get('appointmentsProductTable');
+          control.push(this.formingProductRowFromMainBlock(customer.id,customer.row_id));
+        }
+      });
+      this.getTotalSumPrice();
+    }    
   }
 
+  customerHasMainProduct(customerRowId:number){
+    let has = false;
+    this.formBaseInformation.value.appointmentsProductTable.map(i =>{
+      if(i.is_main && i.customerRowId==customerRowId) has = true;
+    });
+    return has;
+  }
+
+  addMainProductToNewPayingCustomer(row_id:number, customer_id:number){
+    const control = <UntypedFormArray>this.formBaseInformation.get('appointmentsProductTable');
+    if(this.formBaseInformation.get('product_id').value && !this.customerHasMainProduct(row_id)){
+        control.push(this.formingProductRowFromMainBlock(customer_id,row_id)); 
+    }
+    this.getTotalSumPrice();
+  }
   
-  formingProductRowFromMainBlock(product: ProductSearchResponse, customerRowId:number) {
+  formingProductRowFromMainBlock(customerId:number, customerRowId:number) {
     return this._fb.group({
       customerRowId:customerRowId,
-      id: new UntypedFormControl (product.id,[]),
+      customerId:customerId,
+      product_id: new UntypedFormControl (this.mainProduct.id,[]),
       appointment_id: new UntypedFormControl (+this.id,[]),
-      name: new UntypedFormControl (product.name,[]),
+      name: new UntypedFormControl (this.mainProduct.name,[]),
       product_count: new UntypedFormControl (1,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$'), ValidationService.countMoreThanZero]),
-      edizm: new UntypedFormControl (product.edizm,[]),
-      edizm_id:  new UntypedFormControl (product.edizm_id,[]),
-      product_price:  new UntypedFormControl (this.numToPrice(product.priceOfTypePrice,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')/*,ValidationService.priceMoreThanZero*/]),
-      product_price_of_type_price: new UntypedFormControl (product.priceOfTypePrice,[]),
-      product_sumprice: new UntypedFormControl (this.numToPrice(product.priceOfTypePrice,2),[]),
-      available:  new UntypedFormControl ((product.total)-(product.reserved),[]),
+      edizm: new UntypedFormControl (this.mainProduct.edizm,[]),
+      edizm_id:  new UntypedFormControl (this.mainProduct.edizm_id,[]),
+      product_price:  new UntypedFormControl (this.numToPrice(this.mainProduct.priceOfTypePrice,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')/*,ValidationService.priceMoreThanZero*/]),
+      product_price_of_type_price: new UntypedFormControl (this.mainProduct.priceOfTypePrice,[]),
+      product_sumprice: new UntypedFormControl (this.numToPrice(this.mainProduct.priceOfTypePrice,2),[]),
+      available:  new UntypedFormControl ((this.mainProduct.total)-(this.mainProduct.reserved),[]),
       price_type_id: [this.default_type_price_id],
-      nds_id: new UntypedFormControl (product.nds_id,[]),
-      total: new UntypedFormControl (product.total,[]),
+      nds_id: new UntypedFormControl (this.mainProduct.nds_id,[]),
+      total: new UntypedFormControl (this.mainProduct.total,[]),
       department_id: new UntypedFormControl (this.formBaseInformation.get('department_id').value,[]), //id отделения, выбранного в форме поиска 
-      is_material:  new UntypedFormControl (product.is_material,[]), //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
+      is_material:  new UntypedFormControl (this.mainProduct.is_material,[]), //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
+      shipped:  new UntypedFormControl (0,[]),
+      indivisible:  new UntypedFormControl (this.mainProduct.indivisible,[]),
+      is_main:  new UntypedFormControl (true,[]), // Main product (service) of this appointment or reservation
       //---------------------------------
       // department: new UntypedFormControl (product.department,[]), //имя отделения, выбранного в форме поиска 
       // shipped:  new UntypedFormControl (product.shipped,[]),
@@ -1322,10 +1407,10 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   }
   //при стирании наименования полностью нужно удалить id покупателя в скрытьм поле cagent_id 
   checkEmptyCagentField(){
-    // if(this.searchCustomerCtrl.value.length==0){
-      this.formCustomerSearch.get('id').setValue(null);
+    if(this.searchCustomerCtrl.value.length==0){
+      this.resetFormCustomerSearch();
       // this.formExpansionPanelsString();
-  // }
+    }
   };     
 
   getDocumentValuesById(){
@@ -1398,10 +1483,10 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     this.getProductsTable();
     return (this.formBaseInformation.value.appointmentsProductTable.map(t => +t.product_count).reduce((acc, value) => acc + value, 0)).toFixed(3).replace(".000", "").replace(".00", "");
   }
-  getTotalSumPrice() {//бежим по столбцу product_sumprice и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
-    this.getProductsTable();
-    return (this.formBaseInformation.value.appointmentsProductTable.map(t => +t.product_sumprice).reduce((acc, value) => acc + value, 0)).toFixed(2);
-  }
+  // getTotalSumPrice() {//бежим по столбцу product_sumprice и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
+  //   this.getProductsTable();
+  //   return (this.formBaseInformation.value.appointmentsProductTable.map(t => +t.product_sumprice).reduce((acc, value) => acc + value, 0)).toFixed(2);
+  // }
 
   numberOnly(event): boolean {
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
@@ -1426,7 +1511,6 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     const control = <UntypedFormArray>this.formBaseInformation.get(formControlName);
     return control;
   }
-
   formingProductRowFromApiResponse(row: appointmentsProductTable) {
     return this._fb.group({
       id: new UntypedFormControl (row.id,[]),
@@ -1458,18 +1542,22 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   }
    //Конвертирует число в строку типа 0.00 например 6.40, 99.25
   numToPrice(price:number,charsAfterDot:number) {
-    //конертим число в строку и отбрасываем лишние нули без округления
-    const reg = new RegExp("^-?\\d+(?:\\.\\d{0," + charsAfterDot + "})?", "g")
-    const a = price.toString().match(reg)[0];
-    //находим положение точки в строке
-    const dot = a.indexOf(".");
-    // если число целое - добавляется точка и нужное кол-во нулей
-    if (dot === -1) { 
-        return a + "." + "0".repeat(charsAfterDot);
+    if(price != undefined){
+      //конертим число в строку и отбрасываем лишние нули без округления
+      const reg = new RegExp("^-?\\d+(?:\\.\\d{0," + charsAfterDot + "})?", "g")
+      // console.log('price',price)
+      // console.log('+price',+price)
+      const a = price.toString().match(reg)[0];
+      //находим положение точки в строке
+      const dot = a.indexOf(".");
+      // если число целое - добавляется точка и нужное кол-во нулей
+      if (dot === -1) { 
+          return a + "." + "0".repeat(charsAfterDot);
+      }
+      //елси не целое число
+      const b = charsAfterDot - (a.length - dot) + 1;
+      return b > 0 ? (a + "0".repeat(b)) : a;
     }
-    //елси не целое число
-    const b = charsAfterDot - (a.length - dot) + 1;
-    return b > 0 ? (a + "0".repeat(b)) : a;
   }
 
   // hideOrShowNdsColumn(){
@@ -2102,16 +2190,16 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     this.displayedCustomerProductsColumns=[];
     // if(this.editability)
     //     this.displayedCustomerProductsColumns.push('select');
-    this.displayedCustomerProductsColumns.push('name'/*,'product_count','product_price','product_sumprice'*/);
+    this.displayedCustomerProductsColumns.push('name','product_count','product_price','product_sumprice');
     // this.displayedCustomerProductsColumns.push('reserved_current');
     // this.displayedCustomerProductsColumns.push('available','total','reserved');
     // this.displayedCustomerProductsColumns.push('shipped');
-    // this.displayedCustomerProductsColumns.push('price_type');
-    // if(this.formBaseInformation.get('nds').value)
-    //   this.displayedCustomerProductsColumns.push('nds');
+    this.displayedCustomerProductsColumns.push('price_type');
+    if(this.formBaseInformation.get('nds').value)
+      this.displayedCustomerProductsColumns.push('nds');
     // this.displayedCustomerProductsColumns.push('department');
-    // if(this.editability)
-    //   this.displayedCustomerProductsColumns.push('delete');
+    if(this.editability)
+      this.displayedCustomerProductsColumns.push('delete');
   }
 
   clearCustomersTable(): void {
@@ -2120,8 +2208,8 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
         this.getControl('customersTable').clear();
-        // this.formBaseInformation.get('customersTable').clear();
-      }});  
+        this.deleteAllCustomersProducts(false);
+      }});
   }
   refreshCustomerTableColumns(){
     this.displayedCustomersColumns=[];
@@ -2142,8 +2230,9 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
         const control = <UntypedFormArray>this.formBaseInformation.get('customersTable');
-          control.removeAt(index);
-          this.refreshCustomerTableColumns();//чтобы глючные input-поля в таблице встали на свои места. Это у Ангуляра такой прикол
+        control.removeAt(index);
+        this.deleteAllCustomerProductsByRowId(row.row_id);
+        this.refreshCustomerTableColumns();//чтобы глючные input-поля в таблице встали на свои места. Это у Ангуляра такой прикол
       }
     }); 
   }
@@ -2175,6 +2264,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
 
   addCustomerRow() 
   { 
+    // this.customerHasBeenSearched=false;
     // let thereSamePart:boolean=false;
     // this.formBaseInformation.value.customersTable.map(i => 
     // { // Cписок не должен содержать одинаковые ресурсы. Тут проверяем на это
@@ -2188,8 +2278,9 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     // if(!thereSamePart){
       const control = <UntypedFormArray>this.formBaseInformation.get('customersTable');
       control.push(this.formingCustomerRowFromSearchForm());
+      this.addMainProductToPayingCustomers();
     // }
-     this.resetFormCustomerSearch();//подготовка формы поиска к дальнейшему вводу товара
+      this.resetFormCustomerSearch();//подготовка формы поиска к дальнейшему вводу товара
   }
 
   formingCustomerRowFromSearchForm() {
@@ -2225,9 +2316,13 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     });
   }
   resetFormCustomerSearch(){
+    console.log('resetFormCustomerSearch')
+    this.customerHasBeenSearched=false;
     this.formCustomerSearch.get('id').setValue(null);
     this.formCustomerSearch.get('telephone').setValue('');
     this.formCustomerSearch.get('email').setValue('');
+    this.searchCustomerCtrl.setValue('');
+    this.formCustomerSearch.reset();
     this.searchCustomerCtrl.reset();
   }
   getCustomersRowId():number{
@@ -2656,23 +2751,34 @@ deleteFile(id:number){ //+++
     })
     return result;
   }
-  
-  // refreshView(): void {
-  //   setTimeout(() => { 
-  //     const control = this.getControl('customersTable');
-  //     control.controls[0].get('is_payer').setValue(!control.controls[0].get('is_payer').value);
-
-  //   }, 1);
-  //   setTimeout(() => { 
-  //     const control = this.getControl('customersTable');
-  //     control.controls[0].get('is_payer').setValue(!control.controls[0].get('is_payer').value);
-  //   }, 2);
-  // }
-
+  getProductArrayIndexByCustomerRowId(row_id:number){
+    let i=0;
+    let indx:number = null;
+    this.formBaseInformation.controls.appointmentsProductTable.value.map(row=>{
+      if(row.customerRowId==row_id) indx = i;       
+      i++;
+    })
+    return indx;
+  }
+  getCustomerArrayIndexByRowId(row_id:number){
+    let i=0;
+    let indx:number = null;
+    this.formBaseInformation.controls.customersTable.value.map(row=>{
+      if(row.row_id==row_id) indx = i;       
+      i++;
+    })
+    return indx;
+  }
   // [disabled] of slide toggle is not working in FormArray with formControlName. Possibility it is a bug.
   // so, I am setting it manually
-  setIsPayerValue(index:number, value:boolean){
-    this.getControl('customersTable').controls[index].get('is_payer').setValue(value);
+  setIsPayerValue(row_id:number, customer_id:number, value){
+    console.log('row_id',row_id)
+    // console.log('customer_id',customer_id)
+    // console.log('value',value)
+    console.log('getCustomerArrayIndexByRowId(row_id)',this.getCustomerArrayIndexByRowId(row_id))
+    this.getControl('customersTable').controls[this.getCustomerArrayIndexByRowId(row_id)].get('is_payer').setValue(value);
+    if(value)
+      this.addMainProductToNewPayingCustomer(row_id, customer_id)
   }
 
   onDepartmentPartSelect(part_id:number, department_id:number){
@@ -2681,6 +2787,190 @@ deleteFile(id:number){ //+++
     this.productSearchAndTableByCustomersComponent.formSearch.get('secondaryDepartmentId').setValue(department_id);
     this.getSetOfTypePrices();
   }
+
+  getTaxMultiplifierBySelectedId(srchId:number):number {
+    //возвращает множитель по выбранному НДС. например, для 20% будет 1.2, 0% - 1 и т.д 
+        let value=0;
+        this.spravTaxesSet.forEach(a=>{
+          if(+a.id == srchId) {value=a.multiplier}
+  }); return value;} 
+
+  // set taxes = 0 for every customer    
+  resetTaxes(){
+    this.formBaseInformation.value.appointmentsProductTable.map(i =>{
+      this.totalNds.set(i.customerRowId,0);
+    })
+  }
+  getTaxFromPrice(price:number, taxId:number):number {
+    // вычисляет налог из цены. Например, для цены 100, уже содержащей в себе налог, и налога 20% вернёт: 100 * 20 / 120 = 16.67
+    let value=0;
+    this.spravTaxesSet.forEach(a=>{if(+a.id == taxId) {value=a.value}});
+    return parseFloat((price*value/(100+value)).toFixed(2));
+  }
+
+  //пересчитывает НДС в таблице товаров
+  tableNdsRecount(nds_included?:boolean){
+    if(this.formBaseInformation!=undefined){//метод может вызываться из ngOnChanges, а т.к. он стартует до ngOnInit, то formBaseInformation может еще не быть
+      if(nds_included!=undefined)
+        this.formBaseInformation.get('nds_included').setValue(nds_included);
+      //перерасчет НДС в таблице товаров
+      if(this.formBaseInformation.controls['appointmentsProductTable'].value.length>0){
+        this.resetTaxes();
+        let switcherNDS:boolean = this.formBaseInformation.get('nds').value;
+        let switcherNDSincluded:boolean = this.formBaseInformation.get('nds_included').value;
+        let multiplifierNDS:number = 1;//множитель НДС. Рассчитывается для каждой строки таблицы. Например, для НДС 20% будет 1.2, для 0 или без НДС будет 1
+        this.formBaseInformation.value.appointmentsProductTable.map(i =>{
+
+
+          // this.totalNds.set(i.customerRowId,0);
+
+            multiplifierNDS = this.getTaxMultiplifierBySelectedId(+i['nds_id']);
+            //если включён переключатель "Налог", но переключатель "Налог включен" выключен,
+            if(switcherNDS && !switcherNDSincluded){
+            //..к сумме добавляем Налог
+              i['product_sumprice']=this.numToPrice(+(+i['product_count']*(+i['product_price'])*multiplifierNDS).toFixed(2),2);
+              this.totalNds.set(i.customerRowId,(this.totalNds.get(i.customerRowId)+this.numToPrice(+(+i['product_count']*(+i['product_price'])*(multiplifierNDS-1)).toFixed(2),2)));//суммируем общий налог
+            }else {
+              i['product_sumprice']=this.numToPrice(+((+i['product_count'])*(+i['product_price'])).toFixed(2),2);//..иначе не добавляем, и сумма - это просто произведение количества на цену
+              //если включены переключатели "Налог" и "Налог включен" - Налог уже в цене, и нужно вычислить его из неё
+              if(switcherNDS && switcherNDSincluded){
+                this.totalNds.set(i.customerRowId,(this.totalNds.get(i.customerRowId)+this.getTaxFromPrice(i['product_sumprice'], i['nds_id'])));
+              }
+            }
+
+
+
+
+          }
+        
+        
+        
+        )}}
+  }
+   // равна ли изменённая цена цене по выбранному Типу цены. Если нет - сбрасываем выбор Типа цены
+   rowPriceEqualsToTypePrice(row_index:number){
+    const control = this.getControlTablefield();
+    let product_price = control.controls[row_index].get('product_price').value;
+    let product_price_of_type_price = control.controls[row_index].get('product_price_of_type_price').value;
+    if (+product_price != +product_price_of_type_price) control.controls[row_index].get('price_type_id').setValue(null);
+  }
+  // отдает цену товара в текущем предприятии по его id и id его типа цены
+  getProductPrice(product_id:number,price_type_id:number){
+    let price:number;
+    return this.http.get('/api/auth/getProductPrice?company_id='+this.formBaseInformation.get('company_id').value+'&product_id='+product_id+'&price_type_id='+price_type_id)
+  }  
+//------------------------------------------------- ON CHANGE...
+  //при изменении поля Количество в таблице товаров
+  onChangeProductCount(row_index:number){
+    this.commaToDotInTableField(row_index, 'product_count');  // замена запятой на точку
+    this.setRowSumPrice(row_index);                           // пересчёт суммы оплаты за данный товар
+    this.tableNdsRecount();                                   // пересчёт Суммы оплаты за товар с учётом НДС
+    this.finishRecount();                                     // подсчёт TOTALS и отправка суммы в ККМ
+    this.checkIndivisibleErrorOfProductTable();               // проверка на неделимость товара
+  }
+  //при изменении поля Цена в таблице товаров
+  onChangeProductPrice(row_index:number){
+    this.commaToDotInTableField(row_index, 'product_price');  // замена запятой на точку
+    this.rowPriceEqualsToTypePrice(row_index);                // равна ли изменённая цена цене по выбранному Типу цены. Если нет - сбрасываем выбор Типа цены
+    this.setRowSumPrice(row_index);                           // пересчёт суммы оплаты за данный товар
+    this.tableNdsRecount();                                   // пересчёт Суммы оплаты за товар с учётом НДС
+    this.finishRecount();                                     // подсчёт TOTALS и отправка суммы в ККМ
+  } 
+  onChangeReserves(row_index:number){
+    this.commaToDotInTableField(row_index,'reserved_current');// замена запятой на точку
+    this.checkIndivisibleErrorOfProductTable();               // проверка на неделимость товара
+  }
+  //при изменении Типа цены в таблице товаров
+  onChangePriceTypeOfRow(row_index:number){
+    const control = this.getControlTablefield();
+    let product_id = control.at(row_index).get('product_id').value;
+    let price_type_id = control.at(row_index).get('price_type_id').value;
+    this.getProductPrice(product_id,price_type_id).subscribe( //запрашиваем цену по Типу цены для данного товара
+      data => { 
+      const price=data as number;
+      control.controls[row_index].get('product_price').setValue((+price));
+      control.controls[row_index].get('product_price_of_type_price').setValue((+price));
+      this.setRowSumPrice(row_index);                         // пересчёт суммы оплаты за данный товар
+      this.tableNdsRecount();                                 // пересчёт суммы оплаты за товар с учётом НДС
+      this.finishRecount();                                   // подсчёт TOTALS и отправка суммы в ККМ
+    },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})})
+  }
+  // при изменении "НДС" в родительском модуле
+  onChangeNds(nds_included:boolean){
+    setTimeout(() => { 
+      this.tableNdsRecount(nds_included);                      // пересчёт Суммы оплаты за товар с учётом НДС
+      this.finishRecount();                                    // подсчёт TOTALS и отправка суммы в ККМ
+    }, 1);
+  }
+  // при изменении "НДС включено" в родительском модуле
+  onChangeNdsIncluded(nds_included?:boolean){
+    this.tableNdsRecount(nds_included);                        // пересчёт Суммы оплаты за товар с учётом НДС
+    this.finishRecount();                                      // подсчёт TOTALS и отправка суммы в ККМ
+  }
+  // при изменении НДС в таблице товаров
+  onChangeProductNds(){
+    this.tableNdsRecount();                                    // пересчёт Суммы оплаты за товар с учётом НДС
+    this.finishRecount();                                      // подсчёт TOTALS и отправка суммы в ККМ
+  }
+
+  //---------------------------------------------- RECOUNT ROWS -------------------------------------
+
+  // пересчёт суммы оплаты за данный товар
+  setRowSumPrice(row_index:number){
+    const control = this.getControlTablefield();
+    control.controls[row_index].get('product_sumprice').setValue((control.controls[row_index].get('product_count').value*control.controls[row_index].get('product_price').value).toFixed(2));
+  }
+
+  //------------------------------------------------- TOTALS ----------------------------------------
+  getTotalSumPrice() {//бежим по столбцу product_sumprice и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
+    console.log('**************** getTotalSumPrice *******************')
+    this.totalProductSumm.clear();
+    this.formBaseInformation.value.appointmentsProductTable.map(i =>{this.totalProductSumm.set(i.customerRowId,0);});
+    this.formBaseInformation.value.appointmentsProductTable.map(i =>{
+      this.totalProductSumm.set(i.customerRowId,(+this.totalProductSumm.get(i.customerRowId)+(+i.product_sumprice)));
+    });
+    // return  (this.formBaseInformation.value.appointmentsProductTable.map(t => +t.product_sumprice).reduce((acc, value) => acc + value, 0)).toFixed(2);
+  }
+  getTotalSumOfCustomer(row_id:number){
+    // console.log('totalProductSumm',this.totalProductSumm);
+    // console.log('this.totalProductSumm.get(row_id)',this.totalProductSumm.get(row_id))
+    return this.numToPrice(this.totalProductSumm.has(row_id)?this.totalProductSumm.get(row_id):0,2)
+  }
+  // getTotalNds() {//возвращает общую НДС
+  //   this.tableNdsRecount();
+  //   // return (this.totalNds);
+  // }
+  // подсчёт TOTALS и отправка суммы в ККМ
+  finishRecount(){
+    this.recountTotals();                                      // подсчёт TOTALS
+    // this.sendSumPriceToKKM();                                  // отправим сумму в ККМ
+  }
+  recountTotals(){
+    if(this.formBaseInformation!=undefined){//метод может вызываться из ngOnChanges, а т.к. он стартует до ngOnInit, то formBaseInformation может еще не быть
+      this.getTotalSumPrice();
+  }}
+  //------------------------------------------------------------------- Методы для работы с признаком "Неделимость" -----------------------------------------------------------------------------
+  // true - ошибка (если введено нецелое кол-во товара, при том что оно должно быть целым)
+
+  checkIndivisibleErrorOfProductTable(){
+    let result=false;// ошибки нет
+    this.formBaseInformation.value.appointmentsProductTable.map(t =>{
+      if(t['indivisible'] && t['product_count']!='' && !Number.isInteger(parseFloat(t['product_count']))){
+        result=true;
+      }
+    })
+    this.indivisibleErrorOfProductTable=result;
+  }
+
+  //--------------------------------------------------------------------------- Утилиты ---------------------------------------------------------------------------------------------------------
+  //заменяет запятую на точку при вводе цены или количества в заданной ячейке
+  commaToDotInTableField(row_index:number, fieldName:string){
+    const control = this.getControlTablefield();
+    control.controls[row_index].get(fieldName).setValue(control.controls[row_index].get(fieldName).value.replace(",", "."));
+  }
+  //для проверки в таблице с вызовом из html
+  isInteger (i:number):boolean{return Number.isInteger(i)}
+  parseFloat(i:string){return parseFloat(i)}
 
 
 }
