@@ -117,7 +117,7 @@ interface docResponse {//интерфейс для получения ответ
   variation: boolean;
   productResourcesTable: any[];                   // list of resources that service need to be completed
   is_srvc_by_appointment: boolean;                // this service is selling by appointments
-  scdl_is_only_on_start: boolean;                 // a service provider is needed only at the start
+  scdl_is_employee_required: boolean;             // an employee is needed for execute and complete this service
   scdl_max_pers_on_same_time: number;             // the number of persons to whom a service can be provided at a time by one service provider (1 - dentist or hairdresser, 5-10 - yoga class)
   scdl_srvc_duration: number;                     // time minimal duration of the service.
   scdl_appointment_atleast_before_time: number;   // minimum time before the start of the service for which customers can make an appointment
@@ -594,7 +594,7 @@ export class ProductsDocComponent implements OnInit {
       storeProductTranslations: new UntypedFormArray ([]) ,
       productResourcesTable: new UntypedFormArray([]),//массив с формами ресурсов
       is_srvc_by_appointment:  new UntypedFormControl(false,[]),                 // this service is selling by appointments
-      scdl_is_only_on_start:  new UntypedFormControl(false,[]),                  // a service provider is needed only at the start
+      scdl_is_employee_required:  new UntypedFormControl(false,[]),                  // an employee is needed for this operation
       scdl_max_pers_on_same_time: new UntypedFormControl(1,[Validators.required, Validators.pattern('^[0-9]{1,10}$'), Validators.min(1), Validators.max(2100000000)]),             // the number of persons to whom a service can be provided at a time by one service provider (1 - dentist or hairdresser, 5-10 - yoga class)
       scdl_srvc_duration: new UntypedFormControl(1,[Validators.required, Validators.pattern('^[0-9]{1,10}$'), Validators.min(1), Validators.max(2100000000)]),  // time minimal duration of the service.
       scdl_appointment_atleast_before_time: new UntypedFormControl(0,[Validators.required, Validators.pattern('^[0-9]{1,10}$'), Validators.min(0), Validators.max(2100000000)]),   // minimum time before the start of the service for which customers can make an appointment
@@ -948,7 +948,7 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
                   this.formBaseInformation.get('short_description_type').setValue(documentValues.short_description_type);  // "editor" or "custom"
                   
                   this.formBaseInformation.get('is_srvc_by_appointment').setValue(documentValues.is_srvc_by_appointment);
-                  this.formBaseInformation.get('scdl_is_only_on_start').setValue(documentValues.scdl_is_only_on_start);
+                  this.formBaseInformation.get('scdl_is_employee_required').setValue(documentValues.scdl_is_employee_required);
                   this.formBaseInformation.get('scdl_max_pers_on_same_time').setValue(documentValues.scdl_max_pers_on_same_time);
                   this.formBaseInformation.get('scdl_srvc_duration').setValue(documentValues.scdl_srvc_duration);
                   this.formBaseInformation.get('scdl_appointment_atleast_before_time').setValue(documentValues.scdl_appointment_atleast_before_time);
@@ -3106,7 +3106,7 @@ openPrintLabelsDialog(template:TemplatesList){
     }
   }
 
-  is_only_on_start_toggle(event: MatSlideToggleChange) {
+  is_employee_required_toggle(event: MatSlideToggleChange) {
     if(event.checked){
       if(this.formBaseInformation.get('scdl_max_pers_on_same_time').invalid)
         this.formBaseInformation.get('scdl_max_pers_on_same_time').setValue(1);

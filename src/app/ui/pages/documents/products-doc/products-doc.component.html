@@ -602,9 +602,9 @@
                                                             <mat-form-field 
                                                                 class="slideWidth100">                                                                    
                                                                 <mat-slide-toggle 
-                                                                    (change)="is_only_on_start_toggle($event)"
-                                                                    formControlName="scdl_is_only_on_start">
-                                                                    {{t('docs.field.only_on_start')}}
+                                                                    (change)="is_employee_required_toggle($event)"
+                                                                    formControlName="scdl_is_employee_required">
+                                                                    {{t('docs.field.employee_required')}}
                                                                 </mat-slide-toggle>
                                                                 <input matInput hidden/>
                                                             </mat-form-field>
@@ -612,8 +612,6 @@
                                                             <mat-form-field 
                                                                 style="width:100%; /*margin-right:5px;*/">                                                                    
                                                                 <mat-label>{{t('docs.field.max_pers_on_same_time')}} <span *ngIf="formBaseInformation.get('scdl_max_pers_on_same_time').value==''" class="star">*</span></mat-label>
-                                                                <!-- [ngStyle]="(formBaseInformation.get('scdl_is_only_on_start').value)?{'color': 'lightgray'}:{}"
-                                                                [readonly]="formBaseInformation.get('scdl_is_only_on_start').value"      -->
                                                                 <input  matInput
                                                                             maxlength="10"                                                                                                                                                   
                                                                             (keypress)="numberOnly($event)"
@@ -633,15 +631,6 @@
                                                                     scdl_max_pers_on_same_time.value!='0'-{{scdl_max_pers_on_same_time.value!='0'}}-<br>
                                                                     </mat-hint> -->
                                                             </mat-form-field>
-                                                            <!-- <mat-form-field 
-                                                                style="width: calc(50% - 6px);height: 62px;">
-                                                                <mat-slide-toggle 
-                                                                    (change)="is_only_on_start_toggle($event)"
-                                                                    formControlName="scdl_is_only_on_start">
-                                                                    {{t('docs.field.no_limit')}}
-                                                                </mat-slide-toggle>
-                                                                <input matInput hidden/>
-                                                            </mat-form-field> -->
                                                             <mat-form-field 
                                                                 class="slideWidth100">                                                                    
                                                                 <mat-label>{{t('docs.field.srvc_min_duration')}} <span *ngIf="formBaseInformation.get('scdl_srvc_duration').value==''" class="star">*</span></mat-label>

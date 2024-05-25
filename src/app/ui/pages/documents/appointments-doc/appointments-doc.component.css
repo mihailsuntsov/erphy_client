@@ -425,7 +425,7 @@ table {
   
   .example-element-detail {
     overflow: hidden;
-    display: flex;
+    display: block;
     padding: 20px 10px 20px;
   }
   

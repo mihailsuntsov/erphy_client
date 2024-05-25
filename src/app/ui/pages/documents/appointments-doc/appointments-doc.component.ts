@@ -54,6 +54,18 @@ interface ProductSearchResponse{//интерфейс получения данн
   reserved_current:number;// зарезервировано единиц товара в отделении (складе) в ЭТОМ (текущем) Заказе покупателя:
   indivisible: boolean; // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
 }
+interface SceduleServiceSearchResponse{//интерфейс получения данных из бд 
+  id:number;
+  name: string;
+  edizm_id:number;
+  edizm: string;
+  edizm_type_id: number;
+  edizm_multiplier:number;
+  nds_id:number;
+  priceOfTypePrice:number;// цена по запрошенному id типа цены
+  indivisible: boolean; // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
+  department_part_ids:number[];
+}
 interface RetailSalesProductTable {
   product_id: any,
   department_id: any,
@@ -140,7 +152,7 @@ interface docResponse {//интерфейс для получения ответ
   company: string;
   company_id: number;
   department: string;
-  department_id: number;
+  // department_id: number;
   department_part_id: number;
   creator: string;
   creator_id: number;
@@ -190,35 +202,35 @@ interface docResponse {//интерфейс для получения ответ
   main_service_name:string;
   product_id: number; // ID of main service
 }
-interface CustomerProduct { 
-  id: number;
-  row_id: number;
-  product_id: number;
-  appointment_id:number;
-  is_main:boolean; //can be only one main product in whole appointment.
-  name: string;
-  product_count: number;
-  edizm: string;
-  edizm_id: number;
-  product_price: number;
-  product_price_of_type_price: number;//цена товара по типу цены. Т.к. цену можно редактировать в таблице товаров, при несовпадении новой цены с ценой типа цены нужно будет сбросить тип цены в 0 (не выбран), т.к. это уже будет не цена типа цены
-  product_sumprice: number;
-  price_type: string;
-  price_type_id: number;
-  available: number; 
-  nds: string;
-  nds_id: number;
-  priority_type_price: string;// приоритет типа цены: Склад (sklad) Покупатель (cagent) Цена по-умолчанию (defprice)  (formSearch.priorityTypePriceSide)
-  department_id: number; // склад с которого будет производиться отгрузка товара.     
-  department: string; // склад с которого будет производиться отгрузка товара.                                   (secondaryDepartmentId)
-  shipped:number; //отгружено        
-  total: number; //всего на складе
-  reserved: number; // сколько зарезервировано в других Заказах покупателя
-  reserved_current: number; // сколько зарезервировано в данном заказе покупателя  
-  ppr_name_api_atol: string; //Признак предмета расчета в системе Атол. Невидимое поле. Нужно для передачи в таблицу товаров в качестве тега для чека на ккм Атол
-  is_material: boolean; //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)            
-  indivisible: boolean; // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
-}
+// interface CustomerProduct { 
+//   id: number;
+//   row_id: number;
+//   product_id: number;
+//   appointment_id:number;
+//   is_main:boolean; //can be only one main product in whole appointment.
+//   name: string;
+//   product_count: number;
+//   edizm: string;
+//   edizm_id: number;
+//   product_price: number;
+//   product_price_of_type_price: number;//цена товара по типу цены. Т.к. цену можно редактировать в таблице товаров, при несовпадении новой цены с ценой типа цены нужно будет сбросить тип цены в 0 (не выбран), т.к. это уже будет не цена типа цены
+//   product_sumprice: number;
+//   price_type: string;
+//   price_type_id: number;
+//   available: number; 
+//   nds: string;
+//   nds_id: number;
+//   priority_type_price: string;// приоритет типа цены: Склад (sklad) Покупатель (cagent) Цена по-умолчанию (defprice)  (formSearch.priorityTypePriceSide)
+//   department_id: number; // склад с которого будет производиться отгрузка товара.     
+//   department: string; // склад с которого будет производиться отгрузка товара.                                   (secondaryDepartmentId)
+//   shipped:number; //отгружено        
+//   total: number; //всего на складе
+//   reserved: number; // сколько зарезервировано в других Заказах покупателя
+//   reserved_current: number; // сколько зарезервировано в данном заказе покупателя  
+//   ppr_name_api_atol: string; //Признак предмета расчета в системе Атол. Невидимое поле. Нужно для передачи в таблицу товаров в качестве тега для чека на ккм Атол
+//   is_material: boolean; //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)            
+//   indivisible: boolean; // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
+// }
 interface filesInfo {
   id: string;
   name: string;
@@ -284,6 +296,13 @@ interface CompanySettings{
   vat: boolean;
   vat_included:boolean;
 }
+interface Employee{
+  id: number;
+  name: string;
+  job_title_id;
+  department_part_ids: number[];
+  is_free: boolean;
+}
 
 @Component({
   selector: 'app-appointments-doc',
@@ -314,9 +333,10 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   createdDocId: string[];//массив для получение id созданного документа
   receivedCompaniesList: any [] = [];//массив для получения списка предприятий
   receivedDepartmentsList: SecondaryDepartment [] = [];//массив для получения списка отделений
+  receivedDepartmentsWithPartsList: Department [] = [];//массив для получения списка отделений с их частями
   receivedStatusesList: statusInterface [] = []; // массив для получения статусов
   receivedMyDepartmentsList: SecondaryDepartment [] = [];//массив для получения списка отделений
-  receivedUsersList  : any [];//массив для получения списка пользователей
+  receivedEmployeesList  : Employee[];//массив для получения списка сотрудников
   myCompanyId:number=0;
   companySettings:CompanySettings={vat:false,vat_included:true};  
   allFields: any[][] = [];//[номер строки начиная с 0][объект - вся инфо о товаре (id,кол-во, цена... )] - массив товаров
@@ -350,7 +370,6 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   receivedPriceTypesList: idNameDescription [] = [];//массив для получения списка типов цен
   accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
   timeFormat:string='24';   //12 or 24
-  receivedDepartmentsWithPartsList: Department [] = [];//массив для получения списка отделений с их частями
   receivedJobtitlesList: any [] = [];//массив для получения списка наименований должностей
   servicesList: string[] = []; // list of services that will be shown in an information panel of employee or department part
   //печать документов
@@ -490,18 +509,23 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   doc_number_isReadOnly=true;
   is_completed=false;
 
-    //для Autocomplete по поиску товаров
-    searchProductCtrl = new UntypedFormControl();//поле для поиска товаров
-    isProductListLoading  = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
-    canAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
-    filteredProducts: ProductSearchResponse[] = [];
-    productImageName:string = null;
-    mainImageAddress:string = 'assets_/images/no_foto.jpg';
-    thumbImageAddress:string = 'assets_/images/no_foto.jpg';
-    imageToShow:any; // переменная в которую будет подгружаться картинка товара (если он jpg или png)
+  //для Autocomplete по поиску ГЛАВНОЙ УСЛУГИ
+  searchProductCtrl = new UntypedFormControl();//поле для поиска товаров
+  isProductListLoading  = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
+  canAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
+  filteredProducts: ProductSearchResponse[] = [];
+  productImageName:string = null;
+  mainImageAddress:string = 'assets_/images/no_foto.jpg';
+  thumbImageAddress:string = 'assets_/images/no_foto.jpg';
+  imageToShow:any; // переменная в которую будет подгружаться картинка товара (если он jpg или png)
 
-  // refresh = new Subject<void>();
-
+  //для Autocomplete по поиску ДОПОЛНИТЕЛЬНЫХ ТОВАРОВ И УСЛУГ ДЛЯ КЛИЕНТОВ
+  searchProductCustomerCtrl = new UntypedFormControl();//поле для поиска товаров
+  isProductCustomerListLoading  = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
+  filteredProductsCustomer: ProductSearchResponse[] = [];
+  productCustomerImageName:string = null;
+  imageCustomerToShow:any; // переменная в которую будет подгружаться картинка товара (если он jpg или png)
+  // product_customer_id:number; // ID of selec
 
 
   constructor(
@@ -530,7 +554,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     this.formBaseInformation = new UntypedFormGroup({
       id: new UntypedFormControl                    (this.id,[]),
       company_id: new UntypedFormControl            (null,[Validators.required]),
-      department_id: new UntypedFormControl         (null,[Validators.required]),
+      // department_id: new UntypedFormControl         (null,[Validators.required]),
       product_id: new UntypedFormControl            (null,[Validators.required]),
       department_part_id: new UntypedFormControl    (0,[Validators.required]),
       jobtitle: new UntypedFormControl              (0,[]),
@@ -640,6 +664,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
 
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Покупатель"
     this.onProductSearchValueChanges();//отслеживание изменений поля "Услуга"
+    this.onProductCustomerSearchValueChanges();//отслеживание изменений поля "Услуга"
     //+++ getting base data from parent component
     this.getBaseData('myId');    
     this.getBaseData('myCompanyId');  
@@ -699,6 +724,18 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   // ----------------------------------------------------- *** ПРАВА *** ------------------------------------------------------------------
   //---------------------------------------------------------------------------------------------------------------------------------------
 
+  getDepartmentIdByDepPartId(depPartId?:number){
+    let depId=null;
+    let dpId=depPartId?depPartId:this.formBaseInformation.get('department_part_id').value
+    this.receivedDepartmentsWithPartsList.map(department=>{
+      department.parts.map(depPart=>{
+        if(depPart.id==dpId)
+          depId=department.department_id;
+      })
+    });
+    return depId;
+  }
+
   getSetOfPermissions(){
     return this.http.get('/api/auth/getMyPermissions?id=59')
       .subscribe(
@@ -743,7 +780,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   refreshPermissions(){
     // alert(2)
     let documentOfMyCompany:boolean = (this.formBaseInformation.get('company_id').value==this.myCompanyId);
-    let documentOfMyDepartments:boolean = (this.inMyDepthsId(+this.formBaseInformation.get('department_id').value));
+    let documentOfMyDepartments:boolean = (this.inMyDepthsId(+this.getDepartmentIdByDepPartId()));
     this.allowToView=(
       (this.allowToViewAllCompanies)||
       (this.allowToViewMyCompany&&documentOfMyCompany)||
@@ -810,8 +847,8 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       if(
         this.actionsBeforeCreateNewDoc==5 && //Если набрано необходимое кол-во действий для АВТОсоздания
         this.settingsForm.get('autocreateOnStart').value && //и есть автоматическое создание на старте (autocreateOnStart)
-        +this.formBaseInformation.get('department_id').value>0 && // и отделение выбрано
-        +this.formBaseInformation.get('cagent_id').value>0 // и покупатель выбран
+        +this.formBaseInformation.get('department_part_id').value>0  // и часть отделения выбрана
+        // +this.formBaseInformation.get('cagent_id').value>0 // и покупатель выбран
       ){
         this.canCreateNewDoc=true;
         // alert(this.actionsBeforeGetChilds)
@@ -831,7 +868,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       this.getStatusesList(); 
       this.getCRUD_rights();  
       if(+this.id==0) this.getCompanySettings(); // because at this time companySettings loads only the info that needs on creation document stage (when document id=0)
-      // this.getDepartmentsWithPartsList();
+      this.getDepartmentsWithPartsList();
       // this.getJobtitleList();
       this.getSpravSysEdizm(); //загрузка единиц измерения. 
     }
@@ -864,56 +901,41 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       );
   }
 
-  // onDepartmentChange(){
-  //     this.getSetOfTypePrices();
-  //     this.formBaseInformation.get('department').setValue(this.getDepartmentNameById(this.formBaseInformation.get('department_id').value));
-  //     this.productSearchAndTableByCustomersComponent.formSearch.get('secondaryDepartmentId').setValue(this.formBaseInformation.get('department_id').value);
-  // }
-
   getDepartmentsList(){
     this.receivedDepartmentsList=null;
-    // this.formBaseInformation.get('department_id').setValue('');
     this.loadSpravService.getDepartmentsListByCompanyId(this.formBaseInformation.get('company_id').value,false)
       .subscribe(
           (data) => {this.receivedDepartmentsList=data as any [];
             this.doFilterDepartmentsList();
-            if(+this.id==0) this.setDefaultDepartment();
           },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
   }
-
-  setDefaultDepartment(){
-    //если в настройках не было предприятия, и в списке предприятий только одно предприятие - ставим его по дефолту
-    if(+this.formBaseInformation.get('department_id').value==0 && this.receivedDepartmentsList.length>0){
-      this.formBaseInformation.get('department_id').setValue(this.receivedDepartmentsList[0].id);
-      //Если дочерние компоненты уже загружены - устанавливаем данный склад как склад в форме поиска и добавления товара
-      if(this.canGetChilds && this.productSearchAndTableByCustomersComponent){
-        this.productSearchAndTableByCustomersComponent.formSearch.get('secondaryDepartmentId').setValue(this.formBaseInformation.get('department_id').value);  
-        this.productSearchAndTableByCustomersComponent.setCurrentTypePrice();//если сменили отделение - нужно проверить, есть ли у него тип цены. И если нет - в вызываемом методе выведется предупреждение для пользователя
-      }
-    }
-    //если отделение было выбрано (через настройки или же в этом методе) - определяем его наименование (оно будет отправляться в дочерние компоненты)
-    if(+this.formBaseInformation.get('department_id').value>0)
-      this.formBaseInformation.get('department').setValue(this.getDepartmentNameById(this.formBaseInformation.get('department_id').value));
-    
-    //загрузка типов цен для покупателя, склада и по умолчанию  
-    this.getSetOfTypePrices();
-    //различные проверки
-    // this.checkAnyCases();
-    // this.getStatusesList();    
+  getDepartmentsWithPartsList(){ 
+    if(this.receivedDepartmentsWithPartsList.length==0)
+      return this.http.get('/api/auth/getDepartmentsWithPartsList?company_id='+this.formBaseInformation.get('company_id').value)
+        .subscribe(
+            (data) => {   
+              this.receivedDepartmentsWithPartsList=data as any [];
+              if(+this.id==0) 
+                this.setDefaultDepartmentPart();
+            },
+            error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
+      );
+    else if(+this.id==0) this.setDefaultDepartmentPart();
   }
-
-  // getDepartmentsWithPartsList(){ 
-  //   return this.http.get('/api/auth/getDepartmentsWithPartsList?company_id='+this.formBaseInformation.get('company_id').value)
-  //     .subscribe(
-  //         (data) => {   
-  //                     this.receivedDepartmentsWithPartsList=data as any [];
-  //     },
-  //     error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
-  //     );
-  // }
-
+  setDefaultDepartmentPart(){
+    // console.log("Setting default department part")
+    //если в настройках не было предприятия, и в списке предприятий только одно предприятие - ставим его по дефолту
+    //if(+this.formBaseInformation.get('department_part_id').value==0 && this.receivedDepartmentsWithPartsList.length>0){
+      //this.formBaseInformation.get('department_part_id').setValue(this.receivedDepartmentsWithPartsList[0].parts[0].id);
+    //}
+    //если часть отделения была выбрана (через настройки или же в этом методе) - определяем наименование её отделения (оно будет отправляться в дочерние компоненты)
+    if(+this.formBaseInformation.get('department_part_id').value>0)
+      this.formBaseInformation.get('department').setValue(this.getDepartmentNameById(this.getDepartmentIdByDepPartId()));
+    //загрузка типов цен для склада и по умолчанию  
+    this.getSetOfTypePrices();
+  }
   getJobtitleList(){ 
     this.http.get('/api/auth/getJobtitlesList?company_id='+this.formBaseInformation.get('company_id').value)
       .subscribe(
@@ -925,14 +947,14 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   }
   // проверки на различные случаи
   checkAnyCases(){
-    //проверка на то, что отделение все еще числится в отделениях предприятия (не было удалено и т.д.)
-    if(!this.inDepthsId(+this.formBaseInformation.get('department_id').value)){
-      this.formBaseInformation.get('department_id').setValue(null);
+    //проверка на то, что часть отделения все еще числится в отделениях предприятия (не было удалено и т.д.)
+    if(!this.inDepthsId(+this.getDepartmentIdByDepPartId())){
+      this.formBaseInformation.get('department_part_id').setValue(0);
     }
     //проверка на то, что отделение подходит под ограничения прав (если можно создавать только по своим отделениям, но выбрано отделение, не являющееся своим - устанавливаем null в выбранное id отделения)
     if(!this.allowToCreateAllCompanies && !this.allowToCreateMyCompany && this.allowToCreateMyDepartments){
-      if(!this.inMyDepthsId(+this.formBaseInformation.get('department_id').value)){
-        this.formBaseInformation.get('department_id').setValue(null);
+      if(!this.inMyDepthsId(+this.getDepartmentIdByDepPartId())){
+        this.formBaseInformation.get('department_part_id').setValue(0);
       }
     }
     // if(!this.canGetChilds) this.refreshPermissions();
@@ -1057,7 +1079,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       tap(() => {
         this.filteredProducts = [];
         if(+this.formBaseInformation.get('product_id').value==0) this.canAutocompleteQuery=true;
-        console.log(this.searchProductCtrl.value)
+        // console.log(this.searchProductCtrl.value)
       }),      
       
       switchMap(fieldObject => 
@@ -1068,7 +1090,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       if (data == undefined) {
         this.filteredProducts = [];
       } else {
-        this.filteredProducts = data as any;
+        this.filteredProducts = data as ProductSearchResponse[];
         // if(this.filteredProducts.length==1){
           // this.onAutoselectProduct();
         // }
@@ -1082,12 +1104,39 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     this.deleteAllCustomersProducts(true);
     this.getTotalSumPrice();
   }
+  onProductCustomerSearchValueChanges(){
+    this.searchProductCustomerCtrl.valueChanges
+    .pipe(
+      debounceTime(500),
+      tap(() => {
+        this.filteredProductsCustomer = [];
+        //this.canAutocompleteQuery=true;
+        console.log(this.searchProductCustomerCtrl.value)
+      }),      
+      switchMap(fieldObject => 
+        this.getProductsCustomerList()),
+    ).subscribe(data => {
+      this.isProductCustomerListLoading = false;
+      if (data == undefined) {
+        this.filteredProductsCustomer = [];
+      } else {
+        this.filteredProductsCustomer = data as any;
+        // if(this.filteredProducts.length==1){
+          // this.onAutoselectProduct();
+        // }
+    }}
+      ,error => {this.isProductCustomerListLoading = false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+      );
+  }
+  resetProductCustomerFormSearch(){
+    this.searchProductCustomerCtrl.reset();
+  }
   deleteAllCustomerProductsByRowId(row_id:number){
     const control = this.getControlTablefield();
     var i = control.controls.length;
     while (i > 0) { 
       i--;
-        if (control.at(i).get('customerRowId').value==row_id) {
+        if (control.at(i).get('customerRowId').value==row_id && !control.at(i).get('is_main').value) {
           control.removeAt(i);
         }
     }
@@ -1144,33 +1193,33 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   getEdizmNameBySelectedId(srchId:number):string {
     let name='';
     this.spravSysEdizmOfProductAll.forEach(a=>{
-      if(+a.id == srchId) {name=a.short_name}
+      if(+a.id == srchId) name=a.short_name
     }); return name;}
 
-  getProductsList(){ //заполнение Autocomplete для поля Товар
+  getProductsList(){
     if(!this.isProductListLoading){// смысла долбить сервер, пока он формирует ответ, нет. Плюс иногда onProductSearchValueChanges отрабатывает дуплетом, что приводит к двойному добавлению товара
-      try 
-      {
-        if(this.canAutocompleteQuery && this.searchProductCtrl.value.length>1)
-        {
+      try{
+        if(this.canAutocompleteQuery && this.searchProductCtrl.value.length>1){
           this.isProductListLoading  = true;
-          return this.http.get(
-            '/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.formBaseInformation.get('company_id').value+'&departmentId='+this.formBaseInformation.get('department_id').value+'&document_id=0&priceTypeId='+(+this.default_type_price_id)+'&showRemovedFromSale=false&showNotPurchased=true&showServices=true'
-            );
+          return this.http.get('/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.formBaseInformation.get('company_id').value+'&departmentId='+this.getDepartmentIdByDepPartId()+'&document_id=0&priceTypeId='+(+this.default_type_price_id)+'&showRemovedFromSale=false&showNotPurchased=true&showServices=true');
         }else return [];
-      } catch (e) {
-        return [];
-      }
+      } catch (e) {return []}
     } else return [];
   }
-  checkEmptyProductField(){
-    if(!this.searchProductCtrl.value || this.searchProductCtrl.value.length==0){
-      this.resetProductFormSearch();
-    }
-  }; 
-  openProductCard(docId:number) {
-    this.productSearchAndTableByCustomersComponent.openProductCard(docId)
-  } 
+  getProductsCustomerList(){
+    if(!this.isProductCustomerListLoading){
+      try{
+        if(this.canAutocompleteQuery && this.searchProductCustomerCtrl.value.length>1){
+          this.isProductCustomerListLoading  = true;
+          return this.http.get('/api/auth/getProductsList?searchString='+this.searchProductCustomerCtrl.value+'&companyId='+this.formBaseInformation.get('company_id').value+'&departmentId='+this.getDepartmentIdByDepPartId()+'&document_id=0&priceTypeId='+(+this.default_type_price_id)+'&showRemovedFromSale=false&showNotPurchased=true&showServices=true');
+        }else return [];
+      } catch (e) {return []}
+    } else return [];
+  }
+  checkEmptyProductField(){if(!this.searchProductCtrl.value || this.searchProductCtrl.value.length==0) this.resetProductFormSearch();}
+  checkEmptyProductCustomerField(){if(!this.searchProductCustomerCtrl.value || this.searchProductCustomerCtrl.value.length==0) this.resetProductCustomerFormSearch();}
+  openProductCard(docId:number) {this.productSearchAndTableByCustomersComponent.openProductCard(docId)} 
+  
   /*
   onAutoselectProduct(){
     this.canAutocompleteQuery=false;
@@ -1217,7 +1266,13 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     this.afterSelectProduct();
   }
   
-  
+  onSelectProductCustomer(product:ProductSearchResponse, customer){
+    console.log(console.log('Selected customer: ',JSON.stringify(customer)));
+    const control = <UntypedFormArray>this.formBaseInformation.get('appointmentsProductTable');
+    control.push(this.formingProductRowFromMainBlock(product,customer.id,customer.row_id,false));
+    setTimeout(() => {this.searchProductCustomerCtrl.reset();}, 1000);
+    this.getTotalSumPrice();
+  }
   
   afterSelectProduct(){
       // this.edizmName=this.getEdizmNameBySelectedId(+this.formSearch.get('edizm_id').value);
@@ -1247,7 +1302,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         if(customer.is_payer && !this.customerHasMainProduct(customer.row_id)){
           console.log('Payer: ', customer.name);
           const control = <UntypedFormArray>this.formBaseInformation.get('appointmentsProductTable');
-          control.push(this.formingProductRowFromMainBlock(customer.id,customer.row_id));
+          control.push(this.formingProductRowFromMainBlock(this.mainProduct,customer.id,customer.row_id,true));
         }
       });
       this.getTotalSumPrice();
@@ -1261,37 +1316,43 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     });
     return has;
   }
-
+  customerHasNoMainProducts(customerRowId:number){
+    let has = false;
+    this.formBaseInformation.value.appointmentsProductTable.map(i =>{
+      if(!i.is_main && i.customerRowId==customerRowId) has = true;
+    });
+    return has;
+  }
   addMainProductToNewPayingCustomer(row_id:number, customer_id:number){
     const control = <UntypedFormArray>this.formBaseInformation.get('appointmentsProductTable');
     if(this.formBaseInformation.get('product_id').value && !this.customerHasMainProduct(row_id)){
-        control.push(this.formingProductRowFromMainBlock(customer_id,row_id)); 
+        control.push(this.formingProductRowFromMainBlock(this.mainProduct,customer_id,row_id,true)); 
     }
     this.getTotalSumPrice();
   }
   
-  formingProductRowFromMainBlock(customerId:number, customerRowId:number) {
+  formingProductRowFromMainBlock(product: ProductSearchResponse, customerId:number, customerRowId:number, is_main:boolean) {
     return this._fb.group({
       customerRowId:customerRowId,
       customerId:customerId,
-      product_id: new UntypedFormControl (this.mainProduct.id,[]),
+      product_id: new UntypedFormControl (product.id,[]),
       appointment_id: new UntypedFormControl (+this.id,[]),
-      name: new UntypedFormControl (this.mainProduct.name,[]),
+      name: new UntypedFormControl (product.name,[]),
       product_count: new UntypedFormControl (1,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$'), ValidationService.countMoreThanZero]),
-      edizm: new UntypedFormControl (this.mainProduct.edizm,[]),
-      edizm_id:  new UntypedFormControl (this.mainProduct.edizm_id,[]),
-      product_price:  new UntypedFormControl (this.numToPrice(this.mainProduct.priceOfTypePrice,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')/*,ValidationService.priceMoreThanZero*/]),
-      product_price_of_type_price: new UntypedFormControl (this.mainProduct.priceOfTypePrice,[]),
-      product_sumprice: new UntypedFormControl (this.numToPrice(this.mainProduct.priceOfTypePrice,2),[]),
-      available:  new UntypedFormControl ((this.mainProduct.total)-(this.mainProduct.reserved),[]),
+      edizm: new UntypedFormControl (product.edizm,[]),
+      edizm_id:  new UntypedFormControl (product.edizm_id,[]),
+      product_price:  new UntypedFormControl (this.numToPrice(product.priceOfTypePrice,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')/*,ValidationService.priceMoreThanZero*/]),
+      product_price_of_type_price: new UntypedFormControl (product.priceOfTypePrice,[]),
+      product_sumprice: new UntypedFormControl (this.numToPrice(product.priceOfTypePrice,2),[]),
+      available:  new UntypedFormControl ((product.total)-(product.reserved),[]),
       price_type_id: [this.default_type_price_id],
-      nds_id: new UntypedFormControl (this.mainProduct.nds_id,[]),
-      total: new UntypedFormControl (this.mainProduct.total,[]),
-      department_id: new UntypedFormControl (this.formBaseInformation.get('department_id').value,[]), //id отделения, выбранного в форме поиска 
-      is_material:  new UntypedFormControl (this.mainProduct.is_material,[]), //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
+      nds_id: new UntypedFormControl (product.nds_id,[]),
+      total: new UntypedFormControl (product.total,[]),
+      department_id: new UntypedFormControl (this.getDepartmentIdByDepPartId(),[]), //id отделения, выбранного в форме поиска 
+      is_material:  new UntypedFormControl (product.is_material,[]), //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
       shipped:  new UntypedFormControl (0,[]),
-      indivisible:  new UntypedFormControl (this.mainProduct.indivisible,[]),
-      is_main:  new UntypedFormControl (true,[]), // Main product (service) of this appointment or reservation
+      indivisible:  new UntypedFormControl (product.indivisible,[]),
+      is_main:  new UntypedFormControl (is_main,[]), // Main product (service) of this appointment or reservation
       //---------------------------------
       // department: new UntypedFormControl (product.department,[]), //имя отделения, выбранного в форме поиска 
       // shipped:  new UntypedFormControl (product.shipped,[]),
@@ -1343,14 +1404,9 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
             result=data as any;
             //вставляем настройки в форму настроек
            
-            this.settingsForm.get('pricingType').setValue(result.pricingType?result.pricingType:'priceType');
             this.settingsForm.get('priceTypeId').setValue(result.priceTypeId);
-            this.settingsForm.get('plusMinus').setValue(result.plusMinus);
-            this.settingsForm.get('changePrice').setValue(result.changePrice);
-            this.settingsForm.get('changePriceType').setValue(result.changePriceType);
             this.settingsForm.get('hideTenths').setValue(result.hideTenths);
-            this.settingsForm.get('saveSettings').setValue(result.saveSettings);
-            this.settingsForm.get('name').setValue(result.name?result.name:'');
+            this.settingsForm.get('').setValue(result.saveSettings);
             this.settingsForm.get('priorityTypePriceSide').setValue(result.priorityTypePriceSide);
             this.settingsForm.get('autocreateOnStart').setValue(result.autocreateOnStart);
             this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.statusIdOnAutocreateOnCheque);
@@ -1362,13 +1418,11 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
               //необходимо не загружать эти настройки
               if(this.isCompanyInList(+result.companyId)){
                 this.settingsForm.get('companyId').setValue(result.companyId);
-                this.settingsForm.get('departmentId').setValue(result.departmentId);
-                this.settingsForm.get('customerId').setValue(result.customerId);
-                this.settingsForm.get('customer').setValue(result.customer);
+                this.settingsForm.get('departmentPartId').setValue(result.departmentPartId);
                 this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.statusIdOnAutocreateOnCheque);
               }
                 //вставляем Отделение и Покупателя (вставится только если новый документ)
-              this.setDefaultInfoOnStart(+result.departmentId,+result.customerId,result.customer,result.name?result.name:'');
+              this.setDefaultInfoOnStart(+result.departmentPartId);
             }
             
             
@@ -1378,12 +1432,12 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   }
 
   //если новый документ - вставляем Отделение и Покупателя (но только если они принадлежат выбранному предприятию, т.е. предприятие в Основной информации и предприятие, для которого были сохранены настройки совпадают)
-  setDefaultInfoOnStart(departmentId:number, customerId:number, customer:string, name:string){
+  setDefaultInfoOnStart(departmentPartId:number){
     if(+this.id==0){//документ новый
       // if(+this.formBaseInformation.get('company_id').value==+this.settingsForm.get('companyId').value || +this.formBaseInformation.get('company_id').value==0){
         this.formBaseInformation.get('company_id').setValue(+this.settingsForm.get('companyId').value)
-        if(+departmentId>0){
-          this.formBaseInformation.get('department_id').setValue(departmentId);
+        if(+departmentPartId>0){
+          this.formBaseInformation.get('department_part_id').setValue(departmentPartId);
         }
         // if(+customerId>0){
         //   this.searchCustomerCtrl.setValue(customer);
@@ -1430,7 +1484,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
                   this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
                   this.formBaseInformation.get('id').setValue(+documentValues.id);
                   this.formBaseInformation.get('company_id').setValue(documentValues.company_id);
-                  this.formBaseInformation.get('department_id').setValue(documentValues.department_id);
+                  this.formBaseInformation.get('department_part_id').setValue(documentValues.department_part_id);
                   this.formBaseInformation.get('department').setValue(documentValues.department);
                   this.formBaseInformation.get('doc_number').setValue(documentValues.doc_number);
                   this.formBaseInformation.get('description').setValue(documentValues.description);
@@ -2056,7 +2110,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
 
   getSetOfTypePrices(){
     return this.http.get('/api/auth/getSetOfTypePrices?company_id='+this.formBaseInformation.get('company_id').value+
-    '&department_id='+(+this.formBaseInformation.get('department_id').value)+'&cagent_id=0')
+    '&department_id='+(+this.getDepartmentIdByDepPartId())+'&cagent_id=0')
       .subscribe(
           (data) => {   
                       const setOfTypePrices=data as any;
@@ -2146,7 +2200,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   // **********************************************************************************************************************
   // *****************************************    Quantity by customers    ************************************************
   // **********************************************************************************************************************
-    getCustomersList(){ //заполнение Autocomplete
+  getCustomersList(){ //заполнение Autocomplete
     try {
       if(this.canCagentAutocompleteQuery && this.searchCustomerCtrl.value.length>1){
         const body = {
@@ -2421,7 +2475,7 @@ deleteFile(id:number){ //+++
 //**********************************************************************************************************************************************/  
 
   //создание связанных документов
-  createLinkedDoc(docname:string){// принимает аргументы: Return
+  createLinkedDoc(docname:string, cagentId:number){// принимает аргументы: Return
     let uid = uuidv4();
     let canCreateLinkedDoc:CanCreateLinkedDoc=this.canCreateLinkedDoc(docname); //проверим на возможность создания связанного документа
     if(canCreateLinkedDoc.can){
@@ -2433,12 +2487,12 @@ deleteFile(id:number){ //+++
       //   }
       //   default:{
         
-      this.formLinkedDocs.get('department_id').setValue(this.formBaseInformation.get('department_id').value);
+      this.formLinkedDocs.get('department_id').setValue(this.getDepartmentIdByDepPartId());
       this.formLinkedDocs.get('nds').setValue(this.formBaseInformation.get('nds').value);
       this.formLinkedDocs.get('nds_included').setValue(this.formBaseInformation.get('nds_included').value);
       this.formLinkedDocs.get('date_start').setValue(this.formBaseInformation.get('date_start').value?moment(this.formBaseInformation.get('date_start').value,'DD.MM.YYYY'):"");
       this.formLinkedDocs.get('description').setValue(translate('docs.msg.created_from')+translate('docs.docs.c_order')+' '+translate('docs.top.number')+this.formBaseInformation.get('doc_number').value);
-      this.formLinkedDocs.get('customers_orders_id').setValue(this.id);
+      this.formLinkedDocs.get('appointment_id').setValue(this.id);
       
       // параметры для входящих ордеров и платежей (Paymentin, Orderin)
       if(docname=='Paymentin'||docname=='Orderin'){
@@ -2454,12 +2508,12 @@ deleteFile(id:number){ //+++
       // }
 
       this.formLinkedDocs.get('company_id').setValue(this.formBaseInformation.get('company_id').value);
-      this.formLinkedDocs.get('cagent_id').setValue(this.formBaseInformation.get('cagent_id').value);
+      this.formLinkedDocs.get('cagent_id').setValue(cagentId);
       this.formLinkedDocs.get('uid').setValue(uid);
       this.formLinkedDocs.get('linked_doc_id').setValue(this.id);//id связанного документа (того, из которого инициируется создание данного документа)
       this.formLinkedDocs.get('parent_uid').setValue(this.formBaseInformation.get('uid').value);// uid исходящего (родительского) документа
       this.formLinkedDocs.get('child_uid').setValue(uid);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
-      this.formLinkedDocs.get('linked_doc_name').setValue('customers_orders');//имя (таблицы) связанного документа
+      this.formLinkedDocs.get('linked_doc_name').setValue('appointments');//имя (таблицы) связанного документа
       this.formLinkedDocs.get('is_completed').setValue(false);
       
       
@@ -2470,16 +2524,16 @@ deleteFile(id:number){ //+++
         {
           queryParams: {
             company_id:               this.formBaseInformation.get('company_id').value,
-            department_id:            this.formBaseInformation.get('department_id').value,
-            cagent_id:                this.formBaseInformation.get('cagent_id').value,
-            cagent:                   this.formBaseInformation.get('cagent').value,
+            department_id:            this.getDepartmentIdByDepPartId(),
+            cagent_id:                cagentId,
+            cagent:                   'Create function getCagentNameById',
             nds:                      this.formBaseInformation.get('nds').value,
             nds_included:             this.formBaseInformation.get('nds_included').value,
             linked_doc_id:            this.id,
             parent_uid:               this.formBaseInformation.get('uid').value,
             doc_number:               this.formBaseInformation.get('doc_number').value,
             child_uid:                uid,
-            linked_doc_name:          'customers_orders',
+            linked_doc_name:          'appointments',
             customers_orders_id:      this.id,
             uid:                      uid,
             retailSalesProductTable:  retailSalesProductTable
@@ -2782,9 +2836,7 @@ deleteFile(id:number){ //+++
   }
 
   onDepartmentPartSelect(part_id:number, department_id:number){
-    this.formBaseInformation.get('department_id').setValue(department_id);
-    this.formBaseInformation.get('department').setValue(this.getDepartmentNameById(this.formBaseInformation.get('department_id').value));
-    this.productSearchAndTableByCustomersComponent.formSearch.get('secondaryDepartmentId').setValue(department_id);
+    this.formBaseInformation.get('department').setValue(this.getDepartmentNameById(this.getDepartmentIdByDepPartId()));
     this.getSetOfTypePrices();
   }
 
