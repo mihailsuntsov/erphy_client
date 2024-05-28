@@ -437,13 +437,36 @@ table {
     margin: 8px 0;
     height: 104px;
   }
-  
+  .add_circle {
+    cursor: pointer;
+    position: absolute;
+    top: 24px;
+    right: -5px;
+    color: #585858;
+    z-index: 1000;
+    }
+    .employee-state-icon{
+        display: block;
+        font-size: medium;
+        position: absolute;
+        top: 5px;
+        left: 5px;
+    }
+
   .example-element-symbol {
     font-weight: bold;
     font-size: 40px;
     line-height: normal;
   }
-  
+  ::ng-deep #employee_select.mat-mdc-option{
+    padding-right: 0px!important;
+  }
+  ::ng-deep #employee_select .mat-pseudo-checkbox{
+    display: none!important;
+  }
+  ::ng-deep #employee_select .mat-mdc-option .mdc-list-item__primary-text, ::ng-deep #employee_select .mdc-list-item__primary-text {
+    padding-left: 0px;
+  }
   .example-element-description {
     padding: 16px;
   }

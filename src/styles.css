@@ -354,7 +354,7 @@ mat-datepicker-toggle .mat-mdc-icon-button .mat-datepicker-toggle-default-icon{
 
 /* Select list - user can't select if clicking not on the <SPAN> tag */
 .mat-mdc-option .mdc-list-item__primary-text {
-  line-height: 26px!important;
+  line-height: 48px!important;
   width: 100%!important;
   padding-left:10px;
 }

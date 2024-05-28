@@ -7,7 +7,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { SelectionModel } from '@angular/cdk/collections';
 import {animate, state, style, transition, trigger} from '@angular/animations';
 // import { Observable, Subject } from 'rxjs';
-import { map, startWith, debounceTime, tap, switchMap, mergeMap, concatMap  } from 'rxjs/operators';
+import { map, startWith, debounceTime, tap, switchMap, mergeMap, concatMap, expand, reduce  } from 'rxjs/operators';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { ValidationService } from './validation.service';
@@ -31,7 +31,7 @@ import { FilesDocComponent } from '../files-doc/files-doc.component';
 import { MomentDefault } from 'src/app/services/moment-default';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
-import { Observable } from 'rxjs';
+import { EMPTY, Observable } from 'rxjs';
 const MY_FORMATS = MomentDefault.getMomentFormat();
 const moment = MomentDefault.getMomentDefault();
 
@@ -300,10 +300,13 @@ interface Employee{
   id: number;
   name: string;
   job_title_id;
-  department_part_ids: number[];
-  is_free: boolean;
+  departmentPartsWithServicesIds: DepartmentPartWithServicesIds[];
+  state: string; // free / busyByAppointments / busyBySchedule
 }
-
+interface DepartmentPartWithServicesIds{
+  id: number;
+  servicesIds:number[];
+}
 @Component({
   selector: 'app-appointments-doc',
   templateUrl: './appointments-doc.component.html',
@@ -336,7 +339,9 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   receivedDepartmentsWithPartsList: Department [] = [];//массив для получения списка отделений с их частями
   receivedStatusesList: statusInterface [] = []; // массив для получения статусов
   receivedMyDepartmentsList: SecondaryDepartment [] = [];//массив для получения списка отделений
-  receivedEmployeesList  : Employee[];//массив для получения списка сотрудников
+  receivedEmployeesList  : Employee[] = [];//массив для получения списка сотрудников
+  filteredEmployeesList: Observable<Employee[]>; // here will be filtered languages for showing in select list
+  employeesListLoadQtt = 0; // if == 3 then indication of list loading will shown
   myCompanyId:number=0;
   companySettings:CompanySettings={vat:false,vat_included:true};  
   allFields: any[][] = [];//[номер строки начиная с 0][объект - вся инфо о товаре (id,кол-во, цена... )] - массив товаров
@@ -559,8 +564,10 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       department_part_id: new UntypedFormControl    (0,[Validators.required]),
       jobtitle: new UntypedFormControl              (0,[]),
       doc_number: new UntypedFormControl            ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
-      cagent_id: new UntypedFormControl             ({disabled: false, value: '' },[Validators.required]),
-      cagent: new UntypedFormControl                ('',[]),
+      employeeId: new UntypedFormControl            (null,[]),
+      employeeName: new UntypedFormControl          ('',[]),
+      // cagent_id: new UntypedFormControl             ({disabled: false, value: '' },[Validators.required]),
+      // cagent: new UntypedFormControl                ('',[]),
       date_start: new UntypedFormControl            ('',[Validators.required]),
       date_end: new UntypedFormControl              ('',[Validators.required]),
       description: new UntypedFormControl           ('',[]),
@@ -690,7 +697,12 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     }
 
 
-
+    // listener of employee search field change
+    this.filteredEmployeesList = this.formBaseInformation.get('employeeName').valueChanges
+    .pipe(
+      startWith(''),
+      map((value:string) => this._filter(value,this.receivedEmployeesList))
+    );
     
     this.getSetOfPermissions();//
     this.getMyId();
@@ -719,6 +731,11 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     if(this.productSearchAndTableByCustomersComponent!=undefined){
       return this.productSearchAndTableByCustomersComponent.getTotalNds();
     } else return 0;
+  }
+  // filtration on each change of text field
+  private _filter(value: string, list:Employee[]): Employee[] {
+    const filterValue = value.toLowerCase();
+    return list.filter(option => option.name.toLowerCase().includes(filterValue));
   }
   //---------------------------------------------------------------------------------------------------------------------------------------                            
   // ----------------------------------------------------- *** ПРАВА *** ------------------------------------------------------------------
@@ -935,16 +952,18 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       this.formBaseInformation.get('department').setValue(this.getDepartmentNameById(this.getDepartmentIdByDepPartId()));
     //загрузка типов цен для склада и по умолчанию  
     this.getSetOfTypePrices();
+    //Загрузка списка сотрудников
+    this.getEmployeesList(true);
   }
-  getJobtitleList(){ 
-    this.http.get('/api/auth/getJobtitlesList?company_id='+this.formBaseInformation.get('company_id').value)
-      .subscribe(
-          (data) => {   
-                      this.receivedJobtitlesList=data as any [];
-      },
-      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
-      );
-  }
+  // getJobtitleList(){ 
+  //   this.http.get('/api/auth/getJobtitlesList?company_id='+this.formBaseInformation.get('company_id').value)
+  //     .subscribe(
+  //         (data) => {   
+  //                     this.receivedJobtitlesList=data as any [];
+  //     },
+  //     error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
+  //     );
+  // }
   // проверки на различные случаи
   checkAnyCases(){
     //проверка на то, что часть отделения все еще числится в отделениях предприятия (не было удалено и т.д.)
@@ -993,9 +1012,9 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
 
   setDefaultDate(){
     this.formBaseInformation.get('date_start').setValue(moment());
-    this.formBaseInformation.get('date_end').  setValue(moment().add(1,'d'));
+    this.formBaseInformation.get('date_end').  setValue(moment().add(0,'d'));
     this.formBaseInformation.get('time_start').setValue(moment().format("HH:mm"));
-    this.formBaseInformation.get('time_end').  setValue(moment().add(-1,'h').format("HH:mm"));
+    this.formBaseInformation.get('time_end').  setValue(moment().add(+1,'h').format("HH:mm"));
     this.necessaryActionsBeforeAutoCreateNewDoc();
   }
   doFilterDepartmentsList(){
@@ -1465,7 +1484,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       this.resetFormCustomerSearch();
       // this.formExpansionPanelsString();
     }
-  };     
+  };
 
   getDocumentValuesById(){
     this.http.get('/api/auth/getappointmentsValuesById?id='+ this.id)
@@ -2776,6 +2795,85 @@ deleteFile(id:number){ //+++
   getBaseData(data) {    //+++ emit data to parent component
     this.baseData.emit(data);
   }
+  getEmployeesListQueryBody(isFree:boolean, kindOfNoFree?:string){
+  return  {
+      isFree:       isFree,
+      kindOfNoFree: kindOfNoFree,        // busyByAppointments or busyBySchedule
+      appointmentId:this.id,
+      companyId:    this.formBaseInformation.get('company_id').value,
+      dateFrom:     this.formBaseInformation.get('date_start').value,
+      timeFrom:     this.timeTo24h(this.formBaseInformation.get('time_start').value),
+      dateTo:       this.formBaseInformation.get('date_end').value,
+      timeTo:       this.timeTo24h(this.formBaseInformation.get('time_end').value),
+      servicesIds:  +this.formBaseInformation.get('product_id').value==0?[]:[this.formBaseInformation.get('product_id').value],
+      depPartsIds:  this.formBaseInformation.get('department_part_id').value==0?[]:[this.formBaseInformation.get('department_part_id').value],
+      jobTitlesIds: this.formBaseInformation.get('jobtitle').value==0?[]:[this.formBaseInformation.get('jobtitle').value],
+    }
+  }
+  getEmployeesList(isFree){
+    const body = this.getEmployeesListQueryBody(isFree); 
+    this.employeesListLoadQtt=3;
+    this.http.post('/api/auth/getEmployeesList', body) 
+    .subscribe(
+        (data) => {   
+          this.receivedEmployeesList=data as Employee[];
+          this.updateEmployeeValues();
+          this.employeesListLoadQtt--;
+          if(isFree){
+            this.getBusyEmployeesList('busyByAppointments');
+            this.getBusyEmployeesList('busyBySchedule');
+          }
+        },error => {this.employeesListLoadQtt=0;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
+  }
+  getBusyEmployeesList(kindOfNoFree:string){
+    const body = this.getEmployeesListQueryBody(false, kindOfNoFree); 
+    this.http.post('/api/auth/getEmployeesList', body) 
+    .subscribe(
+        (data) => {   
+          this.receivedEmployeesList.push(...data as Employee[]);
+          this.updateEmployeeValues();
+          this.employeesListLoadQtt--;
+        },error => {this.employeesListLoadQtt=0;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
+  }
+
+  // getPanels(isFree, kindOfNoFree?:string): Observable<any> {
+  //   let body = this.getEmployeesListQueryBody(isFree); 
+  //   return this.http.post('/api/auth/getEmployeesList', body) 
+  //     .pipe(
+  //       mergeMap(data => {
+  //         this.receivedEmployeesList = this.receivedEmployeesList.concat(data as Employee[]);
+  //         if(isFree || !isFree && kindOfNoFree != 'busyBySchedule') {
+  //           return this.getPanels(false.next);
+  //         } else {
+  //           return this.receivedEmployeesList;
+  //         }
+  //       })
+  //     );
+  // }
+  checkEmptyEmployeeField(){
+    if( this.formBaseInformation.get('employeeName').value.length==0){
+      this.formBaseInformation.get('employeeId').setValue(null);
+    }
+  }
+  clearEmployeeField(){
+    this.formBaseInformation.get('employeeName').setValue('');
+  }
+  onEmployeeChange(id:number, employeeState:string){
+    if(employeeState=='free')
+      this.formBaseInformation.get('employeeId').setValue(id);
+  }
+  //set name into text field, that matched id in list IdAndName[] (if id is not null)
+  updateEmployeeValues(){
+    if(+this.formBaseInformation.get('employeeId').value!=0){
+      this.receivedEmployeesList.forEach(x => {
+        if(x.id==this.formBaseInformation.get('employeeId').value){
+          this.formBaseInformation.get('employeeName').setValue(x.name);
+    }})} 
+    else{ // if id is null - setting '' into the field (if we don't do it - there will be no list of values, when place cursor into the field)
+      this.formBaseInformation.get('employeeName').setValue('');
+      this.formBaseInformation.get('employeeId').setValue('');
+    }
+  }
     //**************************** КАССОВЫЕ ОПЕРАЦИИ  ******************************/
 
   //обработчик события успешной печати чека - в Заказе покупателя это выставление статуса документа, сохранение и создание нового.  
@@ -3024,5 +3122,13 @@ deleteFile(id:number){ //+++
   isInteger (i:number):boolean{return Number.isInteger(i)}
   parseFloat(i:string){return parseFloat(i)}
 
-
+  timeTo24h(time:string){
+    // In ru locale MomentJs has 'утра' and 'вечера' instead of AM and PM
+    // if current locale is ru - moment to convert string to time format needs to have string contained 'утра','вечера' instead of AM PM  
+    if(this.locale=='ru') time=time.replace('PM','вечера').replace('AM','утра');
+    return(this.isTimeFormatAmPm(time)?moment(time, 'hh:mm A').format('HH:mm'):time);
+  }
+  isTimeFormatAmPm(time:string){
+    return((time.includes("AM") || time.includes("PM") || time.includes("утра") || time.includes("вечера")));
+  }
 }
