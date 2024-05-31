@@ -335,6 +335,43 @@
                                                                     </div>
                                                                 </div>    
 
+
+                                                                <div class="col-12">
+                                                                    <mat-form-field  class="mat-form-field-100">
+                                                                        <mat-label>{{t('docs.field.dep_part')}}</mat-label>
+                                                                        <mat-select
+                                                                        panelClass="department-list"
+                                                                        formControlName="department_part_id">
+                                                                            
+                                                                            <mat-option [value]="0">---</mat-option>
+                                                                            
+                                                                            <mat-optgroup 
+                                                                                *ngFor="let department of receivedDepartmentsWithPartsList;"
+                                                                                [label]="department.department_name"
+                                                                            >
+
+                                                                                <!-- <ng-container *ngFor="let department of receivedDepartmentsWithPartsList;"> -->
+                                                                                    <!-- <ng-container *ngIf="department.department_id == department_id"> -->
+                                                                                        <mat-option 
+                                                                                        *ngFor= "let part of department.parts"
+                                                                                        [value]="part.id"
+                                                                                        (click)="onDepartmentPartSelect(part.id, department.department_id)"            
+                                                                                        [matTooltip]="part.description"
+                                                                                        [matTooltipPosition]="'right'"
+                                                                                        >
+                                                                                            {{part.name}}
+                                                                                        </mat-option>
+                                                                                    <!-- </ng-container>                                                                             -->
+                                                                                <!-- </ng-container> -->
+
+                                                                            </mat-optgroup>
+            
+            
+                                                                        </mat-select>
+                                                                    </mat-form-field>
+                                                                </div>
+
+                                                                
                                                                 <div class="col-12">    
                                                                     <mat-form-field  style="display: none">
                                                                         <input  matInput
@@ -378,7 +415,7 @@
                                                                                             <span class="internal-card">{{value.name}}</span>
                                                                                         </div>
                                                                                     </mat-option>
-                                                                                    <mat-chip-listbox class="mat-chip-list">
+                                                                                    <!-- <mat-chip-listbox class="mat-chip-list">
                                                                                         <mat-chip-option 
                                                                                             *ngIf="(value.total-value.reserved)>0" 
                                                                                             matTooltip="{{t('modules.tip.instock_th_dp')}}"
@@ -392,7 +429,7 @@
                                                                                             style="margin:12px 5px;flex-grow: 0;">
                                                                                             <span style="color:rgb(122, 0, 0); font-weight: bold">{{value.total-value.reserved}}</span>
                                                                                         </mat-chip-option>
-                                                                                    </mat-chip-listbox>
+                                                                                    </mat-chip-listbox> -->
                                                                                 </span>
                                                                             </ng-container>
                                                                         </mat-autocomplete>
@@ -400,40 +437,7 @@
                                                                     <mat-progress-bar *ngIf="isProductListLoading" mode="indeterminate"></mat-progress-bar>
                                                                 </div>
                                                                 
-                                                                <div class="col-12">
-                                                                    <mat-form-field  class="mat-form-field-100">
-                                                                        <mat-label>{{t('docs.field.dep_part')}}</mat-label>
-                                                                        <mat-select
-                                                                        panelClass="department-list"
-                                                                        formControlName="department_part_id">
-                                                                            
-                                                                            <mat-option [value]="0">---</mat-option>
-                                                                            
-                                                                            <mat-optgroup 
-                                                                                *ngFor="let department of receivedDepartmentsWithPartsList;"
-                                                                                [label]="department.department_name"
-                                                                            >
-
-                                                                                <!-- <ng-container *ngFor="let department of receivedDepartmentsWithPartsList;"> -->
-                                                                                    <!-- <ng-container *ngIf="department.department_id == department_id"> -->
-                                                                                        <mat-option 
-                                                                                        *ngFor= "let part of department.parts"
-                                                                                        [value]="part.id"
-                                                                                        (click)="onDepartmentPartSelect(part.id, department.department_id)"            
-                                                                                        [matTooltip]="part.description"
-                                                                                        [matTooltipPosition]="'right'"
-                                                                                        >
-                                                                                            {{part.name}}
-                                                                                        </mat-option>
-                                                                                    <!-- </ng-container>                                                                             -->
-                                                                                <!-- </ng-container> -->
-
-                                                                            </mat-optgroup>
-            
-            
-                                                                        </mat-select>
-                                                                    </mat-form-field>
-                                                                </div>
+                                                                
 
 
 

@@ -54,17 +54,48 @@ interface ProductSearchResponse{//интерфейс получения данн
   reserved_current:number;// зарезервировано единиц товара в отделении (складе) в ЭТОМ (текущем) Заказе покупателя:
   indivisible: boolean; // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
 }
-interface SceduleServiceSearchResponse{//интерфейс получения данных из бд 
+interface AppointmentServiceSearchResponse{//интерфейс получения данных из бд 
   id:number;
   name: string;
+  departmentId: number;
+  department_parts: DepartmentPartWithResourcesIds[];
+  
+  // edizm_id:number;
+  // edizm: string;
+  // edizm_type_id: number;
+  // edizm_multiplier:number;
+  // nds_id:number;
+  // priceOfTypePrice:number;// цена по запрошенному id типа цены
+  // indivisible: boolean; // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
+  // department_part_ids:number[];
+
   edizm_id:number;
   edizm: string;
   edizm_type_id: number;
   edizm_multiplier:number;
+  filename:string;
   nds_id:number;
   priceOfTypePrice:number;// цена по запрошенному id типа цены
+  reserved:number;// сколько зарезервировано в других Заказах покупателя
+  total:number; // всего единиц товара в отделении (складе):
+  reserved_in_all_my_depths:number; //зарезервировано в моих отделениях
+  total_in_all_my_depths:number; //всего в моих отделениях
+  ppr_name_api_atol:string; //Признак предмета расчета в системе Атол. Невидимое поле. Нужно для передачи в таблицу товаров в качестве тега для чека на ккм Атол
+  is_material:boolean; //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
+  reserved_current:number;// зарезервировано единиц товара в отделении (складе) в ЭТОМ (текущем) Заказе покупателя:
   indivisible: boolean; // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
-  department_part_ids:number[];
+}
+interface DepartmentPartWithResourcesIds{
+  id:number;
+  name: string;
+  resources:ResourceOfDepartmentPart[];
+}
+interface ResourceOfDepartmentPart{
+  id:number;
+  name: string;
+  need_res_qtt: number;
+  now_used: number;
+  quantity_in_dep_part: number;
 }
 interface RetailSalesProductTable {
   product_id: any,
@@ -422,7 +453,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   searchCustomerCtrl = new UntypedFormControl();//поле для поиска клиентов
   totalNds = new Map(); //  total Tax for each client in format "row_id - tax"
   totalProductSumm = new Map(); //  total sum for each client in format "row_id - tax"
-  mainProduct: ProductSearchResponse; // хранение инфориации о главной услуге
+  mainProduct: AppointmentServiceSearchResponse; // хранение инфориации о главной услуге
   guests:any[]=[
     {
       "id": null,
@@ -518,7 +549,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   searchProductCtrl = new UntypedFormControl();//поле для поиска товаров
   isProductListLoading  = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
-  filteredProducts: ProductSearchResponse[] = [];
+  filteredProducts: AppointmentServiceSearchResponse[] = [];
   productImageName:string = null;
   mainImageAddress:string = 'assets_/images/no_foto.jpg';
   thumbImageAddress:string = 'assets_/images/no_foto.jpg';
@@ -1094,7 +1125,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   onProductSearchValueChanges(){
     this.searchProductCtrl.valueChanges
     .pipe(
-      debounceTime(500),
+      debounceTime(800),
       tap(() => {
         this.filteredProducts = [];
         if(+this.formBaseInformation.get('product_id').value==0) this.canAutocompleteQuery=true;
@@ -1109,7 +1140,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       if (data == undefined) {
         this.filteredProducts = [];
       } else {
-        this.filteredProducts = data as ProductSearchResponse[];
+        this.filteredProducts = data as AppointmentServiceSearchResponse[];
         // if(this.filteredProducts.length==1){
           // this.onAutoselectProduct();
         // }
@@ -1215,16 +1246,34 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       if(+a.id == srchId) name=a.short_name
     }); return name;}
 
+  getProductsListQueryBody(){
+    return  {
+        searchString: this.searchProductCtrl.value,
+        appointmentId:this.id,
+        employeeId:   this.formBaseInformation.get('employeeId').value,
+        companyId:    this.formBaseInformation.get('company_id').value,
+        dateFrom:     this.formBaseInformation.get('date_start').value,
+        timeFrom:     this.timeTo24h(this.formBaseInformation.get('time_start').value),
+        dateTo:       this.formBaseInformation.get('date_end').value,
+        timeTo:       this.timeTo24h(this.formBaseInformation.get('time_end').value),
+        servicesIds:  +this.formBaseInformation.get('product_id').value==0?[]:[this.formBaseInformation.get('product_id').value],
+        depPartsIds:  this.formBaseInformation.get('department_part_id').value==0?[]:[this.formBaseInformation.get('department_part_id').value],
+        jobTitlesIds: this.formBaseInformation.get('jobtitle').value==0?[]:[this.formBaseInformation.get('jobtitle').value],
+      }
+  }
+
   getProductsList(){
     if(!this.isProductListLoading){// смысла долбить сервер, пока он формирует ответ, нет. Плюс иногда onProductSearchValueChanges отрабатывает дуплетом, что приводит к двойному добавлению товара
       try{
+        const body = this.getProductsListQueryBody(); 
         if(this.canAutocompleteQuery && this.searchProductCtrl.value.length>1){
           this.isProductListLoading  = true;
-          return this.http.get('/api/auth/getProductsList?searchString='+this.searchProductCtrl.value+'&companyId='+this.formBaseInformation.get('company_id').value+'&departmentId='+this.getDepartmentIdByDepPartId()+'&document_id=0&priceTypeId='+(+this.default_type_price_id)+'&showRemovedFromSale=false&showNotPurchased=true&showServices=true');
+          return this.http.post('/api/auth/getAppointmentServicesList',body);
         }else return [];
       } catch (e) {return []}
     } else return [];
   }
+
   getProductsCustomerList(){
     if(!this.isProductCustomerListLoading){
       try{
@@ -1267,7 +1316,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       this.getProductsPriceAndRemains();
     }
   }*/
-  onSelectProduct(product:ProductSearchResponse){
+  onSelectProduct(product:AppointmentServiceSearchResponse){
     // this.formSearch.get('product_count').setValue('1');
     this.formBaseInformation.get('product_id').setValue(+product.id);
     // this.formSearch.get('edizm_id').setValue(+product.edizm_id);
@@ -1280,12 +1329,12 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     // this.formSearch.get('reserved_current').setValue(product.reserved_current);
     // this.formSearch.get('indivisible').setValue(product.indivisible);              // неделимость (необходимо для проверки правильности ввода кол-ва товара)
     this.mainProduct=product;
-    this.productImageName = product.filename;
+    // this.productImageName = product.filename;
     this.addMainProductToPayingCustomers();
     this.afterSelectProduct();
   }
   
-  onSelectProductCustomer(product:ProductSearchResponse, customer){
+  onSelectProductCustomer(product:AppointmentServiceSearchResponse, customer){
     console.log(console.log('Selected customer: ',JSON.stringify(customer)));
     const control = <UntypedFormArray>this.formBaseInformation.get('appointmentsProductTable');
     control.push(this.formingProductRowFromMainBlock(product,customer.id,customer.row_id,false));
@@ -1350,7 +1399,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     this.getTotalSumPrice();
   }
   
-  formingProductRowFromMainBlock(product: ProductSearchResponse, customerId:number, customerRowId:number, is_main:boolean) {
+  formingProductRowFromMainBlock(product: AppointmentServiceSearchResponse, customerId:number, customerRowId:number, is_main:boolean) {
     return this._fb.group({
       customerRowId:customerRowId,
       customerId:customerId,
