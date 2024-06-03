@@ -139,7 +139,7 @@
                                 *ngIf="+id>0 && allowToUpdate"
                                 matTooltip="{{t('docs.tip.save')}}"
                                 (click)="clickBtnUpdate()"
-                                [disabled]="!formBaseInformation.valid" 
+                                [disabled]="!formBaseInformation.valid || !additionalChecksValid" 
                                 color="primary"
                                 type="button"
                                 class="button small-button">
@@ -293,6 +293,13 @@
                                                                     [matAutocomplete]="auto4"
                                                                     (input)="checkEmptyProductEdizmField();"
                                                                     (change)="checkEmptyProductEdizmField();">
+                                                                    <mat-icon
+                                                                        *ngIf="+formBaseInformation.get('edizm_id').value>0"
+                                                                        matTooltip="{{t('docs.tip.clr_srch')}}" 
+                                                                        class="add_circle"
+                                                                        (click)="formBaseInformation.get('edizm_name').setValue('');checkEmptyProductEdizmField();">
+                                                                        close
+                                                                    </mat-icon>
                                                                     <mat-autocomplete #auto4="matAutocomplete">
                                                                     <mat-option *ngFor="let option of filteredSpravSysEdizmOfProductAll | async" [value]="option.name">
                                                                         <div (click)="formBaseInformation.get('edizm_id').setValue(option.id)">
@@ -303,6 +310,10 @@
                                                                     <mat-hint  align="start" *ngIf="formBaseInformation.get('edizm_name').touched && formBaseInformation.get('edizm_name').invalid">
                                                                         <i class="form-invalid">{{t('docs.error.field_miss')}}</i>
                                                                     </mat-hint>
+                                                                    <mat-hint  align="start" *ngIf="spravSysEdizmOfProductCurrent.length>0 && !goodUnitOfMeasureOfService">
+                                                                        <i class="form-invalid">{{t('docs.error.wrong_unit')}}</i>
+                                                                    </mat-hint>
+                                                                    
                                                                 </mat-form-field>
                                                             </div>
 
@@ -598,7 +609,94 @@
                                                             <mat-card-title class="card-title">{{t('docs.card.appointmnt_settngs')}}</mat-card-title>
                                                         </mat-card-header>
                                                         <mat-card-content>
-
+                                                            <mat-form-field class="mat-form-field-100">
+                                                                <mat-label>{{t('docs.field.dep_parts')}} <span *ngIf="formBaseInformation.get('depparts').value.length==0" class="star">*</span></mat-label>
+                                                                <mat-select
+                                                                    panelClass="department-list"
+                                                                    formControlName="depparts"
+                                                                    #mySelect
+                                                                    multiple>
+                                                                    <div class="button-row">
+                                                                        <button 
+                                                                            mat-icon-button 
+                                                                            [disabled]="!editability"
+                                                                            matTooltip="{{t('docs.tip.select_all')}}" 
+                                                                            class="btn-gray-color"
+                                                                            (click)="selectAllCheckList('depparts')"
+                                                                        >
+                                                                        <mat-icon>fact_check</mat-icon>
+                                                                        </button>
+                                                                        <button 
+                                                                            mat-icon-button 
+                                                                            [disabled]="!editability"
+                                                                            matTooltip="{{t('docs.tip.unselect_all')}}" 
+                                                                            class="btn-gray-color"
+                                                                            (click)="unselectAllCheckList('depparts')">
+                                                                        <mat-icon>ballot</mat-icon>
+                                                                        </button>
+                                                                    </div>
+                                                                    <mat-optgroup 
+                                                                        *ngFor="let department of receivedDepartmentsWithPartsList;"
+                                                                    >
+                                                                        <span class="optgroup-name">{{department.department_name}}</span>
+                                                                        <button 
+                                                                            mat-icon-button 
+                                                                            [disabled]="!editability"
+                                                                            matTooltip="{{t('docs.tip.select_all_onedep')}}" 
+                                                                            class="btn-gray-color"
+                                                                            (click)="selectAllDepPartsOneDep(department.department_id)"
+                                                                        >
+                                                                        <mat-icon>fact_check</mat-icon>
+                                                                        </button>
+                                                                        <button 
+                                                                            mat-icon-button 
+                                                                            [disabled]="!editability"
+                                                                            matTooltip="{{t('docs.tip.unselect_all_onedep')}}" 
+                                                                            class="btn-gray-color" 
+                                                                            (click)="unselectAllDepPartsOneDep(department.department_id)">
+                                                                        <mat-icon>ballot</mat-icon>
+                                                                        </button>
+                                                                            <mat-option *ngFor= "let part of department.parts;"
+                                                                                style="width: 100%;"
+                                                                                [value]="part.id"
+                                                                                [matTooltip]="part.description"
+                                                                                [matTooltipPosition]="'right'"
+                                                                            >
+                                                                                {{part.name}}
+                                                                                <button
+                                                                                    mat-icon-button 
+                                                                                    [disabled]="!editability"
+                                                                                    [matMenuTriggerFor]="deppart_info"
+                                                                                    class="btn-gray-color btn-option-info"
+                                                                                    (click)="getDeppartServicesNamesList(part.id)"
+                                                                                > 
+                                                                                <mat-icon
+                                                                                    style="border-radius: 50%;
+                                                                                    background-image: url(/assets_/images/other/info_icon.png);
+                                                                                    background-position: center top;
+                                                                                    background-size: 100% auto;"
+                                                                                ></mat-icon>
+                                                                                </button>
+                                                                            </mat-option>
+                                                                            
+                                                                            
+                                                                        <!-- </span> -->
+                                                                    </mat-optgroup>
+                                                                </mat-select>
+                                                                <mat-menu #deppart_info="matMenu" xPosition="after">
+                                                                    <div style="width: 300px;">
+                                                                        <ul  style="margin: 0px; padding: 12px;">
+                                                                            <li *ngFor="let name of servicesList">
+                                                                                <span style="position: relative; top: -6px;left: 3px;">{{name}}</span>
+                                                                            </li>
+                                                                        </ul>
+                                                                        <span *ngIf="servicesList.length==0" style="position: relative;top:-8px;left:10px;">{{t('docs.msg.no_srvcs_this_part')}}</span>
+                                                                    </div>
+                                                                </mat-menu>
+                                                                <mat-hint  align="start" *ngIf="formBaseInformation.get('depparts').touched && formBaseInformation.get('is_srvc_by_appointment').value && this.formBaseInformation.get('depparts').value.length==0">
+                                                                    <i class="form-invalid">{{t('docs.error.field_miss')}}</i>
+                                                                </mat-hint>
+                                                            </mat-form-field>
                                                             <mat-form-field 
                                                                 class="slideWidth100">                                                                    
                                                                 <mat-slide-toggle 
@@ -608,7 +706,42 @@
                                                                 </mat-slide-toggle>
                                                                 <input matInput hidden/>
                                                             </mat-form-field>
-
+                                                            <mat-form-field *ngIf="formBaseInformation.get('scdl_is_employee_required').value" class="mat-form-field-100">
+                                                                <mat-label>{{t('docs.field.employees')}} <span *ngIf="formBaseInformation.get('employees').value.length==0" class="star">*</span></mat-label>
+                                                                <mat-select
+                                                                    panelClass="department-list"
+                                                                    formControlName="employees"
+                                                                    [disabled]="!editability"
+                                                                    #select
+                                                                    multiple>
+                                                                    <div class="button-row">
+                                                                        <button 
+                                                                            mat-icon-button 
+                                                                            matTooltip="{{t('docs.tip.select_all')}}" 
+                                                                            class="btn-gray-color"
+                                                                            (click)="selectAllCheckList('employees')"
+                                                                        >
+                                                                            <mat-icon>fact_check</mat-icon>
+                                                                        </button>
+                                                                        <button 
+                                                                            mat-icon-button 
+                                                                            matTooltip="{{t('docs.tip.unselect_all')}}" 
+                                                                            class="btn-gray-color"
+                                                                            (click)="unselectAllCheckList('employees')">
+                                                                            <mat-icon>ballot</mat-icon>
+                                                                        </button>
+                                                                    </div>
+                                                                    <mat-option
+                                                                        *ngFor= "let jt of receivedEmployeesList;"
+                                                                        [value]="jt.id"
+                                                                    >
+                                                                        {{jt.name}}
+                                                                    </mat-option>
+                                                                </mat-select>
+                                                                <mat-hint  align="start" *ngIf="formBaseInformation.get('employees').touched && formBaseInformation.get('scdl_is_employee_required').value && this.formBaseInformation.get('employees').value.length==0">
+                                                                    <i class="form-invalid">{{t('docs.error.field_miss')}}</i>
+                                                                </mat-hint>
+                                                            </mat-form-field>
                                                             <mat-form-field 
                                                                 style="width:100%; /*margin-right:5px;*/">                                                                    
                                                                 <mat-label>{{t('docs.field.max_pers_on_same_time')}} <span *ngIf="formBaseInformation.get('scdl_max_pers_on_same_time').value==''" class="star">*</span></mat-label>
@@ -632,7 +765,7 @@
                                                                     </mat-hint> -->
                                                             </mat-form-field>
                                                             <mat-form-field 
-                                                                class="slideWidth100">                                                                    
+                                                                style="width:65%; margin-right:5px;">                                                                    
                                                                 <mat-label>{{t('docs.field.srvc_min_duration')}} <span *ngIf="formBaseInformation.get('scdl_srvc_duration').value==''" class="star">*</span></mat-label>
                                                                     <input  matInput
                                                                             maxlength="10"                                                                            
@@ -641,13 +774,24 @@
                                                                             #scdl_srvc_duration
                                                                             formControlName="scdl_srvc_duration"
                                                                     />
-                                                                    <span matTextSuffix>{{shortUnitName}}</span>
                                                                     <mat-hint  align="start" *ngIf="formBaseInformation.get('scdl_srvc_duration').touched && formBaseInformation.get('scdl_srvc_duration').invalid && scdl_srvc_duration.value!='0'">
                                                                         <i class="form-invalid">{{t('docs.error.field_miss')}}</i>
                                                                     </mat-hint>
                                                                     <mat-hint  align="start" *ngIf="formBaseInformation.get('scdl_srvc_duration').touched && formBaseInformation.get('scdl_srvc_duration').invalid && scdl_srvc_duration.value=='0'">
                                                                         <i class="form-invalid">{{t('modules.error.more_than',{num:0})}}</i>
                                                                     </mat-hint>
+                                                            </mat-form-field>
+
+                                                            <mat-form-field style="width: calc(35% - 6px);">
+                                                                <mat-label>&nbsp; <span *ngIf="formBaseInformation.get('scdl_srvc_duration_unit_id').value==null" class="star">*</span></mat-label>
+                                                                <mat-select  formControlName="scdl_srvc_duration_unit_id">                          
+                                                                    <mat-option *ngFor="let rt of spravSysEdizmOfProductTime" [value]="rt.id">
+                                                                            {{rt.short_name}}
+                                                                    </mat-option> 
+                                                                </mat-select>
+                                                                <mat-hint  align="start" *ngIf="formBaseInformation.get('scdl_srvc_duration_unit_id').touched && formBaseInformation.get('edizm_name').invalid">
+                                                                    <i class="form-invalid">{{t('docs.error.field_miss')}}</i>
+                                                                </mat-hint>
                                                             </mat-form-field>
 
                                                             <mat-form-field 
@@ -2199,6 +2343,6 @@
             </mat-card>
         </div>
         <!-- <code><pre>{{formBaseInformation.value | json}}</pre></code> -->
-        <code><pre>{{spravSysEdizmOfProductCurrent | json}}</pre></code>
+        <!-- <code><pre>{{spravSysEdizmOfProductCurrent | json}}</pre></code> -->
     </mat-drawer-content>
 </mat-drawer-container>

@@ -58,17 +58,8 @@ interface AppointmentServiceSearchResponse{//интерфейс получени
   id:number;
   name: string;
   departmentId: number;
+  departmentName: string;
   department_parts: DepartmentPartWithResourcesIds[];
-  
-  // edizm_id:number;
-  // edizm: string;
-  // edizm_type_id: number;
-  // edizm_multiplier:number;
-  // nds_id:number;
-  // priceOfTypePrice:number;// цена по запрошенному id типа цены
-  // indivisible: boolean; // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
-  // department_part_ids:number[];
-
   edizm_id:number;
   edizm: string;
   edizm_type_id: number;
@@ -84,6 +75,11 @@ interface AppointmentServiceSearchResponse{//интерфейс получени
   is_material:boolean; //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
   reserved_current:number;// зарезервировано единиц товара в отделении (складе) в ЭТОМ (текущем) Заказе покупателя:
   indivisible: boolean; // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
+  employeeRequired:boolean; // employee is necessary required to run thiss service job
+  maxPersOnSameTime: number; // max number of persons on one appointment
+  srvcDurationInSeconds: number; // minimem duration of service in seconds. Needs to calculate the end time of appointment
+  atLeastBeforeTimeInSeconds: number; // minimum time before customer can get an appointment
+
 }
 interface DepartmentPartWithResourcesIds{
   id:number;
@@ -1141,9 +1137,11 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         this.filteredProducts = [];
       } else {
         this.filteredProducts = data as AppointmentServiceSearchResponse[];
-        // if(this.filteredProducts.length==1){
-          // this.onAutoselectProduct();
-        // }
+        if(this.filteredProducts.length==1){
+          this.canAutocompleteQuery=false;
+          this.searchProductCtrl.setValue(this.filteredProducts[0].name);
+          this.onSelectProduct(this.filteredProducts[0]);
+        }
     }}
       ,error => {this.isProductListLoading = false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
@@ -1151,6 +1149,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   resetProductFormSearch(){
     this.searchProductCtrl.reset();
     this.formBaseInformation.get('product_id').setValue(null);
+    this.mainProduct= null;
     this.deleteAllCustomersProducts(true);
     this.getTotalSumPrice();
   }
@@ -1259,6 +1258,8 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         servicesIds:  +this.formBaseInformation.get('product_id').value==0?[]:[this.formBaseInformation.get('product_id').value],
         depPartsIds:  this.formBaseInformation.get('department_part_id').value==0?[]:[this.formBaseInformation.get('department_part_id').value],
         jobTitlesIds: this.formBaseInformation.get('jobtitle').value==0?[]:[this.formBaseInformation.get('jobtitle').value],
+        priceTypeId:  +this.default_type_price_id,
+        querySource:  'manually'
       }
   }
 
@@ -2846,6 +2847,7 @@ deleteFile(id:number){ //+++
   }
   getEmployeesListQueryBody(isFree:boolean, kindOfNoFree?:string){
   return  {
+      isAll:        false,               // all or only free/not_free
       isFree:       isFree,
       kindOfNoFree: kindOfNoFree,        // busyByAppointments or busyBySchedule
       appointmentId:this.id,

@@ -463,7 +463,7 @@
 
 
 
-                                                                <div class="col-xl-6 col-md-12"> 
+                                                                <div class="col-xl-6 col-md-12" *ngIf="!mainProduct || (mainProduct && mainProduct.employeeRequired)"> 
                                                                     <mat-form-field class="mat-form-field-100">
                                                                         <mat-label>{{t('docs.field.job_title')}}</mat-label>
                                                                         <mat-select
@@ -489,7 +489,7 @@
 
 
 
-                                                                <div class="col-xl-6 col-md-12">
+                                                                <div class="col-xl-6 col-md-12" *ngIf="!mainProduct || (mainProduct && mainProduct.employeeRequired)">
                                                                     <mat-form-field style="display: none;" >
                                                                         <input   matInput
                                                                                 placeholder="employee"
@@ -1244,7 +1244,7 @@
         
         </mat-card-content> 
         <!-- <code><pre>{{formBaseInformation.value | json}}</pre></code> -->
-        <code><pre>{{receivedEmployeesList | json}}</pre></code>
+        <code><pre>{{mainProduct | json}}</pre></code>
     </form>
 </mat-card>
 

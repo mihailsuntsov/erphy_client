@@ -19,7 +19,19 @@ li {list-style: none;}
     border-bottom: 1px lightgray dotted;
 }
 .card-name{ flex-grow: 1; }
- 
+.add_circle {
+    cursor: pointer;
+    position: absolute;
+    top: 24px;
+    right: -5px;
+    color: #585858;
+    z-index: 1000;
+}
+.btn-option-info{
+    position: absolute;
+    top: 0px;
+    right: 0px;
+}
 .button{
     margin-left: 10px;
 }
