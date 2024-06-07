@@ -445,12 +445,17 @@ table {
     color: #585858;
     z-index: 1000;
     }
-    .employee-state-icon{
-        display: block;
-        font-size: medium;
+    .non-accessible-cases{
         position: absolute;
         top: 5px;
         left: 5px;
+    }
+    .employee-state-icon{
+        display: block;
+        font-size: 15px;
+        /* position: absolute;
+        top: 5px;
+        left: 5px; */
     }
 
   .example-element-symbol {

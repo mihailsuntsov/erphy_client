@@ -278,7 +278,12 @@ interface Deppart{
   name: string;
   description: string;
   is_active: boolean;
-  deppartProducts:IdAndName[];
+  deppartProducts:DeppartProduct[];
+}
+interface DeppartProduct{
+  id:number;
+  name: string;
+  employeeRequired:boolean;
 }
 interface idNameDescription{
   id: number;
@@ -326,7 +331,7 @@ interface CompanySettings{
 interface Employee{
   id: number;
   name: string;
-  job_title_id;
+  jobtitle_id;
   departmentPartsWithServicesIds: DepartmentPartWithServicesIds[];
   state: string; // free / busyByAppointments / busyBySchedule
 }
@@ -559,6 +564,10 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   imageCustomerToShow:any; // переменная в которую будет подгружаться картинка товара (если он jpg или png)
   // product_customer_id:number; // ID of selec
 
+  // Filtration system
+  // Если сотрудник не выбран - содержит все ID отделений, в которых доступные сотрудники могут оказывать услуги
+  // Если сотрудник выбран - содержит ID отделений, где этот сотрудник может оказывать услуги
+  possibleDepPartsByEmployees:number[] = [];
 
   constructor(
     private activateRoute: ActivatedRoute,
@@ -1137,7 +1146,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         this.filteredProducts = [];
       } else {
         this.filteredProducts = data as AppointmentServiceSearchResponse[];
-        if(this.filteredProducts.length==1){
+        if(this.filteredProducts.length==1 && this.accessibleServicesIdsAll.includes(this.filteredProducts[0].id)){
           this.canAutocompleteQuery=false;
           this.searchProductCtrl.setValue(this.filteredProducts[0].name);
           this.onSelectProduct(this.filteredProducts[0]);
@@ -1145,7 +1154,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     }}
       ,error => {this.isProductListLoading = false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
-  }
+  } 
   resetProductFormSearch(){
     this.searchProductCtrl.reset();
     this.formBaseInformation.get('product_id').setValue(null);
@@ -1317,6 +1326,9 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       this.getProductsPriceAndRemains();
     }
   }*/
+  onClickProductInSelectList(product:AppointmentServiceSearchResponse){
+    if(this.accessibleServicesIdsAll.includes(product.id)) {this.onSelectProduct(product)}
+  }
   onSelectProduct(product:AppointmentServiceSearchResponse){
     // this.formSearch.get('product_count').setValue('1');
     this.formBaseInformation.get('product_id').setValue(+product.id);
@@ -2887,32 +2899,34 @@ deleteFile(id:number){ //+++
         },error => {this.employeesListLoadQtt=0;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
   }
 
-  // getPanels(isFree, kindOfNoFree?:string): Observable<any> {
-  //   let body = this.getEmployeesListQueryBody(isFree); 
-  //   return this.http.post('/api/auth/getEmployeesList', body) 
-  //     .pipe(
-  //       mergeMap(data => {
-  //         this.receivedEmployeesList = this.receivedEmployeesList.concat(data as Employee[]);
-  //         if(isFree || !isFree && kindOfNoFree != 'busyBySchedule') {
-  //           return this.getPanels(false.next);
-  //         } else {
-  //           return this.receivedEmployeesList;
-  //         }
-  //       })
-  //     );
-  // }
+  getEmployeeById(id:number):Employee{
+    let result:Employee=null;
+    this.receivedEmployeesList.map(employee=>{
+      if(employee.id==id) result = employee;
+    });
+    return result;
+  }
+
   checkEmptyEmployeeField(){
     if( this.formBaseInformation.get('employeeName').value.length==0){
       this.formBaseInformation.get('employeeId').setValue(null);
+      // this.formBaseInformation.get('jobtitle').setValue(null);
     }
   }
   clearEmployeeField(){
     this.formBaseInformation.get('employeeName').setValue('');
   }
-  onEmployeeChange(id:number, employeeState:string){
-    if(employeeState=='free')
+  onEmployeeChange(id:number, jobtitleId:number){
+    if(this.accessibleEmployeesIdsAll.includes(id)){
       this.formBaseInformation.get('employeeId').setValue(id);
+      this.formBaseInformation.get('jobtitle').setValue(jobtitleId);
+
+      // autoselect the department part id it is only one of accessibles
+      if(this.accessibleDepPartsIdsAll.length==1) 
+        this.formBaseInformation.get('department_part_id').setValue(this.accessibleDepPartsIdsAll[0]);
+    }
   }
+
   //set name into text field, that matched id in list IdAndName[] (if id is not null)
   updateEmployeeValues(){
     if(+this.formBaseInformation.get('employeeId').value!=0){
@@ -2922,7 +2936,7 @@ deleteFile(id:number){ //+++
     }})} 
     else{ // if id is null - setting '' into the field (if we don't do it - there will be no list of values, when place cursor into the field)
       this.formBaseInformation.get('employeeName').setValue('');
-      this.formBaseInformation.get('employeeId').setValue('');
+      this.formBaseInformation.get('employeeId').setValue(null);
     }
   }
     //**************************** КАССОВЫЕ ОПЕРАЦИИ  ******************************/
@@ -2982,11 +2996,6 @@ deleteFile(id:number){ //+++
     this.getControl('customersTable').controls[this.getCustomerArrayIndexByRowId(row_id)].get('is_payer').setValue(value);
     if(value)
       this.addMainProductToNewPayingCustomer(row_id, customer_id)
-  }
-
-  onDepartmentPartSelect(part_id:number, department_id:number){
-    this.formBaseInformation.get('department').setValue(this.getDepartmentNameById(this.getDepartmentIdByDepPartId()));
-    this.getSetOfTypePrices();
   }
 
   getTaxMultiplifierBySelectedId(srchId:number):number {
@@ -3162,6 +3171,274 @@ deleteFile(id:number){ //+++
     })
     this.indivisibleErrorOfProductTable=result;
   }
+
+  getAllDeppartsIds():number[]{
+    let depparts:number[]=[];
+    this.receivedDepartmentsWithPartsList.map(department=>{
+      department.parts.map(deppart=>{
+        depparts.push(deppart.id);
+      })
+    });
+    return depparts;
+  }  
+  getAllJobTitlesIds():number[]{
+    let result:number[]=[];
+    this.receivedJobtitlesList.map(obj=>{result.push(obj.jobtitle_id);});
+    return result;
+  }
+  getAllEmployeeIds():number[]{
+    let result:number[]=[];
+    this.receivedEmployeesList.map(obj=>{result.push(obj.id);});
+    return result;
+  }
+  getAllServicesIds(withNoEmployeeRequiredOnly):number[]{
+    let result:number[]=[];
+    this.filteredProducts.map(obj=>{
+      if(!withNoEmployeeRequiredOnly) // All services
+        result.push(obj.id);
+      else
+        if(!obj.employeeRequired)
+          result.push(obj.id);
+    });
+    return result;
+  }
+  resetMainForm(){
+    this.formBaseInformation.get('department_part_id').setValue(0);
+    // this.formBaseInformation.get('department_part_id').markAllAsTouched;
+    this.formBaseInformation.get('employeeId').setValue(null);
+    this.formBaseInformation.get('employeeName').setValue('');
+    this.formBaseInformation.get('jobtitle').setValue(0);
+    this.formBaseInformation.get('product_id').setValue(null);
+    this.searchProductCtrl.setValue('');
+  }
+  // ---------------------------------------------------- FILTRATION SYSTEM ------------------------------------------------------------------------
+  // *** Employees ***
+  get accessibleEmployeesIdsAll():number[]{
+    let data = [this.accessibleEmployeesIdsByTimeOrSchedule, 
+                this.accessibleEmployeesIdsBySelectedJobTitle, 
+                this.accessibleEmployeesIdsBySelectedDepPart,
+                this.accessibleEmployeesIdsBySelectedService];
+    return data.reduce((a, b) => a.filter(c => b.includes(c)));  //intersection of multiple arrays will be accessible employees at this moment
+  }
+  get accessibleEmployeesIdsByTimeOrSchedule():number[]{
+    let result:number[]=[];
+    this.receivedEmployeesList.map(employee=>{if(employee.state=='free') result.push(employee.id);});
+    return result;
+  }
+  get accessibleEmployeesIdsBySelectedJobTitle():number[]{
+    // employee is accessible by job title if job title is not selected, or it is selected and it is a job title of this employee
+    let result:number[]=[];
+    this.receivedEmployeesList.map(employee=>{if(+this.formBaseInformation.get('jobtitle').value==0 || (+this.formBaseInformation.get('jobtitle').value>0 && employee.jobtitle_id==this.formBaseInformation.get('jobtitle').value)) result.push(employee.id);});
+    return result;
+  }
+  get accessibleEmployeesIdsBySelectedDepPart():number[]{
+    if(+this.formBaseInformation.get('department_part_id').value == 0)
+      return this.getAllEmployeeIds();
+    let result:number[]=[];
+    this.receivedEmployeesList.map(employee=>{
+      if(this.accessibleEmployeesIdsByTimeOrSchedule.includes(employee.id)){
+        employee.departmentPartsWithServicesIds.map(deppart=>{
+          if(deppart.id==+this.formBaseInformation.get('department_part_id').value && deppart.servicesIds.length>0)
+            result.push(employee.id);
+        })
+      }      
+    });
+    return result;
+  }
+  get accessibleEmployeesIdsBySelectedService():number[]{
+    if(+this.formBaseInformation.get('product_id').value == 0 || (this.mainProduct && !this.mainProduct.employeeRequired))
+      return this.getAllEmployeeIds(); 
+    let result:number[]=[];
+    this.receivedEmployeesList.map(employee=>{
+      if(this.accessibleEmployeesIdsByTimeOrSchedule.includes(employee.id)){
+        employee.departmentPartsWithServicesIds.map(deppart=>{
+          deppart.servicesIds.map(id=>{
+            if(id==+this.formBaseInformation.get('product_id').value)
+              result.push(employee.id);
+          });            
+        });
+      }      
+    });
+    return result;
+  }
+  // *** Job Titles ***
+  get accessibleJobTitlesIdsAll():number[]{
+    let data = [this.accessibleJobTitlesIdsByAccessibleEmployees, 
+                this.accessibleJobTitlesIdsBySelectedDepPart,
+                this.accessibleJobTitlesIdsBySelectedService
+              ];
+    return data.reduce((a, b) => a.filter(c => b.includes(c)));  //intersection of multiple arrays will be accessible Job Titles at this moment
+  }
+  get accessibleJobTitlesIdsByAccessibleEmployees():number[]{
+    let result:number[]=[];
+    this.receivedEmployeesList.map(employee=>{if(employee.state=='free') result.push(employee.jobtitle_id);});
+    return result;
+  }
+  get accessibleJobTitlesIdsBySelectedDepPart():number[]{
+    //Collecting job titles IDs of accessible employees who do a services in a selected department part
+    let result:number[]=[];
+    this.accessibleEmployeesIdsBySelectedDepPart.map(empId=>{
+      result.push(this.getEmployeeById(empId).jobtitle_id);
+    });
+    return result;
+  }
+  get accessibleJobTitlesIdsBySelectedService():number[]{
+    let result:number[]=[];
+    this.accessibleEmployeesIdsBySelectedService.map(empId=>{
+      result.push(this.getEmployeeById(empId).jobtitle_id);
+    });
+    return result;
+  }
+  onJobTitleSelect(jobtitleId:number){
+    if(this.accessibleJobTitlesIdsByAccessibleEmployees.includes(jobtitleId)){
+      this.clearEmployeeField();
+      this.checkEmptyEmployeeField();
+      this.formBaseInformation.get('jobtitle').setValue(jobtitleId);    
+    }
+    if(this.accessibleEmployeesIdsAll.length==1){
+      this.onEmployeeChange(this.accessibleEmployeesIdsAll[0], jobtitleId);
+      this.updateEmployeeValues(); // setting the name of employee into its search text field
+    } 
+  }
+  // *** Department parts ***
+
+  get accessibleDepPartsIdsAll():number[]{
+    let data = [this.accessibleDepPartsIdsByAccessibleEmployees, 
+                this.accessibleDepPartsIdsBySelectedEmployee,
+                this.accessibleDepPartsIdsBySelectedService];
+    return data.reduce((a, b) => a.filter(c => b.includes(c)));  //intersection of multiple arrays will be accessible employees at this moment
+  }
+
+  get accessibleDepPartsIdsByAccessibleEmployees():number[]{
+    let result:number[]=[];
+    // if service is selected and employee is not need for this service - suitable IDs are all IDs:
+    if(this.mainProduct != null && !this.mainProduct.employeeRequired){
+      return this.getAllDeppartsIds();
+    // if service is not selected, or selected and employee is need for this service, 
+    // then department parts IDs getting from accessible employees    
+    } else {
+      let allDepparts:number[] = this.getAllDeppartsIds();
+      this.receivedEmployeesList.map(employee=>{
+          if(this.accessibleEmployeesIdsAll.includes(employee.id)){
+            employee.departmentPartsWithServicesIds.map(depPart=>{
+              if(allDepparts.includes(depPart.id)) result.push(depPart.id);
+            });
+          } 
+      });
+    }
+    if(+this.formBaseInformation.get('jobtitle').value>0)
+      return result;
+    else
+      return result.concat(this.depPartsIdsWithNoEmployeeRequired);
+  }
+  get accessibleDepPartsIdsBySelectedEmployee():number[]{
+    // if employee is not selected - suitable IDs are all department parts IDs:
+    if(+this.formBaseInformation.get('employeeId').value == 0)
+      return this.getAllDeppartsIds(); 
+    let result:number[]=[];
+    this.receivedEmployeesList.map(employee=>{
+        if(this.formBaseInformation.get('employeeId').value == employee.id){
+          employee.departmentPartsWithServicesIds.map(depPart=>{
+            result.push(depPart.id);
+          });
+        }
+      })
+    return result;
+  }
+  get accessibleDepPartsIdsBySelectedService():number[]{
+    // if main product is not selected - suitable IDs are all department parts IDs:
+    if(!this.mainProduct || (this.mainProduct && !this.mainProduct.employeeRequired))
+      return this.getAllDeppartsIds(); 
+    let depparts:number[]=[];
+    this.receivedDepartmentsWithPartsList.map(department=>{
+      department.parts.map(deppart=>{
+        deppart.deppartProducts.map(service=>{
+          if(service.id==this.mainProduct.id && depparts.indexOf(deppart.id) === -1)
+            depparts.push(deppart.id);
+        })
+      })
+    });
+    return depparts;
+  }
+  // set of dep. parts IDs where there is at least one service with no employee required
+  get depPartsIdsWithNoEmployeeRequired():number[]{
+    let depparts:number[]=[];
+    this.receivedDepartmentsWithPartsList.map(department=>{
+      department.parts.map(deppart=>{
+        deppart.deppartProducts.map(service=>{
+          if(!service.employeeRequired && depparts.indexOf(deppart.id) === -1)
+            depparts.push(deppart.id);
+        })
+      })
+    });
+    return depparts;
+  }
+  onDepartmentPartSelect(part_id:number, department_id:number){
+    this.formBaseInformation.get('department').setValue(this.getDepartmentNameById(this.getDepartmentIdByDepPartId()));
+    this.getSetOfTypePrices();
+    if(this.accessibleEmployeesIdsAll.length==1){
+      this.formBaseInformation.get('employeeId').setValue(this.accessibleEmployeesIdsAll[0]);
+      let employee:Employee = this.getEmployeeById(this.accessibleEmployeesIdsAll[0]);
+      this.formBaseInformation.get('employeeName').setValue(employee.name);
+      this.formBaseInformation.get('jobtitle').setValue(employee.jobtitle_id);
+    }
+  }
+
+  // *** Services ***
+  get accessibleServicesIdsAll():number[]{
+    let data = [this.accessibleServicesIdsByAccessibleEmployees, 
+                this.accessibleServicesIdsBySelectedEmployee];
+    return data.reduce((a, b) => a.filter(c => b.includes(c)));  //intersection of multiple arrays will be accessible employees at this moment
+  }
+ get accessibleServicesIdsByAccessibleEmployees():number[]{
+    // if employee is selected - this get is no matter
+    if(+this.formBaseInformation.get('employeeId').value!=0)
+      return this.getAllServicesIds(false);
+    let result:number[]=[];
+    this.filteredProducts.map(service=>{
+      this.accessibleEmployeesIdsAll.map(employeeId=>{
+        this.getEmployeeById(employeeId).departmentPartsWithServicesIds.map(depPart=>{
+          if(depPart.servicesIds.includes(service.id))
+            result.push(service.id);  
+        });
+      });
+    });
+    if(+this.formBaseInformation.get('jobtitle').value>0)
+      return result;
+    else
+      return result.concat(this.getAllServicesIds(true));
+  }
+  get accessibleServicesIdsBySelectedEmployee():number[]{
+     // if employee is selected - this get is no matter
+    if(+this.formBaseInformation.get('employeeId').value==0)
+      return this.getAllServicesIds(false);
+
+    let result:number[]=[];
+    this.receivedEmployeesList.map(employee=>{
+        if(this.formBaseInformation.get('employeeId').value == employee.id){
+          employee.departmentPartsWithServicesIds.map(depPart=>{
+            depPart.servicesIds.map(serviceId=>{
+              result.push(serviceId);
+            })
+          });
+        }
+      })
+    return result;
+  }
+
+
+
+
+
+  // get nonaccessibleEmployeesIdsBySelectedJobTitle():number[]{
+  //   return this.accessibleEmployeesIdsAll.filter(n => !this.accessibleEmployeesIdsBySelectedJobTitle.includes(n));
+  // }
+
+
+
+  // isJobTitleAccessblByEmplloyees(jobtitleId:number):boolean{
+    // let result=false; this.receivedEmployeesList.map(employee=>{if(employee.jobtitle_id==jobtitleId) result=true;}); return result;
+  // }
 
   //--------------------------------------------------------------------------- Утилиты ---------------------------------------------------------------------------------------------------------
   //заменяет запятую на точку при вводе цены или количества в заданной ячейке
