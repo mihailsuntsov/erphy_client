@@ -59,7 +59,7 @@ interface AppointmentServiceSearchResponse{//интерфейс получени
   name: string;
   departmentId: number;
   departmentName: string;
-  department_parts: DepartmentPartWithResourcesIds[];
+  departmentPartsWithResourcesIds: DepartmentPartWithResourcesIds[];
   edizm_id:number;
   edizm: string;
   edizm_type_id: number;
@@ -84,7 +84,7 @@ interface AppointmentServiceSearchResponse{//интерфейс получени
 interface DepartmentPartWithResourcesIds{
   id:number;
   name: string;
-  resources:ResourceOfDepartmentPart[];
+  resourcesOfDepartmentPart:ResourceOfDepartmentPart[];
 }
 interface ResourceOfDepartmentPart{
   id:number;
@@ -373,7 +373,8 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   receivedMyDepartmentsList: SecondaryDepartment [] = [];//массив для получения списка отделений
   receivedEmployeesList  : Employee[] = [];//массив для получения списка сотрудников
   filteredEmployeesList: Observable<Employee[]>; // here will be filtered languages for showing in select list
-  employeesListLoadQtt = 0; // if == 3 then indication of list loading will shown
+  employeesListLoadQtt = 0; // if == 3 then indication of list loading will shown  
+  notEnoughResourcesInDepParts = new Map();
   myCompanyId:number=0;
   companySettings:CompanySettings={vat:false,vat_included:true};  
   allFields: any[][] = [];//[номер строки начиная с 0][объект - вся инфо о товаре (id,кол-во, цена... )] - массив товаров
@@ -1046,6 +1047,16 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
   }
 
+  get isDatesValid():boolean{
+    // if(
+    //   !moment(moment(new Date(this.formBaseInformation.get('date_start').value)).format('DD.MM.YYYY')+' '+this.timeTo24h(this.formBaseInformation.get('time_start').value), 'DD.MM.YYYY HH:mm', true).isValid() ||
+    //   !moment(moment(new Date(this.formBaseInformation.get('date_end').value)).format('DD.MM.YYYY')+' '+this.timeTo24h(this.formBaseInformation.get('time_end').value), 'DD.MM.YYYY HH:mm', true).isValid()
+    // ) return false; else return true;
+    var beginningTime = moment(moment(new Date(this.formBaseInformation.get('date_start').value)).format('DD.MM.YYYY')+' '+this.timeTo24h(this.formBaseInformation.get('time_start').value), 'DD.MM.YYYY HH:mm');
+    var endTime = moment(moment(new Date(this.formBaseInformation.get('date_end').value)).format('DD.MM.YYYY')+' '+this.timeTo24h(this.formBaseInformation.get('time_end').value), 'DD.MM.YYYY HH:mm');
+    if(beginningTime.isBefore(endTime)) return true; else return false;
+  }
+  
   setDefaultDate(){
     this.formBaseInformation.get('date_start').setValue(moment());
     this.formBaseInformation.get('date_end').  setValue(moment().add(0,'d'));
@@ -1053,6 +1064,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     this.formBaseInformation.get('time_end').  setValue(moment().add(+1,'h').format("HH:mm"));
     this.necessaryActionsBeforeAutoCreateNewDoc();
   }
+  
   doFilterDepartmentsList(){
     // console.log('doFilterDepartmentsList');
     if(!this.allowToCreateAllCompanies && !this.allowToCreateMyCompany && this.allowToCreateMyDepartments){
@@ -1103,7 +1115,6 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       } else {
         this.filteredCustomers = data as any;
   }});}
-
 
   onSelectCustomer(id:number,name:string){
     this.formCustomerSearch.get('id').setValue(+id);
@@ -3209,7 +3220,36 @@ deleteFile(id:number){ //+++
     this.formBaseInformation.get('employeeName').setValue('');
     this.formBaseInformation.get('jobtitle').setValue(0);
     this.formBaseInformation.get('product_id').setValue(null);
+    this.searchProductCtrl.reset();
+    this.mainProduct= null;
+    this.deleteAllCustomersProducts(true); // delete only main product from all customers products
+    this.getTotalSumPrice();
     this.searchProductCtrl.setValue('');
+  }
+  getNotEnoughResourcesOfServiceInDepPart(service:AppointmentServiceSearchResponse, depPartId:number, serviceQtt:number=1):ResourceOfDepartmentPart[]{
+    let result:ResourceOfDepartmentPart[] = [];
+    service.departmentPartsWithResourcesIds.map(depPart=>{
+      if(depPart.id==depPartId){
+        depPart.resourcesOfDepartmentPart.map(resource=>{
+          let freeResourceQtt = resource.quantity_in_dep_part-resource.now_used;
+          let needResourceQtt = serviceQtt*resource.need_res_qtt;
+          // if resource is not enough and this resource still not added to the return list
+          if(freeResourceQtt < needResourceQtt && result.findIndex((o)=>{ return o.id  === resource.id }) === -1)
+            result.push(resource);
+        })
+      }
+    })
+    return result;
+  }
+  getResourcesNames(resources:ResourceOfDepartmentPart[]):string {
+    let result='';
+    let index=0;
+    resources.map(resource=>{
+      if(index>0) result = result + ', ';
+      result = result + resource.name;
+      index++;
+    })
+    return result;
   }
   // ---------------------------------------------------- FILTRATION SYSTEM ------------------------------------------------------------------------
   // *** Employees ***
@@ -3276,6 +3316,8 @@ deleteFile(id:number){ //+++
   }
   get accessibleJobTitlesIdsBySelectedDepPart():number[]{
     //Collecting job titles IDs of accessible employees who do a services in a selected department part
+    if(+this.formBaseInformation.get('department_part_id').value == 0)
+      return this.getAllJobTitlesIds();
     let result:number[]=[];
     this.accessibleEmployeesIdsBySelectedDepPart.map(empId=>{
       result.push(this.getEmployeeById(empId).jobtitle_id);
@@ -3283,6 +3325,8 @@ deleteFile(id:number){ //+++
     return result;
   }
   get accessibleJobTitlesIdsBySelectedService():number[]{
+    if(!this.mainProduct)
+      return this.getAllJobTitlesIds();
     let result:number[]=[];
     this.accessibleEmployeesIdsBySelectedService.map(empId=>{
       result.push(this.getEmployeeById(empId).jobtitle_id);
@@ -3305,7 +3349,8 @@ deleteFile(id:number){ //+++
   get accessibleDepPartsIdsAll():number[]{
     let data = [this.accessibleDepPartsIdsByAccessibleEmployees, 
                 this.accessibleDepPartsIdsBySelectedEmployee,
-                this.accessibleDepPartsIdsBySelectedService];
+                this.accessibleDepPartsIdsBySelectedService,
+                this.accessibleDepPartsIdsByResourcesOfSelectedService];
     return data.reduce((a, b) => a.filter(c => b.includes(c)));  //intersection of multiple arrays will be accessible employees at this moment
   }
 
@@ -3347,8 +3392,10 @@ deleteFile(id:number){ //+++
   }
   get accessibleDepPartsIdsBySelectedService():number[]{
     // if main product is not selected - suitable IDs are all department parts IDs:
-    if(!this.mainProduct || (this.mainProduct && !this.mainProduct.employeeRequired))
+    if(!this.mainProduct){
+      // console.log(0);
       return this.getAllDeppartsIds(); 
+    }
     let depparts:number[]=[];
     this.receivedDepartmentsWithPartsList.map(department=>{
       department.parts.map(deppart=>{
@@ -3359,6 +3406,29 @@ deleteFile(id:number){ //+++
       })
     });
     return depparts;
+  }
+  get accessibleDepPartsIdsByResourcesOfSelectedService():number[]{
+    // if main product is not selected - suitable IDs are all department parts IDs:
+    if(!this.mainProduct){
+      return this.getAllDeppartsIds(); 
+    }
+    let result:number[]=[];
+    // adding all dep parts that not contained in service's department parts
+    this.getAllDeppartsIds().map(dpId=>{
+      if(this.mainProduct.departmentPartsWithResourcesIds.findIndex((o)=>{ return o.id  === dpId }) === -1)
+        result.push(dpId)
+    })
+    // just in case if service is not have an information about its department parts (why?)
+    if(this.mainProduct.departmentPartsWithResourcesIds.length==0)
+      return this.getAllDeppartsIds();
+    this.mainProduct.departmentPartsWithResourcesIds.map(dp=>{
+      // if resources are not needed or all resources are enough
+        if(dp.resourcesOfDepartmentPart.length==0 || this.getNotEnoughResourcesOfServiceInDepPart(this.mainProduct, dp.id).length==0)
+          result.push(dp.id)
+      // }
+    })
+    // })
+    return result;
   }
   // set of dep. parts IDs where there is at least one service with no employee required
   get depPartsIdsWithNoEmployeeRequired():number[]{
@@ -3387,10 +3457,13 @@ deleteFile(id:number){ //+++
   // *** Services ***
   get accessibleServicesIdsAll():number[]{
     let data = [this.accessibleServicesIdsByAccessibleEmployees, 
-                this.accessibleServicesIdsBySelectedEmployee];
+                this.accessibleServicesIdsBySelectedEmployee,
+                this.accessibleServicesIdsBySelectedDepPart,
+                this.accessibleServicesIdsByResourcesOfSelectedDepPart,
+                this.accessibleServicesIdsByResourcesOfAccessibleDepParts];
     return data.reduce((a, b) => a.filter(c => b.includes(c)));  //intersection of multiple arrays will be accessible employees at this moment
   }
- get accessibleServicesIdsByAccessibleEmployees():number[]{
+  get accessibleServicesIdsByAccessibleEmployees():number[]{
     // if employee is selected - this get is no matter
     if(+this.formBaseInformation.get('employeeId').value!=0)
       return this.getAllServicesIds(false);
@@ -3412,7 +3485,6 @@ deleteFile(id:number){ //+++
      // if employee is selected - this get is no matter
     if(+this.formBaseInformation.get('employeeId').value==0)
       return this.getAllServicesIds(false);
-
     let result:number[]=[];
     this.receivedEmployeesList.map(employee=>{
         if(this.formBaseInformation.get('employeeId').value == employee.id){
@@ -3425,10 +3497,51 @@ deleteFile(id:number){ //+++
       })
     return result;
   }
-
-
-
-
+  get accessibleServicesIdsBySelectedDepPart():number[]{
+    if(+this.formBaseInformation.get('department_part_id').value == 0)
+      return this.getAllServicesIds(false);
+    let result:number[]=[];
+    this.filteredProducts.map(p=>{
+      p.departmentPartsWithResourcesIds.map(dp=>{
+        if(this.formBaseInformation.get('department_part_id').value==dp.id)
+          result.push(p.id)})          
+    });
+    return result;
+  }
+  get accessibleServicesIdsByResourcesOfSelectedDepPart():number[]{
+    if(+this.formBaseInformation.get('department_part_id').value == 0)
+      return this.getAllServicesIds(false);
+    let result:number[] = [];
+    this.filteredProducts.map(service=>{
+      if(service.departmentPartsWithResourcesIds.length==0 || service.departmentPartsWithResourcesIds.findIndex((o)=>{ return o.id  === this.formBaseInformation.get('department_part_id').value }) === -1)
+        result.push(service.id);
+      service.departmentPartsWithResourcesIds.map(dp=>{
+        if(dp.id==this.formBaseInformation.get('department_part_id').value) {
+          if(dp.resourcesOfDepartmentPart.length==0 || this.getNotEnoughResourcesOfServiceInDepPart(service, dp.id).length==0)
+            result.push(service.id)
+        }
+      })
+    })
+    return result;
+  }
+  get accessibleServicesIdsByResourcesOfAccessibleDepParts():number[]{
+    if(+this.formBaseInformation.get('department_part_id').value > 0 || this.accessibleDepPartsIdsAll.length==0)
+      return this.getAllServicesIds(false);
+    let result:number[] = [];
+      this.filteredProducts.map(service=>{
+        if(service.departmentPartsWithResourcesIds.length==0 /*|| service.departmentPartsWithResourcesIds.findIndex((o)=>{ return this.accessibleDepPartsIdsAll.includes(o.id) }) === -1*/)
+          result.push(service.id);
+        service.departmentPartsWithResourcesIds.map(dp=>{
+          if(this.accessibleDepPartsIdsAll.includes(dp.id)) {
+            if(dp.resourcesOfDepartmentPart.length==0 || this.getNotEnoughResourcesOfServiceInDepPart(service, dp.id).length==0)
+              result.push(service.id)
+            if(this.getNotEnoughResourcesOfServiceInDepPart(service, dp.id).length>0)
+              this.notEnoughResourcesInDepParts.set(service.id, this.getResourcesNames(this.getNotEnoughResourcesOfServiceInDepPart(service, dp.id)))
+          }
+        })
+      })
+    return result;
+  }
 
   // get nonaccessibleEmployeesIdsBySelectedJobTitle():number[]{
   //   return this.accessibleEmployeesIdsAll.filter(n => !this.accessibleEmployeesIdsBySelectedJobTitle.includes(n));

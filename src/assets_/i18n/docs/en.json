@@ -405,6 +405,7 @@
         "370":"The same site cannot have the same language versions",
         "too_short":"Too short",
         "too_long":"Too long",
+        "dates_from_to_valid":"The end date and time must be later than the start date and time",
         
         "-- RETURNS TO SUPPLIERS":"--",
 
@@ -528,7 +529,38 @@
         "res_usg":"Resource usage",
         "res_day":"Resource usage during the day",
         "res_week":"Resource usage during the week",
-        "res_month":"Resource usage during the month"
+        "res_month":"Resource usage during the month",
+        "srvc_acsbl_res_dprt":"In a selected part of the department there are not enough resources to perform this service: {{resources}}",
+        "dp_no_res_for_srvc":"This part of the department does not have enough resources to perform the selected service: {{resources}}",
+        "srvc_acsbl_res_dprts":"There are not enough resources in any of the accessible parts of the departments to perform this service: {{resources}}",
+
+        
+        "select_all":"Select all",
+        "unselect_all":"Cancel all",
+        "select_all_onedep":"Select everything in this department",
+        "unselect_all_onedep":"Cancel everything in this department",
+        "clear_form":"Clear form",
+        "delete_all_rows":"Delete all",
+        "add_row":"Add to table",
+        "empl_no_acsbl_dp":"The selected employee does not provide services in this part of the department",
+        "empl_no_acsbl_srvc":"Selected employee does not provide this service",
+        "srvc_no_acsbl_dp":"The selected service is not provided in this part of the department",
+        "srvc_acsbl_dp":"This service is not provided in the selected part of the department",
+        "dp_no_acsbl_emp":"This employee does not provide services in a selected part of the department",
+        "srvc_no_acsbl_emp":"This employee does not provide selected service",
+        "empls_no_acsbl_dp":"There are no employees available to provide services in this part of the department",
+        "empls_no_acsbl_srvc":"There are no employees available to provide this service",
+        "empls_no_acsbl_jt":"There are no employees available for this job title",
+        "employee_cagent":"An employee of a company is its counterparty - he provides services to the company (work) and receives payment for them (salary)",
+        "jt_acsbl_dp":"There are no employees available with this job title who provide services in the selected part of the department",
+        "jt_acsbl_srvc":"There are no employees available with this job title who provide selected service",
+        "clr_srch":"Clear search field",
+        "empl_acsbl":"Employees are available",
+        "empl_no_acsbl":"Employees are not available",
+        "add_part":"Add part of the department",
+        "busy_by_schedule":"The selected time is not the employee’s working time, or the employee does not have a completed work schedule",
+        "na_by_jobttl":"The employee's job title does not match the selected position",
+        "busy_by_appontm":"The employee is busy at the selected time"
     },
     "msg":{
         "error":        "Error!",

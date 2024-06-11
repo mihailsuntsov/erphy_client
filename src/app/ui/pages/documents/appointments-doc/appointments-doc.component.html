@@ -106,7 +106,7 @@
                     [matMenuTriggerFor]="addDocMenu"
                     mat-raised-button 
                     matTooltip="{{t('docs.tip.create_docs')}}"
-                    [disabled]="!childFormValid||!formBaseInformation.valid||productSearchAndTableByCustomersComponent.indivisibleErrorOfProductTable" 
+                    [disabled]="!childFormValid||!formBaseInformation.valid||!isDatesValid||productSearchAndTableByCustomersComponent.indivisibleErrorOfProductTable" 
                     *ngIf="+id>0 && productSearchAndTableByCustomersComponent"
                     color="primary"
                     (submit)="false"
@@ -134,7 +134,7 @@
                     matTooltip="{{t('docs.tip.save')}}"
                     *ngIf="!is_completed && allowToUpdate && canGetChilds && +id>0"
                     (click)="updateDocument()"
-                    [disabled]="!childFormValid||!formBaseInformation.valid ||
+                    [disabled]="!childFormValid||!formBaseInformation.valid || !isDatesValid ||
                                 (productSearchAndTableByCustomersComponent && productSearchAndTableByCustomersComponent.gettingTableData)||
                                 oneClickSaveControl" 
                     color="primary"
@@ -150,7 +150,7 @@
                     (click)="createNewDocument()" 
                     (submit)="false"
                     *ngIf="allowToCreate && +id==0"
-                    [disabled]="!formBaseInformation.valid || !childFormValid" 
+                    [disabled]="!formBaseInformation.valid || !childFormValid || !isDatesValid" 
                     color="primary"
                     type="button"
                     id="newdoc_btn"
@@ -230,7 +230,7 @@
                                                                     mat-raised-button
                                                                     color="primary"
                                                                     type="button"
-                                                                    [disabled]="+this.formBaseInformation.get('department_part_id').value==0 && +this.formBaseInformation.get('employeeId').value==0 && +this.formBaseInformation.get('jobtitle').value==0 && +this.formBaseInformation.get('product_id').value==0" 
+                                                                    [disabled]="+this.formBaseInformation.get('department_part_id').value==0 && +this.formBaseInformation.get('employeeId').value==0 && +this.formBaseInformation.get('jobtitle').value==0 && +this.formBaseInformation.get('product_id').value==0 && (searchProductCtrl.value==null || searchProductCtrl.value.length==0 || searchProductCtrl.value=='')" 
                                                                     id="reset_btn"
                                                                     class="button small-button"
                                                                     (click)="resetMainForm();">
@@ -294,7 +294,7 @@
                                                                                                 formControlName="date_start"
                                                                                                 [ngClass]="{'is-invalid':formBaseInformation.get('date_start').touched && formBaseInformation.get('date_start').invalid}"
                                                                                                 [matDatepicker]="dp"/>
-                                                                                                <mat-datepicker-toggle matSuffix [for]="dp" *ngIf="!is_completed"></mat-datepicker-toggle>
+                                                                                        <mat-datepicker-toggle matSuffix [for]="dp" *ngIf="!is_completed"></mat-datepicker-toggle>
                                                                                         <mat-datepicker #dp></mat-datepicker>
                                                                                         <mat-hint *ngIf="formBaseInformation.get('date_start').touched && formBaseInformation.get('date_start').invalid" class="invalid-feedback">
                                                                                             <i class="form-invalid">{{t('docs.error.date_format')}}</i>
@@ -329,7 +329,7 @@
                                                                                                 formControlName="date_end"
                                                                                                 [ngClass]="{'is-invalid':formBaseInformation.get('date_end').touched && formBaseInformation.get('date_end').invalid}"
                                                                                                 [matDatepicker]="dp1"/>
-                                                                                                <mat-datepicker-toggle matSuffix [for]="dp" *ngIf="!is_completed"></mat-datepicker-toggle>
+                                                                                        <mat-datepicker-toggle matSuffix [for]="dp1" *ngIf="!is_completed"></mat-datepicker-toggle>
                                                                                         <mat-datepicker #dp1></mat-datepicker>
                                                                                         <mat-hint *ngIf="formBaseInformation.get('date_end').touched && formBaseInformation.get('date_end').invalid" class="invalid-feedback">
                                                                                             <i class="form-invalid">{{t('docs.error.date_format')}}</i>
@@ -355,6 +355,12 @@
                                                                             </div>
                                                                         </div>  
                                                                     </div>
+                                                                    <div class="row" *ngIf="!isDatesValid" 
+                                                                        style="position: absolute; top: 54px;">
+                                                                        <div class="col-12">
+                                                                            <i class="table-form-invalid">{{t('docs.error.dates_from_to_valid')}}</i>
+                                                                        </div>
+                                                                    </div>
                                                                 </div>    
 
 
@@ -375,7 +381,7 @@
                                                                                 <!-- <ng-container *ngFor="let department of receivedDepartmentsWithPartsList;"> -->
                                                                                     <!-- <ng-container *ngIf="department.department_id == department_id"> -->
                                                                                         
-                                                                                            
+                                                                                        
                                                                                             <mat-option 
                                                                                             *ngFor= "let part of department.parts"
                                                                                             [value]="part.id"
@@ -414,6 +420,13 @@
                                                                                                         [matTooltipPosition]="'right'">
                                                                                                             work
                                                                                                         </span>
+                                                                                                        <span 
+                                                                                                            class="material-icons employee-state-icon" 
+                                                                                                            style="color: red;"
+                                                                                                            *ngIf="mainProduct && !accessibleDepPartsIdsByResourcesOfSelectedService.includes(part.id)"                                                                                
+                                                                                                            matTooltip="{{t('docs.tip.dp_no_res_for_srvc',{'resources':getResourcesNames(getNotEnoughResourcesOfServiceInDepPart(mainProduct,part.id,1))})}}">
+                                                                                                            workspaces
+                                                                                                        </span>  
                                                                                                     </div>
                                                                                                     <span style="margin-left: 25px;">{{part.name}}</span>
                                                                                                 </div>
@@ -505,6 +518,27 @@
                                                                                                     matTooltip="{{t('docs.tip.empl_no_acsbl_srvc')}}">
                                                                                                     person
                                                                                                 </span>
+                                                                                                <span 
+                                                                                                    class="material-icons employee-state-icon" 
+                                                                                                    style="color: red;"
+                                                                                                    *ngIf="!accessibleServicesIdsBySelectedDepPart.includes(value.id)"                                                                                
+                                                                                                    matTooltip="{{t('docs.tip.srvc_acsbl_dp')}}">
+                                                                                                    place
+                                                                                                </span>
+                                                                                                <span 
+                                                                                                    class="material-icons employee-state-icon" 
+                                                                                                    style="color: red;"
+                                                                                                    *ngIf="+formBaseInformation.get('department_part_id').value>0 && !accessibleServicesIdsByResourcesOfSelectedDepPart.includes(value.id)"                                                                                
+                                                                                                    matTooltip="{{t('docs.tip.srvc_acsbl_res_dprt',{'resources':getResourcesNames(getNotEnoughResourcesOfServiceInDepPart(value,formBaseInformation.get('department_part_id').value,1))})}}">
+                                                                                                    workspaces
+                                                                                                </span>
+                                                                                                <span 
+                                                                                                    class="material-icons employee-state-icon" 
+                                                                                                    style="color: red;"
+                                                                                                    *ngIf="+formBaseInformation.get('department_part_id').value==0 && !accessibleServicesIdsByResourcesOfAccessibleDepParts.includes(value.id)"                                                                                
+                                                                                                    matTooltip="{{t('docs.tip.srvc_acsbl_res_dprts',{'resources':notEnoughResourcesInDepParts.get(value.id)})}}">
+                                                                                                    workspaces
+                                                                                                </span>     
                                                                                             </div>
                                                                                             <span style="margin-left: 25px;">{{value.name}}</span>
                                                                                         </div>
@@ -581,7 +615,6 @@
                                                                                             style="color: red;"
                                                                                             *ngIf="!accessibleJobTitlesIdsBySelectedDepPart.includes(jt.jobtitle_id)"                                                                                
                                                                                             matTooltip="{{t('docs.tip.jt_acsbl_dp')}}">
-                                                                                            <!-- <svg xmlns="http://www.w3.org/2000/svg" style="transform: scale(0.66, 0.66);" height="24px" viewBox="0 0 24 24" width="24px" fill="green"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg> -->
                                                                                             place
                                                                                         </span>                                                                                        
                                                                                         <span 
@@ -990,13 +1023,7 @@
 
                                                                 <!-- Additional customer's products search form -->
                                                                 <div class="row" *ngIf="editability">     
-                                                                    <div class="col-12">    
-                                                                        <!-- <mat-form-field  style="display: none">
-                                                                            <input  matInput
-                                                                            placeholder="product_id"
-                                                                            #product_id
-                                                                            formControlName="product_id" [readonly]=true/>
-                                                                        </mat-form-field> -->
+                                                                    <div class="col-12">
                                                                         <mat-form-field  class="mat-form-field-100">
                                                                             <mat-label>{{t('modules.field.srvc_srch')}}</mat-label>
                                                                             <input  matInput 
@@ -1395,18 +1422,22 @@
             </mat-tab-group>
         
         </mat-card-content> 
-        <!-- <code><pre>{{formBaseInformation.value | json}}</pre></code> -->
+        isDatesValid - {{isDatesValid}}
+        <br>
+        --{{this.formBaseInformation.get('date_start').value}}
+        <br>
+        <code><pre>{{formBaseInformation.value | json}}</pre></code>
         <!-- accessibleEmployeesIdsBySelectedJobTitle -->
         <!-- <code><pre>{{accessibleEmployeesIdsBySelectedJobTitle | json}}</pre></code><br> -->
         <!-- accessibleEmployeesIdsAll -->
         <!-- <code><pre>{{accessibleEmployeesIdsAll | json}}</pre></code><br> -->
         
-        <b>accessibleServicesIdsAll ({{accessibleServicesIdsAll.length}})</b>
+        <!-- <b>accessibleServicesIdsAll ({{accessibleServicesIdsAll.length}})</b>
         <code><pre>{{accessibleServicesIdsAll | json}}</pre></code><br>
         <b>accessibleServicesIdsByAccessibleEmployees ({{accessibleServicesIdsByAccessibleEmployees.length}})</b>
         <code><pre>{{accessibleServicesIdsByAccessibleEmployees | json}}</pre></code><br>
         <b>this.getAllServicesIds(false) ({{this.getAllServicesIds(false).length}})</b>
-        <code><pre>{{this.getAllServicesIds(false) | json}}</pre></code><br>
+        <code><pre>{{this.getAllServicesIds(false) | json}}</pre></code><br> -->
         <!-- <b>depPartsIdsWithNoEmployeeRequired ({{depPartsIdsWithNoEmployeeRequired.length}})</b>
         <code><pre>{{depPartsIdsWithNoEmployeeRequired | json}}</pre></code><br>
         <b>accessibleDepPartsIdsBySelectedEmployee ({{accessibleDepPartsIdsBySelectedEmployee.length}})</b>
@@ -1417,8 +1448,8 @@
         <code><pre>{{accessibleDepPartsIdsAll | json}}</pre></code><br>
         <b>accessibleEmployeesIdsBySelectedService ({{accessibleEmployeesIdsBySelectedService.length}})</b>
         <code><pre>{{accessibleEmployeesIdsBySelectedService | json}}</pre></code><br> -->
-        
-        accessibleEmployeesIdsBySelectedService
+        <!-- <b>accessibleDepPartsIdsBySelectedService ({{accessibleDepPartsIdsBySelectedService.length}})</b> -->
+        <!-- <code><pre>{{accessibleDepPartsIdsBySelectedService | json}}</pre></code><br> -->
 
     </form>
 </mat-card>
