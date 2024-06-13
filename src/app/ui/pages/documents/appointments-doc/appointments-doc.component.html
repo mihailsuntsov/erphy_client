@@ -157,7 +157,7 @@
                     class="button small-button">
                     <i class="material-icons">done</i>
                 </button>
-                <button 
+                <!-- <button 
                     mat-raised-button 
                     matTooltip="{{t('docs.tip.complete')}}"
                     *ngIf=" +id>0 && allowToComplete&& canGetChilds && !is_completed && productSearchAndTableByCustomersComponent"
@@ -182,7 +182,7 @@
                     color="primary"
                     class="button small-button completed">
                     <i class="material-icons">playlist_add_check</i> 
-                </button>
+                </button> -->
                 <a routerLink="../{{+id>0?'../':''}}customersorders">
                     <button 
                         mat-raised-button 
@@ -415,20 +415,20 @@
                                                                                                         <span 
                                                                                                         class="material-icons employee-state-icon"
                                                                                                         style="color: red;"
-                                                                                                        *ngIf="mainProduct && !accessibleDepPartsIdsBySelectedService.includes(part.id)"                                                                                
-                                                                                                        matTooltip="{{t('docs.tip.srvc_no_acsbl_emp')}}"
+                                                                                                        *ngIf="(getControlTablefield)().length>0 && !accessibleDepPartsIdsBySelectedServices.includes(part.id)"                                                                                
+                                                                                                        matTooltip="{{t('docs.tip.srvc_no_acsbl_dp')}}"
                                                                                                         [matTooltipPosition]="'right'">
                                                                                                             work
                                                                                                         </span>
                                                                                                         <span 
-                                                                                                            class="material-icons employee-state-icon" 
-                                                                                                            style="color: red;"
-                                                                                                            *ngIf="mainProduct && !accessibleDepPartsIdsByResourcesOfSelectedService.includes(part.id)"                                                                                
-                                                                                                            matTooltip="{{t('docs.tip.dp_no_res_for_srvc',{'resources':getResourcesNames(getNotEnoughResourcesOfServiceInDepPart(mainProduct,part.id,1))})}}">
-                                                                                                            workspaces
+                                                                                                        class="material-icons employee-state-icon" 
+                                                                                                        style="color: red;"
+                                                                                                        *ngIf="!accessibleDepPartsIdsByResourcesOfSelectedServices.includes(part.id)"                                                                                
+                                                                                                        matTooltip="{{t('docs.tip.dp_no_res_for_srvc',{'resources':getResourcesNames(getNotEnoughResourcesOfServicesInDepPart(part.id))})}}">
+                                                                                                        workspaces
                                                                                                         </span>  
                                                                                                     </div>
-                                                                                                    <span style="margin-left: 25px;">{{part.name}}</span>
+                                                                                                    <span style="margin-left: 25px;">{{part.name}} ({{part.id}})</span>
                                                                                                 </div>
                                                                                             </mat-option>
                                                                                             
@@ -443,7 +443,7 @@
                                                                 </div>
 
                                                                 
-                                                                <div class="col-12"> 
+                                                                <!-- <div class="col-12"> 
                                                                     <mat-form-field  style="display: none">
                                                                         <input  matInput
                                                                         placeholder="product_id"
@@ -460,16 +460,6 @@
                                                                         [readonly]="!editability || is_completed || isProductListLoading"
                                                                         (input)="canAutocompleteQuery=true; checkEmptyProductField();"
                                                                         (change)="canAutocompleteQuery=false; checkEmptyProductField();">
-                                                                        
-                                                                        <!-- <button
-                                                                        type="button"
-                                                                        (click)="openProductCard(formBaseInformation.get('product_id').value)"
-                                                                        *ngIf="+formBaseInformation.get('product_id').value>0" 
-                                                                        matTooltip="{{t('modules.tip.opn_prod_card')}}"
-                                                                        matSuffix mat-icon-button >
-                                                                            <mat-icon>launch</mat-icon>
-                                                                        </button>
-                 -->
                                                                         <mat-icon
                                                                             *ngIf="+formBaseInformation.get('product_id').value>0"
                                                                             style="right:30px"
@@ -478,14 +468,6 @@
                                                                             (click)="openProductCard(formBaseInformation.get('product_id').value)">
                                                                             launch
                                                                         </mat-icon>
-                                                                        <!-- <button
-                                                                        type="button"
-                                                                        *ngIf="+formBaseInformation.get('product_id').value>0 && editability && !is_completed" 
-                                                                        matTooltip="{{t('modules.tip.clr_srch_form')}}"
-                                                                        matSuffix mat-icon-button 
-                                                                        (click)="resetProductFormSearch();">
-                                                                            <mat-icon>close</mat-icon>
-                                                                        </button> -->
                                                                         <mat-icon
                                                                             *ngIf="+formBaseInformation.get('product_id').value>0 && editability && !is_completed"
                                                                             matTooltip="{{t('docs.tip.clr_srch')}}" 
@@ -494,8 +476,6 @@
                                                                             close
                                                                         </mat-icon>
                                                                         <mat-autocomplete #auto3="matAutocomplete">
-                                                                            <!-- <ng-container *ngIf="!isProductListLoading && filteredProducts.length>1" style="width:320px;"> -->
-
                                                                             <ng-container *ngIf="!isProductListLoading && (filteredProducts.length>1 || (filteredProducts.length==1 && accessibleServicesIdsAll.length==0))" style="width:320px;">
                                                                                 <span  *ngFor="let value of filteredProducts"  class="flex" style="border: 0px solid ;margin: 4px 0;">
                                                                                     <mat-option 
@@ -543,27 +523,12 @@
                                                                                             <span style="margin-left: 25px;">{{value.name}}</span>
                                                                                         </div>
                                                                                     </mat-option>
-                                                                                    <!-- <mat-chip-listbox class="mat-chip-list">
-                                                                                        <mat-chip-option 
-                                                                                            *ngIf="(value.total-value.reserved)>0" 
-                                                                                            matTooltip="{{t('modules.tip.instock_th_dp')}}"
-                                                                                            style="margin:12px 5px;flex-grow: 0;">
-                                                                                            <span style="color:green; font-weight: bold">{{value.total-value.reserved}}</span>
-                                                                                        </mat-chip-option>
-                                                                                        <mat-chip-option 
-                                                                                            *ngIf="(value.total-value.reserved)==0" 
-                                                                                            [matTooltip]="(value.total_in_all_my_depths-value.reserved_in_all_my_depths)>0?t('modules.tip.no_prod_but'):t('modules.tip.no_prod_nowhr')"
-                                                                                            [ngStyle]="(value.total_in_all_my_depths-value.reserved_in_all_my_depths)>0?{'background-color': 'LightGreen'}:{'background-color': '#e0e0e0'}"
-                                                                                            style="margin:12px 5px;flex-grow: 0;">
-                                                                                            <span style="color:rgb(122, 0, 0); font-weight: bold">{{value.total-value.reserved}}</span>
-                                                                                        </mat-chip-option>
-                                                                                    </mat-chip-listbox> -->
                                                                                 </span>
                                                                             </ng-container>
                                                                         </mat-autocomplete>
                                                                     </mat-form-field>
                                                                     <mat-progress-bar *ngIf="isProductListLoading" mode="indeterminate"></mat-progress-bar>
-                                                                </div>
+                                                                </div> -->
                                                                 
                                                                 
 
@@ -591,7 +556,7 @@
 
 
 
-                                                                <div class="col-xl-6 col-md-12" *ngIf="!mainProduct || (mainProduct && mainProduct.employeeRequired)"> 
+                                                                <div class="col-xl-6 col-md-12"  *ngIf="getControlTablefield().length==0 || (getControlTablefield().length>0 && isThereAreServicesWithEmployeeRequired())"> 
                                                                     <mat-form-field class="mat-form-field-100" id="jobtitle">
                                                                         <mat-label>{{t('docs.field.job_title')}}</mat-label>
                                                                         <mat-select
@@ -617,13 +582,13 @@
                                                                                             matTooltip="{{t('docs.tip.jt_acsbl_dp')}}">
                                                                                             place
                                                                                         </span>                                                                                        
-                                                                                        <span 
+                                                                                        <!-- <span 
                                                                                             class="material-icons employee-state-icon" 
                                                                                             style="color: red;"
                                                                                             *ngIf="!accessibleJobTitlesIdsBySelectedService.includes(jt.jobtitle_id)"                                                                                
                                                                                             matTooltip="{{t('docs.tip.jt_acsbl_srvc')}}">
                                                                                             work
-                                                                                        </span>
+                                                                                        </span> -->
                                                                                         <span 
                                                                                             class="material-icons employee-state-icon"
                                                                                             style="color: red;"
@@ -646,7 +611,9 @@
 
 
 
-                                                                <div class="col-xl-6 col-md-12" *ngIf="!mainProduct || (mainProduct && mainProduct.employeeRequired)">
+                                                                <!-- <div class="col-xl-6 col-md-12" *ngIf="!mainProduct || (mainProduct && mainProduct.employeeRequired)"> -->
+                                                                <div class="col-xl-6 col-md-12" *ngIf="getControlTablefield().length==0 || (getControlTablefield().length>0 && isThereAreServicesWithEmployeeRequired())">
+
                                                                     <mat-form-field style="display: none;" >
                                                                         <input   matInput
                                                                                 placeholder="employee"
@@ -697,11 +664,11 @@
                                                                                         badge
                                                                                     </span>
                                                                                     <span 
-                                                                                        class="material-icons employee-state-icon" 
-                                                                                        style="color: red;"
-                                                                                        *ngIf="!accessibleEmployeesIdsBySelectedService.includes(option.id)"                                                                                
-                                                                                        matTooltip="{{t('docs.tip.srvc_no_acsbl_emp')}}"
-                                                                                        [matTooltipPosition]="'left'">
+                                                                                    class="material-icons employee-state-icon" 
+                                                                                    style="color: red;"
+                                                                                    *ngIf="!accessibleEmployeesIdsBySelectedServices.includes(option.id)"                                                                                
+                                                                                    matTooltip="{{t('docs.tip.srvc_no_acsbl_emp')}}"
+                                                                                    [matTooltipPosition]="'left'">
                                                                                         work
                                                                                     </span>
                                                                                     <span 
@@ -721,10 +688,10 @@
                                                                                         schedule
                                                                                     </span>
                                                                                     <span 
-                                                                                        class="material-icons employee-state-icon" 
-                                                                                        style="color: red;"
-                                                                                        *ngIf="!accessibleEmployeesIdsBySelectedDepPart.includes(option.id)"                                                                                
-                                                                                        matTooltip="{{t('docs.tip.dp_no_acsbl_emp')}}">
+                                                                                    class="material-icons employee-state-icon" 
+                                                                                    style="color: red;"
+                                                                                    *ngIf="!accessibleEmployeesIdsBySelectedDepPart.includes(option.id)"                                                                                
+                                                                                    matTooltip="{{t('docs.tip.dp_no_acsbl_emp')}}">
                                                                                         place
                                                                                     </span>
                                                                                 </div>
@@ -1024,7 +991,7 @@
                                                                 <!-- Additional customer's products search form -->
                                                                 <div class="row" *ngIf="editability">     
                                                                     <div class="col-12">
-                                                                        <mat-form-field  class="mat-form-field-100">
+                                                                        <!-- <mat-form-field  class="mat-form-field-100">
                                                                             <mat-label>{{t('modules.field.srvc_srch')}}</mat-label>
                                                                             <input  matInput 
                                                                             #productCustomerSearchFieldValue
@@ -1062,7 +1029,80 @@
                                                                                 </ng-container>
                                                                             </mat-autocomplete>
                                                                         </mat-form-field>
-                                                                        <mat-progress-bar *ngIf="isProductCustomerListLoading" mode="indeterminate"></mat-progress-bar>
+                                                                        <mat-progress-bar *ngIf="isProductCustomerListLoading" mode="indeterminate"></mat-progress-bar> -->
+                                                                        
+                                                                        
+                                                                        <mat-form-field  class="mat-form-field-100">
+                                                                            <mat-label>{{t('modules.field.srvc_srch')}}</mat-label>
+                                                                            <input  matInput 
+                                                                            #productSearchFieldValue
+                                                                            [placeholder]="+formBaseInformation.get('department_part_id').value==0?t('docs.msg.select_dep_part'):t('modules.field.input_name')" 
+                                                                            [matAutocomplete]="auto3" 
+                                                                            [formControl]="searchProductCtrl"
+                                                                            [readonly]="!editability || is_completed || isProductListLoading || +formBaseInformation.get('department_part_id').value==0"
+                                                                            (input)="customer=row;canAutocompleteQuery=true; checkEmptyProductField();"
+                                                                            (change)="customer=row;canAutocompleteQuery=false; checkEmptyProductField();">
+                                                                            <mat-autocomplete #auto3="matAutocomplete">
+                                                                                <ng-container *ngIf="searchProductCtrl.value && searchProductCtrl.value.length>0 && !isProductListLoading && (filteredProducts.length>1 || (filteredProducts.length==1 && accessibleServicesIdsAll().length==0))" style="width:320px;">
+                                                                                    <span  *ngFor="let value of filteredProducts"  class="flex" style="border: 0px solid ;margin: 4px 0;">
+                                                                                        <mat-option 
+                                                                                            [disabled]="!accessibleServicesIdsAll().includes(value.id)"
+                                                                                            style="padding:0px 5px; flex-grow: 1;" 
+                                                                                            [value]="value.name">
+                                                                                            <!-- <div (click)="onClickProductInSelectList(value)"> -->
+                                                                                            <div (click)="onSelectProductCustomer(value, row)">
+                                                                                                <div class="non-accessible-cases">
+                                                                                                    <span 
+                                                                                                        class="material-icons employee-state-icon"
+                                                                                                        style="color: red;"
+                                                                                                        *ngIf="+formBaseInformation.get('employeeId').value==0 && !accessibleServicesIdsByAccessibleEmployees.includes(value.id)"                                                                                
+                                                                                                        matTooltip="{{t('docs.tip.empls_no_acsbl_srvc')}}">
+                                                                                                        person
+                                                                                                    </span>
+                                                                                                    <span 
+                                                                                                        class="material-icons employee-state-icon"
+                                                                                                        style="color: red;"
+                                                                                                        *ngIf="+formBaseInformation.get('employeeId').value>0 && !accessibleServicesIdsBySelectedEmployee.includes(value.id)"                                                                                
+                                                                                                        matTooltip="{{t('docs.tip.empl_no_acsbl_srvc')}}">
+                                                                                                        person
+                                                                                                    </span>
+                                                                                                    <span 
+                                                                                                        class="material-icons employee-state-icon" 
+                                                                                                        style="color: red;"
+                                                                                                        *ngIf="!accessibleServicesIdsBySelectedDepPart.includes(value.id)"                                                                                
+                                                                                                        matTooltip="{{t('docs.tip.srvc_acsbl_dp')}}">
+                                                                                                        place
+                                                                                                    </span>
+                                                                                                    <span 
+                                                                                                        class="material-icons employee-state-icon" 
+                                                                                                        style="color: red;"
+                                                                                                        *ngIf="+formBaseInformation.get('department_part_id').value>0 && !accessibleServicesIdsByResourcesOfSelectedDepPart.includes(value.id)"                                                                                
+                                                                                                        matTooltip="{{t('docs.tip.srvc_acsbl_res_dprt',{'resources':getResourcesNames(getNotEnoughResourcesOfServiceInDepPart(value,formBaseInformation.get('department_part_id').value))})}}">
+                                                                                                        workspaces
+                                                                                                    </span>
+                                                                                                    <!-- <span 
+                                                                                                        class="material-icons employee-state-icon" 
+                                                                                                        style="color: red;"
+                                                                                                        *ngIf="+formBaseInformation.get('department_part_id').value==0 && !accessibleServicesIdsByResourcesOfAccessibleDepParts.includes(value.id)"                                                                                
+                                                                                                        matTooltip="{{t('docs.tip.srvc_acsbl_res_dprts',{'resources':notEnoughResourcesInDepParts.get(value.id)})}}">
+                                                                                                        workspaces
+                                                                                                    </span>      -->
+                                                                                                </div>
+                                                                                                <span style="margin-left: 25px;">{{value.name}}</span>
+                                                                                            </div>
+                                                                                        </mat-option>
+                                                                                    </span>
+                                                                                </ng-container>
+                                                                            </mat-autocomplete>
+                                                                        </mat-form-field>
+                                                                        <mat-progress-bar *ngIf="isProductListLoading" mode="indeterminate"></mat-progress-bar>
+                                                                    
+                                                                    
+                                                                    
+                                                                    
+                                                                    
+                                                                    
+                                                                    
                                                                     </div>
                                                                 </div>
 
@@ -1204,7 +1244,8 @@
                                                                                     </mat-icon>
                                                                                 </th>
                                                                                 <td mat-cell *matCellDef="let row; let j = index" [formGroupName]="j">
-                                                                                    <mat-icon style="cursor: pointer" *ngIf="!(getControlTablefield().controls[j].get('is_main').value)" (click)="deleteProductRow(row,i)">delete_forever</mat-icon>
+                                                                                    <!-- <mat-icon style="cursor: pointer" *ngIf="!(getControlTablefield().controls[j].get('is_main').value)" (click)="deleteProductRow(row,i)">delete_forever</mat-icon> -->
+                                                                                    <mat-icon style="cursor: pointer" (click)="deleteProductRow(row,j)">delete_forever</mat-icon>
                                                                                     <!-- <span>{{getControlTablefield().controls[j].get('is_main').value}}</span> -->
                                                                                 </td>
                                                                                 <td mat-footer-cell *matFooterCellDef></td>
@@ -1420,21 +1461,18 @@
                         </form>  
                     </mat-tab>
             </mat-tab-group>
-        
-        </mat-card-content> 
-        isDatesValid - {{isDatesValid}}
-        <br>
-        --{{this.formBaseInformation.get('date_start').value}}
-        <br>
-        <code><pre>{{formBaseInformation.value | json}}</pre></code>
-        <!-- accessibleEmployeesIdsBySelectedJobTitle -->
-        <!-- <code><pre>{{accessibleEmployeesIdsBySelectedJobTitle | json}}</pre></code><br> -->
-        <!-- accessibleEmployeesIdsAll -->
-        <!-- <code><pre>{{accessibleEmployeesIdsAll | json}}</pre></code><br> -->
-        
+            
+        </mat-card-content>
         <!-- <b>accessibleServicesIdsAll ({{accessibleServicesIdsAll.length}})</b>
-        <code><pre>{{accessibleServicesIdsAll | json}}</pre></code><br>
-        <b>accessibleServicesIdsByAccessibleEmployees ({{accessibleServicesIdsByAccessibleEmployees.length}})</b>
+        <code><pre>{{accessibleServicesIdsAll | json}}</pre></code><br>  -->
+        <b>accessibleDepPartsIdsByResourcesOfSelectedServices ({{accessibleDepPartsIdsByResourcesOfSelectedServices.length}})</b>
+        <code><pre>{{accessibleDepPartsIdsByResourcesOfSelectedServices | json}}</pre></code><br> 
+        <b>receivedDepartmentsWithPartsList ({{receivedDepartmentsWithPartsList.length}})</b>
+        <code><pre>{{receivedDepartmentsWithPartsList | json}}</pre></code><br> 
+        <code><pre>{{formBaseInformation.value | json}}</pre></code>
+        length={{getControlTablefield().length}}<br> 
+        
+        <!-- <b>accessibleServicesIdsByAccessibleEmployees ({{accessibleServicesIdsByAccessibleEmployees.length}})</b>
         <code><pre>{{accessibleServicesIdsByAccessibleEmployees | json}}</pre></code><br>
         <b>this.getAllServicesIds(false) ({{this.getAllServicesIds(false).length}})</b>
         <code><pre>{{this.getAllServicesIds(false) | json}}</pre></code><br> -->
@@ -1446,10 +1484,10 @@
         <code><pre>{{accessibleDepPartsIdsByAccessibleEmployees | json}}</pre></code><br>
         <b>accessibleDepPartsIdsAll ({{accessibleDepPartsIdsAll.length}})</b>
         <code><pre>{{accessibleDepPartsIdsAll | json}}</pre></code><br>
-        <b>accessibleEmployeesIdsBySelectedService ({{accessibleEmployeesIdsBySelectedService.length}})</b>
-        <code><pre>{{accessibleEmployeesIdsBySelectedService | json}}</pre></code><br> -->
-        <!-- <b>accessibleDepPartsIdsBySelectedService ({{accessibleDepPartsIdsBySelectedService.length}})</b> -->
-        <!-- <code><pre>{{accessibleDepPartsIdsBySelectedService | json}}</pre></code><br> -->
+        <b>accessibleEmployeesIdsBySelectedServices ({{accessibleEmployeesIdsBySelectedServices.length}})</b>
+        <code><pre>{{accessibleEmployeesIdsBySelectedServices | json}}</pre></code><br> -->
+        <!-- <b>accessibleDepPartsIdsBySelectedServices ({{accessibleDepPartsIdsBySelectedServices.length}})</b> -->
+        <!-- <code><pre>{{accessibleDepPartsIdsBySelectedServices | json}}</pre></code><br> -->
 
     </form>
 </mat-card>

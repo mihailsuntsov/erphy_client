@@ -79,7 +79,6 @@ interface AppointmentServiceSearchResponse{//интерфейс получени
   maxPersOnSameTime: number; // max number of persons on one appointment
   srvcDurationInSeconds: number; // minimem duration of service in seconds. Needs to calculate the end time of appointment
   atLeastBeforeTimeInSeconds: number; // minimum time before customer can get an appointment
-
 }
 interface DepartmentPartWithResourcesIds{
   id:number;
@@ -113,7 +112,7 @@ interface RetailSalesProductTable {
   shipped: any,
   reserved_current: any,
 }
-interface appointmentsProductTable { //интерфейс для формы, массив из которых будет содержать форма appointmentsProductTable, входящая в formBaseInformation, которая будет включаться в formBaseInformation
+interface AppointmentsProductTable { //интерфейс для формы, массив из которых будет содержать форма appointmentsProductTable, входящая в formBaseInformation, которая будет включаться в formBaseInformation
   id: number;
   row_id: number;
   product_id: number;
@@ -140,6 +139,8 @@ interface appointmentsProductTable { //интерфейс для формы, м�
   reserved_current: number; // сколько зарезервировано в данном заказе покупателя  
   ppr_name_api_atol: string; //Признак предмета расчета в системе Атол. Невидимое поле. Нужно для передачи в таблицу товаров в качестве тега для чека на ккм Атол
   is_material: boolean; //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)            
+  employeeRequired:boolean; // employee is necessary required to run thiss service job
+  departmentPartsWithResourcesIds: DepartmentPartWithResourcesIds[];
 }
 // interface IdAndName_ru{
 //   id: number;
@@ -279,6 +280,15 @@ interface Deppart{
   description: string;
   is_active: boolean;
   deppartProducts:DeppartProduct[];
+  resources:DepPartResource[]
+}
+interface DepPartResource{
+  resource_id: number;
+  name: string;
+  description: string;
+  resource_qtt: number;
+  dep_part_id: number;
+  active: boolean
 }
 interface DeppartProduct{
   id:number;
@@ -374,6 +384,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   receivedEmployeesList  : Employee[] = [];//массив для получения списка сотрудников
   filteredEmployeesList: Observable<Employee[]>; // here will be filtered languages for showing in select list
   employeesListLoadQtt = 0; // if == 3 then indication of list loading will shown  
+  customer:any; //information about row of customer, for which searching product or service
   notEnoughResourcesInDepParts = new Map();
   myCompanyId:number=0;
   companySettings:CompanySettings={vat:false,vat_included:true};  
@@ -457,51 +468,51 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   totalProductSumm = new Map(); //  total sum for each client in format "row_id - tax"
   mainProduct: AppointmentServiceSearchResponse; // хранение инфориации о главной услуге
   guests:any[]=[
-    {
-      "id": null,
-      "row_id": 0,
-      "is_payer": true,
-      "name": "Попов Анатолий Игоревич",
-      "email": "popov.anatol@mail.ru",
-      "telephone": "+79125430044",
-      "child": false
-    },
+    // {
+    //   "id": null,
+    //   "row_id": 0,
+    //   "is_payer": true,
+    //   "name": "Попов Анатолий Игоревич",
+    //   "email": "popov.anatol@mail.ru",
+    //   "telephone": "+79125430044",
+    //   "child": false
+    // },
     {
       "id": null,
       "row_id": 1,
-      "is_payer": false,
-      "name": "Попова Евгения Васильевна",
+      "is_payer": true,
+      "name": "Попова Евгения",
       "email": "",
       "telephone": "+79222954430",
       "child": false
     },
-    {
-      "id": null,
-      "row_id": 2,
-      "is_payer": false,
-      "name": "Попова Варя Анатольевна",
-      "email": "",
-      "telephone": "",
-      "child": true
-    },
-    {
-      "id": null,
-      "row_id": 3,
-      "is_payer": false,
-      "name": "Попова Ксения Анатольевна",
-      "email": "",
-      "telephone": "",
-      "child": true
-    },
-    {
-      "id": null,
-      "row_id": 4,
-      "is_payer": false,
-      "name": "Попова Александра Анатольевна",
-      "email": "",
-      "telephone": "",
-      "child": true
-    }
+    // {
+    //   "id": null,
+    //   "row_id": 2,
+    //   "is_payer": false,
+    //   "name": "Попова Варя Анатольевна",
+    //   "email": "",
+    //   "telephone": "",
+    //   "child": true
+    // },
+    // {
+    //   "id": null,
+    //   "row_id": 3,
+    //   "is_payer": false,
+    //   "name": "Попова Ксения Анатольевна",
+    //   "email": "",
+    //   "telephone": "",
+    //   "child": true
+    // },
+    // {
+    //   "id": null,
+    //   "row_id": 4,
+    //   "is_payer": false,
+    //   "name": "Попова Александра Анатольевна",
+    //   "email": "",
+    //   "telephone": "",
+    //   "child": true
+    // }
   ];
 
   //переменные прав
@@ -560,7 +571,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   //для Autocomplete по поиску ДОПОЛНИТЕЛЬНЫХ ТОВАРОВ И УСЛУГ ДЛЯ КЛИЕНТОВ
   searchProductCustomerCtrl = new UntypedFormControl();//поле для поиска товаров
   isProductCustomerListLoading  = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
-  filteredProductsCustomer: ProductSearchResponse[] = [];
+  filteredProductsCustomer: AppointmentServiceSearchResponse[] = [];
   productCustomerImageName:string = null;
   imageCustomerToShow:any; // переменная в которую будет подгружаться картинка товара (если он jpg или png)
   // product_customer_id:number; // ID of selec
@@ -708,7 +719,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
 
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Покупатель"
     this.onProductSearchValueChanges();//отслеживание изменений поля "Услуга"
-    this.onProductCustomerSearchValueChanges();//отслеживание изменений поля "Услуга"
+    // this.onProductCustomerSearchValueChanges();//отслеживание изменений поля "Услуга"
     //+++ getting base data from parent component
     this.getBaseData('myId');    
     this.getBaseData('myCompanyId');  
@@ -1157,10 +1168,10 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         this.filteredProducts = [];
       } else {
         this.filteredProducts = data as AppointmentServiceSearchResponse[];
-        if(this.filteredProducts.length==1 && this.accessibleServicesIdsAll.includes(this.filteredProducts[0].id)){
+        if(this.filteredProducts.length==1 && this.accessibleServicesIdsAll().includes(this.filteredProducts[0].id)){
           this.canAutocompleteQuery=false;
-          this.searchProductCtrl.setValue(this.filteredProducts[0].name);
-          this.onSelectProduct(this.filteredProducts[0]);
+          // this.searchProductCtrl.setValue(this.filteredProducts[0].name);
+          this.onSelectProductCustomer(this.filteredProducts[0]);
         }
     }}
       ,error => {this.isProductListLoading = false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
@@ -1168,79 +1179,82 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   } 
   resetProductFormSearch(){
     this.searchProductCtrl.reset();
-    this.formBaseInformation.get('product_id').setValue(null);
-    this.mainProduct= null;
-    this.deleteAllCustomersProducts(true);
-    this.getTotalSumPrice();
+    // this.formBaseInformation.get('product_id').setValue(null);
+    // this.mainProduct= null;
+    // this.deleteAllCustomersProducts(true);
+    // this.getTotalSumPrice();
   }
-  onProductCustomerSearchValueChanges(){
-    this.searchProductCustomerCtrl.valueChanges
-    .pipe(
-      debounceTime(500),
-      tap(() => {
-        this.filteredProductsCustomer = [];
-        //this.canAutocompleteQuery=true;
-        console.log(this.searchProductCustomerCtrl.value)
-      }),      
-      switchMap(fieldObject => 
-        this.getProductsCustomerList()),
-    ).subscribe(data => {
-      this.isProductCustomerListLoading = false;
-      if (data == undefined) {
-        this.filteredProductsCustomer = [];
-      } else {
-        this.filteredProductsCustomer = data as any;
-        // if(this.filteredProducts.length==1){
-          // this.onAutoselectProduct();
-        // }
-    }}
-      ,error => {this.isProductCustomerListLoading = false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
-      );
-  }
+  // onProductCustomerSearchValueChanges(){
+  //   this.searchProductCustomerCtrl.valueChanges
+  //   .pipe(
+  //     debounceTime(500),
+  //     tap(() => {
+  //       this.filteredProductsCustomer = [];
+  //       //this.canAutocompleteQuery=true;
+  //       console.log(this.searchProductCustomerCtrl.value)
+  //     }),      
+  //     switchMap(fieldObject => 
+  //       this.getProductsCustomerList()),
+  //   ).subscribe(data => {
+  //     this.isProductCustomerListLoading = false;
+  //     if (data == undefined) {
+  //       this.filteredProductsCustomer = [];
+  //     } else {
+  //       this.filteredProductsCustomer = data as any;
+  //       // if(this.filteredProducts.length==1){
+  //         // this.onAutoselectProduct();
+  //       // }
+  //   }}
+  //     ,error => {this.isProductCustomerListLoading = false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+  //     );
+  // }
   resetProductCustomerFormSearch(){
     this.searchProductCustomerCtrl.reset();
   }
   deleteAllCustomerProductsByRowId(row_id:number){
     const control = this.getControlTablefield();
     var i = control.controls.length;
+    console.log('i',i)
+    console.log('control.length',control.length)
     while (i > 0) { 
       i--;
-        if (control.at(i).get('customerRowId').value==row_id && !control.at(i).get('is_main').value) {
+        if (control.at(i).get('customerRowId').value==row_id) {
           control.removeAt(i);
         }
     }
   }
-  deleteAllCustomersProducts(onlyMain:boolean){
+  deleteAllCustomersProducts(){
     const control = this.getControlTablefield();
     var i = control.controls.length;
     while (i > 0) { 
       i--;
       // console.log('i1',i)
-        if (!onlyMain || control.at(i).get('is_main').value) {
+        // if (!onlyMain || control.at(i).get('is_main').value) {
           control.removeAt(i);
-        }
+        // }
       // console.log('i2',i)
     }
   }
   deleteProductRow(row: RetailSalesProductTable,index:number) {
-    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {  
-      width: '400px',
-      data:
-      { 
-        head: translate('docs.msg.del_prod_item'),
-        warning: translate('docs.msg.del_prod_quer',{name:row.name})+'?',
-      },
-    });
-    dialogRef.afterClosed().subscribe(result => {
-      if(result==1){
+    // console.log('index',index)
+    // const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {  
+    //   width: '400px',
+    //   data:
+    //   { 
+    //     head: translate('docs.msg.del_prod_item'),
+    //     warning: translate('docs.msg.del_prod_quer',{name:row.name})+'?',
+    //   },
+    // });
+    // dialogRef.afterClosed().subscribe(result => {
+    //   if(result==1){
         const control = this.getControlTablefield();
         // console.log('Trying remove at ',index)
         control.removeAt(index);
         this.getTotalSumPrice();//чтобы пересчиталась сумма в чеке
         this.refreshTableColumns();//чтобы глючные input-поля в таблице встали на свои места. Это у Ангуляра такой прикол
         this.finishRecount(); // подсчёт тоталов в таблице
-      }
-    }); 
+    //   }
+    // }); 
   }
   refreshTableColumns(){
     this.displayedCustomerProductsColumns=[];
@@ -1254,6 +1268,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
         // this.getControlTablefield().clear();
+        console.log('customerRowId = ',row.row_id)
         this.deleteAllCustomerProductsByRowId(row.row_id)
         // console.log(console.log('row: ',JSON.stringify(row)));
         this.getTotalSumPrice();//чтобы пересчиталась сумма в чеке
@@ -1306,7 +1321,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     } else return [];
   }
   checkEmptyProductField(){if(!this.searchProductCtrl.value || this.searchProductCtrl.value.length==0) this.resetProductFormSearch();}
-  checkEmptyProductCustomerField(){if(!this.searchProductCustomerCtrl.value || this.searchProductCustomerCtrl.value.length==0) this.resetProductCustomerFormSearch();}
+  // checkEmptyProductCustomerField(){if(!this.searchProductCustomerCtrl.value || this.searchProductCustomerCtrl.value.length==0) this.resetProductCustomerFormSearch();}
   openProductCard(docId:number) {this.productSearchAndTableByCustomersComponent.openProductCard(docId)} 
   
   /*
@@ -1337,33 +1352,30 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       this.getProductsPriceAndRemains();
     }
   }*/
-  onClickProductInSelectList(product:AppointmentServiceSearchResponse){
-    if(this.accessibleServicesIdsAll.includes(product.id)) {this.onSelectProduct(product)}
-  }
-  onSelectProduct(product:AppointmentServiceSearchResponse){
-    // this.formSearch.get('product_count').setValue('1');
-    this.formBaseInformation.get('product_id').setValue(+product.id);
-    // this.formSearch.get('edizm_id').setValue(+product.edizm_id);
-    // this.formSearch.get('nds_id').setValue(+this.filteredProducts[0].nds_id);
-    // this.formSearch.get('available').setValue(product.total-product.reserved);
-    // this.formSearch.get('total').setValue(product.total);
-    // this.formSearch.get('reserved').setValue(product.reserved);
-    // this.formSearch.get('ppr_name_api_atol').setValue(product.ppr_name_api_atol);
-    // this.formSearch.get('is_material').setValue(product.is_material);
-    // this.formSearch.get('reserved_current').setValue(product.reserved_current);
-    // this.formSearch.get('indivisible').setValue(product.indivisible);              // неделимость (необходимо для проверки правильности ввода кол-ва товара)
-    this.mainProduct=product;
+  // onClickProductInSelectList(product:AppointmentServiceSearchResponse){
+  //   if(this.accessibleServicesIdsAll.includes(product.id)) {this.onSelectProduct(product)}
+  // }
+  // onSelectProduct(product:AppointmentServiceSearchResponse){
+    // this.formBaseInformation.get('product_id').setValue(+product.id);
+    // this.mainProduct=product;
     // this.productImageName = product.filename;
-    this.addMainProductToPayingCustomers();
-    this.afterSelectProduct();
-  }
+    // this.addMainProductToPayingCustomers();
+    // this.afterSelectProduct();
+  // }
   
-  onSelectProductCustomer(product:AppointmentServiceSearchResponse, customer){
-    console.log(console.log('Selected customer: ',JSON.stringify(customer)));
-    const control = <UntypedFormArray>this.formBaseInformation.get('appointmentsProductTable');
-    control.push(this.formingProductRowFromMainBlock(product,customer.id,customer.row_id,false));
-    setTimeout(() => {this.searchProductCustomerCtrl.reset();}, 1000);
-    this.getTotalSumPrice();
+  onSelectProductCustomer(product:AppointmentServiceSearchResponse, customer=this.customer){
+    if(this.accessibleServicesIdsAll().includes(product.id)){
+      // console.log(console.log('Selected customer: ',JSON.stringify(customer)));
+      const control = <UntypedFormArray>this.formBaseInformation.get('appointmentsProductTable');
+      control.push(this.formingProductRowFromMainBlock(product,customer.id,customer.row_id));
+      setTimeout(() => {this.searchProductCtrl.reset();}, 1);
+      this.getTotalSumPrice();
+      if(control.length>0 && !this.isThereAreServicesWithEmployeeRequired()){ // if there are selected services but no one of selected sevices required employee
+        this.formBaseInformation.get('employeeId').setValue(null);
+        this.formBaseInformation.get('employeeName').setValue('');
+        this.formBaseInformation.get('jobtitle').setValue(0);
+      }
+    }
   }
   
   afterSelectProduct(){
@@ -1373,33 +1385,18 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       // this.getProductsPriceAndRemains();
   }
 
-  addMainProductToPayingCustomers(){
-    // this.getControl('customersTable').controls[index].get('is_payer').setValue(value);
-  
-    // const controlCustomers = this.getControl('customersTable');
-
-
-
-
-
-    // this.getControl('customersTable').value.map(customer=>{
-    //   const control = <UntypedFormArray>customer.products;
-    //   if(customer.is_payer){
-    //     console.log('Payer: ', customer.name);
-    //     control.push(this.formingProductRowFromMainBlock(product));
-    //   }
-    // });
-    if(+this.formBaseInformation.get('product_id').value>0){
-      this.formBaseInformation.get('customersTable').value.map(customer=>{
-        if(customer.is_payer && !this.customerHasMainProduct(customer.row_id)){
-          console.log('Payer: ', customer.name);
-          const control = <UntypedFormArray>this.formBaseInformation.get('appointmentsProductTable');
-          control.push(this.formingProductRowFromMainBlock(this.mainProduct,customer.id,customer.row_id,true));
-        }
-      });
-      this.getTotalSumPrice();
-    }    
-  }
+  // addMainProductToPayingCustomers(){
+  //   if(+this.formBaseInformation.get('product_id').value>0){
+  //     this.formBaseInformation.get('customersTable').value.map(customer=>{
+  //       if(customer.is_payer && !this.customerHasMainProduct(customer.row_id)){
+  //         console.log('Payer: ', customer.name);
+  //         const control = <UntypedFormArray>this.formBaseInformation.get('appointmentsProductTable');
+  //         control.push(this.formingProductRowFromMainBlock(this.mainProduct,customer.id,customer.row_id));
+  //       }
+  //     });
+  //     this.getTotalSumPrice();
+  //   }    
+  // }
 
   customerHasMainProduct(customerRowId:number){
     let has = false;
@@ -1415,15 +1412,15 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     });
     return has;
   }
-  addMainProductToNewPayingCustomer(row_id:number, customer_id:number){
-    const control = <UntypedFormArray>this.formBaseInformation.get('appointmentsProductTable');
-    if(this.formBaseInformation.get('product_id').value && !this.customerHasMainProduct(row_id)){
-        control.push(this.formingProductRowFromMainBlock(this.mainProduct,customer_id,row_id,true)); 
-    }
-    this.getTotalSumPrice();
-  }
+  // addMainProductToNewPayingCustomer(row_id:number, customer_id:number){
+  //   const control = <UntypedFormArray>this.formBaseInformation.get('appointmentsProductTable');
+  //   if(this.formBaseInformation.get('product_id').value && !this.customerHasMainProduct(row_id)){
+  //       control.push(this.formingProductRowFromMainBlock(this.mainProduct,customer_id,row_id)); 
+  //   }
+  //   this.getTotalSumPrice();
+  // }
   
-  formingProductRowFromMainBlock(product: AppointmentServiceSearchResponse, customerId:number, customerRowId:number, is_main:boolean) {
+  formingProductRowFromMainBlock(product: AppointmentServiceSearchResponse, customerId:number, customerRowId:number) {
     return this._fb.group({
       customerRowId:customerRowId,
       customerId:customerId,
@@ -1443,8 +1440,10 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       department_id: new UntypedFormControl (this.getDepartmentIdByDepPartId(),[]), //id отделения, выбранного в форме поиска 
       is_material:  new UntypedFormControl (product.is_material,[]), //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
       shipped:  new UntypedFormControl (0,[]),
-      indivisible:  new UntypedFormControl (product.indivisible,[]),
-      is_main:  new UntypedFormControl (is_main,[]), // Main product (service) of this appointment or reservation
+      indivisible: new UntypedFormControl (product.indivisible,[]),
+      // is_main:  new UntypedFormControl (is_main,[]), // Main product (service) of this appointment or reservation
+      employeeRequired: new UntypedFormControl (product.employeeRequired,[]),
+      departmentPartsWithResourcesIds: new UntypedFormControl (product.departmentPartsWithResourcesIds)
       //---------------------------------
       // department: new UntypedFormControl (product.department,[]), //имя отделения, выбранного в форме поиска 
       // shipped:  new UntypedFormControl (product.shipped,[]),
@@ -1657,7 +1656,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     const control = <UntypedFormArray>this.formBaseInformation.get(formControlName);
     return control;
   }
-  formingProductRowFromApiResponse(row: appointmentsProductTable) {
+  formingProductRowFromApiResponse(row: AppointmentsProductTable) {
     return this._fb.group({
       id: new UntypedFormControl (row.id,[]),
       product_id: new UntypedFormControl (row.product_id,[]),
@@ -1682,6 +1681,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       department: new UntypedFormControl (row.department,[]), //имя отделения, выбранного в форме поиска 
       shipped:  new UntypedFormControl (row.shipped,[]),
       ppr_name_api_atol:  new UntypedFormControl (row.ppr_name_api_atol,[]), //Признак предмета расчета в системе Атол
+      employeeRequired: new UntypedFormControl (row.employeeRequired,[]),
       is_material:  new UntypedFormControl (row.is_material,[]), //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
       reserved_current:  new UntypedFormControl (row.reserved_current,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),// зарезервировано единиц товара в отделении (складе) в ЭТОМ (текущем) Заказе покупателя
     });
@@ -1810,75 +1810,75 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     );
   }
 
-  completeDocument(notShowDialog?:boolean){ //+++
-    if(!notShowDialog){
-      const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
-        width: '400px',data:{
-          head:    translate('docs.msg.complet_head'),
-          warning: translate('docs.msg.complet_warn'),
-          query:   translate('docs.msg.complet_query')},});
-      dialogRef.afterClosed().subscribe(result => {
-        if(result==1){
-          this.updateDocument(true);
-        }
-      });
-    } else this.updateDocument(true);
-  }
+  // completeDocument(notShowDialog?:boolean){ //+++
+  //   if(!notShowDialog){
+  //     const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+  //       width: '400px',data:{
+  //         head:    translate('docs.msg.complet_head'),
+  //         warning: translate('docs.msg.complet_warn'),
+  //         query:   translate('docs.msg.complet_query')},});
+  //     dialogRef.afterClosed().subscribe(result => {
+  //       if(result==1){
+  //         this.updateDocument(true);
+  //       }
+  //     });
+  //   } else this.updateDocument(true);
+  // }
 
-  decompleteDocument(notShowDialog?:boolean){ //+++
-    if(this.allowToComplete){
-      if(!notShowDialog){
-        const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
-          width: '400px',data:{
-          head:    translate('docs.msg.cnc_com_head'),
-          warning: translate('docs.msg.cnc_com_warn'),
-          query: ''},});
-        dialogRef.afterClosed().subscribe(result => {
-          if(result==1){
-            this.setDocumentAsDecompleted();
-          }
-        });
-      } else this.setDocumentAsDecompleted();
-    }
-  }
+  // decompleteDocument(notShowDialog?:boolean){ //+++
+  //   if(this.allowToComplete){
+  //     if(!notShowDialog){
+  //       const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+  //         width: '400px',data:{
+  //         head:    translate('docs.msg.cnc_com_head'),
+  //         warning: translate('docs.msg.cnc_com_warn'),
+  //         query: ''},});
+  //       dialogRef.afterClosed().subscribe(result => {
+  //         if(result==1){
+  //           this.setDocumentAsDecompleted();
+  //         }
+  //       });
+  //     } else this.setDocumentAsDecompleted();
+  //   }
+  // }
 
-  setDocumentAsDecompleted(){
-    this.getProductsTable();    
-    this.http.post('/api/auth/setappointmentsAsDecompleted',  this.formBaseInformation.value)
-      .subscribe(
-          (data) => 
-          {   
-            let result:number=data as number;
-            switch(result){
-              case null:{// null возвращает если не удалось завершить операцию из-за ошибки
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.cnc_com_error')}});
-                break;
-              }
-              case -1:{//недостаточно прав
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}});
-                break;
-              }
-              case -60:{//Документ уже снят с проведения
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.alr_cnc_com')}});
-                break;
-              }
-              case 1:{// Успешно
-                this.openSnackBar(translate('docs.msg.cnc_com_succs',{name:translate('docs.docs.c_order')}), translate('docs.msg.close'));
-                this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
-                this.formBaseInformation.get('is_completed').setValue(false);
-                this.is_completed=false;
-                if(this.productSearchAndTableByCustomersComponent){
-                  this.productSearchAndTableByCustomersComponent.hideOrShowNdsColumn(); //чтобы показать столбцы после отмены проведения 
-                  this.productSearchAndTableByCustomersComponent.getProductsTable();
-                }
-              }
-            }
-          },
-          error => {
-            this.showQueryErrorMessage(error);
-          },
-      );
-  }
+  // setDocumentAsDecompleted(){
+  //   this.getProductsTable();    
+  //   this.http.post('/api/auth/setappointmentsAsDecompleted',  this.formBaseInformation.value)
+  //     .subscribe(
+  //         (data) => 
+  //         {   
+  //           let result:number=data as number;
+  //           switch(result){
+  //             case null:{// null возвращает если не удалось завершить операцию из-за ошибки
+  //               this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.cnc_com_error')}});
+  //               break;
+  //             }
+  //             case -1:{//недостаточно прав
+  //               this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}});
+  //               break;
+  //             }
+  //             case -60:{//Документ уже снят с проведения
+  //               this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.alr_cnc_com')}});
+  //               break;
+  //             }
+  //             case 1:{// Успешно
+  //               this.openSnackBar(translate('docs.msg.cnc_com_succs',{name:translate('docs.docs.c_order')}), translate('docs.msg.close'));
+  //               this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+  //               this.formBaseInformation.get('is_completed').setValue(false);
+  //               this.is_completed=false;
+  //               if(this.productSearchAndTableByCustomersComponent){
+  //                 this.productSearchAndTableByCustomersComponent.hideOrShowNdsColumn(); //чтобы показать столбцы после отмены проведения 
+  //                 this.productSearchAndTableByCustomersComponent.getProductsTable();
+  //               }
+  //             }
+  //           }
+  //         },
+  //         error => {
+  //           this.showQueryErrorMessage(error);
+  //         },
+  //     );
+  // }
   updateDocument(complete?:boolean){ 
     this.oneClickSaveControl=true;
     this.getProductsTable();    
@@ -2354,7 +2354,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
         this.getControl('customersTable').clear();
-        this.deleteAllCustomersProducts(false);
+        this.deleteAllCustomersProducts();
       }});
   }
   refreshCustomerTableColumns(){
@@ -2424,7 +2424,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     // if(!thereSamePart){
       const control = <UntypedFormArray>this.formBaseInformation.get('customersTable');
       control.push(this.formingCustomerRowFromSearchForm());
-      this.addMainProductToPayingCustomers();
+      // this.addMainProductToPayingCustomers();
     // }
       this.resetFormCustomerSearch();//подготовка формы поиска к дальнейшему вводу товара
   }
@@ -2611,7 +2611,7 @@ deleteFile(id:number){ //+++
       
       // т.к. Розничная продажа проводится по факту ее создания, то мы не можем просто создать ее, как это делаем с другими связанными документами. Нужно только открыть ее страницу и передать туда все данные из Заказа покупателя.
       if(docname=='RetailSales'){
-        let retailSalesProductTable: Array <RetailSalesProductTable> =this.getRetailSalesProductsTable();
+        // let retailSalesProductTable: Array <RetailSalesProductTable> =this.getRetailSalesProductsTable();
         let objToSend: NavigationExtras = //NavigationExtras - спец. объект, в котором можно передавать данные в процессе роутинга
         {
           queryParams: {
@@ -2628,7 +2628,7 @@ deleteFile(id:number){ //+++
             linked_doc_name:          'appointments',
             customers_orders_id:      this.id,
             uid:                      uid,
-            retailSalesProductTable:  retailSalesProductTable
+            // retailSalesProductTable:  retailSalesProductTable
           },
           skipLocationChange: false,
           fragment: 'top' 
@@ -2664,38 +2664,38 @@ deleteFile(id:number){ //+++
   }
 
   // забирает таблицу товаров из дочернего компонента и помещает ее в массив, предназначенный для передачи в дочернюю розничную продажу
-  getRetailSalesProductsTable(){
-    let retailSalesProductTable: Array <RetailSalesProductTable> =[];
-    let canAddRow: boolean;
-    this.productSearchAndTableByCustomersComponent.getProductTable().forEach(row=>{
-      if(this.productSearchAndTableByCustomersComponent.checkedList.length>0){  //если есть выделенные чекбоксами позиции - надо взять только их, иначе берем все позиции
-        canAddRow=this.isRowInCheckedList(row.row_id)
-      }
-      else canAddRow=true;
-      if(canAddRow)
-        retailSalesProductTable.push({
-          product_id:                   row.product_id, 
-          department_id:                row.department_id,
-          product_count:                (row.product_count-row.shipped)>=0?row.product_count-row.shipped:0,
-          product_price:                row.product_price,
-          price_type_id:                row.price_type_id,
-          is_material:                  row.is_material,
-          product_price_of_type_price:  row.product_price_of_type_price,
-          product_sumprice:             ((row.product_count)*row.product_price).toFixed(2),
-          nds_id:                       row.nds_id,
-          edizm:                        row.edizm,
-          ppr_name_api_atol:            row.ppr_name_api_atol,
-          name:                         row.name,
-          available:                    row.available,
-          reserved:                     row.reserved,
-          total:                        row.total,
-          priority_type_price:          row.priority_type_price,
-          shipped:                      row.shipped,
-          reserved_current:             row.reserved_current,
-        });
-    });
-    return retailSalesProductTable;
-  }
+  // getRetailSalesProductsTable(){
+  //   let retailSalesProductTable: Array <RetailSalesProductTable> =[];
+  //   let canAddRow: boolean;
+  //   this.productSearchAndTableByCustomersComponent.getProductTable().forEach(row=>{
+  //     if(this.productSearchAndTableByCustomersComponent.checkedList.length>0){  //если есть выделенные чекбоксами позиции - надо взять только их, иначе берем все позиции
+  //       canAddRow=this.isRowInCheckedList(row.row_id)
+  //     }
+  //     else canAddRow=true;
+  //     if(canAddRow)
+  //       retailSalesProductTable.push({
+  //         product_id:                   row.product_id, 
+  //         department_id:                row.department_id,
+  //         product_count:                (row.product_count-row.shipped)>=0?row.product_count-row.shipped:0,
+  //         product_price:                row.product_price,
+  //         price_type_id:                row.price_type_id,
+  //         is_material:                  row.is_material,
+  //         product_price_of_type_price:  row.product_price_of_type_price,
+  //         product_sumprice:             ((row.product_count)*row.product_price).toFixed(2),
+  //         nds_id:                       row.nds_id,
+  //         edizm:                        row.edizm,
+  //         ppr_name_api_atol:            row.ppr_name_api_atol,
+  //         name:                         row.name,
+  //         available:                    row.available,
+  //         reserved:                     row.reserved,
+  //         total:                        row.total,
+  //         priority_type_price:          row.priority_type_price,
+  //         shipped:                      row.shipped,
+  //         reserved_current:             row.reserved_current,
+  //       });
+  //   });
+  //   return retailSalesProductTable;
+  // }
   isRowInCheckedList(rowId):boolean{
     let result:boolean = false;
     this.productSearchAndTableByCustomersComponent.checkedList.forEach(i=>{
@@ -2721,7 +2721,7 @@ deleteFile(id:number){ //+++
           control.push(this.formingProductRowLinkedDoc(row));
     });
   }
-  formingProductRowLinkedDoc(row: appointmentsProductTable) {
+  formingProductRowLinkedDoc(row: AppointmentsProductTable) {
     return this._fb.group({
       product_id: new UntypedFormControl (row.product_id,[]),
       department_id: new UntypedFormControl (row.department_id,[]),
@@ -3005,8 +3005,8 @@ deleteFile(id:number){ //+++
     // console.log('value',value)
     console.log('getCustomerArrayIndexByRowId(row_id)',this.getCustomerArrayIndexByRowId(row_id))
     this.getControl('customersTable').controls[this.getCustomerArrayIndexByRowId(row_id)].get('is_payer').setValue(value);
-    if(value)
-      this.addMainProductToNewPayingCustomer(row_id, customer_id)
+    // if(value)
+    //   this.addMainProductToNewPayingCustomer(row_id, customer_id)
   }
 
   getTaxMultiplifierBySelectedId(srchId:number):number {
@@ -3144,7 +3144,7 @@ deleteFile(id:number){ //+++
 
   //------------------------------------------------- TOTALS ----------------------------------------
   getTotalSumPrice() {//бежим по столбцу product_sumprice и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
-    console.log('**************** getTotalSumPrice *******************')
+    // console.log('**************** getTotalSumPrice *******************')
     this.totalProductSumm.clear();
     this.formBaseInformation.value.appointmentsProductTable.map(i =>{this.totalProductSumm.set(i.customerRowId,0);});
     this.formBaseInformation.value.appointmentsProductTable.map(i =>{
@@ -3221,26 +3221,89 @@ deleteFile(id:number){ //+++
     this.formBaseInformation.get('jobtitle').setValue(0);
     this.formBaseInformation.get('product_id').setValue(null);
     this.searchProductCtrl.reset();
-    this.mainProduct= null;
-    this.deleteAllCustomersProducts(true); // delete only main product from all customers products
-    this.getTotalSumPrice();
+    // this.mainProduct= null;
+    // this.deleteAllCustomersProducts(true); // delete only main product from all customers products
+    // this.getTotalSumPrice();
     this.searchProductCtrl.setValue('');
   }
-  getNotEnoughResourcesOfServiceInDepPart(service:AppointmentServiceSearchResponse, depPartId:number, serviceQtt:number=1):ResourceOfDepartmentPart[]{
+  
+  getAllResourcesInServicesTable(depPartId:number/*,additionalService?:AppointmentServiceSearchResponse*/):ResourceOfDepartmentPart[]{
+    let result:ResourceOfDepartmentPart[] = [];
+    // const control = new UntypedFormArray([this.getControlTablefield()]) ;
+    // if(additionalService)
+    //   control.push(additionalService);
+    this.getControlTablefield().value.map(service=>{
+      service.departmentPartsWithResourcesIds.map(depPart=>{
+        if(depPart.id==depPartId){
+          depPart.resourcesOfDepartmentPart.map(resource=>{
+            let index = result.findIndex((o)=>{ return o.id  === resource.id });
+            //if resource is not in list
+            if( index === -1){
+              result.push({...resource});// add this resource as new object
+              // result[result.length-1].need_res_qtt=result[result.length-1].need_res_qtt*service.product_count;
+            }
+            else result[index].need_res_qtt = result[index].need_res_qtt + (/*service.product_count * */resource.need_res_qtt);
+          })
+        }
+      })
+    })
+    return result;
+  }
+
+  getFreeResourcesOfDepPart(depPartId:number):Map<number, number>{
+    let resourcesMap=new Map();
+    let requiredResourcesOfCurrentDepPart:ResourceOfDepartmentPart[] = this.getAllResourcesInServicesTable(depPartId);
+    // 1. Collect all resources of department part into the map [<resource ID> - <resource quantity>]
+    this.receivedDepartmentsWithPartsList.map(department=>{
+      department.parts.map(deppart=>{
+        if(deppart.id==depPartId){
+          deppart.resources.map(resource=>{
+            resourcesMap.set(resource.resource_id, resource.resource_qtt);
+          });
+    // 2. Calculate free resources based on consumed resources of existed services in this department part (need_res_qtt) and consumed resources in other Appointments (now_used)
+        requiredResourcesOfCurrentDepPart.map(requiredResource=>{
+          if(resourcesMap.has(requiredResource.id))
+            resourcesMap.set(requiredResource.id, (resourcesMap.get(requiredResource.id)-requiredResource.now_used-requiredResource.need_res_qtt))
+          });
+        }
+      });
+    });
+    return resourcesMap;
+  }
+
+  getNotEnoughResourcesOfServicesInDepPart(depPartId:number/*, serviceQtt:number=1*/):ResourceOfDepartmentPart[]{
+    let result:ResourceOfDepartmentPart[]=[];
+    this.receivedDepartmentsWithPartsList.map(department=>{
+      department.parts.map(deppart=>{
+        if(deppart.id==depPartId){
+          let requiredResourcesOfCurrentDepPart:ResourceOfDepartmentPart[] = this.getAllResourcesInServicesTable(deppart.id);
+          requiredResourcesOfCurrentDepPart.map(requiredResource=>{
+            let index = deppart.resources.findIndex((o)=>{ return o.resource_id  === requiredResource.id });
+            //if department part is not contains this resource or contains but one or some resources are not enough, and this resource is still not selected 
+            if((index === -1 || (deppart.resources[index].resource_qtt<(requiredResource.need_res_qtt/**serviceQtt*/+requiredResource.now_used))) && result.findIndex((o)=>{ return o.id  === requiredResource.id }) === -1)
+              result.push(requiredResource);
+          });
+        }
+      });
+    });
+    return result;
+  }
+  getNotEnoughResourcesOfServiceInDepPart(service:AppointmentServiceSearchResponse, depPartId:number):ResourceOfDepartmentPart[]{
     let result:ResourceOfDepartmentPart[] = [];
     service.departmentPartsWithResourcesIds.map(depPart=>{
       if(depPart.id==depPartId){
+        let freeDepPartResources = this.getFreeResourcesOfDepPart(depPartId);
         depPart.resourcesOfDepartmentPart.map(resource=>{
-          let freeResourceQtt = resource.quantity_in_dep_part-resource.now_used;
-          let needResourceQtt = serviceQtt*resource.need_res_qtt;
-          // if resource is not enough and this resource still not added to the return list
-          if(freeResourceQtt < needResourceQtt && result.findIndex((o)=>{ return o.id  === resource.id }) === -1)
+          // if resource is not in free resources OR resource is not enough, and this resource still not added to the return list
+          if((!freeDepPartResources.has(resource.id) || freeDepPartResources.get(resource.id) < resource.need_res_qtt) && result.findIndex((o)=>{ return o.id  === resource.id }) === -1)
             result.push(resource);
         })
       }
     })
     return result;
   }
+
+
   getResourcesNames(resources:ResourceOfDepartmentPart[]):string {
     let result='';
     let index=0;
@@ -3250,14 +3313,26 @@ deleteFile(id:number){ //+++
       index++;
     })
     return result;
+  }  
+  isThereAreServicesWithEmployeeRequired():boolean{
+    const control = this.getControlTablefield();
+    if(control.length==0) return false;
+    let result=false;
+    control.value.map(product=>{
+      if(product.employeeRequired){
+        result=true;
+      }
+    })
+    return result;
   }
+
   // ---------------------------------------------------- FILTRATION SYSTEM ------------------------------------------------------------------------
   // *** Employees ***
   get accessibleEmployeesIdsAll():number[]{
     let data = [this.accessibleEmployeesIdsByTimeOrSchedule, 
                 this.accessibleEmployeesIdsBySelectedJobTitle, 
                 this.accessibleEmployeesIdsBySelectedDepPart,
-                this.accessibleEmployeesIdsBySelectedService];
+                this.accessibleEmployeesIdsBySelectedServices];
     return data.reduce((a, b) => a.filter(c => b.includes(c)));  //intersection of multiple arrays will be accessible employees at this moment
   }
   get accessibleEmployeesIdsByTimeOrSchedule():number[]{
@@ -3285,27 +3360,66 @@ deleteFile(id:number){ //+++
     });
     return result;
   }
-  get accessibleEmployeesIdsBySelectedService():number[]{
-    if(+this.formBaseInformation.get('product_id').value == 0 || (this.mainProduct && !this.mainProduct.employeeRequired))
+  get accessibleEmployeesIdsBySelectedServices():number[]{
+    const control = this.getControlTablefield();
+    if(!this.isThereAreServicesWithEmployeeRequired())// if there are no selected services or no one of selected sevices required employee
       return this.getAllEmployeeIds(); 
-    let result:number[]=[];
-    this.receivedEmployeesList.map(employee=>{
-      if(this.accessibleEmployeesIdsByTimeOrSchedule.includes(employee.id)){
-        employee.departmentPartsWithServicesIds.map(deppart=>{
-          deppart.servicesIds.map(id=>{
-            if(id==+this.formBaseInformation.get('product_id').value)
-              result.push(employee.id);
-          });            
+    let result:number[] = [];
+    let employeesMap=new Map(); 
+    let countOfServicesWithDepParts=0; 
+    control.value.map(product=>{
+      if(product.departmentPartsWithResourcesIds.length>0 && product.employeeRequired){//if Department parts of service >0 then it is service by appointment.
+
+        this.receivedEmployeesList.map(employee=>{
+          let employeeHasThisService=false;
+          employee.departmentPartsWithServicesIds.map(deppart=>{
+            deppart.servicesIds.map(id=>{
+              if(id==product.product_id)
+                employeeHasThisService=true;    
+            });            
+          });
+          if(employeeHasThisService)
+            employeesMap.set(employee.id, employeesMap.has(employee.id)?(employeesMap.get(employee.id)+1):1);
         });
-      }      
-    });
+        countOfServicesWithDepParts++;
+      }
+    })
+    employeesMap.forEach((value, key)=>{
+      if(value==countOfServicesWithDepParts) result.push(key);
+    });   
     return result;
   }
+  // get accessibleDepPartsIdsBySelectedServices():number[]{
+  //   // if products are not selected - suitable IDs are all department parts IDs:
+  //   const control = this.getControlTablefield();
+  //   if(control.length==0){
+  //     return this.getAllDeppartsIds(); 
+  //   }
+  //   // the department part is suitable if its ID included into the each service by appointment
+  //   let depparts:number[] = [];
+  //   let depPartsMap=new Map(); 
+  //   let countOfServicesWithDepParts=0; //if Department parts of service >0 then it is service by appointment.
+  //   control.value.map(product=>{
+  //     if(product.departmentPartsWithResourcesIds.length>0){
+  //       product.departmentPartsWithResourcesIds.map(deppart=>{          
+  //         depPartsMap.set(deppart.id, depPartsMap.has(deppart.id)?(depPartsMap.get(deppart.id)+1):1);
+  //       });
+  //       countOfServicesWithDepParts++;
+  //     }
+  //   })
+  //   depPartsMap.forEach((value, key)=>{
+  //     if(value==countOfServicesWithDepParts) depparts.push(key);
+  //   })
+  //   return depparts;
+  // }
+
+
+
   // *** Job Titles ***
   get accessibleJobTitlesIdsAll():number[]{
     let data = [this.accessibleJobTitlesIdsByAccessibleEmployees, 
                 this.accessibleJobTitlesIdsBySelectedDepPart,
-                this.accessibleJobTitlesIdsBySelectedService
+                // this.accessibleJobTitlesIdsBySelectedService
               ];
     return data.reduce((a, b) => a.filter(c => b.includes(c)));  //intersection of multiple arrays will be accessible Job Titles at this moment
   }
@@ -3324,15 +3438,15 @@ deleteFile(id:number){ //+++
     });
     return result;
   }
-  get accessibleJobTitlesIdsBySelectedService():number[]{
-    if(!this.mainProduct)
-      return this.getAllJobTitlesIds();
-    let result:number[]=[];
-    this.accessibleEmployeesIdsBySelectedService.map(empId=>{
-      result.push(this.getEmployeeById(empId).jobtitle_id);
-    });
-    return result;
-  }
+  // get accessibleJobTitlesIdsBySelectedService():number[]{
+  //   if(!this.mainProduct)
+  //     return this.getAllJobTitlesIds();
+  //   let result:number[]=[];
+  //   this.accessibleEmployeesIdsBySelectedServices.map(empId=>{
+  //     result.push(this.getEmployeeById(empId).jobtitle_id);
+  //   });
+  //   return result;
+  // }
   onJobTitleSelect(jobtitleId:number){
     if(this.accessibleJobTitlesIdsByAccessibleEmployees.includes(jobtitleId)){
       this.clearEmployeeField();
@@ -3349,17 +3463,18 @@ deleteFile(id:number){ //+++
   get accessibleDepPartsIdsAll():number[]{
     let data = [this.accessibleDepPartsIdsByAccessibleEmployees, 
                 this.accessibleDepPartsIdsBySelectedEmployee,
-                this.accessibleDepPartsIdsBySelectedService,
-                this.accessibleDepPartsIdsByResourcesOfSelectedService];
+                this.accessibleDepPartsIdsBySelectedServices,
+                this.accessibleDepPartsIdsByResourcesOfSelectedServices];
     return data.reduce((a, b) => a.filter(c => b.includes(c)));  //intersection of multiple arrays will be accessible employees at this moment
   }
 
   get accessibleDepPartsIdsByAccessibleEmployees():number[]{
     let result:number[]=[];
     // if service is selected and employee is not need for this service - suitable IDs are all IDs:
-    if(this.mainProduct != null && !this.mainProduct.employeeRequired){
+    const control = this.getControlTablefield();
+    if(control.length>0 && !this.isThereAreServicesWithEmployeeRequired()){ // if there are selected services but no one of selected sevices required employee
       return this.getAllDeppartsIds();
-    // if service is not selected, or selected and employee is need for this service, 
+    // if serviceы are not selected, or selected and employee is need for this service, 
     // then department parts IDs getting from accessible employees    
     } else {
       let allDepparts:number[] = this.getAllDeppartsIds();
@@ -3390,44 +3505,50 @@ deleteFile(id:number){ //+++
       })
     return result;
   }
-  get accessibleDepPartsIdsBySelectedService():number[]{
-    // if main product is not selected - suitable IDs are all department parts IDs:
-    if(!this.mainProduct){
-      // console.log(0);
+  get accessibleDepPartsIdsBySelectedServices():number[]{
+    // if products are not selected - suitable IDs are all department parts IDs:
+    const control = this.getControlTablefield();
+    if(control.length==0){
       return this.getAllDeppartsIds(); 
     }
-    let depparts:number[]=[];
-    this.receivedDepartmentsWithPartsList.map(department=>{
-      department.parts.map(deppart=>{
-        deppart.deppartProducts.map(service=>{
-          if(service.id==this.mainProduct.id && depparts.indexOf(deppart.id) === -1)
-            depparts.push(deppart.id);
-        })
-      })
-    });
+    // the department part is suitable if its ID included into the each service by appointment
+    let depparts:number[] = [];
+    let depPartsMap=new Map(); 
+    let countOfServicesWithDepParts=0; //if Department parts of service >0 then it is service by appointment.
+    control.value.map(product=>{
+      if(product.departmentPartsWithResourcesIds.length>0){
+        product.departmentPartsWithResourcesIds.map(deppart=>{          
+          depPartsMap.set(deppart.id, depPartsMap.has(deppart.id)?(depPartsMap.get(deppart.id)+1):1);
+        });
+        countOfServicesWithDepParts++;
+      }
+    })
+    depPartsMap.forEach((value, key)=>{
+      if(value==countOfServicesWithDepParts) depparts.push(key);
+    })
     return depparts;
   }
-  get accessibleDepPartsIdsByResourcesOfSelectedService():number[]{
+  get accessibleDepPartsIdsByResourcesOfSelectedServices():number[]{
     // if main product is not selected - suitable IDs are all department parts IDs:
-    if(!this.mainProduct){
-      return this.getAllDeppartsIds(); 
+    if(this.getControlTablefield().length==0){
+      return this.getAllDeppartsIds();
     }
     let result:number[]=[];
-    // adding all dep parts that not contained in service's department parts
-    this.getAllDeppartsIds().map(dpId=>{
-      if(this.mainProduct.departmentPartsWithResourcesIds.findIndex((o)=>{ return o.id  === dpId }) === -1)
-        result.push(dpId)
-    })
-    // just in case if service is not have an information about its department parts (why?)
-    if(this.mainProduct.departmentPartsWithResourcesIds.length==0)
-      return this.getAllDeppartsIds();
-    this.mainProduct.departmentPartsWithResourcesIds.map(dp=>{
-      // if resources are not needed or all resources are enough
-        if(dp.resourcesOfDepartmentPart.length==0 || this.getNotEnoughResourcesOfServiceInDepPart(this.mainProduct, dp.id).length==0)
-          result.push(dp.id)
-      // }
-    })
-    // })
+    this.receivedDepartmentsWithPartsList.map(department=>{
+      department.parts.map(deppart=>{
+        let allResourcesEnough:boolean = true;
+        let requiredResourcesOfCurrentDepPart:ResourceOfDepartmentPart[] = this.getAllResourcesInServicesTable(deppart.id);
+        // console.log(JSON.stringify(requiredResourcesOfCurrentDepPart))
+        requiredResourcesOfCurrentDepPart.map(requiredResource=>{
+
+          let index = deppart.resources.findIndex((o)=>{ return o.resource_id  === requiredResource.id });
+            //if department part is not contains this resource, or contains but one or some resources are not enough 
+            if( index === -1 || (deppart.resources[index].resource_qtt<(requiredResource.need_res_qtt+requiredResource.now_used)))
+              allResourcesEnough=false;
+        })
+        if(allResourcesEnough && !result.includes(deppart.id)) result.push(deppart.id)
+      });
+    });
     return result;
   }
   // set of dep. parts IDs where there is at least one service with no employee required
@@ -3455,12 +3576,13 @@ deleteFile(id:number){ //+++
   }
 
   // *** Services ***
-  get accessibleServicesIdsAll():number[]{
+  accessibleServicesIdsAll():number[]{
     let data = [this.accessibleServicesIdsByAccessibleEmployees, 
                 this.accessibleServicesIdsBySelectedEmployee,
                 this.accessibleServicesIdsBySelectedDepPart,
                 this.accessibleServicesIdsByResourcesOfSelectedDepPart,
-                this.accessibleServicesIdsByResourcesOfAccessibleDepParts];
+    /*this.accessibleServicesIdsByResourcesOfAccessibleDepParts*/];
+    console.log('accessibleServicesIdsAll = ',data.reduce((a, b) => a.filter(c => b.includes(c))))
     return data.reduce((a, b) => a.filter(c => b.includes(c)));  //intersection of multiple arrays will be accessible employees at this moment
   }
   get accessibleServicesIdsByAccessibleEmployees():number[]{
@@ -3487,14 +3609,19 @@ deleteFile(id:number){ //+++
       return this.getAllServicesIds(false);
     let result:number[]=[];
     this.receivedEmployeesList.map(employee=>{
-        if(this.formBaseInformation.get('employeeId').value == employee.id){
-          employee.departmentPartsWithServicesIds.map(depPart=>{
-            depPart.servicesIds.map(serviceId=>{
-              result.push(serviceId);
-            })
-          });
-        }
-      })
+      if(this.formBaseInformation.get('employeeId').value == employee.id){
+        employee.departmentPartsWithServicesIds.map(depPart=>{
+          depPart.servicesIds.map(serviceId=>{
+            result.push(serviceId);
+          })
+        });
+      }
+    });
+    this.filteredProducts.map(p=>{
+      // if it is not service by appointment of it is service by appointment and employee for this service is not required
+      if(p.departmentPartsWithResourcesIds.length==0 || (p.departmentPartsWithResourcesIds.length>0 && !p.employeeRequired))
+        result.push(p.id);
+    });
     return result;
   }
   get accessibleServicesIdsBySelectedDepPart():number[]{
@@ -3512,36 +3639,48 @@ deleteFile(id:number){ //+++
     if(+this.formBaseInformation.get('department_part_id').value == 0)
       return this.getAllServicesIds(false);
     let result:number[] = [];
+    let freeDepPartResources = this.getFreeResourcesOfDepPart(this.formBaseInformation.get('department_part_id').value)
     this.filteredProducts.map(service=>{
+      //service is not by appointment OR service is not accessible in this department part
       if(service.departmentPartsWithResourcesIds.length==0 || service.departmentPartsWithResourcesIds.findIndex((o)=>{ return o.id  === this.formBaseInformation.get('department_part_id').value }) === -1)
         result.push(service.id);
-      service.departmentPartsWithResourcesIds.map(dp=>{
+      service.departmentPartsWithResourcesIds.map(dp=>{        
         if(dp.id==this.formBaseInformation.get('department_part_id').value) {
-          if(dp.resourcesOfDepartmentPart.length==0 || this.getNotEnoughResourcesOfServiceInDepPart(service, dp.id).length==0)
+          // if service do not need any resources or 
+          if(dp.resourcesOfDepartmentPart.length==0)
             result.push(service.id)
+          else {
+            let goodService = true; // if at least one of resources is absent or not enough - it will be false and not added to the return list
+            dp.resourcesOfDepartmentPart.map(resource=>{
+              if(!goodService || !freeDepPartResources.has(resource.id) || freeDepPartResources.get(resource.id)<resource.need_res_qtt)
+                goodService = false;
+            })
+            if(goodService)
+              result.push(service.id);
+          }
         }
       })
     })
     return result;
   }
-  get accessibleServicesIdsByResourcesOfAccessibleDepParts():number[]{
-    if(+this.formBaseInformation.get('department_part_id').value > 0 || this.accessibleDepPartsIdsAll.length==0)
-      return this.getAllServicesIds(false);
-    let result:number[] = [];
-      this.filteredProducts.map(service=>{
-        if(service.departmentPartsWithResourcesIds.length==0 /*|| service.departmentPartsWithResourcesIds.findIndex((o)=>{ return this.accessibleDepPartsIdsAll.includes(o.id) }) === -1*/)
-          result.push(service.id);
-        service.departmentPartsWithResourcesIds.map(dp=>{
-          if(this.accessibleDepPartsIdsAll.includes(dp.id)) {
-            if(dp.resourcesOfDepartmentPart.length==0 || this.getNotEnoughResourcesOfServiceInDepPart(service, dp.id).length==0)
-              result.push(service.id)
-            if(this.getNotEnoughResourcesOfServiceInDepPart(service, dp.id).length>0)
-              this.notEnoughResourcesInDepParts.set(service.id, this.getResourcesNames(this.getNotEnoughResourcesOfServiceInDepPart(service, dp.id)))
-          }
-        })
-      })
-    return result;
-  }
+  // get accessibleServicesIdsByResourcesOfAccessibleDepParts():number[]{
+  //   if(+this.formBaseInformation.get('department_part_id').value > 0 || this.accessibleDepPartsIdsAll.length==0)
+  //     return this.getAllServicesIds(false);
+  //   let result:number[] = [];
+  //     this.filteredProducts.map(service=>{
+  //       if(service.departmentPartsWithResourcesIds.length==0 /*|| service.departmentPartsWithResourcesIds.findIndex((o)=>{ return this.accessibleDepPartsIdsAll.includes(o.id) }) === -1*/)
+  //         result.push(service.id);
+  //       service.departmentPartsWithResourcesIds.map(dp=>{
+  //         if(this.accessibleDepPartsIdsAll.includes(dp.id)) {
+  //           if(dp.resourcesOfDepartmentPart.length==0 || this.getNotEnoughResourcesOfServiceInDepPart(service, dp.id).length==0)
+  //             result.push(service.id)
+  //           if(this.getNotEnoughResourcesOfServiceInDepPart(service, dp.id).length>0)
+  //             this.notEnoughResourcesInDepParts.set(service.id, this.getResourcesNames(this.getNotEnoughResourcesOfServiceInDepPart(service, dp.id)))
+  //         }
+  //       })
+  //     })
+  //   return result;
+  // }
 
   // get nonaccessibleEmployeesIdsBySelectedJobTitle():number[]{
   //   return this.accessibleEmployeesIdsAll.filter(n => !this.accessibleEmployeesIdsBySelectedJobTitle.includes(n));

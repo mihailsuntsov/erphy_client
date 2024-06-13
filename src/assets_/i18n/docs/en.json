@@ -756,7 +756,8 @@
         "out_limits":"Cannot be saved if the used resources will exceed the total limits",
         "del_qry_suc":"Delete request sent successfully",
         "site_name_n_allwd":"This site name is not allowed",
-        "no_resources_in_deppart":"This part of the department does not have the resources necessary to perform the services of a moving document"
+        "no_resources_in_deppart":"This part of the department does not have the resources necessary to perform the services of a moving document",
+        "select_dep_part":"Please fill in the field \"Part of the department\""
     },
     "button":{        
         "test_connct":  "Connection test",
