@@ -79,6 +79,7 @@ interface AppointmentServiceSearchResponse{//интерфейс получени
   maxPersOnSameTime: number; // max number of persons on one appointment
   srvcDurationInSeconds: number; // minimem duration of service in seconds. Needs to calculate the end time of appointment
   atLeastBeforeTimeInSeconds: number; // minimum time before customer can get an appointment
+  unitOfMeasureTimeInSeconds: number; // If unit of measure is 'Time' type - it will be as 1 unit converted into seconds, else 0
 }
 interface DepartmentPartWithResourcesIds{
   id:number;
@@ -96,6 +97,7 @@ interface RetailSalesProductTable {
   product_id: any,
   department_id: any,
   product_count: any,
+  edizm_type_id: any,
   product_price: any,
   price_type_id: any,
   is_material: boolean,
@@ -119,6 +121,7 @@ interface AppointmentsProductTable { //интерфейс для формы, м�
   customers_orders_id:number;
   name: string;
   product_count: number;
+  edizm_type_id: number;
   edizm: string;
   edizm_id: number;
   product_price: number;
@@ -141,6 +144,7 @@ interface AppointmentsProductTable { //интерфейс для формы, м�
   is_material: boolean; //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)            
   employeeRequired:boolean; // employee is necessary required to run thiss service job
   departmentPartsWithResourcesIds: DepartmentPartWithResourcesIds[];
+  unitOfMeasureTimeInSeconds: number; // If unit of measure is 'Time' type - it will be as 1 unit converted into seconds, else 0
 }
 // interface IdAndName_ru{
 //   id: number;
@@ -288,7 +292,8 @@ interface DepPartResource{
   description: string;
   resource_qtt: number;
   dep_part_id: number;
-  active: boolean
+  isActive: boolean       // for example, room may be under construction, car is on repairing, etc.
+  now_used: number;       // filled only in getNowUsedResourcesList http query
 }
 interface DeppartProduct{
   id:number;
@@ -466,7 +471,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   searchCustomerCtrl = new UntypedFormControl();//поле для поиска клиентов
   totalNds = new Map(); //  total Tax for each client in format "row_id - tax"
   totalProductSumm = new Map(); //  total sum for each client in format "row_id - tax"
-  mainProduct: AppointmentServiceSearchResponse; // хранение инфориации о главной услуге
+  // mainProduct: AppointmentServiceSearchResponse; // хранение инфориации о главной услуге
   guests:any[]=[
     // {
     //   "id": null,
@@ -480,11 +485,11 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     {
       "id": null,
       "row_id": 1,
-      "is_payer": true,
+      // "is_payer": true,
       "name": "Попова Евгения",
       "email": "",
       "telephone": "+79222954430",
-      "child": false
+      // "child": false
     },
     // {
     //   "id": null,
@@ -608,8 +613,8 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       id: new UntypedFormControl                    (this.id,[]),
       company_id: new UntypedFormControl            (null,[Validators.required]),
       // department_id: new UntypedFormControl         (null,[Validators.required]),
-      product_id: new UntypedFormControl            (null,[Validators.required]),
-      department_part_id: new UntypedFormControl    (0,[Validators.required]),
+      // product_id: new UntypedFormControl            (null,[Validators.required]),
+      department_part_id: new UntypedFormControl    (null,[Validators.required]),
       jobtitle: new UntypedFormControl              (0,[]),
       doc_number: new UntypedFormControl            ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
       employeeId: new UntypedFormControl            (null,[]),
@@ -727,6 +732,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     // this.getBaseData('myDepartmentsList');
     this.getBaseData('accountingCurrency');  
     this.getBaseData('timeFormat');
+    this.setDefaultDate();
     console.log("locale = ",this.locale);
 
     if(this.data)//если документ вызывается в окне из другого документа
@@ -876,7 +882,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     this.rightsDefined=true;//!!!
     this.formCustomerTableColumns();
     this.addExampleInfo();
-    this.necessaryActionsBeforeAutoCreateNewDoc();
+    // this.necessaryActionsBeforeAutoCreateNewDoc();
     this.necessaryActionsBeforeGetChilds();
   }
 
@@ -884,7 +890,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     if(+this.id>0){
       this.getDocumentValuesById();
     }else {
-      this.setDefaultDate();
+
     }
   }
   getCompanySettings(){
@@ -902,25 +908,22 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     );
   }
   // т.к. всё грузится и обрабатывается асинхронно, до авто-создания документа необходимо чтобы выполнились все нужные для этого действия
-  necessaryActionsBeforeAutoCreateNewDoc(){
-    if(+this.id==0){
-      // canCreateNewDoc
-      this.actionsBeforeCreateNewDoc++;
-      //Если набрано необходимое кол-во действий для создания вручную (по кнопке)
-      if(this.actionsBeforeCreateNewDoc==4) this.canCreateNewDoc=true;
+  // necessaryActionsBeforeAutoCreateNewDoc(){
+  //   if(+this.id==0){
+  //     this.actionsBeforeCreateNewDoc++;
+  //     //Если набрано необходимое кол-во действий для создания вручную (по кнопке)
+  //     if(this.actionsBeforeCreateNewDoc==4) this.canCreateNewDoc=true;
       
-      if(
-        this.actionsBeforeCreateNewDoc==5 && //Если набрано необходимое кол-во действий для АВТОсоздания
-        this.settingsForm.get('autocreateOnStart').value && //и есть автоматическое создание на старте (autocreateOnStart)
-        +this.formBaseInformation.get('department_part_id').value>0  // и часть отделения выбрана
-        // +this.formBaseInformation.get('cagent_id').value>0 // и покупатель выбран
-      ){
-        this.canCreateNewDoc=true;
-        // alert(this.actionsBeforeGetChilds)
-        this.createNewDocument();
-      }
-    }
-  }
+  //     if(
+  //       this.actionsBeforeCreateNewDoc==5 && //Если набрано необходимое кол-во действий для АВТОсоздания
+  //       this.settingsForm.get('autocreateOnStart').value && //и есть автоматическое создание на старте (autocreateOnStart)
+  //       +this.formBaseInformation.get('department_part_id').value>0  // и часть отделения выбрана
+  //     ){
+  //       this.canCreateNewDoc=true;
+  //       this.createNewDocument();
+  //     }
+  //   }
+  // }
 
   necessaryActionsBeforeGetChilds(){
     this.actionsBeforeGetChilds++;
@@ -1073,7 +1076,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     this.formBaseInformation.get('date_end').  setValue(moment().add(0,'d'));
     this.formBaseInformation.get('time_start').setValue(moment().format("HH:mm"));
     this.formBaseInformation.get('time_end').  setValue(moment().add(+1,'h').format("HH:mm"));
-    this.necessaryActionsBeforeAutoCreateNewDoc();
+    // this.necessaryActionsBeforeAutoCreateNewDoc();
   }
   
   doFilterDepartmentsList(){
@@ -1143,7 +1146,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
             let documentValues: any = data as any;
             this.formCustomerSearch.get('telephone').setValue(documentValues.telephone==null?'':documentValues.telephone);
             this.formCustomerSearch.get('email').setValue(documentValues.email==null?'':documentValues.email);
-            this.necessaryActionsBeforeAutoCreateNewDoc();
+            // this.necessaryActionsBeforeAutoCreateNewDoc();
         },
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
@@ -1155,7 +1158,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       debounceTime(800),
       tap(() => {
         this.filteredProducts = [];
-        if(+this.formBaseInformation.get('product_id').value==0) this.canAutocompleteQuery=true;
+        // if(+this.formBaseInformation.get('product_id').value==0) this.canAutocompleteQuery=true;
         // console.log(this.searchProductCtrl.value)
       }),      
       
@@ -1265,14 +1268,12 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   clearCustomerProductsTable(row:any): void {
     const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
       width: '400px',data:{head: translate('docs.msg.prod_list_cln'),warning: translate('docs.msg.prod_list_qry'),query: ''},});
-    dialogRef.afterClosed().subscribe(result => {
-      if(result==1){
-        // this.getControlTablefield().clear();
-        console.log('customerRowId = ',row.row_id)
-        this.deleteAllCustomerProductsByRowId(row.row_id)
-        // console.log(console.log('row: ',JSON.stringify(row)));
-        this.getTotalSumPrice();//чтобы пересчиталась сумма в чеке
-      }});  
+      dialogRef.afterClosed().subscribe(result => {
+        if(result==1){
+          console.log('customerRowId = ',row.row_id)
+          this.deleteAllCustomerProductsByRowId(row.row_id)
+          this.getTotalSumPrice();//чтобы пересчиталась сумма в чеке
+        }});  
   }
   getEdizmNameBySelectedId(srchId:number):string {
     let name='';
@@ -1290,7 +1291,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         timeFrom:     this.timeTo24h(this.formBaseInformation.get('time_start').value),
         dateTo:       this.formBaseInformation.get('date_end').value,
         timeTo:       this.timeTo24h(this.formBaseInformation.get('time_end').value),
-        servicesIds:  +this.formBaseInformation.get('product_id').value==0?[]:[this.formBaseInformation.get('product_id').value],
+        servicesIds:  []/*+this.formBaseInformation.get('product_id').value==0?[]:[this.formBaseInformation.get('product_id').value]*/,
         depPartsIds:  this.formBaseInformation.get('department_part_id').value==0?[]:[this.formBaseInformation.get('department_part_id').value],
         jobTitlesIds: this.formBaseInformation.get('jobtitle').value==0?[]:[this.formBaseInformation.get('jobtitle').value],
         priceTypeId:  +this.default_type_price_id,
@@ -1309,7 +1310,53 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       } catch (e) {return []}
     } else return [];
   }
+  
+  getRefreshNowUsedResourcesQueryBody(){
+    return  {
+        appointmentId:+this.id,
+        companyId:    this.formBaseInformation.get('company_id').value,
+        dateFrom:     this.formBaseInformation.get('date_start').value,
+        timeFrom:     this.timeTo24h(this.formBaseInformation.get('time_start').value),
+        dateTo:       this.formBaseInformation.get('date_end').value,
+        timeTo:       this.timeTo24h(this.formBaseInformation.get('time_end').value),
+      }
+  }
 
+  refreshNowUsedResources(){
+     this.http.post('/api/auth/getNowUsedResourcesList',this.getRefreshNowUsedResourcesQueryBody()).subscribe(
+      (data) =>   {
+        let resources = data as DepPartResource[];
+                
+        let row_index:number=0;
+        let control = this.getControlTablefield();
+        control.value.map(service=>{
+          service.departmentPartsWithResourcesIds.map(depPart=>{
+            if(depPart.id=+this.formBaseInformation.get('department_part_id').value){
+              depPart.resourcesOfDepartmentPart.map(depPartResource=>{
+                
+                resources.map(newResource=>{
+                  if(newResource.dep_part_id==this.formBaseInformation.get('department_part_id').value && newResource.resource_id==depPartResource.id)
+                    depPartResource.now_used=newResource.now_used;
+                    // control.controls[row_index].get('departmentPartsWithResourcesIds')
+                })
+
+              })
+            }
+              
+            
+
+
+          });
+            row_index++;
+        });
+
+
+
+
+      },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
+    );
+  }
   getProductsCustomerList(){
     if(!this.isProductCustomerListLoading){
       try{
@@ -1368,6 +1415,9 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       // console.log(console.log('Selected customer: ',JSON.stringify(customer)));
       const control = <UntypedFormArray>this.formBaseInformation.get('appointmentsProductTable');
       control.push(this.formingProductRowFromMainBlock(product,customer.id,customer.row_id));
+      let row_index = 0;
+      control.value.map(service=>{this.setRowSumPrice(row_index);row_index++})// re-calculating all sum prices
+      // this.setRowSumPrice(control.value.length-1);// re-calculating sum price of added row
       setTimeout(() => {this.searchProductCtrl.reset();}, 1);
       this.getTotalSumPrice();
       if(control.length>0 && !this.isThereAreServicesWithEmployeeRequired()){ // if there are selected services but no one of selected sevices required employee
@@ -1398,20 +1448,20 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   //   }    
   // }
 
-  customerHasMainProduct(customerRowId:number){
-    let has = false;
-    this.formBaseInformation.value.appointmentsProductTable.map(i =>{
-      if(i.is_main && i.customerRowId==customerRowId) has = true;
-    });
-    return has;
-  }
-  customerHasNoMainProducts(customerRowId:number){
-    let has = false;
-    this.formBaseInformation.value.appointmentsProductTable.map(i =>{
-      if(!i.is_main && i.customerRowId==customerRowId) has = true;
-    });
-    return has;
-  }
+  // customerHasMainProduct(customerRowId:number){
+  //   let has = false;
+  //   this.formBaseInformation.value.appointmentsProductTable.map(i =>{
+  //     if(i.is_main && i.customerRowId==customerRowId) has = true;
+  //   });
+  //   return has;
+  // }
+  // customerHasNoMainProducts(customerRowId:number){
+  //   let has = false;
+  //   this.formBaseInformation.value.appointmentsProductTable.map(i =>{
+  //     if(!i.is_main && i.customerRowId==customerRowId) has = true;
+  //   });
+  //   return has;
+  // }
   // addMainProductToNewPayingCustomer(row_id:number, customer_id:number){
   //   const control = <UntypedFormArray>this.formBaseInformation.get('appointmentsProductTable');
   //   if(this.formBaseInformation.get('product_id').value && !this.customerHasMainProduct(row_id)){
@@ -1427,9 +1477,10 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       product_id: new UntypedFormControl (product.id,[]),
       appointment_id: new UntypedFormControl (+this.id,[]),
       name: new UntypedFormControl (product.name,[]),
-      product_count: new UntypedFormControl (1,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$'), ValidationService.countMoreThanZero]),
+      product_count: new UntypedFormControl (this.getProductTimeQtt(product),[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$'), ValidationService.countMoreThanZero]),
       edizm: new UntypedFormControl (product.edizm,[]),
       edizm_id:  new UntypedFormControl (product.edizm_id,[]),
+      edizm_type_id:  new UntypedFormControl (product.edizm_type_id,[]),
       product_price:  new UntypedFormControl (this.numToPrice(product.priceOfTypePrice,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')/*,ValidationService.priceMoreThanZero*/]),
       product_price_of_type_price: new UntypedFormControl (product.priceOfTypePrice,[]),
       product_sumprice: new UntypedFormControl (this.numToPrice(product.priceOfTypePrice,2),[]),
@@ -1443,7 +1494,8 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       indivisible: new UntypedFormControl (product.indivisible,[]),
       // is_main:  new UntypedFormControl (is_main,[]), // Main product (service) of this appointment or reservation
       employeeRequired: new UntypedFormControl (product.employeeRequired,[]),
-      departmentPartsWithResourcesIds: new UntypedFormControl (product.departmentPartsWithResourcesIds)
+      departmentPartsWithResourcesIds: new UntypedFormControl (product.departmentPartsWithResourcesIds,[]),
+      unitOfMeasureTimeInSeconds: new UntypedFormControl (product.unitOfMeasureTimeInSeconds,[]),
       //---------------------------------
       // department: new UntypedFormControl (product.department,[]), //имя отделения, выбранного в форме поиска 
       // shipped:  new UntypedFormControl (product.shipped,[]),
@@ -1541,7 +1593,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         if(this.formBaseInformation.get('name').value=='')
           this.formBaseInformation.get('name').setValue(name);
       // }
-      this.necessaryActionsBeforeAutoCreateNewDoc();
+      // this.necessaryActionsBeforeAutoCreateNewDoc();
     }
   }
   //определяет, есть ли предприятие в загруженном списке предприятий
@@ -1643,15 +1695,6 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
     if (charCode > 31 && ((charCode < 48 || charCode > 57) && charCode!=46)) { return false; } return true;}
   
-  getFormIngexByProductId(productId:number):number{
-    let retIndex:number;
-    let formIndex:number=0;
-    this.formBaseInformation.value.appointmentsProductTable.map(i => 
-        {
-        if(+i['product_id']==productId){retIndex=formIndex}
-        formIndex++;
-        });return retIndex;}
-
   getControl(formControlName){
     const control = <UntypedFormArray>this.formBaseInformation.get(formControlName);
     return control;
@@ -1662,9 +1705,10 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       product_id: new UntypedFormControl (row.product_id,[]),
       customers_orders_id: new UntypedFormControl (+this.id,[]),
       name: new UntypedFormControl (row.name,[]),
-      product_count: new UntypedFormControl (row.product_count,[Validators.required, Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$'), ValidationService.countMoreThanZero]),
+      product_count: new UntypedFormControl (row.product_count,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$'), ValidationService.countMoreThanZero]),
       edizm: new UntypedFormControl (row.edizm,[]),
       edizm_id:  new UntypedFormControl (row.edizm_id,[]), 
+      edizm_type_id:  new UntypedFormControl (row.edizm_type_id,[]),
       product_price:  new UntypedFormControl (this.numToPrice(row.product_price,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')/*,ValidationService.priceMoreThanZero*/]),
       product_price_of_type_price: new UntypedFormControl (row.product_price,[]),
       product_sumprice: new UntypedFormControl (this.numToPrice(row.product_sumprice,2),[]),
@@ -1684,27 +1728,10 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       employeeRequired: new UntypedFormControl (row.employeeRequired,[]),
       is_material:  new UntypedFormControl (row.is_material,[]), //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
       reserved_current:  new UntypedFormControl (row.reserved_current,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$')]),// зарезервировано единиц товара в отделении (складе) в ЭТОМ (текущем) Заказе покупателя
+      unitOfMeasureTimeInSeconds:  new UntypedFormControl (row.unitOfMeasureTimeInSeconds,[]),
     });
   }
-   //Конвертирует число в строку типа 0.00 например 6.40, 99.25
-  numToPrice(price:number,charsAfterDot:number) {
-    if(price != undefined){
-      //конертим число в строку и отбрасываем лишние нули без округления
-      const reg = new RegExp("^-?\\d+(?:\\.\\d{0," + charsAfterDot + "})?", "g")
-      // console.log('price',price)
-      // console.log('+price',+price)
-      const a = price.toString().match(reg)[0];
-      //находим положение точки в строке
-      const dot = a.indexOf(".");
-      // если число целое - добавляется точка и нужное кол-во нулей
-      if (dot === -1) { 
-          return a + "." + "0".repeat(charsAfterDot);
-      }
-      //елси не целое число
-      const b = charsAfterDot - (a.length - dot) + 1;
-      return b > 0 ? (a + "0".repeat(b)) : a;
-    }
-  }
+
 
   // hideOrShowNdsColumn(){
   //   if(this.formBaseInformation.get('nds').value){
@@ -2326,8 +2353,9 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         this.displayedCustomersColumns.push('name');
         this.displayedCustomersColumns.push('email');
         this.displayedCustomersColumns.push('telephone');
-        this.displayedCustomersColumns.push('child');
-        this.displayedCustomersColumns.push('is_payer');
+        this.displayedCustomersColumns.push('sum');
+        // this.displayedCustomersColumns.push('child');
+        // this.displayedCustomersColumns.push('is_payer');
     if(this.editability && this.showSearchCustomerFormFields)
       this.displayedCustomersColumns.push('delete');
   }
@@ -2399,11 +2427,11 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     return this._fb.group({
       id: new UntypedFormControl (guest.id,[]),
       row_id:     [this.getCustomerRowId()],
-      is_payer:   new UntypedFormControl (guest.is_payer,[]),
+      // is_payer:   new UntypedFormControl (guest.is_payer,[]),
       name:       new UntypedFormControl (guest.name,[]),
       email:      new UntypedFormControl (guest.email,[]),
       telephone:  new UntypedFormControl (guest.telephone,[]),
-      child:      new UntypedFormControl (guest.child,[]),
+      // child:      new UntypedFormControl (guest.child,[]),
       // products:   new UntypedFormArray   ([]),//массив с услугами клиента / array of customer's services
     });
   }
@@ -2433,11 +2461,11 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     return this._fb.group({
       id: new UntypedFormControl (this.formCustomerSearch.get('id').value,[]),
       row_id:     [this.getCustomerRowId()],
-      is_payer:   new UntypedFormControl (this.formBaseInformation.get('customersTable').value.length>0?false:true),
+      // is_payer:   new UntypedFormControl (this.formBaseInformation.get('customersTable').value.length>0?false:true),
       name:       new UntypedFormControl (this.searchCustomerCtrl.value,[]),
       email:      new UntypedFormControl (this.formCustomerSearch.get('email').value,[]),
       telephone:  new UntypedFormControl (this.formCustomerSearch.get('telephone').value,[]),
-      child:      new UntypedFormControl (false,[]),
+      // child:      new UntypedFormControl (false,[]),
       products:   new UntypedFormControl ([],[])
     });
   }
@@ -2706,33 +2734,33 @@ deleteFile(id:number){ //+++
   }
 // забирает таблицу товаров из дочернего компонента и помещает ее в форму, предназначенную для создания дочерних документов
   getProductsTableLinkedDoc(docname:string){
-    let methodNameProductTable:string;//для маппинга в соответствующие названия сетов в бэкэнде (например private Set<PostingProductForm> postingProductTable;)
-    let canAddRow: boolean;
-    //Получим название метода для маппинга в соответствующее название сета в бэкэнде (например для аргумента 'Posting' отдаст 'postingProductTable', который замаппится в этоn сет: private Set<PostingProductForm> postingProductTable;)
-    methodNameProductTable=this.commonUtilites.getMethodNameByDocAlias(docname);
-    const control = <UntypedFormArray>this.formLinkedDocs.get(methodNameProductTable);
-    control.clear();
-    this.productSearchAndTableByCustomersComponent.getProductTable().forEach(row=>{
-      if(this.productSearchAndTableByCustomersComponent.checkedList.length>0){  //если есть выделенные чекбоксами позиции - надо взять только их, иначе берем все позиции
-        canAddRow=this.isRowInCheckedList(row.row_id)
-      }
-      else canAddRow=true;
-      if(canAddRow)
-          control.push(this.formingProductRowLinkedDoc(row));
-    });
-  }
-  formingProductRowLinkedDoc(row: AppointmentsProductTable) {
-    return this._fb.group({
-      product_id: new UntypedFormControl (row.product_id,[]),
-      department_id: new UntypedFormControl (row.department_id,[]),
-      product_count: new UntypedFormControl ((row.product_count-row.shipped)>=0?row.product_count-row.shipped:0,[]),
-      product_price:  new UntypedFormControl (row.product_price,[]),
-      price_type_id:  new UntypedFormControl (row.price_type_id,[]),
-      is_material:  new UntypedFormControl (row.is_material,[]),
-      product_price_of_type_price:  new UntypedFormControl (row.product_price_of_type_price,[]),
-      product_sumprice: new UntypedFormControl (((row.product_count)*row.product_price).toFixed(2),[]),
-      nds_id:  new UntypedFormControl (row.nds_id,[]),
-    });
+  //   let methodNameProductTable:string;//для маппинга в соответствующие названия сетов в бэкэнде (например private Set<PostingProductForm> postingProductTable;)
+  //   let canAddRow: boolean;
+  //   //Получим название метода для маппинга в соответствующее название сета в бэкэнде (например для аргумента 'Posting' отдаст 'postingProductTable', который замаппится в этоn сет: private Set<PostingProductForm> postingProductTable;)
+  //   methodNameProductTable=this.commonUtilites.getMethodNameByDocAlias(docname);
+  //   const control = <UntypedFormArray>this.formLinkedDocs.get(methodNameProductTable);
+  //   control.clear();
+  //   this.productSearchAndTableByCustomersComponent.getProductTable().forEach(row=>{
+  //     if(this.productSearchAndTableByCustomersComponent.checkedList.length>0){  //если есть выделенные чекбоксами позиции - надо взять только их, иначе берем все позиции
+  //       canAddRow=this.isRowInCheckedList(row.row_id)
+  //     }
+  //     else canAddRow=true;
+  //     if(canAddRow)
+  //         control.push(this.formingProductRowLinkedDoc(row));
+  //   });
+  // }
+  // formingProductRowLinkedDoc(row: AppointmentsProductTable) {
+  //   return this._fb.group({
+  //     product_id: new UntypedFormControl (row.product_id,[]),
+  //     department_id: new UntypedFormControl (row.department_id,[]),
+  //     product_count: new UntypedFormControl ((row.product_count-row.shipped)>=0?row.product_count-row.shipped:0,[]),
+  //     product_price:  new UntypedFormControl (row.product_price,[]),
+  //     price_type_id:  new UntypedFormControl (row.price_type_id,[]),
+  //     is_material:  new UntypedFormControl (row.is_material,[]),
+  //     product_price_of_type_price:  new UntypedFormControl (row.product_price_of_type_price,[]),
+  //     product_sumprice: new UntypedFormControl (((row.product_count)*row.product_price).toFixed(2),[]),
+  //     nds_id:  new UntypedFormControl (row.nds_id,[]),
+  //   });
   }
   // можно ли создать связанный документ (да - если есть товары, подходящие для этого)
   canCreateLinkedDoc(docname:string):CanCreateLinkedDoc{
@@ -2879,12 +2907,12 @@ deleteFile(id:number){ //+++
       timeFrom:     this.timeTo24h(this.formBaseInformation.get('time_start').value),
       dateTo:       this.formBaseInformation.get('date_end').value,
       timeTo:       this.timeTo24h(this.formBaseInformation.get('time_end').value),
-      servicesIds:  +this.formBaseInformation.get('product_id').value==0?[]:[this.formBaseInformation.get('product_id').value],
-      depPartsIds:  this.formBaseInformation.get('department_part_id').value==0?[]:[this.formBaseInformation.get('department_part_id').value],
-      jobTitlesIds: this.formBaseInformation.get('jobtitle').value==0?[]:[this.formBaseInformation.get('jobtitle').value],
+      servicesIds:  []/*+this.formBaseInformation.get('product_id').value==0?[]:[this.formBaseInformation.get('product_id').value]*/,
+      depPartsIds:  []/*this.formBaseInformation.get('department_part_id').value==0?[]:[this.formBaseInformation.get('department_part_id').value]*/,
+      jobTitlesIds: []/*this.formBaseInformation.get('jobtitle').value==0?[]:[this.formBaseInformation.get('jobtitle').value]*/,
     }
   }
-  getEmployeesList(isFree){
+  getEmployeesList(isFree:boolean=true){
     const body = this.getEmployeesListQueryBody(isFree); 
     this.employeesListLoadQtt=3;
     this.http.post('/api/auth/getEmployeesList', body) 
@@ -2918,6 +2946,22 @@ deleteFile(id:number){ //+++
     return result;
   }
 
+  onDatesTimesChange(){
+    if(this.actionsBeforeGetChilds>=6 && this.isDatesValid){
+      this.getEmployeesList();
+      this.refreshNowUsedResources();
+      let row_index:number=0;
+      let control = this.getControlTablefield();
+      control.value.map(service=>{
+        if(service.edizm_type_id==6){
+          control.controls[row_index].get('product_count').setValue(this.getProductTimeQtt(service));
+          this.onChangeProductCount(row_index);//->setRowSumPrice(row_index) - пересчёт суммы по товарной позиции
+        }
+        row_index++;
+      });
+    }
+  }
+  
   checkEmptyEmployeeField(){
     if( this.formBaseInformation.get('employeeName').value.length==0){
       this.formBaseInformation.get('employeeId').setValue(null);
@@ -2971,14 +3015,14 @@ deleteFile(id:number){ //+++
   // The situation can be, that in settings there is "Status after ompletion" for company A, but document created for company B. If it happens, when completion is over, Dokio can set this status of company A to the document, but that's wrong! 
   statusIdInList(id:number):boolean{let r=false;this.receivedStatusesList.forEach(c=>{if(id==+c.id) r=true});return r}
 
-  get payersCnt(){
-    let result = 0;
-    this.formBaseInformation.controls.customersTable.value.map(row=>{
-      if(row.is_payer)
-        result++;
-    })
-    return result;
-  }
+  // get payersCnt(){
+  //   let result = 0;
+  //   this.formBaseInformation.controls.customersTable.value.map(row=>{
+  //     if(row.is_payer)
+  //       result++;
+  //   })
+  //   return result;
+  // }
   getProductArrayIndexByCustomerRowId(row_id:number){
     let i=0;
     let indx:number = null;
@@ -2999,15 +3043,11 @@ deleteFile(id:number){ //+++
   }
   // [disabled] of slide toggle is not working in FormArray with formControlName. Possibility it is a bug.
   // so, I am setting it manually
-  setIsPayerValue(row_id:number, customer_id:number, value){
-    console.log('row_id',row_id)
-    // console.log('customer_id',customer_id)
-    // console.log('value',value)
-    console.log('getCustomerArrayIndexByRowId(row_id)',this.getCustomerArrayIndexByRowId(row_id))
-    this.getControl('customersTable').controls[this.getCustomerArrayIndexByRowId(row_id)].get('is_payer').setValue(value);
-    // if(value)
-    //   this.addMainProductToNewPayingCustomer(row_id, customer_id)
-  }
+  // setIsPayerValue(row_id:number, customer_id:number, value){
+  //   console.log('row_id',row_id)
+  //   console.log('getCustomerArrayIndexByRowId(row_id)',this.getCustomerArrayIndexByRowId(row_id))
+  //   this.getControl('customersTable').controls[this.getCustomerArrayIndexByRowId(row_id)].get('is_payer').setValue(value);
+  // }
 
   getTaxMultiplifierBySelectedId(srchId:number):number {
     //возвращает множитель по выбранному НДС. например, для 20% будет 1.2, 0% - 1 и т.д 
@@ -3069,7 +3109,7 @@ deleteFile(id:number){ //+++
         )}}
   }
    // равна ли изменённая цена цене по выбранному Типу цены. Если нет - сбрасываем выбор Типа цены
-   rowPriceEqualsToTypePrice(row_index:number){
+  rowPriceEqualsToTypePrice(row_index:number){
     const control = this.getControlTablefield();
     let product_price = control.controls[row_index].get('product_price').value;
     let product_price_of_type_price = control.controls[row_index].get('product_price_of_type_price').value;
@@ -3080,9 +3120,22 @@ deleteFile(id:number){ //+++
     let price:number;
     return this.http.get('/api/auth/getProductPrice?company_id='+this.formBaseInformation.get('company_id').value+'&product_id='+product_id+'&price_type_id='+price_type_id)
   }  
+  getProductTimeQtt(service:AppointmentServiceSearchResponse, currentQtt=1):number{
+    let result = currentQtt;
+    console.log(JSON.stringify(service))
+    if(service.edizm_type_id==6 && service.edizm_id>0 && service.unitOfMeasureTimeInSeconds>0.001 && this.isDatesValid){//6=time
+      let beginningTime = moment(moment(new Date(this.formBaseInformation.get('date_start').value)).format('DD.MM.YYYY')+' '+this.timeTo24h(this.formBaseInformation.get('time_start').value), 'DD.MM.YYYY HH:mm');
+      let endTime = moment(moment(new Date(this.formBaseInformation.get('date_end').value)).format('DD.MM.YYYY')+' '+this.timeTo24h(this.formBaseInformation.get('time_end').value), 'DD.MM.YYYY HH:mm');
+      let appointmentDurationInSeconds = moment.duration(endTime.diff(beginningTime)).asSeconds();
+      // The result is an appointment duration divided on the unit of measure time converted into seconds is:
+      result = Math.round(appointmentDurationInSeconds/service.unitOfMeasureTimeInSeconds);
+    }   
+    return result<1?1:result;
+  }
 //------------------------------------------------- ON CHANGE...
   //при изменении поля Количество в таблице товаров
   onChangeProductCount(row_index:number){
+    // this.nullToZeroInTableField(row_index, 'product_count');
     this.commaToDotInTableField(row_index, 'product_count');  // замена запятой на точку
     this.setRowSumPrice(row_index);                           // пересчёт суммы оплаты за данный товар
     this.tableNdsRecount();                                   // пересчёт Суммы оплаты за товар с учётом НДС
@@ -3219,7 +3272,7 @@ deleteFile(id:number){ //+++
     this.formBaseInformation.get('employeeId').setValue(null);
     this.formBaseInformation.get('employeeName').setValue('');
     this.formBaseInformation.get('jobtitle').setValue(0);
-    this.formBaseInformation.get('product_id').setValue(null);
+    // this.formBaseInformation.get('product_id').setValue(null);
     this.searchProductCtrl.reset();
     // this.mainProduct= null;
     // this.deleteAllCustomersProducts(true); // delete only main product from all customers products
@@ -3250,6 +3303,8 @@ deleteFile(id:number){ //+++
     return result;
   }
 
+  // result is not included consumed resources in other Appointments (now_used)
+  // because it calculates on existed services included into THIS appointment/ But this appointment can be w/o services, and resources can be ALREADY consumed
   getFreeResourcesOfDepPart(depPartId:number):Map<number, number>{
     let resourcesMap=new Map();
     let requiredResourcesOfCurrentDepPart:ResourceOfDepartmentPart[] = this.getAllResourcesInServicesTable(depPartId);
@@ -3260,10 +3315,10 @@ deleteFile(id:number){ //+++
           deppart.resources.map(resource=>{
             resourcesMap.set(resource.resource_id, resource.resource_qtt);
           });
-    // 2. Calculate free resources based on consumed resources of existed services in this department part (need_res_qtt) and consumed resources in other Appointments (now_used)
+    // 2. Calculate free resources based on consumed resources of existed services in this department part (need_res_qtt) 
         requiredResourcesOfCurrentDepPart.map(requiredResource=>{
           if(resourcesMap.has(requiredResource.id))
-            resourcesMap.set(requiredResource.id, (resourcesMap.get(requiredResource.id)-requiredResource.now_used-requiredResource.need_res_qtt))
+            resourcesMap.set(requiredResource.id, (resourcesMap.get(requiredResource.id)/*-requiredResource.now_used*/-requiredResource.need_res_qtt))
           });
         }
       });
@@ -3295,7 +3350,7 @@ deleteFile(id:number){ //+++
         let freeDepPartResources = this.getFreeResourcesOfDepPart(depPartId);
         depPart.resourcesOfDepartmentPart.map(resource=>{
           // if resource is not in free resources OR resource is not enough, and this resource still not added to the return list
-          if((!freeDepPartResources.has(resource.id) || freeDepPartResources.get(resource.id) < resource.need_res_qtt) && result.findIndex((o)=>{ return o.id  === resource.id }) === -1)
+          if((!freeDepPartResources.has(resource.id) || freeDepPartResources.get(resource.id) < (resource.need_res_qtt+resource.now_used)) && result.findIndex((o)=>{ return o.id  === resource.id }) === -1)
             result.push(resource);
         })
       }
@@ -3582,7 +3637,7 @@ deleteFile(id:number){ //+++
                 this.accessibleServicesIdsBySelectedDepPart,
                 this.accessibleServicesIdsByResourcesOfSelectedDepPart,
     /*this.accessibleServicesIdsByResourcesOfAccessibleDepParts*/];
-    console.log('accessibleServicesIdsAll = ',data.reduce((a, b) => a.filter(c => b.includes(c))))
+    // console.log('accessibleServicesIdsAll = ',data.reduce((a, b) => a.filter(c => b.includes(c))))
     return data.reduce((a, b) => a.filter(c => b.includes(c)));  //intersection of multiple arrays will be accessible employees at this moment
   }
   get accessibleServicesIdsByAccessibleEmployees():number[]{
@@ -3635,6 +3690,7 @@ deleteFile(id:number){ //+++
     });
     return result;
   }
+
   get accessibleServicesIdsByResourcesOfSelectedDepPart():number[]{
     if(+this.formBaseInformation.get('department_part_id').value == 0)
       return this.getAllServicesIds(false);
@@ -3652,7 +3708,7 @@ deleteFile(id:number){ //+++
           else {
             let goodService = true; // if at least one of resources is absent or not enough - it will be false and not added to the return list
             dp.resourcesOfDepartmentPart.map(resource=>{
-              if(!goodService || !freeDepPartResources.has(resource.id) || freeDepPartResources.get(resource.id)<resource.need_res_qtt)
+              if(!goodService || !freeDepPartResources.has(resource.id) || freeDepPartResources.get(resource.id)<resource.need_res_qtt+resource.now_used)
                 goodService = false;
             })
             if(goodService)
@@ -3696,7 +3752,17 @@ deleteFile(id:number){ //+++
   //заменяет запятую на точку при вводе цены или количества в заданной ячейке
   commaToDotInTableField(row_index:number, fieldName:string){
     const control = this.getControlTablefield();
-    control.controls[row_index].get(fieldName).setValue(control.controls[row_index].get(fieldName).value.replace(",", "."));
+    // console.log('control.controls[row_index].get(fieldName).value=',control.controls[row_index].get(fieldName).value)
+    control.controls[row_index].get(fieldName).setValue(control.controls[row_index].get(fieldName).value.toString().replace(",", "."));
+  }
+  nullToZeroInTableField(row_index:number, fieldName:string){
+    const control = this.getControlTablefield();
+    console.log('control.controls[row_index].get(fieldName).value=',control.controls[row_index].get(fieldName).value)
+    
+    if(control.controls[row_index].get(fieldName).value==null){
+      control.controls[row_index].get(fieldName).setValue(0);
+      console.log('SETTING');
+    }
   }
   //для проверки в таблице с вызовом из html
   isInteger (i:number):boolean{return Number.isInteger(i)}
@@ -3710,5 +3776,25 @@ deleteFile(id:number){ //+++
   }
   isTimeFormatAmPm(time:string){
     return((time.includes("AM") || time.includes("PM") || time.includes("утра") || time.includes("вечера")));
+  }
+  isNumber(n) {return !isNaN(parseFloat(n)) && isFinite(n);}
+  //Конвертирует число в строку типа 0.00 например 6.40, 99.25
+  numToPrice(price:number,charsAfterDot:number) {
+    if(price != undefined && this.isNumber(price)){
+      //конертим число в строку и отбрасываем лишние нули без округления
+      const reg = new RegExp("^-?\\d+(?:\\.\\d{0," + charsAfterDot + "})?", "g")
+      // console.log('price',price)
+      // console.log('+price',+price)
+      const a = price.toString().match(reg)[0];
+      //находим положение точки в строке
+      const dot = a.indexOf(".");
+      // если число целое - добавляется точка и нужное кол-во нулей
+      if (dot === -1) { 
+          return a + "." + "0".repeat(charsAfterDot);
+      }
+      //елси не целое число
+      const b = charsAfterDot - (a.length - dot) + 1;
+      return b > 0 ? (a + "0".repeat(b)) : a;
+    }
   }
 }

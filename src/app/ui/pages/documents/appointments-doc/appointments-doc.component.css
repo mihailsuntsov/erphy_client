@@ -482,4 +482,7 @@ table {
   .hidden {
     display: none;
   }
-  
+  .attention::-webkit-input-placeholder{ 
+    /* Chrome/Opera/Safari */ 
+    color: red !important; 
+  } 

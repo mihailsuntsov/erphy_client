@@ -42,7 +42,7 @@ export class ValidationService {
     }
 
     static countMoreThanZero(control) {
-        if (control.value.toString().length>0) {// если поле заполнено
+        if (control.value!=null) {// если поле заполнено
             if (control.value>0) {
                 return null;
             }else {
@@ -55,7 +55,7 @@ export class ValidationService {
     }
 
     static priceMoreThanZero(control) {
-        if (control.value.toString().length>0) {// если поле заполнено
+        if (control.value!=null) {// если поле заполнено
             if (control.value>0) {
                 return null;
             }else {

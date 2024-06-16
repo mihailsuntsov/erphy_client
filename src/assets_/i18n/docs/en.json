@@ -371,7 +371,8 @@
         "employee_required":"An employee is needed for this service",
         "max_pers_on_same_time":"Maximum one-time number of clients",
         "srvc_min_duration":"Minimum service duration",
-        "scedule_appntmnt_before":"Minimum time before start service"
+        "scedule_appntmnt_before":"Minimum time before start service",
+        "employee":"Employee"
     },
     "error":{ 
         "-- COMMON":"--",
@@ -560,7 +561,8 @@
         "add_part":"Add part of the department",
         "busy_by_schedule":"The selected time is not the employee’s working time, or the employee does not have a completed work schedule",
         "na_by_jobttl":"The employee's job title does not match the selected position",
-        "busy_by_appontm":"The employee is busy at the selected time"
+        "busy_by_appontm":"The employee is busy at the selected time",
+        "value_cant_be":"This value cannot be selected"
     },
     "msg":{
         "error":        "Error!",
