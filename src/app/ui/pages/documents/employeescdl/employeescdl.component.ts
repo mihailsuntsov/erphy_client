@@ -1212,6 +1212,7 @@ export class EmployeeScdlComponent implements OnInit {
         this.workShiftForm.get('depparts').setValue(sceduleDay.workshift.depparts);
         setTimeout(() => {
           const controlBreak = this.getControlTablefield();
+          console.log(JSON.stringify(sceduleDay))
           sceduleDay.workshift.breaks.map(brk => {
             controlBreak.push(this.formingBreakRowFromTable(brk.time_from, brk.time_to, brk.paid, brk.precent));
           });    

@@ -486,3 +486,11 @@ table {
     /* Chrome/Opera/Safari */ 
     color: red !important; 
   } 
+  .mat-icon-notification{
+    color: red;
+    line-height: 0.5;
+    display: inline-block;
+    margin-right: 5px;
+    position: relative;
+    top: 5px;
+  }

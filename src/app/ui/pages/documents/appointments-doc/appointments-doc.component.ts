@@ -1323,37 +1323,26 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   }
 
   refreshNowUsedResources(){
-     this.http.post('/api/auth/getNowUsedResourcesList',this.getRefreshNowUsedResourcesQueryBody()).subscribe(
-      (data) =>   {
-        let resources = data as DepPartResource[];
-                
-        let row_index:number=0;
-        let control = this.getControlTablefield();
-        control.value.map(service=>{
-          service.departmentPartsWithResourcesIds.map(depPart=>{
-            if(depPart.id=+this.formBaseInformation.get('department_part_id').value){
-              depPart.resourcesOfDepartmentPart.map(depPartResource=>{
-                
-                resources.map(newResource=>{
-                  if(newResource.dep_part_id==this.formBaseInformation.get('department_part_id').value && newResource.resource_id==depPartResource.id)
-                    depPartResource.now_used=newResource.now_used;
-                    // control.controls[row_index].get('departmentPartsWithResourcesIds')
-                })
-
+    this.http.post('/api/auth/getNowUsedResourcesList',this.getRefreshNowUsedResourcesQueryBody()).subscribe(
+    (data) =>   
+    {
+      let resources = data as DepPartResource[];
+      let row_index:number=0;
+      let control = this.getControlTablefield();
+      control.value.map(service=>{
+        service.departmentPartsWithResourcesIds.map(depPart=>{
+          if(depPart.id == +this.formBaseInformation.get('department_part_id').value){
+            depPart.resourcesOfDepartmentPart.map(depPartResource=>{
+              resources.map(newResource=>{
+                if(newResource.dep_part_id==this.formBaseInformation.get('department_part_id').value && newResource.resource_id==depPartResource.id)
+                  depPartResource.now_used=newResource.now_used;
               })
-            }
-              
-            
-
-
-          });
-            row_index++;
+            })
+          }
         });
-
-
-
-
-      },
+          row_index++;
+      });
+    },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
     );
   }
@@ -3381,6 +3370,32 @@ deleteFile(id:number){ //+++
     return result;
   }
 
+  getSelectedDepPartName(){
+    let result = '';
+    if(+this.formBaseInformation.get('department_part_id').value==0)
+      result = '---';
+    else {
+      this.receivedDepartmentsWithPartsList.map(department=>{
+        department.parts.map(deppart=>{
+          if(deppart.id==+this.formBaseInformation.get('department_part_id').value)
+            result = deppart.name;
+        });
+      });
+    }
+    if(result!='') return result; else return '???';
+  }
+  // getSelectedEmployeeName(){
+  //   let result = '';
+  //   if(+this.formBaseInformation.get('employeeId').value==0)
+  //     result = '---';
+  //   else {
+  //     this.receivedEmployeesList.map(employee=>{
+  //       if(employee.id==+this.formBaseInformation.get('employeeId').value)
+  //         result = employee.name;
+  //     });
+  //   }
+  //   if(result!='') return result; else return '???';
+  // }
   // ---------------------------------------------------- FILTRATION SYSTEM ------------------------------------------------------------------------
   // *** Employees ***
   get accessibleEmployeesIdsAll():number[]{

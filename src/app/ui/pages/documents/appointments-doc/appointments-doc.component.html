@@ -371,18 +371,20 @@
                                                                 <div class="col-12">
                                                                     <mat-form-field  class="mat-form-field-100">
                                                                         <mat-label>{{t('docs.field.dep_part')}}</mat-label>
-                                                                        <mat-icon
-                                                                            style="color: red;right: 0px;"
-                                                                            *ngIf="+formBaseInformation.get('department_part_id').value>0 && !accessibleDepPartsIdsAll.includes(+formBaseInformation.get('department_part_id').value)"
-                                                                            matTooltip="{{t('docs.tip.value_cant_be')}}" 
-                                                                            class="add_circle">
-                                                                            error
-                                                                        </mat-icon>   
+                                                                        
                                                                         <mat-select
                                                                         panelClass="department-list"
                                                                         formControlName="department_part_id">
                                                                         
-                                                                         
+                                                                            <mat-select-trigger>
+                                                                                <mat-icon
+                                                                                    style="color: red;"
+                                                                                    class="mat-icon-notification"
+                                                                                    *ngIf="+formBaseInformation.get('department_part_id').value>0 && !accessibleDepPartsIdsAll.includes(+formBaseInformation.get('department_part_id').value)"
+                                                                                    matTooltip="{{t('docs.tip.value_cant_be')}}">
+                                                                                    error
+                                                                                </mat-icon>{{getSelectedDepPartName()}}
+                                                                            </mat-select-trigger>
                                                                             <mat-option [value]="0">---</mat-option>
                                                                             
                                                                             <mat-optgroup 
@@ -637,19 +639,31 @@
                                                                         <mat-label>{{t('docs.field.employee')}}</mat-label>
                                                                         <input matInput
                                                                             type="text"
-                                                                            formControlName="employeeName" 
+                                                                            formControlName="employeeName"
                                                                             [matAutocomplete]="lg"
-                                                                            [ngStyle]="(!accessibleEmployeesIdsAll.includes(+formBaseInformation.get('employeeId').value))?{'caret-color': 'transparent','color': 'red'}:{}"
+                                                                            style="
+                                                                            display: flex;
+                                                                            text-align: left;
+                                                                            overflow: hidden;"
+                                                                            [ngStyle]="(!accessibleEmployeesIdsAll.includes(+formBaseInformation.get('employeeId').value))?{'caret-color':'transparent','position':'relative','left':'30px','width':'calc(100% - 30px)'}:{}"
                                                                             (keydown)="accessibleEmployeesIdsAll.length>0?true:false"
                                                                             (input)="checkEmptyEmployeeField();"
                                                                             (change)="checkEmptyEmployeeField();">
-                                                                        <mat-icon
+                                                                            <mat-icon
+                                                                                    style="color: red;"
+                                                                                    style="top: -17px;" 
+                                                                                    class="mat-icon-notification"
+                                                                                    *ngIf="+formBaseInformation.get('employeeId').value>0 && (!accessibleEmployeesIdsAll.includes(+formBaseInformation.get('employeeId').value))"
+                                                                                    matTooltip="{{t('docs.tip.value_cant_be')}}">
+                                                                                    error
+                                                                            </mat-icon>
+                                                                        <!-- <mat-icon
                                                                             style="color: red;right: 0px;"
                                                                             *ngIf="+formBaseInformation.get('employeeId').value>0 && (!accessibleEmployeesIdsAll.includes(+formBaseInformation.get('employeeId').value))"
                                                                             matTooltip="{{t('docs.tip.value_cant_be')}}" 
                                                                             class="add_circle">
                                                                             error
-                                                                        </mat-icon>
+                                                                        </mat-icon> -->
                                                                         <mat-icon
                                                                             *ngIf="+formBaseInformation.get('employeeId').value>0 && accessibleEmployeesIdsAll.length>0"
                                                                             matTooltip="{{t('docs.tip.clr_srch')}}" 
@@ -1290,7 +1304,7 @@
                                                                                 <td mat-footer-cell *matFooterCellDef></td>
                                                                             </ng-container>
                                                                             <tr mat-header-row *matHeaderRowDef="displayedCustomerProductsColumns"></tr>
-                                                                            <tr mat-row *matRowDef="let row1; columns: displayedCustomerProductsColumns;"></tr>
+                                                                            <tr mat-row *matRowDef="let row1; columns: displayedCustomerProductsColumns;" [class.hidden]="row.row_id!=row1.customerRowId"></tr>
                                                                             <tr mat-footer-row *matFooterRowDef="displayedCustomerProductsColumns"></tr>
                                                                             
                                                                         </table>
@@ -1502,14 +1516,16 @@
             </mat-tab-group>
             
         </mat-card-content>
+        <b>accessibleDepPartsIdsBySelectedServices ({{accessibleDepPartsIdsBySelectedServices.length}})</b>
+        <code><pre>{{accessibleDepPartsIdsBySelectedServices | json}}</pre></code><br>
         <!-- <b>accessibleServicesIdsAll ({{accessibleServicesIdsAll.length}})</b>
         <code><pre>{{accessibleServicesIdsAll | json}}</pre></code><br>  -->
-        <b>accessibleDepPartsIdsByResourcesOfSelectedServices ({{accessibleDepPartsIdsByResourcesOfSelectedServices.length}})</b>
-        <code><pre>{{accessibleDepPartsIdsByResourcesOfSelectedServices | json}}</pre></code><br> 
-        <b>receivedDepartmentsWithPartsList ({{receivedDepartmentsWithPartsList.length}})</b>
-        <code><pre>{{receivedDepartmentsWithPartsList | json}}</pre></code><br> 
+        <!-- <b>accessibleDepPartsIdsByResourcesOfSelectedServices ({{accessibleDepPartsIdsByResourcesOfSelectedServices.length}})</b> -->
+        <!-- <code><pre>{{accessibleDepPartsIdsByResourcesOfSelectedServices | json}}</pre></code><br>  -->
+        <!-- <b>receivedDepartmentsWithPartsList ({{receivedDepartmentsWithPartsList.length}})</b> -->
+        <!-- <code><pre>{{receivedDepartmentsWithPartsList | json}}</pre></code><br>  -->
         <code><pre>{{formBaseInformation.value | json}}</pre></code>
-        length={{getControlTablefield().length}}<br> 
+        <!-- length={{getControlTablefield().length}}<br>  -->
         
         <!-- <b>accessibleServicesIdsByAccessibleEmployees ({{accessibleServicesIdsByAccessibleEmployees.length}})</b>
         <code><pre>{{accessibleServicesIdsByAccessibleEmployees | json}}</pre></code><br>
@@ -1525,8 +1541,6 @@
         <code><pre>{{accessibleDepPartsIdsAll | json}}</pre></code><br>
         <b>accessibleEmployeesIdsBySelectedServices ({{accessibleEmployeesIdsBySelectedServices.length}})</b>
         <code><pre>{{accessibleEmployeesIdsBySelectedServices | json}}</pre></code><br> -->
-        <!-- <b>accessibleDepPartsIdsBySelectedServices ({{accessibleDepPartsIdsBySelectedServices.length}})</b> -->
-        <!-- <code><pre>{{accessibleDepPartsIdsBySelectedServices | json}}</pre></code><br> -->
 
     </form>
 </mat-card>
