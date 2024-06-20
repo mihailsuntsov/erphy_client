@@ -493,4 +493,10 @@ table {
     margin-right: 5px;
     position: relative;
     top: 5px;
+  }   
+  .nameInTableWithIcon{
+    display: inline-block;
+    position: relative;
+    top: -4px;
   }
+    

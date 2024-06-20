@@ -787,6 +787,7 @@
         "woman":        "Женский",
         "email_notver": "E-mail не верифицирован",
         "active":       "Активный",
+        "noactive":     "Не активный",
         "blocked":      "Заблокирован",
         "deleted_arch": "Удалён в архив",
         "price_type":   "Тип цены",

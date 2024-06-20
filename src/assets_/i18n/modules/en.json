@@ -9,6 +9,8 @@
         "unit":         "UOM",
         "remains":      "In-stock balance",
         "sum":          "Sum",
+        "paid":         "Paid",
+        "unpaid":       "Unpaid",
         "total":        "Total",
         "total_":       "Total",
         "nms":          "items",

@@ -799,6 +799,7 @@
         "woman":        "Female",
         "email_notver": "E-mail is not verified",
         "active":       "Active",
+        "noactive":     "Not active",
         "blocked":      "Blocked",
         "deleted_arch": "Deleted to the archive",
         "price_type":   "Price type",

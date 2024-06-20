@@ -183,7 +183,7 @@
                                                                                         <div class="vertical-center">{{part.name}}</div><p *cdkDragPreview></p>
                                                                                     </div>
                                                                                     <div style="min-width: 100px; margin-top: 10px; cursor:pointer">
-                                                                                        <mat-icon  matTooltip="{{t('docs.tip.active')}}" (click)="clickBtnEditPart(part)" class="icon" [ngStyle]="(part.is_active)?{'color': 'green'}:{'color': 'red'}" style="margin-right:10px;">{{part.is_active?'toggle_on':'toggle_off'}}</mat-icon>
+                                                                                        <mat-icon  matTooltip="{{t(part.is_active?'docs.list.active':'docs.list.noactive')}}" (click)="clickBtnEditPart(part)" class="icon" [ngStyle]="(part.is_active)?{'color': 'green'}:{'color': 'red'}" style="margin-right:10px;">{{part.is_active?'toggle_on':'toggle_off'}}</mat-icon>
                                                                                         <mat-icon  matTooltip="{{t('docs.tip.p_edit')}}" (click)="clickBtnEditPart(part)" class="icon" style="margin-right:10px;">edit</mat-icon>
                                                                                         <mat-icon matTooltip="{{t('docs.tip.delete')}}" class="icon" (click)="clickBtnDeletePart(part.id)">delete_forever</mat-icon>
                                                                                     </div>
