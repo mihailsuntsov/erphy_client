@@ -610,7 +610,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       appointmentsProductTable: new UntypedFormArray([]),
       nds: new UntypedFormControl                   (false,[]),
       nds_included: new UntypedFormControl          (true,[]),
-      name: new UntypedFormControl                  ('',[]),
+      name: new UntypedFormControl                  ('',[Validators.maxLength(1000)]),
       status_id: new UntypedFormControl             ('',[]),
       status_name: new UntypedFormControl           ('',[]),
       status_color: new UntypedFormControl          ('',[]),
@@ -1162,7 +1162,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         this.filteredProducts = [];
       } else {
         this.filteredProducts = data as AppointmentServiceSearchResponse[];
-        if(this.filteredProducts.length==1 && this.accessibleServicesIdsAll().includes(this.filteredProducts[0].id)){
+        if(this.filteredProducts.length==1/* && (this.accessibleServicesIdsAll().includes(this.filteredProducts[0].id)||!this.filteredProducts[0].isServiceByAppointment)*/){
           this.canAutocompleteQuery=false;
           // this.searchProductCtrl.setValue(this.filteredProducts[0].name);
           this.onSelectProductCustomer(this.filteredProducts[0]);
@@ -1390,7 +1390,8 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   // }
   
   onSelectProductCustomer(product:AppointmentServiceSearchResponse, customer=this.customer){
-    if(!product.isServiceByAppointment || this.accessibleServicesIdsAll().includes(product.id)){
+    // if(/*!product.isServiceByAppointment || */this.accessibleServicesIdsAll().includes(product.id)){
+    if(!this.isThereProductInTable(customer.row_id, product.id)){
       // console.log(console.log('Selected customer: ',JSON.stringify(customer)));
       const control = <UntypedFormArray>this.formBaseInformation.get('appointmentsProductTable');
       control.push(this.formingProductRowFromMainBlock(product,customer.id,customer.row_id));
@@ -1404,7 +1405,9 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         this.formBaseInformation.get('employeeName').setValue('');
         this.formBaseInformation.get('jobtitle').setValue(0);
       }
+    // }
     }
+    else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('modules.msg.prd_alr_slctd')}});
   }
   
   afterSelectProduct(){
@@ -1770,33 +1773,25 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
 
   createNewDocument(){
     this.createdDocId=null;
-    //если отправляем нового контрагента, в cagent_id отправляем null, и backend понимает что нужно создать нового контрагента:
-    this.formBaseInformation.get('cagent_id').setValue(this.is_addingNewCustomer?null:this.formBaseInformation.get('cagent_id').value);
     this.formBaseInformation.get('uid').setValue(uuidv4());
-    // this.getProductsTable();
+    if(this.formBaseInformation.get('name').value==''){this.formBaseInformation.get('name').setValue(this.generateName())}
     if(this.timeFormat=='12') {
       this.formBaseInformation.get('time_start').setValue(moment(this.formBaseInformation.get('time_start').value, 'hh:mm A'). format('HH:mm'));
       this.formBaseInformation.get('time_end').setValue(moment(this.formBaseInformation.get('time_end').value, 'hh:mm A'). format('HH:mm'));
     }
-    this.http.post('/api/auth/insertappointments', this.formBaseInformation.value)
+    this.http.post('/api/auth/insertAppointment', this.formBaseInformation.value)
     .subscribe(
       (data) =>   {
         let response=data as any;
-        //создание документа было успешным  
+        //создание документа было успешным
         if(response.success){
           this.actionsBeforeGetChilds=0;
           this.id=response.id;
-          this.openSnackBar(translate('docs.msg.doc_crtd_succ',{name:translate('docs.docs.c_order')}), translate('docs.msg.close'));
-          this._router.navigate(['/ui/appointmentsdoc', this.id]);
+          this.openSnackBar(translate('docs.msg.doc_crtd_succ',{name:translate('docs.docs.'+this.data.booking_doc_name_variation)}), translate('docs.msg.close'));
+          // this._router.navigate(['/ui/appointmentsdoc', this.id]);
           this.formBaseInformation.get('id').setValue(this.id);
-          this.formBaseInformation.get('cagent_id').enable();//иначе при сохранении он не будет отпраляться
-          if(response.fail_to_reserve>0){//если у 1 или нескольких позиций резервы при сохранении были отменены
-            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.res_not_saved')}});
-          }
-          // this.productSearchAndTableByCustomersComponent.parentDocId=response.id;
-          // this.productSearchAndTableByCustomersComponent.getProductsTable();
           this.rightsDefined=false; //!!!
-          this.getData();        
+          this.getData();
         //создание документа было не успешным
         } else {
           switch(response.errorCode){
@@ -3403,6 +3398,25 @@ deleteFile(id:number){ //+++
   //   }
   //   if(result!='') return result; else return '???';
   // }
+  generateName(){
+    let result='';
+    const products = this.getControl("appointmentsProductTable");
+    const customers = this.getControl("customersTable");
+    let name = '';
+    let product = '';
+    if(customers.value[0].name) name = customers.value[0].name.length>30?customers.value[0].name.slice(0,25)+'...':customers.value[0].name;
+    products.value.map(prod=>{
+      if(product=='' && prod.isServiceByAppointment) product=prod.name;
+    })
+    if(product=='' && products.value.length>0) product = products.value[0].name.length>30?products.value[0].name.slice(0,25)+'...':products.value[0].name;
+    result =  (name + ((product.length>0&&name.length>0)?', ':'') + product);
+    return result;
+  }
+  isThereProductInTable(cuctomerRowId:number,productId:number):boolean{
+    let result: boolean = false;
+    this.getControlTablefield().value.map(product=>{if(product.customerRowId == cuctomerRowId && product.product_id==productId){result=true}});
+    return result;
+  }
   // ---------------------------------------------------- FILTRATION SYSTEM ------------------------------------------------------------------------
   // *** Employees ***
   get accessibleEmployeesIdsAll():number[]{
