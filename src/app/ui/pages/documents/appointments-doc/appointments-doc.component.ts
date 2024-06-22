@@ -6,7 +6,6 @@ import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { SelectionModel } from '@angular/cdk/collections';
 import {animate, state, style, transition, trigger} from '@angular/animations';
-// import { Observable, Subject } from 'rxjs';
 import { map, startWith, debounceTime, tap, switchMap, mergeMap, concatMap, expand, reduce  } from 'rxjs/operators';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
@@ -18,11 +17,9 @@ import { graphviz }  from 'd3-graphviz';
 import { BalanceCagentComponent } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.component';
 import { TemplatesDialogComponent } from 'src/app/modules/settings/templates-dialog/templates-dialog.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
-// import { MatAccordion } from '@angular/material/expansion';
 import { DelCookiesService } from './del-cookies.service';
 import { Router, NavigationExtras  } from '@angular/router';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
-// import { Input } from '@angular/core';
 import { translate } from '@ngneat/transloco'; //+++
 import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component';
 import { FilesComponent } from '../files/files.component';
@@ -34,25 +31,6 @@ import { EMPTY, Observable } from 'rxjs';
 const MY_FORMATS = MomentDefault.getMomentFormat();
 const moment = MomentDefault.getMomentDefault();
 
-// interface ProductSearchResponse{//интерфейс получения данных из бд 
-//   id:number;
-//   name: string;
-//   edizm_id:number;
-//   edizm: string;
-//   edizm_type_id: number;
-//   edizm_multiplier:number;
-//   filename:string;
-//   nds_id:number;
-//   priceOfTypePrice:number;// цена по запрошенному id типа цены
-//   reserved:number;// сколько зарезервировано в других Заказах покупателя
-//   total:number; // всего единиц товара в отделении (складе):
-//   reserved_in_all_my_depths:number; //зарезервировано в моих отделениях
-//   total_in_all_my_depths:number; //всего в моих отделениях
-//   ppr_name_api_atol:string; //Признак предмета расчета в системе Атол. Невидимое поле. Нужно для передачи в таблицу товаров в качестве тега для чека на ккм Атол
-//   is_material:boolean; //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
-//   reserved_current:number;// зарезервировано единиц товара в отделении (складе) в ЭТОМ (текущем) Заказе покупателя:
-//   indivisible: boolean; // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
-// }
 interface AppointmentServiceSearchResponse{//интерфейс получения данных из бд 
   id:number;
   name: string;
@@ -128,10 +106,7 @@ interface AppointmentsProductTable { //интерфейс для формы, м�
   unitOfMeasureTimeInSeconds: number; // If unit of measure is 'Time' type - it will be as 1 unit converted into seconds, else 0
   isServiceByAppointment:boolean;     // It's a service and it's a service by appointment
 }
-// interface IdAndName_ru{
-//   id: number;
-//   name_ru: string;
-// }
+
 interface SpravTaxesSet{
   id: number;
   name: string;
@@ -142,118 +117,63 @@ interface SpravTaxesSet{
   value:number;
   multiplier:number;
 }
+
 interface CanCreateLinkedDoc{//интерфейс ответа на запрос о возможности создания связанного документа
   can:boolean;
   reason:string;
 }
-// interface Region{
-//   id: number;
-//   name_ru: string;
-//   country_id: number;
-//   country_name_ru: string;
-// }
-// interface City{
-//   id: number;
-//   name_ru: string;
-//   country_id: number;
-//   country_name_ru: string;
-//   region_id: number;
-//   region_name_ru: string;
-//   area_ru: string;
-// }
-interface docResponse {//интерфейс для получения ответа в методе getappointmentsValuesById
+
+interface docResponse {//интерфейс для получения ответа в методе getappointmentValuesById
   id: number;
   company: string;
   company_id: number;
   department: string;
   // department_id: number;
-  department_part_id: number;
+  dep_part_id: number;
+  dep_part: string;
   creator: string;
   creator_id: number;
-  master: string;
-  master_id: number;
   is_completed: boolean;
   changer:string;
   nds: boolean;
-  // cagent: string;
-  // cagent_id: number;
   nds_included: boolean;
   changer_id: number;
+  owner:string;
+  owner_id: number;
   doc_number: string;
   date_start: string;
   date_end: string;
+  time_start:string;
+  time_end:string;
   date_time_changed: string;
   date_time_created: string;
   description : string;
-  is_archive: boolean;
-  department_type_price_id: number;
-  // cagent_type_price_id: number;
-  default_type_price_id: number;
   name: string;
   status_id: number;
   status_name: string;
   status_color: string;
   status_description: string;
   uid:string;
-  fio: string;
-  zip_code: string;
-  country_id: string;
-  region_id: string;
-  city_id: number;
-  additional_address: string;
-  track_number: string;
-  country: string;
-  region: string;
-  area: string;
-  city: string;
-  street: string;
-  home: string;
-  flat: string;
-  time_start:string;
-  time_end:string;
-  customersTable:any[];
-  main_service_id:number;
-  main_service_name:string;
-  product_id: number; // ID of main service
+  customersTable:AppointmentCustomer[];
+  appointmentsProductTable: AppointmentsProductTable[];
+  jobtitle_id: number;
+  jobtitle: string;
+  employeeId: number;
+  employeeName: string;
 }
-// interface CustomerProduct { 
-//   id: number;
-//   row_id: number;
-//   product_id: number;
-//   appointment_id:number;
-//   is_main:boolean; //can be only one main product in whole appointment.
-//   name: string;
-//   product_count: number;
-//   edizm: string;
-//   edizm_id: number;
-//   product_price: number;
-//   product_price_of_type_price: number;//цена товара по типу цены. Т.к. цену можно редактировать в таблице товаров, при несовпадении новой цены с ценой типа цены нужно будет сбросить тип цены в 0 (не выбран), т.к. это уже будет не цена типа цены
-//   product_sumprice: number;
-//   price_type: string;
-//   price_type_id: number;
-//   available: number; 
-//   nds: string;
-//   nds_id: number;
-//   priority_type_price: string;// приоритет типа цены: Склад (sklad) Покупатель (cagent) Цена по-умолчанию (defprice)  (formSearch.priorityTypePriceSide)
-//   department_id: number; // склад с которого будет производиться отгрузка товара.     
-//   department: string; // склад с которого будет производиться отгрузка товара.                                   (secondaryDepartmentId)
-//   shipped:number; //отгружено        
-//   total: number; //всего на складе
-//   reserved: number; // сколько зарезервировано в других Заказах покупателя
-//   reserved_current: number; // сколько зарезервировано в данном заказе покупателя  
-//   ppr_name_api_atol: string; //Признак предмета расчета в системе Атол. Невидимое поле. Нужно для передачи в таблицу товаров в качестве тега для чека на ккм Атол
-//   is_material: boolean; //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)            
-//   indivisible: boolean; // неделимый товар (нельзя что-то сделать с, например, 0.5 единицами этого товара, только с кратно 1)
-// }
+
+class AppointmentCustomer {
+  id: number;
+  row_id: number;
+  name: string;
+  email: string;
+  telephone: string;
+}
 interface filesInfo {
   id: string;
   name: string;
   original_name: string;
   date_time_created: string;
-}
-interface IdAndName{
-  id: number;
-  name: string;
 }
 interface Department{
   department_id: number;
@@ -464,15 +384,15 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     //   "telephone": "+79125430044",
     //   "child": false
     // },
-    {
-      "id": null,
-      "row_id": 1,
-      // "is_payer": true,
-      "name": "Попова Евгения",
-      "email": "",
-      "telephone": "+79222954430",
-      // "child": false
-    },
+    // {
+    //   "id": null,
+    //   "row_id": 1,
+    //   // "is_payer": true,
+    //   "name": "Попова Евгения",
+    //   "email": "",
+    //   "telephone": "+79222954430",
+    //   // "child": false
+    // },
     // {
     //   "id": null,
     //   "row_id": 2,
@@ -600,7 +520,6 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       doc_number: new UntypedFormControl            ('',[Validators.maxLength(10),Validators.pattern('^[0-9]{1,10}$')]),
       employeeId: new UntypedFormControl            (null,[]),
       employeeName: new UntypedFormControl          ('',[]),
-      // cagent_id: new UntypedFormControl             ({disabled: false, value: '' },[Validators.required]),
       // cagent: new UntypedFormControl                ('',[]),
       date_start: new UntypedFormControl            ('',[Validators.required]),
       date_end: new UntypedFormControl              ('',[Validators.required]),
@@ -650,9 +569,9 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     });
     this.formAboutDocument = new UntypedFormGroup({
       id: new UntypedFormControl                       ('',[]),
-      master: new UntypedFormControl                   ('',[]),
       creator: new UntypedFormControl                  ('',[]),
       changer: new UntypedFormControl                  ('',[]),
+      owner: new UntypedFormControl                    ('',[]),
       company: new UntypedFormControl                  ('',[]),
       date_time_created: new UntypedFormControl        ('',[]),
       date_time_changed: new UntypedFormControl        ('',[]),
@@ -872,7 +791,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     // return true;
     this.rightsDefined=true;//!!!
     this.formCustomerTableColumns();
-    this.addExampleInfo();
+    // this.addExampleInfo();
     // this.necessaryActionsBeforeAutoCreateNewDoc();
     this.necessaryActionsBeforeGetChilds();
   }
@@ -1296,7 +1215,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         const body = this.getProductsListQueryBody(); 
         if(this.canAutocompleteQuery && this.searchProductCtrl.value.length>1){
           this.isProductListLoading  = true;
-          return this.http.post('/api/auth/getAppointmentServicesList',body);
+          return this.http.post('/api/auth/getAppointmentServicesSearchList',body);
         }else return [];
       } catch (e) {return []}
     } else return [];
@@ -1595,7 +1514,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   };
 
   getDocumentValuesById(){
-    this.http.get('/api/auth/getappointmentsValuesById?id='+ this.id)
+    this.http.get('/api/auth/getAppointmentValuesById?id='+ this.id)
         .subscribe(
             data => {              
                 let documentValues: docResponse=data as any;// <- засовываем данные в интерфейс для принятия данных
@@ -1603,29 +1522,41 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
                 if(data!=null&&documentValues.company_id!=null){
                   //Заполнение формы из интерфейса documentValues:
                   this.formAboutDocument.get('id').setValue(+documentValues.id);
-                  this.formAboutDocument.get('master').setValue(documentValues.master);
                   this.formAboutDocument.get('creator').setValue(documentValues.creator);
                   this.formAboutDocument.get('changer').setValue(documentValues.changer);
+                  this.formAboutDocument.get('owner').setValue(documentValues.owner);
                   this.formAboutDocument.get('company').setValue(documentValues.company);
                   this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
                   this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
                   this.formBaseInformation.get('id').setValue(+documentValues.id);
-                  this.formBaseInformation.get('company_id').setValue(documentValues.company_id);
-                  this.formBaseInformation.get('department_part_id').setValue(documentValues.department_part_id);
-                  this.formBaseInformation.get('department').setValue(documentValues.department);
                   this.formBaseInformation.get('doc_number').setValue(documentValues.doc_number);
+                  this.formBaseInformation.get('company_id').setValue(documentValues.company_id);
+                  this.formBaseInformation.get('name').setValue(documentValues.name);
+                  this.formBaseInformation.get('department_part_id').setValue(documentValues.dep_part_id);
+                  this.formBaseInformation.get('department_part').setValue(documentValues.dep_part);
+                  this.formBaseInformation.get('date_start').setValue(documentValues.date_start);
+                  this.formBaseInformation.get('date_end').setValue(documentValues.date_end);
+                  this.formBaseInformation.get('time_start').setValue(documentValues.time_start);
+                  this.formBaseInformation.get('time_end').setValue(documentValues.time_end);
+                  this.formBaseInformation.get('jobtitle_id').setValue(documentValues.jobtitle_id);
+                  this.formBaseInformation.get('jobtitle').setValue(documentValues.jobtitle);
+                  this.formBaseInformation.get('employeeId').setValue(documentValues.employeeId);
+                  this.formBaseInformation.get('employeeName').setValue(documentValues.employeeName);
+                  this.formBaseInformation.get('department').setValue(documentValues.department);
                   this.formBaseInformation.get('description').setValue(documentValues.description);
                   this.formBaseInformation.get('nds').setValue(documentValues.nds);
                   this.formBaseInformation.get('nds_included').setValue(documentValues.nds_included);
-                  this.formBaseInformation.get('name').setValue(documentValues.name);
                   this.formBaseInformation.get('status_id').setValue(documentValues.status_id);
                   this.formBaseInformation.get('status_name').setValue(documentValues.status_name);
                   this.formBaseInformation.get('status_color').setValue(documentValues.status_color);
                   this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
                   this.formBaseInformation.get('uid').setValue(documentValues.uid);
-                  this.department_type_price_id=documentValues.department_type_price_id;
+
+
+
+                  // this.department_type_price_id=documentValues.department_type_price_id;
                   // this.cagent_type_price_id=documentValues.cagent_type_price_id;
-                  this.default_type_price_id=documentValues.default_type_price_id;
+                  // this.default_type_price_id=documentValues.default_type_price_id;
                   this.creatorId=+documentValues.creator_id;
                   // this.searchCustomerCtrl.setValue(documentValues.cagent);
                   this.is_completed=documentValues.is_completed;
@@ -2391,16 +2322,12 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   }
 
 
-  addExampleInfo(){
-    const control = <UntypedFormArray>this.formBaseInformation.get('customersTable');
-    this.guests.map(guest=>{
-      control.push(this.formingCustomerRow(guest));
-    });
-
-    // setTimeout(() => { 
-    //   this.refreshView();
-    // }, 10);
-  }
+  // addExampleInfo(){
+  //   const control = <UntypedFormArray>this.formBaseInformation.get('customersTable');
+  //   this.guests.map(guest=>{
+  //     control.push(this.formingCustomerRow(guest));
+  //   });
+  // }
 
   formingCustomerRow(guest:any) {
     return this._fb.group({
