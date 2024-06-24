@@ -411,17 +411,25 @@ table {
     height: 0;
   }
   
-  tr.example-element-row:not(.example-expanded-row):hover {
+   tr.example-element-row:not(.example-expanded-row):hover {
     background: whitesmoke;
   }
   
   tr.example-element-row:not(.example-expanded-row):active {
     background: #efefef;
-  }
-  
+  } 
   .example-element-row td {
     border-bottom-width: 0;
   }
+  /* .example-expanded-row td {
+    border-bottom-width: 0;
+  } */
+    /* .example-detail-row td{
+        border-bottom-width: 1px!important;
+    } */
+  /* .example-element-row td {
+    border-bottom-width: 0;
+  } */
   
   .example-element-detail {
     overflow: hidden;

@@ -181,7 +181,7 @@ mat-select[formcontrolname="status_id"] .mat-mdc-select-value{
   top: 0px;
   white-space: nowrap;
   right: -2px;
-  width: 210px !important;
+  width: fit-content !important;
   cursor: default !important;
   height: 20px !important;
   font-size:12px;

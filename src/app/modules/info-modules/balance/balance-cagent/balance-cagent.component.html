@@ -1,6 +1,7 @@
 <button mat-stroked-button
     [color]="cagentBalance>0?'primary':(cagentBalance<0?'warn':'')" 
     class="balance"
+    type="button"
     (click)="openDetailsWindow()"
     matTooltip="{{'modules.tip.cparty_balnce' | transloco}}"
     *ngIf="showModule && cagentBalance!=null && +cagent_id>0"
