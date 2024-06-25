@@ -993,7 +993,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     this.formBaseInformation.get('date_start').setValue(moment());
     this.formBaseInformation.get('date_end').  setValue(moment().add(0,'d'));
     this.formBaseInformation.get('time_start').setValue(moment().format("HH:mm"));
-    this.formBaseInformation.get('time_end').  setValue(moment().add(+1,'h').format("HH:mm"));
+    this.formBaseInformation.get('time_end').  setValue(moment().add(+1,'m').format("HH:mm"));
     // this.necessaryActionsBeforeAutoCreateNewDoc();
   }
   
@@ -1033,24 +1033,25 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   // }
   //  -------------     ***** поиск по подстроке для покупателя ***    --------------------------
   onCagentSearchValueChanges(){
-    this.searchCustomerCtrl.valueChanges
-    .pipe(
-      debounceTime(500),
-      tap(() => {
-        this.filteredCustomers = [];}),       
-      switchMap(fieldObject =>  
-        this.getCustomersList()))
-    .subscribe(data => {
-      this.isCustomerListLoading = false;
-      if (data == undefined) {
-        this.filteredCustomers = [];
-      } else {
-        this.filteredCustomers = data as any;
-        if(this.filteredCustomers.length==1/* && (this.accessibleServicesIdsAll().includes(this.filteredProducts[0].id)||!this.filteredProducts[0].isServiceByAppointment)*/){
-          // this.canAutocompleteQuery=false;
-          // this.searchProductCtrl.setValue(this.filteredProducts[0].name);
-          this.onSelectCustomer(this.filteredCustomers[0].id, this.filteredCustomers[0].name);
-        }
+    if(!this.isCustomerListLoading)
+      this.searchCustomerCtrl.valueChanges
+      .pipe(
+        debounceTime(500),
+        tap(() => {
+          this.filteredCustomers = [];}),       
+        switchMap(fieldObject =>  
+          this.getCustomersList()))
+      .subscribe(data => {
+        this.isCustomerListLoading = false;
+        if (data == undefined) {
+          this.filteredCustomers = [];
+        } else {
+          this.filteredCustomers = data as any;
+          if(this.filteredCustomers.length==1/* && (this.accessibleServicesIdsAll().includes(this.filteredProducts[0].id)||!this.filteredProducts[0].isServiceByAppointment)*/){
+            // this.canAutocompleteQuery=false;
+            // this.searchProductCtrl.setValue(this.filteredProducts[0].name);
+            this.onSelectCustomer(this.filteredCustomers[0].id, this.filteredCustomers[0].name);
+          }
   }});}
   
   onSelectCustomer(id:number, name:string){
@@ -1072,7 +1073,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
             this.formCustomerSearch.get('telephone').setValue(documentValues.telephone==null?'':documentValues.telephone);
             this.formCustomerSearch.get('email').setValue(documentValues.email==null?'':documentValues.email);
             this.isCagentValuesLoading=false;
-            this.addCustomerRow(documentValues.name);
+            this.addCustomerRow(documentValues.id,documentValues.name);
         },
         error => {this.isCagentValuesLoading=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
@@ -1425,36 +1426,68 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     });
   }
 
-  loadMainImage(){
-    if(this.productImageName!=null){
-      this.getImageService('/api/auth/getFileImageThumb/' + this.productImageName).subscribe(blob => {
-        this.createImageFromBlob(blob);
-      });
-    } 
+  formingProductRowFromApiResponse(row: AppointmentsProductTable) {
+    return this._fb.group({
+      product_id: new UntypedFormControl (row.id,[]),
+      customerRowId: new UntypedFormControl (row.cagent_row_id,[]),
+      customerId:  new UntypedFormControl (row.cagent_id,[]),
+      name: new UntypedFormControl (row.name,[]),
+      appointment_id: new UntypedFormControl (this.id,[]),
+      product_count: new UntypedFormControl (row.product_count,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$'), ValidationService.countMoreThanZero]),
+      edizm: new UntypedFormControl (row.edizm,[]),
+      edizm_id:  new UntypedFormControl (row.edizm_id,[]), 
+      edizm_type_id:  new UntypedFormControl (row.edizm_type_id,[]),
+      product_price:  new UntypedFormControl (this.numToPrice(row.product_price,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')/*,ValidationService.priceMoreThanZero*/]),
+      product_price_of_type_price: new UntypedFormControl (row.priceOfTypePrice,[]),
+      product_sumprice: new UntypedFormControl (this.numToPrice(row.product_sumprice,2),[]),
+      available:  new UntypedFormControl ((row.total)-(row.reserved),[]),
+      price_type_id: [row.price_type_id],
+      nds_id: new UntypedFormControl (row.nds_id,[]),
+      reserved:  new UntypedFormControl (row.reserved,[]), // сколько зарезервировано этого товара в других документах за исключением этого
+      total: new UntypedFormControl (row.total,[]),
+      department_id: new UntypedFormControl (row.departmentId,[]), //id отделения, выбранного в форме поиска 
+      department: new UntypedFormControl (row.departmentName,[]), //имя отделения, выбранного в форме поиска 
+      employeeRequired: new UntypedFormControl (row.employeeRequired,[]),
+      is_material:  new UntypedFormControl (row.is_material,[]), //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
+      unitOfMeasureTimeInSeconds:  new UntypedFormControl (row.unitOfMeasureTimeInSeconds,[]),
+      isServiceByAppointment: new UntypedFormControl (row.isServiceByAppointment,[]),     // It's a service and it's a service by appointment
+      indivisible:  new UntypedFormControl (row.indivisible,[]), 
+      maxPersOnSameTime:  new UntypedFormControl (row.maxPersOnSameTime,[]), 
+      srvcDurationInSeconds:  new UntypedFormControl (row.srvcDurationInSeconds,[]), 
+      atLeastBeforeTimeInSeconds:  new UntypedFormControl (row.atLeastBeforeTimeInSeconds,[]),
+      departmentPartsWithResourcesIds: new UntypedFormControl (row.departmentPartsWithResourcesIds,[]),
+    });
   }
-  showImage(name:string){
-    if(this.productImageName!=null){
-      // console.log("productImageName - "+this.productImageName);
-      const dialogRef = this.ShowImageDialog.open(ShowImageDialog, {
-        data:
-        { 
-          link: name,
-        },
-      });
-    }
-  }
-  getImageService(imageUrl: string): Observable<Blob> {
-    return this.http.get(imageUrl, {responseType: 'blob'});
-  }
-  createImageFromBlob(image: Blob) {
-    let reader = new FileReader();
-    reader.addEventListener("load", () => {
-        this.imageToShow = reader.result;
-    }, false);
-    if (image) {
-        reader.readAsDataURL(image);
-    }
-  }
+  // loadMainImage(){
+  //   if(this.productImageName!=null){
+  //     this.getImageService('/api/auth/getFileImageThumb/' + this.productImageName).subscribe(blob => {
+  //       this.createImageFromBlob(blob);
+  //     });
+  //   } 
+  // }
+  // showImage(name:string){
+  //   if(this.productImageName!=null){
+  //     // console.log("productImageName - "+this.productImageName);
+  //     const dialogRef = this.ShowImageDialog.open(ShowImageDialog, {
+  //       data:
+  //       { 
+  //         link: name,
+  //       },
+  //     });
+  //   }
+  // }
+  // getImageService(imageUrl: string): Observable<Blob> {
+  //   return this.http.get(imageUrl, {responseType: 'blob'});
+  // }
+  // createImageFromBlob(image: Blob) {
+  //   let reader = new FileReader();
+  //   reader.addEventListener("load", () => {
+  //       this.imageToShow = reader.result;
+  //   }, false);
+  //   if (image) {
+  //       reader.readAsDataURL(image);
+  //   }
+  // }
   //--------------------------------------- **** Конец поиска по подстроке для товара  ***** ------------------------------------
   //загрузка настроек
   getSettings(){
@@ -1486,8 +1519,6 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
                 //вставляем Отделение и Покупателя (вставится только если новый документ)
               this.setDefaultInfoOnStart(+result.departmentPartId);
             }
-            
-            
           },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
@@ -1496,23 +1527,12 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   //если новый документ - вставляем Отделение и Покупателя (но только если они принадлежат выбранному предприятию, т.е. предприятие в Основной информации и предприятие, для которого были сохранены настройки совпадают)
   setDefaultInfoOnStart(departmentPartId:number){
     if(+this.id==0){//документ новый
-      // if(+this.formBaseInformation.get('company_id').value==+this.settingsForm.get('companyId').value || +this.formBaseInformation.get('company_id').value==0){
         this.formBaseInformation.get('company_id').setValue(+this.settingsForm.get('companyId').value)
         if(+departmentPartId>0){
           this.formBaseInformation.get('department_part_id').setValue(departmentPartId);
         }
-        // if(+customerId>0){
-        //   this.searchCustomerCtrl.setValue(customer);
-        //   this.formBaseInformation.get('cagent_id').setValue(customerId);
-        //   this.getCagentValuesById(customerId);
-        // } else {
-        //   this.searchCustomerCtrl.setValue('');
-        //   this.formBaseInformation.get('cagent_id').setValue(null);
-        // }
         if(this.formBaseInformation.get('name').value=='')
           this.formBaseInformation.get('name').setValue(name);
-      // }
-      // this.necessaryActionsBeforeAutoCreateNewDoc();
     }
   }
   //определяет, есть ли предприятие в загруженном списке предприятий
@@ -1576,11 +1596,12 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
                   this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                   this.getDepartmentsList();//отделения
                   this.getStatusesList();//статусы документа Заказ покупателя
-                  this.hideOrShowNdsColumn();//расчет прятать или показывать колонку НДС
+                  // this.hideOrShowNdsColumn();//расчет прятать или показывать колонку НДС
                   this.getSpravTaxes();//загрузка налогов
                   this.fillCustomersObjectListFromApiResponse(documentValues.customersTable);
                   this.fillProductsListFromApiResponse(documentValues.appointmentsProductTable)
                   this.loadFilesInfo();
+                  this.recountTotals();
                   // this.cheque_nds=documentValues.nds;//нужно ли передавать в кассу (в чек) данные об НДС 
                   
                 } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
@@ -1589,26 +1610,10 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
             error => {this.oneClickSaveControl=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
         );
   }
-  
-  // formExpansionPanelsString(){
-  //   this.addressString='';
-  //   if(this.formBaseInformation.get('zip_code').value!='') this.addressString+=this.formBaseInformation.get('zip_code').value+' ';
-  //   if(this.formBaseInformation.get('country').value!='') this.addressString+=this.formBaseInformation.get('country').value+', ';
-  //   if(this.formBaseInformation.get('region').value!='') this.addressString+=this.formBaseInformation.get('region').value+', ';
-  //   if(this.formBaseInformation.get('city').value!='') this.addressString+=this.formBaseInformation.get('city').value+', ';
-  //   if(this.formBaseInformation.get('street').value!='') this.addressString+=this.formBaseInformation.get('street').value+' ';
-  //   if(this.formBaseInformation.get('home').value!='') this.addressString+=this.formBaseInformation.get('home').value+' ';
-  //   if(this.formBaseInformation.get('flat').value!='') this.addressString+=this.formBaseInformation.get('flat').value+' ';
-  //   if(this.formBaseInformation.get('additional_address').value!='') this.addressString+='('+this.formBaseInformation.get('additional_address').value+')';
-  // }
   getTotalProductCount() {//бежим по столбцу product_count и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
     // this.getProductsTable();
     return (this.formBaseInformation.value.appointmentsProductTable.map(t => +t.product_count).reduce((acc, value) => acc + value, 0)).toFixed(3).replace(".000", "").replace(".00", "");
   }
-  // getTotalSumPrice() {//бежим по столбцу product_sumprice и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
-  //   this.getProductsTable();
-  //   return (this.formBaseInformation.value.appointmentsProductTable.map(t => +t.product_sumprice).reduce((acc, value) => acc + value, 0)).toFixed(2);
-  // }
 
   numberOnly(event): boolean {
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
@@ -1624,40 +1629,6 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     const control = <UntypedFormArray>this.formBaseInformation.get(formControlName);
     return control;
   }
-  formingProductRowFromApiResponse(row: AppointmentsProductTable) {
-    return this._fb.group({
-      product_id: new UntypedFormControl (row.id,[]),
-      customerRowId: new UntypedFormControl (row.cagent_row_id,[]),
-      customerId:  new UntypedFormControl (row.cagent_id,[]),
-      name: new UntypedFormControl (row.name,[]),
-      appointment_id: new UntypedFormControl (this.id,[]),
-      product_count: new UntypedFormControl (row.product_count,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$'), ValidationService.countMoreThanZero]),
-      edizm: new UntypedFormControl (row.edizm,[]),
-      edizm_id:  new UntypedFormControl (row.edizm_id,[]), 
-      edizm_type_id:  new UntypedFormControl (row.edizm_type_id,[]),
-      product_price:  new UntypedFormControl (this.numToPrice(row.product_price,2),[Validators.required,Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')/*,ValidationService.priceMoreThanZero*/]),
-      product_price_of_type_price: new UntypedFormControl (row.priceOfTypePrice,[]),
-      product_sumprice: new UntypedFormControl (this.numToPrice(row.product_sumprice,2),[]),
-      available:  new UntypedFormControl ((row.total)-(row.reserved),[]),
-      price_type_id: [row.price_type_id],
-      nds_id: new UntypedFormControl (row.nds_id,[]),
-      reserved:  new UntypedFormControl (row.reserved,[]), // сколько зарезервировано этого товара в других документах за исключением этого
-      total: new UntypedFormControl (row.total,[]),
-      department_id: new UntypedFormControl (row.departmentId,[]), //id отделения, выбранного в форме поиска 
-      department: new UntypedFormControl (row.departmentName,[]), //имя отделения, выбранного в форме поиска 
-      employeeRequired: new UntypedFormControl (row.employeeRequired,[]),
-      is_material:  new UntypedFormControl (row.is_material,[]), //определяет материальный ли товар/услуга. Нужен для отображения полей, относящихся к товару и их скрытия в случае если это услуга (например, остатки на складе, резервы - это неприменимо к нематериальным вещам - услугам, работам)
-      unitOfMeasureTimeInSeconds:  new UntypedFormControl (row.unitOfMeasureTimeInSeconds,[]),
-      isServiceByAppointment: new UntypedFormControl (row.isServiceByAppointment,[]),     // It's a service and it's a service by appointment
-      indivisible:  new UntypedFormControl (row.indivisible,[]), 
-      maxPersOnSameTime:  new UntypedFormControl (row.maxPersOnSameTime,[]), 
-      srvcDurationInSeconds:  new UntypedFormControl (row.srvcDurationInSeconds,[]), 
-      atLeastBeforeTimeInSeconds:  new UntypedFormControl (row.atLeastBeforeTimeInSeconds,[]),
-      departmentPartsWithResourcesIds: new UntypedFormControl (row.departmentPartsWithResourcesIds,[]),
-    });
-  }
-
-
   // hideOrShowNdsColumn(){
   //   if(this.formBaseInformation.get('nds').value){
   //     this.displayedColumns = ['select','name','product_count','edizm','product_price','product_sumprice','reserved_current','available','total','reserved','shipped','price_type','nds','department',/*'id','row_id','indx',*/'delete'];
@@ -2354,7 +2325,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     });
   }
 
-  addCustomerRow(customerName:string) 
+  addCustomerRow(customerId:number,customerName:string) 
   { 
     // this.customerHasBeenSearched=false;
     // let thereSamePart:boolean=false;
@@ -2368,11 +2339,16 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       // }
     // });
     // if(!thereSamePart){
+      console.log('customerId',customerId)
+      console.log('customerName',customerName)
     let row=this.formingCustomerRowFromSearchForm(customerName);
-    const control = <UntypedFormArray>this.formBaseInformation.get('customersTable');
-    control.push(row);
+    if(!this.isThereCustomerInTable(customerId,customerName)){
+      const control = <UntypedFormArray>this.formBaseInformation.get('customersTable');
+      control.push(row);
+    }
     
-    this.expandedElement = row.get('row_id').value;
+    
+    this.expandedElement = this.getRowIdOfCustomerInTable(customerId,customerName); // I don't get row.row_id because if customer is already there is in the table - I need to expand its table row by row_id, but I don't know its row_id in this case
     
     setTimeout(() => { this.productSearchFieldValue.nativeElement.focus(); }, 500);
       // this.addMainProductToPayingCustomers();
@@ -2414,11 +2390,11 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   }
   fillProductsListFromApiResponse(productsArray:AppointmentsProductTable[]){
     const control = <UntypedFormArray>this.getControlTablefield();
-    control.clear();
+    control.clear(); 
     productsArray.forEach(row=>{
       control.push(this.formingProductRowFromApiResponse(row));
     });
-    this.refreshCustomerTableColumns();
+    this.refreshTableColumns();
   }
   
   formingProductCustomerRow(row: AppointmentCustomer) {
@@ -2519,9 +2495,8 @@ clickBtnDeleteFile(id: number): void { //+++
   });        
 }
 
-deleteFile(id:number){ //+++
-  const body = {id: id, any_id:this.id}; 
-  return this.http.post('/api/auth/deleteappointmentsFile',body)
+deleteFile(id:number){
+  return this.http.get('/api/auth/deleteAppointmentFile?doc_id='+this.id+'&file_id='+id)
   .subscribe(
       (data) => {   
                   this.loadFilesInfo();
@@ -3139,7 +3114,7 @@ deleteFile(id:number){ //+++
   }
 
   //------------------------------------------------- TOTALS ----------------------------------------
-  getTotalSumPrice() {//бежим по столбцу product_sumprice и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
+  getTotalSumPrice() {//бежим по столбцу product_sumprice и складываем (аккумулируем) в map <customerRowId - totl sum of customer>
     // console.log('**************** getTotalSumPrice *******************')
     this.totalProductSumm.clear();
     this.formBaseInformation.value.appointmentsProductTable.map(i =>{this.totalProductSumm.set(i.customerRowId,0);});
@@ -3378,6 +3353,20 @@ deleteFile(id:number){ //+++
   isThereProductInTable(cuctomerRowId:number,productId:number):boolean{
     let result: boolean = false;
     this.getControlTablefield().value.map(product=>{if(product.customerRowId == cuctomerRowId && product.product_id==productId){result=true}});
+    return result;
+  }
+  isThereCustomerInTable(cuctomerId:number, customerName:string):boolean{
+    let result: boolean = false;
+    this.getControl('customersTable').value.map(customer=>{
+      if((cuctomerId>0 && cuctomerId==customer.id) || (cuctomerId==0 && customerName.toUpperCase()==customer.name.toUpperCase())){result=true}
+    });
+    return result;
+  }
+  getRowIdOfCustomerInTable(cuctomerId:number, customerName:string):number{
+    let result: number = -1;
+    this.getControl('customersTable').value.map(customer=>{
+      if((cuctomerId>0 && cuctomerId==customer.id) || (cuctomerId==0 && customerName.toUpperCase()==customer.name.toUpperCase())){result=customer.row_id}
+    });
     return result;
   }
   // ---------------------------------------------------- FILTRATION SYSTEM ------------------------------------------------------------------------

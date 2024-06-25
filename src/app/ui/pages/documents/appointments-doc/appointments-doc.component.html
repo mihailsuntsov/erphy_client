@@ -914,7 +914,7 @@
                                                             <button matTooltip="{{t('docs.tip.add_row')}}" 
                                                                     mat-mini-fab color="primary" 
                                                                     [disabled]="(filteredCustomers && filteredCustomers.length>0) || (searchCustomerCtrl.value==null || isCustomerListLoading || isCagentValuesLoading || searchCustomerCtrl.value=='' || !customerHasBeenSearched)" 
-                                                                    (click)="addCustomerRow(searchCustomerCtrl.value);">
+                                                                    (click)="addCustomerRow(+formCustomerSearch.get('id').value, searchCustomerCtrl.value);">
                                                                 <mat-icon>add</mat-icon>
                                                             </button>
                                                             <!-- 1-{{isCustomerListLoading}} -->
