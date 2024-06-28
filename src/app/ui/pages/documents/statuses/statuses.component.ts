@@ -47,7 +47,7 @@ export class StatusesComponent implements OnInit {
   myCompanyId:number=0;//
   myId:number=0;
   checkedList:number[]=[]; //строка для накапливания id чекбоксов вида [2,5,27...]
-
+  companySettings:any={booking_doc_name_variation:'reservation'};
   //переменные прав
   permissionsSet: any[];//сет прав на документ
   allowToViewAllCompanies:boolean = false;
@@ -199,6 +199,7 @@ export class StatusesComponent implements OnInit {
       this.updateSortOptions();
       this.getPagesList();
       this.getTable();
+      this.getCompanySettings();
     } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})} //+++
   }
 
@@ -444,7 +445,9 @@ export class StatusesComponent implements OnInit {
     }
       this.getDocumentsList();
   }
-
+  getCompanySettings(){
+    this.http.get('/api/auth/getCompanySettings?id='+this.sendingQueryForm.companyId).subscribe(data => {this.companySettings = data as any;},error => {console.log(error);});
+  }
   getDocumentsList(){
     this.receivedDocumentsList=this.loadSpravService.getDocumentsList();
     this.setDefaultDocument();
@@ -518,7 +521,7 @@ export class StatusesComponent implements OnInit {
   updateSortOptions(){//после определения прав пересматриваем опции на случай, если права не разрешают действия с определенными опциями, и исключаем эти опции
     let i=0; 
     this.optionsIds.forEach(z=>{
-      console.log("allowToDelete - "+this.allowToDelete);
+      // console.log("allowToDelete - "+this.allowToDelete);
       if(z.id==1 && !this.allowToDelete){this.optionsIds.splice(i,1)}//исключение опции Показывать удаленные, если нет прав на удаление
       i++;
     });

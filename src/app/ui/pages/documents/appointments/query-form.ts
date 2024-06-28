@@ -9,4 +9,6 @@ export class QueryForm{
     departmentId:any;
     searchCategoryString:any;
     filterOptionsIds: number[];
+    appointmentId:number;
+    customerId: number;
 }

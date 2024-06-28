@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output} from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import { QueryForm } from './query-form';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource } from '@angular/material/table';
@@ -45,6 +45,12 @@ interface idNameDescription{
 })
 export class AppointmentsComponent implements OnInit {
 
+  // if calling as module from Appointment or other parent document
+  @Input() company_id:    number;
+  @Input() customer_id:     number;
+  @Input() appointment_id:     number;
+  @Input() booking_doc_name_variation:      string;
+  
   constructor(private queryFormService:   QueryFormService,
     private activateRoute: ActivatedRoute,// !!!
     private loadSpravService:   LoadSpravService,
@@ -78,7 +84,8 @@ export class AppointmentsComponent implements OnInit {
   checkedList:number[]=[]; //строка для накапливания id чекбоксов вида [2,5,27...]
   settingsForm: any; // форма с настройками
   receivedPriceTypesList: idNameDescription [] = [];//массив для получения списка типов цен
-
+  companySettings:any={booking_doc_name_variation:'reservation'};
+  mode:string = 'window';
   //переменные прав
   permissionsSet: any[];//сет прав на документ
   allowToViewAllCompanies:boolean = false;
@@ -134,32 +141,39 @@ export class AppointmentsComponent implements OnInit {
   @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
 
   ngOnInit() {
-    this.sendingQueryForm.companyId=this.company;
+    this.sendingQueryForm.companyId = this.mode == 'standart'?this.company:this.company_id;
     this.sendingQueryForm.departmentId='0';
     this.sendingQueryForm.sortAsc='desc';
-    this.sendingQueryForm.sortColumn='date_time_created_sort';
+    this.sendingQueryForm.sortColumn='date_time_start_sort';
     this.sendingQueryForm.offset='0';
     this.sendingQueryForm.result='10';
     this.sendingQueryForm.searchCategoryString="";
-    this.sendingQueryForm.filterOptionsIds = [];    
+    this.sendingQueryForm.appointmentId = this.appointment_id?this.appointment_id:0;
+    this.sendingQueryForm.customerId = this.customer_id?this.customer_id:0;
+    this.sendingQueryForm.filterOptionsIds = [];
       // !!!
     this.sendingQueryForm.filterOptionsIds = [this.option];
 
-    if(this.company==0){
+    if(this.booking_doc_name_variation) this.companySettings.booking_doc_name_variation=this.booking_doc_name_variation;
+    
+    this.mode = this.company_id?'window':'standart';
+
+    if(this.company==0 && this.mode=='standart'){
       if(Cookie.get('appointments_companyId')=='undefined' || Cookie.get('appointments_companyId')==null)     
         Cookie.set('appointments_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('appointments_companyId')=="0"?"0":+Cookie.get('appointments_companyId'));
       if(Cookie.get('appointments_departmentId')=='undefined' || Cookie.get('appointments_departmentId')==null)  
         Cookie.set('appointments_departmentId',this.sendingQueryForm.departmentId); else this.sendingQueryForm.departmentId=(Cookie.get('appointments_departmentId')=="0"?"0":+Cookie.get('appointments_departmentId'));
     }
-    if(Cookie.get('appointments_sortAsc')=='undefined' || Cookie.get('appointments_sortAsc')==null)       
-      Cookie.set('appointments_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('appointments_sortAsc');
-    if(Cookie.get('appointments_sortColumn')=='undefined' || Cookie.get('appointments_sortColumn')==null)    
-      Cookie.set('appointments_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('appointments_sortColumn');
-    if(Cookie.get('appointments_offset')=='undefined' || Cookie.get('appointments_offset')==null)        
-      Cookie.set('appointments_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('appointments_offset');
-    if(Cookie.get('appointments_result')=='undefined' || Cookie.get('appointments_result')==null)        
-      Cookie.set('appointments_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('appointments_result');
-    
+    if(this.mode=='standart'){
+      if(Cookie.get('appointments_sortAsc')=='undefined' || Cookie.get('appointments_sortAsc')==null)       
+        Cookie.set('appointments_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('appointments_sortAsc');
+      if(Cookie.get('appointments_sortColumn')=='undefined' || Cookie.get('appointments_sortColumn')==null)    
+        Cookie.set('appointments_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('appointments_sortColumn');
+      if(Cookie.get('appointments_offset')=='undefined' || Cookie.get('appointments_offset')==null)        
+        Cookie.set('appointments_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('appointments_offset');
+      if(Cookie.get('appointments_result')=='undefined' || Cookie.get('appointments_result')==null)        
+        Cookie.set('appointments_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('appointments_result');
+    }
     //+++ getting base data from parent component
     this.getBaseData('myId');    
     this.getBaseData('myCompanyId');  
@@ -172,50 +186,50 @@ export class AppointmentsComponent implements OnInit {
       this.selectionFilterOptions.select(this.optionsIds[this.option-1]);
     } 
 
-    // Форма настроек
-    this.settingsForm = new UntypedFormGroup({
-      // id отделения
-      departmentId: new UntypedFormControl             (null,[]),
-      //покупатель по умолчанию
-      customerId: new UntypedFormControl               (null,[]),
-      //наименование покупателя
-      customer: new UntypedFormControl                 ('',[]),
-      //наименование заказа по умолчанию
-      orderName:  new UntypedFormControl               ('',[]),
-      // тип расценки. priceType - по типу цены, costPrice - себестоимость, manual - вручную
-      pricingType: new UntypedFormControl              ('priceType',[]),
-      //тип цены
-      priceTypeId: new UntypedFormControl              (null,[]),
-      //наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType
-      changePrice: new UntypedFormControl              (50,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
-      // Наценка (plus) или скидка (minus)
-      plusMinus: new UntypedFormControl                ('plus',[]),
-      // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
-      changePriceType: new UntypedFormControl          ('procents',[]),
-      //убрать десятые (копейки)
-      hideTenths: new UntypedFormControl               (true,[]),
-      //сохранить настройки
-      saveSettings: new UntypedFormControl             (true,[]),
-      //предприятие, для которого создаются настройки
-      companyId: new UntypedFormControl                (null,[]),
-      //наименование заказа
-      name:  new UntypedFormControl                    ('',[]),
-      //приоритет типа цены : Склад (sklad) Покупатель (cagent) Цена по-умолчанию (defprice)
-      priorityTypePriceSide: new UntypedFormControl    ('defprice',[]),
-      //настройки операций с ККМ
-      //Оплата чека прихода (наличными - nal безналичными - electronically смешанная - mixed)
-      selectedPaymentType:   new UntypedFormControl    ('cash',[]),
-      //автосоздание на старте документа, если автозаполнились все поля
-      autocreateOnStart: new UntypedFormControl        (false,[]),
-      //статус после успешного отбития чека, перед созданием нового документа
-      statusIdOnAutocreateOnCheque: new UntypedFormControl('',[]),
-    });
+    // // Форма настроек
+    // this.settingsForm = new UntypedFormGroup({
+    //   // id отделения
+    //   departmentId: new UntypedFormControl             (null,[]),
+    //   //покупатель по умолчанию
+    //   customerId: new UntypedFormControl               (null,[]),
+    //   //наименование покупателя
+    //   customer: new UntypedFormControl                 ('',[]),
+    //   //наименование заказа по умолчанию
+    //   orderName:  new UntypedFormControl               ('',[]),
+    //   // тип расценки. priceType - по типу цены, costPrice - себестоимость, manual - вручную
+    //   pricingType: new UntypedFormControl              ('priceType',[]),
+    //   //тип цены
+    //   priceTypeId: new UntypedFormControl              (null,[]),
+    //   //наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType
+    //   changePrice: new UntypedFormControl              (50,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+    //   // Наценка (plus) или скидка (minus)
+    //   plusMinus: new UntypedFormControl                ('plus',[]),
+    //   // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
+    //   changePriceType: new UntypedFormControl          ('procents',[]),
+    //   //убрать десятые (копейки)
+    //   hideTenths: new UntypedFormControl               (true,[]),
+    //   //сохранить настройки
+    //   saveSettings: new UntypedFormControl             (true,[]),
+    //   //предприятие, для которого создаются настройки
+    //   companyId: new UntypedFormControl                (null,[]),
+    //   //наименование заказа
+    //   name:  new UntypedFormControl                    ('',[]),
+    //   //приоритет типа цены : Склад (sklad) Покупатель (cagent) Цена по-умолчанию (defprice)
+    //   priorityTypePriceSide: new UntypedFormControl    ('defprice',[]),
+    //   //настройки операций с ККМ
+    //   //Оплата чека прихода (наличными - nal безналичными - electronically смешанная - mixed)
+    //   selectedPaymentType:   new UntypedFormControl    ('cash',[]),
+    //   //автосоздание на старте документа, если автозаполнились все поля
+    //   autocreateOnStart: new UntypedFormControl        (false,[]),
+    //   //статус после успешного отбития чека, перед созданием нового документа
+    //   statusIdOnAutocreateOnCheque: new UntypedFormControl('',[]),
+    // });
       this.getCompaniesList();// 
     }
 
     // -------------------------------------- *** ПРАВА *** ------------------------------------
   getSetOfPermissions(){
-    return this.http.get('/api/auth/getMyPermissions?id=23')
+    return this.http.get('/api/auth/getMyPermissions?id=59')
     .subscribe(
         (data) => {   
                     this.permissionsSet=data as any [];
@@ -225,22 +239,22 @@ export class AppointmentsComponent implements OnInit {
     );
   }
 
-  getCRUD_rights(permissionsSet:any[]){
-    this.allowToCreateAllCompanies = permissionsSet.some(         function(e){return(e==280)});
-    this.allowToCreateMyCompany = permissionsSet.some(            function(e){return(e==281)});
-    this.allowToCreateMyDepartments = permissionsSet.some(        function(e){return(e==282)});
-    this.allowToDeleteAllCompanies = permissionsSet.some(         function(e){return(e==283)});
-    this.allowToDeleteMyCompany = permissionsSet.some(            function(e){return(e==284)});
-    this.allowToDeleteMyDepartments = permissionsSet.some(        function(e){return(e==285)});
-    this.allowToDeleteMyDocs = permissionsSet.some(               function(e){return(e==286)});
-    this.allowToViewAllCompanies = permissionsSet.some(           function(e){return(e==287)});
-    this.allowToViewMyCompany = permissionsSet.some(              function(e){return(e==288)});
-    this.allowToViewMyDepartments = permissionsSet.some(          function(e){return(e==289)});
-    this.allowToViewMyDocs = permissionsSet.some(                 function(e){return(e==290)});
-    this.allowToUpdateAllCompanies = permissionsSet.some(         function(e){return(e==291)});
-    this.allowToUpdateMyCompany = permissionsSet.some(            function(e){return(e==292)});
-    this.allowToUpdateMyDepartments = permissionsSet.some(        function(e){return(e==293)});
-    this.allowToUpdateMyDocs = permissionsSet.some(               function(e){return(e==294)});
+  getCRUD_rights(permissionsSet:any[]){    this.allowToCreateAllCompanies = this.permissionsSet.some(         function(e){return(e==705)});
+    this.allowToCreateMyCompany = this.permissionsSet.some(             function(e){return(e==706)});
+    this.allowToCreateMyDepartments = this.permissionsSet.some(         function(e){return(e==707)});
+    this.allowToViewAllCompanies = this.permissionsSet.some(            function(e){return(e==708)});
+    this.allowToViewMyCompany = this.permissionsSet.some(               function(e){return(e==709)});
+    this.allowToViewMyDepartments = this.permissionsSet.some(           function(e){return(e==710)});
+    this.allowToViewMyDocs = this.permissionsSet.some(                  function(e){return(e==711)});
+    this.allowToUpdateAllCompanies = this.permissionsSet.some(          function(e){return(e==712)});
+    this.allowToUpdateMyCompany = this.permissionsSet.some(             function(e){return(e==713)});
+    this.allowToUpdateMyDepartments = this.permissionsSet.some(         function(e){return(e==714)});
+    this.allowToUpdateMyDocs = this.permissionsSet.some(                function(e){return(e==715)});
+    this.allowToDeleteAllCompanies = permissionsSet.some(               function(e){return(e==716)});
+    this.allowToDeleteMyCompany = permissionsSet.some(                  function(e){return(e==717)});
+    this.allowToDeleteMyDepartments = permissionsSet.some(              function(e){return(e==718)});
+    this.allowToDeleteMyDocs = permissionsSet.some(                     function(e){return(e==719)});
+
     this.getData();
   }
 
@@ -253,11 +267,6 @@ export class AppointmentsComponent implements OnInit {
     this.showOpenDocIcon=(this.allowToUpdate||this.allowToView);
     this.visBtnAdd = (this.allowToCreate)?true:false;
     
-    // console.log("allowToView - "+this.allowToView);
-    // console.log("allowToUpdate - "+this.allowToUpdate);
-    // console.log("allowToCreate - "+this.allowToCreate);
-    // console.log("allowToDelete - "+this.allowToDelete);
-    // console.log("allowToDeleteAllCompanies - "+this.allowToDeleteAllCompanies);
     return true;
   }
 // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
@@ -274,28 +283,24 @@ export class AppointmentsComponent implements OnInit {
       this.getTableHeaderTitles();
       this.getPagesList();
       this.getTable();
-      this.getPriceTypesList();
+      // this.getPriceTypesList();
     } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})} //+++
   }
 
   getTableHeaderTitles(){
     this.displayedColumns=[];
-    if(this.allowToDelete) this.displayedColumns.push('select');
+    if(this.allowToDelete && this.mode == 'standart') this.displayedColumns.push('select');
     if(this.showOpenDocIcon) this.displayedColumns.push('opendoc');
-    this.displayedColumns.push('doc_number');
-    this.displayedColumns.push('name');
-    this.displayedColumns.push('cagent');
-    this.displayedColumns.push('department');    
+    if(this.mode == 'standart') this.displayedColumns.push('doc_number');
+    this.displayedColumns.push('name'); 
+    this.displayedColumns.push('dep_part');
     this.displayedColumns.push('status');
     this.displayedColumns.push('product_count');
     this.displayedColumns.push('sum_price');
-    this.displayedColumns.push('is_completed');    
-    this.displayedColumns.push('shipment_date');
+    this.displayedColumns.push('is_completed');
     this.displayedColumns.push('description');
-    // this.displayedColumns.push('company');
-    this.displayedColumns.push('store');    
-    this.displayedColumns.push('creator');    
-    this.displayedColumns.push('date_time_created');
+    if(this.mode == 'standart') this.displayedColumns.push('creator');
+    this.displayedColumns.push('date_time_start');
   }
 
   getPagesList(){
@@ -434,6 +439,7 @@ export class AppointmentsComponent implements OnInit {
     this.sendingQueryForm.departmentId="0"; 
     this.resetOptions();
     this.getDepartmentsList();
+    this.getCompanySettings();
   }
   onDepartmentSelection(){
     Cookie.set('appointments_departmentId',this.sendingQueryForm.departmentId);
@@ -547,11 +553,12 @@ export class AppointmentsComponent implements OnInit {
   }
 
   setDefaultCompany(){
-    if(Cookie.get('appointments_companyId')=='0'||!this.companyIdInList(Cookie.get('appointments_companyId'))){
+    if(this.mode=='standart' && (Cookie.get('appointments_companyId')=='0'||!this.companyIdInList(Cookie.get('appointments_companyId')))){
       this.sendingQueryForm.companyId=this.myCompanyId;
       Cookie.set('appointments_companyId',this.sendingQueryForm.companyId);
     }
       this.getDepartmentsList();
+      this.getCompanySettings();
   }
 
   getDepartmentsList(){
@@ -600,65 +607,68 @@ export class AppointmentsComponent implements OnInit {
   }
 
   //открывает диалог настроек
-  openDialogSettings() { 
-    const dialogSettings = this.SettingsAppointmentsDialogComponent.open(SettingsAppointmentsDialogComponent, {
-      maxWidth: '95vw',
-      maxHeight: '95vh',
-      width: '400px', 
-      data:
-      { //отправляем в диалог:
-        priceTypesList:   this.receivedPriceTypesList, //список типов цен
-        receivedCompaniesList: this.receivedCompaniesList, //список предприятий
-        receivedDepartmentsList: this.receivedDepartmentsList,//список отделений
-        company_id: +this.sendingQueryForm.companyId, //предприятие (нужно для поиска покупателя)
-        department_type_price_id: null,
-        cagent_type_price_id: null,
-        default_type_price_id: null,
-        id: 0, //чтобы понять, новый док или уже созданный
-      },
-    });
-    dialogSettings.afterClosed().subscribe(result => {
-      if(result){
-        //если нажата кнопка Сохранить настройки - вставляем настройки в форму настроек и сохраняем
-        if(result.get('companyId')) this.settingsForm.get('companyId').setValue(result.get('companyId').value);
-        if(result.get('departmentId')) this.settingsForm.get('departmentId').setValue(result.get('departmentId').value);
-        if(result.get('customerId')) this.settingsForm.get('customerId').setValue(result.get('customerId').value);
-        if(result.get('customer')) this.settingsForm.get('customer').setValue(result.get('customer').value);
-        if(result.get('pricingType')) this.settingsForm.get('pricingType').setValue(result.get('pricingType').value);
-        // if(result.get('priceTypeId')) this.settingsForm.get('priceTypeId').setValue(result.get('priceTypeId').value);
-        if(result.get('plusMinus')) this.settingsForm.get('plusMinus').setValue(result.get('plusMinus').value);
-        if(result.get('changePrice')) this.settingsForm.get('changePrice').setValue(result.get('changePrice').value);
-        if(result.get('changePriceType')) this.settingsForm.get('changePriceType').setValue(result.get('changePriceType').value);
-        if(result.get('name')) this.settingsForm.get('name').setValue(result.get('name').value);
-        if(result.get('priorityTypePriceSide')) this.settingsForm.get('priorityTypePriceSide').setValue(result.get('priorityTypePriceSide').value);
-        this.settingsForm.get('hideTenths').setValue(result.get('hideTenths').value);
-        this.settingsForm.get('saveSettings').setValue(result.get('saveSettings').value);
-        this.settingsForm.get('autocreateOnStart').setValue(result.get('autocreateOnStart').value);
-        this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.get('statusIdOnAutocreateOnCheque').value);
-        this.saveSettingsappointments();
-      }
-    });
-  }
-  saveSettingsappointments(){
-    return this.http.post('/api/auth/saveSettingsappointments', this.settingsForm.value)
-    .subscribe(
-      (data) => {   
-        this.openSnackBar(translate('menu.msg.settngs_saved'), translate('menu.msg.close')); //+++
-      },
-      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
-    );
-}
+  // openDialogSettings() { 
+  //   const dialogSettings = this.SettingsAppointmentsDialogComponent.open(SettingsAppointmentsDialogComponent, {
+  //     maxWidth: '95vw',
+  //     maxHeight: '95vh',
+  //     width: '400px', 
+  //     data:
+  //     { //отправляем в диалог:
+  //       priceTypesList:   this.receivedPriceTypesList, //список типов цен
+  //       receivedCompaniesList: this.receivedCompaniesList, //список предприятий
+  //       receivedDepartmentsList: this.receivedDepartmentsList,//список отделений
+  //       company_id: +this.sendingQueryForm.companyId, //предприятие (нужно для поиска покупателя)
+  //       department_type_price_id: null,
+  //       cagent_type_price_id: null,
+  //       default_type_price_id: null,
+  //       id: 0, //чтобы понять, новый док или уже созданный
+  //     },
+  //   });
+  //   dialogSettings.afterClosed().subscribe(result => {
+  //     if(result){
+  //       //если нажата кнопка Сохранить настройки - вставляем настройки в форму настроек и сохраняем
+  //       if(result.get('companyId')) this.settingsForm.get('companyId').setValue(result.get('companyId').value);
+  //       if(result.get('departmentId')) this.settingsForm.get('departmentId').setValue(result.get('departmentId').value);
+  //       if(result.get('customerId')) this.settingsForm.get('customerId').setValue(result.get('customerId').value);
+  //       if(result.get('customer')) this.settingsForm.get('customer').setValue(result.get('customer').value);
+  //       if(result.get('pricingType')) this.settingsForm.get('pricingType').setValue(result.get('pricingType').value);
+  //       // if(result.get('priceTypeId')) this.settingsForm.get('priceTypeId').setValue(result.get('priceTypeId').value);
+  //       if(result.get('plusMinus')) this.settingsForm.get('plusMinus').setValue(result.get('plusMinus').value);
+  //       if(result.get('changePrice')) this.settingsForm.get('changePrice').setValue(result.get('changePrice').value);
+  //       if(result.get('changePriceType')) this.settingsForm.get('changePriceType').setValue(result.get('changePriceType').value);
+  //       if(result.get('name')) this.settingsForm.get('name').setValue(result.get('name').value);
+  //       if(result.get('priorityTypePriceSide')) this.settingsForm.get('priorityTypePriceSide').setValue(result.get('priorityTypePriceSide').value);
+  //       this.settingsForm.get('hideTenths').setValue(result.get('hideTenths').value);
+  //       this.settingsForm.get('saveSettings').setValue(result.get('saveSettings').value);
+  //       this.settingsForm.get('autocreateOnStart').setValue(result.get('autocreateOnStart').value);
+  //       this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.get('statusIdOnAutocreateOnCheque').value);
+  //       this.saveSettingsappointments();
+  //     }
+  //   });
+  // }
+  // saveSettingsappointments(){
+  //   return this.http.post('/api/auth/saveSettingsappointments', this.settingsForm.value)
+  //   .subscribe(
+  //     (data) => {   
+  //       this.openSnackBar(translate('menu.msg.settngs_saved'), translate('menu.msg.close')); //+++
+  //     },
+  //     error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+  //   );
+  // }
 
-  getPriceTypesList(){
-    this.receivedPriceTypesList=null;
-    this.loadSpravService.getPriceTypesList(+this.sendingQueryForm.companyId)
-    .subscribe(
-      (data) => {this.receivedPriceTypesList=data as any [];},
-      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
-    );
-  }  
+  // getPriceTypesList(){
+  //   this.receivedPriceTypesList=null;
+  //   this.loadSpravService.getPriceTypesList(+this.sendingQueryForm.companyId)
+  //   .subscribe(
+  //     (data) => {this.receivedPriceTypesList=data as any [];},
+  //     error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+  //   );
+  // }  
   getBaseData(data) {    //+++ emit data to parent component
     this.baseData.emit(data);
+  }
+  getCompanySettings(){
+    this.http.get('/api/auth/getCompanySettings?id='+this.sendingQueryForm.companyId).subscribe(data => {this.companySettings = data as any;},error => {console.log(error);});
   }
 //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
   resetOptions(){

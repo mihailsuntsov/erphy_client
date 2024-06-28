@@ -221,7 +221,8 @@
         "plan":         "Plan",
         "add_option":   "Additional",
         "plan_limit":   "Limit",
-        "is_let_sync":  "Connection allowed"
+        "is_let_sync":  "Connection allowed",
+        "dep_part":     "Part of department"
     },
     "bottom":{
         "founded":      "Founded",
@@ -399,7 +400,11 @@
         "ch_cat_stores":"Сhange online stores",
         "subscription": "subscription",
         "del_ctgrs":    "Delete categories",
-        "calendar":     "Сalendar"
+        "calendar":     "Сalendar",
+        "appointment":"Appointment",
+        "reservation":"Reservation",
+        "appointments":"Appointments",
+        "reservations":"Reservations"
     },
     "indicators":{
         "revenue":      "Revenue",

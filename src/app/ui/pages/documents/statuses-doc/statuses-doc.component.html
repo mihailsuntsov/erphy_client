@@ -1,4 +1,4 @@
-<mat-card appearance="outlined" class="card for-sticky-header" *transloco="let t">
+    <mat-card appearance="outlined" class="card for-sticky-header" *transloco="let t">
     <mat-card-header>
         <mat-card-title class="top-bar container-fluid"> 
             <div class="row" id="topBlock">
@@ -94,7 +94,8 @@
                                                         </mat-form-field>
                                                         <mat-form-field class="mat-form-field-100" *ngIf="+id==0">
                                                             <mat-label>{{t('docs.field.company')}}</mat-label>
-                                                            <mat-select  formControlName="company_id">                          
+                                                            <mat-select  formControlName="company_id"
+                                                            (selectionChange)="onCompanySelection()">
                                                                 <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
                                                                         {{rt.name}}
                                                                 </mat-option> 
@@ -108,6 +109,9 @@
                                                         <mat-form-field  class="mat-form-field-100" *ngIf="+id==0">
                                                             <mat-label>{{t('docs.field.doc')}} {{formBaseInformation.get('doc_id').value==''?'*':''}}</mat-label>
                                                             <mat-select formControlName="doc_id">
+                                                                <mat-option [value]="59" >
+                                                                    {{t('docs.list.'+companySettings.booking_doc_name_variation)}}
+                                                                </mat-option>
                                                                 <mat-option *ngFor="let rt of receivedDocumentsList" 
                                                                             [value]="rt.id">
                                                                             {{t('docs'+rt.name)}}
@@ -123,7 +127,7 @@
                                                                     formControlName="name"/>
                                                         </mat-form-field>
                                                         <mat-form-field class="mat-form-field-100">
-                                                            <label class="mat-form-field-label" style="display: block;top:-1.3em;font-size:11px;"><span>{{t('docs.field.color')}}</span></label>
+                                                            <label class="mat-form-field-label color-label"><span>{{t('docs.field.color')}}</span></label>
                                                             <input type="color" formControlName="color" name="color1">
                                                             <input matInput hidden/>
                                                         </mat-form-field>

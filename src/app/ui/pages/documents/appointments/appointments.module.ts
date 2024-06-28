@@ -21,6 +21,7 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
     MaterialModule,
     FormsModule,
     TranslocoModule
-  ]
+  ],
+  exports: [AppointmentsComponent],
 })
 export class AppointmentsModule { }

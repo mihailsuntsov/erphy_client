@@ -21,8 +21,10 @@ getTable(queryForm: QueryForm){
                         result:queryForm.result,
                         companyId: queryForm.companyId,
                         departmentId: queryForm.departmentId,
-                        filterOptionsIds: queryForm.filterOptionsIds};
-        return this.http.post('/api/auth/getAppointmentsTable', body); 
+                        filterOptionsIds: queryForm.filterOptionsIds,
+                        appointmentId: queryForm.appointmentId,
+                        customerId: queryForm.customerId};
+        return this.http.post('/api/auth/getAppointmentTable', body);
     }
 
 getPagesList(queryForm: QueryForm){
@@ -33,7 +35,9 @@ getPagesList(queryForm: QueryForm){
                             result:queryForm.result,
                             companyId: queryForm.companyId,
                             departmentId: queryForm.departmentId,
-                            filterOptionsIds: queryForm.filterOptionsIds
+                            filterOptionsIds: queryForm.filterOptionsIds,
+                            appointmentId: queryForm.appointmentId,
+                            customerId: queryForm.customerId
                           };
         return this.http.post('/api/auth/getAppointmentPagesList', body); 
     }

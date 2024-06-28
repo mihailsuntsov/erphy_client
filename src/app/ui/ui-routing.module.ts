@@ -106,8 +106,8 @@ const routes: Routes = [
       { path: 'jobtitlesdoc', loadChildren: () => import('./pages/documents/jobtitles-doc/jobtitles-doc.module').then(m => m.JobtitlesDocModule) },
       { path: 'employeescdl', loadChildren: () => import('./pages/documents/employeescdl/employeescdl.module').then(m => m.EmployeeScdlModule) },
       { path: 'calendar', loadChildren: () => import('./pages/documents/calendar/calendar.module').then(m => m.Calendar_Module) },
-      // { path: 'appointments', loadChildren: () => import('./pages/documents/appointments/appointments.module').then(m => m.AppointmentsModule) },
-      { path: 'appointmentdoc', loadChildren: () => import('./pages/documents/appointments-doc/appointments-doc.module').then(m => m.AppointmentsDocModule) },
+      { path: 'appointments', loadChildren: () => import('./pages/documents/appointments/appointments.module').then(m => m.AppointmentsModule) },
+      { path: 'appointmentsdoc', loadChildren: () => import('./pages/documents/appointments-doc/appointments-doc.module').then(m => m.AppointmentsDocModule) },
       // { path: 'bookingdoc', loadChildren: () => import('./pages/documents/appointments-doc/appointments-doc.module').then(m => m.AppointmentsDocModule) },
 
 

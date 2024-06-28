@@ -69,6 +69,9 @@ class="spinner"
                                 <mat-option  *ngFor="let rdl of receivedDocumentsList" [value]="rdl.id">
                                     {{cu.cap(t('menu'+rdl.name))}}
                                 </mat-option>
+                                <mat-option [value]="59">
+                                    {{t('docs.list.'+companySettings.booking_doc_name_variation)}}
+                                </mat-option>
                             </mat-select>
                         </mat-form-field>
                         <button  

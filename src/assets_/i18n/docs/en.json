@@ -18,7 +18,9 @@
         "lnkd_prdcts":  "Linked products",
         "attributes":   "Attributes",
         "variations":   "Variations",
-        "advanced":     "Advanced"
+        "advanced":     "Advanced",
+        "history":      "History",
+        "services":     "Services"
     },
     "card":{
         "base_info":    "Main information",
@@ -60,11 +62,12 @@
         "str_ordr_taken":"Online store order accepted",
         "str_ordr_done":"Your online store is ready!",
         "ready":"Ready",
-        "resource_parts_qtt":"Quantity of resource in parts of departments"
+        "resource_parts_qtt":"Quantity of resource in parts of departments",
+        "clients":"Сustomers"
     },
     "field":{ 
         "-- COMMON":"--",
-
+        "client":       "Сustomer",
         "company":      "Company",
         "department":   "Department",
         "supplier":     "Supplier",
@@ -759,7 +762,8 @@
         "del_qry_suc":"Delete request sent successfully",
         "site_name_n_allwd":"This site name is not allowed",
         "no_resources_in_deppart":"This part of the department does not have the resources necessary to perform the services of a moving document",
-        "select_dep_part":"Please fill in the field \"Part of the department\""
+        "select_dep_part":"Please fill in the field \"Part of the department\"",
+        "select_customer":"Select at least one client and service for him"
     },
     "button":{        
         "test_connct":  "Connection test",

@@ -221,7 +221,8 @@
         "plan":         "Тариф",
         "add_option":   "Додатно",
         "plan_limit":   "Ограничење",
-        "is_let_sync":  "Конекциja је дозвољена"
+        "is_let_sync":  "Конекциja је дозвољена",
+        "dep_part":     "Део одељења"
     },
     "bottom":{
         "founded":      "Пронађено",
@@ -395,7 +396,11 @@
         "productattr":  "атрибути производа",
         "subscription": "претплата",
         "stores":       "онлине продавнице (конекције)",
-        "calendar":     "Календар"
+        "calendar":     "Календар",
+        "appointment":"Састанак",
+        "reservation":"Резервација",
+        "appointments":"Састанке",
+        "reservations":"Резервације"
     },
     "indicators":{
         "revenue":      "Приход",

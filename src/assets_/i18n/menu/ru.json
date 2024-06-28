@@ -221,7 +221,8 @@
         "plan":         "Тариф",
         "add_option":   "Дополнительно",
         "plan_limit":   "Лимит",
-        "is_let_sync":  "Соедниение разрешено"
+        "is_let_sync":  "Соедниение разрешено",
+        "dep_part":     "Часть отделения"
     },
     "bottom":{
         "founded":      "Найдено",
@@ -397,7 +398,11 @@
         "productattr":  "атрибуты товаров",
         "subscription": "подписка",
         "stores":       "интернет-магазины (соединения)",
-        "calendar":     "Календарь"
+        "calendar":     "Календарь",
+        "appointment":"Запись",
+        "reservation":"Бронирование",
+        "appointments":"Записи",
+        "reservations":"Бронирования"
     },
     "indicators":{
         "revenue":      "Выручка",

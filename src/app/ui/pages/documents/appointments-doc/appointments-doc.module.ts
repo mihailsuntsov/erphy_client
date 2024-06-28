@@ -11,6 +11,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ProductSearchAndTableByCustomersModule } from 'src/app/modules/trade-modules/product-search-and-table-by-customers/product-search-and-table-by-customers.module';
 import { BalanceCagentModule } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.module';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import { AppointmentsModule } from 'src/app/ui/pages/documents/appointments/appointments.module';
 // import { KkmModule } from 'src/app/modules/trade-modules/kkm/kkm.module';
 import {NgxMaterialTimepickerModule} from 'ngx-material-timepicker';
 
@@ -24,7 +25,7 @@ import {NgxMaterialTimepickerModule} from 'ngx-material-timepicker';
     ProductSearchAndTableByCustomersModule,
     BalanceCagentModule,
     // KkmModule,
-  //
+    AppointmentsModule,
     MaterialModule,
     FormsModule,
     ReactiveFormsModule,

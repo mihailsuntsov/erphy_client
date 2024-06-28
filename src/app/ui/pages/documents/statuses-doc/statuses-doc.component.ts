@@ -50,6 +50,7 @@ interface idAndName{ //универсалный интерфейс для выб
 })
 export class StatusesDocComponent implements OnInit {
 
+  companySettings:any={booking_doc_name_variation:'reservation'};
   id: number = 0;// id документа
   createdDocId: string[];//массив для получение id созданного документа
   receivedCompaniesList: any [] = [];//массив для получения списка предприятий
@@ -126,7 +127,7 @@ export class StatusesDocComponent implements OnInit {
     //+++ getting base data from parent component
     this.getBaseData('myId');    
     this.getBaseData('myCompanyId');  
-    this.getBaseData('companiesList');  
+    this.getBaseData('companiesList');
   }
 //---------------------------------------------------------------------------------------------------------------------------------------                            
 // ----------------------------------------------------- *** ПРАВА *** ------------------------------------------------------------------
@@ -180,6 +181,12 @@ export class StatusesDocComponent implements OnInit {
     }else {
       this.getCompaniesList();
     }
+  }
+  getCompanySettings(){
+    this.http.get('/api/auth/getCompanySettings?id='+this.formBaseInformation.get('company_id').value).subscribe(data => {this.companySettings = data as any;},error => {console.log(error);});
+  }
+  onCompanySelection(){
+    this.getCompanySettings();
   }
   refreshShowAllTabs(){
     if(this.id>0){//если в документе есть id
@@ -235,6 +242,7 @@ export class StatusesDocComponent implements OnInit {
       this.formBaseInformation.get('company_id').setValue(this.myCompanyId);
     }
     this.setDefaultDocument();
+    this.getCompanySettings();
   }
 
   getDocumentsList(){
@@ -290,6 +298,7 @@ export class StatusesDocComponent implements OnInit {
                   this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
                   this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
                   this.getStatusesList();
+                  this.getCompanySettings();
                   
                 } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();
