@@ -20,7 +20,7 @@ import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { DelCookiesService } from './del-cookies.service';
 import { Router, NavigationExtras  } from '@angular/router';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
-import { translate } from '@ngneat/transloco'; //+++
+import { setValue, translate } from '@ngneat/transloco'; //+++
 // import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component';
 import { AppointmentsComponent } from 'src/app/ui/pages/documents/appointments/appointments.component';
 import { FilesComponent } from '../files/files.component';
@@ -373,54 +373,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   totalNds = new Map(); //  total Tax for each client in format "row_id - tax"
   totalProductSumm = new Map(); //  total sum for each client in format "row_id - tax"
   // mainProduct: AppointmentServiceSearchResponse; // хранение инфориации о главной услуге
-  guests:any[]=[
-    // {
-    //   "id": null,
-    //   "row_id": 0,
-    //   "is_payer": true,
-    //   "name": "Попов Анатолий Игоревич",
-    //   "email": "popov.anatol@mail.ru",
-    //   "telephone": "+79125430044",
-    //   "child": false
-    // },
-    // {
-    //   "id": null,
-    //   "row_id": 1,
-    //   // "is_payer": true,
-    //   "name": "Попова Евгения",
-    //   "email": "",
-    //   "telephone": "+79222954430",
-    //   // "child": false
-    // },
-    // {
-    //   "id": null,
-    //   "row_id": 2,
-    //   "is_payer": false,
-    //   "name": "Попова Варя Анатольевна",
-    //   "email": "",
-    //   "telephone": "",
-    //   "child": true
-    // },
-    // {
-    //   "id": null,
-    //   "row_id": 3,
-    //   "is_payer": false,
-    //   "name": "Попова Ксения Анатольевна",
-    //   "email": "",
-    //   "telephone": "",
-    //   "child": true
-    // },
-    // {
-    //   "id": null,
-    //   "row_id": 4,
-    //   "is_payer": false,
-    //   "name": "Попова Александра Анатольевна",
-    //   "email": "",
-    //   "telephone": "",
-    //   "child": true
-    // }
-  ];
-
+  
   //переменные прав
   permissionsSet: any[];//сет прав на документ
   allowToViewAllCompanies:boolean = false;
@@ -547,6 +500,9 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       time_start: new UntypedFormControl            ('',[Validators.required]),
       time_end:  new UntypedFormControl             ('',[Validators.required]),
       customersTable: new UntypedFormArray   ([]),//массив с клиентами / array uf customers
+      cagent_id : new UntypedFormControl           ('',[]),// customer's ID, needed to create documents from Appointments (Shipment, incoming payments) // ID клиента, для создания документов из Записи (Отгрузка, входящие платежи) 
+      total_nds : new UntypedFormControl           ('',[]), // Total VAT of customer, needed to create documents from Appointments (incoming payments) // Сумма НДС клиента, для создания документов из Записи (входящие платежи) 
+      total_summ: new UntypedFormControl           ('',[]), // Total sum of customer, needed to create documents from Appointments (incoming payments) // Сумма клиента, для создания документов входящих платежей из Записи
     });
     // Форма для отправки при создании связанных документов
     this.formLinkedDocs = new UntypedFormGroup({
@@ -2951,6 +2907,61 @@ deleteFile(id:number){
       this.formBaseInformation.get('employeeId').setValue(null);
     }
   }
+
+  createShipment(row:any){
+    this.oneClickSaveControl=true;
+    this.tableNdsRecount();
+    this.formBaseInformation.get('cagent_id').setValue(row.id);
+    this.formBaseInformation.get('total_nds').setValue(this.totalNds.get(row.row_id));
+    this.formBaseInformation.get('total_summ').setValue(this.totalProductSumm.get(row.row_id));
+    this.http.post('/api/auth/createAndCompleteShipmentFromAppointment',  this.formBaseInformation.value)
+      .subscribe(
+          (data) => 
+          {
+            let result:number=data as number;
+            switch(result){
+              case null:{// null возвращает если не удалось создать документ из-за ошибки
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_of') + (translate('docs.msg._of_save')) + translate('docs.msg._of_doc',{name:translate('docs.docs.shipment')})}});
+                break;
+              }
+              case -1:{//недостаточно прав
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm_oper') + (translate('docs.msg._of_save')) + translate('docs.msg._of_doc',{name:translate('docs.docs.shipment')})}});
+                break;
+              }
+              case 0:{// недостаточно товара на складе
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.no_gds_shipmn')}});
+                break;
+              }
+              case -50:{//Документ уже проведён
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.already_cmplt')}});
+                break;
+              }
+              case -70:{//недостаточно товара на складе
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.cnc_com_err1')}});
+                break;
+              }
+              case -80:{//Отрицательное кол-во товара на складе
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.cnc_com_err2')}});
+                break;
+              }
+              case 1:{// Успешно
+                this.openSnackBar(translate('docs.msg.doc_name',{name:translate('docs.docs.shipment')}) + (translate('docs.msg.completed')), translate('docs.msg.close'));
+                // this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+                this.getData();
+                break;
+              }
+              default:{// другая ошибка
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:"Operation error"}});
+                break;
+              }
+            }
+            this.oneClickSaveControl=false;
+          },
+          // error => {
+          //   this.showQueryErrorMessage(error);this.oneClickSaveControl=false;
+          //   },
+      );
+  }
     //**************************** КАССОВЫЕ ОПЕРАЦИИ  ******************************/
 
   //обработчик события успешной печати чека - в Заказе покупателя это выставление статуса документа, сохранение и создание нового.  
@@ -3032,16 +3043,12 @@ deleteFile(id:number){
       if(nds_included!=undefined)
         this.formBaseInformation.get('nds_included').setValue(nds_included);
       //перерасчет НДС в таблице товаров
-      if(this.formBaseInformation.controls['appointmentsProductTable'].value.length>0){
+      if(this.getControlTablefield().length>0){
         this.resetTaxes();
         let switcherNDS:boolean = this.formBaseInformation.get('nds').value;
         let switcherNDSincluded:boolean = this.formBaseInformation.get('nds_included').value;
         let multiplifierNDS:number = 1;//множитель НДС. Рассчитывается для каждой строки таблицы. Например, для НДС 20% будет 1.2, для 0 или без НДС будет 1
-        this.formBaseInformation.value.appointmentsProductTable.map(i =>{
-
-
-          // this.totalNds.set(i.customerRowId,0);
-
+        this.getControlTablefield().value.map(i =>{
             multiplifierNDS = this.getTaxMultiplifierBySelectedId(+i['nds_id']);
             //если включён переключатель "Налог", но переключатель "Налог включен" выключен,
             if(switcherNDS && !switcherNDSincluded){
@@ -3055,15 +3062,8 @@ deleteFile(id:number){
                 this.totalNds.set(i.customerRowId,(this.totalNds.get(i.customerRowId)+this.getTaxFromPrice(i['product_sumprice'], i['nds_id'])));
               }
             }
-
-
-
-
           }
-        
-        
-        
-        )}}
+    )}}
   }
    // равна ли изменённая цена цене по выбранному Типу цены. Если нет - сбрасываем выбор Типа цены
   rowPriceEqualsToTypePrice(row_index:number){
@@ -3075,7 +3075,7 @@ deleteFile(id:number){
   // отдает цену товара в текущем предприятии по его id и id его типа цены
   getProductPrice(product_id:number,price_type_id:number){
     let price:number;
-    return this.http.get('/api/auth/getProductPrice?company_id='+this.formBaseInformation.get('company_id').value+'&product_id='+product_id+'&price_type_id='+price_type_id)
+    return this.http.get('/api/auth/getProductPrice?company_id='+this.formBaseInformation.get('company_id').value+'&product_id='+product_id+'&price_type_id='+price_type_id)
   }  
   getProductTimeQtt(service:AppointmentServiceSearchResponse, currentQtt=1):number{
     let result = currentQtt;

@@ -867,276 +867,310 @@
                                                                 [@detailExpand]="row.row_id == expandedElement  ? 'expanded' : 'collapsed'" *ngIf="true">
 
 
-                                                                <mat-tab-group>
-                                                                    <mat-tab label="{{t('docs.tab.services')}}">
-                                                                        <div class="container-fluid" style="padding-top: 20px; padding-bottom: 20px;">
 
-
-                                                                            <!-- Additional customer's products search form -->
-                                                                            <div class="row" *ngIf="editability">     
-                                                                                <div class="col-12">                                                                        
-                                                                                    <mat-form-field  class="mat-form-field-100">
-                                                                                        <mat-label>{{t('modules.field.srvc_srch')}}</mat-label>
-                                                                                        <input  matInput 
-                                                                                        #productSearchFieldValue
-                                                                                        [placeholder]="+formBaseInformation.get('department_part_id').value==0?t('docs.msg.select_dep_part'):t('modules.field.input_name')" 
-                                                                                        [matAutocomplete]="auto3"
-                                                                                        [ngClass]="{'attention':+formBaseInformation.get('department_part_id').value==0}"
-                                                                                        [formControl]="searchProductCtrl"
-                                                                                        [readonly]="!editability || is_completed || isProductListLoading || +formBaseInformation.get('department_part_id').value==0"
-                                                                                        (input)="customer=row;canAutocompleteQuery=true; checkEmptyProductField();"
-                                                                                        (change)="customer=row;canAutocompleteQuery=false; checkEmptyProductField();">
-                                                                                        <mat-autocomplete #auto3="matAutocomplete">
-                                                                                            <ng-container *ngIf="searchProductCtrl.value && searchProductCtrl.value.length>0 && !isProductListLoading && (filteredProducts.length>1 || (filteredProducts.length==1 && accessibleServicesIdsAll().length==0))" style="width:320px;">
-                                                                                                <span  *ngFor="let value of filteredProducts"  class="flex" style="border: 0px solid ;margin: 4px 0;">
-                                                                                                    <mat-option 
-                                                                                                        [disabled]="value.isServiceByAppointment && !accessibleServicesIdsAll().includes(value.id)"
-                                                                                                        style="padding:0px 5px; flex-grow: 1;" 
-                                                                                                        [value]="value.name">
-                                                                                                        <!-- <div (click)="onClickProductInSelectList(value)"> -->
-                                                                                                        <div (click)="onSelectProductCustomer(value, row)">
-                                                                                                            <div class="non-accessible-cases" *ngIf="value.isServiceByAppointment">
-                                                                                                                <span 
-                                                                                                                    class="material-icons employee-state-icon"
-                                                                                                                    style="color: red;"
-                                                                                                                    *ngIf="+formBaseInformation.get('employeeId').value==0 && !accessibleServicesIdsByAccessibleEmployees.includes(value.id)"                                                                                
-                                                                                                                    matTooltip="{{t('docs.tip.empls_no_acsbl_srvc')}}">
-                                                                                                                    person
-                                                                                                                </span>
-                                                                                                                <span 
-                                                                                                                    class="material-icons employee-state-icon"
-                                                                                                                    style="color: red;"
-                                                                                                                    *ngIf="+formBaseInformation.get('employeeId').value>0 && !accessibleServicesIdsBySelectedEmployee.includes(value.id)"                                                                                
-                                                                                                                    matTooltip="{{t('docs.tip.empl_no_acsbl_srvc')}}">
-                                                                                                                    person
-                                                                                                                </span>
-                                                                                                                <span 
-                                                                                                                    class="material-icons employee-state-icon" 
-                                                                                                                    style="color: red;"
-                                                                                                                    *ngIf="!accessibleServicesIdsBySelectedDepPart.includes(value.id)"                                                                                
-                                                                                                                    matTooltip="{{t('docs.tip.srvc_acsbl_dp')}}">
-                                                                                                                    place
-                                                                                                                </span>
-                                                                                                                <span 
-                                                                                                                    class="material-icons employee-state-icon" 
-                                                                                                                    style="color: red;"
-                                                                                                                    *ngIf="+formBaseInformation.get('department_part_id').value>0 && !accessibleServicesIdsByResourcesOfSelectedDepPart.includes(value.id)"                                                                                
-                                                                                                                    matTooltip="{{t('docs.tip.srvc_acsbl_res_dprt',{'resources':getResourcesNames(getNotEnoughResourcesOfServiceInDepPart(value,formBaseInformation.get('department_part_id').value))})}}">
-                                                                                                                    workspaces
-                                                                                                                </span>
-                                                                                                                <!-- <span 
-                                                                                                                    class="material-icons employee-state-icon" 
-                                                                                                                    style="color: red;"
-                                                                                                                    *ngIf="+formBaseInformation.get('department_part_id').value==0 && !accessibleServicesIdsByResourcesOfAccessibleDepParts.includes(value.id)"                                                                                
-                                                                                                                    matTooltip="{{t('docs.tip.srvc_acsbl_res_dprts',{'resources':notEnoughResourcesInDepParts.get(value.id)})}}">
-                                                                                                                    workspaces
-                                                                                                                </span>      -->
-                                                                                                            </div>
-                                                                                                            <span style="margin-left: 25px;">{{value.name}}</span>
-                                                                                                        </div>
-                                                                                                    </mat-option>
-                                                                                                </span>
-                                                                                            </ng-container>
-                                                                                        </mat-autocomplete>
-                                                                                    </mat-form-field>
-                                                                                    <mat-progress-bar *ngIf="isProductListLoading" mode="indeterminate"></mat-progress-bar>
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
+                                                                <mat-card appearance="outlined" class="internal-card" style="margin: 0;">
+                                                                    <mat-card-header>
+                            
+                                                                        <mat-card-title class="card-title">
+                                                                            <div class="flex card">
+                                                                                {{t('docs.card.client_card')}}
+                                                                                <div style="position: absolute; right: 20px;">
+                                                                                    <button matTooltip="{{t('docs.tip.ship_to_customer')}}" 
+                                                                                                mat-raised-button
+                                                                                                *ngIf="+id>0"
+                                                                                                color="primary"
+                                                                                                type="button"
+                                                                                                [disabled]="+this.formBaseInformation.get('department_part_id').value==0 && +this.formBaseInformation.get('employeeId').value==0 && +this.formBaseInformation.get('jobtitle_id').value==0 && (searchProductCtrl.value==null || searchProductCtrl.value.length==0 || searchProductCtrl.value=='')" 
+                                                                                                id="move_up_services"
+                                                                                                class="button small-button"
+                                                                                                (click)="createShipment(row);">
+                                                                                                <i class="material-icons">move_up</i>
+                                                                                    </button>
                                                                                 </div>
                                                                             </div>
+                            
+                            
+                            
+                                                                        </mat-card-title>
+                                                                        
+                            
+                                                                    </mat-card-header>
+                                                                    <mat-card-content class="input-form">
 
-                                                                            <div class="row">     
-                                                                                <div class="col-12">    
-                                                                                    <table  mat-table #_table_inside  
-                                                                                            [dataSource]="getControl('appointmentsProductTable').value" 
-                                                                                            [formGroup]="formBaseInformation" 
-                                                                                            [trackBy]="trackByCustomerProductsIndex" 
-                                                                                            class="mat-elevation-z8 product-table">
-                                                                                        <!-- Name -->
-                                                                                        <ng-container matColumnDef="name" [formArrayName]="'appointmentsProductTable'">
-                                                                                            <th mat-header-cell *matHeaderCellDef>{{t('modules.col.name')}}</th>
-                                                                                            <td mat-cell *matCellDef="let row1; let j = index" [formGroupName]="j"> 
-                                                                                                <!-- ***!!! -->
-                                                                                                <mat-icon
-                                                                                                    style=" color: red;
-                                                                                                            line-height: 1;
-                                                                                                            top: 3px;" 
-                                                                                                    class="mat-icon-notification"
-                                                                                                    *ngIf="row1.departmentPartsWithResourcesIds.length>0 && !accessibleTableServicesIdsByResourcesOfSelectedDepPart.includes(row1.product_id) && +formBaseInformation.get('department_part_id').value>0"
-                                                                                                    matTooltip="{{t('docs.tip.srvc_acsbl_res_dprt',{'resources':getResourcesNames(getNotEnoughResourcesOfServiceInDepPart(row1,formBaseInformation.get('department_part_id').value))})}}">
-                                                                                                    workspaces
-                                                                                                </mat-icon>
-                                                                                                <!-- <span>j={{j}}</span>,  -->
-                                                                                                <a  target="_blank" href="/ui/productsdoc/{{row1.product_id}}" style="color:rgba(0, 0, 0, 0.87)"><span 
-                                                                                                [ngClass]="{'nameInTableWithIcon':row1.departmentPartsWithResourcesIds.length>0 && !accessibleTableServicesIdsByResourcesOfSelectedDepPart.includes(row1.product_id)} && +formBaseInformation.get('department_part_id').value>0">
-                                                                                                {{row1.name}}</span></a>
-                                                                                            </td>
-                                                                                            <td mat-footer-cell *matFooterCellDef></td>
-                                                                                        </ng-container>
-                                                                                        <!-- Product count -->
-                                                                                        <ng-container matColumnDef="product_count" [formArrayName]="'appointmentsProductTable'">
-                                                                                            <th mat-header-cell *matHeaderCellDef style="width: 100px;">
-                                                                                                <span 
-                                                                                                    style="cursor: default;"
-                                                                                                    matTooltip="{{t('modules.tip.cnt_to_order')}}">
-                                                                                                    {{t('modules.col.qnt')}}
-                                                                                                </span>
-                                                                                            </th>
-                                                                                            <td 
-                                                                                            mat-cell *matCellDef="let row1; let j = index" 
-                                                                                            style="width: 80px;"
-                                                                                            [formGroupName]="j"
-                                                                                            [matTooltip]="((getControlTablefield().controls[j].get('product_count').value>(getControlTablefield().controls[j].get('available').value)&&getControlTablefield().controls[j].get('is_material').value) && editability && !(getControlTablefield().controls[j].get('product_count').invalid && getControlTablefield().controls[j].get('product_count').errors.pattern)) ? t('modules.tip.qtt_more_avlb') : ''"
-                                                                                            [ngStyle]="   ((getControlTablefield().controls[j].get('product_count').value>((getControlTablefield().controls[j].get('available').value))&&getControlTablefield().controls[j].get('is_material').value) && editability && !(getControlTablefield().controls[j].get('product_count').invalid && getControlTablefield().controls[j].get('product_count').errors.pattern))?{'background-color': '#ffe4e1'}:{'background-color': 'white'}">
-                                                                                                <div style="width:100%" *ngIf="getControlTablefield().controls[j].get('edizm_type_id').value!=7">
-                                                                                                    <input matInput 
-                                                                                                        class="table-field-editable quantity-field"
-                                                                                                        [ngClass]="{'table-field-editable':editability}"
-                                                                                                        [readonly]="!editability"
-                                                                                                        style="width: 50px !important;"
-                                                                                                        type="number" min="0"
-                                                                                                        placeholder=""
-                                                                                                        formControlName="product_count"
-                                                                                                        (change)="onChangeProductCount(j);"
-                                                                                                        (keyup)="nullToZeroInTableField(j, 'product_count');onChangeProductCount(j);"
-                                                                                                        (keypress)="numberOnlyPlusDotAndComma($event)"
-                                                                                                    />
-                                                                                                    <span matSuffix>{{row1.edizm}}</span>
-                                                                                                    <control-messages  class="table-form-invalid" [control]="getControlTablefield().controls[j].get('product_count')"></control-messages>
-                                                                                                    <mat-hint align="start" >
-                                                                                                        <i *ngIf="  getControlTablefield().controls[j].get('product_count').value !='' && 
-                                                                                                                    getControlTablefield().controls[j].get('indivisible').value && 
-                                                                                                                    !isInteger(parseFloat(getControlTablefield().controls[j].get('product_count').value))"  class="table-form-invalid">
-                                                                                                                    {{t('modules.error.mst_be_integr')}}
-                                                                                                        </i>
-                                                                                                        <i *ngIf="getControlTablefield().controls[j].get('product_count').invalid && getControlTablefield().controls[j].get('product_count').errors.pattern" class="table-form-invalid">{{t('modules.error.price_format',{int:7,fract:3})}}</i>
-                                                                                                    </mat-hint>
-                                                                                                </div>
-                                                                                                <div style="width:100%" *ngIf="getControlTablefield().controls[j].get('edizm_type_id').value==7">
-                                                                                                    {{getControlTablefield().controls[j].get('product_count').value}}&nbsp;{{row1.edizm}}
-                                                                                                </div>
-                                                                                            </td>
-                                                                                            <td mat-footer-cell *matFooterCellDef></td>
-                                                                                        </ng-container>
-                                                                                        <!-- Price -->
-                                                                                        <ng-container matColumnDef="product_price" [formArrayName]="'appointmentsProductTable'">
-                                                                                            <th mat-header-cell *matHeaderCellDef style="width: 80px;">
-                                                                                                <span 
-                                                                                                    style="cursor: default;"
-                                                                                                    matTooltip="{{t('modules.tip.price')}}">
-                                                                                                    {{t('modules.col.price')}}, {{accountingCurrency}}
-                                                                                                </span>
-                                                                                            </th>
-                                                                                            <td mat-cell *matCellDef="let row1; let j = index" [formGroupName]="j"
-                                                                                            [ngStyle]="   (getControlTablefield().controls[j].get('product_price').value==0&&editability && !(getControlTablefield().controls[j].get('product_price').invalid && !getControlTablefield().controls[j].get('product_price').errors.pattern))?{'background-color': '#ffe4e1'}:{'background-color': 'white'}"
-                                                                                            [matTooltip]="(getControlTablefield().controls[j].get('product_price').value==0&&editability && !(getControlTablefield().controls[j].get('product_price').invalid && !getControlTablefield().controls[j].get('product_price').errors.pattern))? t('modules.tip.zero_price') : ''">
-                                                                                                <input matInput 
-                                                                                                    style="width: 70px;margin-right: 15px;"
-                                                                                                    [ngClass]="{'table-field-editable':editability}"
-                                                                                                    [readonly]=!editability
-                                                                                                    placeholder=""
-                                                                                                    formControlName="product_price"
-                                                                                                    (keyup)="onChangeProductPrice(j);"
-                                                                                                    (keypress)="numberOnlyPlusDotAndComma($event)"
-                                                                                                />
-                                                                                                <control-messages  class="table-form-invalid" [control]="getControlTablefield().controls[j].get('product_price')"></control-messages>
-                                                                                                <mat-hint align="start" >
-                                                                                                    <i *ngIf="getControlTablefield().controls[j].get('product_price').invalid && getControlTablefield().controls[j].get('product_price').errors.pattern" class="table-form-invalid">{{t('modules.error.price_format',{int:7,fract:2})}}</i>
-                                                                                                </mat-hint>
-                                                                                            </td>
-                                                                                            <td mat-footer-cell *matFooterCellDef></td>
-                                                                                        </ng-container>
-                                                                                        <!-- Sum -->
-                                                                                        <ng-container matColumnDef="product_sumprice" [formArrayName]="'appointmentsProductTable'">
-                                                                                            <th mat-header-cell *matHeaderCellDef>{{t('modules.col.sum')}}, {{accountingCurrency}}</th>
-                                                                                            <td mat-cell *matCellDef="let row1; let j = index" [formGroupName]="j"> {{row1.product_sumprice}} </td>
-                                                                                            <td mat-footer-cell *matFooterCellDef>{{getTotalSumOfCustomer(row.row_id)}}</td>
-                                                                                        </ng-container>
-                                                                                        <!-- Price type -->
-                                                                                        <ng-container matColumnDef="price_type" [formArrayName]="'appointmentsProductTable'">
-                                                                                            <th mat-header-cell *matHeaderCellDef style="min-width: 80px;">
-                                                                                                <span 
-                                                                                                    style="cursor: default;"
-                                                                                                    matTooltip="{{t('modules.tip.price_type')}}">
-                                                                                                    {{t('modules.col.price_type')}}
-                                                                                                </span>
-                                                                                            </th>
-                                                                                            <td mat-cell *matCellDef="let row1; let j = index" [formGroupName]="j"> 
-                                                                                                <mat-select  
-                                                                                                formControlName="price_type_id"
-                                                                                                (selectionChange)="onChangePriceTypeOfRow(j)"
-                                                                                                [ngClass]="{'table-field-editable':editability}"
-                                                                                                [disabled]="!editability"
-                                                                                                style="max-width:  95%;">
-                                                                                                    <mat-option  *ngFor="let rdl of receivedPriceTypesList" 
-                                                                                                    [value]="rdl.id"
-                                                                                                    matTooltip='{{rdl.description}}'>
-                                                                                                            {{rdl.name}}
-                                                                                                    </mat-option>
-                                                                                                </mat-select>
-                                                                                            </td>
-                                                                                            <td mat-footer-cell *matFooterCellDef></td>
-                                                                                        </ng-container>
-                                                                                        <!-- Taxes  -->
-                                                                                        <ng-container matColumnDef="nds" [formArrayName]="'appointmentsProductTable'">
-                                                                                            <th mat-header-cell *matHeaderCellDef style="min-width: 50px;">{{t('modules.col.tax')}}</th>
-                                                                                            <td mat-cell *matCellDef="let row1; let j = index" [formGroupName]="j"> 
-                                                                                                <mat-select  
-                                                                                                formControlName="nds_id" 
-                                                                                                style="width:  95%;"
-                                                                                                (selectionChange)="onChangeProductNds()" 
-                                                                                                [ngClass]="{'table-field-editable':editability}"
-                                                                                                [disabled]=!editability>                          
-                                                                                                    <mat-option  *ngFor="let rt of spravTaxesSet" [value]="rt.id">
-                                                                                                            {{rt.name}}
-                                                                                                    </mat-option> 
-                                                                                                </mat-select>
-                                                                                            </td>
-                                                                                            <td mat-footer-cell *matFooterCellDef></td>
-                                                                                        </ng-container>
-                                                                                        <ng-container matColumnDef="delete" [formArrayName]="'appointmentsProductTable'">
-                                                                                            <th mat-header-cell *matHeaderCellDef style="width: 30px;">
-                                                                                                <mat-icon 
-                                                                                                    style="cursor: default" 
-                                                                                                    (click)="clearCustomerProductsTable(row)"
-                                                                                                    matTooltip="{{t('modules.tip.del_frm_tabl_')}}">
-                                                                                                    close
-                                                                                                </mat-icon>
-                                                                                            </th>
-                                                                                            <td mat-cell *matCellDef="let row1; let j = index" [formGroupName]="j">
-                                                                                                <!-- <mat-icon style="cursor: pointer" *ngIf="!(getControlTablefield().controls[j].get('is_main').value)" (click)="deleteProductRow(row,i)">delete_forever</mat-icon> -->
-                                                                                                <mat-icon style="cursor: pointer" (click)="deleteProductRow(j)">delete_forever</mat-icon>
-                                                                                                <!-- <span>{{getControlTablefield().controls[j].get('is_main').value}}</span> -->
-                                                                                            </td>
-                                                                                            <td mat-footer-cell *matFooterCellDef></td>
-                                                                                        </ng-container>
-                                                                                        <tr mat-header-row *matHeaderRowDef="displayedCustomerProductsColumns"></tr>
-                                                                                        <tr mat-row *matRowDef="let row1; columns: displayedCustomerProductsColumns;" [class.hidden]="row.row_id!=row1.customerRowId"></tr>
-                                                                                        <tr mat-footer-row *matFooterRowDef="displayedCustomerProductsColumns"></tr>
+
+
+
+                                                                        <mat-tab-group>
+                                                                            <mat-tab label="{{t('docs.tab.services')}}">
+                                                                                <div class="container-fluid" style="padding-top: 20px; padding-bottom: 20px;">
+
+
+                                                                                    <!-- Additional customer's products search form -->
+                                                                                    <div class="row" *ngIf="editability">     
+                                                                                        <div class="col-12">                                                                        
+                                                                                            <mat-form-field  class="mat-form-field-100">
+                                                                                                <mat-label>{{t('modules.field.srvc_srch')}}</mat-label>
+                                                                                                <input  matInput 
+                                                                                                #productSearchFieldValue
+                                                                                                [placeholder]="+formBaseInformation.get('department_part_id').value==0?t('docs.msg.select_dep_part'):t('modules.field.input_name')" 
+                                                                                                [matAutocomplete]="auto3"
+                                                                                                [ngClass]="{'attention':+formBaseInformation.get('department_part_id').value==0}"
+                                                                                                [formControl]="searchProductCtrl"
+                                                                                                [readonly]="!editability || is_completed || isProductListLoading || +formBaseInformation.get('department_part_id').value==0"
+                                                                                                (input)="customer=row;canAutocompleteQuery=true; checkEmptyProductField();"
+                                                                                                (change)="customer=row;canAutocompleteQuery=false; checkEmptyProductField();">
+                                                                                                <mat-autocomplete #auto3="matAutocomplete">
+                                                                                                    <ng-container *ngIf="searchProductCtrl.value && searchProductCtrl.value.length>0 && !isProductListLoading && (filteredProducts.length>1 || (filteredProducts.length==1 && accessibleServicesIdsAll().length==0))" style="width:320px;">
+                                                                                                        <span  *ngFor="let value of filteredProducts"  class="flex" style="border: 0px solid ;margin: 4px 0;">
+                                                                                                            <mat-option 
+                                                                                                                [disabled]="value.isServiceByAppointment && !accessibleServicesIdsAll().includes(value.id)"
+                                                                                                                style="padding:0px 5px; flex-grow: 1;" 
+                                                                                                                [value]="value.name">
+                                                                                                                <!-- <div (click)="onClickProductInSelectList(value)"> -->
+                                                                                                                <div (click)="onSelectProductCustomer(value, row)">
+                                                                                                                    <div class="non-accessible-cases" *ngIf="value.isServiceByAppointment">
+                                                                                                                        <span 
+                                                                                                                            class="material-icons employee-state-icon"
+                                                                                                                            style="color: red;"
+                                                                                                                            *ngIf="+formBaseInformation.get('employeeId').value==0 && !accessibleServicesIdsByAccessibleEmployees.includes(value.id)"                                                                                
+                                                                                                                            matTooltip="{{t('docs.tip.empls_no_acsbl_srvc')}}">
+                                                                                                                            person
+                                                                                                                        </span>
+                                                                                                                        <span 
+                                                                                                                            class="material-icons employee-state-icon"
+                                                                                                                            style="color: red;"
+                                                                                                                            *ngIf="+formBaseInformation.get('employeeId').value>0 && !accessibleServicesIdsBySelectedEmployee.includes(value.id)"                                                                                
+                                                                                                                            matTooltip="{{t('docs.tip.empl_no_acsbl_srvc')}}">
+                                                                                                                            person
+                                                                                                                        </span>
+                                                                                                                        <span 
+                                                                                                                            class="material-icons employee-state-icon" 
+                                                                                                                            style="color: red;"
+                                                                                                                            *ngIf="!accessibleServicesIdsBySelectedDepPart.includes(value.id)"                                                                                
+                                                                                                                            matTooltip="{{t('docs.tip.srvc_acsbl_dp')}}">
+                                                                                                                            place
+                                                                                                                        </span>
+                                                                                                                        <span 
+                                                                                                                            class="material-icons employee-state-icon" 
+                                                                                                                            style="color: red;"
+                                                                                                                            *ngIf="+formBaseInformation.get('department_part_id').value>0 && !accessibleServicesIdsByResourcesOfSelectedDepPart.includes(value.id)"                                                                                
+                                                                                                                            matTooltip="{{t('docs.tip.srvc_acsbl_res_dprt',{'resources':getResourcesNames(getNotEnoughResourcesOfServiceInDepPart(value,formBaseInformation.get('department_part_id').value))})}}">
+                                                                                                                            workspaces
+                                                                                                                        </span>
+                                                                                                                        <!-- <span 
+                                                                                                                            class="material-icons employee-state-icon" 
+                                                                                                                            style="color: red;"
+                                                                                                                            *ngIf="+formBaseInformation.get('department_part_id').value==0 && !accessibleServicesIdsByResourcesOfAccessibleDepParts.includes(value.id)"                                                                                
+                                                                                                                            matTooltip="{{t('docs.tip.srvc_acsbl_res_dprts',{'resources':notEnoughResourcesInDepParts.get(value.id)})}}">
+                                                                                                                            workspaces
+                                                                                                                        </span>      -->
+                                                                                                                    </div>
+                                                                                                                    <span style="margin-left: 25px;">{{value.name}}</span>
+                                                                                                                </div>
+                                                                                                            </mat-option>
+                                                                                                        </span>
+                                                                                                    </ng-container>
+                                                                                                </mat-autocomplete>
+                                                                                            </mat-form-field>
+                                                                                            <mat-progress-bar *ngIf="isProductListLoading" mode="indeterminate"></mat-progress-bar>
                                                                                         
-                                                                                    </table>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </mat-tab>
-                                                                    <mat-tab label="{{t('docs.tab.history')}}">
-                                                                        <div class="container-fluid" style="padding-top:20px; padding-bottom: 20px;">
-                                                                            <app-appointments
-                                                                                [company_id]="formBaseInformation.get('company_id').value"
-                                                                                [customer_id]="row.id"
-                                                                                [appointment_id]="+id"
-                                                                                [booking_doc_name_variation]=companySettings.booking_doc_name_variation
-                                                                                >
-                                                                            </app-appointments>
-                                                                        </div>
-                                                                    </mat-tab>
-                                                                </mat-tab-group>
+                                                                                        
+                                                                                        
+                                                                                        
+                                                                                        
+                                                                                        
+                                                                                        
+                                                                                        </div>
+                                                                                    </div>
 
+                                                                                    <div class="row">     
+                                                                                        <div class="col-12">    
+                                                                                            <table  mat-table #_table_inside  
+                                                                                                    [dataSource]="getControl('appointmentsProductTable').value" 
+                                                                                                    [formGroup]="formBaseInformation" 
+                                                                                                    [trackBy]="trackByCustomerProductsIndex" 
+                                                                                                    class="mat-elevation-z8 product-table">
+                                                                                                <!-- Name -->
+                                                                                                <ng-container matColumnDef="name" [formArrayName]="'appointmentsProductTable'">
+                                                                                                    <th mat-header-cell *matHeaderCellDef>{{t('modules.col.name')}}</th>
+                                                                                                    <td mat-cell *matCellDef="let row1; let j = index" [formGroupName]="j"> 
+                                                                                                        <!-- ***!!! -->
+                                                                                                        <mat-icon
+                                                                                                            style=" color: red;
+                                                                                                                    line-height: 1;
+                                                                                                                    top: 3px;" 
+                                                                                                            class="mat-icon-notification"
+                                                                                                            *ngIf="row1.departmentPartsWithResourcesIds.length>0 && !accessibleTableServicesIdsByResourcesOfSelectedDepPart.includes(row1.product_id) && +formBaseInformation.get('department_part_id').value>0"
+                                                                                                            matTooltip="{{t('docs.tip.srvc_acsbl_res_dprt',{'resources':getResourcesNames(getNotEnoughResourcesOfServiceInDepPart(row1,formBaseInformation.get('department_part_id').value))})}}">
+                                                                                                            workspaces
+                                                                                                        </mat-icon>
+                                                                                                        <!-- <span>j={{j}}</span>,  -->
+                                                                                                        <a  target="_blank" href="/ui/productsdoc/{{row1.product_id}}" style="color:rgba(0, 0, 0, 0.87)"><span 
+                                                                                                        [ngClass]="{'nameInTableWithIcon':row1.departmentPartsWithResourcesIds.length>0 && !accessibleTableServicesIdsByResourcesOfSelectedDepPart.includes(row1.product_id)} && +formBaseInformation.get('department_part_id').value>0">
+                                                                                                        {{row1.name}}</span></a>
+                                                                                                    </td>
+                                                                                                    <td mat-footer-cell *matFooterCellDef></td>
+                                                                                                </ng-container>
+                                                                                                <!-- Product count -->
+                                                                                                <ng-container matColumnDef="product_count" [formArrayName]="'appointmentsProductTable'">
+                                                                                                    <th mat-header-cell *matHeaderCellDef style="width: 100px;">
+                                                                                                        <span 
+                                                                                                            style="cursor: default;"
+                                                                                                            matTooltip="{{t('modules.tip.cnt_to_order')}}">
+                                                                                                            {{t('modules.col.qnt')}}
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td 
+                                                                                                    mat-cell *matCellDef="let row1; let j = index" 
+                                                                                                    style="width: 80px;"
+                                                                                                    [formGroupName]="j"
+                                                                                                    [matTooltip]="((getControlTablefield().controls[j].get('product_count').value>(getControlTablefield().controls[j].get('available').value)&&getControlTablefield().controls[j].get('is_material').value) && editability && !(getControlTablefield().controls[j].get('product_count').invalid && getControlTablefield().controls[j].get('product_count').errors.pattern)) ? t('modules.tip.qtt_more_avlb') : ''"
+                                                                                                    [ngStyle]="   ((getControlTablefield().controls[j].get('product_count').value>((getControlTablefield().controls[j].get('available').value))&&getControlTablefield().controls[j].get('is_material').value) && editability && !(getControlTablefield().controls[j].get('product_count').invalid && getControlTablefield().controls[j].get('product_count').errors.pattern))?{'background-color': '#ffe4e1'}:{'background-color': 'white'}">
+                                                                                                        <div style="width:100%" *ngIf="getControlTablefield().controls[j].get('edizm_type_id').value!=7">
+                                                                                                            <input matInput 
+                                                                                                                class="table-field-editable quantity-field"
+                                                                                                                [ngClass]="{'table-field-editable':editability}"
+                                                                                                                [readonly]="!editability"
+                                                                                                                style="width: 50px !important;"
+                                                                                                                type="number" min="0"
+                                                                                                                placeholder=""
+                                                                                                                formControlName="product_count"
+                                                                                                                (change)="onChangeProductCount(j);"
+                                                                                                                (keyup)="nullToZeroInTableField(j, 'product_count');onChangeProductCount(j);"
+                                                                                                                (keypress)="numberOnlyPlusDotAndComma($event)"
+                                                                                                            />
+                                                                                                            <span matSuffix>{{row1.edizm}}</span>
+                                                                                                            <control-messages  class="table-form-invalid" [control]="getControlTablefield().controls[j].get('product_count')"></control-messages>
+                                                                                                            <mat-hint align="start" >
+                                                                                                                <i *ngIf="  getControlTablefield().controls[j].get('product_count').value !='' && 
+                                                                                                                            getControlTablefield().controls[j].get('indivisible').value && 
+                                                                                                                            !isInteger(parseFloat(getControlTablefield().controls[j].get('product_count').value))"  class="table-form-invalid">
+                                                                                                                            {{t('modules.error.mst_be_integr')}}
+                                                                                                                </i>
+                                                                                                                <i *ngIf="getControlTablefield().controls[j].get('product_count').invalid && getControlTablefield().controls[j].get('product_count').errors.pattern" class="table-form-invalid">{{t('modules.error.price_format',{int:7,fract:3})}}</i>
+                                                                                                            </mat-hint>
+                                                                                                        </div>
+                                                                                                        <div style="width:100%" *ngIf="getControlTablefield().controls[j].get('edizm_type_id').value==7">
+                                                                                                            {{getControlTablefield().controls[j].get('product_count').value}}&nbsp;{{row1.edizm}}
+                                                                                                        </div>
+                                                                                                    </td>
+                                                                                                    <td mat-footer-cell *matFooterCellDef></td>
+                                                                                                </ng-container>
+                                                                                                <!-- Price -->
+                                                                                                <ng-container matColumnDef="product_price" [formArrayName]="'appointmentsProductTable'">
+                                                                                                    <th mat-header-cell *matHeaderCellDef style="width: 80px;">
+                                                                                                        <span 
+                                                                                                            style="cursor: default;"
+                                                                                                            matTooltip="{{t('modules.tip.price')}}">
+                                                                                                            {{t('modules.col.price')}}, {{accountingCurrency}}
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td mat-cell *matCellDef="let row1; let j = index" [formGroupName]="j"
+                                                                                                    [ngStyle]="   (getControlTablefield().controls[j].get('product_price').value==0&&editability && !(getControlTablefield().controls[j].get('product_price').invalid && !getControlTablefield().controls[j].get('product_price').errors.pattern))?{'background-color': '#ffe4e1'}:{'background-color': 'white'}"
+                                                                                                    [matTooltip]="(getControlTablefield().controls[j].get('product_price').value==0&&editability && !(getControlTablefield().controls[j].get('product_price').invalid && !getControlTablefield().controls[j].get('product_price').errors.pattern))? t('modules.tip.zero_price') : ''">
+                                                                                                        <input matInput 
+                                                                                                            style="width: 70px;margin-right: 15px;"
+                                                                                                            [ngClass]="{'table-field-editable':editability}"
+                                                                                                            [readonly]=!editability
+                                                                                                            placeholder=""
+                                                                                                            formControlName="product_price"
+                                                                                                            (keyup)="onChangeProductPrice(j);"
+                                                                                                            (keypress)="numberOnlyPlusDotAndComma($event)"
+                                                                                                        />
+                                                                                                        <control-messages  class="table-form-invalid" [control]="getControlTablefield().controls[j].get('product_price')"></control-messages>
+                                                                                                        <mat-hint align="start" >
+                                                                                                            <i *ngIf="getControlTablefield().controls[j].get('product_price').invalid && getControlTablefield().controls[j].get('product_price').errors.pattern" class="table-form-invalid">{{t('modules.error.price_format',{int:7,fract:2})}}</i>
+                                                                                                        </mat-hint>
+                                                                                                    </td>
+                                                                                                    <td mat-footer-cell *matFooterCellDef></td>
+                                                                                                </ng-container>
+                                                                                                <!-- Sum -->
+                                                                                                <ng-container matColumnDef="product_sumprice" [formArrayName]="'appointmentsProductTable'">
+                                                                                                    <th mat-header-cell *matHeaderCellDef>{{t('modules.col.sum')}}, {{accountingCurrency}}</th>
+                                                                                                    <td mat-cell *matCellDef="let row1; let j = index" [formGroupName]="j"> {{row1.product_sumprice}} </td>
+                                                                                                    <td mat-footer-cell *matFooterCellDef>{{getTotalSumOfCustomer(row.row_id)}}</td>
+                                                                                                </ng-container>
+                                                                                                <!-- Price type -->
+                                                                                                <ng-container matColumnDef="price_type" [formArrayName]="'appointmentsProductTable'">
+                                                                                                    <th mat-header-cell *matHeaderCellDef style="min-width: 80px;">
+                                                                                                        <span 
+                                                                                                            style="cursor: default;"
+                                                                                                            matTooltip="{{t('modules.tip.price_type')}}">
+                                                                                                            {{t('modules.col.price_type')}}
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td mat-cell *matCellDef="let row1; let j = index" [formGroupName]="j"> 
+                                                                                                        <mat-select  
+                                                                                                        formControlName="price_type_id"
+                                                                                                        (selectionChange)="onChangePriceTypeOfRow(j)"
+                                                                                                        [ngClass]="{'table-field-editable':editability}"
+                                                                                                        [disabled]="!editability"
+                                                                                                        style="max-width:  95%;">
+                                                                                                            <mat-option  *ngFor="let rdl of receivedPriceTypesList" 
+                                                                                                            [value]="rdl.id"
+                                                                                                            matTooltip='{{rdl.description}}'>
+                                                                                                                    {{rdl.name}}
+                                                                                                            </mat-option>
+                                                                                                        </mat-select>
+                                                                                                    </td>
+                                                                                                    <td mat-footer-cell *matFooterCellDef></td>
+                                                                                                </ng-container>
+                                                                                                <!-- Taxes  -->
+                                                                                                <ng-container matColumnDef="nds" [formArrayName]="'appointmentsProductTable'">
+                                                                                                    <th mat-header-cell *matHeaderCellDef style="min-width: 50px;">{{t('modules.col.tax')}}</th>
+                                                                                                    <td mat-cell *matCellDef="let row1; let j = index" [formGroupName]="j"> 
+                                                                                                        <mat-select  
+                                                                                                        formControlName="nds_id" 
+                                                                                                        style="width:  95%;"
+                                                                                                        (selectionChange)="onChangeProductNds()" 
+                                                                                                        [ngClass]="{'table-field-editable':editability}"
+                                                                                                        [disabled]=!editability>                          
+                                                                                                            <mat-option  *ngFor="let rt of spravTaxesSet" [value]="rt.id">
+                                                                                                                    {{rt.name}}
+                                                                                                            </mat-option> 
+                                                                                                        </mat-select>
+                                                                                                    </td>
+                                                                                                    <td mat-footer-cell *matFooterCellDef></td>
+                                                                                                </ng-container>
+                                                                                                <ng-container matColumnDef="delete" [formArrayName]="'appointmentsProductTable'">
+                                                                                                    <th mat-header-cell *matHeaderCellDef style="width: 30px;">
+                                                                                                        <mat-icon 
+                                                                                                            style="cursor: default" 
+                                                                                                            (click)="clearCustomerProductsTable(row)"
+                                                                                                            matTooltip="{{t('modules.tip.del_frm_tabl_')}}">
+                                                                                                            close
+                                                                                                        </mat-icon>
+                                                                                                    </th>
+                                                                                                    <td mat-cell *matCellDef="let row1; let j = index" [formGroupName]="j">
+                                                                                                        <!-- <mat-icon style="cursor: pointer" *ngIf="!(getControlTablefield().controls[j].get('is_main').value)" (click)="deleteProductRow(row,i)">delete_forever</mat-icon> -->
+                                                                                                        <mat-icon style="cursor: pointer" (click)="deleteProductRow(j)">delete_forever</mat-icon>
+                                                                                                        <!-- <span>{{getControlTablefield().controls[j].get('is_main').value}}</span> -->
+                                                                                                    </td>
+                                                                                                    <td mat-footer-cell *matFooterCellDef></td>
+                                                                                                </ng-container>
+                                                                                                <tr mat-header-row *matHeaderRowDef="displayedCustomerProductsColumns"></tr>
+                                                                                                <tr mat-row *matRowDef="let row1; columns: displayedCustomerProductsColumns;" [class.hidden]="row.row_id!=row1.customerRowId"></tr>
+                                                                                                <tr mat-footer-row *matFooterRowDef="displayedCustomerProductsColumns"></tr>
+                                                                                                
+                                                                                            </table>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </mat-tab>
+                                                                            <mat-tab label="{{t('docs.tab.history')}}">
+                                                                                <div class="container-fluid" style="padding-top:20px; padding-bottom: 20px;">
+                                                                                    <app-appointments
+                                                                                        [company_id]="formBaseInformation.get('company_id').value"
+                                                                                        [customer_id]="row.id"
+                                                                                        [appointment_id]="+id"
+                                                                                        [booking_doc_name_variation]=companySettings.booking_doc_name_variation
+                                                                                        >
+                                                                                    </app-appointments>
+                                                                                </div>
+                                                                            </mat-tab>
+                                                                        </mat-tab-group>
+                                                                    </mat-card-content>
+                                                                </mat-card>
                                                             </div>
                                                         </td>
                                                     </ng-container>
