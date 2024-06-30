@@ -826,7 +826,7 @@
                                                         <td mat-cell *matCellDef="let row; let i = dataIndex" [formGroupName]="i" style="position: relative"> 
                                                             <a href="/ui/cagentsdoc/{{row.id}}" target="_blank" style="color:rgba(0, 0, 0, 0.87)" *ngIf="row.id>0"><span>{{row.name}}</span></a>
                                                             <span *ngIf="+row.id==0">{{row.name}}</span>
-                                                            <app-balance-cagent *ngIf="+row.id>0" style="position: absolute; top: 2px; right: 0;"
+                                                            <app-balance-cagent *ngIf="+row.id>0 && showBalanceModules" style="position: absolute; top: 2px; right: 0;"
                                                                 [company_id]="formBaseInformation.get('company_id').value"
                                                                 [cagent_id]="row.id"
                                                                 [currency]="accountingCurrency">
@@ -880,12 +880,36 @@
                                                                                                 *ngIf="+id>0"
                                                                                                 color="primary"
                                                                                                 type="button"
-                                                                                                [disabled]="+this.formBaseInformation.get('department_part_id').value==0 && +this.formBaseInformation.get('employeeId').value==0 && +this.formBaseInformation.get('jobtitle_id').value==0 && (searchProductCtrl.value==null || searchProductCtrl.value.length==0 || searchProductCtrl.value=='')" 
+                                                                                                (submit)="false"
+                                                                                                [disabled]="createUpdateButtonDisabled" 
                                                                                                 id="move_up_services"
                                                                                                 class="button small-button"
                                                                                                 (click)="createShipment(row);">
                                                                                                 <i class="material-icons">move_up</i>
                                                                                     </button>
+                                                                                    
+                                                                                    <button 
+                                                                                        mat-button 
+                                                                                        [matMenuTriggerFor]="get_money"
+                                                                                        mat-raised-button 
+                                                                                        matTooltip="{{t('docs.tip.get_money')}}"
+                                                                                        [disabled]="createUpdateButtonDisabled" 
+                                                                                        *ngIf="+id>0"
+                                                                                        color="primary"
+                                                                                        (submit)="false"
+                                                                                        type="button"
+                                                                                        id="add_doc_btn"
+                                                                                        class="button small-button">
+                                                                                        <i class="material-icons">payments</i>
+                                                                                    </button>
+                                                                                    <mat-menu #get_money="matMenu" yPosition="below" xPosition="before">
+                                                                                        <button mat-menu-item id="paymentin_btn" (click)="createPaymentin(row)">
+                                                                                            <span>{{t('docs.docs.paymentin')}}</span>
+                                                                                        </button>
+                                                                                        <button mat-menu-item id="orderin_btn" (click)="createOrderin(row)">
+                                                                                            <span>{{t('docs.docs.orderin')}}</span>
+                                                                                        </button>
+                                                                                    </mat-menu>
                                                                                 </div>
                                                                             </div>
                             

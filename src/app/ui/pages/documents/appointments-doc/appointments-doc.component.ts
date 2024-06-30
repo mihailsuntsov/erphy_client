@@ -251,6 +251,11 @@ interface Employee{
   departmentPartsWithServicesIds: DepartmentPartWithServicesIds[];
   state: string; // free / busyByAppointments / busyBySchedule
 }
+interface AppointmentChildDoc{
+  id:number;
+  docName:string;
+  sum:number;
+}
 interface DepartmentPartWithServicesIds{
   id: number;
   servicesIds:number[];
@@ -293,6 +298,8 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   customer:any; //information about row of customer, for which searching product or service
   notEnoughResourcesInDepParts = new Map();
   myCompanyId:number=0;
+  showBalanceModules=true;
+  appointmentChildDocs:AppointmentChildDoc[]=[];
   // companySettings:CompanySettings={vat:false,vat_included:true};  
   allFields: any[][] = [];//[номер строки начиная с 0][объект - вся инфо о товаре (id,кол-во, цена... )] - массив товаров
   filesInfo : filesInfo [] = []; //массив для получения информации по прикрепленным к документу файлам 
@@ -503,6 +510,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       cagent_id : new UntypedFormControl           ('',[]),// customer's ID, needed to create documents from Appointments (Shipment, incoming payments) // ID клиента, для создания документов из Записи (Отгрузка, входящие платежи) 
       total_nds : new UntypedFormControl           ('',[]), // Total VAT of customer, needed to create documents from Appointments (incoming payments) // Сумма НДС клиента, для создания документов из Записи (входящие платежи) 
       total_summ: new UntypedFormControl           ('',[]), // Total sum of customer, needed to create documents from Appointments (incoming payments) // Сумма клиента, для создания документов входящих платежей из Записи
+      // payment_doc_type: new UntypedFormControl     ('',[]),// to create documents from Appointments, can be "paymentin" or "orderin"// для создания документов входящих платежей, может принимать значения  "paymentin" или "orderin"
     });
     // Форма для отправки при создании связанных документов
     this.formLinkedDocs = new UntypedFormGroup({
@@ -912,15 +920,16 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
       );
   }
-  // getJobtitleList(){ 
-  //   this.http.get('/api/auth/getJobtitlesList?company_id='+this.formBaseInformation.get('company_id').value)
-  //     .subscribe(
-  //         (data) => {   
-  //                     this.receivedJobtitlesList=data as any [];
-  //     },
-  //     error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
-  //     );
-  // }
+  getAppointmentChildDocs(){ 
+    this.http.get('/api/auth/getAppointmentChildDocs?id='+this.id)
+      .subscribe(
+          (data) => {   
+                      this.appointmentChildDocs=data as AppointmentChildDoc[];
+      },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
+      );
+  }
+
   // проверки на различные случаи
   checkAnyCases(){
     //проверка на то, что часть отделения все еще числится в отделениях предприятия (не было удалено и т.д.)
@@ -1583,12 +1592,17 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
                   this.getStatusesList();//статусы документа Заказ покупателяthis.
                   this.getDepartmentsWithPartsList();
                   this.getJobtitleList();
+                  this.getAppointmentChildDocs();
                   // this.hideOrShowNdsColumn();//расчет прятать или показывать колонку НДС
                   this.getSpravTaxes();//загрузка налогов
                   this.fillCustomersObjectListFromApiResponse(documentValues.customersTable);
                   this.fillProductsListFromApiResponse(documentValues.appointmentsProductTable)
                   this.loadFilesInfo();
                   this.recountTotals();
+                  this.showBalanceModules=false;
+                  setTimeout(() => { 
+                    this.showBalanceModules=true;
+                  }, 1);
                   // this.cheque_nds=documentValues.nds;//нужно ли передавать в кассу (в чек) данные об НДС 
                   
                 } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
@@ -2386,10 +2400,14 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   fillProductsListFromApiResponse(productsArray:AppointmentsProductTable[]){
     const control = <UntypedFormArray>this.getControlTablefield();
     control.clear(); 
-    productsArray.forEach(row=>{
-      control.push(this.formingProductRowFromApiResponse(row));
-    });
-    this.refreshTableColumns();
+    // setTimeout(() => { 
+      productsArray.forEach(row=>{
+        control.push(this.formingProductRowFromApiResponse(row));
+      });
+      this.refreshTableColumns();
+
+    //  }, 300);
+    
   }
   
   formingProductCustomerRow(row: AppointmentCustomer) {
@@ -2946,8 +2964,8 @@ deleteFile(id:number){
               }
               case 1:{// Успешно
                 this.openSnackBar(translate('docs.msg.doc_name',{name:translate('docs.docs.shipment')}) + (translate('docs.msg.completed')), translate('docs.msg.close'));
-                // this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                 this.getData();
+                
                 break;
               }
               default:{// другая ошибка
@@ -2957,9 +2975,115 @@ deleteFile(id:number){
             }
             this.oneClickSaveControl=false;
           },
-          // error => {
-          //   this.showQueryErrorMessage(error);this.oneClickSaveControl=false;
-          //   },
+          error => {
+            this.showQueryErrorMessage(error);this.oneClickSaveControl=false;
+            },
+      );
+  }
+  createPaymentin(row:any){
+    this.oneClickSaveControl=true;
+    this.tableNdsRecount();
+    this.formBaseInformation.get('cagent_id').setValue(row.id);
+    this.formBaseInformation.get('total_nds').setValue(this.totalNds.get(row.row_id));
+    this.formBaseInformation.get('total_summ').setValue(this.totalProductSumm.get(row.row_id));
+    this.http.post('/api/auth/createAndCompletePaymentInFromAppointment',  this.formBaseInformation.value)
+      .subscribe(
+          (data) => 
+          {
+            let result:number=data as number;
+            switch(result){
+              case null:{// null возвращает если не удалось создать документ из-за ошибки
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_of') + (translate('docs.msg._of_comp')) + translate('docs.msg._of_doc',{name:translate('docs.docs.paymentin')})}});
+                break;
+              }
+              case -1:{//недостаточно прав
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});
+                break;
+              }
+              case -30:{//недостаточно средств 
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_money_op')}});
+                break;
+              }
+              case -31:{//Документ-отправитель внутреннего платежа не проведён (например, проводим приходный ордер, но незадолго до этого у исходящего платежа сняли проведение)
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.sender_n_comp')}});
+                break;
+              }
+              case -40:{//дублирование исходящего платежа  
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:(this.formBaseInformation.get('moving_type').value=='account'?translate('docs.msg.pi_w_po_compl'):translate('docs.msg.pi_w_oo_compl'))}});
+                break;
+              }
+              case -50:{//Документ уже проведён
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.already_cmplt')}});
+                break;
+              }
+              case 1:{// Успешно
+                this.openSnackBar(translate('docs.msg.doc_name',{name:translate('docs.docs.paymentin')}) + (translate('docs.msg.completed')), translate('docs.msg.close'));
+                this.getData();                
+                break;
+              }
+              default:{// другая ошибка
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:"Operation error"}});
+                break;
+              }
+            }
+            this.oneClickSaveControl=false;
+          },
+          error => {
+            this.showQueryErrorMessage(error);this.oneClickSaveControl=false;
+            },
+      );
+  }
+  createOrderin(row:any){
+    this.oneClickSaveControl=true;
+    this.tableNdsRecount();
+    this.formBaseInformation.get('cagent_id').setValue(row.id);
+    this.formBaseInformation.get('total_nds').setValue(this.totalNds.get(row.row_id));
+    this.formBaseInformation.get('total_summ').setValue(this.totalProductSumm.get(row.row_id));
+    this.http.post('/api/auth/createAndCompleteOrderInFromAppointment',  this.formBaseInformation.value)
+      .subscribe(
+          (data) => 
+          {
+            let result:number=data as number;
+            switch(result){
+              case null:{// null возвращает если не удалось создать документ из-за ошибки
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_of') + (translate('docs.msg._of_comp')) + translate('docs.msg._of_doc',{name:translate('docs.docs.orderin')})}});
+                break;
+              }
+              case -1:{//недостаточно прав
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});
+                break;
+              }
+              case -30:{//недостаточно средств 
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_money_op')}});
+                break;
+              }
+              case -31:{//Документ-отправитель внутреннего платежа не проведён (например, проводим приходный ордер, но незадолго до этого у исходящего платежа сняли проведение)
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.sender_n_comp')}});
+                break;
+              }
+              case -40:{//дублирование исходящего платежа   
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.pi_w')+(this.formBaseInformation.get('moving_type').value=='account'?translate('docs.msg._po'):(this.formBaseInformation.get('moving_type').value=='boxoffice'?translate('docs.msg._oo'):translate('docs.msg._wd')))+translate('docs.msg._already_comp')}});
+                break;
+              }
+              case -50:{//Документ уже проведён
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.already_cmplt')}});
+                break;
+              }
+              case 1:{// Успешно
+                this.openSnackBar(translate('docs.msg.doc_name',{name:translate('docs.docs.orderin')}) + (translate('docs.msg.completed')), translate('docs.msg.close'));
+                this.getData();                
+                break;
+              }
+              default:{// другая ошибка
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:"Operation error"}});
+                break;
+              }
+            }
+            this.oneClickSaveControl=false;
+          },
+          error => {
+            this.showQueryErrorMessage(error);this.oneClickSaveControl=false;
+            },
       );
   }
     //**************************** КАССОВЫЕ ОПЕРАЦИИ  ******************************/
