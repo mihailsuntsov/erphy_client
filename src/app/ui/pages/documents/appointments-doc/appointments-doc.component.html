@@ -844,16 +844,23 @@
                                                     <ng-container matColumnDef="paid" [formArrayName]="'customersTable'">
                                                         <th mat-header-cell *matHeaderCellDef>{{t('modules.col.paid')}}, {{accountingCurrency}}</th>
                                                         <td mat-cell *matCellDef="let row; let i = dataIndex" [formGroupName]="i"> 
-                                                            <span>0</span>
+                                                            <span>{{numToPrice(getPaidCustomerSum(row.id),2)}}</span>
+                                                        </td>
+                                                    </ng-container>
+                                                    <!--Shipped-->
+                                                    <ng-container matColumnDef="shipped" [formArrayName]="'customersTable'">
+                                                        <th mat-header-cell *matHeaderCellDef>{{t('modules.col.shipped')}}, {{accountingCurrency}}</th>
+                                                        <td mat-cell *matCellDef="let row; let i = dataIndex" [formGroupName]="i"> 
+                                                            <span>{{numToPrice(getShippedCustomerSum(row.id),2)}}</span>
                                                         </td>
                                                     </ng-container>
                                                     <!--Unpayed-->
-                                                    <ng-container matColumnDef="unpaid" [formArrayName]="'customersTable'">
+                                                    <!-- <ng-container matColumnDef="unpaid" [formArrayName]="'customersTable'">
                                                         <th mat-header-cell *matHeaderCellDef>{{t('modules.col.unpaid')}}, {{accountingCurrency}}</th>
                                                         <td mat-cell *matCellDef="let row; let i = dataIndex" [formGroupName]="i"> 
                                                             <span>{{getTotalSumOfCustomer(row.row_id)}}</span>
                                                         </td>
-                                                    </ng-container>
+                                                    </ng-container> -->
                                                     <!-- Delete Column -->
                                                     <ng-container matColumnDef="delete" [formArrayName]="'customersTable'">
                                                         <th mat-header-cell *matHeaderCellDef style="width: 20px;"><mat-icon style="cursor: default" (click)="clearCustomersTable()" matTooltip="{{t('modules.tip.del_frm_tabl_')}}">close</mat-icon></th>
@@ -870,10 +877,10 @@
 
                                                                 <mat-card appearance="outlined" class="internal-card" style="margin: 0;">
                                                                     <mat-card-header>
-                            
+                                                                        <!-- {{t('docs.card.client_card')}} -->
                                                                         <mat-card-title class="card-title">
                                                                             <div class="flex card">
-                                                                                {{t('docs.card.client_card')}}
+                                                                               
                                                                                 <div style="position: absolute; right: 20px;">
                                                                                     <button matTooltip="{{t('docs.tip.ship_to_customer')}}" 
                                                                                                 mat-raised-button
@@ -903,10 +910,10 @@
                                                                                         <i class="material-icons">payments</i>
                                                                                     </button>
                                                                                     <mat-menu #get_money="matMenu" yPosition="below" xPosition="before">
-                                                                                        <button mat-menu-item id="paymentin_btn" (click)="createPaymentin(row)">
+                                                                                        <button mat-menu-item id="paymentin_btn" [disabled]="oneClickSaveControl" matTooltip="{{t('docs.tip.if_cl_pay_nocash')}}" (click)="createPaymentin(row)">
                                                                                             <span>{{t('docs.docs.paymentin')}}</span>
                                                                                         </button>
-                                                                                        <button mat-menu-item id="orderin_btn" (click)="createOrderin(row)">
+                                                                                        <button mat-menu-item id="orderin_btn" [disabled]="oneClickSaveControl" matTooltip="{{t('docs.tip.if_cl_pay_cash')}}" (click)="createOrderin(row)">
                                                                                             <span>{{t('docs.docs.orderin')}}</span>
                                                                                         </button>
                                                                                     </mat-menu>
@@ -1192,6 +1199,95 @@
                                                                                     </app-appointments>
                                                                                 </div>
                                                                             </mat-tab>
+                                                                            <mat-tab label="{{t('docs.tab.documents')}}">
+                                                                                <div class="container-fluid" style="padding-top:20px; padding-bottom: 20px;">
+                                                                                    <div class="row">     
+                                                                                        <div class="col-12">    
+                                                                                            <mat-spinner 
+                                                                                            strokeWidth="3" 
+                                                                                            class="spinner"
+                                                                                            style="top:-74px"
+                                                                                            [diameter]="50"
+                                                                                            *ngIf="gettingAppointmentChildDocsTableData"
+                                                                                            ></mat-spinner>
+                                                                                            <table  mat-table #_table_app_child_docs 
+                                                                                                    [dataSource]="appointmentChildDocs"
+                                                                                                    [trackBy]="trackByIndex" 
+                                                                                                    class="mat-elevation-z8 product-table">
+                                                                                                <ng-container matColumnDef="open">
+                                                                                                    <th mat-header-cell *matHeaderCellDef>&nbsp;</th>
+                                                                                                    <td mat-cell *matCellDef="let row1; let j = index"> 
+                                                                                                        <a class="inactive" href="/ui/{{row1.docName}}doc/{{row1.id}}" target="_blank">
+                                                                                                            <mat-icon>launch</mat-icon>
+                                                                                                        </a>
+                                                                                                    </td>
+                                                                                                    <!-- <td mat-footer-cell *matFooterCellDef></td> -->
+                                                                                                </ng-container>
+                                                                                                <!-- Type -->
+                                                                                                <ng-container matColumnDef="docType">
+                                                                                                    <th mat-header-cell *matHeaderCellDef>{{t('menu.table.type')}}</th>
+                                                                                                    <td mat-cell *matCellDef="let row1; let j = index">                                                                                                        
+                                                                                                        
+                                                                                                        <i class="material-icons" matTooltip="{{t('docs.tip.doc_refl_prods')}}" style="color:gray; cursor:pointer;" *ngIf="row1.docName=='shipment'">move_up</i>
+                                                                                                        <i class="material-icons" matTooltip="{{t('docs.tip.doc_refl_money')}}" style="color:gray; cursor:pointer;" *ngIf="row1.docName=='orderin' || row1.docName=='paymentin'">payments</i>
+                                                                                                        
+                                                                                                    </td>
+                                                                                                    <!-- <td mat-footer-cell *matFooterCellDef></td> -->
+                                                                                                </ng-container>
+                                                                                                <!-- Name -->
+                                                                                                <ng-container matColumnDef="docName">
+                                                                                                    <th mat-header-cell *matHeaderCellDef>{{t('modules.col.name')}}</th>
+                                                                                                    <td mat-cell *matCellDef="let row1; let j = index">{{t('docs.docs.'+row1.docName)}}</td>
+                                                                                                    <!-- <td mat-footer-cell *matFooterCellDef></td> -->
+                                                                                                </ng-container>
+                                                                                                <!-- Document Number -->
+                                                                                                <ng-container matColumnDef="docNumber">
+                                                                                                    <th mat-header-cell *matHeaderCellDef>{{t('menu.table.doc_num')}}</th>
+                                                                                                    <td mat-cell *matCellDef="let row1; let j = index">{{row1.docNumber}}</td>
+                                                                                                    <!-- <td mat-footer-cell *matFooterCellDef></td> -->
+                                                                                                </ng-container>
+                                                                                                <!-- Sum -->
+                                                                                                <ng-container matColumnDef="sum">
+                                                                                                    <th mat-header-cell *matHeaderCellDef>{{t('modules.col.sum')}}, {{accountingCurrency}}</th>
+                                                                                                    <td mat-cell *matCellDef="let row1; let j = index"> {{numToPrice(row1.sum,2)}} </td>
+                                                                                                    <!-- <td mat-footer-cell *matFooterCellDef>{{getTotalSumOfCustomer(row.row_id)}}</td> -->
+                                                                                                </ng-container>
+                                                                                                <!-- Date -->
+                                                                                                <ng-container matColumnDef="date">
+                                                                                                    <th mat-header-cell *matHeaderCellDef>{{t('menu.table.created')}}</th>
+                                                                                                    <td mat-cell *matCellDef="let row1; let j = index"> {{row1.date}} </td>
+                                                                                                    <!-- <td mat-footer-cell *matFooterCellDef>{{getTotalSumOfCustomer(row.row_id)}}</td> -->
+                                                                                                </ng-container>
+                                                                                                
+                                                                                                <ng-container matColumnDef="delete">
+                                                                                                    <th mat-header-cell *matHeaderCellDef style="width: 30px;"></th>
+                                                                                                    <td mat-cell *matCellDef="let row1; let j = index">
+                                                                                                        <!-- <mat-icon (click)="delAtRow(j)">add</mat-icon> -->
+                                                                                                        <mat-icon matTooltip="{{t('docs.tip.cancl_compl')}}" style="cursor: pointer" [ngStyle]="oneClickSaveControl?{'color':'gray'}:{}" (click)="setAppointmentChildDocumentAsDecompleted(row1,j)">delete_forever</mat-icon>
+                                                                                                    </td>
+                                                                                                    <!-- <td mat-footer-cell *matFooterCellDef></td> -->
+                                                                                                </ng-container>
+                                                                                                <tr mat-header-row *matHeaderRowDef="displayedAppointmentChildDocsColumns"></tr>
+                                                                                                <tr mat-row *matRowDef="let row1; columns: displayedAppointmentChildDocsColumns;" [class.hidden]="row.id!=row1.customerId"></tr>
+                                                                                                <!-- <tr mat-footer-row *matFooterRowDef="displayedCustomerProductsColumns"></tr> -->
+                                                                                                <!-- Part "Data not founded" --> <!--+++-->
+                                                                                                <ng-container matColumnDef="data_not_found">
+                                                                                                    <td mat-footer-cell *matFooterCellDef colspan="6" class="text-center">
+                                                                                                        {{t('menu.msg.dt_not_fnd')}}
+                                                                                                    </td>
+                                                                                                </ng-container>
+                                                                                                <ng-container matColumnDef="nocolumn">
+                                                                                                    <td mat-footer-cell *matFooterCellDef colspan="6" style="display: none;"></td>
+                                                                                                </ng-container>
+                                                                                                <tr mat-footer-row 
+                                                                                                *matFooterRowDef="[appointmentChildDocs.length==0?'data_not_found':'nocolumn']" 
+                                                                                                [ngStyle]="(appointmentChildDocs.length==0 && !gettingAppointmentChildDocsTableData)?{}:{'display': 'none'}"></tr>
+                                                                                                <!-- End of Part "Data not founded" -->
+                                                                                            </table>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </mat-tab>
                                                                         </mat-tab-group>
                                                                     </mat-card-content>
                                                                 </mat-card>
@@ -1217,7 +1313,7 @@
                             </div>
                         </div>  
                     </mat-tab>
-                    <mat-tab *ngIf="+id>0">
+                    <!-- <mat-tab *ngIf="+id>0">
                         <ng-template mat-tab-label>
                             <div>{{t('docs.tab.linked')}}</div><div><span [matBadge]="linkedDocsCount" matBadgeOverlap="false">&nbsp;</span></div>
                         </ng-template>
@@ -1241,7 +1337,7 @@
                                 </div>
                             </div>
                         </div>
-                    </mat-tab>
+                    </mat-tab> -->
                     <mat-tab *ngIf="+id>0">
                         <ng-template mat-tab-label>
                             <p>
@@ -1337,9 +1433,9 @@
         4-{{!this.isDatesValid}}
         5-{{(this.formBaseInformation.get('department_part_id').value>0 && !this.accessibleDepPartsIdsAll.includes(+this.formBaseInformation.get('department_part_id').value))}}
         6-{{(this.isThereAreServicesInTableWithEmployeeRequired() && +this.formBaseInformation.get('employeeId').value>0 && (!this.accessibleEmployeesIdsAll.includes(+this.formBaseInformation.get('employeeId').value)))}} -->
+        <code><pre>{{appointmentChildDocs | json}}</pre></code>
 
-
-        <b>{{expandedElement}}</b>
+        <!-- <b>{{expandedElement}}</b> -->
         <!-- <code><pre>{{expandedElement?expandedElement.value:'[]' | json}}</pre></code><br> -->
         <!-- <b>accessibleServicesIdsAll ({{accessibleServicesIdsAll.length}})</b>
         <code><pre>{{accessibleServicesIdsAll | json}}</pre></code><br>  -->

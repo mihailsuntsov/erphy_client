@@ -20,7 +20,8 @@
         "variations":   "Variations",
         "advanced":     "Advanced",
         "history":      "History",
-        "services":     "Services"
+        "services":     "Services",
+        "documents":    "Documents"
     },
     "card":{
         "base_info":    "Main information",
@@ -565,7 +566,15 @@
         "busy_by_schedule":"The selected time is not the employee’s working time, or the employee does not have a completed work schedule",
         "na_by_jobttl":"The employee's job title does not match the selected position",
         "busy_by_appontm":"The employee is busy at the selected time",
-        "value_cant_be":"This value cannot be selected"
+        "value_cant_be":"This value cannot be selected",
+        "ship_to_customer":"Record the transfer of services or products to the customer. This operation will automatically create and post a \"Shipment\" document, which will affect the balance with the customer.",
+        "get_money":"Record the receipt of funds from the customer. This operation will automatically create and post a document \"Incoming payment\" or \"Credit slip\", which will affect the balance with the customer.",
+        "if_cl_pay_nocash":"Select if the customer pays by card or by bank transfer.",
+        "if_cl_pay_cash":"Select if the customer pays in cash.",
+        "doc_refl_prods":"A document reflecting the transfer of services or products to a customer.",
+        "doc_refl_money":"A document reflecting the receipt of funds from the customer.",
+        "cancl_compl":"Cancel completing of the document. This operation will affect the balance with the customer. After this operation the document will not be available from this table, because it displays only posted documents that affect the balance with the customer."
+        
     },
     "msg":{
         "error":        "Error!",

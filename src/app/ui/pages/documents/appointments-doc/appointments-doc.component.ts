@@ -13,7 +13,7 @@ import { ValidationService } from './validation.service';
 import { v4 as uuidv4 } from 'uuid';
 import { CommonUtilitesService } from 'src/app/services/common_utilites.serviсe';
 import { MatTabChangeEvent } from '@angular/material/tabs';
-import { graphviz }  from 'd3-graphviz';
+// import { graphviz }  from 'd3-graphviz';
 import { BalanceCagentComponent } from 'src/app/modules/info-modules/balance/balance-cagent/balance-cagent.component';
 import { TemplatesDialogComponent } from 'src/app/modules/settings/templates-dialog/templates-dialog.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
@@ -255,6 +255,9 @@ interface AppointmentChildDoc{
   id:number;
   docName:string;
   sum:number;
+  customerId:number;
+  docNumber:string;
+  date:string;
 }
 interface DepartmentPartWithServicesIds{
   id: number;
@@ -345,15 +348,15 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   formLinkedDocs:any// Форма для отправки при создании Возврата покупателя
   expandedElement: any | null;
   indivisibleErrorOfProductTable:boolean;// дробное кол-во товара при неделимом товаре в таблице товаров
-
+  gettingAppointmentChildDocsTableData:boolean = false;
 
   //для построения диаграмм связанности
   tabIndex=0;// индекс текущего отображаемого таба (вкладки)
-  linkedDocsCount:number = 0; // кол-во документов в группе, ЗА ИСКЛЮЧЕНИЕМ текущего
-  linkedDocsText:string = ''; // схема связанных документов (пример - в самом низу)
+  // linkedDocsCount:number = 0; // кол-во документов в группе, ЗА ИСКЛЮЧЕНИЕМ текущего
+  // linkedDocsText:string = ''; // схема связанных документов (пример - в самом низу)
   loadingDocsScheme:boolean = false;
   linkedDocsSchemeDisplayed:boolean = false;
-  showGraphDiv:boolean=true;
+  // showGraphDiv:boolean=true;
 
   //чекбоксы
   selection = new SelectionModel<any>(true, []);// специальный класс для удобной работы с чекбоксами
@@ -370,6 +373,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   showSearchCustomerFormFields:boolean = true;
   displayedCustomersColumns: string[]=[];//массив отображаемых столбцов таблицы с ресурсами
   displayedCustomerProductsColumns: string[]=[];//массив отображаемых столбцов таблицы с ресурсами
+  displayedAppointmentChildDocsColumns: string[]=[];//массив отображаемых столбцов таблицы с производными документами
 
   customerHasBeenSearched: boolean=false; // чтобы не показывало сразу что клиент не найден, а только после первого поиска
   isCustomerListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
@@ -921,15 +925,19 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       );
   }
   getAppointmentChildDocs(){ 
+    this.gettingAppointmentChildDocsTableData=true;
     this.http.get('/api/auth/getAppointmentChildDocs?id='+this.id)
       .subscribe(
           (data) => {   
                       this.appointmentChildDocs=data as AppointmentChildDoc[];
+                      this.gettingAppointmentChildDocsTableData=false;
       },
-      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
+      error => {this.gettingAppointmentChildDocsTableData=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
       );
   }
+  delAppointmentChildDoc(doc:AppointmentChildDoc){
 
+  }
   // проверки на различные случаи
   checkAnyCases(){
     //проверка на то, что часть отделения все еще числится в отделениях предприятия (не было удалено и т.д.)
@@ -1583,11 +1591,12 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
                   this.creatorId=+documentValues.creator_id;
                   this.is_completed=documentValues.is_completed;
                   this.showSearchCustomerFormFields=false;
+                  this.formAppointmentChildDocsColumns();
                   this.getSpravSysEdizm();//справочник единиц измерения
                   this.getCompanySettings();
                   this.getSetOfTypePrices(); //загрузка цен по типам цен для выбранных значений (предприятие, отделение, контрагент)
                   this.getPriceTypesList();
-                  this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+                  // this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
                   this.getDepartmentsList();//отделения
                   this.getStatusesList();//статусы документа Заказ покупателяthis.
                   this.getDepartmentsWithPartsList();
@@ -1608,7 +1617,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
                 } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();
             },
-            error => {this.oneClickSaveControl=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
+            error => {this.gettingAppointmentChildDocsTableData=false;this.oneClickSaveControl=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
         );
   }
   getTotalProductCount() {//бежим по столбцу product_count и складываем (аккумулируем) в acc начиная с 0 значения этого столбца
@@ -2193,7 +2202,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     this.formBaseInformation.get('cagent').setValue('');
     this.actionsBeforeGetChilds=0;
     this.actionsBeforeCreateNewDoc=0;
-    this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
+    // this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
     this.resetStatus();
     // this.formExpansionPanelsString();
     this.is_completed=false;
@@ -2237,7 +2246,17 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   //     error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //
   //     );
   // }
-
+  formAppointmentChildDocsColumns(){
+    this.displayedAppointmentChildDocsColumns=[];
+        this.displayedAppointmentChildDocsColumns.push('open');
+        this.displayedAppointmentChildDocsColumns.push('docType');
+        this.displayedAppointmentChildDocsColumns.push('docName');
+        this.displayedAppointmentChildDocsColumns.push('docNumber');
+        this.displayedAppointmentChildDocsColumns.push('sum');
+        this.displayedAppointmentChildDocsColumns.push('date');
+    if(!this.formBaseInformation.get('is_completed').value)
+      this.displayedAppointmentChildDocsColumns.push('delete');
+  }
   formCustomerTableColumns(){
     this.displayedCustomersColumns=[];
     // if(this.editability)
@@ -2248,8 +2267,9 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         this.displayedCustomersColumns.push('email');
         this.displayedCustomersColumns.push('telephone');
         this.displayedCustomersColumns.push('sum');
+        this.displayedCustomersColumns.push('shipped');
         this.displayedCustomersColumns.push('paid');
-        this.displayedCustomersColumns.push('unpaid');
+        // this.displayedCustomersColumns.push('unpaid');
         // this.displayedCustomersColumns.push('child');
         // this.displayedCustomersColumns.push('is_payer');
     if(this.editability)
@@ -2439,6 +2459,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     this.customer_row_id++;
     return current_row_id;
   }
+
   //*****************************************************************************************************************************************/
 /***********************************************************         ФАЙЛЫ          *******************************************************/
 //*****************************************************************************************************************************************/
@@ -2716,60 +2737,60 @@ deleteFile(id:number){
       if(!this.linkedDocsSchemeDisplayed) {
         this.loadingDocsScheme=true;
         setTimeout(() => {
-            this.drawLinkedDocsScheme(); 
+            // this.drawLinkedDocsScheme(); 
           }, 1);   
       }      
     }    
   }
-  getLinkedDocsScheme(draw?:boolean){
-    let result:any;
-    this.loadingDocsScheme=true;
-    this.linkedDocsSchemeDisplayed = false;
-    this.linkedDocsText ='';
-    this.loadingDocsScheme=true;
-    this.http.get('/api/auth/getLinkedDocsScheme?uid='+this.formBaseInformation.get('uid').value)
-      .subscribe(
-          data => { 
-            result=data as any;
+  // getLinkedDocsScheme(draw?:boolean){
+  //   let result:any;
+  //   this.loadingDocsScheme=true;
+  //   this.linkedDocsSchemeDisplayed = false;
+  //   this.linkedDocsText ='';
+  //   this.loadingDocsScheme=true;
+  //   this.http.get('/api/auth/getLinkedDocsScheme?uid='+this.formBaseInformation.get('uid').value)
+  //     .subscribe(
+  //         data => { 
+  //           result=data as any;
             
-            if(result==null){
-              this.loadingDocsScheme=false;
-              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.err_load_lnkd')}});
-            } else if(result.errorCode==0){//нет результата
-              this.linkedDocsSchemeDisplayed = true;
-              this.loadingDocsScheme=false;
-            } else {
-              this.linkedDocsCount=result.count==0?result.count:result.count-1;// т.к. если документ в группе будет только один (данный) - result.count придёт = 1, т.е. связанных нет. Если документов в группе вообще нет - придет 0.
-              this.linkedDocsText = result.text;
-              if(draw)
-                this.drawLinkedDocsScheme()
-              else
-                this.loadingDocsScheme=false;
-            } 
-        },
-        error => {this.loadingDocsScheme=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
-    );
-  }
+  //           if(result==null){
+  //             this.loadingDocsScheme=false;
+  //             this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.err_load_lnkd')}});
+  //           } else if(result.errorCode==0){//нет результата
+  //             this.linkedDocsSchemeDisplayed = true;
+  //             this.loadingDocsScheme=false;
+  //           } else {
+  //             this.linkedDocsCount=result.count==0?result.count:result.count-1;// т.к. если документ в группе будет только один (данный) - result.count придёт = 1, т.е. связанных нет. Если документов в группе вообще нет - придет 0.
+  //             this.linkedDocsText = result.text;
+  //             if(draw)
+  //               this.drawLinkedDocsScheme()
+  //             else
+  //               this.loadingDocsScheme=false;
+  //           } 
+  //       },
+  //       error => {this.loadingDocsScheme=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+  //   );
+  // }
 
-  drawLinkedDocsScheme(){
-    if(this.tabIndex==1){
-      try{
-        console.log(this.linkedDocsText);
-        this.loadingDocsScheme=false;
-        this.linkedDocsSchemeDisplayed = true;
-        this.showGraphDiv=false;
-        setTimeout(() => {
-          this.showGraphDiv=true;
-          setTimeout(() => {
-            graphviz("#graph").renderDot(this.linkedDocsText);
-            }, 1);
-          }, 1);
-      } catch (e){
-        this.loadingDocsScheme=false;
-        console.log(e.message);
-      }
-    } else this.loadingDocsScheme=false;
-  }
+  // drawLinkedDocsScheme(){
+  //   if(this.tabIndex==1){
+  //     try{
+  //       console.log(this.linkedDocsText);
+  //       this.loadingDocsScheme=false;
+  //       this.linkedDocsSchemeDisplayed = true;
+  //       this.showGraphDiv=false;
+  //       setTimeout(() => {
+  //         this.showGraphDiv=true;
+  //         setTimeout(() => {
+  //           graphviz("#graph").renderDot(this.linkedDocsText);
+  //           }, 1);
+  //         }, 1);
+  //     } catch (e){
+  //       this.loadingDocsScheme=false;
+  //       console.log(e.message);
+  //     }
+  //   } else this.loadingDocsScheme=false;
+  // }
 
   //**************************** ПЕЧАТЬ ДОКУМЕНТОВ  ******************************/
   // открывает диалог печати
@@ -3086,6 +3107,78 @@ deleteFile(id:number){
             },
       );
   }
+
+  setAppointmentChildDocumentAsDecompleted(doc:AppointmentChildDoc,row_index:number){
+    // alert(row_index)
+    // alert(this.appointmentChildDocs.length)
+    // this.appointmentChildDocs.slice(row_index,1);
+    if(!this.oneClickSaveControl){
+      const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+        width: '400px',data:{
+        head:    translate('docs.msg.cnc_com_head'),
+        warning: translate('docs.msg.cnc_com_warn'),
+        query: ''},});
+      dialogRef.afterClosed().subscribe(result => {
+        if(result==1){
+          this.oneClickSaveControl=true;
+          this.http.get('/api/auth/setAppointmentChildDocumentAsDecompleted?doc_id='+doc.id+'&doc_name='+doc.docName).subscribe(
+              (data) => 
+              {
+                let result:number=data as number;
+                switch(result){
+                  case null:{// null возвращает если не удалось завершить операцию из-за ошибки
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.cnc_com_error')}});
+                    break;
+                  }
+                  case -1:{//недостаточно прав
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}});
+                    break;
+                  }
+                  case -30:{//недостаточно средств
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_money_op')}});
+                    break;
+                  }
+                  case -60:{//Документ уже снят с проведения
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.alr_cnc_com')}});
+                    break;
+                  }
+                  case -70:{//Отрицательное кол-во товара в истории движения товара
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.cnc_com_err1')}});
+                    break;
+                  }
+                  case 1:{// Успешно
+                    this.openSnackBar(translate('docs.msg.cnc_com_succs',{name:translate('docs.docs.'+doc.docName)}), translate('docs.msg.close'));
+                    this.getData();        
+                    this.gettingAppointmentChildDocsTableData=true;
+                    this.appointmentChildDocs.splice(row_index,1);// to hide deleted row while all data is refreshing 
+                    this.displayedAppointmentChildDocsColumns=[];
+                    setTimeout(() => {this.formAppointmentChildDocsColumns()}, 10); 
+                    break;
+                  }
+                  default:{// другая ошибка
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:"Operation error"}});
+                    break;
+                  }
+                }
+                this.oneClickSaveControl=false;
+              },
+              error => {this.showQueryErrorMessage(error);this.oneClickSaveControl=false;},
+          );
+        }
+      });
+    }    
+  }
+
+
+
+
+  // delAtRow(j){
+  //   this.appointmentChildDocs.splice(0,1);
+  //   this.displayedAppointmentChildDocsColumns=[];
+  //   setTimeout(() => { 
+  //     this.formAppointmentChildDocsColumns();
+  //   }, 10);
+  // }
     //**************************** КАССОВЫЕ ОПЕРАЦИИ  ******************************/
 
   //обработчик события успешной печати чека - в Заказе покупателя это выставление статуса документа, сохранение и создание нового.  
@@ -3290,6 +3383,16 @@ deleteFile(id:number){
     // console.log('totalProductSumm',this.totalProductSumm);
     // console.log('this.totalProductSumm.get(row_id)',this.totalProductSumm.get(row_id))
     return this.numToPrice(this.totalProductSumm.has(row_id)?this.totalProductSumm.get(row_id):0,2)
+  }
+  getPaidCustomerSum(customerId:number){
+    let result:number = 0;
+    this.appointmentChildDocs.map(doc=>{if(doc.customerId==customerId && (doc.docName=='orderin' || doc.docName=='paymentin')) result = result + doc.sum;});
+    return result;
+  }
+  getShippedCustomerSum(customerId:number){
+    let result:number = 0;
+    this.appointmentChildDocs.map(doc=>{if(doc.customerId==customerId && (doc.docName=='shipment')) result = result + doc.sum;});
+    return result;
   }
   // getTotalNds() {//возвращает общую НДС
   //   this.tableNdsRecount();
