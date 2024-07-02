@@ -159,20 +159,20 @@ export class AppointmentsComponent implements OnInit {
     this.mode = this.company_id?'window':'standart';
 
     if(this.company==0 && this.mode=='standart'){
-      if(Cookie.get('appointments_companyId')=='undefined' || Cookie.get('appointments_companyId')==null)     
-        Cookie.set('appointments_companyId',this.sendingQueryForm.companyId); else this.sendingQueryForm.companyId=(Cookie.get('appointments_companyId')=="0"?"0":+Cookie.get('appointments_companyId'));
+     if(Cookie.get('appointments_companyId')=='undefined' || Cookie.get('appointments_companyId')==null)     
+       Cookie.set('appointments_companyId',this.sendingQueryForm.companyId, 30, '/'); else this.sendingQueryForm.companyId=(Cookie.get('appointments_companyId')=="0"?"0":+Cookie.get('appointments_companyId'));
       if(Cookie.get('appointments_departmentId')=='undefined' || Cookie.get('appointments_departmentId')==null)  
-        Cookie.set('appointments_departmentId',this.sendingQueryForm.departmentId); else this.sendingQueryForm.departmentId=(Cookie.get('appointments_departmentId')=="0"?"0":+Cookie.get('appointments_departmentId'));
+        Cookie.set('appointments_departmentId',this.sendingQueryForm.departmentId, 30, '/'); else this.sendingQueryForm.departmentId=(Cookie.get('appointments_departmentId')=="0"?"0":+Cookie.get('appointments_departmentId'));
     }
     if(this.mode=='standart'){
       if(Cookie.get('appointments_sortAsc')=='undefined' || Cookie.get('appointments_sortAsc')==null)       
-        Cookie.set('appointments_sortAsc',this.sendingQueryForm.sortAsc); else this.sendingQueryForm.sortAsc=Cookie.get('appointments_sortAsc');
+        Cookie.set('appointments_sortAsc',this.sendingQueryForm.sortAsc, 30, '/'); else this.sendingQueryForm.sortAsc=Cookie.get('appointments_sortAsc');
       if(Cookie.get('appointments_sortColumn')=='undefined' || Cookie.get('appointments_sortColumn')==null)    
-        Cookie.set('appointments_sortColumn',this.sendingQueryForm.sortColumn); else this.sendingQueryForm.sortColumn=Cookie.get('appointments_sortColumn');
+        Cookie.set('appointments_sortColumn',this.sendingQueryForm.sortColumn, 30, '/'); else this.sendingQueryForm.sortColumn=Cookie.get('appointments_sortColumn');
       if(Cookie.get('appointments_offset')=='undefined' || Cookie.get('appointments_offset')==null)        
-        Cookie.set('appointments_offset',this.sendingQueryForm.offset); else this.sendingQueryForm.offset=Cookie.get('appointments_offset');
+        Cookie.set('appointments_offset',this.sendingQueryForm.offset, 30, '/'); else this.sendingQueryForm.offset=Cookie.get('appointments_offset');
       if(Cookie.get('appointments_result')=='undefined' || Cookie.get('appointments_result')==null)        
-        Cookie.set('appointments_result',this.sendingQueryForm.result); else this.sendingQueryForm.result=Cookie.get('appointments_result');
+        Cookie.set('appointments_result',this.sendingQueryForm.result, 30, '/'); else this.sendingQueryForm.result=Cookie.get('appointments_result');
     }
     //+++ getting base data from parent component
     this.getBaseData('myId');    
@@ -396,7 +396,7 @@ export class AppointmentsComponent implements OnInit {
     this.clearCheckboxSelection();
     this.createCheckedList();
     this.sendingQueryForm.offset=0;
-    Cookie.set('appointments_result',this.sendingQueryForm.result);
+    Cookie.set('appointments_result',this.sendingQueryForm.result, 30, '/');
     this.getData();
   }
 
@@ -404,7 +404,7 @@ export class AppointmentsComponent implements OnInit {
   {
     this.clearCheckboxSelection();
     this.sendingQueryForm.offset=value;
-    Cookie.set('appointments_offset',value);
+    Cookie.set('appointments_offset',value, 30, '/');
     this.getData();
   }
 
@@ -422,18 +422,21 @@ export class AppointmentsComponent implements OnInit {
           } else {  
               this.sendingQueryForm.sortAsc="asc"
           }
-      Cookie.set('appointments_sortAsc',this.sendingQueryForm.sortAsc);
+      Cookie.set('appointments_sortAsc',this.sendingQueryForm.sortAsc, 30, '/');
       } else {
           this.sendingQueryForm.sortColumn=valueSortColumn;
           this.sendingQueryForm.sortAsc="asc";
-          Cookie.set('appointments_sortAsc',"asc");
-          Cookie.set('appointments_sortColumn',valueSortColumn);
+          Cookie.set('appointments_sortAsc',"asc", 30, '/');
+          Cookie.set('appointments_sortColumn',valueSortColumn, 30, '/');
       }
       this.getData();
   }
+  getCompanyId(){
+    return Cookie.get('appointments_companyId')
+  }
   onCompanySelection(){
-    Cookie.set('appointments_companyId',this.sendingQueryForm.companyId);
-    Cookie.set('appointments_departmentId','0');
+    Cookie.set('appointments_companyId',this.sendingQueryForm.companyId, 30, '/');
+    Cookie.set('appointments_departmentId','0', 30, '/');
     // console.log('appointments_companyId - '+Cookie.get('appointments_companyId'));
     // console.log('appointments_departmentId - '+Cookie.get('appointments_departmentId'));
     this.sendingQueryForm.departmentId="0"; 
@@ -442,7 +445,7 @@ export class AppointmentsComponent implements OnInit {
     this.getCompanySettings();
   }
   onDepartmentSelection(){
-    Cookie.set('appointments_departmentId',this.sendingQueryForm.departmentId);
+    Cookie.set('appointments_departmentId',this.sendingQueryForm.departmentId, 30, '/');
     // console.log('appointments_companyId - '+Cookie.get('appointments_companyId'));
     // console.log('appointments_departmentId - '+Cookie.get('appointments_departmentId'));
     this.resetOptions();
@@ -553,12 +556,23 @@ export class AppointmentsComponent implements OnInit {
   }
 
   setDefaultCompany(){
-    if(this.mode=='standart' && (Cookie.get('appointments_companyId')=='0'||!this.companyIdInList(Cookie.get('appointments_companyId')))){
-      this.sendingQueryForm.companyId=this.myCompanyId;
-      Cookie.set('appointments_companyId',this.sendingQueryForm.companyId);
+    console.log("Cookie CompanyId=",+Cookie.get('appointments_companyId'))
+    console.log("this.mode",this.mode)
+    console.log(+Cookie.get('appointments_companyId')==0)
+    console.log("!companyIdInList",!this.companyIdInList(+Cookie.get('appointments_companyId')))
+    if(this.mode=='standart'){
+      if(Cookie.get('appointments_companyId')!='undefined' && +Cookie.get('appointments_companyId')!=0){
+        if(this.companyIdInList(+Cookie.get('appointments_companyId')))
+          this.sendingQueryForm.companyId=+Cookie.get('appointments_companyId');
+        else this.sendingQueryForm.companyId=this.myCompanyId;
+      } else {
+        this.sendingQueryForm.companyId=this.myCompanyId;
+        Cookie.set('appointments_companyId', this.myCompanyId.toString(), 30, '/');
+      }
+        
     }
-      this.getDepartmentsList();
-      this.getCompanySettings();
+    this.getDepartmentsList();
+    this.getCompanySettings();
   }
 
   getDepartmentsList(){
@@ -575,7 +589,7 @@ export class AppointmentsComponent implements OnInit {
     if(this.receivedDepartmentsList.length==1)
     {
       this.sendingQueryForm.departmentId=+this.receivedDepartmentsList[0].id;
-      Cookie.set('appointments_departmentId',this.sendingQueryForm.departmentId);
+      Cookie.set('appointments_departmentId',this.sendingQueryForm.departmentId, 30, '/');
     }
   this.getCRUD_rights(this.permissionsSet);
   }

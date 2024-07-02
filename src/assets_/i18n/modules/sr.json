@@ -21,6 +21,7 @@
         "cost_per_unit":"Цена коштања по јединици",        
         "cost":         "Цена коштања",
         "shipped":      "Отпремити",
+        "transferred":  "Пренета",
         "price_type":   "Тип цене",
         "department":   "Одељење",
         "document":     "Документ",

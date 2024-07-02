@@ -45,7 +45,8 @@ export class UiComponent implements OnInit {
   companiesList:any[]=[];
   showLogo=false;
   waitingSidebarUpdate=false;
-  
+  companySettings:any={booking_doc_name_variation:'reservation'};
+
   @ViewChild(MatSidenav)
   sidenav!: MatSidenav;
 
@@ -355,9 +356,14 @@ export class UiComponent implements OnInit {
     this.loadSpravService.getMyCompanyId().subscribe(
     (data) => {this.myCompanyId=data as number;
       if(this.component&&this.component.dashboard){this.component.myCompanyId=this.myCompanyId;}
-      /*this.setMyCompanyId();*/
-      this.getMyDepartmentsList()
+      this.getMyDepartmentsList();
+      this.getSettingsOfMyCompany();
     },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
+  }
+  getSettingsOfMyCompany(){
+    this.http.get('/api/auth/getCompanySettings?id='+this.myCompanyId).subscribe(data => {         
+       this.companySettings = data as any; },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+    );
   }
   getCompaniesList(){
     this.loadSpravService.getCompaniesList()

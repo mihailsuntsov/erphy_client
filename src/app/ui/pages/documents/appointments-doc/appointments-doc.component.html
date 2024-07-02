@@ -5,7 +5,7 @@
         <mat-card-title class="top-bar container-fluid"> 
             <div class="row" id="topBlock">
                 <div id="cardname">
-                    <div class="nowrap">{{t('docs.list.'+companySettings.booking_doc_name_variation)}} {{t('docs.top.number')}}
+                    <div class="nowrap">{{t('docs.list.'+companySettings.booking_doc_name_variation)}} {{t('docs.top.number')}} 
                         <mat-form-field class="docnumber" *ngIf="doc_number_isReadOnly && +id==0 && (+formBaseInformation.get('company_id').value>0)">                                                               
                             <input  matInput
                                     (click)="EditDocNumber()"
@@ -17,7 +17,8 @@
                                     #doc_number 
                                     maxlength="10"
                                     (keypress)="numberOnly($event)"
-                                    (keyup)="checkDocNumberUnical('scdl_appointments')"
+                                    (change)="documentChanged=true"
+                                    (keyup)="documentChanged=true; checkDocNumberUnical('scdl_appointments')"
                                     formControlName="doc_number"/>
                             <mat-hint  align="start" style="font-size: x-small;margin-top: -1px;" *ngIf="formBaseInformation.get('doc_number').touched && formBaseInformation.get('doc_number').invalid">
                                 <i class="form-invalid" *ngIf="formBaseInformation.get('doc_number').errors.pattern" class="form-invalid">{{t('docs.error.num_only')}}</i>
@@ -58,7 +59,7 @@
                     </mat-form-field>
                 </div>
                 <div class="separator"></div><!-- !!! -->
-                <button 
+                <!-- <button 
                     mat-raised-button 
                     color="primary"
                     matTooltip="{{t('docs.tip.user_settings')}}"
@@ -67,8 +68,8 @@
                     id="settings_btn"
                     class="button small-button">
                     <i class="material-icons">settings</i>
-                </button>
-                <button 
+                </button> -->
+                <!-- <button 
                     mat-raised-button 
                     [matMenuTriggerFor]="templatesMenu"
                     *ngIf="+id>0"
@@ -80,8 +81,21 @@
                     (submit)="false"
                     class="button small-button">
                     <i class="material-icons">print</i>
+                </button> -->
+                <button 
+                    mat-raised-button
+                    *ngIf="+id>0"
+                    matTooltip="{{t('docs.tip.refresh')}}"
+                    color="primary"                
+                    [disabled]="createUpdateButtonDisabled" 
+                    (click)="oneClickSaveControl=true; getData();"
+                    type="button"
+                    id="refresh_btn"
+                    (submit)="false"
+                    class="button small-button">
+                    <i class="material-icons">refresh</i>
                 </button>
-                <mat-menu #templatesMenu="matMenu" yPosition="below" xPosition="before">
+                <!-- <mat-menu #templatesMenu="matMenu" yPosition="below" xPosition="before">
                     <div *ngIf="gettingTemplatesData" style="width:240px; height: 125px;">
                         <mat-spinner 
                         strokeWidth="3" 
@@ -100,8 +114,8 @@
                     <button mat-menu-item id="menu_print_btn" (click)="openDialogTemplates()" >
                         <span>{{t('docs.tip.set_prnt_menu')}}</span>
                     </button>
-                </mat-menu>
-                <button 
+                </mat-menu> -->
+                <!-- <button 
                     mat-button 
                     [matMenuTriggerFor]="addDocMenu"
                     mat-raised-button 
@@ -114,21 +128,12 @@
                     id="add_doc_btn"
                     class="button small-button">
                     <i class="material-icons">add</i>
-                </button>
-                <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
+                </button> -->
+                <!-- <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
                     <button mat-menu-item id="new_doc_btn" (click)="goToNewDocument()">
                         <span>{{t('docs.docs.c_order')}}</span>
                     </button>
-                    <!-- <button mat-menu-item id="paymentin_btn" (click)="createLinkedDoc('Invoiceout')">
-                        <span>{{t('docs.docs.paymentin')}}</span>
-                    </button>
-                    <button mat-menu-item id="orderin_btn" (click)="createLinkedDoc('Paymentin')">
-                        <span>{{t('docs.docs.orderin')}}</span>
-                    </button>
-                    <button mat-menu-item id="shipment_btn" (click)="createLinkedDoc('Shipment')">
-                        <span>{{t('docs.docs.shipment')}}</span>
-                    </button> -->
-                </mat-menu>
+                </mat-menu> -->
                 <button 
                     mat-raised-button 
                     matTooltip="{{t('docs.tip.save')}}"
@@ -279,12 +284,14 @@
                                                                                 [ngModel]="company" [ngModelOptions]="{standalone: true}"/>
                                                                     </mat-form-field>
                                                                 </div>
-                                                                <div class="col-12"> 
+                                                                <div class="col-12">
                                                                     <mat-form-field   class="mat-form-field-100">
                                                                         <mat-label>{{t('docs.field.order_name')}}</mat-label>
                                                                         <input   matInput
                                                                                 [readonly]="is_completed"
                                                                                 maxlength="1000"
+                                                                                (keyup)="documentChanged=true"
+                                                                                (change)="documentChanged=true"
                                                                                 placeholder="{{t('docs.field.order_name')}}"
                                                                                 formControlName="name"/>
                                                                     </mat-form-field>
@@ -383,6 +390,7 @@
                                                                         
                                                                         <mat-select
                                                                         panelClass="department-list"
+                                                                        (selectionChange)="documentChanged=true"
                                                                         formControlName="department_part_id">
                                                                         
                                                                             <mat-select-trigger>
@@ -477,6 +485,7 @@
                                                                         <mat-select
                                                                             panelClass="department-list"
                                                                             formControlName="jobtitle_id"
+                                                                            (selectionChange)="documentChanged=true"
                                                                             [disabled]="!editability"
                                                                             #selectjt
                                                                         >
@@ -534,6 +543,7 @@
                                                                         <input matInput
                                                                             type="text"
                                                                             formControlName="employeeName"
+                                                                            (selectionChange)="documentChanged=true"
                                                                             [matAutocomplete]="lg"
                                                                             style="
                                                                             display: flex;
@@ -639,6 +649,8 @@
                                                                         <mat-label>{{t('docs.field.additional')}}</mat-label>
                                                                         <textarea   matInput
                                                                                     [readonly]=is_completed
+                                                                                    (keyup)="documentChanged=true"
+                                                                                    (change)="documentChanged=true"
                                                                                     maxlength="2000"
                                                                                     #description
                                                                                     placeholder="{{t('docs.field.additional')}}"
@@ -719,7 +731,7 @@
                                                                             <i class="form-invalid">{{t('docs.error.no_cust_name')}}</i>
                                                                         </mat-hint> -->
                                                                         
-                                                                        <mat-hint  align="start" *ngIf="(filteredCustomers && filteredCustomers.length==0) && +formCustomerSearch.get('id').value==0 && customerHasBeenSearched && !searchCustomerCtrl.pristine && !isCustomerListLoading && !(searchCustomerCtrl.value==null || searchCustomerCtrl.value=='')">
+                                                                        <mat-hint  align="start" *ngIf="customerNotFound()">
                                                                             <i>{{t('docs.error.customer_n_fnd')}}</i>
                                                                         </mat-hint>
                                                                         <!-- <mat-hint>
@@ -729,7 +741,7 @@
                                                                     <mat-progress-bar style="position:relative; top: -8px;" *ngIf="isCustomerListLoading || isCagentValuesLoading" mode="indeterminate"></mat-progress-bar>
                                                                 </div>
                                                                 <div class="col-lg-3 col-xl-3 col-md-12"> 
-                                                                    <mat-form-field  class="mat-form-field-100">
+                                                                    <mat-form-field  class="mat-form-field-100" *ngIf="customerNotFound()">
                                                                         <mat-label>{{t('docs.field.telephone')}}</mat-label>
                                                                         <input   matInput
                                                                                 [readonly]=!editability
@@ -741,7 +753,7 @@
                                                                         <mat-hint align="end" *ngIf="telephone.length>50">{{telephone.length}} / 60</mat-hint>
                                                                     </mat-form-field>
                                                                 </div>
-                                                                <div class="col-lg-3 col-xl-3 col-md-12">
+                                                                <div class="col-lg-3 col-xl-3 col-md-12" *ngIf="customerNotFound()">
                                                                     <mat-form-field  class="mat-form-field-100">
                                                                         <mat-label>{{t('docs.field.email')}}</mat-label>
                                                                         <input   matInput
@@ -835,23 +847,30 @@
                                                     </ng-container>
                                                     <!--Total sum-->
                                                     <ng-container matColumnDef="sum" [formArrayName]="'customersTable'">
-                                                        <th mat-header-cell *matHeaderCellDef>{{t('modules.col.sum')}}, {{accountingCurrency}}</th>
+                                                        <th mat-header-cell *matHeaderCellDef matTooltip="{{t('docs.tip.cli_sum_s_doc')}}">{{t('modules.col.sum')}}, {{accountingCurrency}}</th>
                                                         <td mat-cell *matCellDef="let row; let i = dataIndex" [formGroupName]="i"> 
-                                                            <span>{{getTotalSumOfCustomer(row.row_id)}}</span>
+                                                            <span>{{numToPrice(getTotalSumOfCustomer(row.row_id),2)}}</span>
                                                         </td>
                                                     </ng-container>
                                                     <!--Payed-->
                                                     <ng-container matColumnDef="paid" [formArrayName]="'customersTable'">
-                                                        <th mat-header-cell *matHeaderCellDef>{{t('modules.col.paid')}}, {{accountingCurrency}}</th>
+                                                        <th mat-header-cell *matHeaderCellDef matTooltip="{{t('docs.tip.am_fnds_acc')}}">{{t('modules.col.paid')}}, {{accountingCurrency}}</th>
                                                         <td mat-cell *matCellDef="let row; let i = dataIndex" [formGroupName]="i"> 
-                                                            <span>{{numToPrice(getPaidCustomerSum(row.id),2)}}</span>
+                                                            <span 
+                                                            [ngStyle]="getTotalSumOfCustomer(row.row_id)>0 && getTotalSumOfCustomer(row.row_id)!=getPaidCustomerSum(row.id)?{'color': 'red'}:{}"
+                                                            matTooltip="{{getTotalSumOfCustomer(row.row_id)>0 && getTotalSumOfCustomer(row.row_id)!=getPaidCustomerSum(row.id)?t('docs.tip.val_col_ni',{name1:t('modules.col.sum'),name2:t('modules.col.paid')}):''}}"
+                                                            >{{numToPrice(getPaidCustomerSum(row.id),2)}}</span>
+                                                            <!-- <span class="material-icons">north</span> -->
                                                         </td>
                                                     </ng-container>
                                                     <!--Shipped-->
                                                     <ng-container matColumnDef="shipped" [formArrayName]="'customersTable'">
-                                                        <th mat-header-cell *matHeaderCellDef>{{t('modules.col.shipped')}}, {{accountingCurrency}}</th>
+                                                        <th mat-header-cell *matHeaderCellDef matTooltip="{{t('docs.tip.cli_sum_t_doc')}}">{{t('modules.col.transferred')}}, {{accountingCurrency}}</th>
                                                         <td mat-cell *matCellDef="let row; let i = dataIndex" [formGroupName]="i"> 
-                                                            <span>{{numToPrice(getShippedCustomerSum(row.id),2)}}</span>
+                                                            <span
+                                                            [ngStyle]="getTotalSumOfCustomer(row.row_id)>0 && getTotalSumOfCustomer(row.row_id)!=getShippedCustomerSum(row.id)?{'color': 'red'}:{}"
+                                                            matTooltip="{{getTotalSumOfCustomer(row.row_id)>0 && getTotalSumOfCustomer(row.row_id)!=getShippedCustomerSum(row.id)?t('docs.tip.val_col_ni',{name1:t('modules.col.sum'),name2:t('modules.col.transferred')}):''}}"
+                                                            >{{numToPrice(getShippedCustomerSum(row.id),2)}}</span>
                                                         </td>
                                                     </ng-container>
                                                     <!--Unpayed-->
@@ -863,9 +882,9 @@
                                                     </ng-container> -->
                                                     <!-- Delete Column -->
                                                     <ng-container matColumnDef="delete" [formArrayName]="'customersTable'">
-                                                        <th mat-header-cell *matHeaderCellDef style="width: 20px;"><mat-icon style="cursor: default" (click)="clearCustomersTable()" matTooltip="{{t('modules.tip.del_frm_tabl_')}}">close</mat-icon></th>
+                                                        <th mat-header-cell *matHeaderCellDef style="width: 20px;"><mat-icon style="cursor: default" (click)="clearCustomersTable()" matTooltip="{{t('docs.tip.del_a_clnts')}}">close</mat-icon></th>
                                                         <td mat-cell *matCellDef="let row; let i = dataIndex" [formGroupName]="i">
-                                                            <mat-icon style="cursor: pointer" *ngIf="true" (click)="deleteCustomerRow(row,i)">delete_forever</mat-icon>
+                                                            <mat-icon style="cursor: pointer" *ngIf="true" matTooltip="{{t('docs.tip.del_clnt')}}" (click)="deleteCustomerRow(row,i)">delete_forever</mat-icon>
                                                         </td>
                                                     </ng-container>
                                                     <ng-container matColumnDef="expandedDetail" [formArrayName]="'customersTable'">
@@ -882,7 +901,8 @@
                                                                             <div class="flex card">
                                                                                
                                                                                 <div style="position: absolute; right: 20px;">
-                                                                                    <button matTooltip="{{t('docs.tip.ship_to_customer')}}" 
+                                                                                    <button matTooltip="{{getAmountOfChildDocs(row.id,'shipment')>0?t('docs.tip.fxd_there_doc_tp'):t('docs.tip.ship_to_customer')}}" 
+                                                                                                [matTooltipPosition]="'left'"
                                                                                                 mat-raised-button
                                                                                                 *ngIf="+id>0"
                                                                                                 color="primary"
@@ -891,6 +911,7 @@
                                                                                                 [disabled]="createUpdateButtonDisabled" 
                                                                                                 id="move_up_services"
                                                                                                 class="button small-button"
+                                                                                                [ngClass]="{'completed':getAmountOfChildDocs(row.id,'shipment')>0}"
                                                                                                 (click)="createShipment(row);">
                                                                                                 <i class="material-icons">move_up</i>
                                                                                     </button>
@@ -899,21 +920,33 @@
                                                                                         mat-button 
                                                                                         [matMenuTriggerFor]="get_money"
                                                                                         mat-raised-button 
-                                                                                        matTooltip="{{t('docs.tip.get_money')}}"
+                                                                                        matTooltip="{{(getAmountOfChildDocs(row.id,'orderin')>0 || getAmountOfChildDocs(row.id,'paymentin')>0)?t('docs.tip.fxd_there_doc_gm'):t('docs.tip.get_money')}}"
                                                                                         [disabled]="createUpdateButtonDisabled" 
                                                                                         *ngIf="+id>0"
                                                                                         color="primary"
                                                                                         (submit)="false"
                                                                                         type="button"
                                                                                         id="add_doc_btn"
-                                                                                        class="button small-button">
+                                                                                        [ngClass]="{'completed':getAmountOfChildDocs(row.id,'orderin')>0 || getAmountOfChildDocs(row.id,'paymentin')>0}"
+                                                                                        class="button small-button"
+                                                                                        >
                                                                                         <i class="material-icons">payments</i>
                                                                                     </button>
                                                                                     <mat-menu #get_money="matMenu" yPosition="below" xPosition="before">
-                                                                                        <button mat-menu-item id="paymentin_btn" [disabled]="oneClickSaveControl" matTooltip="{{t('docs.tip.if_cl_pay_nocash')}}" (click)="createPaymentin(row)">
+                                                                                        <button 
+                                                                                        mat-menu-item id="paymentin_btn" 
+                                                                                        [disabled]="oneClickSaveControl" 
+                                                                                        matTooltip="{{t('docs.tip.if_cl_pay_nocash')}}" 
+                                                                                        [matTooltipPosition]="'left'" 
+                                                                                        (click)="createPaymentin(row)">
                                                                                             <span>{{t('docs.docs.paymentin')}}</span>
                                                                                         </button>
-                                                                                        <button mat-menu-item id="orderin_btn" [disabled]="oneClickSaveControl" matTooltip="{{t('docs.tip.if_cl_pay_cash')}}" (click)="createOrderin(row)">
+                                                                                        <button 
+                                                                                        mat-menu-item id="orderin_btn" 
+                                                                                        [disabled]="oneClickSaveControl" 
+                                                                                        matTooltip="{{t('docs.tip.if_cl_pay_cash')}}"
+                                                                                        [matTooltipPosition]="'left'" 
+                                                                                        (click)="createOrderin(row)">
                                                                                             <span>{{t('docs.docs.orderin')}}</span>
                                                                                         </button>
                                                                                     </mat-menu>
@@ -931,7 +964,7 @@
 
 
 
-                                                                        <mat-tab-group>
+                                                                        <mat-tab-group style="margin-top: 25px;">
                                                                             <mat-tab label="{{t('docs.tab.services')}}">
                                                                                 <div class="container-fluid" style="padding-top: 20px; padding-bottom: 20px;">
 
@@ -1027,6 +1060,7 @@
                                                                                                     <td mat-cell *matCellDef="let row1; let j = index" [formGroupName]="j"> 
                                                                                                         <!-- ***!!! -->
                                                                                                         <mat-icon
+                                                                                                            matTooltip="{{t('docs.tip.open_doc')}}"
                                                                                                             style=" color: red;
                                                                                                                     line-height: 1;
                                                                                                                     top: 3px;" 
@@ -1066,9 +1100,9 @@
                                                                                                                 type="number" min="0"
                                                                                                                 placeholder=""
                                                                                                                 formControlName="product_count"
-                                                                                                                (change)="onChangeProductCount(j);"
-                                                                                                                (keyup)="nullToZeroInTableField(j, 'product_count');onChangeProductCount(j);"
-                                                                                                                (keypress)="numberOnlyPlusDotAndComma($event)"
+                                                                                                                (change)="onChangeProductCount(j);documentChanged=true;"
+                                                                                                                (keyup)="nullToZeroInTableField(j, 'product_count');onChangeProductCount(j);documentChanged=true;"
+                                                                                                                (keypress)="numberOnlyPlusDotAndComma($event);documentChanged=true"
                                                                                                             />
                                                                                                             <span matSuffix>{{row1.edizm}}</span>
                                                                                                             <control-messages  class="table-form-invalid" [control]="getControlTablefield().controls[j].get('product_count')"></control-messages>
@@ -1105,8 +1139,8 @@
                                                                                                             [readonly]=!editability
                                                                                                             placeholder=""
                                                                                                             formControlName="product_price"
-                                                                                                            (keyup)="onChangeProductPrice(j);"
-                                                                                                            (keypress)="numberOnlyPlusDotAndComma($event)"
+                                                                                                            (keyup)="onChangeProductPrice(j);documentChanged=true"
+                                                                                                            (keypress)="numberOnlyPlusDotAndComma($event);documentChanged=true"
                                                                                                         />
                                                                                                         <control-messages  class="table-form-invalid" [control]="getControlTablefield().controls[j].get('product_price')"></control-messages>
                                                                                                         <mat-hint align="start" >
@@ -1119,7 +1153,7 @@
                                                                                                 <ng-container matColumnDef="product_sumprice" [formArrayName]="'appointmentsProductTable'">
                                                                                                     <th mat-header-cell *matHeaderCellDef>{{t('modules.col.sum')}}, {{accountingCurrency}}</th>
                                                                                                     <td mat-cell *matCellDef="let row1; let j = index" [formGroupName]="j"> {{row1.product_sumprice}} </td>
-                                                                                                    <td mat-footer-cell *matFooterCellDef>{{getTotalSumOfCustomer(row.row_id)}}</td>
+                                                                                                    <td mat-footer-cell *matFooterCellDef>{{numToPrice(getTotalSumOfCustomer(row.row_id),2)}}</td>
                                                                                                 </ng-container>
                                                                                                 <!-- Price type -->
                                                                                                 <ng-container matColumnDef="price_type" [formArrayName]="'appointmentsProductTable'">
@@ -1188,9 +1222,9 @@
                                                                                     </div>
                                                                                 </div>
                                                                             </mat-tab>
-                                                                            <mat-tab label="{{t('docs.tab.history')}}">
+                                                                            <mat-tab label="{{t('docs.tab.history')}}" *ngIf="row && +row.id>0">
                                                                                 <div class="container-fluid" style="padding-top:20px; padding-bottom: 20px;">
-                                                                                    <app-appointments
+                                                                                    <app-appointments *ngIf="row && +row.id>0"
                                                                                         [company_id]="formBaseInformation.get('company_id').value"
                                                                                         [customer_id]="row.id"
                                                                                         [appointment_id]="+id"
@@ -1199,9 +1233,14 @@
                                                                                     </app-appointments>
                                                                                 </div>
                                                                             </mat-tab>
-                                                                            <mat-tab label="{{t('docs.tab.documents')}}">
+                                                                            <mat-tab *ngIf="row && +row.id>0">
+                                                                                <ng-template mat-tab-label>
+                                                                                    <p>
+                                                                                        <span [matBadge]="getAmountOfChildDocs(row.id,'all')" matBadgeOverlap="false" *ngIf="getAmountOfChildDocs(row.id,'all')>0">{{t('docs.tab.documents')}}</span>
+                                                                                    </p>
+                                                                                </ng-template>
                                                                                 <div class="container-fluid" style="padding-top:20px; padding-bottom: 20px;">
-                                                                                    <div class="row">     
+                                                                                    <div class="row">
                                                                                         <div class="col-12">    
                                                                                             <mat-spinner 
                                                                                             strokeWidth="3" 

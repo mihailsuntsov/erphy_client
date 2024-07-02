@@ -22,6 +22,7 @@ export class DelCookiesService{
         
         try{
           Cookie.deleteAll();
+          Cookie.deleteAll('/');
         } catch (e){
           console.log(e.message);
         } finally {

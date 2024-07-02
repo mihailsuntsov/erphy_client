@@ -573,7 +573,17 @@
         "if_cl_pay_cash":"Select if the customer pays in cash.",
         "doc_refl_prods":"A document reflecting the transfer of services or products to a customer.",
         "doc_refl_money":"A document reflecting the receipt of funds from the customer.",
-        "cancl_compl":"Cancel completing of the document. This operation will affect the balance with the customer. After this operation the document will not be available from this table, because it displays only posted documents that affect the balance with the customer."
+        "cancl_compl":"Cancel completing of the document. This operation will affect the balance with the customer. After this operation the document will not be available from this table, because it displays only posted documents that affect the balance with the customer.",
+        "cli_sum_s_doc":"Amount for products and services selected for the client in this document",
+        "cli_sum_t_doc":"Amount for products and services transferred to the client in this document",
+        "am_fnds_acc":"The amount of funds accepted from the client in this document",
+        "del_a_clnts":"Remove all clients from the table",
+        "del_clnt":"Remove a client from a table",
+        "open_doc":"Open document",
+        "val_col_ni":"The values ​​in the \"{{name1}}\" and \"{{name2}}\" columns are not equal",
+        "fxd_there_doc_tp":"Transfer of products and services to the customer is recorded",
+        "fxd_there_doc_gm":"Reception of funds from the client is recorded",
+        "refresh":"Reload document"
         
     },
     "msg":{
@@ -672,7 +682,7 @@
         "doc_mst_be_cmp":"To perform this operation, the current document must be completed",
         "prod_list_cln":"Products list cleaning",
         "prod_list_qry":"Do you really want to clean product list?",
-        "del_prod_item":"Deleting of product item",
+        "del_prod_item":"Deleting",
         "del_prod_quer":"Do you really want to delete \"{{name}}\"",
         "ch_prnted_scc":"Cashiers'c cheque printed successfully",
         "c_cnnctd":     "The connection is established!",
@@ -772,7 +782,10 @@
         "site_name_n_allwd":"This site name is not allowed",
         "no_resources_in_deppart":"This part of the department does not have the resources necessary to perform the services of a moving document",
         "select_dep_part":"Please fill in the field \"Part of the department\"",
-        "select_customer":"Select at least one client and service for him"
+        "select_customer":"Select at least one client and service for him",
+        "save_first":"Please save the document first",
+        "alr_there_doc_tp":"There is already a document taking into account the transfer of products and services",
+        "alr_there_doc_gm":"There is already a document that takes into account the receipt of funds from the client"
     },
     "button":{        
         "test_connct":  "Connection test",

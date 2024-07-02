@@ -6,8 +6,8 @@ class="spinner"
 ></mat-spinner>
 <mat-card appearance="outlined" class="card" *transloco="let t">
     <mat-card-header>
-        <mat-card-title class="flex" style="height: 30px;" *ngIf="mode == 'standart'"> <!--+++-->
-            <div *ngIf="!displayingDeletedDocs" class="emptyspace">{{cu.cap(t('docs.list.'+companySettings.booking_doc_name_variation+'s'))}}</div>
+        <mat-card-title class="flex" style="height: 30px;" *ngIf="mode == 'standart'">
+            <div *ngIf="!displayingDeletedDocs" class="emptyspace">{{cu.cap(t('docs.list.'+companySettings.booking_doc_name_variation+'s'))}} </div>
             <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">{{t('menu.top.deleted')}}</span> {{t('menu.docs.c_orders')}}</div>
             <!-- <button 
                 mat-raised-button 

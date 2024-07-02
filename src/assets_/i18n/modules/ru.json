@@ -21,6 +21,7 @@
         "cost_per_unit":"Себест. за ед.",        
         "cost":         "Себест-ть",
         "shipped":      "Отгружено",
+        "transferred":  "Передано",
         "price_type":   "Тип цены",
         "department":   "Отделение",
         "document":     "Документ",

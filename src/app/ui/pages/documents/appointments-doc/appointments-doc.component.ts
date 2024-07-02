@@ -313,7 +313,8 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   panelAddressOpenState = false;
   addressString: string = ''; // строка для свёрнутого блока Адрес
   oneClickSaveControl:boolean=false;//блокировка кнопок Save и Complete для защиты от двойного клика
-  canCreateNewDoc: boolean=false;// можно ли создавать новый документ (true если выполнились все необходимые для создания действия)
+  isMainDataLoading:boolean=false;
+  //canCreateNewDoc: boolean=false;// можно ли создавать новый документ (true если выполнились все необходимые для создания действия)
   canGetChilds: boolean=false; //можно ли грузить дочерние модули
   actionsBeforeCreateNewDoc:number=0;// количество выполненных действий, необходимых чтобы создать новый документ
   actionsBeforeGetChilds:number=0;// количество выполненных действий, необходимых чтобы загрузить дочерние модули (форму товаров)
@@ -336,6 +337,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   timeFormat:string='24';   //12 or 24
   receivedJobtitlesList: any [] = [];//массив для получения списка наименований должностей
   servicesList: string[] = []; // list of services that will be shown in an information panel of employee or department part
+  documentChanged:boolean=false;
   //печать документов
   gettingTemplatesData: boolean = false; // идёт загрузка шаблонов
   templatesList:TemplatesList[]=[]; // список загруженных шаблонов
@@ -367,7 +369,6 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   // Customers variables +++
   customersList : any [] = []; 
   gettingCustomersTableData: boolean = false;//идет загрузка списка ресурсов
-  customer_row_id:number=0;
   formCustomerSearch:any;// форма для выбора ресурса и последующего формирования строки таблицы
   showCustomerSearchFormFields:boolean = false;
   showSearchCustomerFormFields:boolean = true;
@@ -617,7 +618,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       if(this.mode=='window'){this.id=this.data.docId; this.formBaseInformation.get('id').setValue(this.id);}
       this.formBaseInformation.get('company_id').setValue(this.data.companyId);
       this.company=this.data.company;
-      this.companySettings.booking_doc_name_variation=this.data.booking_doc_name_variation;
+      this.companySettings.booking_doc_name_variation=this.companySettings.booking_doc_name_variation;
       this.id = +this.data.docId;
       this.locale=this.data.locale;
       this.receivedJobtitlesList=this.data.jobtitles;
@@ -774,18 +775,30 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   getData(){
     this.canGetChilds=true;
     if(+this.id>0){
+      this.isMainDataLoading=true;
       this.getDocumentValuesById();
     }else {
+      this.setDefaultCompany();
+    }
+  }
+  getCompanyId(){
+    return Cookie.get('appointments_companyId')
+  }
+  setDefaultCompany(){
+    if(+this.formBaseInformation.get('company_id').value==0) // если не в режиме окна, то тут будет null
+      this.formBaseInformation.get('company_id').setValue( // и тогда берем из куков, которые выставляются в /appointments через выбор предприятия.
+        Cookie.get('appointments_companyId')=="0"? // если в куках нет информации о выбранном предприятии - ставим своё по дефолту
+        (this.myCompanyId):+Cookie.get('appointments_companyId')
+      );
       this.getPriceTypesList();
       this.getSpravTaxes();
-      this.getSetOfTypePrices();//загрузка типов цен для покупателя, склада и по умолчанию  
+      // this.getSetOfTypePrices();//загрузка типов цен для покупателя, склада и по умолчанию  
       this.getDepartmentsList();
       this.getStatusesList(); 
       this.getCompanySettings();
       this.getDepartmentsWithPartsList();
       this.getJobtitleList();
       this.getSpravSysEdizm(); //загрузка единиц измерения.
-    }
   }
   getCompanySettings(){
     this.http.get('/api/auth/getCompanySettings?id='+this.formBaseInformation.get('company_id').value)
@@ -1112,7 +1125,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     // this.formBaseInformation.get('product_id').setValue(null);
     // this.mainProduct= null;
     // this.deleteAllCustomersProducts(true);
-    // this.getTotalSumPrice();
+    // this.getTotalSumPrice;
   }
   // onProductCustomerSearchValueChanges(){
   //   this.searchProductCustomerCtrl.valueChanges
@@ -1177,6 +1190,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     // });
     // dialogRef.afterClosed().subscribe(result => {
     //   if(result==1){
+      this.documentChanged=true;
         const control = this.getControlTablefield();
         // console.log('Trying remove at ',index)
         control.removeAt(index);
@@ -1197,7 +1211,8 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       width: '400px',data:{head: translate('docs.msg.prod_list_cln'),warning: translate('docs.msg.prod_list_qry'),query: ''},});
       dialogRef.afterClosed().subscribe(result => {
         if(result==1){
-          console.log('customerRowId = ',row.row_id)
+          this.documentChanged=true;
+          // console.log('customerRowId = ',row.row_id)
           this.deleteAllCustomerProductsByRowId(row.row_id)
           this.getTotalSumPrice();//чтобы пересчиталась сумма в чеке
         }});  
@@ -1328,6 +1343,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   onSelectProductCustomer(product:AppointmentServiceSearchResponse, customer=this.customer){
     // if(/*!product.isServiceByAppointment || */this.accessibleServicesIdsAll().includes(product.id)){
     if(!this.isThereProductInTable(customer.row_id, product.id)){
+      this.documentChanged=true;
       // console.log(console.log('Selected customer: ',JSON.stringify(customer)));
       const control = <UntypedFormArray>this.formBaseInformation.get('appointmentsProductTable');
       control.push(this.formingProductRowFromMainBlock(product,customer.id,customer.row_id));
@@ -1362,7 +1378,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   //         control.push(this.formingProductRowFromMainBlock(this.mainProduct,customer.id,customer.row_id));
   //       }
   //     });
-  //     this.getTotalSumPrice();
+  //     this.getTotalSumPrice;
   //   }    
   // }
 
@@ -1385,7 +1401,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   //   if(this.formBaseInformation.get('product_id').value && !this.customerHasMainProduct(row_id)){
   //       control.push(this.formingProductRowFromMainBlock(this.mainProduct,customer_id,row_id)); 
   //   }
-  //   this.getTotalSumPrice();
+  //   this.getTotalSumPrice;
   // }
   
   formingProductRowFromMainBlock(product: AppointmentServiceSearchResponse, customerId:number, customerRowId:number) {
@@ -1577,7 +1593,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
                   this.formBaseInformation.get('jobtitle_id').setValue(documentValues.jobtitle_id);
                   this.formBaseInformation.get('jobtitle').setValue(documentValues.jobtitle);
                   this.formBaseInformation.get('employeeId').setValue(documentValues.employeeId);
-                  this.formBaseInformation.get('employeeName').setValue(documentValues.employeeName);
+                  this.formBaseInformation.get('employeeName').setValue(documentValues.employeeName?documentValues.employeeName:'');
                   // this.formBaseInformation.get('department').setValue(documentValues.department);
                   this.formBaseInformation.get('description').setValue(documentValues.description);
                   this.formBaseInformation.get('nds').setValue(documentValues.nds);
@@ -1604,10 +1620,12 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
                   this.getAppointmentChildDocs();
                   // this.hideOrShowNdsColumn();//расчет прятать или показывать колонку НДС
                   this.getSpravTaxes();//загрузка налогов
-                  this.fillCustomersObjectListFromApiResponse(documentValues.customersTable);
-                  this.fillProductsListFromApiResponse(documentValues.appointmentsProductTable)
+                  this.getEmployeesList();
                   this.loadFilesInfo();
-                  this.recountTotals();
+                  this.fillCustomersObjectListFromApiResponse(documentValues.customersTable);
+                  this.fillProductsListFromApiResponse(documentValues.appointmentsProductTable);
+                  this.getTotalSumPrice();
+                  this.isMainDataLoading=false;
                   this.showBalanceModules=false;
                   setTimeout(() => { 
                     this.showBalanceModules=true;
@@ -1723,10 +1741,11 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         let response=data as any;
         //создание документа было успешным
         if(response.success){
+          this.documentChanged=false;
           this.actionsBeforeGetChilds=0;
           this.id=response.id;
-          this.openSnackBar(translate('docs.msg.doc_crtd_succ',{name:translate('docs.docs.'+this.data.booking_doc_name_variation)}), translate('docs.msg.close'));
-          // this._router.navigate(['/ui/appointmentsdoc', this.id]);
+          this.openSnackBar(translate('docs.msg.doc_crtd_succ',{name:translate('docs.docs.'+this.companySettings.booking_doc_name_variation)}), translate('docs.msg.close'));
+          if(this.mode == 'standart') this._router.navigate(['/ui/appointmentsdoc', this.id]);
           this.formBaseInformation.get('id').setValue(this.id);
           this.rightsDefined=false; //!!!
           this.getData();
@@ -1826,6 +1845,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     this.oneClickSaveControl=true;
     // this.getProductsTable();    
     let currentStatus:number=this.formBaseInformation.get('status_id').value;
+    if(this.formBaseInformation.get('name').value==''){this.formBaseInformation.get('name').setValue(this.generateName())}
     if(complete){
       if(this.getControlTablefield.length==0){
         this.oneClickSaveControl=false;
@@ -1853,7 +1873,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
             
             //сохранение было успешным  
             if(response.success){
-
+              this.documentChanged=false;
               this.openSnackBar(translate('docs.msg.doc_name',{name:translate('docs.docs.c_order')}) + (complete?translate('docs.msg.completed'):translate('docs.msg.saved')), translate('docs.msg.close'));
               // this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов - чтобы обновился "Проведён Да/Нет" и статус
               // if(response.fail_to_reserve>0){//если у 1 или нескольких позиций резервы при сохранении были отменены
@@ -2297,6 +2317,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       width: '400px',data:{head: translate('docs.msg.prod_list_cln'),warning: translate('docs.msg.prod_list_qry'),query: ''},});
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
+        this.documentChanged=true;
         this.getControl('customersTable').clear();
         this.deleteAllCustomersProducts();
         this.showSearchCustomerFormFields=true;
@@ -2322,6 +2343,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     });
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
+        this.documentChanged=true;
         const control = <UntypedFormArray>this.formBaseInformation.get('customersTable');
         control.removeAt(index);
         this.deleteAllCustomerProductsByRowId(row.row_id);
@@ -2368,10 +2390,11 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       // }
     // });
     // if(!thereSamePart){
-      console.log('customerId',customerId)
-      console.log('customerName',customerName)
+      // console.log('customerId',customerId)
+      // console.log('customerName',customerName)
     let row=this.formingCustomerRowFromSearchForm(customerName);
     if(!this.isThereCustomerInTable(customerId,customerName)){
+      this.documentChanged=true;
       const control = <UntypedFormArray>this.formBaseInformation.get('customersTable');
       control.push(row);
     }
@@ -2420,14 +2443,10 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   fillProductsListFromApiResponse(productsArray:AppointmentsProductTable[]){
     const control = <UntypedFormArray>this.getControlTablefield();
     control.clear(); 
-    // setTimeout(() => { 
-      productsArray.forEach(row=>{
-        control.push(this.formingProductRowFromApiResponse(row));
-      });
-      this.refreshTableColumns();
-
-    //  }, 300);
-    
+    productsArray.forEach(row=>{
+      control.push(this.formingProductRowFromApiResponse(row));
+    });
+    this.refreshTableColumns();
   }
   
   formingProductCustomerRow(row: AppointmentCustomer) {
@@ -2449,19 +2468,32 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     this.formCustomerSearch.reset();
     this.searchCustomerCtrl.reset();
   }
-  getCustomersRowId():number{
-    let current_customer_row_id:number=this.customer_row_id;
-    this.customer_row_id++;
-    return current_customer_row_id;
-  }
   getCustomerRowId():number{
-    let current_row_id:number=this.customer_row_id;
-    this.customer_row_id++;
-    return current_row_id;
+    let rowIndex=0;
+    while (this.customerRowIdIsBusy(rowIndex)){rowIndex++}
+    return rowIndex;
   }
-
-  //*****************************************************************************************************************************************/
-/***********************************************************         ФАЙЛЫ          *******************************************************/
+  customerRowIdIsBusy(row_id:number):boolean{
+    let result=false;
+    const control = <UntypedFormArray>this.formBaseInformation.get('customersTable');
+    control.value.map(i=>{if(i.row_id==row_id)result=true;});
+    return result;
+  }
+  customerNotFound():boolean{
+    return ((this.filteredCustomers && this.filteredCustomers.length==0) && 
+    +this.formCustomerSearch.get('id').value==0 && 
+    this.customerHasBeenSearched && 
+    !this.searchCustomerCtrl.pristine && 
+    !this.isCustomerListLoading &&
+    !(this.searchCustomerCtrl.value==null || this.searchCustomerCtrl.value==''));
+  }
+  getAmountOfChildDocs(customerId:number,type:string){
+    let result = 0;
+    this.appointmentChildDocs.map(doc=>{if(doc.customerId==customerId && (type=='all'||type==doc.docName)) result++;})
+      return result;
+  }
+//*****************************************************************************************************************************************/
+//***********************************************************         ФАЙЛЫ          *******************************************************/
 //*****************************************************************************************************************************************/
 openDialogAddFiles() {
   const dialogRef = this.dialogAddFiles.open(FilesComponent, {
@@ -2548,13 +2580,6 @@ deleteFile(id:number){
     let uid = uuidv4();
     let canCreateLinkedDoc:CanCreateLinkedDoc=this.canCreateLinkedDoc(docname); //проверим на возможность создания связанного документа
     if(canCreateLinkedDoc.can){
-      // switch (docname){
-      //   case 'Paymentin':{
-      //     this.formLinkedDocs.get('summ').setValue(this.sumPrice); 
-      //     this.formLinkedDocs.get('nds').setValue(this.sumNds); 
-      //     break;
-      //   }
-      //   default:{
         
       this.formLinkedDocs.get('department_id').setValue(this.getDepartmentIdByDepPartId());
       this.formLinkedDocs.get('nds').setValue(this.formBaseInformation.get('nds').value);
@@ -2574,8 +2599,6 @@ deleteFile(id:number){
       
       if(docname!=='Paymentin'&&docname!=='Orderin')// для данных документов таблица с товарами не нужна
           this.getProductsTableLinkedDoc(docname);//формируем таблицу товаров для создаваемого документа
-      //   }
-      // }
 
       this.formLinkedDocs.get('company_id').setValue(this.formBaseInformation.get('company_id').value);
       this.formLinkedDocs.get('cagent_id').setValue(cagentId);
@@ -2606,7 +2629,6 @@ deleteFile(id:number){
             linked_doc_name:          'appointments',
             customers_orders_id:      this.id,
             uid:                      uid,
-            // retailSalesProductTable:  retailSalesProductTable
           },
           skipLocationChange: false,
           fragment: 'top' 
@@ -2899,7 +2921,9 @@ deleteFile(id:number){
 
   onDatesTimesChange(){
     // on create or update document times can be updated from ap/mp to 24h and it can be trigger to run this function. oneClickSaveControl can prevent it, because it is true on create or update
-    if(!this.oneClickSaveControl&&((this.actionsBeforeGetChilds>=6 && this.isDatesValid)||+this.id>0)){
+    // on data loading dates and times can be changed and it can 
+    if(!this.oneClickSaveControl&&!this.isMainDataLoading&&(this.isDatesValid||+this.id>0)){
+      this.documentChanged=true;
       this.getEmployeesList();
       this.refreshNowUsedResources();
       let row_index:number=0;
@@ -2925,6 +2949,7 @@ deleteFile(id:number){
   }
   onEmployeeChange(id:number, jobtitleId:number){
     if(this.accessibleEmployeesIdsAll.includes(id)){
+      this.documentChanged=true;
       this.formBaseInformation.get('employeeId').setValue(id);
       this.formBaseInformation.get('jobtitle_id').setValue(jobtitleId);
 
@@ -2948,164 +2973,176 @@ deleteFile(id:number){
   }
 
   createShipment(row:any){
-    this.oneClickSaveControl=true;
-    this.tableNdsRecount();
-    this.formBaseInformation.get('cagent_id').setValue(row.id);
-    this.formBaseInformation.get('total_nds').setValue(this.totalNds.get(row.row_id));
-    this.formBaseInformation.get('total_summ').setValue(this.totalProductSumm.get(row.row_id));
-    this.http.post('/api/auth/createAndCompleteShipmentFromAppointment',  this.formBaseInformation.value)
-      .subscribe(
-          (data) => 
-          {
-            let result:number=data as number;
-            switch(result){
-              case null:{// null возвращает если не удалось создать документ из-за ошибки
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_of') + (translate('docs.msg._of_save')) + translate('docs.msg._of_doc',{name:translate('docs.docs.shipment')})}});
-                break;
-              }
-              case -1:{//недостаточно прав
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm_oper') + (translate('docs.msg._of_save')) + translate('docs.msg._of_doc',{name:translate('docs.docs.shipment')})}});
-                break;
-              }
-              case 0:{// недостаточно товара на складе
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.no_gds_shipmn')}});
-                break;
-              }
-              case -50:{//Документ уже проведён
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.already_cmplt')}});
-                break;
-              }
-              case -70:{//недостаточно товара на складе
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.cnc_com_err1')}});
-                break;
-              }
-              case -80:{//Отрицательное кол-во товара на складе
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.cnc_com_err2')}});
-                break;
-              }
-              case 1:{// Успешно
-                this.openSnackBar(translate('docs.msg.doc_name',{name:translate('docs.docs.shipment')}) + (translate('docs.msg.completed')), translate('docs.msg.close'));
-                this.getData();
-                
-                break;
-              }
-              default:{// другая ошибка
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:"Operation error"}});
-                break;
-              }
-            }
-            this.oneClickSaveControl=false;
-          },
-          error => {
-            this.showQueryErrorMessage(error);this.oneClickSaveControl=false;
-            },
-      );
+    if(this.getAmountOfChildDocs(row.id,'shipment')==0){
+      if(!this.documentChanged){
+        this.oneClickSaveControl=true;
+        this.tableNdsRecount();
+        this.formBaseInformation.get('cagent_id').setValue(row.id);
+        this.formBaseInformation.get('total_nds').setValue(this.totalNds.get(row.row_id));
+        this.formBaseInformation.get('total_summ').setValue(this.totalProductSumm.get(row.row_id));
+        this.http.post('/api/auth/createAndCompleteShipmentFromAppointment',  this.formBaseInformation.value)
+          .subscribe(
+              (data) => 
+              {
+                let result:number=data as number;
+                switch(result){
+                  case null:{// null возвращает если не удалось создать документ из-за ошибки
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_of') + (translate('docs.msg._of_save')) + translate('docs.msg._of_doc',{name:translate('docs.docs.shipment')})}});
+                    break;
+                  }
+                  case -1:{//недостаточно прав
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm_oper') + (translate('docs.msg._of_save')) + translate('docs.msg._of_doc',{name:translate('docs.docs.shipment')})}});
+                    break;
+                  }
+                  case 0:{// недостаточно товара на складе
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.no_gds_shipmn')}});
+                    break;
+                  }
+                  case -50:{//Документ уже проведён
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.already_cmplt')}});
+                    break;
+                  }
+                  case -70:{//недостаточно товара на складе
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.cnc_com_err1')}});
+                    break;
+                  }
+                  case -80:{//Отрицательное кол-во товара на складе
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.cnc_com_err2')}});
+                    break;
+                  }
+                  case 1:{// Успешно
+                    this.openSnackBar(translate('docs.msg.doc_name',{name:translate('docs.docs.shipment')}) + (translate('docs.msg.completed')), translate('docs.msg.close'));
+                    this.getData();
+                    
+                    break;
+                  }
+                  default:{// другая ошибка
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:"Operation error"}});
+                    break;
+                  }
+                }
+                this.oneClickSaveControl=false;
+              },
+              error => {
+                this.showQueryErrorMessage(error);this.oneClickSaveControl=false;
+                },
+          );
+      } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.save_first')}});
+    } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.alr_there_doc_tp')}});
   }
   createPaymentin(row:any){
-    this.oneClickSaveControl=true;
-    this.tableNdsRecount();
-    this.formBaseInformation.get('cagent_id').setValue(row.id);
-    this.formBaseInformation.get('total_nds').setValue(this.totalNds.get(row.row_id));
-    this.formBaseInformation.get('total_summ').setValue(this.totalProductSumm.get(row.row_id));
-    this.http.post('/api/auth/createAndCompletePaymentInFromAppointment',  this.formBaseInformation.value)
-      .subscribe(
-          (data) => 
-          {
-            let result:number=data as number;
-            switch(result){
-              case null:{// null возвращает если не удалось создать документ из-за ошибки
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_of') + (translate('docs.msg._of_comp')) + translate('docs.msg._of_doc',{name:translate('docs.docs.paymentin')})}});
-                break;
-              }
-              case -1:{//недостаточно прав
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});
-                break;
-              }
-              case -30:{//недостаточно средств 
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_money_op')}});
-                break;
-              }
-              case -31:{//Документ-отправитель внутреннего платежа не проведён (например, проводим приходный ордер, но незадолго до этого у исходящего платежа сняли проведение)
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.sender_n_comp')}});
-                break;
-              }
-              case -40:{//дублирование исходящего платежа  
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:(this.formBaseInformation.get('moving_type').value=='account'?translate('docs.msg.pi_w_po_compl'):translate('docs.msg.pi_w_oo_compl'))}});
-                break;
-              }
-              case -50:{//Документ уже проведён
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.already_cmplt')}});
-                break;
-              }
-              case 1:{// Успешно
-                this.openSnackBar(translate('docs.msg.doc_name',{name:translate('docs.docs.paymentin')}) + (translate('docs.msg.completed')), translate('docs.msg.close'));
-                this.getData();                
-                break;
-              }
-              default:{// другая ошибка
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:"Operation error"}});
-                break;
-              }
-            }
-            this.oneClickSaveControl=false;
-          },
-          error => {
-            this.showQueryErrorMessage(error);this.oneClickSaveControl=false;
-            },
-      );
+    if(this.getAmountOfChildDocs(row.id,'orderin')==0 && this.getAmountOfChildDocs(row.id,'paymentin')==0){
+      if(!this.documentChanged){
+        this.oneClickSaveControl=true;
+        this.tableNdsRecount();
+        this.formBaseInformation.get('cagent_id').setValue(row.id);
+        this.formBaseInformation.get('total_nds').setValue(this.totalNds.get(row.row_id));
+        this.formBaseInformation.get('total_summ').setValue(this.totalProductSumm.get(row.row_id));
+        this.http.post('/api/auth/createAndCompletePaymentInFromAppointment',  this.formBaseInformation.value)
+          .subscribe(
+              (data) => 
+              {
+                let result:number=data as number;
+                switch(result){
+                  case null:{// null возвращает если не удалось создать документ из-за ошибки
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_of') + (translate('docs.msg._of_comp')) + translate('docs.msg._of_doc',{name:translate('docs.docs.paymentin')})}});
+                    break;
+                  }
+                  case -1:{//недостаточно прав
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});
+                    break;
+                  }
+                  case -30:{//недостаточно средств 
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_money_op')}});
+                    break;
+                  }
+                  case -31:{//Документ-отправитель внутреннего платежа не проведён (например, проводим приходный ордер, но незадолго до этого у исходящего платежа сняли проведение)
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.sender_n_comp')}});
+                    break;
+                  }
+                  case -40:{//дублирование исходящего платежа  
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:(this.formBaseInformation.get('moving_type').value=='account'?translate('docs.msg.pi_w_po_compl'):translate('docs.msg.pi_w_oo_compl'))}});
+                    break;
+                  }
+                  case -50:{//Документ уже проведён
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.already_cmplt')}});
+                    break;
+                  }
+                  case 1:{// Успешно
+                    this.openSnackBar(translate('docs.msg.doc_name',{name:translate('docs.docs.paymentin')}) + (translate('docs.msg.completed')), translate('docs.msg.close'));
+                    this.getData();                
+                    break;
+                  }
+                  default:{// другая ошибка
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:"Operation error"}});
+                    break;
+                  }
+                }
+                this.oneClickSaveControl=false;
+              },
+              error => {
+                this.showQueryErrorMessage(error);this.oneClickSaveControl=false;
+                },
+          );
+      } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.save_first')}});  
+    } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.alr_there_doc_gm')}});  
   }
   createOrderin(row:any){
-    this.oneClickSaveControl=true;
-    this.tableNdsRecount();
-    this.formBaseInformation.get('cagent_id').setValue(row.id);
-    this.formBaseInformation.get('total_nds').setValue(this.totalNds.get(row.row_id));
-    this.formBaseInformation.get('total_summ').setValue(this.totalProductSumm.get(row.row_id));
-    this.http.post('/api/auth/createAndCompleteOrderInFromAppointment',  this.formBaseInformation.value)
-      .subscribe(
-          (data) => 
-          {
-            let result:number=data as number;
-            switch(result){
-              case null:{// null возвращает если не удалось создать документ из-за ошибки
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_of') + (translate('docs.msg._of_comp')) + translate('docs.msg._of_doc',{name:translate('docs.docs.orderin')})}});
-                break;
-              }
-              case -1:{//недостаточно прав
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});
-                break;
-              }
-              case -30:{//недостаточно средств 
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_money_op')}});
-                break;
-              }
-              case -31:{//Документ-отправитель внутреннего платежа не проведён (например, проводим приходный ордер, но незадолго до этого у исходящего платежа сняли проведение)
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.sender_n_comp')}});
-                break;
-              }
-              case -40:{//дублирование исходящего платежа   
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.pi_w')+(this.formBaseInformation.get('moving_type').value=='account'?translate('docs.msg._po'):(this.formBaseInformation.get('moving_type').value=='boxoffice'?translate('docs.msg._oo'):translate('docs.msg._wd')))+translate('docs.msg._already_comp')}});
-                break;
-              }
-              case -50:{//Документ уже проведён
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.already_cmplt')}});
-                break;
-              }
-              case 1:{// Успешно
-                this.openSnackBar(translate('docs.msg.doc_name',{name:translate('docs.docs.orderin')}) + (translate('docs.msg.completed')), translate('docs.msg.close'));
-                this.getData();                
-                break;
-              }
-              default:{// другая ошибка
-                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:"Operation error"}});
-                break;
-              }
-            }
-            this.oneClickSaveControl=false;
-          },
-          error => {
-            this.showQueryErrorMessage(error);this.oneClickSaveControl=false;
-            },
-      );
+    if(this.getAmountOfChildDocs(row.id,'orderin')==0 && this.getAmountOfChildDocs(row.id,'paymentin')==0){
+      if(!this.documentChanged){
+        this.oneClickSaveControl=true;
+        this.tableNdsRecount();
+        this.formBaseInformation.get('cagent_id').setValue(row.id);
+        this.formBaseInformation.get('total_nds').setValue(this.totalNds.get(row.row_id));
+        this.formBaseInformation.get('total_summ').setValue(this.totalProductSumm.get(row.row_id));
+        this.http.post('/api/auth/createAndCompleteOrderInFromAppointment',  this.formBaseInformation.value)
+          .subscribe(
+              (data) => 
+              {
+                let result:number=data as number;
+                switch(result){
+                  case null:{// null возвращает если не удалось создать документ из-за ошибки
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_of') + (translate('docs.msg._of_comp')) + translate('docs.msg._of_doc',{name:translate('docs.docs.orderin')})}});
+                    break;
+                  }
+                  case -1:{//недостаточно прав
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm')}});
+                    break;
+                  }
+                  case -30:{//недостаточно средств 
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_money_op')}});
+                    break;
+                  }
+                  case -31:{//Документ-отправитель внутреннего платежа не проведён (например, проводим приходный ордер, но незадолго до этого у исходящего платежа сняли проведение)
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.sender_n_comp')}});
+                    break;
+                  }
+                  case -40:{//дублирование исходящего платежа   
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.pi_w')+(this.formBaseInformation.get('moving_type').value=='account'?translate('docs.msg._po'):(this.formBaseInformation.get('moving_type').value=='boxoffice'?translate('docs.msg._oo'):translate('docs.msg._wd')))+translate('docs.msg._already_comp')}});
+                    break;
+                  }
+                  case -50:{//Документ уже проведён
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.already_cmplt')}});
+                    break;
+                  }
+                  case 1:{// Успешно
+                    this.openSnackBar(translate('docs.msg.doc_name',{name:translate('docs.docs.orderin')}) + (translate('docs.msg.completed')), translate('docs.msg.close'));
+                    this.getData();                
+                    break;
+                  }
+                  default:{// другая ошибка
+                    this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:"Operation error"}});
+                    break;
+                  }
+                }
+                this.oneClickSaveControl=false;
+              },
+              error => {
+                this.showQueryErrorMessage(error);this.oneClickSaveControl=false;
+                },
+          );
+      } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.save_first')}});
+    } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.alr_there_doc_gm')}});   
   }
 
   setAppointmentChildDocumentAsDecompleted(doc:AppointmentChildDoc,row_index:number){
@@ -3330,6 +3367,7 @@ deleteFile(id:number){
   }
   //при изменении Типа цены в таблице товаров
   onChangePriceTypeOfRow(row_index:number){
+    this.documentChanged=true;
     const control = this.getControlTablefield();
     let product_id = control.at(row_index).get('product_id').value;
     let price_type_id = control.at(row_index).get('price_type_id').value;
@@ -3357,6 +3395,7 @@ deleteFile(id:number){
   }
   // при изменении НДС в таблице товаров
   onChangeProductNds(){
+    this.documentChanged=true;
     this.tableNdsRecount();                                    // пересчёт Суммы оплаты за товар с учётом НДС
     this.finishRecount();                                      // подсчёт TOTALS и отправка суммы в ККМ
   }
@@ -3379,10 +3418,9 @@ deleteFile(id:number){
     });
     // return  (this.formBaseInformation.value.appointmentsProductTable.map(t => +t.product_sumprice).reduce((acc, value) => acc + value, 0)).toFixed(2);
   }
-  getTotalSumOfCustomer(row_id:number){
-    // console.log('totalProductSumm',this.totalProductSumm);
-    // console.log('this.totalProductSumm.get(row_id)',this.totalProductSumm.get(row_id))
-    return this.numToPrice(this.totalProductSumm.has(row_id)?this.totalProductSumm.get(row_id):0,2)
+
+  getTotalSumOfCustomer(row_id:number):number{
+    return this.totalProductSumm.has(row_id)?this.totalProductSumm.get(row_id):0;
   }
   getPaidCustomerSum(customerId:number){
     let result:number = 0;
@@ -3400,13 +3438,10 @@ deleteFile(id:number){
   // }
   // подсчёт TOTALS и отправка суммы в ККМ
   finishRecount(){
-    this.recountTotals();                                      // подсчёт TOTALS
-    // this.sendSumPriceToKKM();                                  // отправим сумму в ККМ
-  }
-  recountTotals(){
-    if(this.formBaseInformation!=undefined){//метод может вызываться из ngOnChanges, а т.к. он стартует до ngOnInit, то formBaseInformation может еще не быть
+    if(this.formBaseInformation!=undefined)//метод может вызываться из ngOnChanges, а т.к. он стартует до ngOnInit, то formBaseInformation может еще не быть
       this.getTotalSumPrice();
-  }}
+  }
+
   //------------------------------------------------------------------- Методы для работы с признаком "Неделимость" -----------------------------------------------------------------------------
   // true - ошибка (если введено нецелое кол-во товара, при том что оно должно быть целым)
 
@@ -3472,7 +3507,6 @@ deleteFile(id:number){
     this.searchProductCtrl.reset();
     // this.mainProduct= null;
     // this.deleteAllCustomersProducts(true); // delete only main product from all customers products
-    // this.getTotalSumPrice();
     this.searchProductCtrl.setValue('');
     this.refreshNowUsedResources();
   }
@@ -3756,6 +3790,7 @@ deleteFile(id:number){
   // }
   onJobTitleSelect(jobtitleId:number){
     if(this.accessibleJobTitlesIdsByAccessibleEmployees.includes(jobtitleId)){
+      this.documentChanged=true;
       this.clearEmployeeField();
       this.checkEmptyEmployeeField();
       this.formBaseInformation.get('jobtitle_id').setValue(jobtitleId);    

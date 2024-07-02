@@ -67,7 +67,8 @@ export class AuthInterceptor implements HttpInterceptor {
         Cookie.delete('anotherCashierVatin');
 
         try{
-          Cookie.deleteAll();
+          Cookie.deleteAll();          
+          Cookie.deleteAll('/');
           Cookie.deleteAll('/','localhost');
         } catch (e){
           console.log(e.message);

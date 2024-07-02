@@ -21,6 +21,7 @@
         "cost_per_unit":"Net cost per unit",        
         "cost":         "Net cost",
         "shipped":      "Shipped",
+        "transferred":  "Transferred",
         "price_type":   "Price type",
         "department":   "Department",
         "document":     "Document",
