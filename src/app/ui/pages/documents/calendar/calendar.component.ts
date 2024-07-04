@@ -95,6 +95,17 @@ interface CompanySettings{
   vat: boolean;
   vat_included: boolean;
 }
+interface EmployeeWithServices {
+  id: number;
+  name:string;
+  services: IdAndName[];
+}
+interface JobtitleWithEmployees {
+  id: number;
+  name:string;
+  description:string;
+  employees: EmployeeWithServices[];
+}
 
 @Component({
   selector: 'app-calendar',
@@ -137,6 +148,7 @@ export class CalendarComponent implements OnInit {
   refresh = new Subject<void>();
   receivedDepartmentsList: IdAndName [] = [];//массив для получения списка отделений
   receivedDepartmentsWithPartsList: Department [] = [];//массив для получения списка отделений с их частями
+  receivedJobtitlesWithEmployeesList: JobtitleWithEmployees [] = [];//массив для получения списка отделений с их частями
   receivedJobtitlesList: any [] = [];//массив для получения списка наименований должностей
   servicesList: string[] = []; // list of services that will be shown in an information panel of employee or department part
   booking_doc_name_variation: string = 'appointment';
@@ -228,6 +240,7 @@ export class CalendarComponent implements OnInit {
         dateFrom: new UntypedFormControl(moment().startOf('month'),[]),   // дата С
         dateTo: new UntypedFormControl(moment().endOf('month'),[]),     // дата По
         depparts: new UntypedFormControl([],[]), // set of department parts
+        employees: new UntypedFormControl([],[]), // set of employees
         departments: new UntypedFormControl([],[]), // set of departments IDs
         jobtitles: new UntypedFormControl([],[]), // set of job titles
         documents: new UntypedFormControl([59],[]), // set of documents to show in calendar
@@ -335,7 +348,8 @@ export class CalendarComponent implements OnInit {
   setDefaultCompany(){
     this.queryForm.get('companyId').setValue(this.myCompanyId);
     this.getDepartmentsWithPartsList();
-    this.getJobtitleList();
+    this.getJobtitlesWithEmployeesList();
+    // this.getJobtitleList();
     this.getCompanySettings();
     this.getCRUD_rights();
   }
@@ -408,18 +422,30 @@ export class CalendarComponent implements OnInit {
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
       );
   }
-
-  getJobtitleList(){ 
-    this.http.get('/api/auth/getJobtitlesList?company_id='+this.queryForm.get('companyId').value)
+  
+  getJobtitlesWithEmployeesList(){ 
+    return this.http.get('/api/auth/getJobtitlesWithEmployeesList?id='+this.queryForm.get('companyId').value)
       .subscribe(
           (data) => {   
-                      this.receivedJobtitlesList=data as any [];
-                      this.selectAllCheckList('jobtitles','queryForm');
+                      this.receivedJobtitlesWithEmployeesList=data as JobtitleWithEmployees [];
+                      this.selectAllCheckList('employees','queryForm');
                       this.necessaryActionsBeforeGetChilds();
       },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
       );
   }
+
+  // getJobtitleList(){ 
+  //   this.http.get('/api/auth/getJobtitlesList?company_id='+this.queryForm.get('companyId').value)
+  //     .subscribe(
+  //         (data) => {   
+  //                     this.receivedJobtitlesList=data as any [];
+  //                     this.selectAllCheckList('jobtitles','queryForm');
+  //                     this.necessaryActionsBeforeGetChilds();
+  //     },
+  //     error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
+  //     );
+  // }
   getCalendarEventsList(){
     let events:any[]=[];
     this.http.post('/api/auth/getCalendarEventsList', this.queryForm.value).subscribe(
@@ -498,7 +524,8 @@ export class CalendarComponent implements OnInit {
 
   onCompanySelection(){
     this.getDepartmentsWithPartsList();
-    this.getJobtitleList();
+    // this.getJobtitleList();
+    this.getJobtitlesWithEmployeesList();
     this.getData();
   }
 
@@ -811,20 +838,21 @@ export class CalendarComponent implements OnInit {
   //     );
   // }
   selectAllCheckList(field:string, form:string){
-    let depparts = field=='depparts'?this.getAllDeppartsIds():this.getAllJobtitlesIds();
-    this.queryForm.get(field).setValue(depparts);
-  }
-  
-  selectAllDepPartsOneDep(dep_id:number, form:string){
-    const depparts = this.getAllDeppartsIdsOfOneDep(dep_id);
-    const ids_now = this.queryForm.get('depparts').value;
-    this.queryForm.get('depparts').setValue(depparts.concat(ids_now));
+    let ids = field=='depparts'?this.getAllDeppartsIds():this.getAllEmployeesIds();
+    this.queryForm.get(field).setValue(ids);
   }
 
   unselectAllCheckList(field:string, form:string){
     this.queryForm.get(field).setValue([]);
   }
 
+  // ---------------------------------Job titles and Employees------------------------------
+  
+  selectAllDepPartsOneDep(dep_id:number, form:string){
+    const depparts = this.getAllDeppartsIdsOfOneDep(dep_id);
+    const ids_now = this.queryForm.get('depparts').value;
+    this.queryForm.get('depparts').setValue(depparts.concat(ids_now));
+  }
   unselectAllDepPartsOneDep(dep_id:number, form:string){
     const ids_in_deppat = this.getAllDeppartsIdsOfOneDep(dep_id);
     const ids_now = this.queryForm.get('depparts').value;
@@ -856,27 +884,70 @@ export class CalendarComponent implements OnInit {
     });
     return depparts;
   }  
-
-  getAllJobtitlesIds():number[]{
-    let jt:number[]=[];
-    this.receivedJobtitlesList.map(jobtitle=>{
-      jt.push(jobtitle.jobtitle_id);
-    });
-    return jt;
-  }  
-
   getAllDeppartsIdsOfOneDep(dep_id:number):number[]{
     let depparts:number[]=[];
     this.receivedDepartmentsWithPartsList.map(department=>{
-      // console.log('department.department_id==dep_id',department.department_id==dep_id)
       if(department.department_id==dep_id)
         department.parts.map(deppart=>{
           depparts.push(deppart.id);
         })
     });
-    // console.log('depparts',depparts)
     return depparts;
   }
+
+
+  // ---------------------------------Job titles and Employees------------------------------
+
+  selectAllEmployeesOneJobtitle(jt_id:number, form:string){
+    const employees = this.getAllEmployeesIdsOfOneJobtitle(jt_id);
+    const ids_now = this.queryForm.get('employees').value;
+    this.queryForm.get('employees').setValue(employees.concat(ids_now));
+  }
+  unselectAllEmployeesOneJobtitle(jt_id:number, form:string){
+    const employees = this.getAllEmployeesIdsOfOneJobtitle(jt_id);
+    const ids_now = this.queryForm.get('employees').value;
+    this.queryForm.get('employees').setValue(ids_now.filter(e => !employees.includes(e)));
+  }
+  getEmployeeServiceNamesList(emp_id){    
+    let currentEmployees:number[]=this.queryForm.get('employees').value;
+    this.servicesList=[];
+    this.receivedJobtitlesWithEmployeesList.map(jobtitle=>{
+      jobtitle.employees.map(employee=>{
+        if(employee.id==emp_id){
+          employee.services.map(service=>{
+            this.servicesList.push(service.name);
+          });
+        }
+      });
+    });
+    // Clicking on anything inside <mat-option> tag will affected on its value. Need to change previous value
+    setTimeout(() => { 
+      this.queryForm.get('employees').setValue(currentEmployees);
+    }, 1);
+  }
+
+  getAllEmployeesIds():number[]{
+    let employees:number[]=[];
+    this.receivedJobtitlesWithEmployeesList.map(jobtitle=>{
+      jobtitle.employees.map(emp=>{
+        employees.push(emp.id);
+      });      
+    });
+    return employees;
+  }  
+
+  getAllEmployeesIdsOfOneJobtitle(jt_id:number):number[]{
+    let employees:number[]=[];
+    this.receivedJobtitlesWithEmployeesList.map(jt=>{
+      if(jt.id==jt_id)
+        jt.employees.map(employee=>{
+          employees.push(employee.id);
+        })
+    });
+    return employees;
+  }
+// -------------------------------------------------------------------------------------
+
 
   openAppointmentCard(docId: number, date?: Date){
     // console.log("locale in calendar = ",this.locale);

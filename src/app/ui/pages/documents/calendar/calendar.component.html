@@ -201,7 +201,7 @@
                         <form class="form-horizontal" [formGroup]="queryForm">
                             <div class="row">
                                 <div class="col-12">
-                                    <mat-form-field id="docs" class="mat-form-field-100" *ngIf="showDocumntsField">
+                                    <!-- <mat-form-field id="docs" class="mat-form-field-100" *ngIf="showDocumntsField">
                                         <mat-label>{{t('docs.field.documents')}}</mat-label>
                                         <mat-select  
                                             formControlName="documents"
@@ -211,7 +211,7 @@
                                             <mat-option style="width: 259px;"
                                                 [value]=59
                                             >
-                                                    <span>{{t('docs.list.'+companySettings.booking_doc_name_variation+'s')}}</span><!-- like 'appointmentS'-->
+                                                    <span>{{t('docs.list.'+companySettings.booking_doc_name_variation+'s')}}</span>
                                             </mat-option>                                            
                                         </mat-select>
                                     </mat-form-field>
@@ -249,6 +249,86 @@
                                                 {{jt.name}}
                                             </mat-option>
                                         </mat-select>
+                                    </mat-form-field> -->
+                                    <mat-form-field class="mat-form-field-100">
+                                        <mat-label>{{t('docs.field.employees')}} <span *ngIf="queryForm.get('employees').value.length==0" class="star">*</span></mat-label>
+                                        <mat-select
+                                            panelClass="department-list"
+                                            formControlName="employees"
+                                            #mySelect
+                                            multiple>
+                                            <div class="button-row">
+                                                <button 
+                                                    mat-icon-button 
+                                                    [disabled]="!editability"
+                                                    matTooltip="{{t('docs.tip.select_all')}}" 
+                                                    class="btn-gray-color"
+                                                    (click)="selectAllCheckList('employees','queryForm')"
+                                                >
+                                                <mat-icon>fact_check</mat-icon>
+                                                </button>
+                                                <button 
+                                                    mat-icon-button 
+                                                    [disabled]="!editability"
+                                                    matTooltip="{{t('docs.tip.unselect_all')}}" 
+                                                    class="btn-gray-color"
+                                                    (click)="unselectAllCheckList('employees','queryForm')">
+                                                <mat-icon>ballot</mat-icon>
+                                                </button>
+                                            </div>
+                                            <mat-optgroup 
+                                                *ngFor="let jobtitle of receivedJobtitlesWithEmployeesList;"
+                                            >
+                                                <span class="optgroup-name">{{jobtitle.name}}</span>
+                                                <button 
+                                                    mat-icon-button 
+                                                    [disabled]="!editability"
+                                                    matTooltip="{{t('docs.tip.select_all_onejt')}}" 
+                                                    class="btn-gray-color"
+                                                    (click)="selectAllEmployeesOneJobtitle(jobtitle.id,'queryForm')"
+                                                >
+                                                <mat-icon>fact_check</mat-icon>
+                                                </button>
+                                                <button 
+                                                    mat-icon-button 
+                                                    [disabled]="!editability"
+                                                    matTooltip="{{t('docs.tip.unselect_all_onejt')}}" 
+                                                    class="btn-gray-color"
+                                                    (click)="unselectAllEmployeesOneJobtitle(jobtitle.id,'queryForm')">
+                                                <mat-icon>ballot</mat-icon>
+                                                </button>
+                                                <mat-option *ngFor= "let employee of jobtitle.employees;"
+                                                    style="width: 100%;"
+                                                    [value]="employee.id"
+                                                >
+                                                    {{employee.name}}
+                                                    <button
+                                                        mat-icon-button 
+                                                        [disabled]="!editability"
+                                                        [matMenuTriggerFor]="employee_info"
+                                                        class="btn-gray-color btn-option-info"
+                                                        (click)="getEmployeeServiceNamesList(employee.id)"
+                                                    > 
+                                                    <mat-icon
+                                                        style="border-radius: 50%;
+                                                        background-image: url(/assets_/images/other/info_icon.png);
+                                                        background-position: center top;
+                                                        background-size: 100% auto;"
+                                                    ></mat-icon>
+                                                    </button>
+                                                </mat-option>
+                                            </mat-optgroup>
+                                        </mat-select>
+                                        <mat-menu #employee_info="matMenu" xPosition="after">
+                                            <div style="width: 300px;">
+                                                <ul  style="margin: 0px; padding: 12px;">
+                                                    <li *ngFor="let name of servicesList">
+                                                        <span style="position: relative; top: -6px;left: 3px;">{{name}}</span>
+                                                    </li>
+                                                </ul>
+                                                <span *ngIf="servicesList.length==0" style="position: relative;top:-8px;left:10px;">{{t('docs.msg.no_srvcs_this_empl')}}</span>
+                                            </div>
+                                        </mat-menu>
                                     </mat-form-field>
                                     <mat-form-field class="mat-form-field-100">
                                         <mat-label>{{t('docs.field.dep_parts')}} <span *ngIf="queryForm.get('depparts').value.length==0" class="star">*</span></mat-label>
@@ -297,31 +377,28 @@
                                                     (click)="unselectAllDepPartsOneDep(department.department_id,'queryForm')">
                                                 <mat-icon>ballot</mat-icon>
                                                 </button>
-                                                    <mat-option *ngFor= "let part of department.parts;"
-                                                        style="width: 100%;"
-                                                        [value]="part.id"
-                                                        [matTooltip]="part.description"
-                                                        [matTooltipPosition]="'right'"
-                                                    >
-                                                        {{part.name}}
-                                                        <button
-                                                            mat-icon-button 
-                                                            [disabled]="!editability"
-                                                            [matMenuTriggerFor]="deppart_info"
-                                                            class="btn-gray-color btn-option-info"
-                                                            (click)="getDeppartServicesNamesList(part.id)"
-                                                        > 
-                                                        <mat-icon
-                                                            style="border-radius: 50%;
-                                                            background-image: url(/assets_/images/other/info_icon.png);
-                                                            background-position: center top;
-                                                            background-size: 100% auto;"
-                                                        ></mat-icon>
-                                                        </button>
-                                                    </mat-option>
-                                                    
-                                                    
-                                                <!-- </span> -->
+                                                <mat-option *ngFor= "let part of department.parts;"
+                                                    style="width: 100%;"
+                                                    [value]="part.id"
+                                                    [matTooltip]="part.description"
+                                                    [matTooltipPosition]="'right'"
+                                                >
+                                                    {{part.name}}
+                                                    <button
+                                                        mat-icon-button 
+                                                        [disabled]="!editability"
+                                                        [matMenuTriggerFor]="deppart_info"
+                                                        class="btn-gray-color btn-option-info"
+                                                        (click)="getDeppartServicesNamesList(part.id)"
+                                                    > 
+                                                    <mat-icon
+                                                        style="border-radius: 50%;
+                                                        background-image: url(/assets_/images/other/info_icon.png);
+                                                        background-position: center top;
+                                                        background-size: 100% auto;"
+                                                    ></mat-icon>
+                                                    </button>
+                                                </mat-option>
                                             </mat-optgroup>
                                         </mat-select>
                                         <mat-menu #deppart_info="matMenu" xPosition="after">

@@ -2826,7 +2826,7 @@ deleteFile(id:number){
       data:
       { //отправляем в диалог:
         company_id: +this.formBaseInformation.get('company_id').value, //предприятие
-        document_id: 23, // id документа из таблицы documents
+        document_id: 59, // id документа из таблицы documents
       },
     });
     dialogTemplates.afterClosed().subscribe(result => {
@@ -2839,17 +2839,18 @@ deleteFile(id:number){
   printDocs(){
     this.gettingTemplatesData=true;
     this.templatesList=[];
-    this.http.get('/api/auth/getTemplatesList?company_id='+this.formBaseInformation.get('company_id').value+"&document_id="+23+"&is_show="+true).subscribe
+    this.http.get('/api/auth/getTemplatesList?company_id='+this.formBaseInformation.get('company_id').value+"&document_id="+59+"&is_show="+true).subscribe
     (data =>{ 
         this.gettingTemplatesData=false;
         this.templatesList=data as TemplatesList[];
       },error => {console.log(error);this.gettingTemplatesData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},);
   }
-  clickOnTemplate(template:TemplatesList){
-    const baseUrl = '/api/auth/appointmentsPrint/';
+  clickOnTemplate(template:TemplatesList,cagent_id:number){
+    const baseUrl = '/api/auth/appointmentPrint/';
     this.http.get(baseUrl+ 
                   "?file_name="+template.file_name+
                   "&doc_id="+this.id+
+                  "&cagent_id="+cagent_id+
                   "&tt_id="+template.template_type_id,
                   { responseType: 'blob' as 'json', withCredentials: false}).subscribe(
       (response: any) =>{
@@ -2871,7 +2872,7 @@ deleteFile(id:number){
   getEmployeesListQueryBody(isFree:boolean, kindOfNoFree?:string){
   return  {
       isAll:        false,               // all or only free/not_free
-      isFree:       isFree,
+      isFree:       isFree, 
       kindOfNoFree: kindOfNoFree,        // busyByAppointments or busyBySchedule
       appointmentId:this.id,
       companyId:    this.formBaseInformation.get('company_id').value,
@@ -2882,6 +2883,7 @@ deleteFile(id:number){
       servicesIds:  []/*+this.formBaseInformation.get('product_id').value==0?[]:[this.formBaseInformation.get('product_id').value]*/,
       depPartsIds:  []/*this.formBaseInformation.get('department_part_id').value==0?[]:[this.formBaseInformation.get('department_part_id').value]*/,
       jobTitlesIds: []/*this.formBaseInformation.get('jobtitle_id').value==0?[]:[this.formBaseInformation.get('jobtitle_id').value]*/,
+      employeesIds: []
     }
   }
   getEmployeesList(isFree:boolean=true){

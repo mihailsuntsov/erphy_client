@@ -95,26 +95,6 @@
                     class="button small-button">
                     <i class="material-icons">refresh</i>
                 </button>
-                <!-- <mat-menu #templatesMenu="matMenu" yPosition="below" xPosition="before">
-                    <div *ngIf="gettingTemplatesData" style="width:240px; height: 125px;">
-                        <mat-spinner 
-                        strokeWidth="3" 
-                        class="spinner"
-                        style="position: relative;"
-                        [diameter]="50"
-                        *ngIf="gettingTemplatesData"
-                    ></mat-spinner>
-                    </div>                        
-                    <button mat-menu-item *ngFor="let template of templatesList">
-                        <div style="width:100%; height: 100%;" (click)="clickOnTemplate(template)">
-                            <span>{{template.name}}</span>                    
-                        </div>
-                    </button>
-                    <mat-divider></mat-divider>
-                    <button mat-menu-item id="menu_print_btn" (click)="openDialogTemplates()" >
-                        <span>{{t('docs.tip.set_prnt_menu')}}</span>
-                    </button>
-                </mat-menu> -->
                 <!-- <button 
                     mat-button 
                     [matMenuTriggerFor]="addDocMenu"
@@ -847,14 +827,14 @@
                                                     </ng-container>
                                                     <!--Total sum-->
                                                     <ng-container matColumnDef="sum" [formArrayName]="'customersTable'">
-                                                        <th mat-header-cell *matHeaderCellDef matTooltip="{{t('docs.tip.cli_sum_s_doc')}}">{{t('modules.col.sum')}}, {{accountingCurrency}}</th>
+                                                        <th mat-header-cell *matHeaderCellDef matTooltip="{{t('docs.tip.cli_sum_s_doc')}}" [matTooltipPosition]="'above'">{{t('modules.col.sum')}}, {{accountingCurrency}}</th>
                                                         <td mat-cell *matCellDef="let row; let i = dataIndex" [formGroupName]="i"> 
                                                             <span>{{numToPrice(getTotalSumOfCustomer(row.row_id),2)}}</span>
                                                         </td>
                                                     </ng-container>
                                                     <!--Payed-->
                                                     <ng-container matColumnDef="paid" [formArrayName]="'customersTable'">
-                                                        <th mat-header-cell *matHeaderCellDef matTooltip="{{t('docs.tip.am_fnds_acc')}}">{{t('modules.col.paid')}}, {{accountingCurrency}}</th>
+                                                        <th mat-header-cell *matHeaderCellDef matTooltip="{{t('docs.tip.am_fnds_acc')}}" [matTooltipPosition]="'above'">{{t('modules.col.paid')}}, {{accountingCurrency}}</th>
                                                         <td mat-cell *matCellDef="let row; let i = dataIndex" [formGroupName]="i"> 
                                                             <span 
                                                             [ngStyle]="getTotalSumOfCustomer(row.row_id)>0 && getTotalSumOfCustomer(row.row_id)!=getPaidCustomerSum(row.id)?{'color': 'red'}:{}"
@@ -865,7 +845,7 @@
                                                     </ng-container>
                                                     <!--Shipped-->
                                                     <ng-container matColumnDef="shipped" [formArrayName]="'customersTable'">
-                                                        <th mat-header-cell *matHeaderCellDef matTooltip="{{t('docs.tip.cli_sum_t_doc')}}">{{t('modules.col.transferred')}}, {{accountingCurrency}}</th>
+                                                        <th mat-header-cell *matHeaderCellDef matTooltip="{{t('docs.tip.cli_sum_t_doc')}}" [matTooltipPosition]="'above'">{{t('modules.col.transferred')}}, {{accountingCurrency}}</th>
                                                         <td mat-cell *matCellDef="let row; let i = dataIndex" [formGroupName]="i"> 
                                                             <span
                                                             [ngStyle]="getTotalSumOfCustomer(row.row_id)>0 && getTotalSumOfCustomer(row.row_id)!=getShippedCustomerSum(row.id)?{'color': 'red'}:{}"
@@ -882,7 +862,7 @@
                                                     </ng-container> -->
                                                     <!-- Delete Column -->
                                                     <ng-container matColumnDef="delete" [formArrayName]="'customersTable'">
-                                                        <th mat-header-cell *matHeaderCellDef style="width: 20px;"><mat-icon style="cursor: default" (click)="clearCustomersTable()" matTooltip="{{t('docs.tip.del_a_clnts')}}">close</mat-icon></th>
+                                                        <th mat-header-cell *matHeaderCellDef style="width: 20px;"><mat-icon style="cursor: default" (click)="clearCustomersTable()" matTooltip="{{t('docs.tip.del_a_clnts')}}" [matTooltipPosition]="'above'">close</mat-icon></th>
                                                         <td mat-cell *matCellDef="let row; let i = dataIndex" [formGroupName]="i">
                                                             <mat-icon style="cursor: pointer" *ngIf="true" matTooltip="{{t('docs.tip.del_clnt')}}" (click)="deleteCustomerRow(row,i)">delete_forever</mat-icon>
                                                         </td>
@@ -901,8 +881,43 @@
                                                                             <div class="flex card">
                                                                                
                                                                                 <div style="position: absolute; right: 20px;">
+
+                                                                                    <button 
+                                                                                        mat-raised-button 
+                                                                                        [matMenuTriggerFor]="templatesMenu"
+                                                                                        *ngIf="+id>0"
+                                                                                        matTooltip="{{t('docs.tip.print')}}"
+                                                                                        color="primary"                
+                                                                                        (click)="printDocs()"
+                                                                                        type="button"
+                                                                                        id="print_btn"
+                                                                                        (submit)="false"
+                                                                                        class="button small-button">
+                                                                                        <i class="material-icons">print</i>
+                                                                                    </button>
+
+                                                                                    <mat-menu #templatesMenu="matMenu" yPosition="below" xPosition="before">
+                                                                                        <div *ngIf="gettingTemplatesData" style="width:240px; height: 125px;">
+                                                                                            <mat-spinner 
+                                                                                            strokeWidth="3" 
+                                                                                            class="spinner"
+                                                                                            style="position: relative;"
+                                                                                            [diameter]="50"
+                                                                                            *ngIf="gettingTemplatesData"
+                                                                                        ></mat-spinner>
+                                                                                        </div>                        
+                                                                                        <button mat-menu-item *ngFor="let template of templatesList">
+                                                                                            <div style="width:100%; height: 100%;" (click)="clickOnTemplate(template,row.id)">
+                                                                                                <span>{{template.name}}</span>                    
+                                                                                            </div>
+                                                                                        </button>
+                                                                                        <mat-divider></mat-divider>
+                                                                                        <button mat-menu-item id="menu_print_btn" (click)="openDialogTemplates()" >
+                                                                                            <span>{{t('docs.tip.set_prnt_menu')}}</span>
+                                                                                        </button>
+                                                                                    </mat-menu>
+
                                                                                     <button matTooltip="{{getAmountOfChildDocs(row.id,'shipment')>0?t('docs.tip.fxd_there_doc_tp'):t('docs.tip.ship_to_customer')}}" 
-                                                                                                [matTooltipPosition]="'left'"
                                                                                                 mat-raised-button
                                                                                                 *ngIf="+id>0"
                                                                                                 color="primary"
