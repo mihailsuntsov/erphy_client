@@ -367,7 +367,7 @@ export class CalendarComponent implements OnInit {
         this.setResourcesDaysArray();
         this.refreshView();
         this.changeDateMatCalendar(this.viewDate);
-        this.onDayAddEventBtnClick(new Date())
+        // this.onDayAddEventBtnClick(new Date())
       }, 1);
     }
   }

@@ -223,24 +223,26 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
     this.allDayEventRowsByDeppartsAndResourcesId = new Map();
 
     // Каждое событие имеет список ресурсов, которые используются в услугах этого события
-    // Эта функция помогает узнать, есть ли ресурс с идентификатором в списке ресурсов
+    // Эта функция помогает узнать, есть ли ресурс с идентификатором в списке ресурсов события
     // Each event has a list of resources that used in services of this event
-    // This function helps to know whether resource with ID is in the list of resources
+    // This function helps to know whether resource with ID is in the list of resources of event
     function isEventResourcesHasResource(resources:any[],resourceId:number){
       let result=false;
-      // console.log('Event resources = '+resources+ '| resourceId = '+resourceId)
       resources.map(resource=>{
-        // console.log('Mapped resource',resource)
         if(resource.id === resourceId) result=true; 
       });
       return result;
     }
 
-    // fill array of resources IDs
-    let resourcesIds: number[]=[];
-    let deppartsIds:  number[]=[];
+
+
+
     // Создание общего списка ID всех ресурсов и ID всех частей отделений
     // Creating a general list of IDs of all resources and IDs of all parts of departments
+
+    let resourcesIds: number[]=[];
+    let deppartsIds:  number[]=[];
+
     this.departmentsWithParts.map(department =>{
       department.parts.map(deppart =>{
         if(deppartsIds.indexOf(deppart.id) === -1)
@@ -253,29 +255,21 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
     });
 
     if(resourcesIds.length>0 && deppartsIds.length>0 && this.events.length>0){
-      // console.log('Unique resources IDs',resourcesIds);
-      // console.log('Unique depparts IDs', deppartsIds);
-
       // Проходим по всем сочетаниям части отделений и ресурсов, и составляем массив событий для каждого такого сочетания
       // Going through all combinations of some departments and resources, and compose an array of events for each such combination
       deppartsIds.map(depId=>{
         resourcesIds.map(resId=>{
-          // let backupEvents: CalendarEvent[] = [];
-          // this.events.map(event=>{backupEvents.push(event)});
-          
           // Создаем локальный список событий, оставляя из общего списка только те события, что относятся к текущей части отделения и используют текущий ресурс
           // Create a local list of events, leaving from the general list only those events that relate to the current part of the department and use current a resource
           let events: CalendarEvent[] = this.events.filter(
             function (event) {
             return (isEventResourcesHasResource(event.meta.itemResources, resId)&&event.meta.departmentPartId==depId)
           })
-          
           // Формируем строки событий
           // Forming rows of events
           let rows: WeekViewAllDayEventRow[] = this.getEventsRows(this.dateAdapter,
             {
               events: events,
-              // events: this.events,
               excluded: [],
               precision: 'minutes',
               absolutePositionedEvents: true,
@@ -319,16 +313,73 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
 
   }
   
-  isNotEnoughtResources(mapKey,resourceQtt):boolean{
-    let result=false;
-    if(this.allDayEventRowsByDeppartsAndResourcesId != undefined && this.allDayEventRowsByDeppartsAndResourcesId.get(mapKey) != undefined){
-      let requiredResourcesQtt = this.allDayEventRowsByDeppartsAndResourcesId.get(mapKey).length;
-      
-      result = resourceQtt < requiredResourcesQtt;
+  
+
+  isNotEnoughtResources(depPartId:number, resourceId:number, resourceQtt):boolean{ 
+
+    let result = false;   
+    // Каждое событие имеет список ресурсов, которые используются в услугах этого события
+    // Эта функция помогает узнать, есть ли ресурс с идентификатором в списке ресурсов события
+    // Each event has a list of resources that used in services of this event
+    // This function helps to know whether resource with ID is in the list of resources of event
+    function isEventResourcesHasResource(resources:any[],resourceId:number){
+      let result=false;
+      resources.map(resource=>{
+        if(resource.id === resourceId) result=true; 
+      });
+      return result;
     }
-    // console.log('isNotEnoughtResources', result)
+    if(this.events.length>0){
+        // Создаем локальный список событий, оставляя из общего списка только те события, что относятся к запрашиваемым части отделения и ресурсу
+        // Create a local list of events, leaving from the general list only those events that relate to the queried part of the department and resource
+      let events: CalendarEvent[] = this.events.filter(
+        function (event) {
+          return (isEventResourcesHasResource(event.meta.itemResources, resourceId)&&event.meta.departmentPartId==depPartId)
+        }
+      )
+    
+      events.map(mainCycleEvent=>{
+        if(!result){ // если в одном из циклов уже было получено положительное значение (т.е. ресурса не хватает) - все остальные нужно пропусить
+          let intersectedWithEachOtherEventsGroup: CalendarEvent[]=[];
+          intersectedWithEachOtherEventsGroup.push(mainCycleEvent);
+
+          events.map(compareCycleEvent=>{
+            if(mainCycleEvent.id != compareCycleEvent.id){ // сравниваем с каждым другим, но не с самим собой
+
+              let countOfIntersectionsWithGroupEvents = 0;
+              intersectedWithEachOtherEventsGroup.map(eventOfIntersectiondGroup=>{
+                if(compareCycleEvent.start < eventOfIntersectiondGroup.end && compareCycleEvent.end > eventOfIntersectiondGroup.start)
+                  countOfIntersectionsWithGroupEvents++;
+              })
+              if(countOfIntersectionsWithGroupEvents==intersectedWithEachOtherEventsGroup.length)
+                intersectedWithEachOtherEventsGroup.push(compareCycleEvent);
+            }
+          });
+
+          // Сейчас у получившейся группы событий, у events которой есть общее одновременное пересечение, нужно получить сумму по запрашиваемому ресурсу
+          let sumOfQueriedResource = 0;
+          intersectedWithEachOtherEventsGroup.map(eventOfIntersectiondGroup=>{
+            eventOfIntersectiondGroup.meta.itemResources.map(resource=>{
+              if(resource.id == resourceId) sumOfQueriedResource = sumOfQueriedResource + resource.usedQuantity;
+            })
+          })
+          // и если единовременное использование ресурса больше чем его количество, имеющееся в части отделения, то значит ресурса не хватает
+          result = resourceQtt < sumOfQueriedResource;
+        }
+      })   
+    }
     return result;
   }
+
+
+  // isNotEnoughtResources(mapKey,resourceQtt):boolean{
+  //   let result=false;
+  //   if(this.allDayEventRowsByDeppartsAndResourcesId != undefined && this.allDayEventRowsByDeppartsAndResourcesId.get(mapKey) != undefined){
+  //     let requiredResourcesQtt = this.allDayEventRowsByDeppartsAndResourcesId.get(mapKey).length;
+  //     result = resourceQtt < requiredResourcesQtt;
+  //   }
+  //   return result;
+  // }
 
 
 

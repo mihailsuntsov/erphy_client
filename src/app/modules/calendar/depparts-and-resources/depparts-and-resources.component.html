@@ -35,7 +35,7 @@
       </div>
       
 
-      <div mwldroppable="" class="cal-all-day-events" *ngFor="let resource of deppart.resources; trackBy: trackByResource.bind(this, deppart.id)" [ngClass]="{'not-enought-resources': (isNotEnoughtResources(deppart.id+'_'+resource.resource_id,resource.resource_qtt))}">
+      <div mwldroppable="" class="cal-all-day-events" *ngFor="let resource of deppart.resources; trackBy: trackByResource.bind(this, deppart.id)" [ngClass]="{'not-enought-resources': (isNotEnoughtResources(deppart.id,resource.resource_id,resource.resource_qtt))}">
         <div class="cal-day-columns" >
           <div class="cal-time-label-column" 
           style="justify-content: start;" 
