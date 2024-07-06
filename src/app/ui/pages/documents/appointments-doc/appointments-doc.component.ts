@@ -21,6 +21,7 @@ import { DelCookiesService } from './del-cookies.service';
 import { Router, NavigationExtras  } from '@angular/router';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { setValue, translate } from '@ngneat/transloco'; //+++
+import { CalendarEvent } from 'angular-calendar';
 // import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component';
 import { AppointmentsComponent } from 'src/app/ui/pages/documents/appointments/appointments.component';
 import { FilesComponent } from '../files/files.component';
@@ -1253,40 +1254,108 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     } else return [];
   }
   
-  getRefreshNowUsedResourcesQueryBody(){
+  getCalendarEventsQueryBody(){
     return  {
-        appointmentId:+this.id,
+        // appointmentId:+this.id,
         companyId:    this.formBaseInformation.get('company_id').value,
         dateFrom:     this.formBaseInformation.get('date_start').value,
         timeFrom:     this.timeTo24h(this.formBaseInformation.get('time_start').value),
         dateTo:       this.formBaseInformation.get('date_end').value,
         timeTo:       this.timeTo24h(this.formBaseInformation.get('time_end').value),
+        depparts:     [],
+        employees:    []
       }
   }
 
+
+
+
+
   refreshNowUsedResources(){
-    this.http.post('/api/auth/getNowUsedResourcesList',this.getRefreshNowUsedResourcesQueryBody()).subscribe(
-    (data) =>   
-    {
-      let resources = data as DepPartResource[];
-      let row_index:number=0;
-      let control = this.getControlTablefield();
-      control.value.map(service=>{
-        service.departmentPartsWithResourcesIds.map(depPart=>{
-          // if(depPart.id == +this.formBaseInformation.get('department_part_id').value){
-            depPart.resourcesOfDepartmentPart.map(depPartResource=>{
-              resources.map(newResource=>{
-                if(newResource.dep_part_id==depPart.id && newResource.resource_id==depPartResource.id)
-                  depPartResource.now_used=newResource.now_used;
+    let events:any[]=[];
+    this.http.post('/api/auth/getCalendarEventsList', this.getCalendarEventsQueryBody()).subscribe(
+      (data) => {
+        if(!data){
+          this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('docs.msg.c_err_exe_qury')}})
+        }
+        events=data as CalendarEvent[];
+        let control = this.getControlTablefield();
+        control.value.map(service=>{
+          service.departmentPartsWithResourcesIds.map(depPart=>{
+              depPart.resourcesOfDepartmentPart.map(depPartResource=>{
+                depPartResource.now_used=this.getMaxUsedResourceQtt(depPart.id, depPartResource.id, events);
               })
-            })
-          // }
+          });
         });
-          row_index++;
-      });
-    },
-      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
+      },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}
     );
+  }
+
+  getMaxUsedResourceQtt(depPartId:number, resourceId:number, allEvents:CalendarEvent[]):number{ 
+
+    let maxSumOfQueriedResource =0;
+    // Каждое событие имеет список ресурсов, которые используются в услугах этого события
+    // Эта функция помогает узнать, есть ли ресурс с идентификатором в списке ресурсов события
+    // Each event has a list of resources that used in services of this event
+    // This function helps to know whether resource with ID is in the list of resources of event
+    function isEventResourcesHasResource(resources:any[],resourceId:number){
+      let result=false;
+      resources.map(resource=>{
+        if(resource.id === resourceId) result=true; 
+      });
+      return result;
+    }
+    if(allEvents.length>0){
+        // Создаем локальный список событий, оставляя из общего списка только те события, что относятся к запрашиваемым части отделения и ресурсу
+        // Create a local list of events, leaving from the general list only those events that relate to the queried part of the department and resource
+      let events: CalendarEvent[] = allEvents.filter(
+        function (event) {
+          return (
+            isEventResourcesHasResource(event.meta.itemResources, resourceId)
+            && event.meta.departmentPartId==depPartId
+            ) 
+        }
+      )
+    
+      events.map(mainCycleEvent=>{
+        // if(!result){ // если в одном из циклов уже было получено положительное значение (т.е. ресурса не хватает) - все остальные нужно пропусить
+        let intersectedWithEachOtherEventsGroup: CalendarEvent[]=[];
+        intersectedWithEachOtherEventsGroup.push(mainCycleEvent);
+
+        events.map(compareCycleEvent=>{
+          if(mainCycleEvent.id != compareCycleEvent.id){ // сравниваем с каждым другим, но не с самим собой
+
+            let countOfIntersectionsWithGroupEvents = 0;
+            intersectedWithEachOtherEventsGroup.map(eventOfIntersectiondGroup=>{
+              if(compareCycleEvent.start < eventOfIntersectiondGroup.end && compareCycleEvent.end > eventOfIntersectiondGroup.start)
+                countOfIntersectionsWithGroupEvents++;
+            })
+            if(countOfIntersectionsWithGroupEvents==intersectedWithEachOtherEventsGroup.length)
+              intersectedWithEachOtherEventsGroup.push(compareCycleEvent);
+          }
+        });
+
+        // Сейчас у получившейся группы событий, у events которой есть общее одновременное пересечение, нужно получить сумму по запрашиваемому ресурсу
+        let sumOfQueriedResource = 0;
+        intersectedWithEachOtherEventsGroup.map(eventOfIntersectiondGroup=>{
+          eventOfIntersectiondGroup.meta.itemResources.map(resource=>{
+            
+            if(resource.id == resourceId && 
+              // не берем во внимание ресурсы из текущего документа // do not take into account resources from the current document 
+              eventOfIntersectiondGroup.id != +this.id &&
+              // не берем во внимание ресурсы из отменённых документов // do not take into account resources from the cancelled documents
+              eventOfIntersectiondGroup.meta.statusType !=3 
+              ) sumOfQueriedResource = sumOfQueriedResource + resource.usedQuantity;
+          })
+        })
+        // и если единовременное использование ресурса больше чем его количество, имеющееся в части отделения, то значит ресурса не хватает
+        if(sumOfQueriedResource>maxSumOfQueriedResource) 
+          maxSumOfQueriedResource=sumOfQueriedResource;
+        // }
+      })   
+    }
+    return maxSumOfQueriedResource;
   }
   getProductsCustomerList(){
     if(!this.isProductCustomerListLoading){

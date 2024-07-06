@@ -360,7 +360,8 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
           let sumOfQueriedResource = 0;
           intersectedWithEachOtherEventsGroup.map(eventOfIntersectiondGroup=>{
             eventOfIntersectiondGroup.meta.itemResources.map(resource=>{
-              if(resource.id == resourceId) sumOfQueriedResource = sumOfQueriedResource + resource.usedQuantity;
+                                              // не берем во внимание ресурсы из отменённых документов // do not take into account resources from the cancelled documents
+              if(resource.id == resourceId && eventOfIntersectiondGroup.meta.statusType !=3) sumOfQueriedResource = sumOfQueriedResource + resource.usedQuantity;
             })
           })
           // и если единовременное использование ресурса больше чем его количество, имеющееся в части отделения, то значит ресурса не хватает

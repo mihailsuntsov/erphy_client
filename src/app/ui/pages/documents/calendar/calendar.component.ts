@@ -239,6 +239,8 @@ export class CalendarComponent implements OnInit {
         companyId: new UntypedFormControl(0,[]), // предприятие, по которому идет запрос данных
         dateFrom: new UntypedFormControl(moment().startOf('month'),[]),   // дата С
         dateTo: new UntypedFormControl(moment().endOf('month'),[]),     // дата По
+        timeFrom: new UntypedFormControl('00:00',[]),   // время С
+        timeTo: new UntypedFormControl('23:59',[]),     // время По
         depparts: new UntypedFormControl([],[]), // set of department parts
         employees: new UntypedFormControl([],[]), // set of employees
         departments: new UntypedFormControl([],[]), // set of departments IDs
@@ -463,8 +465,6 @@ export class CalendarComponent implements OnInit {
             "end": new Date(event.end),
             "title": event.title,
             "color": {
-                // "primary": event.meta.user.color.primary,
-                // "secondary": event.meta.user.color.secondary
                 "primary": event.color.primary,
                 "secondary": event.color.secondary
             },
@@ -473,7 +473,9 @@ export class CalendarComponent implements OnInit {
               "user": event.meta.user,
               "itemResources": event.meta.itemResources?event.meta.itemResources:[],
               "departmentPartId":event.meta.departmentPartId?event.meta.departmentPartId:null,
-            },
+              "statusName": event.meta.statusName,
+              "statusType": event.meta.statusType //тип статуса : 1 - обычный; 2 - конечный положительный 3 - конечный отрицательный
+            },                                    //status type:  1 - normal;  2 - final positive         3 - final negative
             "resizable": {
               "beforeStart": true,
               "afterEnd": true,
