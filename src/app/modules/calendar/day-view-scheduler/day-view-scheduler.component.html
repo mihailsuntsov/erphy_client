@@ -145,18 +145,23 @@
           class="cal-day-column"
           *ngFor="let column of view.hourColumns;   let i = index; trackBy: trackByHourColumn"
         >
+
+        <!-- Current time horizontal line -->
           <mwl-calendar-week-view-current-time-marker
             [columnDate]="column.date"
             [dayStartHour]="dayStartHour"
             [dayStartMinute]="dayStartMinute"
             [dayEndHour]="dayEndHour"
             [dayEndMinute]="dayEndMinute"
+            [hourDuration]="hourDuration"
             [hourSegments]="hourSegments"
             [hourSegmentHeight]="hourSegmentHeight"
             [customTemplate]="currentTimeMarkerTemplate"
           ></mwl-calendar-week-view-current-time-marker>
 
           <!-- Events block -->
+
+          <!-- This div is event wrapper -->
           <div
             *ngFor="let timeEvent of column.events; trackBy: trackByWeekTimeEvent"
             #event
@@ -202,7 +207,7 @@
             (dragging)="dragMove(timeEvent, $event)"
             (dragEnd)="dragEnded(timeEvent, $event, dayColumnWidth, true)"
           >
-          <!-- End of Events block -->
+
 
             <div
               class="cal-resize-handle cal-resize-handle-before-start"
@@ -250,7 +255,7 @@
               }"
             ></div>
           </div>
-  
+          <!-- End of Events block -->
 
 
 
@@ -300,11 +305,12 @@
 
 
 
-
-          <div
+          <!-- Hour segments -->
+          <div 
             *ngFor="let hour of column.hours; trackBy: trackByHour; let odd = odd"
             class="cal-hour"
             [class.cal-hour-odd]="odd"
+            (mousedown)="emitUserOfDraggingToCreateEvent(i)"
           >
             <mwl-calendar-week-view-hour-segment
               *ngFor="let segment of hour.segments; trackBy: trackByHourSegment"
@@ -330,7 +336,7 @@
             </mwl-calendar-week-view-hour-segment>
           </div>
         </div>
-        <!-- End of events in this column -->
+        <!-- End of column -->
 
         
 

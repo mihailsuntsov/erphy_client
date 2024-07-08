@@ -1,15 +1,18 @@
-import { Component, EventEmitter, OnInit, Output, ViewChild, ChangeDetectionStrategy, HostListener } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, ViewChild, ChangeDetectionStrategy, HostListener, ViewEncapsulation, Injectable, ChangeDetectorRef } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpClient } from '@angular/common/http';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { LoadSpravService } from '../../../../services/loadsprav';
-import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
-import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
-import { ResizeEvent } from 'angular-resizable-element';
+// import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
+// import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
+// import { ResizeEvent } from 'angular-resizable-element';
 import { translate, TranslocoService } from '@ngneat/transloco';
 import { SelectionModel } from '@angular/cdk/collections';
-import { CalendarEvent, CalendarDateFormatter, DAYS_OF_WEEK, CalendarEventTimesChangedEvent } from 'angular-calendar';
+import { CalendarEvent, CalendarDateFormatter, DAYS_OF_WEEK, CalendarEventTimesChangedEvent, CalendarEventTitleFormatter } from 'angular-calendar';
+import { WeekViewHourSegment } from 'calendar-utils';
+import { fromEvent } from 'rxjs';
+import { finalize, takeUntil } from 'rxjs/operators';
 import { Moment } from 'moment';
 import { MatDrawer } from '@angular/material/sidenav';
 import { Subject } from 'rxjs';
@@ -27,6 +30,28 @@ import { AppointmentsDocComponent } from '../appointments-doc/appointments-doc.c
 const  MY_FORMATS = MomentDefault.getMomentFormat();
 const  moment = MomentDefault.getMomentDefault();
 import { User,Break } from 'src/app/modules/calendar/day-view-scheduler/day-view-scheduler.component';
+
+function floorToNearest(amount: number, precision: number) {
+  return Math.floor(amount / precision) * precision;
+}
+
+function ceilToNearest(amount: number, precision: number) {
+  return Math.ceil(amount / precision) * precision;
+}
+
+@Injectable()
+export class CustomEventTitleFormatter extends CalendarEventTitleFormatter {
+  weekTooltip(event: CalendarEvent, title: string) {
+    if (!event.meta || !event.meta.tmpEvent) {
+      return super.weekTooltip(event, title);
+    }
+  }
+  dayTooltip(event: CalendarEvent, title: string) {
+    if (!event.meta || !event.meta.tmpEvent) {
+      return super.dayTooltip(event, title);
+    }
+  }
+}
 
 export enum CalendarView {
   Month = "month",
@@ -107,6 +132,8 @@ interface JobtitleWithEmployees {
   employees: EmployeeWithServices[];
 }
 
+
+
 @Component({
   selector: 'app-calendar',
   templateUrl: './calendar.component.html',
@@ -122,9 +149,16 @@ interface JobtitleWithEmployees {
     {
         provide: MAT_SELECT_CONFIG,
         useValue: { overlayPanelClass: 'expandable-overlay-panel' }
-    }
+    },
+    {
+      provide: CalendarEventTitleFormatter,
+      useClass: CustomEventTitleFormatter,
+    },
   ] 
 })
+
+
+
 export class CalendarComponent implements OnInit {
 
   // Angular Calendar
@@ -156,6 +190,7 @@ export class CalendarComponent implements OnInit {
   dayEventClicked=false;
   dayAddEventBtnClicked=false;
   allDayEventRows: WeekViewAllDayEventRow[]=[];
+  // dragToCreateActive = false;
   actionsBeforeGetChilds:number=0;// количество выполненных действий, необходимых чтобы загрузить дочерние модули (форму товаров)
   documntsList: IdAndName[] = [
     {
@@ -192,11 +227,18 @@ export class CalendarComponent implements OnInit {
   users:  User[]  = []; 
   breaks: Break[] = [];
   currentMonthDaysArray: Day[] = []; // days in the head of table to construct view for depparts-and-resources component
+  userOfDraggingToCreateEvent:  User = null;
 
 
 
-
-
+// -----    SETTINGS     -----
+dayStartHour:number = 0;
+dayEndHour:number   = 23;
+dayStartMinute:number = 0;
+dayEndMinute:number   = 59;
+hourDuration:number = 30;
+hourSegments:number = 2;
+// ----- END OF SETTINGS -----
 
 
 
@@ -231,7 +273,8 @@ export class CalendarComponent implements OnInit {
     public cu: CommonUtilitesService, 
     private dataService: DataService,
     public cdf: CustomDateFormatter,
-    private service: TranslocoService,) {}
+    private service: TranslocoService,
+    private cdr: ChangeDetectorRef) {}
 
     ngOnInit() {
       // this.dataService.setData('HH:mm');
@@ -494,6 +537,7 @@ export class CalendarComponent implements OnInit {
         
         this.getAllDayEventRows();
         this.necessaryActionsBeforeGetChilds();
+        this.refreshView();
       },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}
     );
@@ -534,7 +578,8 @@ export class CalendarComponent implements OnInit {
   refreshView(): void {
     this.events = [...this.events];
     this.breaks = [...this.breaks];
-    this.refresh.next();
+    this.cdr.detectChanges();
+    // this.refresh.next();
   }
   console(name:string, value:any){
     console.log(name,value);
@@ -555,8 +600,6 @@ export class CalendarComponent implements OnInit {
     event.meta.user = newUser;
     this.events = [...this.events];
   }
-
-  
 
 
 
@@ -951,7 +994,7 @@ export class CalendarComponent implements OnInit {
 // -------------------------------------------------------------------------------------
 
 
-  openAppointmentCard(docId: number, date?: Date){
+  openAppointmentCard(docId: number, date: Date, dragCreatedEvent?:CalendarEvent){
     // console.log("locale in calendar = ",this.locale);
     const dialogRef = this.dialogDocumentCard.open(AppointmentsDocComponent, {
       maxWidth: '95vw',
@@ -969,6 +1012,7 @@ export class CalendarComponent implements OnInit {
         locale:     this.locale,
         jobtitles:            this.receivedJobtitlesList,
         departmentsWithParts: this.receivedDepartmentsWithPartsList,
+        dragCreatedEvent: dragCreatedEvent
       },
     });
     dialogRef.componentInstance.baseData.subscribe((data) => {
@@ -993,10 +1037,14 @@ export class CalendarComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe(result => {
       console.log(`Dialog result: ${result}`);
+      this.getCalendarEventsList();
       // if(result)
       //   this.addFilesToappointments(result);
     });
   }
+
+
+
   getCompanyNameById(id:number):string{
     let name:string;
     if(this.receivedCompaniesList){
@@ -1094,50 +1142,82 @@ export class CalendarComponent implements OnInit {
     this.refreshView();
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  /*
-  addExampleInfo(){
-    const control = <UntypedFormArray>this.formBaseInformation.get('customersTable');
-    this.guests.map(guest=>{
-      control.push(this.formingCustomerRow(guest));
-    });
+  prepareToDragCreate( segment: WeekViewHourSegment,
+    mouseDownEvent: any,
+    segmentElement: HTMLElement){
+    setTimeout(() => {
+      this.startDragToCreate(segment,mouseDownEvent,segmentElement)
+    }, 1);
   }
 
-  formingCustomerRow(guest:any) {
-    return this._fb.group({
-      customer_id: new UntypedFormControl (guest.customer_id,[]),
-      name:       new UntypedFormControl (guest.name,[]),
-      is_payer:   new UntypedFormControl (guest.is_payer,[]),
-    });
+  startDragToCreate(
+    segment: WeekViewHourSegment,
+    mouseDownEvent: any,
+    segmentElement: HTMLElement
+  ) {
+    console.log('column',mouseDownEvent)
+    const dragToSelectEvent: CalendarEvent = {
+      id: null,
+      title: '',
+      start: segment.date,
+      meta: {
+        tmpEvent: true,
+        "user": this.userOfDraggingToCreateEvent
+      },
+    };
+    this.events = [...this.events, dragToSelectEvent];
+    const segmentPosition = segmentElement.getBoundingClientRect();
+    let oneTimeMouseupControl = true;
+    // this.dragToCreateActive = true;
+    const endOfView = moment(this.viewDate).endOf("week").add(1,"millisecond").toDate();// Чтобы можно было "дотянуть" event до самого конца дня
+    fromEvent(document, 'mousemove')                                                    // So that we can “strech” the event until the very end of the day
+      .pipe(
+        finalize(() => {
+          delete dragToSelectEvent.meta.tmpEvent;
+          // this.dragToCreateActive = false;
+          this.refreshView();
+        }),
+        takeUntil(fromEvent(document, 'mouseup'))
+      )
+      .subscribe((mouseMoveEvent: MouseEvent) => {
+        const minutesDiff = ceilToNearest(
+          mouseMoveEvent.clientY - segmentPosition.top,
+          (this.hourDuration/this.hourSegments)*(30/this.hourDuration*this.hourSegments) // Подходит для: (hourDuration:number = 30; hourSegments:number = 2;),(hourDuration:number = 60; hourSegments:number = 2;),(hourDuration:number = 60; hourSegments:number = 1;)
+        );                                                                               // Suitable for: (hourDuration:number = 30; hourSegments:number = 2;),(hourDuration:number = 60; hourSegments:number = 2;),(hourDuration:number = 60; hourSegments:number = 1;)
+        // console.log('minutesDiff',minutesDiff)
+        const daysDiff =
+          floorToNearest(
+            mouseMoveEvent.clientX - segmentPosition.left,
+            segmentPosition.width
+          ) / segmentPosition.width;
+
+        const newEnd = moment(segment.date).add(minutesDiff/(30/this.hourDuration*this.hourSegments), 'minutes').add(daysDiff, 'days').toDate();
+        if (newEnd > segment.date && newEnd < endOfView) {
+          dragToSelectEvent.end = newEnd;
+        }
+        this.refreshView();
+        
+      });
+      // fromEvent(document, 'mouseup')
+      // .subscribe(() => { 
+      //   alert('111111111111111111') })
+      fromEvent(document, 'mouseup').subscribe(() =>{
+        if(oneTimeMouseupControl){
+          oneTimeMouseupControl=false;
+          // console.log('dragToSelectEvent',dragToSelectEvent);
+          this.openAppointmentCard(null, new Date(), dragToSelectEvent)
+        }
+          
+        } 
+      );
   }
 
-  // trackByIndex(i:number) { return i; }
-
-  getControl(formControlName:string){
-    const control = <UntypedFormArray>this.formBaseInformation.get(formControlName);
-    return control;
+  setUserOfDraggingToCreateEvent(user:User) {
+    // console.log('UserOnFrontend - ',user)
+    this.userOfDraggingToCreateEvent = user;
   }
 
-  get payersCnt(){
-    let result = 0;
-    this.formBaseInformation.controls.customersTable.value.map(row=>{
-      if(row.is_payer)
-        result++;
-    })
-    return result;
-  }*/
+  onClickSchedulerHoour($event){
+    // console.log('$event - ',$event)
+  }
 }

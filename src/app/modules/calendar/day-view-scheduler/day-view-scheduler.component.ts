@@ -49,6 +49,14 @@ interface DayViewScheduler extends WeekView {
 interface GetWeekViewArgsWithUsers extends GetWeekViewArgs {
   users: User[];
   breaks:any[];
+
+
+  // dayStartHour: number;
+  // dayEndHour: number;
+  // dayStartMinute: number;
+  // dayEndMinute: number;
+  hourDuration: number;
+  hourSegments: number;
 }
 interface WeekViewHourColumn_ extends WeekViewHourColumn{
   // breaks:any[];
@@ -112,7 +120,7 @@ export class DayViewSchedulerCalendarUtils extends CalendarUtils {
 
     //  console.log("{ period }",{ period });
     // console.log("period",period);
-
+    // console.log("hourDuration",args.hourDuration);
 
                 //  WeekView + users
     const weekView_: DayViewScheduler = {
@@ -219,6 +227,7 @@ export class DayViewSchedulerComponent
 
   @Output() userChanged = new EventEmitter();
   @Output() refreshView = new EventEmitter();
+  @Output() userOfCurrentColumn = new EventEmitter();
 
   view: DayViewScheduler; //extends WeekView with users: User[];
 
@@ -260,6 +269,12 @@ export class DayViewSchedulerComponent
     hourDuration?: number
   ) {
     return (hourDuration || MINUTES_IN_HOUR) / (hourSegments * hourSegmentHeight);
+  }
+
+  emitUserOfDraggingToCreateEvent(i:number){
+    console.log('columnIndex',i);
+    console.log('user',JSON.stringify(this.users[i]))
+    this.userOfCurrentColumn.emit({user: this.users[i]});
   }
 
   dragMove(dayEvent: WeekViewTimeEvent, dragEvent: DragMoveEvent) {
@@ -327,6 +342,7 @@ export class DayViewSchedulerComponent
       excluded: this.excludeDays,
       precision: this.precision,
       absolutePositionedEvents: true,
+      hourDuration: this.hourDuration,
       hourSegments: this.hourSegments,
       dayStart: {
         hour: this.dayStartHour,

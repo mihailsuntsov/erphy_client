@@ -471,39 +471,31 @@
                         >There are {{ day.events.length }} events on this day</small
                         > -->
                     </ng-template>
+                    <ng-template
+                        #weekViewHourSegmentTemplate
+                        let-segment="segment"
+                        let-locale="locale"
+                        let-segmentHeight="segmentHeight"
+                        let-isTimeLabel="isTimeLabel"
+                        >
+                        <div
+                            #segmentElement
+                            class="cal-hour-segment"
+                            [style.height.px]="segmentHeight"
+                            [class.cal-hour-start]="segment.isStart"
+                            [class.cal-after-hour-start]="!segment.isStart"
+                            [ngClass]="segment.cssClass"
+                            (mousedown)="prepareToDragCreate(segment, $event, segmentElement)"
+                        >
+                            <div class="cal-time" *ngIf="isTimeLabel">
+                            {{ segment.date | calendarDate:'weekViewHour':locale }}
+                            </div>
+                        </div>
+                    </ng-template>
                     <div #calendar_area class="categories-sidenav-content" style="overflow: hidden;">
-                        <!-- weekStartsOn:{{weekStartsOn}} -->
-                            <!-- <mwl-day-view-scheduler
-                                [viewDate]="viewDate"
-                                [refresh]="refresh"
-                                [events]="events"
-                                [users]="users"
-                                (eventTimesChanged)="eventTimesChanged($event)"
-                                (userChanged)="userChanged($event)"
-                                [locale]="localeAngular" 
-                                (hourSegmentClicked)="angularCalendarOnClickDay($event.date)"
-                                (eventClicked)="handleEvent('Clicked', $event.event)"
-                            ></mwl-day-view-scheduler> -->
-                            <!-- <mwl-calendar-day-view
-                                [viewDate]="viewDate"
-                                [refresh]="refresh"
-                                [events]="events"
-                                [locale]="localeAngular" 
-                                (hourSegmentClicked)="angularCalendarOnClickDay($event.date)"
-                                (eventClicked)="handleEvent('Clicked', $event.event)"
-                            ></mwl-calendar-day-view> -->
-                            <!-- <mwl-calendar-week-view
-                            *ngIf="view=='week'"
-                            [viewDate]="viewDate"
-                            precision="minutes"
-                            [refresh]="refresh"
-                            [events]="events"
-                            [locale]="localeAngular"
-                            (dayHeaderClicked)="angularCalendarOnClickDay($event.day.date);"
-                            (hourSegmentClicked)="angularCalendarOnClickDay($event.date)"
-                            (eventClicked)="handleEvent('Clicked', $event.event)"
-                            ></mwl-calendar-week-view> -->
-                            <!-- <mwl-calendar-month-view
+
+                            <mwl-calendar-month-view
+                                *ngIf="view=='month'"
                                 [viewDate]="viewDate"
                                 [refresh]="refresh"
                                 [events]="events"
@@ -512,53 +504,48 @@
                                 (dayClicked)=" angularCalendarOnClickDay($event.day.date); dayClicked($event.day)"
                                 (eventClicked)="handleEvent('Clicked', $event.event)"
                                 [cellTemplate]="customCellTemplate"
-                            ></mwl-calendar-month-view> -->
-
-
-                            <mwl-calendar-month-view
-                            *ngIf="view=='month'"
-                            [viewDate]="viewDate"
-                            [refresh]="refresh"
-                            [events]="events"
-                            [locale]="localeAngular"
-                            [activeDayIsOpen]="activeDayIsOpen"
-                            (dayClicked)=" angularCalendarOnClickDay($event.day.date); dayClicked($event.day)"
-                            (eventClicked)="handleEvent('Clicked', $event.event)"
-                            [cellTemplate]="customCellTemplate"
                             ></mwl-calendar-month-view>
-                            <mwl-calendar-week-view
-                            *ngIf="view=='week'"
-                            [viewDate]="viewDate"
-                            [refresh]="refresh"
-                            [events]="events"
-                            [locale]="localeAngular"
-                            (dayHeaderClicked)="angularCalendarOnClickDay($event.day.date);"
-                            (hourSegmentClicked)="angularCalendarOnClickDay($event.date)"
-                            (eventClicked)="handleEvent('Clicked', $event.event)"
+                            <!-- <mwl-calendar-week-view
+                                *ngIf="view=='week'"
+                                [viewDate]="viewDate"
+                                [refresh]="refresh"
+                                [events]="events"
+                                [locale]="localeAngular"
+                                (dayHeaderClicked)="angularCalendarOnClickDay($event.day.date);"
+                                (hourSegmentClicked)="angularCalendarOnClickDay($event.date)"
+                                (eventClicked)="handleEvent('Clicked', $event.event)"
                             ></mwl-calendar-week-view>
                             <mwl-calendar-day-view
-                            *ngIf="view=='day'"
-                            [viewDate]="viewDate"
-                            [refresh]="refresh"
-                            [events]="events"
-                            [locale]="localeAngular" 
-                            (hourSegmentClicked)="angularCalendarOnClickDay($event.date)"
-                            (eventClicked)="handleEvent('Clicked', $event.event)"
-                            ></mwl-calendar-day-view>
+                                *ngIf="view=='day'"
+                                [viewDate]="viewDate"
+                                [refresh]="refresh"
+                                [events]="events"
+                                [locale]="localeAngular" 
+                                (hourSegmentClicked)="angularCalendarOnClickDay($event.date)"
+                                (eventClicked)="handleEvent('Clicked', $event.event)"
+                            ></mwl-calendar-day-view> -->
                             <mwl-day-view-scheduler
                                 *ngIf="view=='scheduler'"
                                 [viewDate]="viewDate"
                                 [refresh]="refresh"
                                 [events]="events"
+                                [hourSegmentTemplate]="weekViewHourSegmentTemplate"
+                                [weekStartsOn]="weekStartsOn"
                                 [users]="users"
                                 [breaks]="breaks"
                                 (eventTimesChanged)="eventTimesChanged($event)"
                                 (userChanged)="userChanged($event)"
                                 [locale]="localeAngular" 
-                                (hourSegmentClicked)="angularCalendarOnClickDay($event.date)"
+                                (hourSegmentClicked)="onClickSchedulerHoour($event)"
                                 (eventClicked)="handleEvent('Clicked', $event.event)"
-                            ></mwl-day-view-scheduler>
-                            
+                                (userOfCurrentColumn)="setUserOfDraggingToCreateEvent($event.user)"
+                                [hourDuration]="hourDuration"
+                                [hourSegments]="hourSegments"
+                                [dayStartHour]="dayStartHour"
+                                [dayEndHour]="dayEndHour"
+                                [dayStartMinute]="dayStartMinute"
+                                [dayEndMinute]="dayEndMinute"
+                            ></mwl-day-view-scheduler>                            
                             <mwl-depparts-and-resources
                                 *ngIf="view=='resources_week' || view=='resources_month' || view=='resources_day'"
                                 (eventTimesChanged)="eventTimesChanged($event)"
@@ -578,109 +565,9 @@
                                 [departmentsWithParts]="receivedDepartmentsWithPartsList"
                                 [selectedDepparts]="queryForm.get('depparts').value"
                             ></mwl-depparts-and-resources>
-                    
 
-                        <!-- <div [ngSwitch]="view">
-
-                            <mwl-calendar-month-view
-                                *ngSwitchCase="CalendarView.Month"
-                                [viewDate]="viewDate"
-                                [refresh]="refresh"
-                                [events]="events"
-                                [locale]="localeAngular"
-                                [activeDayIsOpen]="activeDayIsOpen"
-                                (dayClicked)=" angularCalendarOnClickDay($event.day.date); dayClicked($event.day)"
-                                (eventClicked)="handleEvent('Clicked', $event.event)"
-                                [cellTemplate]="customCellTemplate"
-                            ></mwl-calendar-month-view>
-                            <mwl-calendar-week-view
-                                *ngSwitchCase="CalendarView.Week"
-                                [viewDate]="viewDate"
-                                [refresh]="refresh"
-                                [events]="events"
-                                [locale]="localeAngular"
-                                (dayHeaderClicked)="angularCalendarOnClickDay($event.day.date);"
-                                (hourSegmentClicked)="angularCalendarOnClickDay($event.date)"
-                                (eventClicked)="handleEvent('Clicked', $event.event)"
-                            ></mwl-calendar-week-view>
-                            <mwl-calendar-day-view
-                                *ngSwitchCase="CalendarView.Day"
-                                [viewDate]="viewDate"
-                                [refresh]="refresh"
-                                [events]="events"
-                                [locale]="localeAngular" 
-                                (hourSegmentClicked)="angularCalendarOnClickDay($event.date)"
-                                (eventClicked)="handleEvent('Clicked', $event.event)"
-                            ></mwl-calendar-day-view>
-                            <mwl-day-view-scheduler
-                                *ngSwitchCase="CalendarView.Scheduler"
-                                [viewDate]="viewDate"
-                                [refresh]="refresh"
-                                [events]="events"
-                                [users]="users"
-                                [breaks]="breaks"
-                                (eventTimesChanged)="eventTimesChanged($event)"
-                                (userChanged)="userChanged($event)"
-                                [locale]="localeAngular" 
-                                (hourSegmentClicked)="angularCalendarOnClickDay($event.date)"
-                                (eventClicked)="handleEvent('Clicked', $event.event)"
-                            ></mwl-day-view-scheduler>
-
-                        </div> -->
                     </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                    <!-- <table mat-table #customers_table
-	[dataSource]="getControl('customersTable').value" 
-	[formGroup]="formBaseInformation" 
-	[trackBy]="trackByIndex" 
-	>
-			<ng-container matColumnDef="id" [formArrayName]="'customersTable'">
-				<th mat-header-cell *matHeaderCellDef>id</th>
-				<td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> 
-						<span>{{row.customer_id}}</span>
-				</td>
-		</ng-container>
-		
-		<ng-container matColumnDef="name" [formArrayName]="'customersTable'">
-				<th mat-header-cell *matHeaderCellDef>name</th>
-				<td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i"> 
-						<span>{{row.name}}</span>
-				</td>
-		</ng-container>
-		
-		<ng-container matColumnDef="is_payer" [formArrayName]="'customersTable'">
-				<th mat-header-cell *matHeaderCellDef style="width:30px">
-						is_payer
-				</th>
-				<td mat-cell style="width:30px" *matCellDef="let row; let i = index"[formGroupName]="i"> 
-								<mat-slide-toggle 
-                formControlName="is_payer"
-                [disabled]="(row.is_payer && payersCnt==1)"
-										style="margin-top: 10px ">
-								</mat-slide-toggle>
-				</td>
-		</ng-container>
-			<tr mat-header-row *matHeaderRowDef="displayedCustomersColumns"></tr>
-			<tr mat-row *matRowDef="let row; columns: displayedCustomersColumns;"></tr>
-			
-
-	</table>  -->
 
     
             </mat-drawer-container>

@@ -434,7 +434,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   isDocNumberUnicalChecking = false;//идёт ли проверка на уникальность номера
   doc_number_isReadOnly=true;
   is_completed=false;
-
+  // dragToSelectEvent: CalendarEvent; // initial event that created by draggable selection and open the window with new Appointment
   //для Autocomplete по поиску ГЛАВНОЙ УСЛУГИ
   searchProductCtrl = new UntypedFormControl();//поле для поиска товаров
   isProductListLoading  = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
@@ -625,6 +625,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       this.receivedJobtitlesList=this.data.jobtitles;
       this.receivedDepartmentsWithPartsList=this.data.departmentsWithParts;
       this._adapter.setLocale(this.locale);
+      // if(this.data && this.data.dragCreatedEvent)
       // console.log("locale = ",this.locale);
     }
 
@@ -1009,11 +1010,22 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   }
   
   setDefaultDate(){
-    this.formBaseInformation.get('date_start').setValue(moment());
-    this.formBaseInformation.get('date_end').  setValue(moment().add(0,'d'));
-    this.formBaseInformation.get('time_start').setValue(moment().format("HH:mm"));
-    this.formBaseInformation.get('time_end').  setValue(moment().add(+1,'m').format("HH:mm"));
-    // this.necessaryActionsBeforeAutoCreateNewDoc();
+    if(this.data && this.data.dragCreatedEvent){
+      this.formBaseInformation.get('date_start').setValue(moment(this.data.dragCreatedEvent.start));
+      this.formBaseInformation.get('time_start').setValue(moment(this.data.dragCreatedEvent.start).format("HH:mm"));
+      if(this.data.dragCreatedEvent.end){
+        this.formBaseInformation.get('date_end').  setValue(moment(this.data.dragCreatedEvent.end));
+        this.formBaseInformation.get('time_end').setValue(moment(this.data.dragCreatedEvent.end).format("HH:mm"));
+      } else {
+        this.formBaseInformation.get('date_end').setValue(moment(this.data.dragCreatedEvent.start));
+        this.formBaseInformation.get('time_end').setValue(moment(this.data.dragCreatedEvent.start).add(+30,'minutes').format("HH:mm"));
+      }
+      
+    } else { 
+      this.formBaseInformation.get('date_start').setValue(moment());
+      this.formBaseInformation.get('date_end').  setValue(moment().add(0,'d'));
+      this.formBaseInformation.get('time_start').setValue(moment().format("HH:mm"));
+      this.formBaseInformation.get('time_end').  setValue(moment().add(+1,'h').format("HH:mm"));    }
   }
   
   doFilterDepartmentsList(){
@@ -2965,6 +2977,12 @@ deleteFile(id:number){
           this.receivedEmployeesList=data as Employee[];
           this.updateEmployeeValues();
           this.employeesListLoadQtt--;
+          if(this.data && this.data.dragCreatedEvent && this.data.dragCreatedEvent.meta.user.id){
+            let jobtitleId = null;
+            this.formBaseInformation.get('employeeId').setValue(this.data.dragCreatedEvent.meta.user.id);
+            this.receivedEmployeesList.map(empl=>{if(empl.id==this.data.dragCreatedEvent.meta.user.id) jobtitleId = empl.jobtitle_id})
+            this.onEmployeeChange(this.data.dragCreatedEvent.meta.user.id,jobtitleId);
+          }
           if(isFree){
             this.getBusyEmployeesList('busyByAppointments');
             this.getBusyEmployeesList('busyBySchedule');
