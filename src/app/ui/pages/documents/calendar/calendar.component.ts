@@ -30,6 +30,7 @@ import { AppointmentsDocComponent } from '../appointments-doc/appointments-doc.c
 const  MY_FORMATS = MomentDefault.getMomentFormat();
 const  moment = MomentDefault.getMomentDefault();
 import { User,Break } from 'src/app/modules/calendar/day-view-scheduler/day-view-scheduler.component';
+import { SettingsCalendarDialogComponent } from 'src/app/modules/settings/settings-calendar-dialog/settings-calendar-dialog.component';
 
 function floorToNearest(amount: number, precision: number) {
   return Math.floor(amount / precision) * precision;
@@ -161,7 +162,6 @@ interface JobtitleWithEmployees {
 
 export class CalendarComponent implements OnInit {
 
-  // Angular Calendar
   view: CalendarView = CalendarView.Month;
   resourceView: ResourceView = ResourceView.Month; // resource view by default or last selected
   viewDate: Date = new Date();
@@ -198,6 +198,7 @@ export class CalendarComponent implements OnInit {
       name: ''
     }
   ]
+  settingsForm: any; // форма с настройками
   companySettings: CompanySettings = null;
   activeDayIsOpen: boolean = false;
   trackByIndex = (i) => i;
@@ -214,11 +215,8 @@ export class CalendarComponent implements OnInit {
   //***********************************************************************************************************************/
   @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
   @ViewChild('calendar', {static: false}) calendar: MatCalendar<Date>;
-  // Forms
   queryForm:any;// form for sending query / форма для отправки запроса 
   canDrawView=true;
-  // dataLoadedFrom:string = ''; // dates to monitoring when need to refresh data
-  // dataLoadedTo:string = '';
   accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
 
 
@@ -229,34 +227,15 @@ export class CalendarComponent implements OnInit {
   currentMonthDaysArray: Day[] = []; // days in the head of table to construct view for depparts-and-resources component
   userOfDraggingToCreateEvent:  User = null;
 
-
-
-// -----    SETTINGS     -----
-dayStartHour:number = 0;
-dayEndHour:number   = 23;
-dayStartMinute:number = 0;
-dayEndMinute:number   = 59;
-hourDuration:number = 30;
-hourSegments:number = 2;
-// ----- END OF SETTINGS -----
-
-
-
-
-
-
-
-
-  // formBaseInformation: UntypedFormGroup;
-  // guests = [
-  //   { id: 1, name: "John", is_payer: true },
-  //   { id: 2, name: "Alisa", is_payer: false },
-  //   { id: 3, name: "Bob", is_payer: false }
-  // ];
-  // displayedCustomersColumns:string[] = ['id', 'name', 'is_payer'];
-
-
-
+  // -----    SETTINGS     -----
+  dayStartHour:number = 0;
+  dayEndHour:number   = 23;
+  dayStartMinute:number = 0;
+  dayEndMinute:number   = 59;
+  hourDuration:number = 30;
+  hourSegments:number = 2;
+  displayCancelled = true;
+  // ----- END OF SETTINGS -----
 
   constructor(
     private _fb: UntypedFormBuilder,
@@ -274,10 +253,10 @@ hourSegments:number = 2;
     private dataService: DataService,
     public cdf: CustomDateFormatter,
     private service: TranslocoService,
+    private settingsCalendarDialogComponent: MatDialog,
     private cdr: ChangeDetectorRef) {}
 
     ngOnInit() {
-      // this.dataService.setData('HH:mm');
       this.queryForm = new UntypedFormGroup({ //форма для отправки запроса 
         companyId: new UntypedFormControl(0,[]), // предприятие, по которому идет запрос данных
         dateFrom: new UntypedFormControl(moment().startOf('month'),[]),   // дата С
@@ -290,49 +269,33 @@ hourSegments:number = 2;
         jobtitles: new UntypedFormControl([],[]), // set of job titles
         documents: new UntypedFormControl([59],[]), // set of documents to show in calendar
       });
-      
-      // this.cdf.timeFormat="HH:mm";
+      this.settingsForm = new UntypedFormGroup({
+        companyId: new UntypedFormControl                 (null,[]),    // company by default
+        startView: new UntypedFormControl                 ('month',[]),    // month / scheduler / resources
+        timelineStep: new UntypedFormControl              (30,[]),      // step of timeline in minutes (15 / 30 / 60)
+        dayStartMinute: new UntypedFormControl            (0,[]),    // minute of day start (0-1438) that means 00:00 - 23:58
+        dayEndMinute: new UntypedFormControl              (1439,[]),    // minute of day end (1-1439)   that means 00:01 - 23:59
+        resourcesScreenScale: new UntypedFormControl      ('month',[]),    // month / week / day
+        displayCancelled: new UntypedFormControl          (false,[]),    // display or not cancelled events by default
+      });
+    
       this.getBaseData('myId');    
       this.getBaseData('myCompanyId');  
       this.getBaseData('companiesList');
       this.getBaseData('myDepartmentsList');
       this.getBaseData('timeFormat');
-      this.getBaseData('accountingCurrency');  
-      // this.getBaseData('locale');
-      // this.onClickTodayButton();
+      this.getBaseData('accountingCurrency');
+
       this.getCompaniesList();
       moment.updateLocale(this.locale, {week: {
           dow: this.weekStartsOn, // set start of week to monday instead
           doy: 0,
       },});
 
-
       //sending time formaf of user to injectable provider where it need to format time
       this.dataService.setData(this.timeFormat=='24'?'HH:mm':'h:mm a');
       console.log("Parent timeFormat", this.timeFormat=='24'?'HH:mm':'h:mm a');
-      // this.setResourcesDaysArray();
-      // setTimeout(() => { 
-      //   console.log('Now let show view...');
-      //   this.canDrawView=true;
-      //   this.changeDateMatCalendar(new Date());
-      //   this.refreshView();
-      // }, 1);
 
-
-
-
-
-
-
-
-
-
-
-
-      // this.formBaseInformation = new UntypedFormGroup({
-      //   customersTable: new UntypedFormArray   ([])
-      // });
-      // this.addExampleInfo();
     }
 
   getAlternateDay(date:Date){
@@ -555,14 +518,7 @@ hourSegments:number = 2;
           if(this.usersOfBreaks.find((obj) => obj.id === break_.user.id) == undefined)
             this.usersOfBreaks.push(break_.user);
         });
-
         this.necessaryActionsBeforeGetChilds();
-        // setTimeout(() => { 
-        //   console.log('refreshing view');
-        //   this.changeDateMatCalendar(new Date());
-        //   this.refreshView();
-        // }, 1000);
-        
       },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}
     );
@@ -600,12 +556,6 @@ hourSegments:number = 2;
     event.meta.user = newUser;
     this.events = [...this.events];
   }
-
-
-
-
-
-
 
   onClickTodayButton(){
     this.changeDateMatCalendar(new Date());
@@ -651,28 +601,6 @@ hourSegments:number = 2;
     // this.calendar.activeDate=this._adapter.getValidDateOrNull(date_);
     this.calendar.selected=this._adapter.getValidDateOrNull(date_);
   }
-
-
-
-
-
-  // validateEventTimesChanged = (
-  //   { event, newStart, newEnd, allDay }: CalendarEventTimesChangedEvent,
-  //   addCssClass = true
-  // ) => {
-  //   if (event.allDay) {
-  //     console.log('event',event);
-  //     console.log('newStart',newStart);
-  //     console.log('newEnd',newEnd);
-  //     console.log('allDay',allDay);
-
-
-
-  //     return true;
-  //   }
-  // }
-
-
 
   checkIsNeedToLoadData(){
     this.setResourcesPeriod();
@@ -731,20 +659,12 @@ hourSegments:number = 2;
     console.log(' this.currentMonthDaysArray - ', this.currentMonthDaysArray);
   }
 
-
   isMonthChanged(){
     var currDate = moment(this.viewDate);
     var startDate   = moment(this.queryForm.get('dateFrom').value, 'DD.MM.YYYY');
     var endDate     = moment(this.queryForm.get('dateTo').value, 'DD.MM.YYYY');
-    // console.log('currDate',currDate)
-    // console.log('startDate',startDate)
-    // console.log('endDate',endDate)
-    // console.log('isMonthChanged',!currDate.isBetween(startDate, endDate, 'days', '[]'))
-
     return !currDate.isBetween(startDate, endDate, 'days', '[]');// ()-default exclusive, (],[),[] - right, left and all inclusive
   }
-  
-
 
   dayClicked({ date, events }: { date: Date; events: CalendarEvent[] }): void {
     // console.log('same month',(moment(date).isSame(this.viewDate, "month")));
@@ -766,11 +686,8 @@ hourSegments:number = 2;
   }
   onEventClick(event: CalendarEvent): void{
     console.log('event',event);
-    // this.dayEventClicked=true;
-    // console.log('onEventClick') 
   }
   onDayAddEventBtnClick(date: Date){
-    // console.log('Will be added event at ' + date);
     this.openAppointmentCard(null, date);
   }
   handleEvent(action: string, event: CalendarEvent): void {
@@ -780,13 +697,12 @@ hourSegments:number = 2;
   closeOpenMonthViewDay() {
     this.activeDayIsOpen = false;
   }
+
   @HostListener('window:resize', ['$event'])
   onWindowResize() {
     this.refreshView();
   }
-  // get eventDayMaxWidth(){
-  //   categories-sidenav-content
-  // }
+
   get calendarDayHeight(){
     var calculated=(window.innerHeight-98)/5;
     return calculated>100?calculated:100;
@@ -816,11 +732,7 @@ hourSegments:number = 2;
   }
 
   wordsToUpperCase(str:string){
-    // console.log(str)
     return (str);
-    // return (str.split(/\ s+/).map(word =>{
-    //   word[0].toUpperCase() + word.substring(1);
-    // }).join(' '))
   }
 
   getBaseData(data) {    //+++ emit data to parent component
@@ -863,9 +775,7 @@ hourSegments:number = 2;
       'hr':       DAYS_OF_WEEK.MONDAY
     })[this.locale]
   }
-  // get viewBtnName(){
-  //   this.view.
-  // }
+
   setView(view: CalendarView) {
     this.view = view;
     console.log('viewDate - ', this.viewDate);
@@ -890,7 +800,50 @@ hourSegments:number = 2;
   unselectAllCheckList(field:string, form:string){
     this.queryForm.get(field).setValue([]);
   }
-
+  // ------------------------------------ User settings ------------------------------------
+  //открывает диалог настроек
+  openDialogSettings() { 
+    const dialogSettings = this.settingsCalendarDialogComponent.open(SettingsCalendarDialogComponent, {
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      width: '400px', 
+      data:
+      { //отправляем в диалог:
+        receivedCompaniesList: this.receivedCompaniesList, //список предприятий
+        timeFormat: this.timeFormat
+      },
+    });
+    dialogSettings.afterClosed().subscribe(result => {
+      if(result){
+        //если нажата кнопка Сохранить настройки - вставляем настройки в форму настроек и сохраняем
+        this.settingsForm.get('companyId').setValue(result.get('companyId').value);
+        this.settingsForm.get('startView').setValue(result.get('startView').value);
+        this.settingsForm.get('timelineStep').setValue(result.get('timelineStep').value);
+        this.settingsForm.get('dayStartMinute').setValue(result.get('dayStartMinute').value);
+        this.settingsForm.get('dayEndMinute').setValue(result.get('dayEndMinute').value);
+        this.settingsForm.get('resourcesScreenScale').setValue(result.get('resourcesScreenScale').value);
+        this.settingsForm.get('displayCancelled').setValue(result.get('displayCancelled').value);
+        this.saveSettingsCalendar();
+        // если это новый документ, и ещё нет выбранных товаров - применяем настройки 
+        this.getData();
+      }
+    });
+  }
+  // Saving settings
+  saveSettingsCalendar(){
+    return this.http.post('/api/auth/saveSettingsCalendar', this.settingsForm.value)
+    .subscribe(
+      (data) => {   
+        this.openSnackBar(translate('menu.msg.settngs_saved'), translate('menu.msg.close')); //+++
+      },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+    );
+  }
+  openSnackBar(message: string, action: string) {
+    this._snackBar.open(message, action, {
+      duration: 3000,
+    });
+  }
   // ---------------------------------Job titles and Employees------------------------------
   
   selectAllDepPartsOneDep(dep_id:number, form:string){

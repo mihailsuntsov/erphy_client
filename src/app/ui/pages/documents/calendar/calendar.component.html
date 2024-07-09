@@ -103,6 +103,17 @@
                     </div>
                     <div class="toolbar-center-end">
                     <mat-button-toggle-group>
+                        <button mat-icon-button class="group-button" matTooltip="{{'docs.tip.user_settings' | transloco}}" (click)="openDialogSettings()">
+                            <mat-icon>settings</mat-icon>
+                        </button>
+                        <button mat-icon-button class="group-button" (click)="getData()" matTooltip="{{'docs.button.refresh' | transloco}}">
+                            <mat-icon>refresh</mat-icon>
+                        </button>
+                        <button mat-icon-button class="group-button" (click)="displayCancelled = !displayCancelled" matTooltip="{{'docs.button.displ_cancel' | transloco}}" [ngStyle]="(displayCancelled)?{'background-color':'#e0e0e0'}:{}">
+                            <mat-icon>disabled_visible</mat-icon>
+                        </button>
+                    </mat-button-toggle-group>
+                    <mat-button-toggle-group style="margin-left: 15px;">
                         <mat-button-toggle (click)="setView(CalendarView.Month)" [ngStyle]="(view=='month')?{'background-color':'#e0e0e0'}:{}" matTooltip="{{'docs.tip.month' | transloco}}">
                             <mat-icon>view_comfy</mat-icon>
                         </mat-button-toggle>
@@ -112,9 +123,6 @@
                         <mat-button-toggle (click)="onResourcesButtonClick()" [ngStyle]="(view=='resources_month'||view=='resources_day'||view=='resources_week')?{'background-color':'#e0e0e0'}:{}" matTooltip="{{'docs.tip.res_usg' | transloco}}">
                             <mat-icon>segment</mat-icon>
                         </mat-button-toggle>
-                        <!-- <mat-button-toggle value="justify" disabled aria-label="Text align justify">
-                            <mat-icon>format_align_justify</mat-icon>
-                        </mat-button-toggle> -->
                     </mat-button-toggle-group>
                     <mat-button-toggle-group style="margin-left: 15px;">
                         <mat-button-toggle [disabled]="view=='month'||view=='scheduler'" (click)="onSelectResourcesViewode('month')" [class.gray]="view=='month'||view=='scheduler'" [ngStyle]="(view=='resources_month')?{'background-color':'#e0e0e0'}:{'background-color':'#fff'}" matTooltip="{{'docs.tip.res_month' | transloco}}">
@@ -143,7 +151,7 @@
                         <i class="material-icons">arrow_drop_down</i>
                     </button> -->
                         <!-- <button mat-menu-item (click)="console('viewDate on click button', viewDate);">1</button> -->
-                    <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before" style="min-width: 240px;">
+                    <!-- <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before" style="min-width: 240px;">
                         <button mat-menu-item (click)="
                         console('viewDate before change view', viewDate);
                         setView(CalendarView.Day);
@@ -169,7 +177,7 @@
                         <button mat-menu-item (click)="setView(CalendarView.ResourcesMonth); checkIsNeedToLoadData(); refreshView()">
                             <span>{{'menu.top.month' | transloco}}</span>
                         </button>
-                    </mat-menu>
+                    </mat-menu> -->
                     </div>
                 </div>
 <div>

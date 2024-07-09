@@ -523,6 +523,13 @@ table input[readonly="true"] {
 .timepicker-backdrop-overlay {
 z-index: 10000000 !important;
 }
+.group-button, .group-button span.mat-mdc-button-persistent-ripple{
+  border-radius: 0 !important;
+}
+.group-button:not(:first-child) span.mat-mdc-button-persistent-ripple{
+  border-left: solid 1px #e0e0e0;
+}
+
 /* 
 .mat-mdc-slide-toggle {
   --mdc-switch-selected-handle-color: #ffbb1c !important;

@@ -8,7 +8,7 @@ import { MaterialModule } from '../../../../modules/material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
-// import { TemplatesDialogModule } from '../../../../modules/settings/templates-dialog/templates-dialog.module';
+import { SettingsCalendarDialogModule } from '../../../../modules/settings/settings-calendar-dialog/settings-calendar-dialog.module';
 import { LabelsPrintDialogModule } from '../../../../modules/settings/labelprint-dialog/labelprint-dialog.module';
 import { CalendarModule } from 'angular-calendar';
 import { DayViewSchedulerModule } from 'src/app/modules/calendar/day-view-scheduler/day-view-scheduler.module';
@@ -82,6 +82,7 @@ registerLocaleData(localeHr);
     ProductCategoriesSelectModule,
     StoresSelectModule,
     ReactiveFormsModule,
+    SettingsCalendarDialogModule,
     LabelsPrintDialogModule,
     MaterialModule,
     FormsModule,

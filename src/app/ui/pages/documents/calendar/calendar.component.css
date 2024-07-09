@@ -225,7 +225,6 @@ li {list-style: none;}
 ::ng-deep .break-container{
     z-index: 0!important;
 }
-
 .gray {
     color: lightgray!important;
    }
