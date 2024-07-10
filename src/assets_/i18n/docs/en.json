@@ -376,7 +376,13 @@
         "max_pers_on_same_time":"Maximum one-time number of clients",
         "srvc_min_duration":"Minimum service duration",
         "scedule_appntmnt_before":"Minimum time before start service",
-        "employee":"Employee"
+        "employee":"Employee",
+        "employees":"Employees",
+        "cal_strt_view_scr":"Start screen",
+        "cal_resrcs_scr_scal":"Resource scale",
+        "tm_range":"Working day",
+        "tm_step":"Working day step, minutes",
+        "displ_cancl":"Display cancelled"
     },
     "error":{ 
         "-- COMMON":"--",

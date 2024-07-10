@@ -46,7 +46,6 @@
         "day":          "День",
         "week":         "Неделя",
         "month":        "Месяц",
-        "scheduler":    "Сотрудники",
         "resources_month":"Месяц",
         "resources_week":"Неделя",
         "resources_day":"День"

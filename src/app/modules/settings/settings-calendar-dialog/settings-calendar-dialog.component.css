@@ -89,14 +89,18 @@ mat-slider {
 ::ng-deep .mdc-slider__value-indicator-text{
     width: 64px
 }
-.slider-label{
+/* .slider-label{
     display: inline-block !important;
     position: absolute !important;
     top: 10px !important;
     font-size:12px !important;
     color:rgba(0, 0, 0, 0.6) !important;
-}
+} */
 .slider-label-container{
     display: flex;
     justify-content: space-between;
+}
+.slideWidth100{
+    width:100%;
+    /* margin:-8.5px 0 0 0; */
 }

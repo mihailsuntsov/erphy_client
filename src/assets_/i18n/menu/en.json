@@ -46,7 +46,6 @@
         "day":          "Day",
         "week":         "Week",
         "month":        "Month",
-        "scheduler":    "Employees",
         "resources_month":"Month",
         "resources_week":"Week",
         "resources_day":"Day"

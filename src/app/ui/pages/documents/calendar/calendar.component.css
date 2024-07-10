@@ -227,4 +227,10 @@ li {list-style: none;}
 }
 .gray {
     color: lightgray!important;
-   }
+}
+::ng-deep .cal-event-title{
+    -moz-user-select: none!important;
+    -khtml-user-select: none!important;
+    -webkit-user-select: none!important;
+    user-select: none!important;
+}

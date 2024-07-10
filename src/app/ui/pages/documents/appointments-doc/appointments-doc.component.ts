@@ -659,6 +659,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       +this.formBaseInformation.get('department_part_id').value==0 ||
       !this.isDatesValid||
       (this.formBaseInformation.get('department_part_id').value>0 && !this.accessibleDepPartsIdsAll.includes(+this.formBaseInformation.get('department_part_id').value))||
+      (this.isThereAreServicesInTableWithEmployeeRequired() && +this.formBaseInformation.get('employeeId').value==0) ||
       (this.isThereAreServicesInTableWithEmployeeRequired() && +this.formBaseInformation.get('employeeId').value>0 && (!this.accessibleEmployeesIdsAll.includes(+this.formBaseInformation.get('employeeId').value)))
     );
   }
@@ -1422,25 +1423,24 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   // }
   
   onSelectProductCustomer(product:AppointmentServiceSearchResponse, customer=this.customer){
-    // if(/*!product.isServiceByAppointment || */this.accessibleServicesIdsAll().includes(product.id)){
-    if(!this.isThereProductInTable(customer.row_id, product.id)){
-      this.documentChanged=true;
-      // console.log(console.log('Selected customer: ',JSON.stringify(customer)));
-      const control = <UntypedFormArray>this.formBaseInformation.get('appointmentsProductTable');
-      control.push(this.formingProductRowFromMainBlock(product,customer.id,customer.row_id));
-      let row_index = 0;
-      control.value.map(service=>{this.setRowSumPrice(row_index);row_index++})// re-calculating all sum prices
-      // this.setRowSumPrice(control.value.length-1);// re-calculating sum price of added row
-      setTimeout(() => {this.searchProductCtrl.reset();}, 1);
-      this.getTotalSumPrice();
-      if(control.length>0 && !this.isThereAreServicesInTableWithEmployeeRequired()){ // if there are selected services but no one of selected sevices required employee
-        this.formBaseInformation.get('employeeId').setValue(null);
-        this.formBaseInformation.get('employeeName').setValue('');
-        this.formBaseInformation.get('jobtitle_id').setValue(0);
-      }
-    // }
-    }
-    else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('modules.msg.prd_alr_slctd')}});
+    if(!product.isServiceByAppointment || (product.isServiceByAppointment && this.accessibleServicesIdsAll().includes(product.id))){ // if not [disabled]
+      if(!this.isThereProductInTable(customer.row_id, product.id)){
+        this.documentChanged=true;
+        // console.log(console.log('Selected customer: ',JSON.stringify(customer)));
+        const control = <UntypedFormArray>this.formBaseInformation.get('appointmentsProductTable');
+        control.push(this.formingProductRowFromMainBlock(product,customer.id,customer.row_id));
+        let row_index = 0;
+        control.value.map(service=>{this.setRowSumPrice(row_index);row_index++})// re-calculating all sum prices
+        // this.setRowSumPrice(control.value.length-1);// re-calculating sum price of added row
+        setTimeout(() => {this.searchProductCtrl.reset();}, 1);
+        this.getTotalSumPrice();
+        if(control.length>0 && !this.isThereAreServicesInTableWithEmployeeRequired()){ // if there are selected services but no one of selected sevices required employee
+          this.formBaseInformation.get('employeeId').setValue(null);
+          this.formBaseInformation.get('employeeName').setValue('');
+          this.formBaseInformation.get('jobtitle_id').setValue(0);
+        }
+      } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('modules.msg.prd_alr_slctd')}});
+    } 
   }
   
   afterSelectProduct(){
@@ -4029,9 +4029,22 @@ deleteFile(id:number){
                 this.accessibleServicesIdsBySelectedEmployee,
                 this.accessibleServicesIdsBySelectedDepPart,
                 this.accessibleServicesIdsByResourcesOfSelectedDepPart,
+                this.servicesThatNoNeedEmployees,
     /*this.accessibleServicesIdsByResourcesOfAccessibleDepParts*/];
     // console.log('accessibleServicesIdsAll = ',data.reduce((a, b) => a.filter(c => b.includes(c))))
     return data.reduce((a, b) => a.filter(c => b.includes(c)));  //intersection of multiple arrays will be accessible employees at this moment
+  }
+  get servicesThatNoNeedEmployees():number[]{
+    // if employee is selected - this get is no matter
+    if(+this.formBaseInformation.get('employeeId').value!=0)
+      return this.getAllServicesIds(false);
+    // if employee is not selected - collect only IDs of services that no need employees 
+    let result:number[]=[];
+    this.filteredProducts.map(service=>{
+      if(!service.employeeRequired)
+        result.push(service.id);  
+    });
+    return result;
   }
   get accessibleServicesIdsByAccessibleEmployees():number[]{
     // if employee is selected - this get is no matter
@@ -4170,6 +4183,26 @@ deleteFile(id:number){
         }
       })
     })
+    return result;
+  }
+  // get tableServicesThatNeedEmployees():number[]{
+  //   let result:number[]=[];
+  //   this.getControlTablefield().value.map(service=>{
+  //     if(service.employeeRequired)
+  //       result.push(service.id);  
+  //   });
+  //   return result;
+  // }
+  get tableServicesThatNoNeedEmployees():number[]{
+    // if employee is selected - this get is no matter
+    if(+this.formBaseInformation.get('employeeId').value!=0)
+      return this.getAllTableServicesIds(false);
+    // if employee is not selected - collect only IDs of services that no need employees
+    let result:number[]=[];
+    this.getControlTablefield().value.map(service=>{
+      if(!service.employeeRequired)
+        result.push(service.id);  
+    });
     return result;
   }
   //--------------------------------------------------------------------------- Утилиты ---------------------------------------------------------------------------------------------------------

@@ -109,7 +109,7 @@
                         <button mat-icon-button class="group-button" (click)="getData()" matTooltip="{{'docs.button.refresh' | transloco}}">
                             <mat-icon>refresh</mat-icon>
                         </button>
-                        <button mat-icon-button class="group-button" (click)="displayCancelled = !displayCancelled" matTooltip="{{'docs.button.displ_cancel' | transloco}}" [ngStyle]="(displayCancelled)?{'background-color':'#e0e0e0'}:{}">
+                        <button mat-icon-button class="group-button" (click)="settingsForm.get('displayCancelled').setValue(!settingsForm.get('displayCancelled').value)" matTooltip="{{'docs.field.displ_cancl' | transloco}}" [ngStyle]="(settingsForm.get('displayCancelled').value)?{'background-color':'#e0e0e0'}:{}">
                             <mat-icon>disabled_visible</mat-icon>
                         </button>
                     </mat-button-toggle-group>

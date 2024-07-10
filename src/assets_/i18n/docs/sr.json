@@ -376,7 +376,13 @@
         "max_pers_on_same_time":"Максимални једнократни број клијената",
         "srvc_min_duration":"Минимално трајање услуге",
         "scedule_appntmnt_before":"Минимално време пре почетка сервиса",
-        "employee":"Запослени"
+        "employee":"Запослени",
+        "employees":"Запослених",
+        "cal_strt_view_scr":"Почетни екран",
+        "cal_resrcs_scr_scal":"Скала ресурса",
+        "tm_range":"Радни дан",
+        "tm_step":"Корак радног дана, мин.",
+        "displ_cancl":"Приказ отказан"
     },
     "error":{
         "-- ОБЩИЕ":"--",

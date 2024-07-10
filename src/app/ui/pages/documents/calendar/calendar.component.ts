@@ -234,7 +234,6 @@ export class CalendarComponent implements OnInit {
   dayEndMinute:number   = 59;
   hourDuration:number = 30;
   hourSegments:number = 2;
-  displayCancelled = true;
   // ----- END OF SETTINGS -----
 
   constructor(
@@ -258,13 +257,13 @@ export class CalendarComponent implements OnInit {
 
     ngOnInit() {
       this.queryForm = new UntypedFormGroup({ //форма для отправки запроса 
-        companyId: new UntypedFormControl(0,[]), // предприятие, по которому идет запрос данных
+        companyId: new UntypedFormControl(null,[]), // предприятие, по которому идет запрос данных
         dateFrom: new UntypedFormControl(moment().startOf('month'),[]),   // дата С
         dateTo: new UntypedFormControl(moment().endOf('month'),[]),     // дата По
         timeFrom: new UntypedFormControl('00:00',[]),   // время С
         timeTo: new UntypedFormControl('23:59',[]),     // время По
-        depparts: new UntypedFormControl([],[]), // set of department parts
-        employees: new UntypedFormControl([],[]), // set of employees
+        depparts: new UntypedFormControl([],[Validators.required]), // set of department parts
+        employees: new UntypedFormControl([],[Validators.required]), // set of employees
         departments: new UntypedFormControl([],[]), // set of departments IDs
         jobtitles: new UntypedFormControl([],[]), // set of job titles
         documents: new UntypedFormControl([59],[]), // set of documents to show in calendar
@@ -294,7 +293,7 @@ export class CalendarComponent implements OnInit {
 
       //sending time formaf of user to injectable provider where it need to format time
       this.dataService.setData(this.timeFormat=='24'?'HH:mm':'h:mm a');
-      console.log("Parent timeFormat", this.timeFormat=='24'?'HH:mm':'h:mm a');
+      // console.log("Parent timeFormat", this.timeFormat=='24'?'HH:mm':'h:mm a');
 
     }
 
@@ -319,12 +318,14 @@ export class CalendarComponent implements OnInit {
   getData(){
       if(this.allowToView)
       {
-        this.getCalendarUsersBreaksList();
-        this.getCalendarEventsList();
-
+        // if(this.queryForm.valid){
+          this.getCalendarUsersBreaksList();
+          this.getCalendarEventsList();
+        // }
       } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})}
   }
-  getCompaniesList(){ //+++
+
+  getCompaniesList(){ 
     if(this.receivedCompaniesList.length==0)
       this.loadSpravService.getCompaniesList().subscribe(
                 (data) => {this.receivedCompaniesList=data as any [];
@@ -332,6 +333,7 @@ export class CalendarComponent implements OnInit {
                 },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
     else this.getSetOfPermissions();
   }  
+  
   getMyId(){ //+++
     if(+this.myId==0)
      this.loadSpravService.getMyId()
@@ -348,13 +350,97 @@ export class CalendarComponent implements OnInit {
       this.loadSpravService.getMyCompanyId().subscribe(
       (data) => {
         this.myCompanyId=data as number;
-        this.setDefaultCompany();
+        this.getSettings();
       }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
-    else this.setDefaultCompany();
-  } 
+    else this.getSettings();
+  }
 
+  getSettings(){
+    let result:any;
+    this.http.get('/api/auth/getSettingsCalendar')
+      .subscribe(
+          data => { 
+            result=data as any;
+            //вставляем настройки в форму настроек
+            //данная группа настроек не зависит от предприятия
+            this.settingsForm.get('startView').setValue(result.startView);
+            this.settingsForm.get('timelineStep').setValue(result.timelineStep);
+            this.settingsForm.get('dayStartMinute').setValue(result.dayStartMinute);
+            this.settingsForm.get('dayEndMinute').setValue(result.dayEndMinute);
+            this.settingsForm.get('resourcesScreenScale').setValue(result.resourcesScreenScale);
+            this.settingsForm.get('displayCancelled').setValue(result.displayCancelled);
+
+            // stage of initial loading of Calendar
+            if(this.actionsBeforeGetChilds<4){
+              
+              switch ( this.settingsForm.get('resourcesScreenScale').value) {
+                case 'week': {
+                  this.resourceView = ResourceView.Week;
+                  break;}
+                case 'day': {
+                  this.resourceView = ResourceView.Day; 
+                  break;}
+                default: {
+                  this.resourceView = ResourceView.Month; 
+                }
+              }
+
+              switch (this.settingsForm.get('startView').value) {
+                case 'month': {
+                  this.setView(CalendarView.Month);
+                  break;}
+                case 'scheduler': {
+                  this.setView(CalendarView.Scheduler);
+                  break;}
+                default: { //resources
+                  this.onResourcesButtonClick();
+                }
+              } 
+              switch (this.settingsForm.get('timelineStep').value) {
+                case 15: {
+                  this.hourDuration = 30; this.hourSegments = 2;
+                  break;}
+                case 30: {
+                  this.hourDuration = 60; this.hourSegments = 2;
+                  break;}
+                default: { //60
+                  this.hourDuration = 60; this.hourSegments = 1;
+                }
+              } 1440
+              if(this.settingsForm.get('dayEndMinute').value==1440) this.settingsForm.get('dayEndMinute').setValue(1439);
+
+              this.dayStartHour=  +moment().startOf('day').add(this.settingsForm.get('dayStartMinute').value, 'minutes').format('HH');
+              this.dayEndHour=    +moment().startOf('day').add(this.settingsForm.get('dayEndMinute').value, 'minutes').format('HH');
+              this.dayStartMinute=+moment().startOf('day').add(this.settingsForm.get('dayStartMinute').value, 'minutes').format('mm');
+              this.dayEndMinute=  +moment().startOf('day').add(this.settingsForm.get('dayEndMinute').value, 'minutes').format('mm');
+
+              this.refreshView();
+
+              // this.onSelectResourcesViewode(result.resourcesScreenScale);
+              
+            } 
+            //если предприятия из настроек больше нет в списке предприятий (например, для пользователя урезали права, и выбранное предприятие более недоступно)
+            //настройки не принимаем
+            if(+this.queryForm.get('companyId').value==0 && this.isCompanyInList(+result.companyId)){
+              this.queryForm.get('companyId').setValue(result.companyId);
+              //данная группа настроек зависит от предприятия
+              // (таких нет)
+            }
+            this.setDefaultCompany();
+          },
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+      );
+  }
+  isCompanyInList(companyId:number):boolean{
+    let inList:boolean=false;
+    if(this.receivedCompaniesList) this.receivedCompaniesList.map(i=>{if(i.id==companyId) inList=true;});
+    return inList;
+  }
   setDefaultCompany(){
-    this.queryForm.get('companyId').setValue(this.myCompanyId);
+    if(+this.queryForm.get('companyId').value==0)
+      if(this.isCompanyInList(this.myCompanyId))
+        this.queryForm.get('companyId').setValue(this.myCompanyId);
+      else if (this.receivedCompaniesList.length>0 )this.queryForm.get('companyId').setValue(this.receivedCompaniesList[0].id);
     this.getDepartmentsWithPartsList();
     this.getJobtitlesWithEmployeesList();
     // this.getJobtitleList();
@@ -368,6 +454,9 @@ export class CalendarComponent implements OnInit {
     if(this.actionsBeforeGetChilds==2){
       this.getData();
     }
+
+    
+    // after  this.getCalendarUsersBreaksList() and  this.getCalendarEventsList():
     if(this.actionsBeforeGetChilds==4){
       setTimeout(() => {
         this.afterLoadData();
@@ -525,10 +614,14 @@ export class CalendarComponent implements OnInit {
   }
 
   onCompanySelection(){
-    this.getDepartmentsWithPartsList();
-    // this.getJobtitleList();
-    this.getJobtitlesWithEmployeesList();
-    this.getData();
+    
+    this.actionsBeforeGetChilds=0;
+    this.getCompaniesList();
+
+    // this.getDepartmentsWithPartsList();
+    // // this.getJobtitleList();
+    // this.getJobtitlesWithEmployeesList();
+    // this.getData();
   }
 
   refreshView(): void {
@@ -537,9 +630,9 @@ export class CalendarComponent implements OnInit {
     this.cdr.detectChanges();
     // this.refresh.next();
   }
-  console(name:string, value:any){
-    console.log(name,value);
-  }
+  // console(name:string, value:any){
+    // console.log(name,value);
+  // }
   eventTimesChanged({
     event,
     newStart,
@@ -614,7 +707,7 @@ export class CalendarComponent implements OnInit {
   }
   
   setResourcesPeriod(){
-    console.log('startOf(week) = ',moment(this.viewDate).startOf('week'))
+    // console.log('startOf(week) = ',moment(this.viewDate).startOf('week'))
     switch (this.view) {
       case 'resources_week': {
         this.startOfPeriod = moment(this.viewDate).startOf('week');
@@ -656,7 +749,7 @@ export class CalendarComponent implements OnInit {
         day = day.clone().add(1, 'h');
       }
     }
-    console.log(' this.currentMonthDaysArray - ', this.currentMonthDaysArray);
+    // console.log(' this.currentMonthDaysArray - ', this.currentMonthDaysArray);
   }
 
   isMonthChanged(){
@@ -778,20 +871,9 @@ export class CalendarComponent implements OnInit {
 
   setView(view: CalendarView) {
     this.view = view;
-    console.log('viewDate - ', this.viewDate);
+    // console.log('viewDate - ', this.viewDate);
   }
 
-  // getSettings(){
-  //   let result:any;
-  //   this.http.get('/api/auth/getMySettings')
-  //     .subscribe(
-  //         data => { 
-  //           result=data as any;
-  //           this._adapter.setLocale(result.locale?result.locale:'en-gb')        // setting locale in moment.js
-  //         },
-  //         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
-  //     );
-  // }
   selectAllCheckList(field:string, form:string){
     let ids = field=='depparts'?this.getAllDeppartsIds():this.getAllEmployeesIds();
     this.queryForm.get(field).setValue(ids);
@@ -825,20 +907,23 @@ export class CalendarComponent implements OnInit {
         this.settingsForm.get('displayCancelled').setValue(result.get('displayCancelled').value);
         this.saveSettingsCalendar();
         // если это новый документ, и ещё нет выбранных товаров - применяем настройки 
-        this.getData();
+        // this.getData();
       }
     });
   }
-  // Saving settings
+  
   saveSettingsCalendar(){
     return this.http.post('/api/auth/saveSettingsCalendar', this.settingsForm.value)
     .subscribe(
       (data) => {   
+        this.actionsBeforeGetChilds=0;
+        this.getCompaniesList();
         this.openSnackBar(translate('menu.msg.settngs_saved'), translate('menu.msg.close')); //+++
       },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
     );
   }
+
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
       duration: 3000,
@@ -989,7 +1074,7 @@ export class CalendarComponent implements OnInit {
       }
     });
     dialogRef.afterClosed().subscribe(result => {
-      console.log(`Dialog result: ${result}`);
+      // console.log(`Dialog result: ${result}`);
       this.getCalendarEventsList();
       // if(result)
       //   this.addFilesToappointments(result);
@@ -1108,7 +1193,6 @@ export class CalendarComponent implements OnInit {
     mouseDownEvent: any,
     segmentElement: HTMLElement
   ) {
-    console.log('column',mouseDownEvent)
     const dragToSelectEvent: CalendarEvent = {
       id: null,
       title: '',
@@ -1118,6 +1202,9 @@ export class CalendarComponent implements OnInit {
         "user": this.userOfDraggingToCreateEvent
       },
     };
+    // console.log('dragToSelectEvent',dragToSelectEvent)
+    if(!dragToSelectEvent.end) // just pressed on a ceil, without dragging down - in this case there is no "end" in event's object
+      dragToSelectEvent.end = moment(dragToSelectEvent.start).add(this.hourDuration/this.hourSegments,"minutes").toDate();
     this.events = [...this.events, dragToSelectEvent];
     const segmentPosition = segmentElement.getBoundingClientRect();
     let oneTimeMouseupControl = true;
@@ -1136,7 +1223,7 @@ export class CalendarComponent implements OnInit {
         const minutesDiff = ceilToNearest(
           mouseMoveEvent.clientY - segmentPosition.top,
           (this.hourDuration/this.hourSegments)*(30/this.hourDuration*this.hourSegments) // Подходит для: (hourDuration:number = 30; hourSegments:number = 2;),(hourDuration:number = 60; hourSegments:number = 2;),(hourDuration:number = 60; hourSegments:number = 1;)
-        );                                                                               // Suitable for: (hourDuration:number = 30; hourSegments:number = 2;),(hourDuration:number = 60; hourSegments:number = 2;),(hourDuration:number = 60; hourSegments:number = 1;)
+        );                      30/2*30/30*2                                                         // Suitable for: (hourDuration:number = 30; hourSegments:number = 2;),(hourDuration:number = 60; hourSegments:number = 2;),(hourDuration:number = 60; hourSegments:number = 1;)
         // console.log('minutesDiff',minutesDiff)
         const daysDiff =
           floorToNearest(
@@ -1148,6 +1235,7 @@ export class CalendarComponent implements OnInit {
         if (newEnd > segment.date && newEnd < endOfView) {
           dragToSelectEvent.end = newEnd;
         }
+        dragToSelectEvent.title=moment(dragToSelectEvent.start).format(this.timeFormat=='12'?'hh:mm A':'HH:mm') + ' - ' + moment(dragToSelectEvent.end).format(this.timeFormat=='12'?'hh:mm A':'HH:mm');
         this.refreshView();
         
       });
