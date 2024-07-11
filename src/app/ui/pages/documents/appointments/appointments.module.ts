@@ -2,8 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AppointmentsRoutingModule } from './appointments-routing.module';
 import { AppointmentsComponent } from './appointments.component';
-import { SettingsAppointmentsDialogModule } from '../../../../modules/settings/settings-appointments-dialog/settings-appointments-dialog.module';
-
+import { SettingsAppointmentDialogModule } from '../../../../modules/settings/settings-appointment-dialog/settings-appointment-dialog.module';
 import { FormsModule } from '@angular/forms';
 import { MaterialModule } from '../../../../modules/material.module';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
@@ -16,8 +15,7 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
   imports: [
     CommonModule,
     AppointmentsRoutingModule,
-    SettingsAppointmentsDialogModule,
-    
+    SettingsAppointmentDialogModule,    
     MaterialModule,
     FormsModule,
     TranslocoModule

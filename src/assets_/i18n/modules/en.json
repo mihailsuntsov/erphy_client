@@ -129,7 +129,13 @@
         "protected_file":"This file is not shared and can't be sent to online store. Click on this icon and in the opened file card switch on \"Shared file\"",
         "num_labels":   "Quantity of labels in one row",
         "def_supplr":   "Default supplier",
-        "def_cagent":   "Default counterparty"
+        "def_cagent":   "Default counterparty",
+        "ap_s_no_calc":"The end date and time are set manually / Датум и време завршетка се подешавају ручно.",
+        "ap_s_max_length":"The end date and time will be calculated based on the longest service. Suitable if secondary services are provided within the main one.",
+        "ap_s_sum_all_length":"The end date and time will be calculated as the sum of the duration of all services. Suitable if your services cannot be provided simultaneously.",
+        "ap_s_suit_intraday":"Suitable if your services start and end within the day.",
+        "ap_s_suit_manyday":"Suitable if your services last one day or more.",
+        "hide_employee_field":"Enable this if your services do not require employees."
     },
     "tab":{
     },
@@ -253,7 +259,13 @@
         "display":      "Display",
         "store_ctg":    "Online store category",
         "templ_type":   "Template type",
-        "num_labels":   "In row"
+        "num_labels":   "In row",
+        "start_tim_src":"Start time source",
+        "start_time":"Start time",
+        "end_time":"End time",
+        "end_date_time":"End date and time",
+        "hide_employee_field":"Hide the \"Job title\" and \"Employee\" fields",
+        "calc_date_but_time":"Calculate date but not time"
     },
     "error":{
         "field_miss":   "Required field is missing",
@@ -345,7 +357,12 @@
         "subcategories":"Subcategories",
         "both":         "Both",
         "t_doc":        "Document",
-        "t_label":      "Label"
+        "t_label":      "Label",
+        "ap_s_strt_time_cur":"Current time",
+        "ap_s_strt_time_man":"Set manually",
+        "ap_s_no_calc":"Don't calculate",
+        "ap_s_sum_all_length":"Calculate based on the sum of all services",
+        "ap_s_max_length":"Calculate by longest service"
     },
     "kpi":{
         "hour":"Hour",

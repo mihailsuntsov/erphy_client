@@ -1,0 +1,162 @@
+<mat-card appearance="outlined" class="card" *transloco="let t">
+    <mat-card-header>
+        <mat-card-title class="flex">
+            <div class="card-name">{{t('modules.card.settings')}}</div>
+            <button 
+                (click)="onNoClick()"
+                matTooltip="{{t('modules.tip.cls_sttng_wnd')}}"
+                mat-raised-button 
+                color="accent"
+                class="button small-button">
+                <i class="material-icons">close</i> 
+            </button>
+        </mat-card-title>
+    </mat-card-header>
+    <mat-card-content > 
+        <div class="card">
+            <mat-spinner 
+            strokeWidth="3" 
+            class="spinner"
+            [diameter]="50"
+            *ngIf="gettingData"
+            ></mat-spinner>
+            <form [formGroup]="settingsForm">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12">
+
+                            <mat-form-field  class="mat-form-field-100">
+                                <mat-label>{{'modules.field.start_tim_src' | transloco}}</mat-label>
+                                <mat-select formControlName="startTime">
+                                    <mat-option value="current" matTooltip="{{t('modules.tip.ap_s_suit_intraday')}}">
+                                        {{'modules.list.ap_s_strt_time_cur' | transloco}}
+                                    </mat-option>
+                                    <mat-option value="set_manually" matTooltip="{{t('modules.tip.ap_s_suit_manyday')}}">
+                                        {{'modules.list.ap_s_strt_time_man' | transloco}}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                            <div class="row">
+                                <div class="col-6">
+                                    <mat-form-field  class="mat-form-field-100">
+                                        <mat-label>{{'modules.field.start_time' | transloco}}</mat-label>
+                                        <input  matInput 
+                                        formControlName="startTimeManually" 
+                                        [ngxTimepicker]="picker1"
+                                        [format]="+timeFormat"
+                                        readonly>
+                                        <ngx-material-timepicker 
+                                        #picker1  
+                                        style="z-index: 10000;"
+                                        [cancelBtnTmpl]="cancelBtn"
+                                        [confirmBtnTmpl]="confirmBtn"
+                                        ></ngx-material-timepicker>
+                                    </mat-form-field>
+                                </div>
+                                <div class="col-6">
+                                    <mat-form-field  class="mat-form-field-100">
+                                        <mat-label>{{'modules.field.end_time' | transloco}}</mat-label>
+                                        <input  matInput 
+                                        formControlName="endTimeManually" 
+                                        [ngxTimepicker]="picker2"
+                                        [format]="+timeFormat"
+                                        readonly>
+                                        <ngx-material-timepicker 
+                                        #picker2  
+                                        style="z-index: 10000;"
+                                        [cancelBtnTmpl]="cancelBtn"
+                                        [confirmBtnTmpl]="confirmBtn"
+                                        ></ngx-material-timepicker>
+                                    </mat-form-field>
+                                </div>
+                            </div>
+                            <mat-form-field  class="mat-form-field-100">
+                                <mat-label>{{'modules.field.end_date_time' | transloco}}</mat-label>
+                                <mat-select formControlName="endDateTime">
+                                    <mat-option value="no_calc" matTooltip="{{t('modules.tip.ap_s_no_calc')}}">
+                                        {{'modules.list.ap_s_no_calc' | transloco}}
+                                    </mat-option>
+                                    <mat-option value="sum_all_length" matTooltip="{{t('modules.tip.ap_s_sum_all_length')}}">
+                                        {{'modules.list.ap_s_sum_all_length' | transloco}}
+                                    </mat-option>
+                                    <mat-option value="max_length" matTooltip="{{t('modules.tip.ap_s_max_length')}}">
+                                        {{'modules.list.ap_s_max_length' | transloco}}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+
+                            <mat-form-field 
+                                class="slideWidth100"
+                                >                                                                    
+                                <mat-slide-toggle 
+                                    formControlName="calcDateButTime"
+                                    matTooltip="{{t('modules.tip.ap_s_suit_manyday')}}"
+                                    >
+                                    {{t('modules.field.calc_date_but_time')}}
+                                </mat-slide-toggle>
+                                <input matInput hidden/>
+                            </mat-form-field>
+
+                            <mat-form-field 
+                                class="slideWidth100">                                                                    
+                                <mat-slide-toggle 
+                                    formControlName="hideEmployeeField"
+                                    matTooltip="{{t('modules.tip.hide_employee_field')}}"
+                                    >
+                                    {{t('modules.field.hide_employee_field')}}
+                                </mat-slide-toggle>
+                                <input matInput hidden/>
+                            </mat-form-field>
+                           
+                        </div>
+                    </div>
+                </div>
+                
+                <mat-divider></mat-divider>
+                
+                <div class="row">
+                    <button 
+                    (click)="applySettings()"
+                    class="apply-button"
+                    matTooltip="{{t('modules.tip.save_n_close')}}"
+                    mat-raised-button 
+                    color="primary"
+                    id="save_user_settings_btn"
+                    [disabled]="(!settingsForm.valid)"
+                    >
+                    <i class="material-icons">done</i> {{t('modules.button.save_n_close')}} 
+                </button>
+                </div>
+
+            </form>
+        </div>
+        <!-- <code><pre>{{settingsForm.getRawValue() | json}}</pre></code> -->
+    </mat-card-content> 
+</mat-card>
+    
+<ng-template #cancelBtn>
+    <button style="min-width: 88px;
+    line-height: 36px;
+    cursor: pointer;
+    border: 12px;
+    border-radius: 4px;
+    background-color: #673ab7;
+    color: white;
+    font-size: 14px;
+    text-transform: uppercase;
+    margin: 0 5px;
+    text-align: center;">{{'modules.button.cancel' | transloco}}</button>
+</ng-template>
+<ng-template #confirmBtn>
+    <button style="min-width: 88px;
+    line-height: 36px;
+    cursor: pointer;
+    border: 12px;
+    border-radius: 4px;
+    background-color: #673ab7;
+    color: white;
+    font-size: 14px;
+    text-transform: uppercase;
+    margin: 0 5px;
+    text-align: center;">Ok</button>
+</ng-template>

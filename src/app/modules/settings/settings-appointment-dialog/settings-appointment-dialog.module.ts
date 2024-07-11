@@ -1,22 +1,25 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SettingsAppointmentsDialogComponent } from './settings-appointments-dialog.component';
+import { SettingsAppointmentDialogComponent } from './settings-appointment-dialog.component';
 import { MaterialModule } from '../../material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import {NgxMaterialTimepickerModule} from 'ngx-material-timepicker';
 
 @NgModule({
-  declarations: [SettingsAppointmentsDialogComponent],
+  declarations: [SettingsAppointmentDialogComponent],
   imports: [
     CommonModule,
+
     MaterialModule,
     FormsModule,
     ReactiveFormsModule,
-    TranslocoModule
+    TranslocoModule,
+    NgxMaterialTimepickerModule
   ],
   exports: [
-    SettingsAppointmentsDialogComponent,
+    SettingsAppointmentDialogComponent,
   ],
   providers:[{ provide: TRANSLOCO_SCOPE, useValue: ['docs','modules']},]
 })
-export class SettingsAppointmentsDialogModule { }
+export class SettingsAppointmentDialogModule { }

@@ -30,7 +30,6 @@ li {list-style: none;}
 .cursor-pointer{
     cursor: pointer;
 }
-
 .spinner{
     position: absolute;
     top: 50%; left: 50%;
@@ -47,6 +46,9 @@ li {list-style: none;}
     color:gray;
 }
 
+mat-slider {
+    width: 100%;
+}
 .radio-group {
     display: flex;
     flex-direction: column;
@@ -81,22 +83,24 @@ li {list-style: none;}
     line-height:0 !important;
     vertical-align: middle;
 }
-/*--------------- стили для статуса------------------*/
-/*для цветного круга в статусах*/
- 
-  
-.circle-in-selected{
-    width: 20px;
-    height: 20px;
-    -moz-border-radius: 10px;
-    -webkit-border-radius: 10px;
-    border-radius: 10px;
-    position:absolute;
-    top: 30px;
-	left:9px
+::ng-deep .mdc-slider__value-indicator{
+    padding: 5px;
 }
-/*название статуса*/
-.status-name {
-    display: inline-block;
-    line-height: 20px;
-} 
+::ng-deep .mdc-slider__value-indicator-text{
+    width: 64px
+}
+/* .slider-label{
+    display: inline-block !important;
+    position: absolute !important;
+    top: 10px !important;
+    font-size:12px !important;
+    color:rgba(0, 0, 0, 0.6) !important;
+} */
+.slider-label-container{
+    display: flex;
+    justify-content: space-between;
+}
+.slideWidth100{
+    width:100%;
+    /* margin:-8.5px 0 0 0; */
+}

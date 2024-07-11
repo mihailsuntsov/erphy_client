@@ -22,7 +22,7 @@ import { Router, NavigationExtras  } from '@angular/router';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { setValue, translate } from '@ngneat/transloco'; //+++
 import { CalendarEvent } from 'angular-calendar';
-// import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component';
+import { SettingsAppointmentDialogComponent } from 'src/app/modules/settings/settings-appointment-dialog/settings-appointment-dialog.component';
 import { AppointmentsComponent } from 'src/app/ui/pages/documents/appointments/appointments.component';
 import { FilesComponent } from '../files/files.component';
 import { FilesDocComponent } from '../files-doc/files-doc.component';
@@ -413,13 +413,6 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   rightsDefined:boolean; // определены ли права !!!
   lastCheckedDocNumber:string=''; //!!!
 
-  //****************************                   Взаимодействие с ККМ                    ************************************
-  // cheque_nds=false; //нужно ли проставлять НДС в чеке.
-
-
-
-
-
   displayedColumns:string[];
   @ViewChild("countInput", {static: false}) countInput;
   @ViewChild("nameInput", {static: false}) nameInput; 
@@ -470,7 +463,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     @Optional() @Inject(MAT_DIALOG_DATA) public data: any,
     public commonUtilites: CommonUtilitesService,
     public dialogAddFiles: MatDialog,
-    public SettingsAppointmentsDialogComponent: MatDialog,
+    private settingsAppointmentDialogComponent: MatDialog,
     public MessageDialog: MatDialog,
     private loadSpravService: LoadSpravService,
     private _snackBar: MatSnackBar,
@@ -562,42 +555,15 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     });
 
     // Форма настроек
-    this.settingsForm = new UntypedFormGroup({
-      // id отделения
-      departmentId: new UntypedFormControl             (null,[]),
-      //покупатель по умолчанию
-      customerId: new UntypedFormControl               (null,[]),
-      //наименование покупателя
-      customer: new UntypedFormControl                 ('',[]),
-      //наименование заказа по умолчанию
-      orderName:  new UntypedFormControl               ('',[]),
-      // тип расценки. priceType - по типу цены, costPrice - себестоимость, manual - вручную
-      pricingType: new UntypedFormControl              ('priceType',[]),
-      //тип цены
-      priceTypeId: new UntypedFormControl              (null,[]),
-      //наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType
-      changePrice: new UntypedFormControl              (50,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
-      // Наценка (plus) или скидка (minus)
-      plusMinus: new UntypedFormControl                ('plus',[]),
-      // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
-      changePriceType: new UntypedFormControl          ('procents',[]),
-      //убрать десятые (копейки)
-      hideTenths: new UntypedFormControl               (true,[]),
-      //сохранить настройки
-      saveSettings: new UntypedFormControl             (true,[]),
+    this.settingsForm = new UntypedFormGroup({     
       //предприятие, для которого создаются настройки
-      companyId: new UntypedFormControl                (null,[]),
-      //наименование заказа
-      name:  new UntypedFormControl                    ('',[]),
-      //приоритет типа цены : Склад (sklad) Покупатель (cagent) Цена по-умолчанию (defprice)
-      priorityTypePriceSide: new UntypedFormControl    ('defprice',[]),
-      //настройки операций с ККМ
-      //Оплата чека прихода (наличными - nal безналичными - electronically смешанная - mixed)
-      selectedPaymentType:   new UntypedFormControl    ('cash',[]),
-      //автосоздание на старте документа, если автозаполнились все поля
-      autocreateOnStart: new UntypedFormControl        (false,[]),
-      //статус при проведении
-      statusIdOnAutocreateOnCheque: new UntypedFormControl(null,[]),
+      companyId: new UntypedFormControl          (null,[]),
+      startTime: new UntypedFormControl          ('current',[]),        // current / set_manually
+      endDateTime: new UntypedFormControl        ('sum_all_length',[]), // no_calc / sum_all_length / max_length 
+      startTimeManually: new UntypedFormControl  ('00:00',[]),          // 'HH:mm' if start_time = 'set_manually'
+      endTimeManually: new UntypedFormControl    ('00:01',[]),          // 'HH:mm' if end_time = 'calc_date_but_time'
+      hideEmployeeField: new UntypedFormControl  (false ,[]),           // If for all services of company employees are not needed
+      calcDateButTime: new UntypedFormControl    (false ,[]),           // if user wants to calc only dates. Suitable for hotels for checkout time
     });
 
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Покупатель"
@@ -611,7 +577,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     this.getBaseData('accountingCurrency');  
     this.getBaseData('timeFormat');
     this.setDefaultDate();
-    console.log("locale = ",this.locale);
+    // console.log("locale = ",this.locale);
     this._adapter.setLocale(this.locale);
     if(this.data)//если документ вызывается в окне из другого документа
     {
@@ -801,6 +767,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       this.getCompanySettings();
       this.getDepartmentsWithPartsList();
       this.getJobtitleList();
+      this.getSettings();
       this.getSpravSysEdizm(); //загрузка единиц измерения.
   }
   getCompanySettings(){
@@ -1586,40 +1553,6 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   //   }
   // }
   //--------------------------------------- **** Конец поиска по подстроке для товара  ***** ------------------------------------
-  //загрузка настроек
-  getSettings(){
-    // alert(3)
-    let result:any;
-    this.http.get('/api/auth/getSettingsappointments')
-      .subscribe(
-          data => { 
-            result=data as any;
-            //вставляем настройки в форму настроек
-           
-            this.settingsForm.get('priceTypeId').setValue(result.priceTypeId);
-            this.settingsForm.get('hideTenths').setValue(result.hideTenths);
-            this.settingsForm.get('').setValue(result.saveSettings);
-            this.settingsForm.get('priorityTypePriceSide').setValue(result.priorityTypePriceSide);
-            this.settingsForm.get('autocreateOnStart').setValue(result.autocreateOnStart);
-            this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.statusIdOnAutocreateOnCheque);
-            
-            // this.necessaryActionsBeforeGetChilds();
-            // для нового документа
-            if(+this.id==0){
-              //если предприятия из настроек больше нет в списке предприятий (например, для пользователя урезали права, и выбранное предприятие более недоступно)
-              //необходимо не загружать эти настройки
-              if(this.isCompanyInList(+result.companyId)){
-                this.settingsForm.get('companyId').setValue(result.companyId);
-                this.settingsForm.get('departmentPartId').setValue(result.departmentPartId);
-                this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.statusIdOnAutocreateOnCheque);
-              }
-                //вставляем Отделение и Покупателя (вставится только если новый документ)
-              this.setDefaultInfoOnStart(+result.departmentPartId);
-            }
-          },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
-      );
-  }
 
   //если новый документ - вставляем Отделение и Покупателя (но только если они принадлежат выбранному предприятию, т.е. предприятие в Основной информации и предприятие, для которого были сохранены настройки совпадают)
   setDefaultInfoOnStart(departmentPartId:number){
@@ -1706,6 +1639,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
                   this.fillCustomersObjectListFromApiResponse(documentValues.customersTable);
                   this.fillProductsListFromApiResponse(documentValues.appointmentsProductTable);
                   this.getTotalSumPrice();
+                  this.getSettings();
                   this.isMainDataLoading=false;
                   this.showBalanceModules=false;
                   setTimeout(() => { 
@@ -2022,67 +1956,60 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     });
   }
 
-  //открывает диалог настроек
-  openDialogSettings() { 
-    // const dialogSettings = this.SettingsAppointmentsDialogComponent.open(SettingsAppointmentsDialogComponent, {
-    //   maxWidth: '95vw',
-    //   maxHeight: '95vh',
-    //   width: '400px', 
-    //   data:
-    //   { //отправляем в диалог:
-    //     priceTypesList:   this.receivedPriceTypesList, //список типов цен
-    //     receivedCompaniesList: this.receivedCompaniesList, //список предприятий
-    //     receivedDepartmentsList: this.receivedDepartmentsList, //список отделений
-    //     company_id: this.formBaseInformation.get('company_id').value, // текущее предприятие (нужно для поиска покупателя)
-    //     department_type_price_id: this.department_type_price_id,
-    //     cagent_type_price_id: this.cagent_type_price_id,
-    //     default_type_price_id: this.default_type_price_id,
-    //     allowToCreateAllCompanies: this.allowToCreateAllCompanies,
-    //     allowToCreateMyCompany: this.allowToCreateMyCompany,
-    //     allowToCreateMyDepartments: this.allowToCreateMyDepartments,
-    //     id: this.id, //чтобы понять, новый док или уже созданный
-    //   },
-    // });
-    // dialogSettings.afterClosed().subscribe(result => {
-    //   if(result){
-    //     //если нажата кнопка Сохранить настройки - вставляем настройки в форму настроек и сохраняем
-    //     if(result.get('companyId')) this.settingsForm.get('companyId').setValue(result.get('companyId').value);
-    //     if(result.get('departmentId')) this.settingsForm.get('departmentId').setValue(result.get('departmentId').value);
-    //     if(result.get('customerId')) this.settingsForm.get('customerId').setValue(result.get('customerId').value);
-    //     if(result.get('customer')) this.settingsForm.get('customer').setValue(result.get('customer').value);
-    //     if(result.get('pricingType')) this.settingsForm.get('pricingType').setValue(result.get('pricingType').value);
-    //     if(result.get('plusMinus')) this.settingsForm.get('plusMinus').setValue(result.get('plusMinus').value);
-    //     if(result.get('changePrice')) this.settingsForm.get('changePrice').setValue(result.get('changePrice').value);
-    //     if(result.get('changePriceType')) this.settingsForm.get('changePriceType').setValue(result.get('changePriceType').value);
-    //     if(result.get('name')) this.settingsForm.get('name').setValue(result.get('name').value);
-    //     if(result.get('priorityTypePriceSide')) this.settingsForm.get('priorityTypePriceSide').setValue(result.get('priorityTypePriceSide').value);
-    //     this.settingsForm.get('hideTenths').setValue(result.get('hideTenths').value);
-    //     this.settingsForm.get('saveSettings').setValue(result.get('saveSettings').value);
-    //     this.settingsForm.get('autocreateOnStart').setValue(result.get('autocreateOnStart').value);
-    //     this.settingsForm.get('statusIdOnAutocreateOnCheque').setValue(result.get('statusIdOnAutocreateOnCheque').value);
-    //     this.saveSettingsappointments();
- 
-    //     // если это новый документ, и ещё нет выбранных товаров - применяем настройки 
-    //     if(+this.id==0 && this.productSearchAndTableByCustomersComponent.getProductTable().length==0)  {
-    //         //если в настройках сменили предприятие - нужно сбросить статусы, чтобы статус от предыдущего предприятия не прописался в актуальное
-    //         if(+this.settingsForm.get('companyId').value!= +this.formBaseInformation.get('company_id').value) 
-    //         this.resetStatus();
-    //       this.getData();
-    //     }
-    //     //чтобы настройки применились к модулю Поиск и добавление товара"
-    //     this.productSearchAndTableByCustomersComponent.applySettings(result);
-    //   }
-    // });
+  // ------------------------------------ User settings ------------------------------------
+  getSettings(){
+    let result:any;
+    this.http.get('/api/auth/getSettingsAppointment').subscribe
+    (data => 
+      { 
+        result=data as any;
+          this.settingsForm.get('startTime').setValue(result.startTime);
+          this.settingsForm.get('endDateTime').setValue(result.endDateTime);
+          this.settingsForm.get('startTimeManually').setValue(result.startTimeManually);
+          this.settingsForm.get('endTimeManually').setValue(result.endTimeManually);
+          this.settingsForm.get('hideEmployeeField').setValue(result.hideEmployeeField);
+          this.settingsForm.get('calcDateButTime').setValue(result.calcDateButTime);
+      },
+      error => console.log(error)
+    );
   }
-  saveSettingsappointments(){
-    return this.http.post('/api/auth/saveSettingsappointments', this.settingsForm.value)
-            .subscribe(
-                (data) => {   
-                          this.openSnackBar(translate('docs.msg.settngs_saved'), translate('docs.msg.close'));
-                          
-                        },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
-            );
+
+  openDialogSettings() { 
+    const dialogSettings = this.settingsAppointmentDialogComponent.open(SettingsAppointmentDialogComponent, {
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      width: '400px', 
+      data:
+      {
+        receivedCompaniesList: this.receivedCompaniesList, //список предприятий
+        timeFormat: this.timeFormat,
+        companyId: this.formBaseInformation.get('company_id').value
+      },
+    });
+    dialogSettings.afterClosed().subscribe(result => {
+      if(result){
+        this.settingsForm.get('companyId').setValue(this.formBaseInformation.get('company_id').value);
+        this.settingsForm.get('startTime').setValue(result.get('startTime').value);
+        this.settingsForm.get('endDateTime').setValue(result.get('endDateTime').value);
+        this.settingsForm.get('startTimeManually').setValue(result.get('startTimeManually').value);
+        this.settingsForm.get('endTimeManually').setValue(result.get('endTimeManually').value);
+        this.settingsForm.get('hideEmployeeField').setValue(result.get('hideEmployeeField').value);
+        this.settingsForm.get('calcDateButTime').setValue(result.get('calcDateButTime').value);
+        this.saveSettingsAppointment();
+      }
+    });
+  }
+  
+  saveSettingsAppointment(){
+    return this.http.post('/api/auth/saveSettingsAppointment', this.settingsForm.getRawValue())
+    .subscribe(
+      (data) => {   
+        // this.actionsBeforeGetChilds=0;
+        this.openSnackBar(translate('menu.msg.settngs_saved'), translate('menu.msg.close')); //+++
+        this.getSettings();  
+      },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
+    );
   }
   getPriceTypesList(){
     // alert(1)

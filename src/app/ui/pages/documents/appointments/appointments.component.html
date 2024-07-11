@@ -9,7 +9,7 @@ class="spinner"
         <mat-card-title class="flex" style="height: 30px;" *ngIf="mode == 'standart'">
             <div *ngIf="!displayingDeletedDocs" class="emptyspace">{{cu.cap(t('docs.list.'+companySettings.booking_doc_name_variation+'s'))}} </div>
             <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">{{t('menu.top.deleted')}}</span> {{t('menu.docs.c_orders')}}</div>
-            <!-- <button 
+            <button 
                 mat-raised-button 
                 style="width: 36px;height: 36px;min-width: 38px;padding: 0px;"
                 color="primary"
@@ -18,7 +18,7 @@ class="spinner"
                 type="button"
                 class="button">
                 <i class="material-icons">settings</i>
-            </button> -->
+            </button>
             <div [style.display]="visBtnAdd==true?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
                 <a routerLink="../appointmentsdoc">
                     <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> {{t('menu.top.btn_create')}}</button>

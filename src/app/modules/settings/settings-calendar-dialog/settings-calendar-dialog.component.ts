@@ -68,15 +68,15 @@ export class SettingsCalendarDialogComponent implements OnInit {
         result=data as any;
         this.gettingData=false;
         //вставляем настройки в форму настроек
-        if(this.isCompanyInList(+result.companyId)){
-          //данная группа настроек зависит от предприятия
-          this.settingsForm.get('companyId').setValue(result.companyId);
           this.settingsForm.get('startView').setValue(result.startView);
           this.settingsForm.get('timelineStep').setValue(result.timelineStep);
           this.settingsForm.get('dayStartMinute').setValue(result.dayStartMinute);
           this.settingsForm.get('dayEndMinute').setValue(result.dayEndMinute);
           this.settingsForm.get('resourcesScreenScale').setValue(result.resourcesScreenScale);
           this.settingsForm.get('displayCancelled').setValue(result.displayCancelled);
+        if(this.isCompanyInList(+result.companyId)){
+          //данная группа настроек зависит от предприятия
+          this.settingsForm.get('companyId').setValue(result.companyId);
           // alert(this.settingsForm.get('timelineStep').value)
           // alert(this.timelineStep_virtualValue)
         }
