@@ -339,6 +339,10 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   receivedJobtitlesList: any [] = [];//массив для получения списка наименований должностей
   servicesList: string[] = []; // list of services that will be shown in an information panel of employee or department part
   documentChanged:boolean=false;
+  isEndDateTimeRecounting:boolean=false;
+  waitingOfAfterRecountEndDateTime=false;
+  needAgainOfAfterRecountEndDateTime=false;
+  isEndDateTimEditing:boolean=false;
   //печать документов
   gettingTemplatesData: boolean = false; // идёт загрузка шаблонов
   templatesList:TemplatesList[]=[]; // список загруженных шаблонов
@@ -978,22 +982,34 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   }
   
   setDefaultDate(){
-    if(this.data && this.data.dragCreatedEvent){
-      this.formBaseInformation.get('date_start').setValue(moment(this.data.dragCreatedEvent.start));
-      this.formBaseInformation.get('time_start').setValue(moment(this.data.dragCreatedEvent.start).format("HH:mm"));
-      if(this.data.dragCreatedEvent.end){
-        this.formBaseInformation.get('date_end').  setValue(moment(this.data.dragCreatedEvent.end));
-        this.formBaseInformation.get('time_end').setValue(moment(this.data.dragCreatedEvent.end).format("HH:mm"));
-      } else {
-        this.formBaseInformation.get('date_end').setValue(moment(this.data.dragCreatedEvent.start));
-        this.formBaseInformation.get('time_end').setValue(moment(this.data.dragCreatedEvent.start).add(+30,'minutes').format("HH:mm"));
-      }
-      
-    } else { 
-      this.formBaseInformation.get('date_start').setValue(moment());
-      this.formBaseInformation.get('date_end').  setValue(moment().add(0,'d'));
-      this.formBaseInformation.get('time_start').setValue(moment().format("HH:mm"));
-      this.formBaseInformation.get('time_end').  setValue(moment().add(+1,'h').format("HH:mm"));    }
+    if(this.data){
+      // If Appointment is creating by dragging in "CalendarView.Scheduler" screen
+      if(this.data.dragCreatedEvent){ 
+        this.formBaseInformation.get('date_start').setValue(moment(this.data.dragCreatedEvent.start));
+        this.formBaseInformation.get('time_start').setValue(moment(this.data.dragCreatedEvent.start).format("HH:mm"));
+        if(this.data.dragCreatedEvent.end){
+          this.formBaseInformation.get('date_end').  setValue(moment(this.data.dragCreatedEvent.end));
+          this.formBaseInformation.get('time_end').setValue(moment(this.data.dragCreatedEvent.end).format("HH:mm"));
+        } else {
+          this.formBaseInformation.get('date_end').setValue(moment(this.data.dragCreatedEvent.start));
+          this.formBaseInformation.get('time_end').setValue(moment(this.data.dragCreatedEvent.start).add(+30,'minutes').format("HH:mm"));
+        }
+      } else
+      // If Appointment is creating by clicking on (+) in "CalendarView.Day" screen
+      if(this.data.calendarViewDayDate){
+        this.formBaseInformation.get('date_start').setValue(moment(this.data.calendarViewDayDate));
+      } // All other times will be getted from settings in applyInitialTimeSettings()
+    }
+
+   
+
+
+
+    //  else { 
+    //   this.formBaseInformation.get('date_start').setValue(moment());
+    //   this.formBaseInformation.get('date_end').  setValue(moment().add(0,'d'));
+    //   this.formBaseInformation.get('time_start').setValue(moment().format("HH:mm"));
+    //   this.formBaseInformation.get('time_end').  setValue(moment().add(+1,'h').format("HH:mm"));    }
   }
   
   doFilterDepartmentsList(){
@@ -1178,6 +1194,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         this.getTotalSumPrice();//чтобы пересчиталась сумма в чеке
         this.refreshTableColumns();//чтобы глючные input-поля в таблице встали на свои места. Это у Ангуляра такой прикол
         this.finishRecount(); // подсчёт тоталов в таблице
+        this.recountEndDateTime();
     //   }
     // }); 
   }
@@ -1196,6 +1213,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
           // console.log('customerRowId = ',row.row_id)
           this.deleteAllCustomerProductsByRowId(row.row_id)
           this.getTotalSumPrice();//чтобы пересчиталась сумма в чеке
+          this.recountEndDateTime();
         }});  
   }
   getEdizmNameBySelectedId(srchId:number):string {
@@ -1401,6 +1419,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         // this.setRowSumPrice(control.value.length-1);// re-calculating sum price of added row
         setTimeout(() => {this.searchProductCtrl.reset();}, 1);
         this.getTotalSumPrice();
+        this.recountEndDateTime();
         if(control.length>0 && !this.isThereAreServicesInTableWithEmployeeRequired()){ // if there are selected services but no one of selected sevices required employee
           this.formBaseInformation.get('employeeId').setValue(null);
           this.formBaseInformation.get('employeeName').setValue('');
@@ -1479,6 +1498,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       departmentPartsWithResourcesIds: new UntypedFormControl (product.departmentPartsWithResourcesIds,[]),
       unitOfMeasureTimeInSeconds: new UntypedFormControl (product.unitOfMeasureTimeInSeconds,[]),
       isServiceByAppointment: new UntypedFormControl (product.isServiceByAppointment,[]),     // It's a service and it's a service by appointment
+      srvcDurationInSeconds:  new UntypedFormControl (product.srvcDurationInSeconds,[]), 
 
       //---------------------------------
       // department: new UntypedFormControl (product.department,[]), //имя отделения, выбранного в форме поиска 
@@ -1969,6 +1989,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
           this.settingsForm.get('endTimeManually').setValue(result.endTimeManually);
           this.settingsForm.get('hideEmployeeField').setValue(result.hideEmployeeField);
           this.settingsForm.get('calcDateButTime').setValue(result.calcDateButTime);
+          if(+this.id == 0) this.applyInitialTimeSettings();
       },
       error => console.log(error)
     );
@@ -2011,6 +2032,125 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},
     );
   }
+
+  applyInitialTimeSettings(){
+
+    // if user or this function is still not fill the time and date fields
+    if(this.formBaseInformation.get('date_start').value=='' || this.formBaseInformation.get('time_start').value=='' || this.formBaseInformation.get('date_end').value=='' || this.formBaseInformation.get('time_end').value==''){
+      // If the document is creating in a "window" mode
+      if(this.data){
+
+        // if document is not creating by gragging action, in which start and end time are defined
+        // then start and end dates/times will be calculated in accordance of settings
+        if(!this.data.dragCreatedEvent){
+            
+          if(this.data.calendarViewDayDate)
+            this.formBaseInformation.get('date_start').setValue(moment(this.data.calendarViewDayDate, 'DD.MM.YYYY'));
+          else 
+            this.formBaseInformation.get('date_start').setValue(moment());
+
+          // Settings -> startTime = 'current'
+          if(this.settingsForm.get('startTime').value=='current'){
+            this.formBaseInformation.get('time_start').setValue(moment().format("HH:mm"));
+          // Settings -> startTime = 'set_manually'
+          } else {
+            this.formBaseInformation.get('time_start').setValue(this.settingsForm.get('startTimeManually').value);
+          }
+        } 
+      } else { // If the document is creating in a "standart" mode       
+
+        this.formBaseInformation.get('date_start').setValue(moment());
+        // Settings -> startTime = 'current'
+        if(this.settingsForm.get('startTime').value=='current'){
+          this.formBaseInformation.get('time_start').setValue(moment().format("HH:mm"));
+        // Settings -> startTime = 'set_manually'
+        } else {
+          this.formBaseInformation.get('time_start').setValue(this.settingsForm.get('startTimeManually').value);
+        }
+      }
+
+      // If document is creating in the 'standart' mode, or in 'window' mode but not by gragging action, in which the end time is defined
+      if(!this.data || (this.data && !this.data.dragCreatedEvent))
+        // If end date and end time are calculating automatically, and the end time is not defined in settings - need to set initial end date and end time as start date/time + 1 hour
+        // This is neccessary to get an initial list of employees with their aviability by work schedule
+        if(['sum_all_length','max_length'].includes(this.settingsForm.get('endDateTime').value) && !this.settingsForm.get('calcDateButTime').value){
+            var beginningTime = moment(moment(new Date(this.formBaseInformation.get('date_start').value)).format('DD.MM.YYYY')+' '+this.timeTo24h(this.formBaseInformation.get('time_start').value), 'DD.MM.YYYY HH:mm').add(1,'h');
+            this.formBaseInformation.get('date_end').setValue(beginningTime);
+            this.formBaseInformation.get('time_end').setValue(beginningTime.format("HH:mm"));
+        } else {
+            // In the other cases the end time is always defined in settings - then just need to calculate end date ( because the end time can be before the start time )
+            var beginningTime = moment(moment(new Date(this.formBaseInformation.get('date_start').value)).format('DD.MM.YYYY')+' '+this.timeTo24h(this.formBaseInformation.get('time_start').value), 'DD.MM.YYYY HH:mm');
+            var endTime = moment(moment(new Date(this.formBaseInformation.get('date_start').value)).format('DD.MM.YYYY')+' '+this.timeTo24h(this.settingsForm.get('endTimeManually').value), 'DD.MM.YYYY HH:mm');
+            if(!beginningTime.isBefore(endTime)) endTime.add(1,'day');
+            this.formBaseInformation.get('date_end').setValue(endTime);
+            this.formBaseInformation.get('time_end').setValue(endTime.format("HH:mm"));
+        }
+    }
+  }
+
+  recountEndDateTime(byUserDemand=false){
+    // If in the settings endDateTime = 'sum_all_length' or 'max_length', and:
+    // (before document has been created and document is creating not by gragging action) or recount by user demand by clicking on "Recount the finish time" button
+    // console.log('recountEndDateTime');
+    if(!this.isEndDateTimEditing && (['sum_all_length','max_length'].includes(this.settingsForm.get('endDateTime').value)) && ((!this.data || (this.data && !this.data.dragCreatedEvent)) || byUserDemand)){
+      // Can do time recounting
+
+      let sumOfSeconds = 3600; // 3600 is the minimal length if there are no services by Appointment - 1 hour by default
+      let thereAreServicesByAppointment:boolean = false;
+      this.getControlTablefield().value.map(product=>{
+        // console.log('product:',product)
+        if(product.isServiceByAppointment){
+          this.isEndDateTimeRecounting=true;
+          // console.log('serviceByAppointment')
+          if(!thereAreServicesByAppointment) sumOfSeconds = 0; // if there are services by Appointment - count by their time length (not bu default) 
+          thereAreServicesByAppointment=true;
+          if(product.edizm_type_id == 6){ // unit of measure is "Time"
+            if(this.settingsForm.get('endDateTime').value == 'sum_all_length')
+              sumOfSeconds = sumOfSeconds + (product.unitOfMeasureTimeInSeconds * product.product_count);
+            else sumOfSeconds = (product.unitOfMeasureTimeInSeconds * product.product_count)>sumOfSeconds?(product.unitOfMeasureTimeInSeconds * product.product_count):sumOfSeconds;
+          }
+          if(product.edizm_type_id == 7){ // unit of measure is "Uncountable"
+            if(this.settingsForm.get('endDateTime').value == 'sum_all_length'){ // by the sum of all services length
+              // console.log('sumOfSeconds before',sumOfSeconds)
+              sumOfSeconds = sumOfSeconds + product.srvcDurationInSeconds;
+            
+              // console.log('sumOfSeconds after',sumOfSeconds)
+            }
+            else sumOfSeconds = (product.srvcDurationInSeconds)>sumOfSeconds?(product.srvcDurationInSeconds):sumOfSeconds; // endDateTime == 'max_length' - by service with the maximal length
+          }
+        }
+      })
+      // console.log('sumOfSeconds overall',sumOfSeconds)
+      if(this.isEndDateTimeRecounting){
+        var endTime = moment(moment(new Date(this.formBaseInformation.get('date_start').value)).format('DD.MM.YYYY')+' '+this.timeTo24h(this.formBaseInformation.get('time_start').value), 'DD.MM.YYYY HH:mm').add(sumOfSeconds,'seconds');
+        this.formBaseInformation.get('date_end').setValue(endTime);
+        if(!this.settingsForm.get('calcDateButTime').value)
+          this.formBaseInformation.get('time_end').setValue(endTime.format("HH:mm"));
+        this.afterRecountEndDateTime();
+        setTimeout(() => { 
+          this.isEndDateTimeRecounting = false;
+          }, 2000);         
+      }
+    }
+  }
+
+  afterRecountEndDateTime(){
+    if(!this.waitingOfAfterRecountEndDateTime){
+      this.waitingOfAfterRecountEndDateTime=true;
+      // Part of Backend calls that should be restricted by frequency
+      this.getEmployeesList();
+      this.refreshNowUsedResources();
+      //------------------------------------------------------------
+      setTimeout(() => { 
+        this.waitingOfAfterRecountEndDateTime=false;  
+        if(this.needAgainOfAfterRecountEndDateTime){
+          this.needAgainOfAfterRecountEndDateTime=false;
+          this.afterRecountEndDateTime(); // recursive call
+        }
+      }, 3000);
+    } else this.needAgainOfAfterRecountEndDateTime=true;
+  }
+
   getPriceTypesList(){
     // alert(1)
     this.receivedPriceTypesList=null;
@@ -2329,6 +2469,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         this.getControl('customersTable').clear();
         this.deleteAllCustomersProducts();
         this.showSearchCustomerFormFields=true;
+        this.recountEndDateTime();
         if(this.showSearchCustomerFormFields)
           setTimeout(() => { this.customersSearchFieldValue.nativeElement.focus(); }, 200);
       }});
@@ -2357,6 +2498,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         this.deleteAllCustomerProductsByRowId(row.row_id);
         this.refreshCustomerTableColumns();//чтобы глючные input-поля в таблице встали на свои места. Это у Ангуляра такой прикол
         this.showSearchCustomerFormFields=this.getControl("customersTable").value.length==0?true:false;
+        this.recountEndDateTime();
         if(this.showSearchCustomerFormFields)
           setTimeout(() => { this.customersSearchFieldValue.nativeElement.focus(); }, 200);
       }
@@ -2938,7 +3080,9 @@ deleteFile(id:number){
   onDatesTimesChange(){
     // on create or update document times can be updated from ap/mp to 24h and it can be trigger to run this function. oneClickSaveControl can prevent it, because it is true on create or update
     // on data loading dates and times can be changed and it can 
-    if(!this.oneClickSaveControl&&!this.isMainDataLoading&&(this.isDatesValid||+this.id>0)){
+    // isEndDateTimeRecounting - to deny change date/time in the case of changing services table, because it can produce circular queries
+    if(!this.oneClickSaveControl&&!this.isMainDataLoading&&(this.isDatesValid||+this.id>0)&&!this.isEndDateTimeRecounting){
+      this.isEndDateTimEditing=true;
       this.documentChanged=true;
       this.getEmployeesList();
       this.refreshNowUsedResources();
@@ -2951,6 +3095,8 @@ deleteFile(id:number){
         }
         row_index++;
       });
+      setTimeout(() => {this.isEndDateTimEditing=false;}, 1000); 
+      
     }
   }
   
@@ -3368,6 +3514,7 @@ deleteFile(id:number){
     this.tableNdsRecount();                                   // пересчёт Суммы оплаты за товар с учётом НДС
     this.finishRecount();                                     // подсчёт TOTALS и отправка суммы в ККМ
     this.checkIndivisibleErrorOfProductTable();               // проверка на неделимость товара
+    this.recountEndDateTime();
   }
   //при изменении поля Цена в таблице товаров
   onChangeProductPrice(row_index:number){
@@ -3942,7 +4089,8 @@ deleteFile(id:number){
   onDepartmentPartSelect(part_id:number, department_id:number){
     // this.formBaseInformation.get('department').setValue(this.getDepartmentNameById(this.getDepartmentIdByDepPartId()));
     this.getSetOfTypePrices();
-    if(this.accessibleEmployeesIdsAll.length==1){
+    if(this.accessibleEmployeesIdsAll.length==1 && !this.settingsForm.get('hideEmployeeField').value){
+      // alert(!this.settingsForm.get('hideEmployeeField').value)
       this.formBaseInformation.get('employeeId').setValue(this.accessibleEmployeesIdsAll[0]);
       let employee:Employee = this.getEmployeeById(this.accessibleEmployeesIdsAll[0]);
       this.formBaseInformation.get('employeeName').setValue(employee.name);

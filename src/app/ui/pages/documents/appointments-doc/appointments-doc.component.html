@@ -69,19 +69,6 @@
                     class="button small-button">
                     <i class="material-icons">settings</i>
                 </button>
-                <!-- <button 
-                    mat-raised-button 
-                    [matMenuTriggerFor]="templatesMenu"
-                    *ngIf="+id>0"
-                    matTooltip="{{t('docs.tip.print')}}"
-                    color="primary"                
-                    (click)="printDocs()"
-                    type="button"
-                    id="print_btn"
-                    (submit)="false"
-                    class="button small-button">
-                    <i class="material-icons">print</i>
-                </button> -->
                 <button 
                     mat-raised-button
                     *ngIf="+id>0"
@@ -95,25 +82,6 @@
                     class="button small-button">
                     <i class="material-icons">refresh</i>
                 </button>
-                <!-- <button 
-                    mat-button 
-                    [matMenuTriggerFor]="addDocMenu"
-                    mat-raised-button 
-                    matTooltip="{{t('docs.tip.create_docs')}}"
-                    [disabled]="createUpdateButtonDisabled" 
-                    *ngIf="+id>0"
-                    color="primary"
-                    (submit)="false"
-                    type="button"
-                    id="add_doc_btn"
-                    class="button small-button">
-                    <i class="material-icons">add</i>
-                </button> -->
-                <!-- <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
-                    <button mat-menu-item id="new_doc_btn" (click)="goToNewDocument()">
-                        <span>{{t('docs.docs.c_order')}}</span>
-                    </button>
-                </mat-menu> -->
                 <button 
                     mat-raised-button 
                     matTooltip="{{t('docs.tip.save')}}"
@@ -355,7 +323,11 @@
                                                                             </div>
                                                                         </div>  
                                                                     </div>
-                                                                    <div class="row" *ngIf="!isDatesValid" 
+                                                                    <div class="row" *ngIf="formBaseInformation.get('date_start').value!='' && 
+                                                                                            formBaseInformation.get('date_end').value!='' && 
+                                                                                            formBaseInformation.get('time_start').value!='' && 
+                                                                                            formBaseInformation.get('time_end').value!='' &&  
+                                                                                            !isDatesValid" 
                                                                         style="position: absolute; top: 54px;">
                                                                         <div class="col-12">
                                                                             <i class="table-form-invalid">{{t('docs.error.dates_from_to_valid')}}</i>
@@ -459,7 +431,7 @@
                                                                     </mat-form-field>
                                                                 </div>
 
-                                                                <div class="col-xl-6 col-md-12"  *ngIf="getControlTablefield().length==0 || (getControlTablefield().length>0 && (isThereAreServicesInTableWithEmployeeRequired() || !isThereAreServicesByAppointmentInTable()))"> 
+                                                                <div class="col-xl-6 col-md-12"  *ngIf="!settingsForm.get('hideEmployeeField').value && (getControlTablefield().length==0 || (getControlTablefield().length>0 && (isThereAreServicesInTableWithEmployeeRequired() || !isThereAreServicesByAppointmentInTable())))"> 
                                                                     <mat-form-field class="mat-form-field-100" id="jobtitle_id">
                                                                         <mat-label>{{t('docs.field.job_title')}}</mat-label>
                                                                         <mat-select
@@ -511,7 +483,7 @@
                                                                     </mat-form-field>
                                                                 </div>
                                                              
-                                                                <div class="col-xl-6 col-md-12" *ngIf="getControlTablefield().length==0 || (getControlTablefield().length>0 && (isThereAreServicesInTableWithEmployeeRequired() || !isThereAreServicesByAppointmentInTable()))">
+                                                                <div class="col-xl-6 col-md-12" *ngIf="!settingsForm.get('hideEmployeeField').value && (getControlTablefield().length==0 || (getControlTablefield().length>0 && (isThereAreServicesInTableWithEmployeeRequired() || !isThereAreServicesByAppointmentInTable())))">
 
                                                                     <mat-form-field style="display: none;" >
                                                                         <input   matInput
@@ -1086,7 +1058,7 @@
                                                                                                                     line-height: 1;
                                                                                                                     top: 3px;" 
                                                                                                             class="mat-icon-notification"
-                                                                                                            *ngIf="row1.departmentPartsWithResourcesIds.length>0 && !accessibleTableServicesIdsByResourcesOfSelectedDepPart.includes(row1.product_id) && +formBaseInformation.get('department_part_id').value>0"
+                                                                                                            *ngIf="row1.departmentPartsWithResourcesIds.length>0 && !accessibleTableServicesIdsByResourcesOfSelectedDepPart.includes(row1.product_id) && +formBaseInformation.get('department_part_id').value>0 && row1.isServiceByAppointment"
                                                                                                             matTooltip="{{t('docs.tip.srvc_acsbl_res_dprt',{'resources':getResourcesNames(getNotEnoughResourcesOfServiceInDepPart(row1,formBaseInformation.get('department_part_id').value))})}}">
                                                                                                             workspaces
                                                                                                         </mat-icon>
@@ -1095,7 +1067,7 @@
                                                                                                                     line-height: 1;
                                                                                                                     top: 3px;" 
                                                                                                             class="mat-icon-notification"
-                                                                                                            *ngIf="+formBaseInformation.get('employeeId').value==0 && !tableServicesThatNoNeedEmployees.includes(row1.product_id)"
+                                                                                                            *ngIf="+formBaseInformation.get('employeeId').value==0 && !tableServicesThatNoNeedEmployees.includes(row1.product_id) && row1.isServiceByAppointment && row1.employeeRequired"
                                                                                                             matTooltip="{{t('docs.field.employee_required')}}">
                                                                                                             person
                                                                                                         </mat-icon>

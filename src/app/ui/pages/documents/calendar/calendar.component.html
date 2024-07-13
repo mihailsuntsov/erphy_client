@@ -472,7 +472,7 @@
                                 </div>
                             </div>
                             <div class="day-bottom" *ngIf="day.badgeTotal>maxNumberDayDisplayedEvents">
-                                <span>... и ещё {{day.badgeTotal-maxNumberDayDisplayedEvents}}</span>
+                                <span>... {{t('docs.tip.and_plus')}} {{day.badgeTotal-maxNumberDayDisplayedEvents}}</span>
                             </div>
 
                         </div>

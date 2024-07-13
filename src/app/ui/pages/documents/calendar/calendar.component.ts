@@ -1044,7 +1044,7 @@ export class CalendarComponent implements OnInit {
         mode:       'window',
         companyId:  this.queryForm.get('companyId').value,
         docId:         docId,
-        date:       date,
+        calendarViewDayDate:       date,
         company:    this.getCompanyNameById(this.queryForm.get('companyId').value),
         booking_doc_name_variation: this.booking_doc_name_variation,
         locale:     this.locale,
