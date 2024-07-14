@@ -2037,14 +2037,13 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
 
     // if user or this function is still not fill the time and date fields
     if(this.formBaseInformation.get('date_start').value=='' || this.formBaseInformation.get('time_start').value=='' || this.formBaseInformation.get('date_end').value=='' || this.formBaseInformation.get('time_end').value==''){
-      // If the document is creating in a "window" mode
-      if(this.data){
+      // If the document is creating in a "standart" mode, or in a "window" mode but document is not creating by gragging action
+      // (in which start and end time are defined)
+      // then start and end dates/times will be calculated in accordance of settings
+      if(!this.data || (this.data && !this.data.dragCreatedEvent)){
 
-        // if document is not creating by gragging action, in which start and end time are defined
-        // then start and end dates/times will be calculated in accordance of settings
-        if(!this.data.dragCreatedEvent){
-            
-          if(this.data.calendarViewDayDate)
+        //                               Calculating start date and time 
+        if(this.data && this.data.calendarViewDayDate)
             this.formBaseInformation.get('date_start').setValue(moment(this.data.calendarViewDayDate, 'DD.MM.YYYY'));
           else 
             this.formBaseInformation.get('date_start').setValue(moment());
@@ -2056,35 +2055,20 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
           } else {
             this.formBaseInformation.get('time_start').setValue(this.settingsForm.get('startTimeManually').value);
           }
+
+        //                               Calculating end date and time 
+
+        var beginningTime = moment(moment(new Date(this.formBaseInformation.get('date_start').value)).format('DD.MM.YYYY')+' '+this.timeTo24h(this.formBaseInformation.get('time_start').value), 'DD.MM.YYYY HH:mm');
+        // if the end time is defined in settings - then just need to calculate end date ( because the end time can be before the start time )
+        if(this.settingsForm.get('calcDateButTime').value){ // End time is from settings
+          var endTime = moment(moment(new Date(this.formBaseInformation.get('date_start').value)).format('DD.MM.YYYY')+' '+this.timeTo24h(this.settingsForm.get('endTimeManually').value), 'DD.MM.YYYY HH:mm');
+          if(!beginningTime.isBefore(endTime)) endTime.add(1,'day');
+        } else {// if the end time is not defined in settings - the default time shift is 1 hour
+          var endTime = moment(moment(new Date(this.formBaseInformation.get('date_start').value)).format('DD.MM.YYYY')+' '+this.timeTo24h(this.formBaseInformation.get('time_start').value), 'DD.MM.YYYY HH:mm').add(1,'hour');
         } 
-      } else { // If the document is creating in a "standart" mode       
-
-        this.formBaseInformation.get('date_start').setValue(moment());
-        // Settings -> startTime = 'current'
-        if(this.settingsForm.get('startTime').value=='current'){
-          this.formBaseInformation.get('time_start').setValue(moment().format("HH:mm"));
-        // Settings -> startTime = 'set_manually'
-        } else {
-          this.formBaseInformation.get('time_start').setValue(this.settingsForm.get('startTimeManually').value);
-        }
+        this.formBaseInformation.get('date_end').setValue(endTime);
+        this.formBaseInformation.get('time_end').setValue(endTime.format("HH:mm"));
       }
-
-      // If document is creating in the 'standart' mode, or in 'window' mode but not by gragging action, in which the end time is defined
-      if(!this.data || (this.data && !this.data.dragCreatedEvent))
-        // If end date and end time are calculating automatically, and the end time is not defined in settings - need to set initial end date and end time as start date/time + 1 hour
-        // This is neccessary to get an initial list of employees with their aviability by work schedule
-        if(['sum_all_length','max_length'].includes(this.settingsForm.get('endDateTime').value) && !this.settingsForm.get('calcDateButTime').value){
-            var beginningTime = moment(moment(new Date(this.formBaseInformation.get('date_start').value)).format('DD.MM.YYYY')+' '+this.timeTo24h(this.formBaseInformation.get('time_start').value), 'DD.MM.YYYY HH:mm').add(1,'h');
-            this.formBaseInformation.get('date_end').setValue(beginningTime);
-            this.formBaseInformation.get('time_end').setValue(beginningTime.format("HH:mm"));
-        } else {
-            // In the other cases the end time is always defined in settings - then just need to calculate end date ( because the end time can be before the start time )
-            var beginningTime = moment(moment(new Date(this.formBaseInformation.get('date_start').value)).format('DD.MM.YYYY')+' '+this.timeTo24h(this.formBaseInformation.get('time_start').value), 'DD.MM.YYYY HH:mm');
-            var endTime = moment(moment(new Date(this.formBaseInformation.get('date_start').value)).format('DD.MM.YYYY')+' '+this.timeTo24h(this.settingsForm.get('endTimeManually').value), 'DD.MM.YYYY HH:mm');
-            if(!beginningTime.isBefore(endTime)) endTime.add(1,'day');
-            this.formBaseInformation.get('date_end').setValue(endTime);
-            this.formBaseInformation.get('time_end').setValue(endTime.format("HH:mm"));
-        }
     }
   }
 
@@ -2137,7 +2121,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   afterRecountEndDateTime(){
     if(!this.waitingOfAfterRecountEndDateTime){
       this.waitingOfAfterRecountEndDateTime=true;
-      // Part of Backend calls that should be restricted by frequency
+      // Part of Backend calls that should be restricted by frequency - no more than 1 per length of 'setTimeout'
       this.getEmployeesList();
       this.refreshNowUsedResources();
       //------------------------------------------------------------
@@ -3666,12 +3650,22 @@ deleteFile(id:number){
     this.formBaseInformation.get('employeeId').setValue(null);
     this.formBaseInformation.get('employeeName').setValue('');
     this.formBaseInformation.get('jobtitle_id').setValue(0);
+    this.formBaseInformation.get('employeeId').setValue(null);
+    
+    this.formBaseInformation.get('date_start').setValue('');
+    this.formBaseInformation.get('time_start').setValue('');
+    this.formBaseInformation.get('date_end').setValue('');
+    this.formBaseInformation.get('time_end').setValue('');
+    
+    this.applyInitialTimeSettings();
+    
     // this.formBaseInformation.get('product_id').setValue(null);
     this.searchProductCtrl.reset();
     // this.mainProduct= null;
     // this.deleteAllCustomersProducts(true); // delete only main product from all customers products
     this.searchProductCtrl.setValue('');
     this.refreshNowUsedResources();
+    this.documentChanged=false;
   }
   
   getAllResourcesInServicesTable(depPartId:number/*,additionalService?:AppointmentServiceSearchResponse*/):ResourceOfDepartmentPart[]{

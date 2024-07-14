@@ -188,10 +188,11 @@
                                                     {{t('docs.card.base_info')}}
                                                     <div style="position: absolute; right: 20px;">
                                                         <button matTooltip="{{t('docs.tip.reset')}}" 
+                                                                    *ngIf="+id==0"
                                                                     mat-raised-button
                                                                     color="primary"
                                                                     type="button"
-                                                                    [disabled]="+this.formBaseInformation.get('department_part_id').value==0 && +this.formBaseInformation.get('employeeId').value==0 && +this.formBaseInformation.get('jobtitle_id').value==0 && (searchProductCtrl.value==null || searchProductCtrl.value.length==0 || searchProductCtrl.value=='')" 
+                                                                    [disabled]="!documentChanged" 
                                                                     id="reset_btn"
                                                                     class="button small-button"
                                                                     (click)="resetMainForm();">

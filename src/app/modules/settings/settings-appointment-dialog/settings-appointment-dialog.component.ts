@@ -49,34 +49,21 @@ export class SettingsAppointmentDialogComponent implements OnInit {
       hideEmployeeField: new UntypedFormControl         ('false',[]), // If for all services of company employees are not needed
       calcDateButTime: new UntypedFormControl           ('false',[]), // If user wants to calc only dates. Suitable for hotels for checkout time
     });
+    this.settingsForm.get('endTimeManually').disable(); // because 'calcDateButTime' is false in the initial settings
+    this.updateFields();
+    this.getSettings();  
+  }
+  updateFields(){
     // TO DISABLE REACTIVE FORM FIELD IN ANGULAR 14 & >
-    this.settingsForm.controls.endDateTime.valueChanges.subscribe((value: string) => {
-      if(value != 'no_calc') {
-        this.settingsForm.get('calcDateButTime').enable();
-        
-        if(this.settingsForm.controls.calcDateButTime.value)
-          this.settingsForm.get('endTimeManually').enable();
-        else this.settingsForm.get('endTimeManually').disable();
-
-      }
-      else {
-        this.settingsForm.get('calcDateButTime').disable();
-        this.settingsForm.get('endTimeManually').enable();
-
-      }
-    })
     this.settingsForm.controls.startTime.valueChanges.subscribe((value: string) => {
       if(value != 'set_manually') this.settingsForm.get('startTimeManually').disable();
       else this.settingsForm.get('startTimeManually').enable();
     })
-    
     this.settingsForm.controls.calcDateButTime.valueChanges.subscribe((value: boolean) => {
       if(value) this.settingsForm.get('endTimeManually').enable();
       else this.settingsForm.get('endTimeManually').disable();
     })
-    this.getSettings();  
   }
-
   getSettings(){
     let result:any;
     this.gettingData=true;
@@ -95,6 +82,7 @@ export class SettingsAppointmentDialogComponent implements OnInit {
         //  if(this.isCompanyInList(+result.companyId)){
         //  данная группа настроек зависит от предприятия
         this.settingsForm.get('companyId').setValue(this.data.companyId);
+        this.updateFields();
         // }
       },
       error => console.log(error)

@@ -265,7 +265,7 @@
         "end_time":"End time",
         "end_date_time":"End date and time",
         "hide_employee_field":"Hide the \"Job title\" and \"Employee\" fields",
-        "calc_date_but_time":"Calculate date but not time"
+        "calc_date_but_time":"Take the end time from the settings"
     },
     "error":{
         "field_miss":   "Required field is missing",
@@ -359,7 +359,7 @@
         "t_doc":        "Document",
         "t_label":      "Label",
         "ap_s_strt_time_cur":"Current time",
-        "ap_s_strt_time_man":"Set manually",
+        "ap_s_strt_time_man":"From Settings",
         "ap_s_no_calc":"Don't calculate",
         "ap_s_sum_all_length":"Calculate based on the sum of all services",
         "ap_s_max_length":"Calculate by longest service"

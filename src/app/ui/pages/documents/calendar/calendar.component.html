@@ -8,17 +8,14 @@
                     <mat-icon>menu</mat-icon>
                     </button>
                     <span>{{'menu.docs.calendar' | transloco}}</span>
-                    <!-- -{{showDocumntsField}}- -->
-                    <!-- -{{calendarDayHeight}}-{{dayEventClicked}} -->
                 </div>
 
-                <div class="toolbar-center toolbar-inner-space">
-                    
+                <div class="toolbar-center toolbar-inner-space">                    
                     <div class="toolbar-center-start">
-
                         <div style="margin-right:15px">
                             <button 
                                 mat-stroked-button 
+                                style="font-size:14px!important; font-family: Roboto, sans-serif!important;"
                                 style="width:unset;height: 100%;"
                                 color="primary"
                                 (click)="onClickTodayButton()"
@@ -27,8 +24,7 @@
                                 matTooltip="{{day_today}}"
                                 >{{'menu.top.btn_today' | transloco}}
                             </button>
-                        </div>
-                        
+                        </div>                        
                         <button 
                         mat-icon-button
                         type="button" 
@@ -42,10 +38,8 @@
                         (click)="onClickPreviousButton()"
                         aria-label="Previous day">
                             <span class="mat-mdc-button-persistent-ripple mdc-icon-button__ripple">
-
                             </span>
                             <span class="mat-mdc-focus-indicator">
-
                             </span>
                             <span matripple="" 
                             class="mat-ripple 
@@ -55,7 +49,6 @@
                             >
                             </span>
                             <span class="mat-mdc-button-touch-target">
-
                             </span>
                         </button>
                         <button 
@@ -71,10 +64,8 @@
                         (click)="onClickNextButton()"
                         aria-label="Next day">
                             <span class="mat-mdc-button-persistent-ripple mdc-icon-button__ripple">
-
                             </span>
                             <span class="mat-mdc-focus-indicator">
-
                             </span>
                             <span matripple="" 
                             class="mat-ripple 
@@ -84,7 +75,6 @@
                             >
                             </span>
                             <span class="mat-mdc-button-touch-target">
-
                             </span>
                         </button>
                         <!-- <span style="line-height: 40px;margin-left: 20px; font-size: 14px;"> -->
@@ -107,7 +97,7 @@
                         <button mat-icon-button class="group-button" matTooltip="{{'docs.tip.user_settings' | transloco}}" (click)="openDialogSettings()">
                             <mat-icon>settings</mat-icon>
                         </button>
-                        <button mat-icon-button class="group-button" (click)="getData()" matTooltip="{{'docs.button.refresh' | transloco}}">
+                        <button mat-icon-button class="group-button" (click)="reloadPage()" matTooltip="{{'docs.button.refresh' | transloco}}">
                             <mat-icon>refresh</mat-icon>
                         </button>
                         <button mat-icon-button class="group-button" (click)="settingsForm.get('displayCancelled').setValue(!settingsForm.get('displayCancelled').value)" matTooltip="{{'docs.field.displ_cancl' | transloco}}" [ngStyle]="(settingsForm.get('displayCancelled').value)?{'background-color':'#e0e0e0'}:{}">
@@ -135,50 +125,7 @@
                         <mat-button-toggle [disabled]="view=='month'||view=='scheduler'" (click)="onSelectResourcesViewode('day')" [class.gray]="view=='month'||view=='scheduler'" [ngStyle]="(view=='resources_day')?{'background-color':'#e0e0e0'}:{'background-color':'#fff'}" matTooltip="{{'docs.tip.res_day' | transloco}}">
                             <mat-icon>today</mat-icon>
                         </mat-button-toggle>
-                        <!-- <mat-button-toggle value="justify" disabled aria-label="Text align justify">
-                            <mat-icon>format_align_justify</mat-icon>
-                        </mat-button-toggle> -->
                     </mat-button-toggle-group>
-                    <!-- <button      
-                        [matMenuTriggerFor]="addDocMenu"
-                        mat-stroked-button 
-                        style="margin: 0 10px; width: 129px;height: 36px;min-width: 38px;"
-                        color="primary"
-                        (submit)="false"
-                        type="button">
-                        <span>
-                            {{'menu.top.'+view | transloco}}
-                        </span>
-                        <i class="material-icons">arrow_drop_down</i>
-                    </button> -->
-                        <!-- <button mat-menu-item (click)="console('viewDate on click button', viewDate);">1</button> -->
-                    <!-- <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before" style="min-width: 240px;">
-                        <button mat-menu-item (click)="
-                        console('viewDate before change view', viewDate);
-                        setView(CalendarView.Day);
-                        console('viewDate after change view', viewDate);
-                        refreshView()">
-                            <span>{{'menu.top.day' | transloco}}</span>
-                        </button>
-                        <button mat-menu-item (click)="viewDate_ = getAlternateDay(viewDate); setView(CalendarView.Week)">
-                            <span>{{'menu.top.week' | transloco}}</span>
-                        </button>
-                        <button mat-menu-item (click)="setView(CalendarView.Month)">
-                            <span>{{'menu.top.month' | transloco}}</span>
-                        </button>
-                        <button mat-menu-item (click)="setView(CalendarView.Scheduler);refreshView()">
-                            <span>{{'menu.top.scheduler' | transloco}}</span>
-                        </button>
-                        <button mat-menu-item (click)="setView(CalendarView.ResourcesDay); checkIsNeedToLoadData(); refreshView()">
-                            <span>{{'menu.top.day' | transloco}}</span>
-                        </button>
-                        <button mat-menu-item (click)="setView(CalendarView.ResourcesWeek); checkIsNeedToLoadData(); viewDate_ = getAlternateDay(viewDate); refreshView()">
-                            <span>{{'menu.top.week' | transloco}}</span>
-                        </button>
-                        <button mat-menu-item (click)="setView(CalendarView.ResourcesMonth); checkIsNeedToLoadData(); refreshView()">
-                            <span>{{'menu.top.month' | transloco}}</span>
-                        </button>
-                    </mat-menu> -->
                     </div>
                 </div>
 <div>
@@ -210,57 +157,8 @@
                         <form class="form-horizontal" [formGroup]="queryForm">
                             <div class="row">
                                 <div class="col-12">
-                                    <!-- <mat-form-field id="docs" class="mat-form-field-100" *ngIf="showDocumntsField">
-                                        <mat-label>{{t('docs.field.documents')}}</mat-label>
-                                        <mat-select  
-                                            formControlName="documents"
-                                            [disabled]=!editability
-                                            multiple
-                                        >                          
-                                            <mat-option style="width: 259px;"
-                                                [value]=59
-                                            >
-                                                    <span>{{t('docs.list.'+companySettings.booking_doc_name_variation+'s')}}</span>
-                                            </mat-option>                                            
-                                        </mat-select>
-                                    </mat-form-field>
                                     <mat-form-field class="mat-form-field-100">
-                                        <mat-label>{{t('docs.field.job_titles')}}</mat-label>
-                                        <mat-select
-                                            panelClass="department-list"
-                                            formControlName="jobtitles"
-                                            [disabled]="!editability"
-                                            #select
-                                            multiple>
-                                            <div class="button-row">
-                                                <button 
-                                                    mat-icon-button 
-                                                    matTooltip="{{t('docs.tip.select_all')}}" 
-                                                    class="btn-gray-color"
-                                                    (click)="selectAllCheckList('jobtitles','queryForm')"
-                                                >
-                                                    <mat-icon>fact_check</mat-icon>
-                                                </button>
-                                                <button 
-                                                    mat-icon-button 
-                                                    matTooltip="{{t('docs.tip.unselect_all')}}" 
-                                                    class="btn-gray-color"
-                                                    (click)="unselectAllCheckList('jobtitles','queryForm')">
-                                                    <mat-icon>ballot</mat-icon>
-                                                </button>
-                                            </div>
-                                            <mat-option
-                                                *ngFor= "let jt of receivedJobtitlesList;"
-                                                [value]="jt.jobtitle_id"
-                                                [matTooltip]="jt.description"
-                                                [matTooltipPosition]="'right'"
-                                            >
-                                                {{jt.name}}
-                                            </mat-option>
-                                        </mat-select>
-                                    </mat-form-field> -->
-                                    <mat-form-field class="mat-form-field-100">
-                                        <mat-label>{{t('docs.field.employees')}} <span *ngIf="queryForm.get('employees').value.length==0" class="star">*</span></mat-label>
+                                        <mat-label>{{t('docs.field.employees')}}</mat-label>
                                         <mat-select
                                             panelClass="department-list"
                                             formControlName="employees"
@@ -474,11 +372,7 @@
                             <div class="day-bottom" *ngIf="day.badgeTotal>maxNumberDayDisplayedEvents">
                                 <span>... {{t('docs.tip.and_plus')}} {{day.badgeTotal-maxNumberDayDisplayedEvents}}</span>
                             </div>
-
                         </div>
-                        <!-- <small style="margin: 5px"
-                        >There are {{ day.events.length }} events on this day</small
-                        > -->
                     </ng-template>
                     <ng-template
                         #weekViewHourSegmentTemplate
@@ -514,25 +408,6 @@
                                 (eventClicked)="handleEvent('Clicked', $event.event)"
                                 [cellTemplate]="customCellTemplate"
                             ></mwl-calendar-month-view>
-                            <!-- <mwl-calendar-week-view
-                                *ngIf="view=='week'"
-                                [viewDate]="viewDate"
-                                [refresh]="refresh"
-                                [events]="events"
-                                [locale]="localeAngular"
-                                (dayHeaderClicked)="angularCalendarOnClickDay($event.day.date);"
-                                (hourSegmentClicked)="angularCalendarOnClickDay($event.date)"
-                                (eventClicked)="handleEvent('Clicked', $event.event)"
-                            ></mwl-calendar-week-view>
-                            <mwl-calendar-day-view
-                                *ngIf="view=='day'"
-                                [viewDate]="viewDate"
-                                [refresh]="refresh"
-                                [events]="events"
-                                [locale]="localeAngular" 
-                                (hourSegmentClicked)="angularCalendarOnClickDay($event.date)"
-                                (eventClicked)="handleEvent('Clicked', $event.event)"
-                            ></mwl-calendar-day-view> -->
                             <mwl-day-view-scheduler
                                 *ngIf="view=='scheduler'"
                                 [viewDate]="viewDate"
@@ -574,11 +449,7 @@
                                 [departmentsWithParts]="receivedDepartmentsWithPartsList"
                                 [selectedDepparts]="queryForm.get('depparts').value"
                             ></mwl-depparts-and-resources>
-
-                    </div>
-
-
-    
+                    </div>    
             </mat-drawer-container>
         </div>
     </div>

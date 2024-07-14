@@ -250,7 +250,7 @@ div#costPrice input {
 ::ng-deep .mat-mdc-outlined-button{
     line-height: 20px !important;
     width: 33.33%;
-    font-size: 12px !important;
+    font-size: 12px;
     margin: 0 2px !important;
     overflow: hidden !important;
 }

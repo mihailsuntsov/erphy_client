@@ -99,8 +99,13 @@ interface Deppart{
   name:           string;
   description:    string;
   is_active:      boolean;
-  deppartProducts:IdAndName[];
+  deppartProducts:DeppartProduct[];
   resources:      Resource[];
+}
+interface DeppartProduct{
+  id: number;
+  name:string;
+  employeeRequired:boolean;
 }
 interface Resource{
   active:         boolean;
@@ -219,6 +224,10 @@ export class CalendarComponent implements OnInit {
   canDrawView=true;
   accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
 
+  // to avoid the circular structure when dep. parts synchronize by employees and employees synchronize by dep. parts
+  syncDepPartsByEmployeesProcess:boolean=false;
+  syncEmployeesByDepPartsProcess:boolean=false;
+
 
   usersOfEvents:  User[]  = [];
   usersOfBreaks:  User[]  = [];
@@ -263,7 +272,7 @@ export class CalendarComponent implements OnInit {
         timeFrom: new UntypedFormControl('00:00',[]),   // время С
         timeTo: new UntypedFormControl('23:59',[]),     // время По
         depparts: new UntypedFormControl([],[Validators.required]), // set of department parts
-        employees: new UntypedFormControl([],[Validators.required]), // set of employees
+        employees: new UntypedFormControl([],[]), // set of employees
         departments: new UntypedFormControl([],[]), // set of departments IDs
         jobtitles: new UntypedFormControl([],[]), // set of job titles
         documents: new UntypedFormControl([59],[]), // set of documents to show in calendar
@@ -295,11 +304,26 @@ export class CalendarComponent implements OnInit {
       this.dataService.setData(this.timeFormat=='24'?'HH:mm':'h:mm a');
       // console.log("Parent timeFormat", this.timeFormat=='24'?'HH:mm':'h:mm a');
 
+      this.queryForm.controls.employees.valueChanges.subscribe(() => {
+        if(!this.syncEmployeesByDepPartsProcess){
+          this.syncDepPartsByEmployeesProcess=true;
+          this.syncDepPartsByEmployees();
+          setTimeout(() => {this.syncDepPartsByEmployeesProcess=false;}, 100);
+        }
+      });
+      this.queryForm.controls.depparts.valueChanges.subscribe(() => {
+        if(!this.syncDepPartsByEmployeesProcess){
+          this.syncEmployeesByDepPartsProcess=true;
+          this.syncEmployeesByDepParts();
+        setTimeout(() => {this.syncEmployeesByDepPartsProcess=false;}, 100);
+        }
+      });
+
     }
 
   getAlternateDay(date:Date){
     return new Date(date);
-  }  
+  }
   // -------------------------------------- *** ПРАВА *** ------------------------------------
   getSetOfPermissions(){
     return this.http.get('/api/auth/getMyPermissions?id=60').subscribe(
@@ -315,6 +339,11 @@ export class CalendarComponent implements OnInit {
   }
 
   // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
+  reloadPage(){
+    this.actionsBeforeGetChilds=0;
+    this.getDepartmentsWithPartsList(false);
+    this.getJobtitlesWithEmployeesList();
+  }
   getData(){
       if(this.allowToView)
       {
@@ -469,17 +498,39 @@ export class CalendarComponent implements OnInit {
     }
   }
   afterLoadData(){
+    // console.log('afterLoadData')
     // составляем объединенный список пользователей, которые присутствуют в списке записей и перерывов
         // create a combined list of users who are present in the list of appointments and breaks
+        this.users = [];
+        // this.breaks = [];
         this.usersOfEvents.map(user=>{
-          if(this.users.find((obj) => obj.id === user.id) == undefined)
+          if(user.id && this.users.find((obj) => obj.id === user.id) == undefined)
             this.users.push(user);
         })
         this.usersOfBreaks.map(user=>{
-          if(this.users.find((obj) => obj.id === user.id) == undefined)
+          if(user.id && this.users.find((obj) => obj.id === user.id) == undefined)
             this.users.push(user);
         })
 
+        // Если у выбранных в фильтре пользователей нет рабочих смен или событий - их всё равно нужно показать на экране
+        // Поэтому добавим недостающих пользователей
+        // If the users selected in the filter do not have work shifts or events, they still need to be shown on the screen
+        // Therefore, we will add the missing users
+        this.receivedJobtitlesWithEmployeesList.map(jobtitle=>{
+          jobtitle.employees.map(employee=>{
+            // if employee is selected and it is still not in users list
+            if(this.queryForm.get('employees').value.includes(employee.id) && this.users.find((obj) => obj.id === employee.id) == undefined){
+              this.users.push({
+                "id": employee.id,
+                "name": employee.name,
+                "color": {
+                  "primary": "#008000",
+                  "secondary": "#FDF1BA"
+                },
+              });
+            }         
+          })
+        })
         // if user has no scedule of its work shifts, but he there is in a list because he has an appointments - need to add to him the break for the full time from the start to the end of data range
         // если у пользователя нет расписания его рабочих смен (перерывов), но он есть в списке, потому что у него есть записи - нужно добавить ему перерыв на все время от начала до конца диапазона данных. 
         this.users.map(user=>{
@@ -494,6 +545,12 @@ export class CalendarComponent implements OnInit {
               "end": moment(this.queryForm.get('dateTo').value, 'DD.MM.YYYY').format('YYYY-MM-DD')+"T23:59:59Z",
             });
         })
+        
+        console.log('usersOfEvents',this.usersOfEvents)
+        console.log(' usersOfBreaks', this.usersOfBreaks)
+        
+        console.log('users',this.users)
+        console.log(' breaks', this.breaks)
   }
   getCompanySettings(){
     this.http.get('/api/auth/getCompanySettings?id='+this.queryForm.get('companyId').value)
@@ -508,12 +565,12 @@ export class CalendarComponent implements OnInit {
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
-  getDepartmentsWithPartsList(){ 
+  getDepartmentsWithPartsList(selectAll=true){ 
     return this.http.get('/api/auth/getDepartmentsWithPartsList?company_id='+this.queryForm.get('companyId').value)
       .subscribe(
           (data) => {   
                       this.receivedDepartmentsWithPartsList=data as any [];
-                      this.selectAllCheckList('depparts','queryForm');
+                      if(selectAll) this.selectAllCheckList('depparts','queryForm');
                       this.necessaryActionsBeforeGetChilds();
       },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
@@ -525,7 +582,7 @@ export class CalendarComponent implements OnInit {
       .subscribe(
           (data) => {   
                       this.receivedJobtitlesWithEmployeesList=data as JobtitleWithEmployees [];
-                      this.selectAllCheckList('employees','queryForm');
+                      // this.selectAllCheckList('employees','queryForm'); // employees will be selected by selected dep. parts in syncEmployeesByDepParts()
                       this.necessaryActionsBeforeGetChilds();
       },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
@@ -602,12 +659,16 @@ export class CalendarComponent implements OnInit {
           this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('docs.msg.c_err_exe_qury')}})
         }
         this.breaks=[];
+        this.usersOfBreaks=[];
         this.breaks=data as Break[];
         this.breaks.map(break_=>{
           if(this.usersOfBreaks.find((obj) => obj.id === break_.user.id) == undefined)
             this.usersOfBreaks.push(break_.user);
         });
+
         this.necessaryActionsBeforeGetChilds();
+        
+        this.refreshView();
       },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}
     );
@@ -1099,20 +1160,6 @@ export class CalendarComponent implements OnInit {
   }
 
 
-  // interface WeekViewAllDayEvent {
-  //   event: CalendarEvent;
-  //   offset: number;
-  //   span: number;
-  //   startsBeforeWeek: boolean;
-  //   endsAfterWeek: boolean;
-  // }
-  // interface WeekViewAllDayEventRow {
-  //   id?: string;
-  //   row: WeekViewAllDayEvent[]; // Cтрока (Часть отделения или ресурс) содержит ivents, которые к ней относятся (услуга использует ресурсы, которые находятся в этой части отделения).
-  // }
-
-
-
 
   getAllDayEventRows(){
     this.allDayEventRows=[];
@@ -1136,10 +1183,6 @@ export class CalendarComponent implements OnInit {
     this.allDayEventRows.push({
       row:events
     });
-    // this.allDayEventRows.length
-    // console.log("allDayEventRows",this.allDayEventRows);
-
-
   }
 
   onResourcesButtonClick(){
@@ -1251,6 +1294,76 @@ export class CalendarComponent implements OnInit {
           
         } 
       );
+  }
+
+  syncDepPartsByEmployees(){
+    // collect selected dep. parts with services no employee needed
+    let depPartsIdsNoNeedEmployees:number[]=[];
+    this.receivedDepartmentsWithPartsList.map(department=>{
+      department.parts.map(deppart=>{
+        let employeeRequired=false;
+        deppart.deppartProducts.map(service=>{
+          if(service.employeeRequired)
+            employeeRequired=true;
+        })
+        if(!employeeRequired && !depPartsIdsNoNeedEmployees.includes(deppart.id) && this.queryForm.get('depparts').value.includes(deppart.id))
+          depPartsIdsNoNeedEmployees.push(deppart.id)
+      })
+    })
+    //reset DepParts form (only dep. parts with services no employee needed are staying)
+    console.log('depPartsIdsNoNeedEmployees', depPartsIdsNoNeedEmployees)
+    // this.queryForm.get('depparts').setValue(depPartsIdsNoNeedEmployees);
+    // collect IDs of services of selected employees
+    let servicesIds:number[] = [];
+    let resultIds:number[] = depPartsIdsNoNeedEmployees;
+    this.receivedJobtitlesWithEmployeesList.map(jobtitle=>{
+      jobtitle.employees.map(employee=>{
+        if(this.queryForm.get('employees').value.includes(employee.id)){
+          employee.services.map(service=>{
+            if(!servicesIds.includes(service.id)) 
+              servicesIds.push(service.id)
+          })
+        }         
+      })
+    })
+    this.receivedDepartmentsWithPartsList.map(department=>{
+      department.parts.map(deppart=>{
+        deppart.deppartProducts.map(service=>{
+          if(servicesIds.includes(service.id)){
+            resultIds.push(deppart.id)
+          }
+        })
+      })
+    })
+    this.queryForm.get('depparts').setValue(resultIds);
+  }
+
+  syncEmployeesByDepParts(){
+    //reset Employees form
+    this.queryForm.get('employees').setValue([]);
+    // collect IDs of services of depparts employees
+    let servicesIds:number[] = [];
+    let resultIds:number[] = [];
+    this.receivedDepartmentsWithPartsList.map(department=>{
+      department.parts.map(part=>{
+        if(this.queryForm.get('depparts').value.includes(part.id)){
+          part.deppartProducts.map(service=>{
+            if(!servicesIds.includes(service.id)) 
+              servicesIds.push(service.id)
+          })
+        }         
+      })
+    })
+    this.receivedJobtitlesWithEmployeesList.map(jobtitle=>{
+      jobtitle.employees.map(employee=>{
+        employee.services.map(service=>{
+          if(servicesIds.includes(service.id)){
+            resultIds.push(employee.id)
+          }
+        })
+      })
+    })
+    this.queryForm.get('employees').setValue(resultIds);
   }
 
   setUserOfDraggingToCreateEvent(user:User) {
