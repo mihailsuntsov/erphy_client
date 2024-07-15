@@ -1135,6 +1135,19 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
     var hours = date.getHours();
     return hours >= 12 ? 'PM' : 'AM';;
   }
+
+  isDepartmentsHasSelectedDepPartsWithResources(departmentId:number):boolean{
+    let result:boolean=false;
+    this.departmentsWithParts.map(department=>{
+      if(department.department_id==departmentId){
+        department.parts.map(part=>{
+          if(part.resources.length>0 && this.selectedDepparts.includes(part.id)) result=true;
+        })
+      }
+    })
+    return result;
+  }
+
   // shouldFireDroppedEvent(
   //   dropEvent: { dropData?: { event?: CalendarEvent; calendarId?: symbol } },
   //   date: Date,

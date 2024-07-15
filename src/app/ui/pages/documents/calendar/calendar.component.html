@@ -97,7 +97,7 @@
                         <button mat-icon-button class="group-button" matTooltip="{{'docs.tip.user_settings' | transloco}}" (click)="openDialogSettings()">
                             <mat-icon>settings</mat-icon>
                         </button>
-                        <button mat-icon-button class="group-button" (click)="reloadPage()" matTooltip="{{'docs.button.refresh' | transloco}}">
+                        <button mat-icon-button class="group-button" (click)="afterChangeFiltersApiCalls()" matTooltip="{{'docs.button.refresh' | transloco}}">
                             <mat-icon>refresh</mat-icon>
                         </button>
                         <button mat-icon-button class="group-button" (click)="settingsForm.get('displayCancelled').setValue(!settingsForm.get('displayCancelled').value)" matTooltip="{{'docs.field.displ_cancl' | transloco}}" [ngStyle]="(settingsForm.get('displayCancelled').value)?{'background-color':'#e0e0e0'}:{}">
@@ -365,7 +365,7 @@
                                         [style]="'width: '+(calendar_area.offsetWidth/7-2)+'px;'"
                                         class="day-event"
                                         [ngStyle]="((i+1)>maxNumberDayDisplayedEvents)?{'display':'none'}:{}"
-                                        (click)="dayAddEventBtnClicked=true; onEventClick(ev)">
+                                        (click)="dayAddEventBtnClicked=true; onMonthViewEventClick(ev)">
                                         {{ev.title}}
                                 </div>
                             </div>
@@ -395,8 +395,18 @@
                             </div>
                         </div>
                     </ng-template>
-                    <div #calendar_area class="categories-sidenav-content" style="overflow: hidden;">
-
+                    <div #calendar_area class="categories-sidenav-content" style="overflow: hidden; min-height: 400px;">
+                        <mat-spinner 
+                        strokeWidth="3" 
+                        class="spinner"
+                        [diameter]="50"
+                        *ngIf="isPageReloading"
+                        ></mat-spinner>
+                        <div 
+                        *ngIf="users.length==0 && !isPageReloading && view=='scheduler' && queryForm.get('employees').value.length==0"
+                        class="no_linked_docs">
+                            <span>{{t('docs.tip.empl_no_slced')}}</span>
+                        </div>
                             <mwl-calendar-month-view
                                 *ngIf="view=='month'"
                                 [viewDate]="viewDate"

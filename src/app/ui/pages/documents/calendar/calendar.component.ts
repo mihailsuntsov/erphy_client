@@ -203,6 +203,11 @@ export class CalendarComponent implements OnInit {
       name: ''
     }
   ]
+  
+  needAgainOfAfterChangeFiltersApiCalls:boolean=false;
+  waitingOfAfterChangeFiltersApiCalls:boolean=false;
+  isPageReloading:boolean=true;
+
   settingsForm: any; // форма с настройками
   companySettings: CompanySettings = null;
   activeDayIsOpen: boolean = false;
@@ -264,66 +269,92 @@ export class CalendarComponent implements OnInit {
     private settingsCalendarDialogComponent: MatDialog,
     private cdr: ChangeDetectorRef) {}
 
-    ngOnInit() {
-      this.queryForm = new UntypedFormGroup({ //форма для отправки запроса 
-        companyId: new UntypedFormControl(null,[]), // предприятие, по которому идет запрос данных
-        dateFrom: new UntypedFormControl(moment().startOf('month'),[]),   // дата С
-        dateTo: new UntypedFormControl(moment().endOf('month'),[]),     // дата По
-        timeFrom: new UntypedFormControl('00:00',[]),   // время С
-        timeTo: new UntypedFormControl('23:59',[]),     // время По
-        depparts: new UntypedFormControl([],[Validators.required]), // set of department parts
-        employees: new UntypedFormControl([],[]), // set of employees
-        departments: new UntypedFormControl([],[]), // set of departments IDs
-        jobtitles: new UntypedFormControl([],[]), // set of job titles
-        documents: new UntypedFormControl([59],[]), // set of documents to show in calendar
-      });
-      this.settingsForm = new UntypedFormGroup({
-        companyId: new UntypedFormControl                 (null,[]),    // company by default
-        startView: new UntypedFormControl                 ('month',[]),    // month / scheduler / resources
-        timelineStep: new UntypedFormControl              (30,[]),      // step of timeline in minutes (15 / 30 / 60)
-        dayStartMinute: new UntypedFormControl            (0,[]),    // minute of day start (0-1438) that means 00:00 - 23:58
-        dayEndMinute: new UntypedFormControl              (1439,[]),    // minute of day end (1-1439)   that means 00:01 - 23:59
-        resourcesScreenScale: new UntypedFormControl      ('month',[]),    // month / week / day
-        displayCancelled: new UntypedFormControl          (false,[]),    // display or not cancelled events by default
-      });
-    
-      this.getBaseData('myId');    
-      this.getBaseData('myCompanyId');  
-      this.getBaseData('companiesList');
-      this.getBaseData('myDepartmentsList');
-      this.getBaseData('timeFormat');
-      this.getBaseData('accountingCurrency');
+  ngOnInit() {
+    this.queryForm = new UntypedFormGroup({ //форма для отправки запроса 
+      companyId: new UntypedFormControl(null,[]), // предприятие, по которому идет запрос данных
+      dateFrom: new UntypedFormControl(moment().startOf('month'),[]),   // дата С
+      dateTo: new UntypedFormControl(moment().endOf('month'),[]),     // дата По
+      timeFrom: new UntypedFormControl('00:00',[]),   // время С
+      timeTo: new UntypedFormControl('23:59',[]),     // время По
+      depparts: new UntypedFormControl([],[Validators.required]), // set of department parts
+      employees: new UntypedFormControl([],[]), // set of employees
+      departments: new UntypedFormControl([],[]), // set of departments IDs
+      jobtitles: new UntypedFormControl([],[]), // set of job titles
+      documents: new UntypedFormControl([59],[]), // set of documents to show in calendar
+    });
+    this.settingsForm = new UntypedFormGroup({
+      companyId: new UntypedFormControl                 (null,[]),    // company by default
+      startView: new UntypedFormControl                 ('month',[]),    // month / scheduler / resources
+      timelineStep: new UntypedFormControl              (30,[]),      // step of timeline in minutes (15 / 30 / 60)
+      dayStartMinute: new UntypedFormControl            (0,[]),    // minute of day start (0-1438) that means 00:00 - 23:58
+      dayEndMinute: new UntypedFormControl              (1439,[]),    // minute of day end (1-1439)   that means 00:01 - 23:59
+      resourcesScreenScale: new UntypedFormControl      ('month',[]),    // month / week / day
+      displayCancelled: new UntypedFormControl          (false,[]),    // display or not cancelled events by default
+    });
+  
+    this.getBaseData('myId');    
+    this.getBaseData('myCompanyId');  
+    this.getBaseData('companiesList');
+    this.getBaseData('myDepartmentsList');
+    this.getBaseData('timeFormat');
+    this.getBaseData('accountingCurrency');
 
-      this.getCompaniesList();
-      moment.updateLocale(this.locale, {week: {
-          dow: this.weekStartsOn, // set start of week to monday instead
-          doy: 0,
-      },});
+    this.getCompaniesList();
+    moment.updateLocale(this.locale, {week: {
+        dow: this.weekStartsOn, // set start of week to monday instead
+        doy: 0,
+    },});
 
-      //sending time formaf of user to injectable provider where it need to format time
-      this.dataService.setData(this.timeFormat=='24'?'HH:mm':'h:mm a');
-      // console.log("Parent timeFormat", this.timeFormat=='24'?'HH:mm':'h:mm a');
+    //sending time formaf of user to injectable provider where it need to format time
+    this.dataService.setData(this.timeFormat=='24'?'HH:mm':'h:mm a');
+    // console.log("Parent timeFormat", this.timeFormat=='24'?'HH:mm':'h:mm a');
 
-      this.queryForm.controls.employees.valueChanges.subscribe(() => {
-        if(!this.syncEmployeesByDepPartsProcess){
-          this.syncDepPartsByEmployeesProcess=true;
-          this.syncDepPartsByEmployees();
-          setTimeout(() => {this.syncDepPartsByEmployeesProcess=false;}, 100);
-        }
-      });
-      this.queryForm.controls.depparts.valueChanges.subscribe(() => {
-        if(!this.syncDepPartsByEmployeesProcess){
-          this.syncEmployeesByDepPartsProcess=true;
-          this.syncEmployeesByDepParts();
-        setTimeout(() => {this.syncEmployeesByDepPartsProcess=false;}, 100);
-        }
-      });
-
-    }
+    this.queryForm.controls.employees.valueChanges.subscribe(() => {
+      if(!this.syncEmployeesByDepPartsProcess){
+        this.syncDepPartsByEmployeesProcess=true;
+        this.syncDepPartsByEmployees();
+        this.afterChangeFiltersApiCalls();
+        // console.log('employees.valueChanges')
+        setTimeout(() => {this.syncDepPartsByEmployeesProcess=false;
+          }, 10);
+      }
+    });
+    this.queryForm.controls.depparts.valueChanges.subscribe(() => {
+      if(!this.syncDepPartsByEmployeesProcess){
+        this.syncEmployeesByDepPartsProcess=true;
+        this.syncEmployeesByDepParts();
+        this.afterChangeFiltersApiCalls();
+        // console.log('depparts.valueChanges')
+        setTimeout(() => {this.syncEmployeesByDepPartsProcess=false;
+          }, 10);
+      }
+    });
+  }
 
   getAlternateDay(date:Date){
     return new Date(date);
   }
+  afterChangeFiltersApiCalls(){
+    if(!this.waitingOfAfterChangeFiltersApiCalls){ // если не в режиме отложенного срабатывания / if not in delayed triggering mode
+      this.waitingOfAfterChangeFiltersApiCalls=true; // ставим в режим отложенного срабатывания / delayed triggering mode is "ON"
+      console.log('!this.waitingOfAfterChangeFiltersApiCalls before timeOut()')
+      setTimeout(() => { //ожидание / delayed triggering
+        // отложенное срабатывание случилось: / delayed triggering happened:
+        // отключаем режим отложенного срабатывания / disable delayed triggering mode
+        this.waitingOfAfterChangeFiltersApiCalls=false;        
+        if(!this.needAgainOfAfterChangeFiltersApiCalls){ // если повторные запросы во время ожидания больше не "прилетали" / if repeated requests no longer arrived
+          //выполняем код, частоту которого нужно ограничить / execute code whose frequency needs to be limited
+          this.reloadPage();
+        } else {// если повторные запросы "прилетали" во время ожидания / if repeated requests arrived while waiting
+          // сбросили отметку о наличии повторных запросов / cleared the mark for repeated requests
+          this.needAgainOfAfterChangeFiltersApiCalls=false;
+          // обратились к данной функции снова, чтобы включить отложенное срабатывание / turned to this function again to enable delayed triggering (recursive call)
+          this.afterChangeFiltersApiCalls();
+        }
+      }, 800);
+      // режим отложенного срабатывания, но продолжают "прилетать" повторные запросы / delayed triggering mode, but repeated requests continue to arrive
+    } else this.needAgainOfAfterChangeFiltersApiCalls=true; 
+  } 
   // -------------------------------------- *** ПРАВА *** ------------------------------------
   getSetOfPermissions(){
     return this.http.get('/api/auth/getMyPermissions?id=60').subscribe(
@@ -340,6 +371,7 @@ export class CalendarComponent implements OnInit {
 
   // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
   reloadPage(){
+    this.isPageReloading=true;
     this.actionsBeforeGetChilds=0;
     this.getDepartmentsWithPartsList(false);
     this.getJobtitlesWithEmployeesList();
@@ -351,7 +383,7 @@ export class CalendarComponent implements OnInit {
           this.getCalendarUsersBreaksList();
           this.getCalendarEventsList();
         // }
-      } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})}
+      } else {this.isPageReloading=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})}
   }
 
   getCompaniesList(){ 
@@ -493,7 +525,7 @@ export class CalendarComponent implements OnInit {
         this.setResourcesDaysArray();
         this.refreshView();
         this.changeDateMatCalendar(this.viewDate);
-        // this.onDayAddEventBtnClick(new Date())
+        this.isPageReloading=false;
       }, 1);
     }
   }
@@ -519,7 +551,7 @@ export class CalendarComponent implements OnInit {
         this.receivedJobtitlesWithEmployeesList.map(jobtitle=>{
           jobtitle.employees.map(employee=>{
             // if employee is selected and it is still not in users list
-            if(this.queryForm.get('employees').value.includes(employee.id) && this.users.find((obj) => obj.id === employee.id) == undefined){
+            if(this.queryForm.get('employees').value.includes(employee.id) && this.breaks.find((obj) => obj.user.id === employee.id) == undefined){
               this.users.push({
                 "id": employee.id,
                 "name": employee.name,
@@ -838,15 +870,17 @@ export class CalendarComponent implements OnInit {
       this.dayAddEventBtnClicked = false;
     }
   }
-  onEventClick(event: CalendarEvent): void{
-    console.log('event',event);
+  onMonthViewEventClick(event: CalendarEvent): void{
+    // console.log('event',event);
+    this.openAppointmentCard(event.id as number, null)
   }
   onDayAddEventBtnClick(date: Date){
     this.openAppointmentCard(null, date);
   }
   handleEvent(action: string, event: CalendarEvent): void {
-    console.log('action',action)
-    console.log('event',event)
+    // console.log('action',action)
+    // console.log('event',event)
+    this.openAppointmentCard(event.id as number, null)
   }
   closeOpenMonthViewDay() {
     this.activeDayIsOpen = false;

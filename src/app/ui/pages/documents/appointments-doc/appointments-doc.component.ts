@@ -342,6 +342,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   isEndDateTimeRecounting:boolean=false;
   waitingOfAfterRecountEndDateTime=false;
   needAgainOfAfterRecountEndDateTime=false;
+  applyingInitialTimeSettings=false;
   isEndDateTimEditing:boolean=false;
   //печать документов
   gettingTemplatesData: boolean = false; // идёт загрузка шаблонов
@@ -2041,7 +2042,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       // (in which start and end time are defined)
       // then start and end dates/times will be calculated in accordance of settings
       if(!this.data || (this.data && !this.data.dragCreatedEvent)){
-
+        this.applyingInitialTimeSettings=true;
         //                               Calculating start date and time 
         if(this.data && this.data.calendarViewDayDate)
             this.formBaseInformation.get('date_start').setValue(moment(this.data.calendarViewDayDate, 'DD.MM.YYYY'));
@@ -2068,6 +2069,10 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         } 
         this.formBaseInformation.get('date_end').setValue(endTime);
         this.formBaseInformation.get('time_end').setValue(endTime.format("HH:mm"));
+        
+        setTimeout(() => { 
+          this.applyingInitialTimeSettings=false;
+        }, 1000);   
       }
     }
   }
@@ -2106,10 +2111,11 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       })
       // console.log('sumOfSeconds overall',sumOfSeconds)
       if(this.isEndDateTimeRecounting){
-        var endTime = moment(moment(new Date(this.formBaseInformation.get('date_start').value)).format('DD.MM.YYYY')+' '+this.timeTo24h(this.formBaseInformation.get('time_start').value), 'DD.MM.YYYY HH:mm').add(sumOfSeconds,'seconds');
+        // console.log('EndDateTimeRecounting')
+        var endTime = moment(moment(new Date(this.formBaseInformation.get('date_start').value)).format('DD.MM.YYYY')+' '+this.timeTo24h(this.settingsForm.get('calcDateButTime').value?this.settingsForm.get('endTimeManually').value:this.formBaseInformation.get('time_start').value), 'DD.MM.YYYY HH:mm').add(sumOfSeconds,'seconds');
         this.formBaseInformation.get('date_end').setValue(endTime);
-        if(!this.settingsForm.get('calcDateButTime').value)
-          this.formBaseInformation.get('time_end').setValue(endTime.format("HH:mm"));
+        // if(!this.settingsForm.get('calcDateButTime').value)
+        this.formBaseInformation.get('time_end').setValue(endTime.format("HH:mm"));
         this.afterRecountEndDateTime();
         setTimeout(() => { 
           this.isEndDateTimeRecounting = false;
@@ -2118,22 +2124,45 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     }
   }
 
+  // afterRecountEndDateTime(){
+  //   if(!this.waitingOfAfterRecountEndDateTime){
+  //     this.waitingOfAfterRecountEndDateTime=true;
+  //     // Part of Backend calls that should be restricted by frequency - no more than 1 per length of 'setTimeout'
+  //     this.getEmployeesList();
+  //     this.refreshNowUsedResources();
+  //     //------------------------------------------------------------
+  //     setTimeout(() => { 
+  //       this.waitingOfAfterRecountEndDateTime=false;  
+  //       if(this.needAgainOfAfterRecountEndDateTime){
+  //         this.needAgainOfAfterRecountEndDateTime=false;
+  //         this.afterRecountEndDateTime(); // recursive call
+  //       }
+  //     }, 3000);
+  //   } else this.needAgainOfAfterRecountEndDateTime=true;
+  // }
+
   afterRecountEndDateTime(){
-    if(!this.waitingOfAfterRecountEndDateTime){
-      this.waitingOfAfterRecountEndDateTime=true;
-      // Part of Backend calls that should be restricted by frequency - no more than 1 per length of 'setTimeout'
-      this.getEmployeesList();
-      this.refreshNowUsedResources();
-      //------------------------------------------------------------
-      setTimeout(() => { 
-        this.waitingOfAfterRecountEndDateTime=false;  
-        if(this.needAgainOfAfterRecountEndDateTime){
+    if(!this.waitingOfAfterRecountEndDateTime){ // если не в режиме отложенного срабатывания / if not in delayed triggering mode
+      this.waitingOfAfterRecountEndDateTime=true; // ставим в режим отложенного срабатывания / delayed triggering mode is "ON"
+      console.log('!this.waitingOfAfterRecountEndDateTime before timeOut()')
+      setTimeout(() => { //ожидание / delayed triggering
+        // отложенное срабатывание случилось: / delayed triggering happened:
+        // отключаем режим отложенного срабатывания / disable delayed triggering mode
+        this.waitingOfAfterRecountEndDateTime=false;        
+        if(!this.needAgainOfAfterRecountEndDateTime){ // если повторные запросы во время ожидания больше не "прилетали" / if repeated requests no longer arrived
+          //выполняем код, частоту которого нужно ограничить / execute code whose frequency needs to be limited
+          this.getEmployeesList();
+          this.refreshNowUsedResources();
+        } else {// если повторные запросы "прилетали" во время ожидания / if repeated requests arrived while waiting
+          // сбросили отметку о наличии повторных запросов / cleared the mark for repeated requests
           this.needAgainOfAfterRecountEndDateTime=false;
-          this.afterRecountEndDateTime(); // recursive call
+          // обратились к данной функции снова, чтобы включить отложенное срабатывание / turned to this function again to enable delayed triggering (recursive call)
+          this.afterRecountEndDateTime();
         }
-      }, 3000);
-    } else this.needAgainOfAfterRecountEndDateTime=true;
-  }
+      }, 1000);
+      // режим отложенного срабатывания, но продолжают "прилетать" повторные запросы / delayed triggering mode, but repeated requests continue to arrive
+    } else this.needAgainOfAfterRecountEndDateTime=true; 
+  } 
 
   getPriceTypesList(){
     // alert(1)
@@ -3023,7 +3052,7 @@ deleteFile(id:number){
   getEmployeesList(isFree:boolean=true){
     console.log('getEmployeesList isFree = '+isFree)
     const body = this.getEmployeesListQueryBody(isFree); 
-    this.employeesListLoadQtt=3;
+    this.employeesListLoadQtt=3;  
     this.http.post('/api/auth/getEmployeesList', body) 
     .subscribe(
         (data) => {   
@@ -3065,7 +3094,8 @@ deleteFile(id:number){
     // on create or update document times can be updated from ap/mp to 24h and it can be trigger to run this function. oneClickSaveControl can prevent it, because it is true on create or update
     // on data loading dates and times can be changed and it can 
     // isEndDateTimeRecounting - to deny change date/time in the case of changing services table, because it can produce circular queries
-    if(!this.oneClickSaveControl&&!this.isMainDataLoading&&(this.isDatesValid||+this.id>0)&&!this.isEndDateTimeRecounting){
+    // applyingInitialTimeSettings - to deny triggering of this function on initial setting the time 
+    if(!this.oneClickSaveControl&&!this.isMainDataLoading&&(this.isDatesValid||+this.id>0)&&!this.isEndDateTimeRecounting&&!this.applyingInitialTimeSettings){
       this.isEndDateTimEditing=true;
       this.documentChanged=true;
       this.getEmployeesList();
@@ -3651,11 +3681,13 @@ deleteFile(id:number){
     this.formBaseInformation.get('employeeName').setValue('');
     this.formBaseInformation.get('jobtitle_id').setValue(0);
     this.formBaseInformation.get('employeeId').setValue(null);
-    
-    this.formBaseInformation.get('date_start').setValue('');
-    this.formBaseInformation.get('time_start').setValue('');
-    this.formBaseInformation.get('date_end').setValue('');
-    this.formBaseInformation.get('time_end').setValue('');
+
+    // if(!this.data || (this.data && !this.data.dragCreatedEvent)){
+      this.formBaseInformation.get('date_start').setValue('');
+      this.formBaseInformation.get('time_start').setValue('');
+      this.formBaseInformation.get('date_end').setValue('');
+      this.formBaseInformation.get('time_end').setValue('');
+    // }
     
     this.applyInitialTimeSettings();
     

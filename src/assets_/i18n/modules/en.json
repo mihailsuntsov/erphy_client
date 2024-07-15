@@ -135,7 +135,8 @@
         "ap_s_sum_all_length":"The end date and time will be calculated as the sum of the duration of all services. Suitable if your services cannot be provided simultaneously.",
         "ap_s_suit_intraday":"Suitable if your services start and end within the day.",
         "ap_s_suit_manyday":"Suitable if your services last one day or more.",
-        "hide_employee_field":"Enable this if your services do not require employees."
+        "hide_employee_field":"Enable this if your services do not require employees.",
+        "amnt_res":"Resource quantity"
     },
     "tab":{
     },

@@ -31,10 +31,11 @@ li {list-style: none;}
 
 .spinner{
     position: absolute;
-    top: 7%;
+    top: 300px;
     left: 50%;
-    margin-left: -25px;
-    margin-top: 100px;
+    margin-left: -50px;
+    width: 100px!important;
+    height: 100px!important;
     z-index: 100;
 }
 .example-spacer {
@@ -233,4 +234,21 @@ li {list-style: none;}
     -khtml-user-select: none!important;
     -webkit-user-select: none!important;
     user-select: none!important;
+}
+.no_linked_docs{
+    position: absolute; 
+    top: 13%;left:calc(50% - 130px);
+    width:260px;height:150px; 
+    border-radius: 10px; 
+    padding-top: 90px;
+    display: flex;
+    text-align:center;
+    line-height: 15pt;
+    padding: 50px 20px;
+    justify-content: center;
+    background-color: #f5f5f5; 
+    border:1px solid rgb(88, 88, 88);
+}
+.mat-mdc-outlined-button {
+    font-size: 14px !important;
 }

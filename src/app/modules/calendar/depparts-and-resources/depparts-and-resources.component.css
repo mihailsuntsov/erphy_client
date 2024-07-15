@@ -2,26 +2,29 @@
     margin-top: 30px;
 }
 .deppart-block{
-    border-bottom: 1px solid lightgray;
+    /* border-bottom: 1px solid lightgray; */
 }
 .department-name-row{
-    border-bottom: 1px solid #e1e1e1;
+    /* border-bottom: 1px solid #e1e1e1; */
     text-align: center;
-    background-color: oldlace;
+    color: white;
+    background-color: #673ab7;
     padding: 5px;
+    border-radius: 4px;
+    margin-right:2px;
 }
 .deppart-name-row{
-    border-bottom: 2px solid #e1e1e1;
+    border-bottom: 1px solid #e1e1e1;
     text-align: center;
     text-decoration: none;
-    padding: 14px 0 1px;
-    font-size: 14px;
+    padding: 14px 0 3px;
+    font-size: 16px;
 }
 .cal-events-row{
     margin-left: 100px!important;
 }
 .cal-all-day-events{
-    min-height: 35px;
+    min-height: 36px;
     border-bottom: solid 1px #e1e1e1;
     border-top: 0!important;
     /* border-left: 0!important; */
@@ -35,8 +38,8 @@
     border: 2px solid darkred !important;
 }
 .cal-week-view .cal-all-day-events .cal-day-columns {
-    border-left: 1px solid lightgray;
-    border-right: 2px solid lightgray;
+    /* border-left: 1px solid lightgray;
+    border-right: 2px solid lightgray; */
 }
 
 .cal-drag-over {
@@ -53,4 +56,36 @@
 }
 .cal-week-view .cal-day-headers .cal-header {
     padding:5px 0 !important;
+}
+
+.department-container:not(:first-child){
+    margin-top:10px;
+    /* border-top: 1px solid #e1e1e1; */
+}
+.department-container:last-child{
+    margin-bottom:50px;
+}
+.amount-resource{
+    margin-top: 2px !important;
+    padding: 1.5px 3px !important;
+    position: absolute !important;
+    line-height: 0.8;
+    right: 1px;
+    top: -1px;
+    background-color: #673ab7;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    border:1px solid white;
+    border-radius: 10px;
+    cursor:default;
+}
+.resource-name{
+    justify-content: start!important;
+    position: relative;
+    overflow: hidden;
+    padding-left: 3px;
+}
+.cal-time-events{
+    border: unset!important;
 }

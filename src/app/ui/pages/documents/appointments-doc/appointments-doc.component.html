@@ -188,7 +188,7 @@
                                                     {{t('docs.card.base_info')}}
                                                     <div style="position: absolute; right: 20px;">
                                                         <button matTooltip="{{t('docs.tip.reset')}}" 
-                                                                    *ngIf="+id==0"
+                                                                    *ngIf="+id==0 && (!this.data || (this.data && !this.data.dragCreatedEvent))"
                                                                     mat-raised-button
                                                                     color="primary"
                                                                     type="button"

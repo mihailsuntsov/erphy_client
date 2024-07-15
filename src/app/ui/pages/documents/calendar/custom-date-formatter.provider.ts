@@ -46,8 +46,8 @@ export class CustomDateFormatter extends CalendarDateFormatter {
         console.log('locale',locale);
         this.getLocaleAngular(locale); // this.locale в этом классе должна принять формат Angular, а не Moment
                                        // она изменяется только 1 раз, далее класс её "помнит"
-        const startdateofweek= new DatePipe(locale).transform(this.startOfWeek(date),this.weekTitleFormat, locale);
-        const enddateofweek= new DatePipe(locale).transform(this.endOfWeek(date),this.weekTitleFormat+', y', locale);
+        const startdateofweek= new DatePipe(this.locale).transform(this.startOfWeek(date),this.weekTitleFormat, this.locale);
+        const enddateofweek= new DatePipe(this.locale).transform(this.endOfWeek(date),this.weekTitleFormat+', y', this.locale);
         // console.log('enddateofweek',enddateofweek)
         return `${startdateofweek} — ${enddateofweek}`;
     }
@@ -140,6 +140,7 @@ export class CustomDateFormatter extends CalendarDateFormatter {
         'en-SG':        DAYS_OF_WEEK.MONDAY,
         'bs-Latn':      DAYS_OF_WEEK.MONDAY,
         'hr':           DAYS_OF_WEEK.MONDAY
+        // 'me':           DAYS_OF_WEEK.MONDAY
         })[this.locale]
     }
     get dayTitleFormat(){

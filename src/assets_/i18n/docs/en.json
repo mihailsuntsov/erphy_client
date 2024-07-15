@@ -568,6 +568,7 @@
         "clr_srch":"Clear search field",
         "empl_acsbl":"Employees are available",
         "empl_no_acsbl":"Employees are not available",
+        "empl_no_slced":"Employees are not selected",
         "add_part":"Add part of the department",
         "busy_by_schedule":"The selected time is not the employee’s working time, or the employee does not have a completed work schedule",
         "na_by_jobttl":"The employee's job title does not match the selected position",
