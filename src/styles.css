@@ -529,7 +529,15 @@ z-index: 10000000 !important;
 .group-button:not(:first-child) span.mat-mdc-button-persistent-ripple{
   border-left: solid 1px #e0e0e0;
 }
-
+.cal-week-view .cal-current-time-marker {
+  width: calc(100% + 10px)!important;
+}
+.cal-event {
+  background-color: #f4efff!important;
+  border-color: #673ab7!important;
+  color: #000!important;
+  font-size: 14px!important;
+}
 /* 
 .mat-mdc-slide-toggle {
   --mdc-switch-selected-handle-color: #ffbb1c !important;

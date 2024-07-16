@@ -137,7 +137,15 @@ interface JobtitleWithEmployees {
   description:string;
   employees: EmployeeWithServices[];
 }
-
+export interface StatusInterface{
+  id:number;
+  name:string;
+  status_type:number;//тип статуса: 1 - обычный; 2 - конечный положительный 3 - конечный отрицательный
+  output_order:number;
+  color:string;
+  description:string;
+  is_default:boolean;
+}
 
 
 @Component({
@@ -177,6 +185,7 @@ export class CalendarComponent implements OnInit {
   // weekStartsOn: number = DAYS_OF_WEEK.MONDAY;
   today = moment();
   receivedCompaniesList: any [] = [];
+  receivedStatusesList: StatusInterface[]=[];
   myCompanyId:number=0;//
   timeFormat:string='';
   selected: Date | null;
@@ -215,6 +224,7 @@ export class CalendarComponent implements OnInit {
   locale:string='en-us';// locale (for dates, calendar etc.)
   //переменные прав
   permissionsSet: any[];//сет прав на документ
+  permissionsSetAppointment: any[];
   allowToView:boolean = false;
   editability:boolean = false;//редактируемость.
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
@@ -299,6 +309,7 @@ export class CalendarComponent implements OnInit {
     this.getBaseData('timeFormat');
     this.getBaseData('accountingCurrency');
 
+    this.getSetOfAppointmentPermissions(); // to understand whether user change a status of Appointment documents
     this.getCompaniesList();
     moment.updateLocale(this.locale, {week: {
         dow: this.weekStartsOn, // set start of week to monday instead
@@ -363,7 +374,12 @@ export class CalendarComponent implements OnInit {
         this.getMyId();
       },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
   }
-
+  getSetOfAppointmentPermissions(){
+    return this.http.get('/api/auth/getMyPermissions?id=59').subscribe(
+      (data) => {   
+        this.permissionsSetAppointment=data as any [];
+      },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
+  }
   getCRUD_rights(){
     this.allowToView =   this.permissionsSet.some(  function(e){return(e==724)});
     this.editability=this.allowToView;  
@@ -506,15 +522,23 @@ export class CalendarComponent implements OnInit {
     this.getJobtitlesWithEmployeesList();
     // this.getJobtitleList();
     this.getCompanySettings();
+    this.getStatusList();
     this.getCRUD_rights();
   }
+  getStatusList(){
+    const body = {companyId: this.queryForm.get('companyId').value, documentId: 59};
+    this.http.post('/api/auth/getStatusList', body).subscribe(
+      (data) => { this.receivedStatusesList=data as StatusInterface[]},
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+  );}  
+
   necessaryActionsBeforeGetChilds(){
     this.actionsBeforeGetChilds++;
     // Если набрано необходимое кол-во действий - все остальные справочники загружаем тут, т.к. 
     // нужно чтобы сначала определилось предприятие, его id нужен для загрузки
     if(this.actionsBeforeGetChilds==2){
       this.getData();
-    }
+  }
 
     
     // after  this.getCalendarUsersBreaksList() and  this.getCalendarEventsList():
@@ -658,8 +682,11 @@ export class CalendarComponent implements OnInit {
               "itemResources": event.meta.itemResources?event.meta.itemResources:[],
               "departmentPartId":event.meta.departmentPartId?event.meta.departmentPartId:null,
               "statusName": event.meta.statusName,
-              "statusType": event.meta.statusType //тип статуса : 1 - обычный; 2 - конечный положительный 3 - конечный отрицательный
-            },                                    //status type:  1 - normal;  2 - final positive         3 - final negative
+              "statusType": event.meta.statusType, //тип статуса : 1 - обычный; 2 - конечный положительный 3 - конечный отрицательный
+                                                  //status type:  1 - normal;  2 - final positive         3 - final negative
+              "statusId":event.meta.statusId,
+              "statusColor":event.meta.statusColor
+            },                                    
             "resizable": {
               "beforeStart": true,
               "afterEnd": true,
@@ -742,7 +769,7 @@ export class CalendarComponent implements OnInit {
     event.meta.user = newUser;
     this.events = [...this.events];
   }
-
+  
   onClickTodayButton(){
     this.changeDateMatCalendar(new Date());
     if(this.view=='week'||this.view=='resources_week') this.viewDate_=new Date(this.viewDate);
@@ -1404,7 +1431,32 @@ export class CalendarComponent implements OnInit {
     // console.log('UserOnFrontend - ',user)
     this.userOfDraggingToCreateEvent = user;
   }
+  changeStatus(docId:number, statusId:number, statusType:number){    
+    console.log('docId',docId)
+    console.log('statusId',statusId)
+    if(statusType!=3)
+      this.http.get('/api/auth/changeDocumentStatus?documentsTableId=59&docId='+docId+'&statusId='+statusId).subscribe(
+      (data) => {   
+        let response=data as any;
+        switch(response){
+          case 1:{
+            this.openSnackBar(translate('docs.msg.changed_succ'), translate('docs.msg.close'));
+            this.getCalendarEventsList();
+            break;
+          }
+          case null:{
+            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_msg')}});
+            break;
+          }
+          case -1:{
+            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}});
+            break;
+          }
+        }
+      },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
+    else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.status_can_ch_doc')}});
 
+  }
   onClickSchedulerHoour($event){
     // console.log('$event - ',$event)
   }

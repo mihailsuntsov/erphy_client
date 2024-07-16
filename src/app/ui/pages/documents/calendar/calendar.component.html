@@ -343,7 +343,6 @@
                         </form>
                     </div>
                 </mat-drawer>
-                
                     <ng-template #customCellTemplate let-day="day" let-locale="locale">
                         <div class="cal-cell-top" [style]="'min-height: '+calendarDayHeight+'px; position: relative;overflow:hidden;'">
                         <span class="cal-day-badge" 
@@ -430,9 +429,11 @@
                                 (eventTimesChanged)="eventTimesChanged($event)"
                                 (userChanged)="userChanged($event)"
                                 [locale]="localeAngular" 
+                                [statusesList]="receivedStatusesList"
                                 (hourSegmentClicked)="onClickSchedulerHoour($event)"
                                 (eventClicked)="handleEvent('Clicked', $event.event)"
                                 (userOfCurrentColumn)="setUserOfDraggingToCreateEvent($event.user)"
+                                (statusClickedToChange)="changeStatus($event.docId, $event.statusId, $event.statusType)"
                                 [hourDuration]="hourDuration"
                                 [hourSegments]="hourSegments"
                                 [dayStartHour]="dayStartHour"

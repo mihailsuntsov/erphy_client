@@ -597,6 +597,7 @@
         "error":        "Error!",
         "error_msg":    "An error occurred during the operation",
         "attention":    "Attention!",
+        "status_can_ch_doc":"Changing from this status is possible only by editing the document",
         "ne_perm":      "Insufficient permissions for this operation",
         "tr_subj_cngd": "This product (or service) is already has the history of operations. This is the reason why the field Subject of trade can't be changed.",
         "crte_doc_err": "Document \"{{name}}\" creation error",

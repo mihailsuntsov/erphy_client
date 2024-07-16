@@ -31,7 +31,7 @@ import {
   WeekViewHourColumn
 } from 'calendar-utils';
 import { DragEndEvent, DragMoveEvent } from 'angular-draggable-droppable';
-
+import {StatusInterface} from 'src/app/ui/pages/documents/calendar/calendar.component'
 export interface User {
   id: number;
   name: string;
@@ -222,16 +222,17 @@ export class DayViewSchedulerComponent
   extends CalendarWeekViewComponent
   implements OnChanges
 {
-  @Input() users: User[] = [];
-  @Input() breaks: Break[] = [];
-
+  @Input()  users: User[] = [];
+  @Input()  breaks: Break[] = [];
+  @Input()  statusesList: StatusInterface[] = [];
   @Output() userChanged = new EventEmitter();
   @Output() refreshView = new EventEmitter();
   @Output() userOfCurrentColumn = new EventEmitter();
-
+  @Output() statusClickedToChange = new EventEmitter();
   view: DayViewScheduler; //extends WeekView with users: User[];
 
   daysInWeek = 1;
+  oldStatusType = 1;
 
   constructor(
     protected cdr: ChangeDetectorRef,
@@ -275,6 +276,10 @@ export class DayViewSchedulerComponent
     console.log('columnIndex',i);
     console.log('user',JSON.stringify(this.users[i]))
     this.userOfCurrentColumn.emit({user: this.users[i]});
+  }
+
+  emitChangeStatus(docId:number, statusId:number, statusType:number){
+    this.statusClickedToChange.emit({docId:docId, statusId:statusId, statusType:statusType})
   }
 
   dragMove(dayEvent: WeekViewTimeEvent, dragEvent: DragMoveEvent) {

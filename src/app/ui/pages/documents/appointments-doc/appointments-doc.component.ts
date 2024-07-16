@@ -899,8 +899,6 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       // this.formBaseInformation.get('department').setValue(this.getDepartmentNameById(this.getDepartmentIdByDepPartId()));
     //загрузка типов цен для склада и по умолчанию  
     this.getSetOfTypePrices();
-    //Загрузка списка сотрудников
-    this.getEmployeesList(true);
   }
 
   getJobtitleList(){ 
@@ -1655,7 +1653,6 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
                   this.getAppointmentChildDocs();
                   // this.hideOrShowNdsColumn();//расчет прятать или показывать колонку НДС
                   this.getSpravTaxes();//загрузка налогов
-                  this.getEmployeesList();
                   this.loadFilesInfo();
                   this.fillCustomersObjectListFromApiResponse(documentValues.customersTable);
                   this.fillProductsListFromApiResponse(documentValues.appointmentsProductTable);
@@ -1991,6 +1988,10 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
           this.settingsForm.get('hideEmployeeField').setValue(result.hideEmployeeField);
           this.settingsForm.get('calcDateButTime').setValue(result.calcDateButTime);
           if(+this.id == 0) this.applyInitialTimeSettings();
+          //Загрузка списка сотрудников / loading employees
+          // for employees need the end time, which is geting from the settings.
+          // that is because employees are loading after settings
+          this.getEmployeesList(true);
       },
       error => console.log(error)
     );
