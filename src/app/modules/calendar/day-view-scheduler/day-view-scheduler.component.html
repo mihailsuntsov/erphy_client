@@ -16,7 +16,7 @@
 
 
     <!-- All-day events block -->
-    <div
+    <!-- <div
       class="cal-all-day-events"
       #allDayEventsContainer
       *ngIf="view.allDayEventRows.length > 0"
@@ -95,7 +95,7 @@
           </mwl-calendar-week-view-event>
         </div>
       </div>
-    </div>
+    </div> -->
     <!-- End of All-day events block -->
 
     <!-- Main block with bar of hours and columns contained users events  -->
@@ -213,13 +213,13 @@
               [column]="column"
             >
             </mwl-calendar-week-view-event>
-            <!-- [matTooltip]="timeEvent.event.meta.statusName" -->
-            <ng-template #eventTemplate1>
 
-              <div class="cal-event" style="padding-left: 22px; cursor:default"
-              >
+
+
+            <ng-template #eventTemplate1>
+              <div class="cal-event" style="padding-left: 25px; cursor:default">
                 <button mat-icon-button
-                        class="demo-button"
+                        class="status-button"
                         [matTooltip]="timeEvent.event.meta.statusName"
                         [style.background-color]="timeEvent.event.meta.statusColor"
                         (click)="oldStatusType = timeEvent.event.meta.statusType" 
@@ -244,24 +244,19 @@
                 (dragging)="dragMove(timeEvent, $event)"
                 (dragEnd)="dragEnded(timeEvent, $event, dayColumnWidth, true)"
                 >drag_indicator</mat-icon>
-
-                <span class="cal-event-title" 
-                [style.cursor]="'default'"
+                
+                <span class="cal-event-title"
                 [matTooltip]="(dragActive || timeEventResizes.size > 0)?'':timeEvent.event.title"
                     aria-hidden="true"(click)="eventClicked.emit({
                       event: timeEvent.event,
                       sourceEvent: $event.sourceEvent
                     })"
-
-                    
-
                    >
                   {{timeEvent.event.title}}
                 </span>
-
-
               </div>
             </ng-template>
+
             <mat-menu #statuses_menu="matMenu" xPosition="after">
               <div style="width: 200px;">
                   <ul style="margin: 0px; padding: 8px;">
@@ -310,21 +305,10 @@
             <mwl-calendar-week-view-event
               [locale]="locale"
               [weekEvent]="breakEvent"
-              [tooltipPlacement]="tooltipPlacement"
-              [tooltipTemplate]="tooltipTemplate"
-              [tooltipAppendToBody]="tooltipAppendToBody"
-              [tooltipDisabled]="dragActive || timeEventResizes.size > 0"
-              [tooltipDelay]="tooltipDelay"
               [customTemplate]="eventTemplate"
               [eventTitleTemplate]="eventTitleTemplate"
               [eventActionsTemplate]="eventActionsTemplate"
               [column]="column"
-              (eventClicked)="
-                eventClicked.emit({
-                  event: breakEvent.event,
-                  sourceEvent: $event.sourceEvent
-                })
-              "
             >
             </mwl-calendar-week-view-event>
           </div>

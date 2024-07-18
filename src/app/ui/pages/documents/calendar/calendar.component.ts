@@ -181,13 +181,15 @@ export class CalendarComponent implements OnInit {
   startOfPeriod = moment(new Date()).startOf(this.view=='resources_month'?'month':(this.view=='resources_week'?'week':'day'));
   endOfPeriod = moment(new Date()).endOf(this.view=='resources_month'?'month':(this.view=='resources_week'?'week':'day'));
   viewDate_: Date = new Date(); // current date for a week view because pipe changes original viewDate (I do not know why)
-  events: CalendarEvent[] = [];
+  events: CalendarEvent[] = []; 
+  allEvents: CalendarEvent[] = []; // all events - no matter filtered or not
   // weekStartsOn: number = DAYS_OF_WEEK.MONDAY;
   today = moment();
   receivedCompaniesList: any [] = [];
   receivedStatusesList: StatusInterface[]=[];
   myCompanyId:number=0;//
   timeFormat:string='';
+  initialLoading=true;
   selected: Date | null;
   @ViewChild('drawercalendar') public drawercalendar: MatDrawer;
   CalendarView = CalendarView;
@@ -213,10 +215,12 @@ export class CalendarComponent implements OnInit {
     }
   ]
   
+  oldStatusType:number = 1;
+  // selectedEventIdToChangeStatus:number;
   needAgainOfAfterChangeFiltersApiCalls:boolean=false;
   waitingOfAfterChangeFiltersApiCalls:boolean=false;
-  isPageReloading:boolean=true;
-
+  isPageReloading:boolean=false; // page refreshing is in process
+  isPageReloadingRequest:boolean=false; 
   settingsForm: any; // форма с настройками
   companySettings: CompanySettings = null;
   activeDayIsOpen: boolean = false;
@@ -321,20 +325,22 @@ export class CalendarComponent implements OnInit {
     // console.log("Parent timeFormat", this.timeFormat=='24'?'HH:mm':'h:mm a');
 
     this.queryForm.controls.employees.valueChanges.subscribe(() => {
-      if(!this.syncEmployeesByDepPartsProcess){
+      if(!this.syncEmployeesByDepPartsProcess && !this.initialLoading){
         this.syncDepPartsByEmployeesProcess=true;
         this.syncDepPartsByEmployees();
         this.afterChangeFiltersApiCalls();
+        this.isPageReloadingRequest=true;
         // console.log('employees.valueChanges')
         setTimeout(() => {this.syncDepPartsByEmployeesProcess=false;
           }, 10);
       }
     });
     this.queryForm.controls.depparts.valueChanges.subscribe(() => {
-      if(!this.syncDepPartsByEmployeesProcess){
+      if(!this.syncDepPartsByEmployeesProcess && !this.initialLoading){
         this.syncEmployeesByDepPartsProcess=true;
         this.syncEmployeesByDepParts();
         this.afterChangeFiltersApiCalls();
+        this.isPageReloadingRequest=true;
         // console.log('depparts.valueChanges')
         setTimeout(() => {this.syncEmployeesByDepPartsProcess=false;
           }, 10);
@@ -348,14 +354,18 @@ export class CalendarComponent implements OnInit {
   afterChangeFiltersApiCalls(){
     if(!this.waitingOfAfterChangeFiltersApiCalls){ // если не в режиме отложенного срабатывания / if not in delayed triggering mode
       this.waitingOfAfterChangeFiltersApiCalls=true; // ставим в режим отложенного срабатывания / delayed triggering mode is "ON"
-      console.log('!this.waitingOfAfterChangeFiltersApiCalls before timeOut()')
+      // console.log('!this.waitingOfAfterChangeFiltersApiCalls before timeOut()')
       setTimeout(() => { //ожидание / delayed triggering
         // отложенное срабатывание случилось: / delayed triggering happened:
         // отключаем режим отложенного срабатывания / disable delayed triggering mode
         this.waitingOfAfterChangeFiltersApiCalls=false;        
         if(!this.needAgainOfAfterChangeFiltersApiCalls){ // если повторные запросы во время ожидания больше не "прилетали" / if repeated requests no longer arrived
           //выполняем код, частоту которого нужно ограничить / execute code whose frequency needs to be limited
-          this.reloadPage();
+          if(!this.isPageReloading) this.reloadPage(); else {
+            //prevent of multiple reloadPage (if page reloading is already in process)
+            console.log('prevent of multiple reloadPage (if page reloading is already in process)')
+            this.afterChangeFiltersApiCalls();
+          }         
         } else {// если повторные запросы "прилетали" во время ожидания / if repeated requests arrived while waiting
           // сбросили отметку о наличии повторных запросов / cleared the mark for repeated requests
           this.needAgainOfAfterChangeFiltersApiCalls=false;
@@ -387,12 +397,14 @@ export class CalendarComponent implements OnInit {
 
   // -------------------------------------- *** КОНЕЦ ПРАВ *** ------------------------------------
   reloadPage(){
+    console.log('RELOAD PAGE!')
     this.isPageReloading=true;
     this.actionsBeforeGetChilds=0;
     this.getDepartmentsWithPartsList(false);
-    this.getJobtitlesWithEmployeesList();
+    this.getJobtitlesWithEmployeesList(false);
   }
-  getData(){
+  getData(source?:string){
+    // console.log('Data call source', source)
       if(this.allowToView)
       {
         // if(this.queryForm.valid){
@@ -491,6 +503,8 @@ export class CalendarComponent implements OnInit {
               this.dayStartMinute=+moment().startOf('day').add(this.settingsForm.get('dayStartMinute').value, 'minutes').format('mm');
               this.dayEndMinute=  +moment().startOf('day').add(this.settingsForm.get('dayEndMinute').value, 'minutes').format('mm');
 
+              if(this.allEvents.length>0) this.updateEventsIncludingCanceled();
+
               this.refreshView();
 
               // this.onSelectResourcesViewode(result.resourcesScreenScale);
@@ -518,7 +532,7 @@ export class CalendarComponent implements OnInit {
       if(this.isCompanyInList(this.myCompanyId))
         this.queryForm.get('companyId').setValue(this.myCompanyId);
       else if (this.receivedCompaniesList.length>0 )this.queryForm.get('companyId').setValue(this.receivedCompaniesList[0].id);
-    this.getDepartmentsWithPartsList();
+    this.getDepartmentsWithPartsList();   
     this.getJobtitlesWithEmployeesList();
     // this.getJobtitleList();
     this.getCompanySettings();
@@ -532,12 +546,13 @@ export class CalendarComponent implements OnInit {
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
   );}  
 
-  necessaryActionsBeforeGetChilds(){
+  necessaryActionsBeforeGetChilds(source?:string){
+    // console.log('necessaryActionsBeforeGetChilds call source', source)
     this.actionsBeforeGetChilds++;
     // Если набрано необходимое кол-во действий - все остальные справочники загружаем тут, т.к. 
     // нужно чтобы сначала определилось предприятие, его id нужен для загрузки
     if(this.actionsBeforeGetChilds==2){
-      this.getData();
+      this.getData('necessaryActionsBeforeGetChilds');
   }
 
     
@@ -550,6 +565,8 @@ export class CalendarComponent implements OnInit {
         this.refreshView();
         this.changeDateMatCalendar(this.viewDate);
         this.isPageReloading=false;
+        this.isPageReloadingRequest=false;
+        this.initialLoading=false;
       }, 1);
     }
   }
@@ -589,6 +606,7 @@ export class CalendarComponent implements OnInit {
         })
         // if user has no scedule of its work shifts, but he there is in a list because he has an appointments - need to add to him the break for the full time from the start to the end of data range
         // если у пользователя нет расписания его рабочих смен (перерывов), но он есть в списке, потому что у него есть записи - нужно добавить ему перерыв на все время от начала до конца диапазона данных. 
+        console.log('breaks.length',this.breaks.length)
         this.users.map(user=>{
           if(this.breaks.find((obj) => obj.user.id === user.id) == undefined)
             this.breaks.push({
@@ -602,11 +620,10 @@ export class CalendarComponent implements OnInit {
             });
         })
         
-        console.log('usersOfEvents',this.usersOfEvents)
-        console.log(' usersOfBreaks', this.usersOfBreaks)
-        
-        console.log('users',this.users)
-        console.log(' breaks', this.breaks)
+        // console.log('usersOfEvents',this.usersOfEvents)
+        // console.log(' usersOfBreaks', this.usersOfBreaks)        
+        // console.log('users',this.users)
+        // console.log(' breaks', this.breaks)
   }
   getCompanySettings(){
     this.http.get('/api/auth/getCompanySettings?id='+this.queryForm.get('companyId').value)
@@ -627,19 +644,19 @@ export class CalendarComponent implements OnInit {
           (data) => {   
                       this.receivedDepartmentsWithPartsList=data as any [];
                       if(selectAll) this.selectAllCheckList('depparts','queryForm');
-                      this.necessaryActionsBeforeGetChilds();
+                      this.necessaryActionsBeforeGetChilds('getDepartmentsWithPartsList');
       },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
       );
   }
   
-  getJobtitlesWithEmployeesList(){ 
+  getJobtitlesWithEmployeesList(selectAll=true){ 
     return this.http.get('/api/auth/getJobtitlesWithEmployeesList?id='+this.queryForm.get('companyId').value)
       .subscribe(
           (data) => {   
                       this.receivedJobtitlesWithEmployeesList=data as JobtitleWithEmployees [];
-                      // this.selectAllCheckList('employees','queryForm'); // employees will be selected by selected dep. parts in syncEmployeesByDepParts()
-                      this.necessaryActionsBeforeGetChilds();
+                      if(selectAll) this.selectAllCheckList('employees','queryForm'); // employees will be selected by selected dep. parts in syncEmployeesByDepParts()
+                      this.necessaryActionsBeforeGetChilds('getJobtitlesWithEmployeesList');
       },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
       );
@@ -698,19 +715,34 @@ export class CalendarComponent implements OnInit {
           if(this.usersOfEvents.find((obj) => obj.id === event.meta.user.id) == undefined)
             this.usersOfEvents.push( event.meta.user);
         });
+        this.allEvents=[...this.events];
+        this.updateEventsIncludingCanceled();
         // setTimeout(() => { 
         //   this.changeDateMatCalendar(new Date());
         //   this.refreshView();
         // }, 1);
         
         this.getAllDayEventRows();
-        this.necessaryActionsBeforeGetChilds();
+        this.necessaryActionsBeforeGetChilds('getCalendarEventsList');
         this.refreshView();
       },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}
     );
   }
 
+  updateEventsIncludingCanceled(){
+    if(this.settingsForm.get('displayCancelled').value)
+      this.events=[...this.allEvents];
+    else 
+    this.events=[...this.allEvents.filter(
+      function (event) {
+      return (event.meta.statusType!=3)
+    })]
+  }
+  onClickDisplayCancelledButton(){
+    this.settingsForm.get('displayCancelled').setValue(!this.settingsForm.get('displayCancelled').value);
+    this.updateEventsIncludingCanceled();
+  }
   getCalendarUsersBreaksList(){
     this.http.post('/api/auth/getCalendarUsersBreaksList', this.queryForm.value).subscribe(
       (data) => {
@@ -725,7 +757,7 @@ export class CalendarComponent implements OnInit {
             this.usersOfBreaks.push(break_.user);
         });
 
-        this.necessaryActionsBeforeGetChilds();
+        this.necessaryActionsBeforeGetChilds('getCalendarUsersBreaksList');
         
         this.refreshView();
       },
@@ -758,18 +790,36 @@ export class CalendarComponent implements OnInit {
     newStart,
     newEnd,
   }: CalendarEventTimesChangedEvent): void {
-    // console.log('eventTimesChanged')
+    console.log('eventTimesChanged')
     event.start = newStart;
     event.end = newEnd;
     this.events = [...this.events];
   }
 
-  userChanged({ event, newUser }) {
-    event.color = newUser.color;
-    event.meta.user = newUser;
-    this.events = [...this.events];
-  }
+  // userChanged({ event, newUser }) {
+  //   event.color = newUser.color;
+  //   event.meta.user = newUser;
+  //   this.events = [...this.events];
+  // }
   
+  eventDragged({ newUser, event }) {
+    console.log('eventDragged - ', event);
+    if (newUser && newUser !== event.meta.user) {
+      event.meta.user = newUser;
+      this.events = [...this.events];
+    }
+    event.meta.user.jobtitle_id = this.getJobtitleOfEmployee(event.meta.user.id);
+    this.openAppointmentCard(event.id, null, event);
+  }
+
+  getJobtitleOfEmployee(employeeId:number){
+    let result=null;
+    this.receivedJobtitlesWithEmployeesList.map(jobtitle=>{
+      if(jobtitle.employees.find((obj) => obj.id === employeeId) != undefined)
+        result = jobtitle.id;
+    });
+    return result;
+  }
   onClickTodayButton(){
     this.changeDateMatCalendar(new Date());
     if(this.view=='week'||this.view=='resources_week') this.viewDate_=new Date(this.viewDate);
@@ -822,7 +872,7 @@ export class CalendarComponent implements OnInit {
       this.queryForm.get('dateFrom').setValue(this.startOfPeriod.format('DD.MM.YYYY'));
       this.queryForm.get('dateTo').setValue(this.endOfPeriod.format('DD.MM.YYYY'));
       this.actionsBeforeGetChilds=2;
-      this.getData();   
+      this.getData('checkIsNeedToLoadData');   
     }
   }
   
@@ -904,7 +954,7 @@ export class CalendarComponent implements OnInit {
   onDayAddEventBtnClick(date: Date){
     this.openAppointmentCard(null, date);
   }
-  handleEvent(action: string, event: CalendarEvent): void {
+  handleClickedEvent(action: string, event: CalendarEvent): void {
     // console.log('action',action)
     // console.log('event',event)
     this.openAppointmentCard(event.id as number, null)
@@ -1039,6 +1089,7 @@ export class CalendarComponent implements OnInit {
     .subscribe(
       (data) => {   
         this.actionsBeforeGetChilds=0;
+        this.initialLoading=true;
         this.getCompaniesList();
         this.openSnackBar(translate('menu.msg.settngs_saved'), translate('menu.msg.close')); //+++
       },
@@ -1154,7 +1205,7 @@ export class CalendarComponent implements OnInit {
 // -------------------------------------------------------------------------------------
 
 
-  openAppointmentCard(docId: number, date: Date, dragCreatedEvent?:CalendarEvent){
+  openAppointmentCard(docId: number, date: Date, transmittedEvent?:CalendarEvent){
     // console.log("locale in calendar = ",this.locale);
     const dialogRef = this.dialogDocumentCard.open(AppointmentsDocComponent, {
       maxWidth: '95vw',
@@ -1172,7 +1223,7 @@ export class CalendarComponent implements OnInit {
         locale:     this.locale,
         jobtitles:            this.receivedJobtitlesList,
         departmentsWithParts: this.receivedDepartmentsWithPartsList,
-        dragCreatedEvent: dragCreatedEvent
+        transmittedEvent: transmittedEvent
       },
     });
     dialogRef.componentInstance.baseData.subscribe((data) => {
@@ -1372,7 +1423,7 @@ export class CalendarComponent implements OnInit {
       })
     })
     //reset DepParts form (only dep. parts with services no employee needed are staying)
-    console.log('depPartsIdsNoNeedEmployees', depPartsIdsNoNeedEmployees)
+    // console.log('depPartsIdsNoNeedEmployees', depPartsIdsNoNeedEmployees)
     // this.queryForm.get('depparts').setValue(depPartsIdsNoNeedEmployees);
     // collect IDs of services of selected employees
     let servicesIds:number[] = [];
@@ -1432,15 +1483,15 @@ export class CalendarComponent implements OnInit {
     this.userOfDraggingToCreateEvent = user;
   }
   changeStatus(docId:number, statusId:number, statusType:number){    
-    console.log('docId',docId)
-    console.log('statusId',statusId)
+    // console.log('docId',docId)
+    // console.log('statusId',statusId)
     if(statusType!=3)
       this.http.get('/api/auth/changeDocumentStatus?documentsTableId=59&docId='+docId+'&statusId='+statusId).subscribe(
       (data) => {   
         let response=data as any;
         switch(response){
           case 1:{
-            this.openSnackBar(translate('docs.msg.changed_succ'), translate('docs.msg.close'));
+            this.openSnackBar(translate('menu.msg.changed_succ'), translate('docs.msg.close'));
             this.getCalendarEventsList();
             break;
           }

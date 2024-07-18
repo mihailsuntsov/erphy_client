@@ -225,7 +225,8 @@ export class DayViewSchedulerComponent
   @Input()  users: User[] = [];
   @Input()  breaks: Break[] = [];
   @Input()  statusesList: StatusInterface[] = [];
-  @Output() userChanged = new EventEmitter();
+  // @Output() userChanged = new EventEmitter();
+  @Output() eventDragged = new EventEmitter();
   @Output() refreshView = new EventEmitter();
   @Output() userOfCurrentColumn = new EventEmitter();
   @Output() statusClickedToChange = new EventEmitter();
@@ -330,9 +331,11 @@ export class DayViewSchedulerComponent
       useY
     );
     const newUser = this.getDraggedUserColumn(weekEvent, dragEndEvent.x);
-    if (newUser && newUser !== weekEvent.event.meta.user) {
-      this.userChanged.emit({ event: weekEvent.event, newUser });
-    }
+    // if (newUser && newUser !== weekEvent.event.meta.user) {
+    //   this.userChanged.emit({ event: weekEvent.event, newUser });
+    // }
+
+    this.eventDragged.emit({newUser:newUser, event:weekEvent.event});
   }
 
   protected getWeekView(events: CalendarEvent[]):WeekView {

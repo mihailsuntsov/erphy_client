@@ -47,6 +47,7 @@ import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { translate, TranslocoService } from '@ngneat/transloco';
 import { CalendarView } from '../../../ui/pages/documents/calendar/calendar.component';
+import {StatusInterface} from 'src/app/ui/pages/documents/calendar/calendar.component'
 interface WeekViewAllDayEvent {
   event: CalendarEvent;
   offset: number;
@@ -99,8 +100,10 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
   // @Output() userChanged = new EventEmitter();
   @Output() refreshView = new EventEmitter();
   @Output() changeDateByHeaderDayClick = new EventEmitter<Date>();
+  @Output() statusClickedToChange = new EventEmitter();
   view: WeekView; //extends WeekView
   allDayEventRows: WeekViewAllDayEventRow[]=[];
+  oldStatusType = 1;
   __spreadArray:any;
   __assign:any;
   @Input()  events: CalendarEvent[];
@@ -108,7 +111,8 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
   @Input()  weekDays: Day[] = [];
   // @Input()  allDayEventRows: WeekViewAllDayEventRow[] = [];
   @Input()  departmentsWithParts: any[] = [];
-  @Input()  selectedDepparts: any[] = [];
+  @Input()  selectedDepparts: any[] = [];  
+  @Input()  statusesList: StatusInterface[] = [];
   @Input()  startOfPeriod;
   @Input()  endOfPeriod;
   @Input()  viewDate;
@@ -1112,6 +1116,10 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
     this.changeDateByHeaderDayClick.emit(date);
     this.refreshView.emit();
   }
+  
+  emitChangeStatus(docId:number, statusId:number, statusType:number){
+    this.statusClickedToChange.emit({docId:docId, statusId:statusId, statusType:statusType})
+  }
   getHeaderTime(index, only24:boolean){
     let result='';
     let date=this.weekDays[index].date;
@@ -1142,6 +1150,18 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
       if(department.department_id==departmentId){
         department.parts.map(part=>{
           if(part.resources.length>0 && this.selectedDepparts.includes(part.id)) result=true;
+        })
+      }
+    })
+    return result;
+  }
+  getAmountOfEventUsedResource(eventId:number, resourceId:number){
+    let result=0;
+    this.events.map(event=>{
+      if(event.id as number == eventId && event.meta.itemResources.length>0){
+        event.meta.itemResources.map(resource=>{
+          if(resource.id == resourceId)
+            result=resource.usedQuantity;
         })
       }
     })

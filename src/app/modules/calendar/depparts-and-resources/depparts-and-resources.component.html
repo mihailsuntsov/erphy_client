@@ -33,7 +33,9 @@
           
           <ng-container *ngIf="deppart.resources.length>0 && selectedDepparts.includes(deppart.id)">
 
-            <div class="cal-header deppart-name-row">
+            <div class="cal-header deppart-name-row" 
+            [ngStyle]="(deppart.is_active)?{}:{'color': 'lightgray'}"
+            matTooltip="{{deppart.is_active?'':'docs.list.noactive' | transloco}}">
               {{deppart.name}}
             </div>
           
@@ -43,7 +45,9 @@
               <div class="cal-day-columns" >
                 <div class="cal-time-label-column resource-name" 
                  >
-                    <span matTooltip="{{resource.name}} ({{resource.resource_qtt}}) {{resource.description}}">{{resource.name}}</span>
+                    <span matTooltip="{{resource.name}} ({{resource.resource_qtt}}) {{resource.description}}"
+                    [ngStyle]="(deppart.is_active)?{}:{'color': 'lightgray'}"
+                    >{{resource.name}}</span>
                     <span class="amount-resource" matTooltip="{{'modules.tip.amnt_res' | transloco}}">{{resource.resource_qtt}}</span>
                 </div>
                 <div
@@ -53,7 +57,9 @@
                   dragOverClass="cal-drag-over"
                   (drop)="eventDropped_($event, day.date, true, deppart.id)"
                   (dragEnter)="dateDragEnter(day.date)"
-                ></div>
+                >
+                <hr *ngIf="!deppart.is_active">
+                </div>
               </div>
               
 
@@ -140,20 +146,9 @@
                   <mwl-calendar-week-view-event
                     [locale]="locale"
                     [weekEvent]="allDayEvent"
-                    [tooltipPlacement]="tooltipPlacement"
-                    [tooltipTemplate]="tooltipTemplate"
-                    [tooltipAppendToBody]="tooltipAppendToBody"
-                    [tooltipDelay]="tooltipDelay"
-                    [customTemplate]="eventTemplate"
-                    [eventTitleTemplate]="eventTitleTemplate"
+                    [customTemplate]="eventTemplate1"
                     [eventActionsTemplate]="eventActionsTemplate"
                     [daysInWeek]="daysInWeek"
-                    (eventClicked)="
-                      eventClicked.emit({
-                        event: allDayEvent.event,
-                        sourceEvent: $event.sourceEvent
-                      })
-                    "
                   >
                   </mwl-calendar-week-view-event>
                   <!-- <div
@@ -166,6 +161,65 @@
                     [resizeEdges]="{ right: true }"
                   >
                   </div> -->
+
+
+                  <ng-template #eventTemplate1>
+                    <div class="cal-event" style="
+                    padding-left: 0px;
+                    cursor: default;
+                    overflow: hidden;
+                    margin-left: 0;
+                    margin-right: 0;">
+                      <div class="info-and-open"
+                      [matTooltip]="allDayEvent.event.title"
+                      (click)="eventClicked.emit({
+                          event: allDayEvent.event,
+                          sourceEvent: $event.sourceEvent
+                        })">
+
+                      </div>
+                      <button mat-icon-button
+                              class="status-button"
+                              [matTooltip]="allDayEvent.event.meta.statusName"
+                              [style.background-color]="allDayEvent.event.meta.statusColor"
+                              (click)="oldStatusType = allDayEvent.event.meta.statusType" 
+                              [matMenuTriggerFor]="statuses_menu">
+                      </button>
+                      
+                      <span class="cal-event-title"
+                      [matTooltip]="(dragActive || timeEventResizes.size > 0)?'':allDayEvent.event.title"
+                          aria-hidden="true"(click)="eventClicked.emit({
+                            event: allDayEvent.event,
+                            sourceEvent: $event.sourceEvent
+                          })"
+                         >
+                        {{allDayEvent.event.title}}
+                      </span>
+                      
+                      <span class="amount-resource" matTooltip="{{'modules.tip.amnt_res' | transloco}}">{{getAmountOfEventUsedResource(allDayEvent.event.id,resource.resource_id)}}</span>
+
+                    </div>
+                  </ng-template>
+                  <mat-menu #statuses_menu="matMenu" xPosition="after">
+                    <div style="width: 200px;">
+                        <ul style="margin: 0px; padding: 8px;">
+                            <li *ngFor="let status of statusesList" [style.display]="'flex'" (click)="emitChangeStatus(allDayEvent.event.id, status.id, oldStatusType)">
+                              <div class="circle-list"
+                              [style.background-color]="status.color"
+                              [style.cursor]="'pointer'">
+                              </div>
+                              <span class="status-list-name">{{status.name}}</span>
+                            </li>
+                        </ul>
+                    </div>
+                  </mat-menu>
+
+
+
+
+
+
+
                 </div>
               </div>
             </div>

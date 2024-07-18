@@ -18,47 +18,44 @@
 .cal-week-view .cal-hour, .cal-week-view .break-container {
     width: calc(100% + 10px)!important;
 }
-.circle{
-    width: 16px;
-    height: 16px;
-    border-radius: 8px;
-    position: absolute;
-    top: 7px;
-    left: 5px;
-}
+
 .circle-list{
-    width: 16px;
-    height: 16px;
-    border-radius: 8px;
-    position: relative;
-    left: 5px;
+  width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  position: relative;
+  left: 5px;
 }
 .status-list-name{
     position: relative; top: -6px;left: 9px;line-height: 30px;cursor: pointer;
 }
-button.demo-button {
-    width: 16px;
-    height: 16px;
-    position: absolute;
-    top: 7px;
-    left: 5px;
-    padding: 0;
-  }
+button.status-button {
+  width: 16px;
+  height: 16px;
+  position: absolute;
+  top: 7px;
+  left: 7px;
+  padding: 0;
+}
 .drag-button {
-    width: 16px;
-    height: 16px;
-    position: absolute;
-    top: 7px;
-    font-size: 16px;
-    color: #8e72cb;
-    right: 1px;
-    line-height: 15px;
-    padding: 0;
-    display: none;
-  }
-  .cal-event:hover > .drag-button {
-    display: block;
-  }
-::ng-deep button.demo-button .mat-mdc-button-touch-target{
-    display:none!important;
-  }
+  width: 16px;
+  height: 16px;
+  position: absolute;
+  top: 7px;
+  font-size: 16px;
+  color: #8e72cb;
+  right: 1px;
+  line-height: 15px;
+  padding: 0;
+  display: none;
+}
+.cal-event:hover > .drag-button {
+  display: block;
+}
+::ng-deep button.status-button .mat-mdc-button-touch-target{
+  display:none!important;
+}
+.cal-event-title{
+  line-height: 26px;
+  cursor: default;
+}

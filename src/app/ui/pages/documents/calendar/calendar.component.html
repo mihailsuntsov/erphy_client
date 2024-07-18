@@ -97,10 +97,10 @@
                         <button mat-icon-button class="group-button" matTooltip="{{'docs.tip.user_settings' | transloco}}" (click)="openDialogSettings()">
                             <mat-icon>settings</mat-icon>
                         </button>
-                        <button mat-icon-button class="group-button" (click)="afterChangeFiltersApiCalls()" matTooltip="{{'docs.button.refresh' | transloco}}">
+                        <button mat-icon-button class="group-button" (click)="isPageReloadingRequest=true;afterChangeFiltersApiCalls()" matTooltip="{{'docs.button.refresh' | transloco}}">
                             <mat-icon>refresh</mat-icon>
                         </button>
-                        <button mat-icon-button class="group-button" (click)="settingsForm.get('displayCancelled').setValue(!settingsForm.get('displayCancelled').value)" matTooltip="{{'docs.field.displ_cancl' | transloco}}" [ngStyle]="(settingsForm.get('displayCancelled').value)?{'background-color':'#e0e0e0'}:{}">
+                        <button mat-icon-button class="group-button" (click)="onClickDisplayCancelledButton()" matTooltip="{{'docs.field.displ_cancl' | transloco}}" [ngStyle]="(settingsForm.get('displayCancelled').value)?{'background-color':'#e0e0e0'}:{}">
                             <mat-icon>disabled_visible</mat-icon>
                         </button>
                     </mat-button-toggle-group>
@@ -360,19 +360,89 @@
                                 </button>
                             </div>
                             <div *ngIf="day.events.length > 0" [style]="'height: '+(calendarDayHeight-dayHeaderHeight)+'px;'" class="day-events-container">
-                                <div  *ngFor="let ev of day.events; let i = index"
+                                <div  *ngFor="let event of day.events; let i = index"
                                         [style]="'width: '+(calendar_area.offsetWidth/7-2)+'px;'"
-                                        class="day-event"
+                                        class="day-event wrapoff"
                                         [ngStyle]="((i+1)>maxNumberDayDisplayedEvents)?{'display':'none'}:{}"
-                                        (click)="dayAddEventBtnClicked=true; onMonthViewEventClick(ev)">
-                                        {{ev.title}}
+                                        >
+                                        <button mat-icon-button
+                                                class="status-button"
+                                                [matTooltip]="event.meta.statusName"
+                                                [style.background-color]="event.meta.statusColor"
+                                                (click)="dayEventClicked=true;oldStatusType = event.meta.statusType" 
+                                                [matMenuTriggerFor]="statuses_menu">
+                                        </button>
+                                        <span 
+                                        class="cal-event-title cut-string"
+                                        (click)="dayAddEventBtnClicked=true; onMonthViewEventClick(event)"
+                                        [matTooltip]="event.title"
+                                        matTooltipPosition="right"
+                                        >{{event.title}}
+                                        </span>
+                                        <mat-menu #statuses_menu="matMenu" xPosition="after">
+                                            <div style="width: 200px;">
+                                                <ul style="margin: 0px; padding: 8px;">
+                                                    <li *ngFor="let status of receivedStatusesList" [style.display]="'flex'" (click)="changeStatus(event.id, status.id, oldStatusType)">
+                                                    <div class="circle-list"
+                                                    [style.background-color]="status.color"
+                                                    [style.cursor]="'pointer'">
+                                                    </div>
+                                                    <span class="status-list-name">{{status.name}}</span>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </mat-menu>
                                 </div>
                             </div>
                             <div class="day-bottom" *ngIf="day.badgeTotal>maxNumberDayDisplayedEvents">
-                                <span>... {{t('docs.tip.and_plus')}} {{day.badgeTotal-maxNumberDayDisplayedEvents}}</span>
+                                <span
+                                [matMenuTriggerFor]="and_plus_menu"
+                                >{{t('docs.tip.and_plus', {amnt:day.badgeTotal-maxNumberDayDisplayedEvents})}}</span>
+                                <mat-menu #and_plus_menu="matMenu" xPosition="after">
+                                    <div 
+                                    [style]="'width: '+(calendar_area.offsetWidth/7-2)+'px; overflow: hidden'" 
+                                    (click)="$event.stopPropagation();">
+                                        <div  *ngFor="let event of day.events; let i = index"
+                                        [style]="'width: '+(calendar_area.offsetWidth/7-2)+'px;'"
+                                        class="day-event"
+                                        [ngStyle]="((i+1)<=maxNumberDayDisplayedEvents)?{'display':'none'}:{}"
+                                        >
+                                        <button mat-icon-button
+                                                class="status-button"
+                                                [matTooltip]="event.meta.statusName"
+                                                [style.background-color]="event.meta.statusColor"
+                                                style="top:4px;"
+                                                (click)="dayEventClicked=true;oldStatusType = event.meta.statusType" 
+                                                [matMenuTriggerFor]="statuses_menu_lvl2">
+                                        </button>
+                                        <span 
+                                        class="cal-event-title cut-string"
+                                        [matTooltip]="event.title"
+                                        matTooltipPosition="right"  
+                                        (click)="dayAddEventBtnClicked=true; onMonthViewEventClick(event)"
+                                        >{{event.title}}
+                                        </span>
+                                        <mat-menu #statuses_menu_lvl2="matMenu" xPosition="after">
+                                            <div style="width: 200px;" >
+                                                <ul style="margin: 0px; padding: 8px;">
+                                                    <li *ngFor="let status of receivedStatusesList" [style.display]="'flex'" (click)="changeStatus(event.id, status.id, oldStatusType)">
+                                                    <div class="circle-list"
+                                                    [style.background-color]="status.color"
+                                                    [style.cursor]="'pointer'">
+                                                    </div>
+                                                    <span class="status-list-name">{{status.name}}</span>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </mat-menu>
+                                </div>
+                                    </div>
+                                </mat-menu>
                             </div>
                         </div>
                     </ng-template>
+                        
+                    
                     <ng-template
                         #weekViewHourSegmentTemplate
                         let-segment="segment"
@@ -399,10 +469,10 @@
                         strokeWidth="3" 
                         class="spinner"
                         [diameter]="50"
-                        *ngIf="isPageReloading"
+                        *ngIf="isPageReloadingRequest||isPageReloading||initialLoading"
                         ></mat-spinner>
                         <div 
-                        *ngIf="users.length==0 && !isPageReloading && view=='scheduler' && queryForm.get('employees').value.length==0"
+                        *ngIf="users.length==0 && !isPageReloading && !initialLoading && view=='scheduler' && queryForm.get('employees').value.length==0"
                         class="no_linked_docs">
                             <span>{{t('docs.tip.empl_no_slced')}}</span>
                         </div>
@@ -414,7 +484,7 @@
                                 [locale]="localeAngular"
                                 [activeDayIsOpen]="activeDayIsOpen"
                                 (dayClicked)=" angularCalendarOnClickDay($event.day.date); dayClicked($event.day)"
-                                (eventClicked)="handleEvent('Clicked', $event.event)"
+                                (eventClicked)="handleClickedEvent('Clicked', $event.event)"
                                 [cellTemplate]="customCellTemplate"
                             ></mwl-calendar-month-view>
                             <mwl-day-view-scheduler
@@ -427,11 +497,11 @@
                                 [users]="users"
                                 [breaks]="breaks"
                                 (eventTimesChanged)="eventTimesChanged($event)"
-                                (userChanged)="userChanged($event)"
+                                (eventDragged)="eventDragged($event)"
                                 [locale]="localeAngular" 
                                 [statusesList]="receivedStatusesList"
                                 (hourSegmentClicked)="onClickSchedulerHoour($event)"
-                                (eventClicked)="handleEvent('Clicked', $event.event)"
+                                (eventClicked)="handleClickedEvent('Clicked', $event.event)"
                                 (userOfCurrentColumn)="setUserOfDraggingToCreateEvent($event.user)"
                                 (statusClickedToChange)="changeStatus($event.docId, $event.statusId, $event.statusType)"
                                 [hourDuration]="hourDuration"
@@ -443,15 +513,17 @@
                             ></mwl-day-view-scheduler>                            
                             <mwl-depparts-and-resources
                                 *ngIf="view=='resources_week' || view=='resources_month' || view=='resources_day'"
-                                (eventTimesChanged)="eventTimesChanged($event)"
+                                
                                 (refreshView)="refreshView()"
                                 (changeDateByHeaderDayClick) = "angularCalendarOnClickDay($event)"
-                                (eventClicked)="handleEvent('Clicked', $event.event)"
+                                (eventClicked)="handleClickedEvent('Clicked', $event.event)"
                                 [weekDays]="currentMonthDaysArray"
                                 [events]="events"
                                 [viewPeriodName]="view"
+                                [statusesList]="receivedStatusesList"
                                 [viewDate]="viewDate"
                                 [startOfPeriod]="startOfPeriod"
+                                (statusClickedToChange)="changeStatus($event.docId, $event.statusId, $event.statusType)"
                                 [endOfPeriod]="endOfPeriod"
                                 [snapDraggedEvents]="false"
                                 [refresh]="refresh"

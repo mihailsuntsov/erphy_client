@@ -596,7 +596,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       this.receivedJobtitlesList=this.data.jobtitles;
       this.receivedDepartmentsWithPartsList=this.data.departmentsWithParts;
       this._adapter.setLocale(this.locale);
-      // if(this.data && this.data.dragCreatedEvent)
+      // if(this.data && this.data.transmittedEvent)
       // console.log("locale = ",this.locale);
     }
 
@@ -983,15 +983,16 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   setDefaultDate(){
     if(this.data){
       // If Appointment is creating by dragging in "CalendarView.Scheduler" screen
-      if(this.data.dragCreatedEvent){ 
-        this.formBaseInformation.get('date_start').setValue(moment(this.data.dragCreatedEvent.start));
-        this.formBaseInformation.get('time_start').setValue(moment(this.data.dragCreatedEvent.start).format("HH:mm"));
-        if(this.data.dragCreatedEvent.end){
-          this.formBaseInformation.get('date_end').  setValue(moment(this.data.dragCreatedEvent.end));
-          this.formBaseInformation.get('time_end').setValue(moment(this.data.dragCreatedEvent.end).format("HH:mm"));
+      
+      if(this.data.transmittedEvent){ 
+        this.formBaseInformation.get('date_start').setValue(moment(this.data.transmittedEvent.start));
+        this.formBaseInformation.get('time_start').setValue(moment(this.data.transmittedEvent.start).format("HH:mm"));
+        if(this.data.transmittedEvent.end){
+          this.formBaseInformation.get('date_end').  setValue(moment(this.data.transmittedEvent.end));
+          this.formBaseInformation.get('time_end').setValue(moment(this.data.transmittedEvent.end).format("HH:mm"));
         } else {
-          this.formBaseInformation.get('date_end').setValue(moment(this.data.dragCreatedEvent.start));
-          this.formBaseInformation.get('time_end').setValue(moment(this.data.dragCreatedEvent.start).add(+30,'minutes').format("HH:mm"));
+          this.formBaseInformation.get('date_end').setValue(moment(this.data.transmittedEvent.start));
+          this.formBaseInformation.get('time_end').setValue(moment(this.data.transmittedEvent.start).add(+30,'minutes').format("HH:mm"));
         }
       } else
       // If Appointment is creating by clicking on (+) in "CalendarView.Day" screen
@@ -1619,14 +1620,14 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
                   this.formBaseInformation.get('name').setValue(documentValues.name);
                   this.formBaseInformation.get('department_part_id').setValue(documentValues.dep_part_id);
                   this.formBaseInformation.get('department_part').setValue(documentValues.dep_part);
-                  this.formBaseInformation.get('date_start').setValue(documentValues.date_start?moment(documentValues.date_start,'DD.MM.YYYY'):'');
-                  this.formBaseInformation.get('date_end').setValue(documentValues.date_end?moment(documentValues.date_end,'DD.MM.YYYY'):'');
-                  this.formBaseInformation.get('time_start').setValue(documentValues.time_start);
-                  this.formBaseInformation.get('time_end').setValue(documentValues.time_end);
-                  this.formBaseInformation.get('jobtitle_id').setValue(documentValues.jobtitle_id);
+                  this.formBaseInformation.get('date_start').setValue((this.data&&this.data.transmittedEvent)?moment(this.data.transmittedEvent.start):(documentValues.date_start?moment(documentValues.date_start,'DD.MM.YYYY'):''));
+                  this.formBaseInformation.get('date_end').setValue((this.data&&this.data.transmittedEvent)?moment(this.data.transmittedEvent.end):(documentValues.date_end?moment(documentValues.date_end,'DD.MM.YYYY'):''));
+                  this.formBaseInformation.get('time_start').setValue((this.data&&this.data.transmittedEvent)?moment(this.data.transmittedEvent.start).format("HH:mm"):documentValues.time_start);
+                  this.formBaseInformation.get('time_end').setValue((this.data&&this.data.transmittedEvent)?moment(this.data.transmittedEvent.end).format("HH:mm"):documentValues.time_end);
+                  this.formBaseInformation.get('jobtitle_id').setValue((this.data&&this.data.transmittedEvent)?this.data.transmittedEvent.meta.user.jobtitle_id:documentValues.jobtitle_id);
                   this.formBaseInformation.get('jobtitle').setValue(documentValues.jobtitle);
-                  this.formBaseInformation.get('employeeId').setValue(documentValues.employeeId);
-                  this.formBaseInformation.get('employeeName').setValue(documentValues.employeeName?documentValues.employeeName:'');
+                  this.formBaseInformation.get('employeeId').setValue((this.data&&this.data.transmittedEvent)?this.data.transmittedEvent.meta.user.id:documentValues.employeeId);
+                  this.formBaseInformation.get('employeeName').setValue((this.data&&this.data.transmittedEvent)?this.data.transmittedEvent.meta.user.name:(documentValues.employeeName?documentValues.employeeName:''));
                   // this.formBaseInformation.get('department').setValue(documentValues.department);
                   this.formBaseInformation.get('description').setValue(documentValues.description);
                   this.formBaseInformation.get('nds').setValue(documentValues.nds);
@@ -1781,6 +1782,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
           if(this.mode == 'standart') this._router.navigate(['/ui/appointmentsdoc', this.id]);
           this.formBaseInformation.get('id').setValue(this.id);
           this.rightsDefined=false; //!!!
+          if(this.data) this.data.transmittedEvent=null; // for in the case of creating by gragging, in getData() to not get data of begin time, end time and employee from transmittedEvent
           this.getData();
           this.showSearchCustomerFormFields=false;
         //создание документа было не успешным
@@ -2039,10 +2041,10 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
 
     // if user or this function is still not fill the time and date fields
     if(this.formBaseInformation.get('date_start').value=='' || this.formBaseInformation.get('time_start').value=='' || this.formBaseInformation.get('date_end').value=='' || this.formBaseInformation.get('time_end').value==''){
-      // If the document is creating in a "standart" mode, or in a "window" mode but document is not creating by gragging action
+      // If the document is creating in a "standart" mode, or in a "window" mode but document is not creating or opening by gragging action
       // (in which start and end time are defined)
       // then start and end dates/times will be calculated in accordance of settings
-      if(!this.data || (this.data && !this.data.dragCreatedEvent)){
+      if(!this.data || (this.data && !this.data.transmittedEvent)){
         this.applyingInitialTimeSettings=true;
         //                               Calculating start date and time 
         if(this.data && this.data.calendarViewDayDate)
@@ -2082,7 +2084,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     // If in the settings endDateTime = 'sum_all_length' or 'max_length', and:
     // (before document has been created and document is creating not by gragging action) or recount by user demand by clicking on "Recount the finish time" button
     // console.log('recountEndDateTime');
-    if(!this.isEndDateTimEditing && (['sum_all_length','max_length'].includes(this.settingsForm.get('endDateTime').value)) && ((!this.data || (this.data && !this.data.dragCreatedEvent)) || byUserDemand)){
+    if(!this.isEndDateTimEditing && (['sum_all_length','max_length'].includes(this.settingsForm.get('endDateTime').value)) && ((!this.data || (this.data && !this.data.transmittedEvent)) || byUserDemand)){
       // Can do time recounting
 
       let sumOfSeconds = 3600; // 3600 is the minimal length if there are no services by Appointment - 1 hour by default
@@ -3060,11 +3062,11 @@ deleteFile(id:number){
           this.receivedEmployeesList=data as Employee[];
           this.updateEmployeeValues();
           this.employeesListLoadQtt--;
-          if(this.data && this.data.dragCreatedEvent && this.data.dragCreatedEvent.meta.user.id){
+          if(this.data && this.data.transmittedEvent && this.data.transmittedEvent.meta.user.id){
             let jobtitleId = null;
-            this.formBaseInformation.get('employeeId').setValue(this.data.dragCreatedEvent.meta.user.id);
-            this.receivedEmployeesList.map(empl=>{if(empl.id==this.data.dragCreatedEvent.meta.user.id) jobtitleId = empl.jobtitle_id})
-            this.onEmployeeChange(this.data.dragCreatedEvent.meta.user.id,jobtitleId);
+            this.formBaseInformation.get('employeeId').setValue(this.data.transmittedEvent.meta.user.id);
+            this.receivedEmployeesList.map(empl=>{if(empl.id==this.data.transmittedEvent.meta.user.id) jobtitleId = empl.jobtitle_id})
+            this.onEmployeeChange(this.data.transmittedEvent.meta.user.id,jobtitleId);
           }
           if(isFree){
             this.getBusyEmployeesList('busyByAppointments');
@@ -3683,7 +3685,7 @@ deleteFile(id:number){
     this.formBaseInformation.get('jobtitle_id').setValue(0);
     this.formBaseInformation.get('employeeId').setValue(null);
 
-    // if(!this.data || (this.data && !this.data.dragCreatedEvent)){
+    // if(!this.data || (this.data && !this.data.transmittedEvent)){
       this.formBaseInformation.get('date_start').setValue('');
       this.formBaseInformation.get('time_start').setValue('');
       this.formBaseInformation.get('date_end').setValue('');

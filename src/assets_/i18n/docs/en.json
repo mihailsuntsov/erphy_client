@@ -590,7 +590,8 @@
         "val_col_ni":"The values ​​in the \"{{name1}}\" and \"{{name2}}\" columns are not equal",
         "fxd_there_doc_tp":"Transfer of products and services to the customer is recorded",
         "fxd_there_doc_gm":"Reception of funds from the client is recorded",
-        "refresh":"Reload document"
+        "refresh":"Reload document",
+        "and_plus":"and {{amnt}} more"
         
     },
     "msg":{

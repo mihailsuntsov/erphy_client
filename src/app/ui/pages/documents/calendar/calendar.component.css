@@ -161,7 +161,7 @@ li {list-style: none;}
     display: flex;
 }
 /* ::ng-deep .cal-event-container{
-    z-index: 1000!important;
+    min-height: 30px;
 } */
 .day-event{
     white-space: nowrap;
@@ -184,7 +184,7 @@ li {list-style: none;}
     /* border: 1px dotted #673ab7; */
     position: absolute;
     bottom: 0;
-    height: 13px;
+    height: 14px;
     text-align:center;
     line-height: 10px;
     padding:2px;
@@ -252,3 +252,75 @@ li {list-style: none;}
 .mat-mdc-outlined-button {
     font-size: 14px !important;
 }
+.circle-list{
+    width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    position: relative;
+    left: 5px;
+  }
+  .status-list-name{
+      position: relative; top: -6px;left: 9px;line-height: 30px;cursor: pointer;
+  }
+  button.status-button {
+    width: 14px;
+    height: 14px;
+    position: absolute;
+    top: 1px;
+    left: 2px;
+    padding: 0;
+  }
+  /* .drag-button {
+    width: 16px;
+    height: 16px;
+    position: absolute;
+    top: 7px;
+    font-size: 16px;
+    color: #8e72cb;
+    right: 1px;
+    line-height: 15px;
+    padding: 0;
+    display: none;
+  } */
+  .cal-event:hover > .drag-button {
+    display: block;
+  }
+  ::ng-deep button.status-button .mat-mdc-button-touch-target{
+    display:none!important;
+  }
+  .cal-event-title{
+    margin-left: 14px;
+    color: #673ab7!important;
+  }
+  .day-event{
+    position: relative;
+    background-color: #ffffff00!important;
+
+  }
+  ::ng-deep mwl-calendar-open-day-events{
+    display:none!important;
+  }
+  .cut-string{
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+/*  .wrapoff {
+	white-space: nowrap!important;
+	overflow: hidden!important;
+	position: relative!important;
+    background-color: white;
+}
+ .wrapoff:after {
+	content: "..." !important;
+    position: absolute !important;
+    right: 0 !important;
+    color: black;
+    top: 0 !important;
+    background-color: inherit;
+}
+mwl-calendar-month-cell:hover > .wrapoff {
+    background-color: #ededed;
+  } */
