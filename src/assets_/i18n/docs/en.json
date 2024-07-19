@@ -931,7 +931,11 @@
         "currency":     "Currency",
         "accounts":     "Bank account",
         "productattr":  "Product attribute",
-        "store":        "Online store"  
+        "store":        "Online store",
+        "appointment":"Appointment",
+        "reservation":"Reservation",
+        "appointments":"Appointments",
+        "reservations":"Reservations" 
 
     }
 }

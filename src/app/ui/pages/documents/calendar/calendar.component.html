@@ -1,3 +1,9 @@
+<mat-spinner 
+strokeWidth="3" 
+class="spinner"
+[diameter]="44"
+*ngIf="isUpdatingDraggedOrResizedEvent"
+></mat-spinner>
 <div class="container-fluid">
     <div class="row" style="position: sticky;top: 0;z-index: 100;">
         <div class="col-12" style="padding-right:0;padding-left:0;">
@@ -484,7 +490,7 @@
                                 [locale]="localeAngular"
                                 [activeDayIsOpen]="activeDayIsOpen"
                                 (dayClicked)=" angularCalendarOnClickDay($event.day.date); dayClicked($event.day)"
-                                (eventClicked)="handleClickedEvent('Clicked', $event.event)"
+                                (eventClicked)="onHandleClickedEvent('Clicked', $event.event)"
                                 [cellTemplate]="customCellTemplate"
                             ></mwl-calendar-month-view>
                             <mwl-day-view-scheduler
@@ -497,11 +503,12 @@
                                 [users]="users"
                                 [breaks]="breaks"
                                 (eventTimesChanged)="eventTimesChanged($event)"
-                                (eventDragged)="eventDragged($event)"
+                                (onEventDragged)="onEventDragged($event)"
+                                (onEventResized)="onEventResized($event)"                                
                                 [locale]="localeAngular" 
                                 [statusesList]="receivedStatusesList"
                                 (hourSegmentClicked)="onClickSchedulerHoour($event)"
-                                (eventClicked)="handleClickedEvent('Clicked', $event.event)"
+                                (eventClicked)="onHandleClickedEvent('Clicked', $event.event)"
                                 (userOfCurrentColumn)="setUserOfDraggingToCreateEvent($event.user)"
                                 (statusClickedToChange)="changeStatus($event.docId, $event.statusId, $event.statusType)"
                                 [hourDuration]="hourDuration"
@@ -516,7 +523,7 @@
                                 
                                 (refreshView)="refreshView()"
                                 (changeDateByHeaderDayClick) = "angularCalendarOnClickDay($event)"
-                                (eventClicked)="handleClickedEvent('Clicked', $event.event)"
+                                (eventClicked)="onHandleClickedEvent('Clicked', $event.event)"
                                 [weekDays]="currentMonthDaysArray"
                                 [events]="events"
                                 [viewPeriodName]="view"

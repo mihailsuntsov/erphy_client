@@ -350,7 +350,7 @@
                                                                                 <mat-icon
                                                                                     style="color: red;"
                                                                                     class="mat-icon-notification"
-                                                                                    *ngIf="+formBaseInformation.get('department_part_id').value>0 && !accessibleDepPartsIdsAll.includes(+formBaseInformation.get('department_part_id').value)"
+                                                                                    *ngIf="!initialLoading && +formBaseInformation.get('department_part_id').value>0 && !accessibleDepPartsIdsAll.includes(+formBaseInformation.get('department_part_id').value)"
                                                                                     matTooltip="{{t('docs.tip.value_cant_be')}}">
                                                                                     error
                                                                                 </mat-icon>{{getSelectedDepPartName()}}
@@ -502,7 +502,7 @@
                                                                             display: flex;
                                                                             text-align: left;
                                                                             overflow: hidden;"
-                                                                            [ngStyle]="(!accessibleEmployeesIdsAll.includes(+formBaseInformation.get('employeeId').value))?{'caret-color':'transparent','position':'relative','left':'30px','width':'calc(100% - 30px)'}:{}"
+                                                                            [ngStyle]="(!initialLoading && !accessibleEmployeesIdsAll.includes(+formBaseInformation.get('employeeId').value))?{'caret-color':'transparent','position':'relative','left':'30px','width':'calc(100% - 30px)'}:{}"
                                                                             (keydown)="accessibleEmployeesIdsAll.length>0?true:false"
                                                                             (input)="checkEmptyEmployeeField();"
                                                                             (change)="checkEmptyEmployeeField();"
@@ -511,7 +511,7 @@
                                                                                 style="color: red;"
                                                                                 style="top: -17px;" 
                                                                                 class="mat-icon-notification"
-                                                                                *ngIf="+formBaseInformation.get('employeeId').value>0 && (!accessibleEmployeesIdsAll.includes(+formBaseInformation.get('employeeId').value))"
+                                                                                *ngIf="!initialLoading && +formBaseInformation.get('employeeId').value>0 && (!accessibleEmployeesIdsAll.includes(+formBaseInformation.get('employeeId').value))"
                                                                                 matTooltip="{{t('docs.tip.value_cant_be')}}">
                                                                                 error
                                                                         </mat-icon>
@@ -952,7 +952,7 @@
 
 
 
-                                                                        <mat-tab-group style="margin-top: 25px;">
+                                                                        <mat-tab-group style="margin-top: 25px;" (selectedTabChange)="onSelectTab($event)">
                                                                             <mat-tab label="{{t('docs.tab.services')}}">
                                                                                 <div class="container-fluid" style="padding-top: 20px; padding-bottom: 20px;">
 
@@ -1227,7 +1227,7 @@
                                                                             </mat-tab>
                                                                             <mat-tab label="{{t('docs.tab.history')}}" *ngIf="row && +row.id>0">
                                                                                 <div class="container-fluid" style="padding-top:20px; padding-bottom: 20px;">
-                                                                                    <app-appointments *ngIf="row && +row.id>0"
+                                                                                    <app-appointments *ngIf="row && +row.id>0 && canLoadHistoryTableData"
                                                                                         [company_id]="formBaseInformation.get('company_id').value"
                                                                                         [customer_id]="row.id"
                                                                                         [appointment_id]="+id"
@@ -1239,7 +1239,8 @@
                                                                             <mat-tab *ngIf="row && +row.id>0">
                                                                                 <ng-template mat-tab-label>
                                                                                     <p>
-                                                                                        <span [matBadge]="getAmountOfChildDocs(row.id,'all')" matBadgeOverlap="false" *ngIf="getAmountOfChildDocs(row.id,'all')>0">{{t('docs.tab.documents')}}</span>
+                                                                                        <!-- *ngIf="getAmountOfChildDocs(row.id,'all')>0" -->
+                                                                                        <span [matBadge]="getAmountOfChildDocs(row.id,'all')" matBadgeOverlap="false" >{{t('docs.tab.documents')}}</span>
                                                                                     </p>
                                                                                 </ng-template>
                                                                                 <div class="container-fluid" style="padding-top:20px; padding-bottom: 20px;">
@@ -1469,13 +1470,17 @@
             </mat-tab-group>
             
         </mat-card-content>
+        <!-- <code><pre>{{formBaseInformation.value | json}}</pre></code> -->
+          <!-- <code><pre>{{appointmentChildDocs | json}}</pre></code> -->
+
+          
         <!-- 1-{{this.oneClickSaveControl}}
         2-{{!this.childFormValid}}
         3-{{!this.formBaseInformation.valid}}
         4-{{!this.isDatesValid}}
         5-{{(this.formBaseInformation.get('department_part_id').value>0 && !this.accessibleDepPartsIdsAll.includes(+this.formBaseInformation.get('department_part_id').value))}}
         6-{{(this.isThereAreServicesInTableWithEmployeeRequired() && +this.formBaseInformation.get('employeeId').value>0 && (!this.accessibleEmployeesIdsAll.includes(+this.formBaseInformation.get('employeeId').value)))}} -->
-        <code><pre>{{appointmentChildDocs | json}}</pre></code>
+      
 
         <!-- <b>{{expandedElement}}</b> -->
         <!-- <code><pre>{{expandedElement?expandedElement.value:'[]' | json}}</pre></code><br> -->
@@ -1485,7 +1490,6 @@
         <!-- <code><pre>{{accessibleDepPartsIdsByResourcesOfSelectedServices | json}}</pre></code><br>  -->
         <!-- <b>receivedDepartmentsWithPartsList ({{receivedDepartmentsWithPartsList.length}})</b> -->
         <!-- <code><pre>{{receivedDepartmentsWithPartsList | json}}</pre></code><br>  -->
-        <code><pre>{{formBaseInformation.value | json}}</pre></code>
         <!-- length={{getControlTablefield().length}}<br>  -->
         
         <!-- <b>accessibleServicesIdsByAccessibleEmployees ({{accessibleServicesIdsByAccessibleEmployees.length}})</b>

@@ -101,7 +101,7 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
   @Output() refreshView = new EventEmitter();
   @Output() changeDateByHeaderDayClick = new EventEmitter<Date>();
   @Output() statusClickedToChange = new EventEmitter();
-  view: WeekView; //extends WeekView
+  view: WeekView;
   allDayEventRows: WeekViewAllDayEventRow[]=[];
   oldStatusType = 1;
   __spreadArray:any;

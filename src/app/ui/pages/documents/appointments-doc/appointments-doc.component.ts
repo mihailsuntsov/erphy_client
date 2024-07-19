@@ -8,7 +8,7 @@ import { SelectionModel } from '@angular/cdk/collections';
 import {animate, state, style, transition, trigger} from '@angular/animations';
 import { map, startWith, debounceTime, tap, switchMap, mergeMap, concatMap, expand, reduce  } from 'rxjs/operators';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
-import { MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { ValidationService } from './validation.service';
 import { v4 as uuidv4 } from 'uuid';
 import { CommonUtilitesService } from 'src/app/services/common_utilites.serviсe';
@@ -315,6 +315,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   addressString: string = ''; // строка для свёрнутого блока Адрес
   oneClickSaveControl:boolean=false;//блокировка кнопок Save и Complete для защиты от двойного клика
   isMainDataLoading:boolean=false;
+  initialLoading=true;// to handle the end of loading document
   //canCreateNewDoc: boolean=false;// можно ли создавать новый документ (true если выполнились все необходимые для создания действия)
   canGetChilds: boolean=false; //можно ли грузить дочерние модули
   actionsBeforeCreateNewDoc:number=0;// количество выполненных действий, необходимых чтобы создать новый документ
@@ -443,6 +444,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   thumbImageAddress:string = 'assets_/images/no_foto.jpg';
   imageToShow:any; // переменная в которую будет подгружаться картинка товара (если он jpg или png)
   companySettings:any={booking_doc_name_variation:'reservation'};
+  canLoadHistoryTableData=false; // to prevent all requests to load history data until user click on "History" tab
 
   //для Autocomplete по поиску ДОПОЛНИТЕЛЬНЫХ ТОВАРОВ И УСЛУГ ДЛЯ КЛИЕНТОВ
   searchProductCustomerCtrl = new UntypedFormControl();//поле для поиска товаров
@@ -470,6 +472,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     public dialogAddFiles: MatDialog,
     private settingsAppointmentDialogComponent: MatDialog,
     public MessageDialog: MatDialog,
+    public dialogRef: MatDialogRef<AppointmentsDocComponent>,
     private loadSpravService: LoadSpravService,
     private _snackBar: MatSnackBar,
     private _router:Router,
@@ -1659,6 +1662,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
                   this.fillProductsListFromApiResponse(documentValues.appointmentsProductTable);
                   this.getTotalSumPrice();
                   this.getSettings();
+                  
                   this.isMainDataLoading=false;
                   this.showBalanceModules=false;
                   setTimeout(() => { 
@@ -1744,13 +1748,13 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     }, 1000);
   }
 
-  onCreateUpdateDocumentButtonClick(docName:string){
+  onCreateUpdateDocumentButtonClick(operationName:string){
     if(this.getControlTablefield().length==0 || this.getControl('customersTable').length==0){
       console.log('this.getControlTablefield.length',this.getControlTablefield().length),
       console.log('this.getControl("customersTable").length',this.getControl('customersTable').length)
       this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.select_customer')}}); 
     } else {
-      switch(docName){
+      switch(operationName){
         case 'create':{
           this.createNewDocument();
           break;}
@@ -1784,16 +1788,17 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
           this.rightsDefined=false; //!!!
           if(this.data) this.data.transmittedEvent=null; // for in the case of creating by gragging, in getData() to not get data of begin time, end time and employee from transmittedEvent
           this.getData();
-          this.showSearchCustomerFormFields=false;
+          this.showSearchCustomerFormFields=false;          
+          this.baseData.emit('documentUpdated');// to refresh events in Calendar
         //создание документа было не успешным
         } else {
           switch(response.errorCode){
             case 1:{// 1 возвращает если не удалось создать документ из-за ошибки 
-              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.crte_doc_err',{name:translate('docs.docs.c_order')})}}); 
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.crte_doc_err',{name:translate('docs.docs.'+this.companySettings.booking_doc_name_variation)})}}); 
               break;
             }
             case 2:{// 2 возвращает если не удалось сохранить таблиу товаров из-за ошибки 
-              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.crte_doc_err',{name:translate('docs.docs.c_order')})}}); 
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.crte_doc_err',{name:translate('docs.docs.'+this.companySettings.booking_doc_name_variation)})}}); 
               break;
             }
             case -1:{//недостаточно прав
@@ -1860,7 +1865,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   //               break;
   //             }
   //             case 1:{// Успешно
-  //               this.openSnackBar(translate('docs.msg.cnc_com_succs',{name:translate('docs.docs.c_order')}), translate('docs.msg.close'));
+  //               this.openSnackBar(translate('docs.msg.cnc_com_succs',{name:translate('docs.docs.'+this.companySettings.booking_doc_name_variation)}), translate('docs.msg.close'));
   //               this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
   //               this.formBaseInformation.get('is_completed').setValue(false);
   //               this.is_completed=false;
@@ -1876,7 +1881,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   //         },
   //     );
   // }
-  updateDocument(complete?:boolean){ 
+  updateDocument(complete=false, closeOnSuccess=false){ 
     this.oneClickSaveControl=true;
     // this.getProductsTable();    
     let currentStatus:number=this.formBaseInformation.get('status_id').value;
@@ -1909,7 +1914,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
             //сохранение было успешным  
             if(response.success){
               this.documentChanged=false;
-              this.openSnackBar(translate('docs.msg.doc_name',{name:translate('docs.docs.c_order')}) + (complete?translate('docs.msg.completed'):translate('docs.msg.saved')), translate('docs.msg.close'));
+              this.openSnackBar(translate('docs.msg.doc_name',{name:translate('docs.docs.'+this.companySettings.booking_doc_name_variation)}) + (complete?translate('docs.msg.completed'):translate('docs.msg.saved')), translate('docs.msg.close'));
               // this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов - чтобы обновился "Проведён Да/Нет" и статус
               // if(response.fail_to_reserve>0){//если у 1 или нескольких позиций резервы при сохранении были отменены
                 // this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.res_not_saved')}});
@@ -1930,7 +1935,12 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
               this.actionsBeforeGetChilds=0;
               this.rightsDefined=false;
               this.showSearchCustomerFormFields=false;
-              this.getData();            
+              this.baseData.emit('documentUpdated');// to refresh events in Calendar
+              if(!closeOnSuccess)
+                this.getData();
+              else {
+                this.dialogRef.close();
+              }
             //сохранение было не успешным
             } else {
               switch(response.errorCode){
@@ -2751,10 +2761,10 @@ deleteFile(id:number){
       this.formLinkedDocs.get('nds').setValue(this.formBaseInformation.get('nds').value);
       this.formLinkedDocs.get('nds_included').setValue(this.formBaseInformation.get('nds_included').value);
       this.formLinkedDocs.get('date_start').setValue(this.formBaseInformation.get('date_start').value?moment(this.formBaseInformation.get('date_start').value,'DD.MM.YYYY'):"");
-      this.formLinkedDocs.get('description').setValue(translate('docs.msg.created_from')+translate('docs.docs.c_order')+' '+translate('docs.top.number')+this.formBaseInformation.get('doc_number').value);
+      this.formLinkedDocs.get('description').setValue(translate('docs.msg.created_from')+translate('docs.docs.'+this.companySettings.booking_doc_name_variation)+' '+translate('docs.top.number')+this.formBaseInformation.get('doc_number').value);
       this.formLinkedDocs.get('appointment_id').setValue(this.id);
       
-      // параметры для входящих ордеров и платежей (Paymentin, Orderin)
+      // параметры для входящих ордеров и платежей (Paymentin, Orderin)   {name:translate('docs.docs.'+this.companySettings.booking_doc_name_variation)}
       if(docname=='Paymentin'||docname=='Orderin'){
         this.formLinkedDocs.get('payment_account_id').setValue(null);//id расчтёного счёта      
         this.formLinkedDocs.get('boxoffice_id').setValue(null);
@@ -2920,7 +2930,7 @@ deleteFile(id:number){
     console.log('Index: ' + changeEvent.index);
   }  
   myTabAnimationDone() {
-    console.log('Animation is done.');
+    // console.log('Animation is done.');
     if(this.tabIndex==1)  {
       if(!this.linkedDocsSchemeDisplayed) {
         this.loadingDocsScheme=true;
@@ -3053,7 +3063,7 @@ deleteFile(id:number){
     }
   }
   getEmployeesList(isFree:boolean=true){
-    console.log('getEmployeesList isFree = '+isFree)
+    // console.log('getEmployeesList isFree = '+isFree)
     const body = this.getEmployeesListQueryBody(isFree); 
     this.employeesListLoadQtt=3;  
     this.http.post('/api/auth/getEmployeesList', body) 
@@ -3072,8 +3082,13 @@ deleteFile(id:number){
             this.getBusyEmployeesList('busyByAppointments');
             this.getBusyEmployeesList('busyBySchedule');
           }
-        },error => {this.employeesListLoadQtt=0;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
+        },error => {
+          this.employeesListLoadQtt=0;
+          this.initialLoading=false;
+          console.log(error);
+          this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
   }
+
   getBusyEmployeesList(kindOfNoFree:string){
     const body = this.getEmployeesListQueryBody(false, kindOfNoFree); 
     this.http.post('/api/auth/getEmployeesList', body) 
@@ -3081,9 +3096,18 @@ deleteFile(id:number){
         (data) => {   
           this.receivedEmployeesList.push(...data as Employee[]);
           this.updateEmployeeValues();
-          this.employeesListLoadQtt--;
-        },error => {this.employeesListLoadQtt=0;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
-  }
+          this.employeesListLoadQtt--;  
+          if(this.employeesListLoadQtt==0 && this.initialLoading){
+            //getBusyEmployeesList - is the last function of document initial loading
+            this.initialLoading=false;
+            this.handleEndOfInitialLoading();
+          }
+        },error => {
+          this.employeesListLoadQtt=0;
+          this.initialLoading=false;
+          console.log(error);
+          this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++
+  } 
 
   getEmployeeById(id:number):Employee{
     let result:Employee=null;
@@ -3093,12 +3117,34 @@ deleteFile(id:number){
     return result;
   }
 
+  handleEndOfInitialLoading(){
+    if(this.data){
+      // In the next cases I need to try automatically save and close window 
+      if(['onEventDragged','onEventResized'].includes(this.data.source)){
+        console.log('onEventDragged!!!');
+        if(!this.createUpdateButtonDisabled){
+          console.log('Updating Document');
+          this.updateDocument(false, true);
+        } else {
+          console.log('Emitting expandDialogWindow');
+          this.baseData.emit('expandDialogWindow');
+        }
+          
+          
+      }
+    }
+  }
+
+  onSelectTab(a){
+    // this.selectedTab.setValue(a.index);
+    if(a.index==1) this.canLoadHistoryTableData=true;
+  }
   onDatesTimesChange(){
     // on create or update document times can be updated from ap/mp to 24h and it can be trigger to run this function. oneClickSaveControl can prevent it, because it is true on create or update
     // on data loading dates and times can be changed and it can 
     // isEndDateTimeRecounting - to deny change date/time in the case of changing services table, because it can produce circular queries
     // applyingInitialTimeSettings - to deny triggering of this function on initial setting the time 
-    if(!this.oneClickSaveControl&&!this.isMainDataLoading&&(this.isDatesValid||+this.id>0)&&!this.isEndDateTimeRecounting&&!this.applyingInitialTimeSettings){
+    if(!this.oneClickSaveControl&&!this.initialLoading&&!this.isMainDataLoading&&(this.isDatesValid||+this.id>0)&&!this.isEndDateTimeRecounting&&!this.applyingInitialTimeSettings){
       this.isEndDateTimEditing=true;
       this.documentChanged=true;
       this.getEmployeesList();

@@ -30,12 +30,13 @@ li {list-style: none;}
 .emptyspace{ flex-grow: 1;}
 
 .spinner{
-    position: absolute;
-    top: 300px;
+    position: fixed;
+    top: 50%;
     left: 50%;
     margin-left: -50px;
-    width: 100px!important;
-    height: 100px!important;
+    margin-top: -50px;
+    width: 100px !important;
+    height: 100px !important;
     z-index: 100;
 }
 .example-spacer {

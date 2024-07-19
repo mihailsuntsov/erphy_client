@@ -918,6 +918,10 @@
         "currency":     "Валюта",
         "accounts":     "Расчётный счёт",
         "productattr":  "Атрибут товара",
-        "store":        "Интернет-магазин"
+        "store":        "Интернет-магазин",
+        "appointment":"Запись",
+        "reservation":"Бронирование",
+        "appointments":"Записи",
+        "reservations":"Бронирования"
     }
 }

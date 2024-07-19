@@ -214,9 +214,8 @@ export class CalendarComponent implements OnInit {
       name: ''
     }
   ]
-  
   oldStatusType:number = 1;
-  // selectedEventIdToChangeStatus:number;
+  isUpdatingDraggedOrResizedEvent=false;
   needAgainOfAfterChangeFiltersApiCalls:boolean=false;
   waitingOfAfterChangeFiltersApiCalls:boolean=false;
   isPageReloading:boolean=false; // page refreshing is in process
@@ -606,7 +605,7 @@ export class CalendarComponent implements OnInit {
         })
         // if user has no scedule of its work shifts, but he there is in a list because he has an appointments - need to add to him the break for the full time from the start to the end of data range
         // если у пользователя нет расписания его рабочих смен (перерывов), но он есть в списке, потому что у него есть записи - нужно добавить ему перерыв на все время от начала до конца диапазона данных. 
-        console.log('breaks.length',this.breaks.length)
+        // console.log('breaks.length',this.breaks.length)
         this.users.map(user=>{
           if(this.breaks.find((obj) => obj.user.id === user.id) == undefined)
             this.breaks.push({
@@ -785,31 +784,41 @@ export class CalendarComponent implements OnInit {
   // console(name:string, value:any){
     // console.log(name,value);
   // }
+
   eventTimesChanged({
     event,
     newStart,
     newEnd,
   }: CalendarEventTimesChangedEvent): void {
-    console.log('eventTimesChanged')
     event.start = newStart;
     event.end = newEnd;
     this.events = [...this.events];
   }
-
+  onEventResized({
+    event,
+    newStart,
+    newEnd,
+  }: CalendarEventTimesChangedEvent): void {
+    event.start = newStart;
+    event.end = newEnd;
+    this.events = [...this.events];
+    event.meta.user.jobtitle_id = this.getJobtitleOfEmployee(event.meta.user.id);
+    this.openDialogAppointment(event.id as number, null, 'onEventResized', event);
+  }
   // userChanged({ event, newUser }) {
   //   event.color = newUser.color;
   //   event.meta.user = newUser;
   //   this.events = [...this.events];
   // }
   
-  eventDragged({ newUser, event }) {
-    console.log('eventDragged - ', event);
+  onEventDragged({ newUser, event }) {
+    console.log('onEventDragged - ', event);
     if (newUser && newUser !== event.meta.user) {
       event.meta.user = newUser;
       this.events = [...this.events];
     }
     event.meta.user.jobtitle_id = this.getJobtitleOfEmployee(event.meta.user.id);
-    this.openAppointmentCard(event.id, null, event);
+    this.openDialogAppointment(event.id, null, 'onEventDragged', event);
   }
 
   getJobtitleOfEmployee(employeeId:number){
@@ -949,15 +958,15 @@ export class CalendarComponent implements OnInit {
   }
   onMonthViewEventClick(event: CalendarEvent): void{
     // console.log('event',event);
-    this.openAppointmentCard(event.id as number, null)
+    this.openDialogAppointment(event.id as number, null, 'onMonthViewEventClick')
   }
   onDayAddEventBtnClick(date: Date){
-    this.openAppointmentCard(null, date);
+    this.openDialogAppointment(null, date,'onDayAddEventBtnClick');
   }
-  handleClickedEvent(action: string, event: CalendarEvent): void {
+  onHandleClickedEvent(action: string, event: CalendarEvent): void {
     // console.log('action',action)
     // console.log('event',event)
-    this.openAppointmentCard(event.id as number, null)
+    this.openDialogAppointment(event.id as number, null, 'onHandleClickedEvent')
   }
   closeOpenMonthViewDay() {
     this.activeDayIsOpen = false;
@@ -1205,50 +1214,73 @@ export class CalendarComponent implements OnInit {
 // -------------------------------------------------------------------------------------
 
 
-  openAppointmentCard(docId: number, date: Date, transmittedEvent?:CalendarEvent){
+  openDialogAppointment(docId: number, date: Date, source:string, transmittedEvent?:CalendarEvent){
     // console.log("locale in calendar = ",this.locale);
+    // source:
+    // - onEventDragged
+    // - onEventResized
+    // - onDayAddEventBtnClick
+    // - onHandleClickedEvent
+    // - onMonthViewEventClick
+    // - onDragToCreateEvent  
+    let appointmentDialogSize = '98';
+    if(['onEventDragged','onEventResized'].includes(source)){
+      this.isUpdatingDraggedOrResizedEvent=true;
+      appointmentDialogSize = '0';
+    }
     const dialogRef = this.dialogDocumentCard.open(AppointmentsDocComponent, {
-      maxWidth: '95vw',
-      maxHeight: '95vh',
-      height: '95%',
-      width: '95%',
+      // maxWidth: appointmentDialogSize+'vw',
+      maxHeight: appointmentDialogSize=='0'?'unset':appointmentDialogSize+'vh',
+      height: appointmentDialogSize+'%',
+      width: appointmentDialogSize+'vw',
+      maxWidth: appointmentDialogSize=='0'?'unset':appointmentDialogSize+'vw',
       data:
       { 
-        mode:       'window',
-        companyId:  this.queryForm.get('companyId').value,
-        docId:         docId,
-        calendarViewDayDate:       date,
-        company:    this.getCompanyNameById(this.queryForm.get('companyId').value),
+        mode:                 'window',
+        companyId:            this.queryForm.get('companyId').value,
+        docId:                docId,
+        source:               source,
+        calendarViewDayDate:  date,
+        company:              this.getCompanyNameById(this.queryForm.get('companyId').value),
         booking_doc_name_variation: this.booking_doc_name_variation,
-        locale:     this.locale,
-        jobtitles:            this.receivedJobtitlesList,
+        locale:               this.locale,
+        jobtitles:            this.receivedJobtitlesList, 
         departmentsWithParts: this.receivedDepartmentsWithPartsList,
-        transmittedEvent: transmittedEvent
+        transmittedEvent:     transmittedEvent
       },
     });
     dialogRef.componentInstance.baseData.subscribe((data) => {
       let query=data as string;
       switch (query) {
-      //   case 'myId': {
-      //     dialogRef.componentInstance.myId=this.myId;;
-      //     break;}
-      //   case 'myCompanyId': {
-      //     dialogRef.componentInstance.myCompanyId=this.myCompanyId;
-      //     break;}          
-      //   case 'companiesList': {
-      //     dialogRef.componentInstance.receivedCompaniesList=this.receivedCompaniesList;
-      //     break;}
+        case 'expandDialogWindow':{
+          // States of matDialog:
+          // OPEN = 1
+          // CLOSED = 2,
+          this.isUpdatingDraggedOrResizedEvent=false;
+          console.log('State before closed', dialogRef.getState())
+          console.log('Updating size to 95%');
+          this.getCalendarEventsList();
+          if(dialogRef.getState()!=2)
+            dialogRef.updateSize("98%")
+          break;
+        }
         case 'accountingCurrency':{
           dialogRef.componentInstance.accountingCurrency=this.accountingCurrency;
           break;}
         case 'timeFormat':{
           dialogRef.componentInstance.timeFormat=this.timeFormat;
           break;}
+        case 'documentUpdated':{
+          this.getCalendarEventsList();
+          break;}
       }
     });
     dialogRef.afterClosed().subscribe(result => {
-      // console.log(`Dialog result: ${result}`);
+      this.isUpdatingDraggedOrResizedEvent=false;
       this.getCalendarEventsList();
+      // console.log(`Dialog result: ${result}`);
+      // this.getCalendarEventsList();
+      console.log('State after closed', dialogRef.getState())
       // if(result)
       //   this.addFilesToappointments(result);
     });
@@ -1401,7 +1433,7 @@ export class CalendarComponent implements OnInit {
         if(oneTimeMouseupControl){
           oneTimeMouseupControl=false;
           // console.log('dragToSelectEvent',dragToSelectEvent);
-          this.openAppointmentCard(null, new Date(), dragToSelectEvent)
+          this.openDialogAppointment(null, new Date(), 'onDragToCreateEvent', dragToSelectEvent)
         }
           
         } 

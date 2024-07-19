@@ -919,6 +919,10 @@
         "currency":     "Валута",
         "accounts":     "Банковни рачун",
         "productattr":  "Атрибут производа",
-        "store":        "Онлине продавница"
+        "store":        "Онлине продавница",
+        "appointment":"Састанак",
+        "reservation":"Резервација",
+        "appointments":"Састанке",
+        "reservations":"Резервације"
     }
 }

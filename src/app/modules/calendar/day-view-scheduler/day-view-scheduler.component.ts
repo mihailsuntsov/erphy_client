@@ -15,6 +15,7 @@ import {
 //   addDaysWithExclusions
 // } from 'angular-calendar/modules/common/util/util'
 import {
+  CalendarEventTimesChangedEventType,
   CalendarUtils,
   CalendarWeekViewComponent,
   DateAdapter,
@@ -45,6 +46,14 @@ export interface Break {
 interface DayViewScheduler extends WeekView {
   users: User[];
   hourColumns_: WeekViewHourColumn_[];
+  period: ViewPeriod;
+  allDayEventRows: WeekViewAllDayEventRow[];
+  hourColumns: WeekViewHourColumn[];
+}
+export interface ViewPeriod {
+  start: Date;
+  end: Date;
+  events: CalendarEvent[];
 }
 interface GetWeekViewArgsWithUsers extends GetWeekViewArgs {
   users: User[];
@@ -207,6 +216,7 @@ export class DayViewSchedulerCalendarUtils extends CalendarUtils {
 
     });
     // console.log('main view',this.view)
+    
     return weekView_;
   }
 
@@ -226,7 +236,8 @@ export class DayViewSchedulerComponent
   @Input()  breaks: Break[] = [];
   @Input()  statusesList: StatusInterface[] = [];
   // @Output() userChanged = new EventEmitter();
-  @Output() eventDragged = new EventEmitter();
+  @Output() onEventDragged = new EventEmitter();
+  @Output() onEventResized = new EventEmitter();
   @Output() refreshView = new EventEmitter();
   @Output() userOfCurrentColumn = new EventEmitter();
   @Output() statusClickedToChange = new EventEmitter();
@@ -257,9 +268,39 @@ export class DayViewSchedulerComponent
     }
   }
 
-  // refresh(): void{
-  //   this.refreshView;
-  // }
+  timeEventResizeStarted(eventsContainer, timeEvent, resizeEvent) {
+    this.timeEventResizes.set(timeEvent.event, resizeEvent);
+    this.resizeStarted(eventsContainer, timeEvent);
+  }
+
+  timeEventResizing(timeEvent, resizeEvent) {
+    this.timeEventResizes.set(timeEvent.event, resizeEvent);
+    const adjustedEvents = new Map();
+    const tempEvents = [...this.events];
+    this.timeEventResizes.forEach((lastResizeEvent, event) => {
+        const newEventDates = this.getTimeEventResizedDates(event, lastResizeEvent);
+        const adjustedEvent = { ...event, ...newEventDates };
+        adjustedEvents.set(adjustedEvent, event);
+        const eventIndex = tempEvents.indexOf(event);
+        tempEvents[eventIndex] = adjustedEvent;
+    });
+    this.restoreOriginalEvents(tempEvents, adjustedEvents, true);
+  }
+
+  timeEventResizeEnded(timeEvent) {
+    this.view = this.getWeekView(this.events);
+    const lastResizeEvent = this.timeEventResizes.get(timeEvent.event);
+    if (lastResizeEvent) {
+      this.timeEventResizes.delete(timeEvent.event);
+      const newEventDates = this.getTimeEventResizedDates(timeEvent.event, lastResizeEvent);
+      this.onEventResized.emit({
+          newStart: newEventDates.start,
+          newEnd: newEventDates.end,
+          event: timeEvent.event,
+          type: CalendarEventTimesChangedEventType.Resize,
+      });
+    }
+  }
 
   getDayColumnWidth(eventRowContainer: HTMLElement): number {
     return Math.floor(eventRowContainer.offsetWidth / this.users.length);
@@ -335,10 +376,10 @@ export class DayViewSchedulerComponent
     //   this.userChanged.emit({ event: weekEvent.event, newUser });
     // }
 
-    this.eventDragged.emit({newUser:newUser, event:weekEvent.event});
+    this.onEventDragged.emit({newUser:newUser, event:weekEvent.event});
   }
-
-  protected getWeekView(events: CalendarEvent[]):WeekView {
+ 
+  protected getWeekView(events: CalendarEvent[]):DayViewScheduler {
     // console.log ('Inside super')
     
     return this.utils.getWeekView_({
