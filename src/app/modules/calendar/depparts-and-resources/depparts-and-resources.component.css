@@ -126,6 +126,42 @@
   ::ng-deep button.status-button .mat-mdc-button-touch-target{
     display:none!important;
   }
+  ::ng-deep.mat-mdc-menu-panel {
+    max-width:fit-content !important;
+  }
+  .serviceinfo-card{
+    width:350px;
+    margin-top: -8px;
+    margin-bottom: -8px;
+  }
+  .serviceinfo-card mat-card-title{
+    margin-bottom: 0px !important;
+    position: relative;
+    width: 230px;
+    height: 100px;
+    overflow: hidden;
+  }
+  .serviceinfo-card mat-card-subtitle{
+    position: static; width: 325px;
+  }
+  .serviceinfo-card mat-card-header img{
+    position: absolute;
+    top: 23px;
+    right: 14px;
+  }
+  .serviceinfo-card mat-card-content{
+    font-size: 14px;
+  }
+  ::ng-deep .serviceinfo-card .mat-mdc-card-header-text{
+    width: 0;
+  }
+  .row-striped.even {
+    background-color: #ffffff;
+  }
+  
+  .row-striped.odd {
+    background-color: #efefef;
+  }
   .cal-event-title{
     line-height: 26px;
     cursor: default;

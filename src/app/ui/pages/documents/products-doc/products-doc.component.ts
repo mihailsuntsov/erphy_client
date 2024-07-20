@@ -3025,7 +3025,6 @@ openPrintLabelsDialog(template:TemplatesList){
   });
 }
 // *******************    Quantity by resources    *******************
-// +++
   // list for select part
   getResourcesList(){ 
     return this.http.get('/api/auth/getResourcesList?company_id='+this.formBaseInformation.get('company_id').value)

@@ -45,9 +45,12 @@ import { ResizeEvent } from '../../../../../node_modules/angular-resizable-eleme
 import { WeekViewAllDayEventResize } from 'angular-calendar/modules/week/calendar-week-view/calendar-week-view.component';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatDialog } from '@angular/material/dialog';
+import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component';
 import { translate, TranslocoService } from '@ngneat/transloco';
 import { CalendarView } from '../../../ui/pages/documents/calendar/calendar.component';
 import {StatusInterface} from 'src/app/ui/pages/documents/calendar/calendar.component'
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 interface WeekViewAllDayEvent {
   event: CalendarEvent;
   offset: number;
@@ -121,9 +124,12 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
   eventRowsFilledAtStart = false;
   rollbackEvent:CalendarEvent;
   lastDragEnterDate_: Date;
+  resourceServicesList:any = [];
+  resourceServicesListLoading:boolean = true;
   //                                         "21_59", rows with all events in this department part (21) used this resource (59)
   allDayEventRowsByDeppartsAndResourcesId:Map<string,WeekViewAllDayEventRow[]> = new Map();
 
+  imageToShow:any; // переменная в которую будет подгружаться картинка товара (если он jpg или png)
 
 
   constructor(
@@ -133,8 +139,9 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
     public MessageDialog: MatDialog,
     protected dateAdapter: DateAdapter,
     protected element: ElementRef<HTMLElement>,
-    private service: TranslocoService,
-  ) {
+    public ShowImageDialog: MatDialog,
+    private service: TranslocoService,  
+    private http: HttpClient,) {
     super(cdr, utils, locale, dateAdapter, element);
   }
 
@@ -206,7 +213,9 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
     index: number,
     weekEvent: WeekViewAllDayEvent
   ) => (weekEvent.event.id ? weekEvent.event.id : weekEvent.event);
-
+  trackByService(index){
+    return index;
+  }
 
 
   getPixelAmountInMinutes(
@@ -1182,4 +1191,25 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
   //       (!dropEvent.dropData.event.allDay && allDay))
   //   );
   // }
+
+  getResourceServicesList(resourceId:number){
+    this.resourceServicesListLoading = true;
+    this.resourceServicesList = [];
+    this.http.get('/api/auth/getResourceServicesList?resource_id='+resourceId).subscribe(
+        (data) => {
+          this.resourceServicesList = data as any;
+          this.resourceServicesListLoading = false;
+          this.refreshView.emit();
+        },
+        error => {this.resourceServicesListLoading = false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+    );
+  }
+  showImage(name:string){
+      const dialogRef = this.ShowImageDialog.open(ShowImageDialog, {
+        data:
+        { 
+          link: name,
+        },
+      });}
+      
 }

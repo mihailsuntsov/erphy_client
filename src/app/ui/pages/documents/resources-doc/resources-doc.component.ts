@@ -424,7 +424,7 @@ export class ResourcesDocComponent implements OnInit {
   trackByIndex(i: any) { return i; }
   clearTable(): void {
     const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
-      width: '400px',data:{head: translate('docs.msg.prod_list_cln'),warning: translate('docs.msg.prod_list_qry'),query: ''},});
+      width: '400px',data:{head: translate('docs.msg.cln_table'),warning: translate('docs.msg.cln_table_qry'),query: ''},});
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
         this.getControlTablefield().clear();

@@ -40,11 +40,21 @@ export class DepartmentPartsComponent implements OnInit {
 
   actionType: string;
   formBaseInformation:any;//форма для основной информации, содержащейся в документе
-  formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
+  // formAboutDocument:any;//форма, содержащая информацию о документе (создатель/владелец/изменён кем/когда)
   gettingTableData: boolean = false;//идет загрузка данных
   displayedColumns:string[] = [];//отображаемые колонки таблицы
   editability:boolean = false;//редактируемость. true если есть право на создание и документ содается, или есть право на редактирование и документ создан
   companyId: number=null;
+
+  // Resources variables +++
+  resourcesList : any [] = []; //массив для получения всех статусов текущего документа
+  gettingResourcesTableData: boolean = false;//идет загрузка списка ресурсов
+  resource_row_id:number=0;
+  formResourceSearch:any;// форма для выбора ресурса и последующего формирования строки таблицы
+  showResourceSearchFormFields:boolean = false;
+  showSearchFormFields:boolean = false;
+  displayedResourcesColumns: string[]=[];//массив отображаемых столбцов таблицы с ресурсами
+
 
   constructor(
     public  departmentPartsDialog: MatDialogRef<DepartmentPartsComponent>,
@@ -72,18 +82,27 @@ export class DepartmentPartsComponent implements OnInit {
       is_active:        new UntypedFormControl(this.data.is_active,[]),
       department_id:    new UntypedFormControl(+this.data.department_id,[]),
       menu_order:       new UntypedFormControl(+this.data.menu_order,[]),
-      deppartProducts:  new UntypedFormArray([]),
+      deppartProducts:  new UntypedFormArray([]),      
+      deppartResourcesTable: new UntypedFormArray([]),//массив с формами ресурсов
     }); 
-    this.formAboutDocument = new UntypedFormGroup({
-      id: new UntypedFormControl      ('',[]),
-      master: new UntypedFormControl      ('',[]),
-      creator: new UntypedFormControl      ('',[]),
-      changer: new UntypedFormControl      ('',[]),
-      company: new UntypedFormControl      ('',[]),
-      date_time_created: new UntypedFormControl      ('',[]),
-      date_time_changed: new UntypedFormControl      ('',[]),
-    });
+    // this.formAboutDocument = new UntypedFormGroup({
+    //   id: new UntypedFormControl      ('',[]),
+    //   master: new UntypedFormControl      ('',[]),
+    //   creator: new UntypedFormControl      ('',[]),
+    //   changer: new UntypedFormControl      ('',[]),
+    //   company: new UntypedFormControl      ('',[]),
+    //   date_time_created: new UntypedFormControl      ('',[]),
+    //   date_time_changed: new UntypedFormControl      ('',[]),
+    // });
     
+    this.formResourceSearch = new UntypedFormGroup({
+      resource_id: new UntypedFormControl ('' ,[Validators.required]),      
+      name: new UntypedFormControl ('' ,[Validators.required]),
+      resource_qtt: new UntypedFormControl (0 ,[Validators.required,Validators.pattern('^[0-9]{1,5}$'),Validators.maxLength(5),Validators.minLength(1)]),
+      // description: new UntypedFormControl ('' ,[]),      
+    });
+
+    this.getResourcesList();
     this.refreshTableColumns();
     this.getData();
   }
@@ -106,13 +125,14 @@ export class DepartmentPartsComponent implements OnInit {
                   this.formBaseInformation.get('is_active').setValue(documentValues.is_active);
                   this.formBaseInformation.get('name').setValue(documentValues.name);
                   this.formBaseInformation.get('description').setValue(documentValues.description);
-                  this.formAboutDocument.get('master').setValue(documentValues.master);
-                  this.formAboutDocument.get('creator').setValue(documentValues.creator);
-                  this.formAboutDocument.get('changer').setValue(documentValues.changer);
-                  this.formAboutDocument.get('company').setValue(documentValues.company);
-                  this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
-                  this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
+                  // this.formAboutDocument.get('master').setValue(documentValues.master);
+                  // this.formAboutDocument.get('creator').setValue(documentValues.creator);
+                  // this.formAboutDocument.get('changer').setValue(documentValues.changer);
+                  // this.formAboutDocument.get('company').setValue(documentValues.company);
+                  // this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
+                  // this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);
                   this.fillProductsListFromApiResponse(documentValues.deppartProducts);
+                  this.fillResourcesObjectListFromApiResponse(documentValues.deppartResourcesTable);
                 } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
@@ -123,24 +143,25 @@ export class DepartmentPartsComponent implements OnInit {
     this.http.post('/api/auth/insertDepartmentPart', this.formBaseInformation.value)
     .subscribe(
         (data) => {   
-                  this.data.categoryId=data as number;
+                  let result = data as number;
 
-                  switch(this.data.categoryId){
+                  switch(result){
                     case null:{// null возвращает если не удалось создать документ из-за ошибки
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.crte_doc_err',{name:''})}});
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.crte_doc_err',{name:translate('docs.field.dep_part')})}});
                       break;
                     }
                     case -1:{//недостаточно прав
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm_creat',{name:''})}});
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm_creat',{name:translate('docs.field.dep_part')})}});
                       break;
                     }
                     default:{// Документ успешно создался в БД 
                       this.openSnackBar(translate('docs.msg.doc_crtd_suc'), translate('modules.button.close'));
                       // this.departmentPartsDialog.close(this.data.categoryId);
+                      this.formBaseInformation.get('id').setValue(result);
                       this.getData();
                     }
                   }
-                 
+                 this.showSearchFormFields=false;
                 },
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'), message:error.error}});},
     );
@@ -154,11 +175,11 @@ export class DepartmentPartsComponent implements OnInit {
 
                   switch(this.data.categoryId){
                     case null:{// null возвращает если не удалось создать документ из-за ошибки
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.crte_doc_err',{name:''})}});
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.crte_doc_err',{name:translate('docs.field.dep_part')})}});
                       break;
                     }
                     case -1:{//недостаточно прав
-                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm_creat',{name:''})}});
+                      this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.ne_perm_creat',{name:translate('docs.field.dep_part')})}});
                       break;
                     }
                     default:{// Документ успешно создался в БД 
@@ -167,7 +188,7 @@ export class DepartmentPartsComponent implements OnInit {
                       // this.departmentPartsDialog.close(this.data.categoryId);
                     }
                   }
-                 
+                  this.showSearchFormFields=false;                 
                 },
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'), message:error.error}});},
     );
@@ -193,12 +214,12 @@ export class DepartmentPartsComponent implements OnInit {
     if(productsArray.length>0){
       const control = <UntypedFormArray>this.formBaseInformation.get('deppartProducts');
       productsArray.forEach(row=>{
-        control.push(this.formingProductResourceRow(row));            
+        control.push(this.formingResourceRow(row));            
       });
     }
   }
   
-  formingProductResourceRow(row: DeppartProducts) {
+  formingResourceRow(row: DeppartProducts) {
     return this._fb.group({
       id:  new UntypedFormControl (row.id,[]),
       name: new UntypedFormControl (row.name,[]),
@@ -283,7 +304,7 @@ export class DepartmentPartsComponent implements OnInit {
   trackByIndex(i: any) { return i; }
   clearTable(): void {
     const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
-      width: '400px',data:{head: translate('docs.msg.deleting'),warning: translate('docs.msg.delete_all_rows'),query: ''},});
+      width: '400px',data:{head: translate('docs.msg.cln_table'),warning: translate('docs.msg.cln_table_qry'),query: ''},});
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
         this.getControl('deppartProducts').clear();
@@ -323,7 +344,6 @@ export class DepartmentPartsComponent implements OnInit {
   sortBy(FieldName: string) {
     console.log(this.myItems.value, FieldName);
     this.myItems.setValue(this.myItems.value.sort((a, b) => {
-      // alert(a[FieldName]+', '+b[FieldName])
       const nameA = a[FieldName].toUpperCase(); // ignore upper and lowercase
       const nameB = b[FieldName].toUpperCase(); // ignore upper and lowercase
       if (nameA < nameB) {
@@ -338,5 +358,126 @@ export class DepartmentPartsComponent implements OnInit {
   }
   get myItems(): UntypedFormArray {
     return this.formBaseInformation.get('deppartProducts') as UntypedFormArray;
+  }
+
+  // *******************    Quantity by resources    *******************
+  // list for select part
+  getResourcesList(){ 
+    return this.http.get('/api/auth/getResourcesList?company_id='+this.data.companyId)
+      .subscribe(
+          (data) => {   
+                      this.resourcesList=data as any [];
+      },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //
+      );
+  }
+
+  formResourceTableColumns(){
+    this.displayedResourcesColumns=[];
+    // if(this.editability)
+        // this.displayedResourcesColumns.push('select');
+    this.displayedResourcesColumns.push('name','resource_qtt');
+    if(this.editability && this.showSearchFormFields)
+      this.displayedResourcesColumns.push('delete');
+  }
+
+  clearResourcesTable(): void {
+    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+      width: '400px',data:{head: translate('docs.msg.cln_table'),warning: translate('docs.msg.cln_table_qry'),query: ''},});
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){
+        this.getControl('deppartResourcesTable').clear();
+        // this.formBaseInformation.get('deppartResourcesTable').clear();
+      }});  
+  }
+  refreshRresourceTableColumns(){
+    this.displayedResourcesColumns=[];
+    setTimeout(() => { 
+      this.formResourceTableColumns();
+    }, 1);
+  }
+
+  deleteResourceRow(row: any,index:number) {
+    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {  
+      width: '400px',
+      data:
+      { 
+        head: translate('docs.msg.del_prod_item'),
+        warning: translate('docs.msg.del_prod_quer',{name:row.name})+'?',
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){
+        const control = <UntypedFormArray>this.formBaseInformation.get('deppartResourcesTable');
+          control.removeAt(index);
+          this.refreshRresourceTableColumns();//чтобы глючные input-поля в таблице встали на свои места. Это у Ангуляра такой прикол
+      }
+    }); 
+  }
+
+  addResourceRow() 
+  { 
+    let thereSamePart:boolean=false;
+    this.formBaseInformation.value.deppartResourcesTable.map(i => 
+    { // Cписок не должен содержать одинаковые ресурсы. Тут проверяем на это
+      // Table shouldn't contain the same resources. Here is checking about it
+      if(+i['resource_id']==this.formResourceSearch.get('resource_id').value)
+      {
+        this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('modules.msg.record_in_list'),}});
+        thereSamePart=true; 
+      }
+    });
+    if(!thereSamePart){
+      const control = <UntypedFormArray>this.formBaseInformation.get('deppartResourcesTable');
+      control.push(this.formingResourceRowFromSearchForm());
+    }
+     this.resetFormResourceSearch();//подготовка формы поиска к дальнейшему вводу товара
+  }
+  //формирование строки таблицы с ресурсами, необходимыми для оказания услуги
+  formingResourceRowFromSearchForm() {
+    return this._fb.group({
+      resource_id: new UntypedFormControl (this.formResourceSearch.get('resource_id').value,[]),
+      row_id: [this.getResourceRowId()],
+      name:  new UntypedFormControl (this.formResourceSearch.get('name').value,[]),
+      resource_qtt: new UntypedFormControl (+this.formResourceSearch.get('resource_qtt').value,[Validators.required,Validators.pattern('^[0-9]{1,5}$'),Validators.maxLength(5),Validators.minLength(1)]),
+    });
+  }
+
+  fillResourcesObjectListFromApiResponse(resourcesArray:any[]){
+    this.getControl('deppartResourcesTable').clear();
+    if(resourcesArray.length>0){
+      const control = <UntypedFormArray>this.formBaseInformation.get('deppartResourcesTable');
+      resourcesArray.forEach(row=>{
+        control.push(this.formingDeppartResourceRow(row));            
+      });
+    }
+    this.refreshRresourceTableColumns();
+  }
+  
+  formingDeppartResourceRow(row: any) {
+    return this._fb.group({
+      row_id: [this.getResourceRowId()],// row_id нужен для идентифицирования строк у которых нет id (например из только что создали и не сохранили)
+      resource_id: new UntypedFormControl (row.resource_id,[]),
+      name: new UntypedFormControl (row.name,[]),
+      resource_qtt: new UntypedFormControl (+row.resource_qtt,[Validators.required,Validators.pattern('^[0-9]{1,5}$'),Validators.maxLength(5),Validators.minLength(1)]),
+      description: new UntypedFormControl (row.description,[]),      
+    });
+  }
+  resetFormResourceSearch(){
+    this.formResourceSearch.get('resource_id').setValue('0');
+    this.formResourceSearch.get('resource_qtt').setValue('0');
+    this.formResourceSearch.get('name').setValue('');
+  }
+  getResourcesRowId():number{
+    let current_resource_row_id:number=this.resource_row_id;
+    this.resource_row_id++;
+    return current_resource_row_id;
+  }
+  isInteger (i:number):boolean{return Number.isInteger(i)}
+  parseFloat(i:string){return parseFloat(i)}
+  getResourceRowId():number{
+    let current_row_id:number=this.resource_row_id;
+    this.resource_row_id++;
+    return current_row_id;
   }
 } 

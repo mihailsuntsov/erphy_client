@@ -5,7 +5,7 @@ import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 // поэтому в конструкторе мы можем получить его.
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
-import { Validators, UntypedFormGroup, UntypedFormControl} from '@angular/forms';
+import { Validators, UntypedFormGroup, UntypedFormControl, UntypedFormArray} from '@angular/forms';
 import { Router } from '@angular/router';
 import {HttpClient} from '@angular/common/http';
 import {MatSnackBar} from '@angular/material/snack-bar';
@@ -127,6 +127,7 @@ export class DepartmentsDocComponent implements OnInit {
       boxoffice_id: new UntypedFormControl             ('',[]), // касса предприятия, к которой относится отделение
       payment_account_id: new UntypedFormControl       ('',[]), // расч. счёт по умолчанию
       parts:  new UntypedFormControl                   ([],[]),//массив с частями отделения
+
     });
     this.formAboutDocument = new UntypedFormGroup({
       id: new UntypedFormControl                       ('',[]),
@@ -438,7 +439,7 @@ export class DepartmentsDocComponent implements OnInit {
     moveItemInArray(this.receivedPartsList, event.previousIndex, event.currentIndex);
   }
 
-  clickBtnAddPart(): void {
+  clickBtnAddPart(): void { 
     const dialogRef = this.departmentPartsDialog.open(DepartmentPartsComponent, {
       maxWidth: '95vw',
       maxHeight: '95vh',
@@ -455,6 +456,9 @@ export class DepartmentsDocComponent implements OnInit {
         partId:'',
         is_active:true,
         partDescription:'',
+        allowToCreate:this.allowToCreate,
+        allowToUpdate:this.allowToUpdate,
+
       },
     });
     dialogRef.afterClosed().subscribe(result => {
@@ -479,6 +483,8 @@ export class DepartmentsDocComponent implements OnInit {
         partId:part.id,
         is_active:part.is_active,
         partDescription:part.description,
+        allowToCreate:this.allowToCreate,
+        allowToUpdate:this.allowToUpdate,
       },
     });
     dialogRef.afterClosed().subscribe(result => {

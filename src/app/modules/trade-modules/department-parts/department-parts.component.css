@@ -33,7 +33,12 @@ table {width: 100%;}
     list-style: none;
     border-radius: .25rem;
 }
-
+.center{
+    text-align: center;
+}
+.mat-form-field-100{
+    width:100%
+}
 .active{
     color:rgb(27, 27, 27);
 }

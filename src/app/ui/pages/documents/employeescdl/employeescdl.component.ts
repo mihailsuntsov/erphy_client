@@ -693,7 +693,7 @@ export class EmployeeScdlComponent implements OnInit {
   clearTable(): void {
     const control = this.getControlTablefield();
     const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
-      width: '400px',data:{head: translate('menu.dialogs.deleting'),warning: translate('docs.msg.delete_all_rows'),query: ''},});
+      width: '400px',data:{head: translate('docs.msg.cln_table'),warning: translate('docs.msg.cln_table_qry'),query: ''},});
     dialogRef.afterClosed().subscribe(result => {
       if(result==1){
         control.clear();
