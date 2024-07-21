@@ -64,7 +64,8 @@
         "str_ordr_done":"Your online store is ready!",
         "ready":"Ready",
         "resource_parts_qtt":"Quantity of resource in parts of departments",
-        "clients":"Сustomers"
+        "clients":"Сustomers",
+        "scdl_constr":"Quick fill"
     },
     "field":{ 
         "-- COMMON":"--",
@@ -382,7 +383,10 @@
         "cal_resrcs_scr_scal":"Resource scale",
         "tm_range":"Working day",
         "tm_step":"Working day step, minutes",
-        "displ_cancl":"Display cancelled"
+        "displ_cancl":"Display cancelled",
+        "amount":"Amount",
+        "step":"Step",
+        "presets":"Presets"
     },
     "error":{ 
         "-- COMMON":"--",
@@ -877,7 +881,11 @@
         "appointment":"Appointment",
         "reservation":"Reservation",
         "appointments":"Appointments",
-        "reservations":"Reservations"
+        "reservations":"Reservations",
+        "each_day":"Every day",
+        "two_two":"2 days in 2 days",
+        "three_one":"3 days in 1 day",
+        "one_pweek":"Once a week"        
 
     },
     "docs":{            
@@ -886,7 +894,6 @@
         "department":   "Department",
         "company":      "Company",
         "file":         "File",
-        "productgroup": "Product group",
         "unit":         "Unit",       
         "boxoffice":    "Cash room",
         "cparty":       "Counterparty",

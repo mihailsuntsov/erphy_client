@@ -263,14 +263,6 @@ class="spinner"
                                                     </span>
                                                     <td mat-cell *matCellDef="let row"> {{row.article}} </td>
                                                 </ng-container>
-                                                <ng-container matColumnDef="productgroup">
-                                                    <th mat-header-cell *matHeaderCellDef>
-                                                    <span (click)="setSort('productgroup')" class="sortheader">{{t('menu.table.group')}} 
-                                                        <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='productgroup'" class="material-icons sortarrow">arrow_upward</i>
-                                                        <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='productgroup'" class="material-icons sortarrow">arrow_downward</i>
-                                                    </span>
-                                                    <td mat-cell *matCellDef="let row"> {{row.productgroup}} </td>
-                                                </ng-container>
                                                 <ng-container matColumnDef="not_buy">
                                                     <th mat-header-cell *matHeaderCellDef>
                                                     <span (click)="setSort('not_buy')" class="sortheader"> {{t('menu.table.purchase')}}  

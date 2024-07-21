@@ -399,7 +399,7 @@ doFilterDepartmentsList(){
     this.displayedColumns.push('name');
     this.displayedColumns.push('description');
     this.displayedColumns.push('article');
-    this.displayedColumns.push('productgroup');
+    // this.displayedColumns.push('productgroup');
     this.checkedOptionsList.some(function(e){return(e==3)})?null:this.displayedColumns.push('not_buy');
     this.checkedOptionsList.some(function(e){return(e==4)})?null:this.displayedColumns.push('not_sell');
     this.displayedColumns.push('quantity');

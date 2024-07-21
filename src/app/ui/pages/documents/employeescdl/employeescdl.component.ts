@@ -16,6 +16,7 @@ import { PaymentSelectComponent } from '../../../../modules/payment-select/payme
 import { MomentDefault } from 'src/app/services/moment-default';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+import { FastSceduleComponent } from './fastscedule.component';
 const MY_FORMATS = MomentDefault.getMomentFormat();
 import { LOCALE_ID, Inject } from '@angular/core';
 // import moment from 'moment';
@@ -153,7 +154,8 @@ export class EmployeeScdlComponent implements OnInit {
     private MessageDialog: MatDialog,
     public confirmDialog: MatDialog,
     private http: HttpClient,
-    public ConfirmDialog: MatDialog,
+    public ConfirmDialog: MatDialog, 
+    private fastSceduleComponent: MatDialog,
     public deleteDialog: MatDialog,
     public cu: CommonUtilitesService,
     private _fb: UntypedFormBuilder, //чтобы билдить группу форм myForm: FormBuilder, //для билдинга групп форм по контактным лицам и банковским реквизитам
@@ -1029,11 +1031,11 @@ export class EmployeeScdlComponent implements OnInit {
   getDayType(row_index:number, col_index:number):string{
     let result = 'undefined';
     const sceduleDay: SceduleDay = this.scheduleData[row_index].days[col_index];
-    if(sceduleDay.workshift && sceduleDay.vacation)
+    if(sceduleDay && sceduleDay.workshift && sceduleDay.vacation)
       result = 'both';
-    if(sceduleDay.workshift && !sceduleDay.vacation)
+    if(sceduleDay && sceduleDay.workshift && !sceduleDay.vacation)
       result = 'workshift';
-    if(!sceduleDay.workshift && sceduleDay.vacation)
+    if(sceduleDay &&  !sceduleDay.workshift && sceduleDay.vacation)
       result = 'vacation';
     return result;
   }
@@ -1293,5 +1295,31 @@ export class EmployeeScdlComponent implements OnInit {
     for (var i = 0; i < this.colorsDataBase.length; i++) {
       this.colors.push(this.colorsDataBase[Math.floor(Math.random()*this.colorsDataBase.length)])
     }
+  }
+
+  // display "Fast create scedule" only if in the right side of the day there is no at least 1 workshift
+  displayFastSceduleIcon(row_index:number,col_index:number):boolean{
+    return (!this.scheduleData[row_index].days[col_index+(col_index+1>this.scheduleData[row_index].days.length?(+1):(+0))].workshift)
+  }
+
+  createFastScedule(row_index:number,col_index:number) {
+    const dialogFastDcedule = this.fastSceduleComponent.open(FastSceduleComponent, {
+      width:  '400px', 
+      //height: '500px',
+      data:
+      { 
+        
+      },
+    });
+    dialogFastDcedule.afterClosed().subscribe(result => {
+      // console.log(`Dialog result: ${result}`);
+      if(result){
+        console.log('amount:', result.amount);
+        console.log('row_index:', row_index);
+        console.log('col_index:', col_index);
+      }
+
+
+    });
   }
 }

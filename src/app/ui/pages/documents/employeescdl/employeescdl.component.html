@@ -3,7 +3,7 @@
         <mat-card-title class="top-bar container-fluid" style="height: 30px;">
             <div class="row" id="topBlock">
                 <div class="card-name">
-                    {{cu.cap(t('menu.docs.employeescdl'))}}
+                    {{cu.cap(t('menu.docs.employeescdl'))}} 
                 </div>
                 <div class="separator"></div>
                 <button 
@@ -807,12 +807,20 @@
                                                                         matRipple
                                                                         [style]="'text-align:center;display: table;position: relative; width:100%; height: '+(getDayType(i,col_index)=='workshift'?'140px;':'70px;')+' background-color:lightblue'"
                                                                         (click)="onDayClick(i,col_index,'workshift')">
+                                                                    <mat-icon       class="table-cell-icon"  
+                                                                                    style="right: 15px;"
+                                                                                    (click)="createFastScedule(i,col_index)" 
+                                                                                    matTooltip="{{t('docs.card.scdl_constr')}}"
+                                                                                    *ngIf="editability && getDayType(i,col_index+1)!='workshift' && col_index+2<scheduleData[i].days.length">
+                                                                                    bolt 
+                                                                    </mat-icon>
                                                                     <mat-icon       class="table-cell-icon"
                                                                                     (click)="deleteRecord(i,col_index,'workshift')" 
                                                                                     matTooltip="{{t('menu.top.btn_delete')}}"
                                                                                     *ngIf=(editability)>
                                                                             close
                                                                     </mat-icon>
+                                                                    <!-- -{{scheduleData[i].days[col_index+(col_index+1>scheduleData[i].days.length?(+1):(+0))].workshift}}- -->
                                                                     <span style="display: table-cell; vertical-align: middle;">{{getDayData(i,col_index,'workshift')}}</span>
                                                                 </div>
                                                                 <div    *ngIf="getDayType(i,col_index)=='vacation' || getDayType(i,col_index)=='both'" 
@@ -820,11 +828,12 @@
                                                                         matRipple
                                                                         [style]="'text-align:center;display: table;position: relative; width:100%; height: '+(getDayType(i,col_index)=='vacation'?'140px;':'70px;')+' background-color:antiquewhite'"
                                                                         (click)="onDayClick(i,col_index,'vacation')">
+                                                                        
                                                                     <mat-icon       class="table-cell-icon"  
                                                                                     (click)="deleteRecord(i,col_index,'vacation')" 
                                                                                     matTooltip="{{t('menu.top.btn_delete')}}"
                                                                                     *ngIf=(editability)>
-                                                                            close
+                                                                                    close
                                                                     </mat-icon>
                                                                     <span style="display: table-cell; vertical-align: middle;">{{getDayData(i,col_index,'vacation')}}</span>
                                                                 </div>                             

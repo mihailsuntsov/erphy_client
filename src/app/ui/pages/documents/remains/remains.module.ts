@@ -20,6 +20,6 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
     FormsModule, 
     TranslocoModule,
     ReactiveFormsModule
-  ]
+  ] 
 })
 export class RemainsModule { }
